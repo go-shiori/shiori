@@ -1,0 +1,7 @@
+# Exclude config file
+.vscode/
+*.toml
+
+# Exclude generated file
+shiori*
+*.db
