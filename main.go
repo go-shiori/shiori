@@ -1,11 +1,17 @@
 package main
 
-import "fmt"
+import (
+	"github.com/RadhiFadlillah/shiori/cmd"
+	db "github.com/RadhiFadlillah/shiori/database"
+	_ "github.com/mattn/go-sqlite3"
+)
 
 func main() {
-	fmt.Println("Hello world")
-	_, err := openDatabase()
+	sqliteDB, err := db.OpenSQLiteDatabase()
 	checkError(err)
+
+	cmd.DB = sqliteDB
+	cmd.Execute()
 }
 
 func checkError(err error) {
