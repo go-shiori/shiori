@@ -1,20 +1,20 @@
 package model
 
 type Tag struct {
-	ID   int64  `db:"id"`
-	Name string `db:"name"`
+	ID   int64  `db:"id"   json:"id"`
+	Name string `db:"name" json:"name"`
 }
 
 type Bookmark struct {
-	ID          int64  `db:"id"`
-	URL         string `db:"url"`
-	Title       string `db:"title"`
-	ImageURL    string `db:"image_url"`
-	Excerpt     string `db:"excerpt"`
-	Author      string `db:"author"`
-	Language    string `db:"language"`
-	MinReadTime int    `db:"min_read_time"`
-	MaxReadTime int    `db:"max_read_time"`
-	Modified    string `db:"modified"`
-	Tags        []Tag
+	ID          int64  `db:"id"            json:"id"`
+	URL         string `db:"url"           json:"url"`
+	Title       string `db:"title"         json:"title"`
+	ImageURL    string `db:"image_url"     json:"imageURL"`
+	Excerpt     string `db:"excerpt"       json:"excerpt"`
+	Author      string `db:"author"        json:"author"`
+	Language    string `db:"language"      json:"-"`
+	MinReadTime int    `db:"min_read_time" json:"minReadTime"`
+	MaxReadTime int    `db:"max_read_time" json:"maxReadTime"`
+	Modified    string `db:"modified"      json:"modified"`
+	Tags        []Tag  `json:"tags"`
 }
