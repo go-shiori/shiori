@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/sql"
+	"fmt"
 	"github.com/RadhiFadlillah/go-readability"
 	"github.com/RadhiFadlillah/shiori/model"
 	"github.com/jmoiron/sqlx"
@@ -187,37 +188,38 @@ func (db *SQLiteDatabase) GetBookmarks(indices ...string) ([]model.Bookmark, err
 	query := `SELECT id, 
 		url, title, image_url, excerpt, author, 
 		language, min_read_time, max_read_time, modified
-		FROM bookmark `
+		FROM bookmark`
 	args := []interface{}{}
+
+	if len(indices) == 0 {
+		query += " WHERE 1"
+	} else {
+		query += " WHERE 0"
+	}
 
 	// Add where clause
 	for _, strIndex := range indices {
-		clause := "WHERE"
-		if strings.Contains(query, "WHERE") {
-			clause = "OR"
-		}
-
 		if strings.Contains(strIndex, "-") {
 			parts := strings.Split(strIndex, "-")
-			if len(parts) > 2 {
-				continue
+			if len(parts) != 2 {
+				return nil, fmt.Errorf("Index is not valid")
 			}
 
 			minIndex, errMin := strconv.Atoi(parts[0])
 			maxIndex, errMax := strconv.Atoi(parts[1])
 			if errMin != nil || errMax != nil {
-				continue
+				return nil, fmt.Errorf("Index is not valid")
 			}
 
-			query += clause + ` (id BETWEEN ? AND ?) `
+			query += ` OR (id BETWEEN ? AND ?)`
 			args = append(args, minIndex, maxIndex)
 		} else {
 			index, err := strconv.Atoi(strIndex)
 			if err != nil {
-				continue
+				return nil, fmt.Errorf("Index is not valid")
 			}
 
-			query += clause + ` id = ? `
+			query += ` OR id = ?`
 			args = append(args, index)
 		}
 	}
