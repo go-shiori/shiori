@@ -28,7 +28,12 @@ var (
 			}
 
 			if len(bookmarks) == 0 {
-				cError.Println("No matching index found")
+				if len(args) > 0 {
+					cError.Println("No matching index found")
+				} else {
+					cError.Println("No saved bookmarks yet")
+				}
+
 				os.Exit(1)
 			}
 
@@ -63,11 +68,15 @@ func printBookmark(bookmarks ...model.Bookmark) {
 		cTitle.Print(bookmark.Title)
 
 		// Print read time
-		readTime := fmt.Sprintf(" (%d-%d minutes)", bookmark.MinReadTime, bookmark.MaxReadTime)
-		if bookmark.MinReadTime == bookmark.MaxReadTime {
-			readTime = fmt.Sprintf(" (%d minutes)", bookmark.MinReadTime)
+		if bookmark.MinReadTime > 0 {
+			readTime := fmt.Sprintf(" (%d-%d minutes)", bookmark.MinReadTime, bookmark.MaxReadTime)
+			if bookmark.MinReadTime == bookmark.MaxReadTime {
+				readTime = fmt.Sprintf(" (%d minutes)", bookmark.MinReadTime)
+			}
+			cReadTime.Println(readTime)
+		} else {
+			fmt.Println()
 		}
-		cReadTime.Println(readTime)
 
 		// Print bookmark URL
 		cSymbol.Print(strSpace + "> ")
