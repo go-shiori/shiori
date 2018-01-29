@@ -7,6 +7,7 @@ import (
 	"github.com/RadhiFadlillah/shiori/model"
 	"github.com/jmoiron/sqlx"
 	"log"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -251,4 +252,125 @@ func (db *SQLiteDatabase) GetBookmarks(indices ...string) ([]model.Bookmark, err
 	}
 
 	return bookmarks, nil
+}
+
+func (db *SQLiteDatabase) DeleteBookmarks(indices ...string) (oldIndices, newIndices []int, err error) {
+	// Convert list of index to int
+	listIndex := []int{}
+	errInvalidIndex := fmt.Errorf("Index is not valid")
+
+	for _, strIndex := range indices {
+		if strings.Contains(strIndex, "-") {
+			parts := strings.Split(strIndex, "-")
+			if len(parts) != 2 {
+				return nil, nil, errInvalidIndex
+			}
+
+			minIndex, errMin := strconv.Atoi(parts[0])
+			maxIndex, errMax := strconv.Atoi(parts[1])
+			if errMin != nil || errMax != nil || minIndex < 1 || minIndex > maxIndex {
+				return nil, nil, errInvalidIndex
+			}
+
+			for i := minIndex; i <= maxIndex; i++ {
+				listIndex = append(listIndex, i)
+			}
+		} else {
+			index, err := strconv.Atoi(strIndex)
+			if err != nil || index < 1 {
+				return nil, nil, errInvalidIndex
+			}
+
+			listIndex = append(listIndex, index)
+		}
+	}
+
+	// Sort the index
+	sort.Ints(listIndex)
+
+	// Create args and where clause
+	args := []interface{}{}
+	whereClause := " WHERE 1"
+
+	if len(listIndex) > 0 {
+		whereClause = " WHERE id IN ("
+		for _, idx := range listIndex {
+			args = append(args, idx)
+			whereClause += fmt.Sprintf("%d,", idx)
+		}
+
+		whereClause = whereClause[:len(whereClause)-1]
+		whereClause += ")"
+	}
+
+	// Begin transaction
+	tx, err := db.Beginx()
+	if err != nil {
+		return nil, nil, errInvalidIndex
+	}
+
+	// Make sure to rollback if panic ever happened
+	defer func() {
+		if r := recover(); r != nil {
+			panicErr, _ := r.(error)
+			tx.Rollback()
+
+			oldIndices = nil
+			newIndices = nil
+			err = panicErr
+		}
+	}()
+
+	// Delete bookmarks
+	res, err := tx.Exec("DELETE FROM bookmark "+whereClause, args...)
+	checkError(err)
+
+	nAffected, err := res.RowsAffected()
+	checkError(err)
+
+	whereTagClause := strings.Replace(whereClause, "id", "bookmark_id", 1)
+	_, err = tx.Exec("DELETE FROM bookmark_tag "+whereTagClause, args...)
+	checkError(err)
+
+	whereContentClause := strings.Replace(whereClause, "id", "docid", 1)
+	_, err = tx.Exec("DELETE FROM bookmark_content "+whereContentClause, args...)
+	checkError(err)
+
+	// Get largest index
+	oldIndices = []int{}
+	err = tx.Select(&oldIndices, "SELECT id FROM bookmark ORDER BY id DESC LIMIT ?", nAffected)
+	if err != nil && err != sql.ErrNoRows {
+		panic(err)
+	}
+	sort.Ints(oldIndices)
+
+	// Update index
+	newIndices = listIndex[:len(oldIndices)]
+	stmtUpdateBookmark, err := tx.Preparex(`UPDATE bookmark SET id = ? WHERE id = ?`)
+	checkError(err)
+
+	stmtUpdateBookmarkTag, err := tx.Preparex(`UPDATE bookmark_tag SET bookmark_id = ? WHERE bookmark_id = ?`)
+	checkError(err)
+
+	stmtUpdateBookmarkContent, err := tx.Preparex(`UPDATE bookmark_content SET docid = ? WHERE docid = ?`)
+	checkError(err)
+
+	for i, oldIndex := range oldIndices {
+		newIndex := newIndices[i]
+
+		_, err = stmtUpdateBookmark.Exec(newIndex, oldIndex)
+		checkError(err)
+
+		_, err = stmtUpdateBookmarkTag.Exec(newIndex, oldIndex)
+		checkError(err)
+
+		_, err = stmtUpdateBookmarkContent.Exec(newIndex, oldIndex)
+		checkError(err)
+	}
+
+	// Commit transaction
+	err = tx.Commit()
+	checkError(err)
+
+	return oldIndices, newIndices, err
 }
