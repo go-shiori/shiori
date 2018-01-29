@@ -210,7 +210,7 @@ func (db *SQLiteDatabase) GetBookmarks(indices ...string) ([]model.Bookmark, err
 		whereClause = " WHERE id IN ("
 		for _, idx := range listIndex {
 			args = append(args, idx)
-			whereClause += fmt.Sprintf("%d,", idx)
+			whereClause += "?,"
 		}
 
 		whereClause = whereClause[:len(whereClause)-1]
@@ -293,7 +293,7 @@ func (db *SQLiteDatabase) DeleteBookmarks(indices ...string) (oldIndices, newInd
 		whereClause = " WHERE id IN ("
 		for _, idx := range listIndex {
 			args = append(args, idx)
-			whereClause += fmt.Sprintf("%d,", idx)
+			whereClause += "?,"
 		}
 
 		whereClause = whereClause[:len(whereClause)-1]
@@ -360,4 +360,69 @@ func (db *SQLiteDatabase) DeleteBookmarks(indices ...string) (oldIndices, newInd
 	checkError(err)
 
 	return oldIndices, newIndices, err
+}
+
+func (db *SQLiteDatabase) SearchBookmarks(keyword string, tags ...string) ([]model.Bookmark, error) {
+	// Create initial variable
+	keyword = strings.TrimSpace(keyword)
+	whereClause := "WHERE 1"
+	args := []interface{}{}
+
+	// Create where clause for keyword
+	if keyword != "" {
+		whereClause += ` AND id IN (
+			SELECT docid id FROM bookmark_content 
+			WHERE bookmark_content MATCH ?)`
+		args = append(args, keyword)
+	}
+
+	// Create where clause for tags
+	if len(tags) > 0 {
+		whereTagClause := ` AND id IN (
+			SELECT DISTINCT bookmark_id FROM bookmark_tag 
+			WHERE tag_id IN (SELECT id FROM tag WHERE name IN (`
+
+		for _, tag := range tags {
+			args = append(args, tag)
+			whereTagClause += "?,"
+		}
+
+		whereTagClause = whereTagClause[:len(whereTagClause)-1]
+		whereTagClause += ")))"
+
+		whereClause += whereTagClause
+	}
+
+	// Search bookmarks
+	query := `SELECT id, 
+		url, title, image_url, excerpt, author, 
+		language, min_read_time, max_read_time, modified
+		FROM bookmark ` + whereClause
+
+	bookmarks := []model.Bookmark{}
+	err := db.Select(&bookmarks, query, args...)
+	if err != nil && err != sql.ErrNoRows {
+		return nil, err
+	}
+
+	// Fetch tags for each bookmarks
+	stmtGetTags, err := db.Preparex(`SELECT t.id, t.name 
+		FROM bookmark_tag bt LEFT JOIN tag t ON bt.tag_id = t.id
+		WHERE bt.bookmark_id = ? ORDER BY t.name`)
+	if err != nil {
+		return nil, err
+	}
+	defer stmtGetTags.Close()
+
+	for i := range bookmarks {
+		tags := []model.Tag{}
+		err = stmtGetTags.Select(&tags, bookmarks[i].ID)
+		if err != nil && err != sql.ErrNoRows {
+			return nil, err
+		}
+
+		bookmarks[i].Tags = tags
+	}
+
+	return bookmarks, nil
 }

@@ -1,3 +1,6 @@
+# Exclude sample
+sample.txt
+
 # Exclude config file
 .vscode/
 *.toml
