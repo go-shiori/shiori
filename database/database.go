@@ -1,6 +1,7 @@
 package database
 
 import (
+	"database/sql"
 	"github.com/RadhiFadlillah/go-readability"
 	"github.com/RadhiFadlillah/shiori/model"
 )
@@ -12,7 +13,7 @@ type Database interface {
 }
 
 func checkError(err error) {
-	if err != nil {
+	if err != nil && err != sql.ErrNoRows {
 		panic(err)
 	}
 }
