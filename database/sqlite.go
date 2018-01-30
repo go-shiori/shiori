@@ -66,7 +66,7 @@ func OpenSQLiteDatabase() (*SQLiteDatabase, error) {
 		CONSTRAINT bookmark_id_FK FOREIGN KEY(bookmark_id) REFERENCES bookmark(id),
 		CONSTRAINT tag_id_FK FOREIGN KEY(tag_id) REFERENCES tag(id))`)
 
-	tx.MustExec(`CREATE VIRTUAL TABLE IF NOT EXISTS bookmark_content USING fts4(title, content)`)
+	tx.MustExec(`CREATE VIRTUAL TABLE IF NOT EXISTS bookmark_content USING fts4(title, content, html)`)
 
 	err = tx.Commit()
 	checkError(err)
@@ -121,8 +121,8 @@ func (db *SQLiteDatabase) SaveBookmark(bookmark model.Bookmark) (bookmarkID int6
 
 	// Save bookmark content
 	tx.MustExec(`INSERT INTO bookmark_content 
-		(docid, title, content) VALUES (?, ?, ?)`,
-		bookmarkID, bookmark.Title, bookmark.Content)
+		(docid, title, content, html) VALUES (?, ?, ?, ?)`,
+		bookmarkID, bookmark.Title, bookmark.Content, bookmark.HTML)
 
 	// Save tags
 	stmtGetTag, err := tx.Preparex(`SELECT id FROM tag WHERE name = ?`)
@@ -375,8 +375,8 @@ func (db *SQLiteDatabase) SearchBookmarks(keyword string, tags ...string) ([]mod
 	if keyword != "" {
 		whereClause += ` AND id IN (
 			SELECT docid id FROM bookmark_content 
-			WHERE bookmark_content MATCH ?)`
-		args = append(args, keyword)
+			WHERE title MATCH ? OR content MATCH ?)`
+		args = append(args, keyword, keyword)
 	}
 
 	// Create where clause for tags

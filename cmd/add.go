@@ -62,6 +62,7 @@ func addBookmark(url, title, excerpt string, tags []string, offline bool) (err e
 		MinReadTime: article.Meta.MinReadTime,
 		MaxReadTime: article.Meta.MaxReadTime,
 		Content:     article.Content,
+		HTML:        article.RawContent,
 	}
 
 	bookTags := make([]model.Tag, len(tags))
