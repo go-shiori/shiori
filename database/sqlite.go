@@ -319,25 +319,17 @@ func (db *SQLiteDatabase) DeleteBookmarks(indices ...string) (oldIndices, newInd
 	}()
 
 	// Delete bookmarks
-	res := tx.MustExec("DELETE FROM bookmark "+whereClause, args...)
-
-	nAffected, err := res.RowsAffected()
-	checkError(err)
-
 	whereTagClause := strings.Replace(whereClause, "id", "bookmark_id", 1)
-	tx.MustExec("DELETE FROM bookmark_tag "+whereTagClause, args...)
-
 	whereContentClause := strings.Replace(whereClause, "id", "docid", 1)
+
+	tx.MustExec("DELETE FROM bookmark "+whereClause, args...)
+	tx.MustExec("DELETE FROM bookmark_tag "+whereTagClause, args...)
 	tx.MustExec("DELETE FROM bookmark_content "+whereContentClause, args...)
 
-	// Get largest index
-	oldIndices = []int{}
-	err = tx.Select(&oldIndices, "SELECT id FROM bookmark ORDER BY id DESC LIMIT ?", nAffected)
+	// Prepare statement for updating index
+	stmtGetMaxID, err := tx.Preparex(`SELECT IFNULL(MAX(id), 0) FROM bookmark`)
 	checkError(err)
-	sort.Ints(oldIndices)
 
-	// Update index
-	newIndices = listIndex[:len(oldIndices)]
 	stmtUpdateBookmark, err := tx.Preparex(`UPDATE bookmark SET id = ? WHERE id = ?`)
 	checkError(err)
 
@@ -347,12 +339,36 @@ func (db *SQLiteDatabase) DeleteBookmarks(indices ...string) (oldIndices, newInd
 	stmtUpdateBookmarkContent, err := tx.Preparex(`UPDATE bookmark_content SET docid = ? WHERE docid = ?`)
 	checkError(err)
 
-	for i, oldIndex := range oldIndices {
-		newIndex := newIndices[i]
+	// Get list of removed indices
+	maxIndex := 0
+	err = stmtGetMaxID.Get(&maxIndex)
+	checkError(err)
 
-		stmtUpdateBookmark.MustExec(newIndex, oldIndex)
-		stmtUpdateBookmarkTag.MustExec(newIndex, oldIndex)
-		stmtUpdateBookmarkContent.MustExec(newIndex, oldIndex)
+	removedIndices := []int{}
+	err = tx.Select(&removedIndices,
+		`WITH cnt(x) AS (SELECT 1 UNION ALL SELECT x+1 FROM cnt LIMIT ?)
+		SELECT x FROM cnt WHERE x NOT IN (SELECT id FROM bookmark)`,
+		maxIndex)
+	checkError(err)
+
+	// Fill removed indices
+	newIndices = []int{}
+	oldIndices = []int{}
+	for _, removedIndex := range removedIndices {
+		oldIndex := 0
+		err = stmtGetMaxID.Get(&oldIndex)
+		checkError(err)
+
+		if oldIndex <= removedIndex {
+			break
+		}
+
+		stmtUpdateBookmark.MustExec(removedIndex, oldIndex)
+		stmtUpdateBookmarkTag.MustExec(removedIndex, oldIndex)
+		stmtUpdateBookmarkContent.MustExec(removedIndex, oldIndex)
+
+		newIndices = append(newIndices, removedIndex)
+		oldIndices = append(oldIndices, oldIndex)
 	}
 
 	// Commit transaction
