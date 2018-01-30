@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"github.com/RadhiFadlillah/go-readability"
+	"github.com/RadhiFadlillah/shiori/model"
 	"github.com/spf13/cobra"
 	"os"
 	"time"
@@ -39,34 +40,48 @@ func init() {
 }
 
 func addBookmark(url, title, excerpt string, tags []string, offline bool) (err error) {
-	// Prepare variable
-	defaultArticle := readability.Article{
-		URL: url,
-		Meta: readability.Metadata{
-			Title: "Untitled",
-		},
-	}
-	article := defaultArticle
-
 	// Fetch data from internet
+	article := readability.Article{}
 	if !offline {
 		article, err = readability.Parse(url, 10*time.Second)
 		if err != nil {
-			cError.Println("Failed to fetch article from internet")
-			article = defaultArticle
+			cError.Println("Failed to fetch article from internet:", err)
+			article.URL = url
+			article.Meta.Title = "Untitled"
 		}
 	}
 
+	// Prepare bookmark
+	bookmark := model.Bookmark{
+		URL:         article.URL,
+		Title:       article.Meta.Title,
+		ImageURL:    article.Meta.Image,
+		Excerpt:     article.Meta.Excerpt,
+		Author:      article.Meta.Author,
+		Language:    article.Meta.Language,
+		MinReadTime: article.Meta.MinReadTime,
+		MaxReadTime: article.Meta.MaxReadTime,
+		Content:     article.Content,
+	}
+
+	bookTags := make([]model.Tag, len(tags))
+	for i, tag := range tags {
+		bookTags[i].Name = tag
+	}
+
+	bookmark.Tags = bookTags
+
 	// Set custom value
 	if title != "" {
-		article.Meta.Title = title
+		bookmark.Title = title
 	}
 
 	if excerpt != "" {
-		article.Meta.Excerpt = excerpt
+		bookmark.Excerpt = excerpt
 	}
 
-	bookmark, err := DB.SaveBookmark(article, tags...)
+	// Save to database
+	bookmark.ID, err = DB.SaveBookmark(bookmark)
 	if err != nil {
 		return err
 	}

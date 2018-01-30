@@ -2,12 +2,11 @@ package database
 
 import (
 	"database/sql"
-	"github.com/RadhiFadlillah/go-readability"
 	"github.com/RadhiFadlillah/shiori/model"
 )
 
 type Database interface {
-	SaveBookmark(article readability.Article, tags ...string) (model.Bookmark, error)
+	SaveBookmark(bookmark model.Bookmark) (int64, error)
 	GetBookmarks(indices ...string) ([]model.Bookmark, error)
 	DeleteBookmarks(indices ...string) ([]int, []int, error)
 	SearchBookmarks(keyword string, tags ...string) ([]model.Bookmark, error)

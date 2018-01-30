@@ -16,5 +16,6 @@ type Bookmark struct {
 	MinReadTime int    `db:"min_read_time" json:"minReadTime"`
 	MaxReadTime int    `db:"max_read_time" json:"maxReadTime"`
 	Modified    string `db:"modified"      json:"modified"`
+	Content     string `db:"content"       json:"-"`
 	Tags        []Tag  `json:"tags"`
 }
