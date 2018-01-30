@@ -37,11 +37,6 @@ var (
 				os.Exit(1)
 			}
 
-			if len(oldIndices) == 0 {
-				fmt.Println("No bookmarks deleted")
-				return
-			}
-
 			fmt.Println("Bookmarks has been deleted")
 			for i, oldIndex := range oldIndices {
 				newIndex := newIndices[i]
