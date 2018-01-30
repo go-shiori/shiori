@@ -12,8 +12,8 @@ var (
 		Short: "Delete the saved bookmarks.",
 		Long: "Delete bookmarks. " +
 			"When a record is deleted, the last record is moved to the removed index. " +
-			"Accepts space-separated list of indices (e.g. 5 6 23 4 110 45) and hyphenated range (e.g. 100-200). " +
-			"If no arguments, all records will be deleted",
+			"Accepts space-separated list of indices (e.g. 5 6 23 4 110 45), hyphenated range (e.g. 100-200) or both (e.g. 1-3 7 9). " +
+			"If no arguments, all records will be deleted.",
 		Run: func(cmd *cobra.Command, args []string) {
 			// Read flags
 			skipConfirmation, _ := cmd.Flags().GetBool("yes")
