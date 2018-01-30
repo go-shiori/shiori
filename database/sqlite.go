@@ -77,6 +77,15 @@ func OpenSQLiteDatabase() (*SQLiteDatabase, error) {
 }
 
 func (db *SQLiteDatabase) SaveBookmark(article readability.Article, tags ...string) (bookmark model.Bookmark, err error) {
+	// Check URL and title
+	if article.URL == "" {
+		return model.Bookmark{}, fmt.Errorf("URL must not empty")
+	}
+
+	if article.Meta.Title == "" {
+		return model.Bookmark{}, fmt.Errorf("Title must not empty")
+	}
+
 	// Prepare transaction
 	tx, err := db.Beginx()
 	if err != nil {
