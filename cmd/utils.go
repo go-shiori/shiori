@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"github.com/fatih/color"
+	"golang.org/x/crypto/ssh/terminal"
+	"os"
 )
 
 var (
@@ -14,3 +16,8 @@ var (
 	cExcerpt  = color.New(color.FgHiWhite)
 	cTag      = color.New(color.FgHiBlue)
 )
+
+func getTerminalWidth() int {
+	width, _, _ := terminal.GetSize(int(os.Stdin.Fd()))
+	return width
+}

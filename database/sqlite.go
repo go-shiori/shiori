@@ -429,3 +429,60 @@ func (db *SQLiteDatabase) SearchBookmarks(keyword string, tags ...string) ([]mod
 
 	return bookmarks, nil
 }
+
+func (db *SQLiteDatabase) GetBookmarksContent(indices ...string) ([]model.Bookmark, error) {
+	// Convert list of index to int
+	listIndex := []int{}
+	errInvalidIndex := fmt.Errorf("Index is not valid")
+
+	for _, strIndex := range indices {
+		if strings.Contains(strIndex, "-") {
+			parts := strings.Split(strIndex, "-")
+			if len(parts) != 2 {
+				return nil, errInvalidIndex
+			}
+
+			minIndex, errMin := strconv.Atoi(parts[0])
+			maxIndex, errMax := strconv.Atoi(parts[1])
+			if errMin != nil || errMax != nil || minIndex < 1 || minIndex > maxIndex {
+				return nil, errInvalidIndex
+			}
+
+			for i := minIndex; i <= maxIndex; i++ {
+				listIndex = append(listIndex, i)
+			}
+		} else {
+			index, err := strconv.Atoi(strIndex)
+			if err != nil || index < 1 {
+				return nil, errInvalidIndex
+			}
+
+			listIndex = append(listIndex, index)
+		}
+	}
+
+	// Prepare where clause
+	args := []interface{}{}
+	whereClause := " WHERE 1"
+
+	if len(listIndex) > 0 {
+		whereClause = " WHERE docid IN ("
+		for _, idx := range listIndex {
+			args = append(args, idx)
+			whereClause += "?,"
+		}
+
+		whereClause = whereClause[:len(whereClause)-1]
+		whereClause += ")"
+	}
+
+	bookmarks := []model.Bookmark{}
+	err := db.Select(&bookmarks,
+		`SELECT docid id, title, content, html 
+		FROM bookmark_content`+whereClause, args...)
+	if err != nil && err != sql.ErrNoRows {
+		return nil, err
+	}
+
+	return bookmarks, nil
+}
