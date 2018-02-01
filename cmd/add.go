@@ -58,7 +58,6 @@ func addBookmark(url, title, excerpt string, tags []string, offline bool) (err e
 		ImageURL:    article.Meta.Image,
 		Excerpt:     article.Meta.Excerpt,
 		Author:      article.Meta.Author,
-		Language:    article.Meta.Language,
 		MinReadTime: article.Meta.MinReadTime,
 		MaxReadTime: article.Meta.MaxReadTime,
 		Content:     article.Content,

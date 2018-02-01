@@ -46,7 +46,6 @@ func OpenSQLiteDatabase() (*SQLiteDatabase, error) {
 		image_url TEXT NOT NULL DEFAULT "",
 		excerpt TEXT NOT NULL DEFAULT "",
 		author TEXT NOT NULL DEFAULT "",
-		language TEXT NOT NULL DEFAULT "",
 		min_read_time INTEGER NOT NULL DEFAULT 0,
 		max_read_time INTEGER NOT NULL DEFAULT 0,
 		modified TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -104,14 +103,13 @@ func (db *SQLiteDatabase) SaveBookmark(bookmark model.Bookmark) (bookmarkID int6
 	// Save article to database
 	res := tx.MustExec(`INSERT INTO bookmark (
 		url, title, image_url, excerpt, author, 
-		language, min_read_time, max_read_time) 
-		VALUES(?, ?, ?, ?, ?, ?, ?, ?)`,
+		min_read_time, max_read_time) 
+		VALUES(?, ?, ?, ?, ?, ?, ?)`,
 		bookmark.URL,
 		bookmark.Title,
 		bookmark.ImageURL,
 		bookmark.Excerpt,
 		bookmark.Author,
-		bookmark.Language,
 		bookmark.MinReadTime,
 		bookmark.MaxReadTime)
 
@@ -207,7 +205,7 @@ func (db *SQLiteDatabase) GetBookmarks(indices ...string) ([]model.Bookmark, err
 	// Fetch bookmarks
 	query := `SELECT id, 
 		url, title, image_url, excerpt, author, 
-		language, min_read_time, max_read_time, modified
+		min_read_time, max_read_time, modified
 		FROM bookmark` + whereClause
 
 	bookmarks := []model.Bookmark{}
@@ -399,7 +397,7 @@ func (db *SQLiteDatabase) SearchBookmarks(keyword string, tags ...string) ([]mod
 	// Search bookmarks
 	query := `SELECT id, 
 		url, title, image_url, excerpt, author, 
-		language, min_read_time, max_read_time, modified
+		min_read_time, max_read_time, modified
 		FROM bookmark ` + whereClause
 
 	bookmarks := []model.Bookmark{}

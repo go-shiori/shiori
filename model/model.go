@@ -12,7 +12,6 @@ type Bookmark struct {
 	ImageURL    string `db:"image_url"     json:"imageURL"`
 	Excerpt     string `db:"excerpt"       json:"excerpt"`
 	Author      string `db:"author"        json:"author"`
-	Language    string `db:"language"      json:"-"`
 	MinReadTime int    `db:"min_read_time" json:"minReadTime"`
 	MaxReadTime int    `db:"max_read_time" json:"maxReadTime"`
 	Modified    string `db:"modified"      json:"modified"`
