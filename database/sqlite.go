@@ -10,10 +10,12 @@ import (
 	"strings"
 )
 
+// SQLiteDatabase is implementation of Database interface for connecting to SQLite3 database.
 type SQLiteDatabase struct {
 	sqlx.DB
 }
 
+// OpenSQLiteDatabase creates and open connection to new SQLite3 database.
 func OpenSQLiteDatabase() (*SQLiteDatabase, error) {
 	// Open database and start transaction
 	var err error
@@ -73,6 +75,7 @@ func OpenSQLiteDatabase() (*SQLiteDatabase, error) {
 	return &SQLiteDatabase{*db}, err
 }
 
+// SaveBookmark saves new bookmark to database. Returns new ID and error if any happened.
 func (db *SQLiteDatabase) SaveBookmark(bookmark model.Bookmark) (bookmarkID int64, err error) {
 	// Check URL and title
 	if bookmark.URL == "" {
@@ -156,6 +159,7 @@ func (db *SQLiteDatabase) SaveBookmark(bookmark model.Bookmark) (bookmarkID int6
 	return bookmarkID, err
 }
 
+// GetBookmarks fetch list of bookmarks based on submitted indices.
 func (db *SQLiteDatabase) GetBookmarks(withContent bool, indices ...string) ([]model.Bookmark, error) {
 	// Convert list of index to int
 	listIndex := []int{}
@@ -248,6 +252,7 @@ func (db *SQLiteDatabase) GetBookmarks(withContent bool, indices ...string) ([]m
 	return bookmarks, nil
 }
 
+// DeleteBookmarks removes all record with matching indices from database.
 func (db *SQLiteDatabase) DeleteBookmarks(indices ...string) (oldIndices, newIndices []int, err error) {
 	// Convert list of index to int
 	listIndex := []int{}
@@ -375,6 +380,7 @@ func (db *SQLiteDatabase) DeleteBookmarks(indices ...string) (oldIndices, newInd
 	return oldIndices, newIndices, err
 }
 
+// SearchBookmarks search bookmarks by the keyword or tags.
 func (db *SQLiteDatabase) SearchBookmarks(keyword string, tags ...string) ([]model.Bookmark, error) {
 	// Create initial variable
 	keyword = strings.TrimSpace(keyword)
@@ -440,6 +446,7 @@ func (db *SQLiteDatabase) SearchBookmarks(keyword string, tags ...string) ([]mod
 	return bookmarks, nil
 }
 
+// UpdateBookmarks updates the saved bookmark in database.
 func (db *SQLiteDatabase) UpdateBookmarks(bookmarks []model.Bookmark) (err error) {
 	// Prepare transaction
 	tx, err := db.Beginx()

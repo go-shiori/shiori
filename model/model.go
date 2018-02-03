@@ -1,11 +1,13 @@
 package model
 
+// Tag is tag for the bookmark
 type Tag struct {
 	ID      int64  `db:"id"   json:"id"`
 	Name    string `db:"name" json:"name"`
 	Deleted bool   `json:"-"`
 }
 
+// Bookmark is record of a specified URL
 type Bookmark struct {
 	ID          int64  `db:"id"            json:"id"`
 	URL         string `db:"url"           json:"url"`
