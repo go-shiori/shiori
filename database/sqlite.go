@@ -156,7 +156,7 @@ func (db *SQLiteDatabase) SaveBookmark(bookmark model.Bookmark) (bookmarkID int6
 	return bookmarkID, err
 }
 
-func (db *SQLiteDatabase) GetBookmarks(indices ...string) ([]model.Bookmark, error) {
+func (db *SQLiteDatabase) GetBookmarks(withContent bool, indices ...string) ([]model.Bookmark, error) {
 	// Convert list of index to int
 	listIndex := []int{}
 	errInvalidIndex := fmt.Errorf("Index is not valid")
@@ -214,23 +214,35 @@ func (db *SQLiteDatabase) GetBookmarks(indices ...string) ([]model.Bookmark, err
 		return nil, err
 	}
 
-	// Fetch tags for each bookmarks
+	// Fetch tags and contents for each bookmarks
 	stmtGetTags, err := db.Preparex(`SELECT t.id, t.name 
 		FROM bookmark_tag bt LEFT JOIN tag t ON bt.tag_id = t.id
 		WHERE bt.bookmark_id = ? ORDER BY t.name`)
 	if err != nil {
 		return nil, err
 	}
-	defer stmtGetTags.Close()
 
-	for i := range bookmarks {
-		tags := []model.Tag{}
-		err = stmtGetTags.Select(&tags, bookmarks[i].ID)
+	stmtGetContent, err := db.Preparex(`SELECT title, content, html FROM bookmark_content WHERE docid = ?`)
+	if err != nil {
+		return nil, err
+	}
+
+	defer stmtGetTags.Close()
+	defer stmtGetContent.Close()
+
+	for i, book := range bookmarks {
+		book.Tags = []model.Tag{}
+		err = stmtGetTags.Select(&book.Tags, book.ID)
 		if err != nil && err != sql.ErrNoRows {
 			return nil, err
 		}
 
-		bookmarks[i].Tags = tags
+		err = stmtGetContent.Get(&book, book.ID)
+		if err != nil && err != sql.ErrNoRows {
+			return nil, err
+		}
+
+		bookmarks[i] = book
 	}
 
 	return bookmarks, nil
@@ -428,59 +440,86 @@ func (db *SQLiteDatabase) SearchBookmarks(keyword string, tags ...string) ([]mod
 	return bookmarks, nil
 }
 
-func (db *SQLiteDatabase) GetBookmarksContent(indices ...string) ([]model.Bookmark, error) {
-	// Convert list of index to int
-	listIndex := []int{}
-	errInvalidIndex := fmt.Errorf("Index is not valid")
+func (db *SQLiteDatabase) UpdateBookmarks(bookmarks []model.Bookmark) (err error) {
+	// Prepare transaction
+	tx, err := db.Beginx()
+	if err != nil {
+		return err
+	}
 
-	for _, strIndex := range indices {
-		if strings.Contains(strIndex, "-") {
-			parts := strings.Split(strIndex, "-")
-			if len(parts) != 2 {
-				return nil, errInvalidIndex
+	// Make sure to rollback if panic ever happened
+	defer func() {
+		if r := recover(); r != nil {
+			panicErr, _ := r.(error)
+			tx.Rollback()
+			err = panicErr
+		}
+	}()
+
+	// Prepare statement
+	stmtUpdateBookmark, err := db.Preparex(`UPDATE bookmark SET
+		url = ?, title = ?, image_url = ?, excerpt = ?, author = ?,
+		min_read_time = ?, max_read_time = ? WHERE id = ?`)
+	checkError(err)
+
+	stmtUpdateBookmarkContent, err := db.Preparex(`UPDATE bookmark_content SET
+		title = ?, content = ?, html = ? WHERE docid = ?`)
+	checkError(err)
+
+	stmtGetTag, err := tx.Preparex(`SELECT id FROM tag WHERE name = ?`)
+	checkError(err)
+
+	stmtInsertTag, err := tx.Preparex(`INSERT INTO tag (name) VALUES (?)`)
+	checkError(err)
+
+	stmtInsertBookmarkTag, err := tx.Preparex(`INSERT OR IGNORE INTO bookmark_tag (tag_id, bookmark_id) VALUES (?, ?)`)
+	checkError(err)
+
+	stmtDeleteBookmarkTag, err := tx.Preparex(`DELETE FROM bookmark_tag WHERE bookmark_id = ? AND tag_id = ?`)
+	checkError(err)
+
+	for _, book := range bookmarks {
+		stmtUpdateBookmark.MustExec(
+			book.URL,
+			book.Title,
+			book.ImageURL,
+			book.Excerpt,
+			book.Author,
+			book.MinReadTime,
+			book.MaxReadTime,
+			book.ID)
+
+		stmtUpdateBookmarkContent.MustExec(
+			book.Title,
+			book.Content,
+			book.HTML,
+			book.ID)
+
+		for _, tag := range book.Tags {
+			if tag.Deleted {
+				stmtDeleteBookmarkTag.MustExec(book.ID, tag.ID)
+				continue
 			}
 
-			minIndex, errMin := strconv.Atoi(parts[0])
-			maxIndex, errMax := strconv.Atoi(parts[1])
-			if errMin != nil || errMax != nil || minIndex < 1 || minIndex > maxIndex {
-				return nil, errInvalidIndex
-			}
+			if tag.ID == 0 {
+				tagID := int64(-1)
+				err = stmtGetTag.Get(&tagID, tag.Name)
+				checkError(err)
 
-			for i := minIndex; i <= maxIndex; i++ {
-				listIndex = append(listIndex, i)
-			}
-		} else {
-			index, err := strconv.Atoi(strIndex)
-			if err != nil || index < 1 {
-				return nil, errInvalidIndex
-			}
+				if tagID == -1 {
+					res := stmtInsertTag.MustExec(tag.Name)
+					tagID, err = res.LastInsertId()
+					checkError(err)
+				}
 
-			listIndex = append(listIndex, index)
+				stmtInsertBookmarkTag.Exec(tagID, book.ID)
+			}
 		}
 	}
 
-	// Prepare where clause
-	args := []interface{}{}
-	whereClause := " WHERE 1"
+	// Commit transaction
+	err = tx.Commit()
+	checkError(err)
 
-	if len(listIndex) > 0 {
-		whereClause = " WHERE docid IN ("
-		for _, idx := range listIndex {
-			args = append(args, idx)
-			whereClause += "?,"
-		}
-
-		whereClause = whereClause[:len(whereClause)-1]
-		whereClause += ")"
-	}
-
-	bookmarks := []model.Bookmark{}
-	err := db.Select(&bookmarks,
-		`SELECT docid id, title, content, html 
-		FROM bookmark_content`+whereClause, args...)
-	if err != nil && err != sql.ErrNoRows {
-		return nil, err
-	}
-
-	return bookmarks, nil
+	return err
 }

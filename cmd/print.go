@@ -22,7 +22,7 @@ var (
 			indexOnly, _ := cmd.Flags().GetBool("index-only")
 
 			// Read bookmarks from database
-			bookmarks, err := DB.GetBookmarks(args...)
+			bookmarks, err := DB.GetBookmarks(false, args...)
 			if err != nil {
 				cError.Println(err)
 				os.Exit(1)
