@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"github.com/RadhiFadlillah/go-readability"
+	db "github.com/RadhiFadlillah/shiori/database"
 	"github.com/RadhiFadlillah/shiori/model"
 	"github.com/spf13/cobra"
 	"strconv"
@@ -58,7 +59,7 @@ var (
 			}
 
 			// Read bookmarks from database
-			bookmarks, err := DB.GetBookmarks(true, args...)
+			bookmarks, err := DB.GetBookmarks(db.GetBookmarksOptions{WithContents: true}, args...)
 			if err != nil {
 				cError.Println(err)
 				return

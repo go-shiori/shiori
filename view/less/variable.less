@@ -1,0 +1,27 @@
+// out: false
+@appBg: #F5F5F5;
+@border: #E5E5E5;
+@borderDark: #9E9E9E;
+@headerBg: #FFF;
+@headerInputBg: #FFF;
+@fontColor: #000;
+@linkColor: #535A60;
+@fontLightColor: #6F757A;
+@fontSize: 0.9em;
+@headerHeight: 70px;
+@main: #3F51B5;
+@accent: #F44336;
+@headerShadow: rgba(0, 0, 0, 0.3);
+// Mixin
+.header-link {
+    border-right: 1px solid @border;
+    color: @fontColor;
+    cursor: pointer;
+    font-size: @fontSize;
+    line-height: @headerHeight;
+    overflow: hidden;
+    padding: 0 16px;
+    &:hover {
+        color: @main;
+    }
+}

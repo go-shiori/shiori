@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	db "github.com/RadhiFadlillah/shiori/database"
 	"github.com/spf13/cobra"
 	"os/exec"
 	"strings"
@@ -49,7 +50,7 @@ func init() {
 
 func openBookmarks(args ...string) {
 	// Read bookmarks from database
-	bookmarks, err := DB.GetBookmarks(false, args...)
+	bookmarks, err := DB.GetBookmarks(db.GetBookmarksOptions{}, args...)
 	if err != nil {
 		cError.Println(err)
 		return
@@ -75,7 +76,9 @@ func openBookmarks(args ...string) {
 
 func openBookmarksCache(trimSpace bool, args ...string) {
 	// Read bookmark content from database
-	bookmarks, err := DB.GetBookmarks(true, args...)
+	bookmarks, err := DB.GetBookmarks(
+		db.GetBookmarksOptions{WithContents: true},
+		args...)
 	if err != nil {
 		cError.Println(err)
 		return

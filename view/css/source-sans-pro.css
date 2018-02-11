@@ -1,0 +1,49 @@
+/* source-sans-pro-300 - latin */
+
+@font-face {
+    font-family: 'Source Sans Pro';
+    font-style: normal;
+    font-weight: 300;
+    src: url('../webfonts/source-sans-pro-v11-latin-300.eot');
+    /* IE9 Compat Modes */
+    src: local('Source Sans Pro Light'), local('SourceSansPro-Light'), url('../webfonts/source-sans-pro-v11-latin-300.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+    url('../webfonts/source-sans-pro-v11-latin-300.woff2') format('woff2'), /* Super Modern Browsers */
+    url('../webfonts/source-sans-pro-v11-latin-300.woff') format('woff'), /* Modern Browsers */
+    url('../webfonts/source-sans-pro-v11-latin-300.ttf') format('truetype'), /* Safari, Android, iOS */
+    url('../webfonts/source-sans-pro-v11-latin-300.svg#SourceSansPro') format('svg');
+    /* Legacy iOS */
+}
+
+
+/* source-sans-pro-regular - latin */
+
+@font-face {
+    font-family: 'Source Sans Pro';
+    font-style: normal;
+    font-weight: 400;
+    src: url('../webfonts/source-sans-pro-v11-latin-regular.eot');
+    /* IE9 Compat Modes */
+    src: local('Source Sans Pro Regular'), local('SourceSansPro-Regular'), url('../webfonts/source-sans-pro-v11-latin-regular.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+    url('../webfonts/source-sans-pro-v11-latin-regular.woff2') format('woff2'), /* Super Modern Browsers */
+    url('../webfonts/source-sans-pro-v11-latin-regular.woff') format('woff'), /* Modern Browsers */
+    url('../webfonts/source-sans-pro-v11-latin-regular.ttf') format('truetype'), /* Safari, Android, iOS */
+    url('../webfonts/source-sans-pro-v11-latin-regular.svg#SourceSansPro') format('svg');
+    /* Legacy iOS */
+}
+
+
+/* source-sans-pro-600 - latin */
+
+@font-face {
+    font-family: 'Source Sans Pro';
+    font-style: normal;
+    font-weight: 600;
+    src: url('../webfonts/source-sans-pro-v11-latin-600.eot');
+    /* IE9 Compat Modes */
+    src: local('Source Sans Pro SemiBold'), local('SourceSansPro-SemiBold'), url('../webfonts/source-sans-pro-v11-latin-600.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+    url('../webfonts/source-sans-pro-v11-latin-600.woff2') format('woff2'), /* Super Modern Browsers */
+    url('../webfonts/source-sans-pro-v11-latin-600.woff') format('woff'), /* Modern Browsers */
+    url('../webfonts/source-sans-pro-v11-latin-600.ttf') format('truetype'), /* Safari, Android, iOS */
+    url('../webfonts/source-sans-pro-v11-latin-600.svg#SourceSansPro') format('svg');
+    /* Legacy iOS */
+}

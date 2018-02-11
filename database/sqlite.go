@@ -160,7 +160,7 @@ func (db *SQLiteDatabase) SaveBookmark(bookmark model.Bookmark) (bookmarkID int6
 }
 
 // GetBookmarks fetch list of bookmarks based on submitted indices.
-func (db *SQLiteDatabase) GetBookmarks(withContent bool, indices ...string) ([]model.Bookmark, error) {
+func (db *SQLiteDatabase) GetBookmarks(options GetBookmarksOptions, indices ...string) ([]model.Bookmark, error) {
 	// Convert list of index to int
 	listIndex := []int{}
 	errInvalidIndex := fmt.Errorf("Index is not valid")
@@ -212,6 +212,14 @@ func (db *SQLiteDatabase) GetBookmarks(withContent bool, indices ...string) ([]m
 		min_read_time, max_read_time, modified
 		FROM bookmark` + whereClause
 
+	if options.OrderLatest {
+		query += ` ORDER BY modified DESC`
+	}
+
+	if options.Limit > 0 {
+		query += fmt.Sprintf(` LIMIT %d OFFSET %d`, options.Limit, options.Offset)
+	}
+
 	bookmarks := []model.Bookmark{}
 	err := db.Select(&bookmarks, query, args...)
 	if err != nil && err != sql.ErrNoRows {
@@ -241,9 +249,11 @@ func (db *SQLiteDatabase) GetBookmarks(withContent bool, indices ...string) ([]m
 			return nil, err
 		}
 
-		err = stmtGetContent.Get(&book, book.ID)
-		if err != nil && err != sql.ErrNoRows {
-			return nil, err
+		if options.WithContents {
+			err = stmtGetContent.Get(&book, book.ID)
+			if err != nil && err != sql.ErrNoRows {
+				return nil, err
+			}
 		}
 
 		bookmarks[i] = book

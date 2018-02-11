@@ -11,7 +11,7 @@ type Database interface {
 	SaveBookmark(bookmark model.Bookmark) (int64, error)
 
 	// GetBookmarks fetch list of bookmarks based on submitted indices.
-	GetBookmarks(withContent bool, indices ...string) ([]model.Bookmark, error)
+	GetBookmarks(options GetBookmarksOptions, indices ...string) ([]model.Bookmark, error)
 
 	// DeleteBookmarks removes all record with matching indices from database.
 	DeleteBookmarks(indices ...string) ([]int, []int, error)
@@ -21,6 +21,13 @@ type Database interface {
 
 	// UpdateBookmarks updates the saved bookmark in database.
 	UpdateBookmarks(bookmarks []model.Bookmark) error
+}
+
+type GetBookmarksOptions struct {
+	WithContents bool
+	OrderLatest  bool
+	Limit        int
+	Offset       int
 }
 
 func checkError(err error) {

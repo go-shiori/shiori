@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="/css/stylesheet.css">
+    <link rel="stylesheet" href="/css/fontawesome.css">
+    <link rel="stylesheet" href="/css/source-sans-pro.css">
+    <script src="/js/vue.js"></script>
+    <script src="/js/axios.js"></script>
+    <title>Shiori - Bookmarks Manager</title>
+</head>
+
+<body>
+    <div id="app">
+        <div id="header">
+            <a id="logo" href="/">
+                <span>栞</span>shiori</a>
+            <div id="search-box">
+                <input type="text" name="keyword" id="input-search" placeholder="Search tags, title or content">
+                <button type="submit">
+                    <i class="fas fa-search fa-fw"></i>
+                </button>
+            </div>
+        </div>
+        <div id="main">
+            <div id="new-bookmark">
+                <input type="text" name="url" id="input-new-bookmark" placeholder="URL for new bookmark">
+                <button type="submit">
+                    <i class="fas fa-fw fa-cloud-download-alt" aria-hidden="true"></i>
+                </button>
+            </div>
+            <div id="grid">
+                <div v-for="column in gridColumns" class="column">
+                    <div v-for="item in column" class="bookmark">
+                        <a href="#" class="checkbox"></a>
+                        <a v-if="item.imageURL !== ''" class="bookmark-image" :href="item.url" :style="bookmarkImage(item)">
+                            <div class="bookmark-metadata">
+                                <p class="bookmark-time">{{bookmarkTime(item)}}</p>
+                                <p class="bookmark-title">{{item.title}}</p>
+                                <p class="bookmark-url">{{item.url}}</p>
+                            </div>
+                        </a>
+                        <a v-else class="bookmark-metadata" :href="item.url">
+                            <p class="bookmark-time">{{bookmarkTime(item)}}</p>
+                            <p class="bookmark-title">{{item.title}}</p>
+                            <p class="bookmark-url">{{item.url}}</p>
+                        </a>
+                        <p v-if="item.excerpt !== ''" class="bookmark-excerpt">{{item.excerpt}}</p>
+                        <div v-if="item.tags.length > 0" class="bookmark-tags">
+                            <a v-for="tag in item.tags" href="#">{{tag.name}}</a>
+                        </div>
+                    </div>
+                </div>
+                <!-- <div class="bookmark checked">
+                    <a href="#" class="checkbox"></a>
+                    <a class="bookmark-image" href="https://www.nytimes.com/2018/01/26/reader-center/arctic-winter-night.html" style="background-image: url(https://cdn-images-1.medium.com/max/1200/1*NDXd5I87VZG0Z74N7dog0g.png)">
+                        <div class="bookmark-metadata">
+                            <p class="bookmark-time">2017-12-20 &#183; 8-12 min read</p>
+                            <p class="bookmark-title">Snapshots From a Land of Endless Night</p>
+                        </div>
+                    </a>
+                    <p class="bookmark-excerpt">Readers describe the thrills and challenges of wintertime in the Far North.</p>
+                    <div class="bookmark-tags">
+                        <a href="#">amazing</a>
+                        <a href="#">nature</a>
+                        <a href="#">nature</a>
+                    </div>
+                </div> -->
+            </div>
+            <div id="progress-bar">
+                <i v-if="isLoading" class="fas fa-fw fa-spinner fa-spin"></i>
+                <a href="#">Load more bookmarks</a>
+            </div>
+        </div>
+    </div>
+    <script>
+        var instance = axios.create();
+        instance.defaults.timeout = 2500;
+
+        var app = new Vue({
+            el: '#app',
+            data: {
+                windowWidth: 0,
+                isLoading: true,
+                bookmarks: []
+            },
+            methods: {
+                loadData: function () {
+                    this.isLoading = true;
+                    instance.get('/api/bookmarks')
+                        .then(function (response) {
+                            app.isLoading = false;
+                            app.bookmarks = response.data;
+                            console.log(JSON.stringify(app.gridColumns, "", "    "));
+                        })
+                        .catch(function (error) {
+                            console.log(error);
+                        });
+                },
+                bookmarkTime: function (book) {
+                    var time = book.modified,
+                        readTime = "",
+                        finalBookmarkTime = "";
+
+                    if (book.maxReadTime === 0) {
+                        readTime = "";
+                    } else if (book.minReadTime === book.maxReadTime) {
+                        readTime = book.minReadTime + " min read";
+                    } else {
+                        readTime = book.minReadTime + "-" + book.maxReadTime + " min read";
+                    }
+
+                    finalBookmarkTime = "Updated " + time;
+                    if (readTime !== "") finalBookmarkTime += "\u00B7 " + readTime;
+
+                    return finalBookmarkTime;
+                },
+                bookmarkImage: function (book) {
+                    var newURL = "background-image: url(" + book.imageURL + ")";
+                    return newURL;
+                }
+            },
+            computed: {
+                gridColumns: function () {
+                    var nColumn = Math.round(this.windowWidth / 500),
+                        finalContent = [],
+                        currentColumn = 0;
+
+                    for (var i = 0; i < nColumn; i++) {
+                        finalContent.push([]);
+                    }
+
+                    for (var i = 0; i < this.bookmarks.length; i++) {
+                        var bookmark = this.bookmarks[i];
+                        finalContent[currentColumn].push(bookmark);
+
+                        currentColumn += 1;
+                        if (currentColumn >= nColumn) currentColumn = 0;
+                    }
+
+                    return finalContent;
+                }
+            },
+            mounted: function () {
+                this.windowWidth = window.innerWidth;
+                window.addEventListener('resize', function () {
+                    app.windowWidth = window.innerWidth;
+                })
+
+                this.loadData();
+            }
+        })
+    </script>
+</body>
+
+</html>
