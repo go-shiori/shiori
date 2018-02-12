@@ -20,58 +20,61 @@
                 <span>栞</span>shiori</a>
             <div id="search-box">
                 <input type="text" name="keyword" id="input-search" placeholder="Search tags, title or content">
-                <button type="submit">
+                <a class="button">
                     <i class="fas fa-search fa-fw"></i>
-                </button>
+                </a>
             </div>
         </div>
         <div id="main">
             <div id="new-bookmark">
-                <input type="text" name="url" id="input-new-bookmark" placeholder="URL for new bookmark">
-                <button type="submit">
-                    <i class="fas fa-fw fa-cloud-download-alt" aria-hidden="true"></i>
-                </button>
+                <input type="text" v-model="newBookmark.url" placeholder="URL for the bookmark">
+                <template v-if="newBookmark.url !== ''">
+                    <input type="text" v-model="newBookmark.title" placeholder="Custom bookmark title (optional)">
+                    <input type="text" v-model="newBookmark.tags" placeholder="Space separated tags for this bookmark (optional)">
+                    <textarea name="excerpt" v-model="newBookmark.excerpt" placeholder="Excerpt for this bookmark (optional)"></textarea>
+                    <div class="button-area">
+                        <div class="spacer"></div>
+                        <a v-if="newBookmark.loading">
+                            <i class="fas fa-fw fa-spinner fa-spin"></i>
+                        </a>
+                        <template v-else>
+                            <a class="button">Cancel</a>
+                            <a class="button" @click="saveBookmark">Done</a>
+                        </template>
+                    </div>
+                </template>
             </div>
             <div id="grid">
                 <div v-for="column in gridColumns" class="column">
                     <div v-for="item in column" class="bookmark">
-                        <a href="#" class="checkbox"></a>
-                        <a v-if="item.imageURL !== ''" class="bookmark-image" :href="item.url" :style="bookmarkImage(item)">
-                            <div class="bookmark-metadata">
-                                <p class="bookmark-time">{{bookmarkTime(item)}}</p>
-                                <p class="bookmark-title">{{item.title}}</p>
-                                <p class="bookmark-url">{{item.url}}</p>
-                            </div>
+                        <a href="#" class="checkbox">
+                            <i class="fas fa-check"></i>
                         </a>
-                        <a v-else class="bookmark-metadata" :href="item.url">
+                        <a class="bookmark-metadata" :class="{'has-image':item.imageURL !== ''}" :style="bookmarkImage(item)" :href="item.url">
                             <p class="bookmark-time">{{bookmarkTime(item)}}</p>
                             <p class="bookmark-title">{{item.title}}</p>
-                            <p class="bookmark-url">{{item.url}}</p>
+                            <p class="bookmark-url">{{getDomainURL(item.url)}}</p>
                         </a>
                         <p v-if="item.excerpt !== ''" class="bookmark-excerpt">{{item.excerpt}}</p>
                         <div v-if="item.tags.length > 0" class="bookmark-tags">
                             <a v-for="tag in item.tags" href="#">{{tag.name}}</a>
                         </div>
+                        <div class="bookmark-menu">
+                            <a href="#">
+                                <i class="fas fa-pencil-alt"></i>
+                            </a>
+                            <a href="#">
+                                <i class="far fa-trash-alt"></i>
+                            </a>
+                            <a href="#">
+                                <i class="fas fa-history"></i>
+                            </a>
+                        </div>
                     </div>
                 </div>
-                <!-- <div class="bookmark checked">
-                    <a href="#" class="checkbox"></a>
-                    <a class="bookmark-image" href="https://www.nytimes.com/2018/01/26/reader-center/arctic-winter-night.html" style="background-image: url(https://cdn-images-1.medium.com/max/1200/1*NDXd5I87VZG0Z74N7dog0g.png)">
-                        <div class="bookmark-metadata">
-                            <p class="bookmark-time">2017-12-20 &#183; 8-12 min read</p>
-                            <p class="bookmark-title">Snapshots From a Land of Endless Night</p>
-                        </div>
-                    </a>
-                    <p class="bookmark-excerpt">Readers describe the thrills and challenges of wintertime in the Far North.</p>
-                    <div class="bookmark-tags">
-                        <a href="#">amazing</a>
-                        <a href="#">nature</a>
-                        <a href="#">nature</a>
-                    </div>
-                </div> -->
             </div>
             <div id="progress-bar">
-                <i v-if="isLoading" class="fas fa-fw fa-spinner fa-spin"></i>
+                <i v-if="loading" class="fas fa-fw fa-spinner fa-spin"></i>
                 <a href="#">Load more bookmarks</a>
             </div>
         </div>
@@ -84,21 +87,68 @@
             el: '#app',
             data: {
                 windowWidth: 0,
-                isLoading: true,
-                bookmarks: []
+                loading: true,
+                bookmarks: [],
+                newBookmark: {
+                    url: "",
+                    title: "",
+                    tags: "",
+                    excerpt: "",
+                    loading: false
+                }
             },
             methods: {
                 loadData: function () {
-                    this.isLoading = true;
+                    this.loading = true;
                     instance.get('/api/bookmarks')
                         .then(function (response) {
-                            app.isLoading = false;
+                            app.loading = false;
                             app.bookmarks = response.data;
-                            console.log(JSON.stringify(app.gridColumns, "", "    "));
                         })
                         .catch(function (error) {
+                            app.loading = false;
                             console.log(error);
                         });
+                },
+                saveBookmark: function () {
+                    if (this.newBookmark.loading) return;
+                    this.newBookmark.loading = true;
+
+                    if (this.newBookmark.url === "") return;
+
+                    var tags = this.newBookmark.tags.replace(/\s+/g, ""),
+                        listTag = tags === "" ? [] : listTag = tags.split(/\s+/g),
+                        finalTag = [];
+
+                    for (var i = 0; i < listTag.length; i++) {
+                        finalTag.push({
+                            name: listTag[i]
+                        });
+                    }
+
+                    instance.post('/api/bookmarks', {
+                            url: this.newBookmark.url,
+                            title: this.newBookmark.title,
+                            excerpt: this.newBookmark.excerpt,
+                            tags: finalTag
+                        }, {
+                            timeout: 15000
+                        })
+                        .then(function (response) {
+                            app.clearNewBookmark();
+                            app.bookmarks.unshift(response.data);
+                        })
+                        .catch(function (error) {
+                            app.clearNewBookmark();
+                            console.log(error);
+                        });
+                },
+                clearNewBookmark: function () {
+                    this.newBookmark.url = "";
+                    this.newBookmark.title = "";
+                    this.newBookmark.tags = "";
+                    this.newBookmark.excerpt = "";
+                    this.newBookmark.loading = false;
                 },
                 bookmarkTime: function (book) {
                     var time = book.modified,
@@ -114,13 +164,27 @@
                     }
 
                     finalBookmarkTime = "Updated " + time;
-                    if (readTime !== "") finalBookmarkTime += "\u00B7 " + readTime;
+                    if (readTime !== "") finalBookmarkTime += " \u00B7 " + readTime;
 
                     return finalBookmarkTime;
                 },
                 bookmarkImage: function (book) {
-                    var newURL = "background-image: url(" + book.imageURL + ")";
-                    return newURL;
+                    if (book.imageURL === "") return "";
+                    return "background-image: url(" + book.imageURL + ")";
+                },
+                getDomainURL: function (url) {
+                    var hostname;
+
+                    if (url.indexOf("://") > -1) {
+                        hostname = url.split('/')[2];
+                    } else {
+                        hostname = url.split('/')[0];
+                    }
+
+                    hostname = hostname.split(':')[0];
+                    hostname = hostname.split('?')[0];
+
+                    return hostname;
                 }
             },
             computed: {

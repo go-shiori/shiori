@@ -216,10 +216,6 @@ func (db *SQLiteDatabase) GetBookmarks(options GetBookmarksOptions, indices ...s
 		query += ` ORDER BY modified DESC`
 	}
 
-	if options.Limit > 0 {
-		query += fmt.Sprintf(` LIMIT %d OFFSET %d`, options.Limit, options.Offset)
-	}
-
 	bookmarks := []model.Bookmark{}
 	err := db.Select(&bookmarks, query, args...)
 	if err != nil && err != sql.ErrNoRows {

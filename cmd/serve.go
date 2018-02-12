@@ -4,12 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	db "github.com/RadhiFadlillah/shiori/database"
+	"github.com/RadhiFadlillah/shiori/model"
 	"github.com/julienschmidt/httprouter"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"net/http"
 	fp "path/filepath"
-	"strconv"
 	"strings"
 )
 
@@ -27,6 +27,12 @@ var (
 			router.GET("/css/*filepath", serveFiles)
 			router.GET("/webfonts/*filepath", serveFiles)
 			router.GET("/api/bookmarks", apiGetBookmarks)
+			router.POST("/api/bookmarks", apiInsertBookmarks)
+
+			// Route for panic
+			router.PanicHandler = func(w http.ResponseWriter, r *http.Request, arg interface{}) {
+				http.Error(w, fmt.Sprint(arg), 500)
+			}
 
 			url := fmt.Sprintf(":%d", 8080)
 			logrus.Infoln("Serve shiori in", url)
@@ -48,26 +54,29 @@ func serveFiles(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 }
 
 func apiGetBookmarks(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	queries := r.URL.Query()
-	strLimit := queries.Get("limit")
-	strOffset := queries.Get("offset")
-
-	limit, _ := strconv.Atoi(strLimit)
-	if limit <= 0 {
-		limit = 20
-	}
-
-	offset, _ := strconv.Atoi(strOffset)
-	if offset <= 0 {
-		offset = 0
-	}
-
-	bookmarks, err := DB.GetBookmarks(db.GetBookmarksOptions{
-		Limit:       limit,
-		Offset:      offset,
-		OrderLatest: true})
+	bookmarks, err := DB.GetBookmarks(db.GetBookmarksOptions{OrderLatest: true})
 	checkError(err)
 
 	err = json.NewEncoder(w).Encode(&bookmarks)
+	checkError(err)
+}
+
+func apiInsertBookmarks(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	// Decode request
+	request := model.Bookmark{}
+	err := json.NewDecoder(r.Body).Decode(&request)
+	checkError(err)
+
+	// Save bookmark
+	tags := make([]string, len(request.Tags))
+	for i, tag := range request.Tags {
+		tags[i] = tag.Name
+	}
+
+	book, err := addBookmark(request.URL, request.Title, request.Excerpt, tags, false)
+	checkError(err)
+
+	// Return new saved result
+	err = json.NewEncoder(w).Encode(&book)
 	checkError(err)
 }

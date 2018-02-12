@@ -22,11 +22,13 @@ var (
 			offline, _ := cmd.Flags().GetBool("offline")
 
 			// Save new bookmark
-			err := addBookmark(url, title, excerpt, tags, offline)
+			bookmark, err := addBookmark(url, title, excerpt, tags, offline)
 			if err != nil {
 				cError.Println(err)
 				os.Exit(1)
 			}
+
+			printBookmark(bookmark)
 		},
 	}
 )
@@ -39,7 +41,7 @@ func init() {
 	rootCmd.AddCommand(addCmd)
 }
 
-func addBookmark(url, title, excerpt string, tags []string, offline bool) (err error) {
+func addBookmark(url, title, excerpt string, tags []string, offline bool) (book model.Bookmark, err error) {
 	// Fetch data from internet
 	article := readability.Article{}
 	if !offline {
@@ -83,10 +85,8 @@ func addBookmark(url, title, excerpt string, tags []string, offline bool) (err e
 	// Save to database
 	bookmark.ID, err = DB.SaveBookmark(bookmark)
 	if err != nil {
-		return err
+		return book, err
 	}
 
-	printBookmark(bookmark)
-
-	return nil
+	return bookmark, nil
 }

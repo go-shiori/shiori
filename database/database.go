@@ -26,8 +26,6 @@ type Database interface {
 type GetBookmarksOptions struct {
 	WithContents bool
 	OrderLatest  bool
-	Limit        int
-	Offset       int
 }
 
 func checkError(err error) {

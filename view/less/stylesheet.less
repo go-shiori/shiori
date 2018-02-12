@@ -8,6 +8,10 @@
     text-decoration: none;
 }
 
+.spacer {
+    flex: 1 0;
+}
+
 #app {
     background-color: @appBg;
     display: flex;
@@ -50,7 +54,7 @@
             flex-flow: row nowrap;
             padding: 16px;
             width: 100%;
-            button,
+            .button,
             input {
                 background-color: @headerInputBg;
                 border: 1px solid @border;
@@ -58,7 +62,7 @@
                 font-size: 0.9em;
                 padding: 8px;
             }
-            button {
+            .button {
                 cursor: pointer;
                 color: @linkColor;
                 &:hover {
@@ -81,27 +85,39 @@
             max-width: 600px;
             width: 100%;
             display: flex;
-            flex-flow: row nowrap;
+            flex-flow: column nowrap;
             margin: 32px 8px 20px;
-            button,
-            input {
-                background-color: @headerInputBg;
-                border: 1px solid @border;
+            background-color: @headerInputBg;
+            outline: 1px solid @border;
+            input[type=text],
+            textarea {
+                outline: 1px solid @border;
                 color: @fontColor;
                 font-size: 0.9em;
+                padding: 12px 16px;
+            }
+            textarea {
+                resize: vertical;
+                min-height: 4em;
+                max-height: 10em;
+            }
+            .button-area {
+                display: flex;
+                flex-flow: row nowrap;
                 padding: 8px;
-            }
-            button {
-                cursor: pointer;
-                color: @linkColor;
-                &:hover {
-                    color: @accent;
+                a {
+                    color: @linkColor;
+                    text-transform: uppercase;
+                    padding: 8px;
+                    background-color: @headerInputBg;
+                    &.button {
+                        font-size: 0.9em;
+                        cursor: pointer;
+                        &:hover {
+                            color: @accent;
+                        }
+                    }
                 }
-            }
-            input[type=text] {
-                border-right: 0;
-                flex: 1 0;
-                padding: 8px 16px;
             }
         }
         #grid {
@@ -146,53 +162,15 @@
         opacity: 0;
         position: absolute;
         outline: 1px solid @border;
-        color: @fontLightColor;
+        color: @linkColor;
         background-color: @headerBg;
-        &::before {
-            width: 32px;
-            line-height: 32px;
-            text-align: center;
-            display: block;
-            font-family: "Font Awesome 5 Free";
-            font-weight: 900;
-            font-size: 0.9em;
-            content: "\f00c";
-        }
+        width: 32px;
+        line-height: 32px;
+        text-align: center;
+        display: block;
+        font-size: 0.9em;
         &:hover {
             color: @accent !important;
-        }
-    }
-    .bookmark-image {
-        position: relative;
-        display: block;
-        height: 250px;
-        background-position: center;
-        background-repeat: no-repeat;
-        background-size: cover;
-        .bookmark-metadata {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            padding: 16px;
-            justify-content: flex-end;
-            background-color: rgba(0, 0, 0, 0.5);
-            border-bottom: 0;
-            .bookmark-time,
-            .bookmark-url {
-                color: white;
-                text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
-            }
-            .bookmark-title {
-                color: white;
-                text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
-            }
-            &:hover {
-                .bookmark-title {
-                    text-decoration: underline;
-                }
-            }
         }
     }
     .bookmark-metadata {
@@ -213,6 +191,39 @@
             .bookmark-time;
             margin-bottom: 0;
             margin-top: 8px;
+            max-height: 2.6em;
+            line-height: 1.3em;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+        &.has-image {
+            min-height: 250px;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+            justify-content: flex-end;
+            position: relative;
+            &::before {
+                content: "";
+                background-color: rgba(0, 0, 0, 0.5);
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                z-index: 0;
+            }
+            .bookmark-time,
+            .bookmark-url {
+                z-index: 2;
+                color: white;
+                text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
+            }
+            .bookmark-title {
+                z-index: 2;
+                color: white;
+                text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
+            }
         }
         &:hover {
             .bookmark-title {
@@ -242,9 +253,32 @@
             }
         }
     }
+    .bookmark-menu {
+        display: flex;
+        flex-flow: row nowrap;
+        border-top: 1px solid @border;
+        visibility: hidden;
+        a {
+            display: block;
+            flex: 1 0;
+            color: @linkColor !important;
+            padding: 8px;
+            font-size: 0.9em;
+            text-align: center;
+            &:not(:last-child) {
+                border-right: 1px solid @border;
+            }
+            &:hover {
+                color: @accent !important;
+            }
+        }
+    }
     &:hover {
         .checkbox {
             opacity: 1;
+        }
+        .bookmark-menu {
+            visibility: visible;
         }
     }
     &.checked {
