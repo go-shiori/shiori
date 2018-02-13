@@ -58,106 +58,10 @@ var (
 				}
 			}
 
-			// Read bookmarks from database
-			bookmarks, err := DB.GetBookmarks(db.GetBookmarksOptions{WithContents: true}, args...)
+			// Update bookmarks
+			bookmarks, err := updateBookmarks(args, url, title, excerpt, tags, offline)
 			if err != nil {
 				cError.Println(err)
-				return
-			}
-
-			if len(bookmarks) == 0 {
-				cError.Println("No matching index found")
-				return
-			}
-
-			if url != "" && len(bookmarks) == 1 {
-				bookmarks[0].URL = url
-			}
-
-			// If not offline, fetch articles from internet
-			if !offline {
-				mutex := sync.Mutex{}
-				waitGroup := sync.WaitGroup{}
-
-				for i, book := range bookmarks {
-					go func(pos int, book model.Bookmark) {
-						waitGroup.Add(1)
-						defer waitGroup.Done()
-
-						article, err := readability.Parse(book.URL, 10*time.Second)
-						if err == nil {
-							book.Title = article.Meta.Title
-							book.ImageURL = article.Meta.Image
-							book.Excerpt = article.Meta.Excerpt
-							book.Author = article.Meta.Author
-							book.MinReadTime = article.Meta.MinReadTime
-							book.MaxReadTime = article.Meta.MaxReadTime
-							book.Content = article.Content
-							book.HTML = article.RawContent
-
-							mutex.Lock()
-							bookmarks[pos] = book
-							mutex.Unlock()
-						}
-					}(i, book)
-				}
-
-				waitGroup.Wait()
-			}
-
-			// Map the tags to be deleted
-			addedTags := make(map[string]struct{})
-			deletedTags := make(map[string]struct{})
-			for _, tag := range tags {
-				tag = strings.ToLower(tag)
-				tag = strings.TrimSpace(tag)
-
-				if strings.HasPrefix(tag, "-") {
-					tag = strings.TrimPrefix(tag, "-")
-					deletedTags[tag] = struct{}{}
-				} else {
-					addedTags[tag] = struct{}{}
-				}
-			}
-
-			// Set default title, excerpt and tags
-			for i := range bookmarks {
-				if title != "" {
-					bookmarks[i].Title = title
-				}
-
-				if excerpt != "" {
-					bookmarks[i].Excerpt = excerpt
-				}
-
-				tempAddedTags := make(map[string]struct{})
-				for key, value := range addedTags {
-					tempAddedTags[key] = value
-				}
-
-				newTags := []model.Tag{}
-				for _, tag := range bookmarks[i].Tags {
-					if _, isDeleted := deletedTags[tag.Name]; isDeleted {
-						tag.Deleted = true
-					}
-
-					if _, alreadyExist := addedTags[tag.Name]; alreadyExist {
-						delete(tempAddedTags, tag.Name)
-					}
-
-					newTags = append(newTags, tag)
-				}
-
-				for tag := range tempAddedTags {
-					newTags = append(newTags, model.Tag{Name: tag})
-				}
-
-				bookmarks[i].Tags = newTags
-			}
-
-			err = DB.UpdateBookmarks(bookmarks)
-			if err != nil {
-				cError.Println("Failed to update bookmarks:", err)
 				return
 			}
 
@@ -174,4 +78,108 @@ func init() {
 	updateCmd.Flags().BoolP("offline", "o", false, "Update bookmark without fetching data from internet.")
 	updateCmd.Flags().BoolP("yes", "y", false, "Skip confirmation prompt and update ALL bookmarks")
 	rootCmd.AddCommand(updateCmd)
+}
+
+func updateBookmarks(indices []string, url, title, excerpt string, tags []string, offline bool) ([]model.Bookmark, error) {
+	// Read bookmarks from database
+	bookmarks, err := DB.GetBookmarks(db.GetBookmarksOptions{WithContents: true}, indices...)
+	if err != nil {
+		return []model.Bookmark{}, err
+	}
+
+	if len(bookmarks) == 0 {
+		return []model.Bookmark{}, fmt.Errorf("No matching index found")
+	}
+
+	if url != "" && len(bookmarks) == 1 {
+		bookmarks[0].URL = url
+	}
+
+	// If not offline, fetch articles from internet
+	if !offline {
+		mutex := sync.Mutex{}
+		waitGroup := sync.WaitGroup{}
+
+		for i, book := range bookmarks {
+			go func(pos int, book model.Bookmark) {
+				waitGroup.Add(1)
+				defer waitGroup.Done()
+
+				article, err := readability.Parse(book.URL, 10*time.Second)
+				if err == nil {
+					book.Title = article.Meta.Title
+					book.ImageURL = article.Meta.Image
+					book.Excerpt = article.Meta.Excerpt
+					book.Author = article.Meta.Author
+					book.MinReadTime = article.Meta.MinReadTime
+					book.MaxReadTime = article.Meta.MaxReadTime
+					book.Content = article.Content
+					book.HTML = article.RawContent
+
+					mutex.Lock()
+					bookmarks[pos] = book
+					mutex.Unlock()
+				}
+			}(i, book)
+		}
+
+		waitGroup.Wait()
+	}
+
+	// Map the tags to be deleted
+	addedTags := make(map[string]struct{})
+	deletedTags := make(map[string]struct{})
+	for _, tag := range tags {
+		tag = strings.ToLower(tag)
+		tag = strings.TrimSpace(tag)
+
+		if strings.HasPrefix(tag, "-") {
+			tag = strings.TrimPrefix(tag, "-")
+			deletedTags[tag] = struct{}{}
+		} else {
+			addedTags[tag] = struct{}{}
+		}
+	}
+
+	// Set default title, excerpt and tags
+	for i := range bookmarks {
+		if title != "" {
+			bookmarks[i].Title = title
+		}
+
+		if excerpt != "" {
+			bookmarks[i].Excerpt = excerpt
+		}
+
+		tempAddedTags := make(map[string]struct{})
+		for key, value := range addedTags {
+			tempAddedTags[key] = value
+		}
+
+		newTags := []model.Tag{}
+		for _, tag := range bookmarks[i].Tags {
+			if _, isDeleted := deletedTags[tag.Name]; isDeleted {
+				tag.Deleted = true
+			}
+
+			if _, alreadyExist := addedTags[tag.Name]; alreadyExist {
+				delete(tempAddedTags, tag.Name)
+			}
+
+			newTags = append(newTags, tag)
+		}
+
+		for tag := range tempAddedTags {
+			newTags = append(newTags, model.Tag{Name: tag})
+		}
+
+		bookmarks[i].Tags = newTags
+	}
+
+	err = DB.UpdateBookmarks(bookmarks)
+	if err != nil {
+		return []model.Bookmark{}, fmt.Errorf("Failed to update bookmarks: %v", err)
+	}
+
+	return bookmarks, nil
 }

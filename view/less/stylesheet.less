@@ -80,7 +80,7 @@
         margin-top: @headerHeight;
         display: flex;
         flex-flow: column nowrap;
-        #new-bookmark {
+        #input-bookmark {
             align-self: center;
             max-width: 600px;
             width: 100%;
@@ -89,6 +89,12 @@
             margin: 32px 8px 20px;
             background-color: @headerInputBg;
             outline: 1px solid @border;
+            >p {
+                color: @fontColor;
+                font-weight: 600;
+                text-transform: uppercase;
+                padding: 16px;
+            }
             input[type=text],
             textarea {
                 outline: 1px solid @border;
@@ -177,6 +183,7 @@
         padding: 16px;
         display: flex;
         flex-flow: column nowrap;
+        border-bottom: 1px solid @border;
         .bookmark-time {
             color: @fontLightColor;
             font-size: 0.9em;
@@ -232,15 +239,14 @@
         }
     }
     .bookmark-excerpt {
-        padding: 16px;
+        padding: 16px 16px 0;
         color: @fontColor;
-        border-top: 1px solid @border;
     }
     .bookmark-tags {
         display: flex;
         flex-flow: row wrap;
-        padding: 0 12px 12px;
-        margin-top: -4px;
+        padding: 12px 12px 0;
+        margin-bottom: -4px;
         a {
             font-size: 0.9em;
             padding: 4px;
@@ -258,6 +264,7 @@
         flex-flow: row nowrap;
         border-top: 1px solid @border;
         visibility: hidden;
+        margin-top: 16px;
         a {
             display: block;
             flex: 1 0;
