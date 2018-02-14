@@ -19,7 +19,7 @@
     height: auto;
     min-height: 100vh;
     #header {
-        background-color: @headerBg;
+        background-color: @contentBg;
         box-shadow: 0 0 3px @headerShadow;
         left: 0;
         position: fixed;
@@ -80,52 +80,6 @@
         margin-top: @headerHeight;
         display: flex;
         flex-flow: column nowrap;
-        #input-bookmark {
-            align-self: center;
-            max-width: 600px;
-            width: 100%;
-            display: flex;
-            flex-flow: column nowrap;
-            margin: 32px 8px 20px;
-            background-color: @headerInputBg;
-            outline: 1px solid @border;
-            >p {
-                color: @fontColor;
-                font-weight: 600;
-                text-transform: uppercase;
-                padding: 16px;
-            }
-            input[type=text],
-            textarea {
-                outline: 1px solid @border;
-                color: @fontColor;
-                font-size: 0.9em;
-                padding: 12px 16px;
-            }
-            textarea {
-                resize: vertical;
-                min-height: 4em;
-                max-height: 10em;
-            }
-            .button-area {
-                display: flex;
-                flex-flow: row nowrap;
-                padding: 8px;
-                a {
-                    color: @linkColor;
-                    text-transform: uppercase;
-                    padding: 8px;
-                    background-color: @headerInputBg;
-                    &.button {
-                        font-size: 0.9em;
-                        cursor: pointer;
-                        &:hover {
-                            color: @accent;
-                        }
-                    }
-                }
-            }
-        }
         #grid {
             display: flex;
             flex-flow: row;
@@ -159,7 +113,7 @@
 }
 
 .bookmark {
-    background-color: @headerBg;
+    background-color: @contentBg;
     border: 1px solid @border;
     position: relative;
     .checkbox {
@@ -169,7 +123,7 @@
         position: absolute;
         outline: 1px solid @border;
         color: @linkColor;
-        background-color: @headerBg;
+        background-color: @contentBg;
         width: 32px;
         line-height: 32px;
         text-align: center;
@@ -296,6 +250,107 @@
             outline: 0;
             background-color: @borderDark;
             color: white;
+        }
+    }
+}
+
+#input-bookmark {
+    align-self: center;
+    max-width: 600px;
+    width: 100%;
+    display: flex;
+    flex-flow: column nowrap;
+    margin: 32px 8px 20px;
+    background-color: @headerInputBg;
+    outline: 1px solid @border;
+    >p {
+        color: @fontColor;
+        font-weight: 600;
+        text-transform: uppercase;
+        padding: 16px;
+    }
+    input[type=text],
+    textarea {
+        outline: 1px solid @border;
+        color: @fontColor;
+        font-size: 0.9em;
+        padding: 12px 16px;
+    }
+    textarea {
+        resize: vertical;
+        min-height: 4em;
+        max-height: 10em;
+    }
+    .button-area {
+        display: flex;
+        flex-flow: row nowrap;
+        padding: 8px;
+        a {
+            color: @linkColor;
+            text-transform: uppercase;
+            padding: 8px;
+            background-color: @headerInputBg;
+            font-size: 0.9em;
+            &.button {
+                cursor: pointer;
+                &:hover {
+                    color: @accent;
+                }
+            }
+        }
+    }
+}
+
+#dialog-overlay {
+    position: fixed;
+    z-index: 101;
+    display: flex;
+    flex-flow: column;
+    background-color: rgba(0, 0, 0, 0.5);
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+    justify-content: center;
+    padding: 32px;
+    #dialog {
+        display: flex;
+        background-color: @contentBg;
+        align-self: center;
+        flex-flow: column;
+        border: 1px solid @border;
+        max-width: 500px;
+        #dialog-title {
+            color: @fontColor;
+            font-weight: 600;
+            text-transform: uppercase;
+            padding: 16px;
+            border-bottom: 1px solid @border;
+        }
+        #dialog-content {
+            padding: 16px;
+        }
+        #dialog-button {
+            display: flex;
+            flex-flow: row nowrap;
+            padding: 8px;
+            border-top: 1px solid @border;
+            a {
+                color: @linkColor;
+                text-transform: uppercase;
+                padding: 8px;
+                background-color: @headerInputBg;
+                &.button {
+                    cursor: pointer;
+                    &:not(:last-child) {
+                        margin-right: 16px;
+                    }
+                    &:hover {
+                        color: @accent;
+                    }
+                }
+            }
         }
     }
 }

@@ -64,7 +64,7 @@
                             <a href="#" @click="editBookmark(item.index)">
                                 <i class="fas fa-pencil-alt"></i>
                             </a>
-                            <a href="#">
+                            <a href="#" @click="deleteBookmark(item.index)">
                                 <i class="far fa-trash-alt"></i>
                             </a>
                             <a href="#">
@@ -77,6 +77,22 @@
             <div id="progress-bar">
                 <i v-if="loading" class="fas fa-fw fa-spinner fa-spin"></i>
                 <a href="#">Load more bookmarks</a>
+            </div>
+        </div>
+        <div v-if="dialog.visible" id="dialog-overlay">
+            <div id="dialog">
+                <p id="dialog-title">{{dialog.title}}</p>
+                <p v-html="dialog.content" id="dialog-content"></p>
+                <div id="dialog-button">
+                    <div class="spacer"></div>
+                    <a v-if="dialog.loading">
+                        <i class="fas fa-fw fa-spinner fa-spin"></i>
+                    </a>
+                    <template v-else>
+                        <a class="button" @click="dialog.secondAction">{{dialog.secondChoice}}</a>
+                        <a class="button" @click="dialog.mainAction">{{dialog.mainChoice}}</a>
+                    </template>
+                </div>
             </div>
         </div>
     </div>
@@ -98,6 +114,16 @@
                     tags: "",
                     excerpt: "",
                     loading: false
+                },
+                dialog: {
+                    visible: false,
+                    loading: false,
+                    title: '',
+                    content: '',
+                    mainChoice: '',
+                    secondChoice: '',
+                    mainAction: function () {},
+                    secondAction: function () {}
                 }
             },
             methods: {
@@ -153,22 +179,6 @@
                             console.log(error);
                         });
                 },
-                clearInputBookmark: function () {
-                    var idx = this.inputBookmark.index;
-
-                    this.inputBookmark.index = -1;
-                    this.inputBookmark.id = -1;
-                    this.inputBookmark.url = "";
-                    this.inputBookmark.title = "";
-                    this.inputBookmark.tags = "";
-                    this.inputBookmark.excerpt = "";
-                    this.inputBookmark.loading = false;
-
-                    if (idx !== -1) app.$nextTick(function () {
-                        var bookmarkItem = app.$refs['bookmark-' + idx];
-                        bookmarkItem[0].scrollIntoView();
-                    })
-                },
                 editBookmark: function (idx) {
                     var bookmark = this.bookmarks[idx],
                         tags = [];
@@ -187,6 +197,59 @@
                     this.$nextTick(function () {
                         app.$refs.inputURL.focus();
                     });
+                },
+                deleteBookmark: function (idx) {
+                    var bookmark = this.bookmarks[idx];
+
+                    this.dialog.visible = true;
+                    this.dialog.loading = false;
+                    this.dialog.title = "Delete Bookmark";
+                    this.dialog.content = "Delete <b>\"" + bookmark.title.trim() + "\"</b> from bookmarks ? This action is irreversible.";
+                    this.dialog.mainChoice = "Yes";
+                    this.dialog.secondChoice = "No";
+                    this.dialog.mainAction = function () {
+                        app.dialog.loading = true;
+
+                        instance.delete('/api/bookmarks/' + bookmark.id)
+                            .then(function (response) {
+                                app.dialog.loading = false;
+                                app.dialog.visible = false;
+                                app.bookmarks.splice(idx, 1);
+
+                                var scrollIdx = idx === 1 ? 1 : idx - 1;
+                                app.$nextTick(function () {
+                                    app.$refs['bookmark-' + scrollIdx][0].scrollIntoView();
+                                });
+                            })
+                            .catch(function (error) {
+                                app.dialog.loading = false;
+                                app.dialog.visible = false;
+                                console.log(error);
+                            });
+                    };
+                    this.dialog.secondAction = function () {
+                        app.dialog.visible = false;
+                        app.$nextTick(function () {
+                            app.$refs['bookmark-' + idx][0].scrollIntoView();
+                        });
+                    };
+
+                },
+                clearInputBookmark: function () {
+                    var idx = this.inputBookmark.index;
+
+                    this.inputBookmark.index = -1;
+                    this.inputBookmark.id = -1;
+                    this.inputBookmark.url = "";
+                    this.inputBookmark.title = "";
+                    this.inputBookmark.tags = "";
+                    this.inputBookmark.excerpt = "";
+                    this.inputBookmark.loading = false;
+
+                    if (idx !== -1) app.$nextTick(function () {
+                        var bookmarkItem = app.$refs['bookmark-' + idx];
+                        bookmarkItem[0].scrollIntoView();
+                    })
                 },
                 bookmarkTime: function (book) {
                     var time = book.modified,
