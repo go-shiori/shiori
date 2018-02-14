@@ -75,6 +75,21 @@
                 padding: 8px 16px;
             }
         }
+        #header-menu {
+            display: flex;
+            flex-flow: row nowrap;
+            a {
+                line-height: @headerHeight;
+                padding: 0 16px;
+                color: @linkColor;
+                font-size: 0.9em;
+                cursor: pointer;
+                &:hover {
+                    color: @main;
+                    background-color: @appBg;
+                }
+            }
+        }
     }
     #main {
         margin-top: @headerHeight;
@@ -92,24 +107,29 @@
                 }
             }
         }
-        #progress-bar {
+        #message-bar {
             display: flex;
             flex-flow: column;
             align-items: center;
             padding: 32px;
+            justify-content: center;
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            margin-top: -60px;
+            height: 120px;
             i {
                 color: @fontLightColor;
                 font-size: 3em;
             }
-            a {
-                color: @main !important;
-                font-size: 0.9em;
-                &:hover {
-                    color: @accent !important;
-                }
-            }
         }
     }
+}
+
+.error-message {
+    color: @main !important;
+    font-size: 0.9em;
 }
 
 .bookmark {
@@ -268,6 +288,13 @@
         font-weight: 600;
         text-transform: uppercase;
         padding: 16px;
+        &.error-message {
+            color: @main;
+            font-size: 0.9em;
+            border-bottom: 1px solid @border;
+            font-weight: 500;
+            text-transform: none;
+        }
     }
     input[type=text],
     textarea {
@@ -326,6 +353,7 @@
             font-weight: 600;
             text-transform: uppercase;
             padding: 16px;
+            font-size: 1em;
             border-bottom: 1px solid @border;
         }
         #dialog-content {

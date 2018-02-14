@@ -24,64 +24,72 @@
                     <i class="fas fa-search fa-fw"></i>
                 </a>
             </div>
+            <div id="header-menu" v-if="!loading">
+                <a href="#" @click="loadData">
+                    <i class="fas fa-sync fa-fw"></i>
+                </a>
+            </div>
         </div>
         <div id="main">
-            <div id="input-bookmark">
-                <p v-if="inputBookmark.url !== ''">{{inputBookmark.id === -1 ? 'New bookmark' : 'Edit bookmark'}}</p>
-                <input type="text" ref="inputURL" v-model="inputBookmark.url" placeholder="URL for the bookmark">
-                <template v-if="inputBookmark.url !== ''">
-                    <input type="text" v-model="inputBookmark.title" placeholder="Custom bookmark title (optional)">
-                    <input type="text" v-model="inputBookmark.tags" placeholder="Space separated tags for this bookmark (optional)">
-                    <textarea name="excerpt" v-model="inputBookmark.excerpt" placeholder="Excerpt for this bookmark (optional)"></textarea>
-                    <div class="button-area">
-                        <div class="spacer"></div>
-                        <a v-if="inputBookmark.loading">
-                            <i class="fas fa-fw fa-spinner fa-spin"></i>
-                        </a>
-                        <template v-else>
-                            <a class="button" @click="clearInputBookmark">Cancel</a>
-                            <a class="button" @click="saveBookmark">Done</a>
-                        </template>
-                    </div>
-                </template>
-            </div>
-            <div id="grid">
-                <div v-for="column in gridColumns" class="column">
-                    <div v-for="item in column" class="bookmark" :ref="'bookmark-'+item.index">
-                        <a href="#" class="checkbox">
-                            <i class="fas fa-check"></i>
-                        </a>
-                        <a class="bookmark-metadata" :class="{'has-image':item.imageURL !== ''}" :style="bookmarkImage(item)" :href="item.url">
-                            <p class="bookmark-time">{{bookmarkTime(item)}}</p>
-                            <p class="bookmark-title">{{item.title}}</p>
-                            <p class="bookmark-url">{{getDomainURL(item.url)}}</p>
-                        </a>
-                        <p v-if="item.excerpt !== ''" class="bookmark-excerpt">{{item.excerpt}}</p>
-                        <div v-if="item.tags.length > 0" class="bookmark-tags">
-                            <a v-for="tag in item.tags" href="#">{{tag.name}}</a>
+            <template v-if="!loading && error === ''">
+                <div id="input-bookmark" v-if="!loading">
+                    <p v-if="inputBookmark.url !== ''">{{inputBookmark.id === -1 ? 'New bookmark' : 'Edit bookmark'}}</p>
+                    <input type="text" ref="inputURL" v-model="inputBookmark.url" placeholder="URL for the bookmark">
+                    <template v-if="inputBookmark.url !== ''">
+                        <input type="text" v-model="inputBookmark.title" placeholder="Custom bookmark title (optional)">
+                        <input type="text" v-model="inputBookmark.tags" placeholder="Space separated tags for this bookmark (optional)">
+                        <textarea name="excerpt" v-model="inputBookmark.excerpt" placeholder="Excerpt for this bookmark (optional)"></textarea>
+                        <p v-if="inputBookmark.error !== ''" class="error-message">{{inputBookmark.error}}</p>
+                        <div class="button-area">
+                            <div class="spacer"></div>
+                            <a v-if="inputBookmark.loading">
+                                <i class="fas fa-fw fa-spinner fa-spin"></i>
+                            </a>
+                            <template v-else>
+                                <a class="button" @click="clearInputBookmark">Cancel</a>
+                                <a class="button" @click="saveBookmark">Done</a>
+                            </template>
                         </div>
-                        <div class="bookmark-menu">
-                            <a href="#" @click="editBookmark(item.index)">
-                                <i class="fas fa-pencil-alt"></i>
+                    </template>
+                </div>
+                <div id="grid" v-if="!loading">
+                    <div v-for="column in gridColumns" class="column">
+                        <div v-for="item in column" class="bookmark" :ref="'bookmark-'+item.index">
+                            <a href="#" class="checkbox">
+                                <i class="fas fa-check"></i>
                             </a>
-                            <a href="#" @click="deleteBookmark(item.index)">
-                                <i class="far fa-trash-alt"></i>
+                            <a class="bookmark-metadata" :class="{'has-image':item.imageURL !== ''}" :style="bookmarkImage(item)" :href="item.url">
+                                <p class="bookmark-time">{{bookmarkTime(item)}}</p>
+                                <p class="bookmark-title">{{item.title}}</p>
+                                <p class="bookmark-url">{{getDomainURL(item.url)}}</p>
                             </a>
-                            <a href="#">
-                                <i class="fas fa-history"></i>
-                            </a>
+                            <p v-if="item.excerpt !== ''" class="bookmark-excerpt">{{item.excerpt}}</p>
+                            <div v-if="item.tags.length > 0" class="bookmark-tags">
+                                <a v-for="tag in item.tags" href="#">{{tag.name}}</a>
+                            </div>
+                            <div class="bookmark-menu">
+                                <a href="#" @click="editBookmark(item.index)">
+                                    <i class="fas fa-pencil-alt"></i>
+                                </a>
+                                <a href="#" @click="deleteBookmark(item.index)">
+                                    <i class="far fa-trash-alt"></i>
+                                </a>
+                                <a href="#">
+                                    <i class="fas fa-history"></i>
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div id="progress-bar">
+            </template>
+            <div v-if="loading || error !== ''" id="message-bar">
                 <i v-if="loading" class="fas fa-fw fa-spinner fa-spin"></i>
-                <a href="#">Load more bookmarks</a>
+                <p v-if="error !== ''" class="error-message">{{error}}</p>
             </div>
         </div>
         <div v-if="dialog.visible" id="dialog-overlay">
             <div id="dialog">
-                <p id="dialog-title">{{dialog.title}}</p>
+                <p id="dialog-title" :class="{'error-message': dialog.isError}">{{dialog.title}}</p>
                 <p v-html="dialog.content" id="dialog-content"></p>
                 <div id="dialog-button">
                     <div class="spacer"></div>
@@ -98,12 +106,13 @@
     </div>
     <script>
         var instance = axios.create();
-        instance.defaults.timeout = 2500;
+        instance.defaults.timeout = 10000;
 
         var app = new Vue({
             el: '#app',
             data: {
                 windowWidth: 0,
+                error: "",
                 loading: true,
                 bookmarks: [],
                 inputBookmark: {
@@ -113,11 +122,13 @@
                     title: "",
                     tags: "",
                     excerpt: "",
+                    error: "",
                     loading: false
                 },
                 dialog: {
                     visible: false,
                     loading: false,
+                    isError: false,
                     title: '',
                     content: '',
                     mainChoice: '',
@@ -128,6 +139,7 @@
             },
             methods: {
                 loadData: function () {
+                    this.error = '';
                     this.loading = true;
                     instance.get('/api/bookmarks')
                         .then(function (response) {
@@ -135,8 +147,9 @@
                             app.bookmarks = response.data;
                         })
                         .catch(function (error) {
+                            var errorMsg = error.response ? error.response.data : error.message;
                             app.loading = false;
-                            console.log(error);
+                            app.error = errorMsg.trim();
                         });
                 },
                 saveBookmark: function () {
@@ -176,7 +189,9 @@
                             app.clearInputBookmark();
                         })
                         .catch(function (error) {
-                            console.log(error);
+                            var errorMsg = error.response ? error.response.data : error.message;
+                            app.inputBookmark.loading = false;
+                            app.inputBookmark.error = errorMsg.trim();
                         });
                 },
                 editBookmark: function (idx) {
@@ -202,6 +217,7 @@
                     var bookmark = this.bookmarks[idx];
 
                     this.dialog.visible = true;
+                    this.dialog.isError = false;
                     this.dialog.loading = false;
                     this.dialog.title = "Delete Bookmark";
                     this.dialog.content = "Delete <b>\"" + bookmark.title.trim() + "\"</b> from bookmarks ? This action is irreversible.";
@@ -222,9 +238,8 @@
                                 });
                             })
                             .catch(function (error) {
-                                app.dialog.loading = false;
-                                app.dialog.visible = false;
-                                console.log(error);
+                                var errorMsg = error.response ? error.response.data : error.message;
+                                app.showDialogError("Error Deleting Bookmark", errorMsg.trim());
                             });
                     };
                     this.dialog.secondAction = function () {
@@ -244,6 +259,7 @@
                     this.inputBookmark.title = "";
                     this.inputBookmark.tags = "";
                     this.inputBookmark.excerpt = "";
+                    this.inputBookmark.error = "";
                     this.inputBookmark.loading = false;
 
                     if (idx !== -1) app.$nextTick(function () {
@@ -286,6 +302,19 @@
                     hostname = hostname.split('?')[0];
 
                     return hostname;
+                },
+                showDialogError: function (title, msg) {
+                    this.dialog.isError = true;
+                    this.dialog.visible = true;
+                    this.dialog.loading = false;
+                    this.dialog.title = title;
+                    this.dialog.content = msg;
+                    this.dialog.mainChoice = "OK"
+                    this.dialog.secondChoice = ""
+                    this.dialog.mainAction = function () {
+                        app.dialog.visible = false;
+                    }
+                    this.dialog.secondAction = function () {}
                 }
             },
             computed: {
