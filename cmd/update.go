@@ -81,6 +81,7 @@ func init() {
 }
 
 func updateBookmarks(indices []string, url, title, excerpt string, tags []string, offline bool) ([]model.Bookmark, error) {
+	mutex := sync.Mutex{}
 	// Read bookmarks from database
 	bookmarks, err := DB.GetBookmarks(db.GetBookmarksOptions{WithContents: true}, indices...)
 	if err != nil {
@@ -97,12 +98,11 @@ func updateBookmarks(indices []string, url, title, excerpt string, tags []string
 
 	// If not offline, fetch articles from internet
 	if !offline {
-		mutex := sync.Mutex{}
 		waitGroup := sync.WaitGroup{}
-
 		for i, book := range bookmarks {
+			waitGroup.Add(1)
+
 			go func(pos int, book model.Bookmark) {
-				waitGroup.Add(1)
 				defer waitGroup.Done()
 
 				article, err := readability.Parse(book.URL, 10*time.Second)
