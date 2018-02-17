@@ -29,6 +29,9 @@
                     <a @click="loadData">
                         <i class="fas fa-cloud fa-fw"></i> Reload
                     </a>
+                    <a @click="toggleImage">
+                        <i class="fas fa-fw" :class="showImage ? 'fa-eye-slash' : 'fa-eye'"></i> {{showImage ? 'Hide image' : 'Show image'}}
+                    </a>
                 </div>
             </template>
             <template v-else>
@@ -74,7 +77,7 @@
                             <a class="checkbox" @click="toggleBookmarkCheck(item.index)">
                                 <i class="fas fa-check"></i>
                             </a>
-                            <a class="bookmark-metadata" target="_blank" :class="{'has-image':item.imageURL !== ''}" :style="bookmarkImage(item)" :href="item.url">
+                            <a class="bookmark-metadata" target="_blank" :class="{'has-image':bookmarkImage(item) !== ''}" :style="bookmarkImage(item)" :href="item.url">
                                 <p class="bookmark-time">{{bookmarkTime(item)}}</p>
                                 <p class="bookmark-title">{{item.title}}</p>
                                 <p class="bookmark-url">{{getDomainURL(item.url)}}</p>
@@ -135,6 +138,7 @@
                 loading: true,
                 bookmarks: [],
                 checkedBookmarks: [],
+                showImage: true,
                 inputBookmark: {
                     index: -1,
                     id: -1,
@@ -387,7 +391,13 @@
 
                     return finalBookmarkTime;
                 },
+                toggleImage: function () {
+                    this.showImage = !this.showImage;
+                    if (this.showImage) localStorage.setItem('show-image', '');
+                    else localStorage.removeItem('show-image');
+                },
                 bookmarkImage: function (book) {
+                    if (!this.showImage) return "";
                     if (book.imageURL === "") return "";
                     return "background-image: url(" + book.imageURL + ")";
                 },
@@ -450,7 +460,9 @@
                 }
             },
             mounted: function () {
+                this.showImage = localStorage.getItem('show-image') !== null;
                 this.windowWidth = window.innerWidth;
+
                 window.addEventListener('resize', function () {
                     app.windowWidth = window.innerWidth;
                 })
