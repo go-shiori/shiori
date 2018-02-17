@@ -4,6 +4,7 @@ import (
 	"github.com/RadhiFadlillah/go-readability"
 	"github.com/RadhiFadlillah/shiori/model"
 	"github.com/spf13/cobra"
+	"html/template"
 	"os"
 	"time"
 )
@@ -63,7 +64,7 @@ func addBookmark(url, title, excerpt string, tags []string, offline bool) (book 
 		MinReadTime: article.Meta.MinReadTime,
 		MaxReadTime: article.Meta.MaxReadTime,
 		Content:     article.Content,
-		HTML:        article.RawContent,
+		HTML:        template.HTML(article.RawContent),
 	}
 
 	bookTags := make([]model.Tag, len(tags))

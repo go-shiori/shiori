@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="/css/stylesheet.css">
+    <link rel="stylesheet" href="/css/fontawesome.css">
+    <link rel="stylesheet" href="/css/ubuntu-mono.css">
+    <link rel="stylesheet" href="/css/source-sans-pro.css">
+    <title>{{.Title}} - Shiori - Bookmarks Manager</title>
+</head>
+
+<body>
+    <div id="cache-page">
+        <div id="menu">
+            <a href="/">
+                <i class="fas fa-fw fa-home"></i> Back to home</a>
+            <a id="toggle-light">
+                <i class="fas fa-fw fa-moon"></i> Use dark mode</a>
+        </div>
+        <div id="metadata">
+            <a href="{{.URL}}">{{.URL}}</a>
+            <h3>{{.Title}}</h3>
+            {{if gt .MaxReadTime 0}} {{if eq .MinReadTime .MaxReadTime}}
+            <p>{{.MinReadTime}} minutes read time</p>
+            {{else}}
+            <p>{{.MinReadTime}}-{{.MaxReadTime}} minutes read time</p>
+            {{end}} {{end}}
+        </div>
+        <div id="content">
+            {{.HTML}}
+        </div>
+    </div>
+    <script>
+        var useDarkMode = localStorage.getItem('dark-mode') !== null,
+            cachePage = document.getElementById('cache-page'),
+            btnToggleLight = document.getElementById('toggle-light');
+
+        function updatePage() {
+            if (useDarkMode) {
+                localStorage.setItem('dark-mode', '');
+                cachePage.className = 'dark-mode';
+                btnToggleLight.innerHTML = '<i class="fas fa-fw fa-sun"></i> Use light mode</a>';
+            } else {
+                localStorage.removeItem('dark-mode');
+                cachePage.removeAttribute('class');
+                btnToggleLight.innerHTML = '<i class="fas fa-fw fa-moon"></i> Use dark mode</a>';
+            }
+        }
+
+        btnToggleLight.onclick = function () {
+            useDarkMode = !useDarkMode;
+            updatePage();
+        };
+
+        updatePage();
+    </script>
+</body>
+
+</html>

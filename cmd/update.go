@@ -6,6 +6,7 @@ import (
 	db "github.com/RadhiFadlillah/shiori/database"
 	"github.com/RadhiFadlillah/shiori/model"
 	"github.com/spf13/cobra"
+	"html/template"
 	"strconv"
 	"strings"
 	"sync"
@@ -114,7 +115,7 @@ func updateBookmarks(indices []string, url, title, excerpt string, tags []string
 					book.MinReadTime = article.Meta.MinReadTime
 					book.MaxReadTime = article.Meta.MaxReadTime
 					book.Content = article.Content
-					book.HTML = article.RawContent
+					book.HTML = template.HTML(article.RawContent)
 
 					mutex.Lock()
 					bookmarks[pos] = book

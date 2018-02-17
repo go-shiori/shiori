@@ -12,7 +12,7 @@
     flex: 1 0;
 }
 
-#app {
+#main-page {
     background-color: @appBg;
     display: flex;
     flex-flow: column nowrap;
@@ -137,6 +137,97 @@
                 color: @fontLightColor;
                 font-size: 3em;
             }
+        }
+    }
+}
+
+#cache-page {
+    display: flex;
+    flex-flow: column nowrap;
+    align-items: center;
+    a {
+        color: @main;
+        &:visited {
+            color: @main;
+        }
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+    >* {
+        width: 100%;
+        max-width: 864px;
+    }
+    #menu {
+        display: flex;
+        flex-flow: row nowrap;
+        max-width: 864px;
+        border-bottom: 1px solid @border;
+        a {
+            flex: 1 0;
+            font-size: 0.9em;
+            text-align: center;
+            color: @linkColor;
+            padding: 16px;
+            i {
+                margin-right: 4px;
+            }
+            cursor: pointer;
+            &:not(:last-child) {
+                border-right: 1px solid @border;
+            }
+            &:visited {
+                color: @linkColor
+            }
+            &:hover {
+                color: @main;
+                text-decoration: none;
+            }
+        }
+    }
+    #metadata {
+        padding: 32px;
+        border-bottom: 1px solid @border;
+        a {
+            font-size: 0.9em;
+            display: block;
+        }
+        h3 {
+            font-size: 2em;
+            margin: 8px 0;
+        }
+        p {
+            font-size: 0.9em;
+            color: @fontColor;
+        }
+    }
+    #content {
+        padding: 16px 32px 32px;
+        * {
+            margin-top: 16px;
+            line-height: 180%;
+            overflow: auto;
+        }
+        pre,
+        code {
+            font-family: 'Ubuntu Mono', 'Courier New', Courier, monospace;
+        }
+    }
+    &.dark-mode {
+        background-color: #222;
+        color: white;
+        #menu a {
+            color: white;
+            &:visited {
+                color: white;
+            }
+            &:hover {
+                color: @main;
+                text-decoration: none;
+            }
+        }
+        #metadata p {
+            color: white;
         }
     }
 }

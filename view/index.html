@@ -14,7 +14,7 @@
 </head>
 
 <body>
-    <div id="app">
+    <div id="main-page">
         <div id="header">
             <template v-if="checkedBookmarks.length === 0">
                 <a id="logo" href="/">
@@ -96,7 +96,7 @@
                                 <a @click="deleteBookmarks([item.index])">
                                     <i class="far fa-trash-alt"></i> Delete
                                 </a>
-                                <a>
+                                <a :href="'/bookmark/'+item.id" target="_blank">
                                     <i class="fas fa-history"></i> Cache
                                 </a>
                             </div>
@@ -131,7 +131,7 @@
         instance.defaults.timeout = 10000;
 
         var app = new Vue({
-            el: '#app',
+            el: '#main-page',
             data: {
                 windowWidth: 0,
                 error: "",
