@@ -29,7 +29,7 @@ var (
 			router.GET("/api/bookmarks", apiGetBookmarks)
 			router.POST("/api/bookmarks", apiInsertBookmarks)
 			router.PUT("/api/bookmarks", apiUpdateBookmarks)
-			router.DELETE("/api/bookmarks/:id", apiDeleteBookmarks)
+			router.DELETE("/api/bookmarks", apiDeleteBookmarks)
 
 			// Route for panic
 			router.PanicHandler = func(w http.ResponseWriter, r *http.Request, arg interface{}) {
@@ -107,11 +107,13 @@ func apiUpdateBookmarks(w http.ResponseWriter, r *http.Request, ps httprouter.Pa
 
 func apiDeleteBookmarks(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	// Decode request
-	id := ps.ByName("id")
-
-	// Delete bookmarks
-	_, _, err := DB.DeleteBookmarks(id)
+	request := []string{}
+	err := json.NewDecoder(r.Body).Decode(&request)
 	checkError(err)
 
-	fmt.Fprint(w, id)
+	// Delete bookmarks
+	_, _, err = DB.DeleteBookmarks(request...)
+	checkError(err)
+
+	fmt.Fprint(w, request)
 }

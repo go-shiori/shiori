@@ -28,6 +28,14 @@
         z-index: 99;
         display: flex;
         flex-flow: row nowrap;
+        #n-selected {
+            line-height: @headerHeight;
+            font-size: 1.3em;
+            color: @fontLightColor;
+            flex: 1 0;
+            border-right: 1px solid @border;
+            padding: 0 32px;
+        }
         #logo {
             border-left: 1px solid @border;
             cursor: default;
@@ -84,6 +92,12 @@
                 color: @linkColor;
                 font-size: 0.9em;
                 cursor: pointer;
+                &:not(:last-child) {
+                    border-right: 1px solid @border;
+                }
+                i {
+                    margin-right: 4px;
+                }
                 &:hover {
                     color: @main;
                     background-color: @appBg;
@@ -148,6 +162,7 @@
         line-height: 32px;
         text-align: center;
         display: block;
+        cursor: pointer;
         font-size: 0.9em;
         &:hover {
             color: @accent !important;
@@ -222,6 +237,7 @@
         padding: 12px 12px 0;
         margin-bottom: -4px;
         a {
+            cursor: pointer;
             font-size: 0.9em;
             padding: 4px;
             color: @main !important;
@@ -240,12 +256,16 @@
         visibility: hidden;
         margin-top: 16px;
         a {
+            cursor: pointer;
             display: block;
             flex: 1 0;
             color: @linkColor !important;
             padding: 8px;
             font-size: 0.9em;
             text-align: center;
+            i {
+                margin-right: 4px;
+            }
             &:not(:last-child) {
                 border-right: 1px solid @border;
             }
@@ -263,7 +283,7 @@
         }
     }
     &.checked {
-        border: 0;
+        border: 1px solid @borderDark;
         outline: 6px solid @borderDark;
         .checkbox {
             opacity: 1;

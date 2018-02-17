@@ -16,25 +16,41 @@
 <body>
     <div id="app">
         <div id="header">
-            <a id="logo" href="/">
-                <span>栞</span>shiori</a>
-            <div id="search-box">
-                <input type="text" name="keyword" id="input-search" placeholder="Search tags, title or content">
-                <a class="button">
-                    <i class="fas fa-search fa-fw"></i>
-                </a>
-            </div>
-            <div id="header-menu" v-if="!loading">
-                <a href="#" @click="loadData">
-                    <i class="fas fa-sync fa-fw"></i>
-                </a>
-            </div>
+            <template v-if="checkedBookmarks.length === 0">
+                <a id="logo" href="/">
+                    <span>栞</span>shiori</a>
+                <div id="search-box">
+                    <input type="text" name="keyword" id="input-search" placeholder="Search tags, title or content">
+                    <a class="button">
+                        <i class="fas fa-search fa-fw"></i>
+                    </a>
+                </div>
+                <div id="header-menu" v-if="!loading">
+                    <a @click="loadData">
+                        <i class="fas fa-cloud fa-fw"></i> Reload
+                    </a>
+                </div>
+            </template>
+            <template v-else>
+                <p id="n-selected">{{checkedBookmarks.length}} selected</p>
+                <div id="header-menu">
+                    <a @click="clearSelectedBookmarks">
+                        <i class="fas fa-fw fa-ban"></i> Cancel
+                    </a>
+                    <a @click="selectAllBookmarks">
+                        <i class="fas fa-fw fa-check-square"></i> Select all
+                    </a>
+                    <a @click="deleteBookmarks(checkedBookmarks)">
+                        <i class="fas fa-fw fa-trash"></i> Delete
+                    </a>
+                </div>
+            </template>
         </div>
         <div id="main">
             <template v-if="!loading && error === ''">
-                <div id="input-bookmark" v-if="!loading">
+                <div id="input-bookmark">
                     <p v-if="inputBookmark.url !== ''">{{inputBookmark.id === -1 ? 'New bookmark' : 'Edit bookmark'}}</p>
-                    <input type="text" ref="inputURL" v-model="inputBookmark.url" placeholder="URL for the bookmark">
+                    <input type="text" ref="inputURL" v-model="inputBookmark.url" placeholder="URL for the bookmark" @focus="clearSelectedBookmarks">
                     <template v-if="inputBookmark.url !== ''">
                         <input type="text" v-model="inputBookmark.title" placeholder="Custom bookmark title (optional)">
                         <input type="text" v-model="inputBookmark.tags" placeholder="Space separated tags for this bookmark (optional)">
@@ -52,30 +68,33 @@
                         </div>
                     </template>
                 </div>
-                <div id="grid" v-if="!loading">
+                <div id="grid">
                     <div v-for="column in gridColumns" class="column">
-                        <div v-for="item in column" class="bookmark" :ref="'bookmark-'+item.index">
-                            <a href="#" class="checkbox">
+                        <div v-for="item in column" class="bookmark" :class="{checked: isBookmarkChecked(item.index)}" :ref="'bookmark-'+item.index">
+                            <a class="checkbox" @click="toggleBookmarkCheck(item.index)">
                                 <i class="fas fa-check"></i>
                             </a>
-                            <a class="bookmark-metadata" :class="{'has-image':item.imageURL !== ''}" :style="bookmarkImage(item)" :href="item.url">
+                            <a class="bookmark-metadata" target="_blank" :class="{'has-image':item.imageURL !== ''}" :style="bookmarkImage(item)" :href="item.url">
                                 <p class="bookmark-time">{{bookmarkTime(item)}}</p>
                                 <p class="bookmark-title">{{item.title}}</p>
                                 <p class="bookmark-url">{{getDomainURL(item.url)}}</p>
                             </a>
                             <p v-if="item.excerpt !== ''" class="bookmark-excerpt">{{item.excerpt}}</p>
                             <div v-if="item.tags.length > 0" class="bookmark-tags">
-                                <a v-for="tag in item.tags" href="#">{{tag.name}}</a>
+                                <a v-for="tag in item.tags">{{tag.name}}</a>
                             </div>
                             <div class="bookmark-menu">
-                                <a href="#" @click="editBookmark(item.index)">
-                                    <i class="fas fa-pencil-alt"></i>
+                                <a @click="updateBookmark(item.index)">
+                                    <i class="fas fa-sync"></i> Update
                                 </a>
-                                <a href="#" @click="deleteBookmark(item.index)">
-                                    <i class="far fa-trash-alt"></i>
+                                <a @click="editBookmark(item.index)">
+                                    <i class="fas fa-pencil-alt"></i> Edit
                                 </a>
-                                <a href="#">
-                                    <i class="fas fa-history"></i>
+                                <a @click="deleteBookmarks([item.index])">
+                                    <i class="far fa-trash-alt"></i> Delete
+                                </a>
+                                <a>
+                                    <i class="fas fa-history"></i> Cache
                                 </a>
                             </div>
                         </div>
@@ -115,6 +134,7 @@
                 error: "",
                 loading: true,
                 bookmarks: [],
+                checkedBookmarks: [],
                 inputBookmark: {
                     index: -1,
                     id: -1,
@@ -184,7 +204,10 @@
                             var idx = app.inputBookmark.index;
 
                             if (idx === -1) app.bookmarks.unshift(response.data);
-                            else app.bookmarks.splice(idx, 1, response.data);
+                            else {
+                                app.bookmarks.splice(idx, 1, response.data);
+                                app.bookmarks[idx].tags.splice(0, app.bookmarks[idx].tags.length, ...response.data.tags);
+                            }
 
                             app.clearInputBookmark();
                         })
@@ -210,31 +233,58 @@
                     this.inputBookmark.excerpt = bookmark.excerpt;
 
                     this.$nextTick(function () {
+                        window.scrollTo(0, 0);
                         app.$refs.inputURL.focus();
                     });
                 },
-                deleteBookmark: function (idx) {
-                    var bookmark = this.bookmarks[idx];
+                deleteBookmarks: function (indices) {
+                    var title = "Delete Bookmarks",
+                        content = "Delete the selected bookmark(s) ? This action is irreversible.",
+                        smallestIndex = 1;
+
+                    if (indices.length === 0) return;
+                    else if (indices.length === 1) {
+                        var bookmark = this.bookmarks[indices[0]];
+
+                        smallestIndex = indices[0];
+                        title = "Delete Bookmark";
+                        content = "Delete <b>\"" + bookmark.title.trim() + "\"</b> from bookmarks ? This action is irreversible.";
+                    } else {
+                        indices.sort();
+                        smallestIndex = indices[indices.length - 1];
+                    }
 
                     this.dialog.visible = true;
                     this.dialog.isError = false;
                     this.dialog.loading = false;
-                    this.dialog.title = "Delete Bookmark";
-                    this.dialog.content = "Delete <b>\"" + bookmark.title.trim() + "\"</b> from bookmarks ? This action is irreversible.";
+                    this.dialog.title = title;
+                    this.dialog.content = content;
                     this.dialog.mainChoice = "Yes";
                     this.dialog.secondChoice = "No";
                     this.dialog.mainAction = function () {
                         app.dialog.loading = true;
 
-                        instance.delete('/api/bookmarks/' + bookmark.id)
+                        var listId = [];
+                        for (var i = 0; i < indices.length; i++) {
+                            listId.push('' + app.bookmarks[indices[i]].id);
+                        }
+
+                        instance.delete('/api/bookmarks/', {
+                                data: listId
+                            })
                             .then(function (response) {
                                 app.dialog.loading = false;
                                 app.dialog.visible = false;
-                                app.bookmarks.splice(idx, 1);
 
-                                var scrollIdx = idx === 1 ? 1 : idx - 1;
+                                for (var i = indices.length - 1; i >= 0; i--) {
+                                    app.bookmarks.splice(indices[i], 1);
+                                }
+                                app.clearSelectedBookmarks();
+
+                                var scrollIdx = smallestIndex === 1 ? 1 : smallestIndex - 1;
                                 app.$nextTick(function () {
-                                    app.$refs['bookmark-' + scrollIdx][0].scrollIntoView();
+                                    var el = app.$refs['bookmark-' + scrollIdx];
+                                    if (el) el[0].scrollIntoView();
                                 });
                             })
                             .catch(function (error) {
@@ -245,10 +295,62 @@
                     this.dialog.secondAction = function () {
                         app.dialog.visible = false;
                         app.$nextTick(function () {
-                            app.$refs['bookmark-' + idx][0].scrollIntoView();
+                            app.$refs['bookmark-' + smallestIndex][0].scrollIntoView();
                         });
                     };
 
+                },
+                updateBookmark: function (idx) {
+                    var bookmark = this.bookmarks[idx];
+
+                    this.dialog.visible = true;
+                    this.dialog.isError = false;
+                    this.dialog.loading = false;
+                    this.dialog.title = "Update Bookmark";
+                    this.dialog.content = "Update data of <b>\"" + bookmark.title.trim() + "\"</b> ? This action is irreversible.";
+                    this.dialog.mainChoice = "Yes";
+                    this.dialog.secondChoice = "No";
+                    this.dialog.mainAction = function () {
+                        app.dialog.loading = true;
+                        instance.put('/api/bookmarks', {
+                                id: bookmark.id,
+                            }, {
+                                timeout: 15000,
+                            })
+                            .then(function (response) {
+                                app.dialog.loading = false;
+                                app.dialog.visible = false;
+                                app.bookmarks.splice(idx, 1, response.data);
+                                app.bookmarks[idx].tags.splice(0, app.bookmarks[idx].tags.length, ...response.data.tags);
+                            })
+                            .catch(function (error) {
+                                var errorMsg = error.response ? error.response.data : error.message;
+                                app.showDialogError("Error Updating Bookmark", errorMsg.trim());
+                            });
+                    };
+                    this.dialog.secondAction = function () {
+                        app.dialog.visible = false;
+                        app.$nextTick(function () {
+                            app.$refs['bookmark-' + idx][0].scrollIntoView();
+                        });
+                    };
+                },
+                toggleBookmarkCheck: function (idx) {
+                    var checkedIdx = this.checkedBookmarks.indexOf(idx);
+                    if (checkedIdx !== -1) this.checkedBookmarks.splice(checkedIdx, 1);
+                    else this.checkedBookmarks.push(idx);
+                },
+                selectAllBookmarks: function () {
+                    this.clearSelectedBookmarks();
+                    for (var i = 0; i < this.bookmarks.length; i++) {
+                        this.checkedBookmarks.push(i);
+                    }
+                },
+                clearSelectedBookmarks: function () {
+                    this.checkedBookmarks.splice(0, this.checkedBookmarks.length);
+                },
+                isBookmarkChecked: function (idx) {
+                    return this.checkedBookmarks.indexOf(idx) !== -1;
                 },
                 clearInputBookmark: function () {
                     var idx = this.inputBookmark.index;
