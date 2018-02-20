@@ -84,7 +84,7 @@ func addBookmark(url, title, excerpt string, tags []string, offline bool) (book 
 	}
 
 	// Save to database
-	bookmark.ID, err = DB.SaveBookmark(bookmark)
+	bookmark.ID, err = DB.CreateBookmark(bookmark)
 	if err != nil {
 		return book, err
 	}

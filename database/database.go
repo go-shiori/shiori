@@ -8,7 +8,7 @@ import (
 // Database is interface for manipulating data in database.
 type Database interface {
 	// SaveBookmark saves new bookmark to database.
-	SaveBookmark(bookmark model.Bookmark) (int64, error)
+	CreateBookmark(bookmark model.Bookmark) (int64, error)
 
 	// GetBookmarks fetch list of bookmarks based on submitted indices.
 	GetBookmarks(options GetBookmarksOptions, indices ...string) ([]model.Bookmark, error)
@@ -21,6 +21,15 @@ type Database interface {
 
 	// UpdateBookmarks updates the saved bookmark in database.
 	UpdateBookmarks(bookmarks []model.Bookmark) error
+
+	// CreateAccount creates new account in database
+	CreateAccount(username, password string) error
+
+	// GetAccounts fetch list of accounts in database
+	GetAccounts(keyword string) ([]model.Account, error)
+
+	// DeleteAccounts removes all record with matching usernames
+	DeleteAccounts(usernames ...string) error
 }
 
 type GetBookmarksOptions struct {

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/RadhiFadlillah/shiori/model"
 	"github.com/jmoiron/sqlx"
+	"golang.org/x/crypto/bcrypt"
 	"sort"
 	"strconv"
 	"strings"
@@ -75,8 +76,8 @@ func OpenSQLiteDatabase() (*SQLiteDatabase, error) {
 	return &SQLiteDatabase{*db}, err
 }
 
-// SaveBookmark saves new bookmark to database. Returns new ID and error if any happened.
-func (db *SQLiteDatabase) SaveBookmark(bookmark model.Bookmark) (bookmarkID int64, err error) {
+// CreateBookmark saves new bookmark to database. Returns new ID and error if any happened.
+func (db *SQLiteDatabase) CreateBookmark(bookmark model.Bookmark) (bookmarkID int64, err error) {
 	// Check URL and title
 	if bookmark.URL == "" {
 		return -1, fmt.Errorf("URL must not empty")
@@ -534,5 +535,61 @@ func (db *SQLiteDatabase) UpdateBookmarks(bookmarks []model.Bookmark) (err error
 	err = tx.Commit()
 	checkError(err)
 
+	return err
+}
+
+// CreateAccount saves new account to database. Returns new ID and error if any happened.
+func (db *SQLiteDatabase) CreateAccount(username, password string) (err error) {
+	// Hash password with bcrypt
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 10)
+	if err != nil {
+		return err
+	}
+
+	// Insert account to database
+	_, err = db.Exec(`INSERT INTO account
+		(username, password) VALUES (?, ?)`,
+		username, hashedPassword)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// GetAccounts fetch list of accounts in database
+func (db *SQLiteDatabase) GetAccounts(keyword string) ([]model.Account, error) {
+	query := `SELECT id, username, password FROM account`
+	args := []interface{}{}
+	if keyword != "" {
+		query += ` WHERE username LIKE ?`
+		args = append(args, "%"+keyword+"%")
+	}
+	query += ` ORDER BY username`
+
+	accounts := []model.Account{}
+	err := db.Select(&accounts, query, args...)
+	return accounts, err
+}
+
+// DeleteAccounts removes all record with matching usernames
+func (db *SQLiteDatabase) DeleteAccounts(usernames ...string) error {
+	// Prepare where clause
+	args := []interface{}{}
+	whereClause := " WHERE 1"
+
+	if len(usernames) > 0 {
+		whereClause = " WHERE username IN ("
+		for _, username := range usernames {
+			args = append(args, username)
+			whereClause += "?,"
+		}
+
+		whereClause = whereClause[:len(whereClause)-1]
+		whereClause += ")"
+	}
+
+	// Delete usernames
+	_,err := db.Exec(`DELETE FROM account `+whereClause, args...)
 	return err
 }

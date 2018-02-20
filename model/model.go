@@ -24,3 +24,10 @@ type Bookmark struct {
 	HTML        template.HTML `db:"html"          json:"-"`
 	Tags        []Tag         `json:"tags"`
 }
+
+// Account is account for accessing bookmarks from web interface
+type Account struct {
+	ID       int64  `db:"id"       json:"id"`
+	Username string `db:"username" json:"username"`
+	Password string `db:"password" json:"password"`
+}
