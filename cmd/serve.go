@@ -57,7 +57,8 @@ var (
 				http.Error(w, fmt.Sprint(arg), 500)
 			}
 
-			url := fmt.Sprintf(":%d", 8080)
+			port, _ := cmd.Flags().GetInt("port")
+			url := fmt.Sprintf(":%d", port)
 			logrus.Infoln("Serve shiori in", url)
 			logrus.Fatalln(http.ListenAndServe(url, router))
 		},
@@ -65,6 +66,7 @@ var (
 )
 
 func init() {
+	serveCmd.Flags().IntP("port", "p", 8080, "Port that used by server")
 	rootCmd.AddCommand(serveCmd)
 }
 
