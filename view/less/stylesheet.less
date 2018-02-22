@@ -12,6 +12,107 @@
     flex: 1 0;
 }
 
+#login-page {
+    display: flex;
+    flex-flow: column nowrap;
+    align-items: center;
+    height: 100vh;
+    background-color: @appBg;
+    justify-content: center;
+    >.error-message {
+        width: 100%;
+        margin: 16px 16px 0;
+        max-width: 400px;
+        background-color: @contentBg;
+        border: 1px solid @border;
+        padding: 16px;
+        text-align: center;
+    }
+    #login-box {
+        width: 100%;
+        margin: 16px;
+        max-width: 400px;
+        background-color: @contentBg;
+        display: flex;
+        flex-flow: column nowrap;
+        border: 1px solid @border;
+        #logo-area {
+            display: flex;
+            align-items: center;
+            flex-flow: column nowrap;
+            padding: 16px;
+            border-bottom: 1px solid @border;
+            #logo {
+                font-size: 3em;
+                font-weight: 100;
+                color: @main;
+                span {
+                    margin-right: 8px;
+                }
+            }
+            #tagline {
+                font-weight: 100;
+                color: @main;
+            }
+        }
+        #input-area {
+            padding: 8px;
+            border-bottom: 1px solid @border;
+            .input-field {
+                display: flex;
+                align-items: baseline;
+                padding: 8px;
+                p {
+                    color: @fontLightColor;
+                    font-size: 0.9em;
+                    margin-right: 16px;
+                    min-width: 65px;
+                }
+                input {
+                    color: @fontColor;
+                    padding: 8px;
+                    border: 1px solid @border;
+                    flex: 1 0;
+                    font-size: 0.9em;
+                }
+                a {
+                    display: block;
+                    cursor: pointer;
+                    color: @fontLightColor;
+                    text-align: center;
+                    font-size: 0.9em;
+                    flex: 1 0;
+                    i {
+                        margin-right: 8px;
+                        color: @fontLightColor;
+                    }
+                    &:hover {
+                        color: @main;
+                    }
+                }
+            }
+        }
+        #button-area {
+            display: flex;
+            flex-flow: row nowrap;
+            padding: 16px;
+            a {
+                color: @linkColor;
+                text-transform: uppercase;
+                background-color: @headerInputBg;
+                flex: 1 0;
+                text-align: center;
+                &.button {
+                    cursor: pointer;
+                    &:hover {
+                        color: @accent;
+                    }
+                }
+            }
+        }
+    }
+}
+
 #main-page {
     background-color: @appBg;
     display: flex;
@@ -109,6 +210,59 @@
         margin-top: @headerHeight;
         display: flex;
         flex-flow: column nowrap;
+        #input-bookmark {
+            align-self: center;
+            max-width: 600px;
+            width: 100%;
+            display: flex;
+            flex-flow: column nowrap;
+            margin: 32px 8px 20px;
+            background-color: @headerInputBg;
+            outline: 1px solid @border;
+            >p {
+                color: @fontColor;
+                font-weight: 600;
+                text-transform: uppercase;
+                padding: 16px;
+                &.error-message {
+                    color: @main;
+                    font-size: 0.9em;
+                    border-bottom: 1px solid @border;
+                    font-weight: 500;
+                    text-transform: none;
+                }
+            }
+            input[type=text],
+            textarea {
+                outline: 1px solid @border;
+                color: @fontColor;
+                font-size: 0.9em;
+                padding: 12px 16px;
+            }
+            textarea {
+                resize: vertical;
+                min-height: 4em;
+                max-height: 10em;
+            }
+            .button-area {
+                display: flex;
+                flex-flow: row nowrap;
+                padding: 8px;
+                a {
+                    color: @linkColor;
+                    text-transform: uppercase;
+                    padding: 8px;
+                    background-color: @headerInputBg;
+                    font-size: 0.9em;
+                    &.button {
+                        cursor: pointer;
+                        &:hover {
+                            color: @accent;
+                        }
+                    }
+                }
+            }
+        }
         #grid {
             display: flex;
             flex-flow: row;
@@ -232,9 +386,70 @@
     }
 }
 
+#dialog-overlay {
+    position: fixed;
+    z-index: 101;
+    display: flex;
+    flex-flow: column;
+    background-color: rgba(0, 0, 0, 0.5);
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+    justify-content: center;
+    padding: 32px;
+    #dialog {
+        display: flex;
+        background-color: @contentBg;
+        align-self: center;
+        flex-flow: column;
+        border: 1px solid @border;
+        max-width: 500px;
+        #dialog-title {
+            color: @fontColor;
+            font-weight: 600;
+            text-transform: uppercase;
+            padding: 16px;
+            font-size: 1em;
+            border-bottom: 1px solid @border;
+        }
+        #dialog-content {
+            padding: 16px;
+        }
+        #dialog-button {
+            display: flex;
+            flex-flow: row nowrap;
+            padding: 8px;
+            border-top: 1px solid @border;
+            a {
+                color: @linkColor;
+                text-transform: uppercase;
+                padding: 8px;
+                background-color: @headerInputBg;
+                &.button {
+                    cursor: pointer;
+                    &:not(:last-child) {
+                        margin-right: 16px;
+                    }
+                    &:hover {
+                        color: @accent;
+                    }
+                }
+            }
+        }
+    }
+}
+
 .error-message {
     color: @main !important;
     font-size: 0.9em;
+    &::before {
+        content: "\f071";
+        font-weight: 900;
+        margin-right: 8px;
+        font-family: "Font Awesome 5 Free"
+    }
 }
 
 .bookmark {
@@ -381,115 +596,6 @@
             outline: 0;
             background-color: @borderDark;
             color: white;
-        }
-    }
-}
-
-#input-bookmark {
-    align-self: center;
-    max-width: 600px;
-    width: 100%;
-    display: flex;
-    flex-flow: column nowrap;
-    margin: 32px 8px 20px;
-    background-color: @headerInputBg;
-    outline: 1px solid @border;
-    >p {
-        color: @fontColor;
-        font-weight: 600;
-        text-transform: uppercase;
-        padding: 16px;
-        &.error-message {
-            color: @main;
-            font-size: 0.9em;
-            border-bottom: 1px solid @border;
-            font-weight: 500;
-            text-transform: none;
-        }
-    }
-    input[type=text],
-    textarea {
-        outline: 1px solid @border;
-        color: @fontColor;
-        font-size: 0.9em;
-        padding: 12px 16px;
-    }
-    textarea {
-        resize: vertical;
-        min-height: 4em;
-        max-height: 10em;
-    }
-    .button-area {
-        display: flex;
-        flex-flow: row nowrap;
-        padding: 8px;
-        a {
-            color: @linkColor;
-            text-transform: uppercase;
-            padding: 8px;
-            background-color: @headerInputBg;
-            font-size: 0.9em;
-            &.button {
-                cursor: pointer;
-                &:hover {
-                    color: @accent;
-                }
-            }
-        }
-    }
-}
-
-#dialog-overlay {
-    position: fixed;
-    z-index: 101;
-    display: flex;
-    flex-flow: column;
-    background-color: rgba(0, 0, 0, 0.5);
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    overflow: hidden;
-    justify-content: center;
-    padding: 32px;
-    #dialog {
-        display: flex;
-        background-color: @contentBg;
-        align-self: center;
-        flex-flow: column;
-        border: 1px solid @border;
-        max-width: 500px;
-        #dialog-title {
-            color: @fontColor;
-            font-weight: 600;
-            text-transform: uppercase;
-            padding: 16px;
-            font-size: 1em;
-            border-bottom: 1px solid @border;
-        }
-        #dialog-content {
-            padding: 16px;
-        }
-        #dialog-button {
-            display: flex;
-            flex-flow: row nowrap;
-            padding: 8px;
-            border-top: 1px solid @border;
-            a {
-                color: @linkColor;
-                text-transform: uppercase;
-                padding: 8px;
-                background-color: @headerInputBg;
-                &.button {
-                    cursor: pointer;
-                    &:not(:last-child) {
-                        margin-right: 16px;
-                    }
-                    &:hover {
-                        color: @accent;
-                    }
-                }
-            }
         }
     }
 }

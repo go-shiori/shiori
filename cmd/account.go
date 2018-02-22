@@ -114,7 +114,7 @@ func addAccount(username, password string) error {
 }
 
 func printAccounts(keyword string) error {
-	accounts, err := DB.GetAccounts(keyword)
+	accounts, err := DB.GetAccounts(keyword, false)
 	if err != nil {
 		return err
 	}

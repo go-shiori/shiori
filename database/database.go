@@ -26,7 +26,7 @@ type Database interface {
 	CreateAccount(username, password string) error
 
 	// GetAccounts fetch list of accounts in database
-	GetAccounts(keyword string) ([]model.Account, error)
+	GetAccounts(keyword string, exact bool) ([]model.Account, error)
 
 	// DeleteAccounts removes all record with matching usernames
 	DeleteAccounts(usernames ...string) error

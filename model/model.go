@@ -31,3 +31,10 @@ type Account struct {
 	Username string `db:"username" json:"username"`
 	Password string `db:"password" json:"password"`
 }
+
+// LoginRequest is login request
+type LoginRequest struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Remember bool   `json:"remember"`
+}

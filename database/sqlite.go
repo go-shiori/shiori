@@ -558,12 +558,17 @@ func (db *SQLiteDatabase) CreateAccount(username, password string) (err error) {
 }
 
 // GetAccounts fetch list of accounts in database
-func (db *SQLiteDatabase) GetAccounts(keyword string) ([]model.Account, error) {
+func (db *SQLiteDatabase) GetAccounts(keyword string, exact bool) ([]model.Account, error) {
 	query := `SELECT id, username, password FROM account`
 	args := []interface{}{}
 	if keyword != "" {
-		query += ` WHERE username LIKE ?`
-		args = append(args, "%"+keyword+"%")
+		if exact {
+			query += ` WHERE username = ?`
+			args = append(args, keyword)
+		} else {
+			query += ` WHERE username LIKE ?`
+			args = append(args, "%"+keyword+"%")
+		}
 	}
 	query += ` ORDER BY username`
 
@@ -590,6 +595,6 @@ func (db *SQLiteDatabase) DeleteAccounts(usernames ...string) error {
 	}
 
 	// Delete usernames
-	_,err := db.Exec(`DELETE FROM account `+whereClause, args...)
+	_, err := db.Exec(`DELETE FROM account `+whereClause, args...)
 	return err
 }

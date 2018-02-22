@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="/css/source-sans-pro.css">
     <script src="/js/vue.js"></script>
     <script src="/js/axios.js"></script>
+    <script src="/js/js-cookie.js"></script>
     <title>Shiori - Bookmarks Manager</title>
 </head>
 
@@ -32,6 +33,9 @@
                     <a @click="toggleImage">
                         <i class="fas fa-fw" :class="showImage ? 'fa-eye-slash' : 'fa-eye'"></i> {{showImage ? 'Hide image' : 'Show image'}}
                     </a>
+                    <a @click="logout">
+                        <i class="fas fa-sign-out-alt fa-fw"></i> Logout
+                    </a>
                 </div>
             </template>
             <template v-else>
@@ -53,11 +57,11 @@
             <template v-if="!loading && error === ''">
                 <div id="input-bookmark">
                     <p v-if="inputBookmark.url !== ''">{{inputBookmark.id === -1 ? 'New bookmark' : 'Edit bookmark'}}</p>
-                    <input type="text" ref="inputURL" v-model="inputBookmark.url" placeholder="URL for the bookmark" @focus="clearSelectedBookmarks">
+                    <input type="text" ref="inputURL" v-model.trim="inputBookmark.url" placeholder="URL for the bookmark" @focus="clearSelectedBookmarks">
                     <template v-if="inputBookmark.url !== ''">
-                        <input type="text" v-model="inputBookmark.title" placeholder="Custom bookmark title (optional)">
-                        <input type="text" v-model="inputBookmark.tags" placeholder="Space separated tags for this bookmark (optional)">
-                        <textarea name="excerpt" v-model="inputBookmark.excerpt" placeholder="Excerpt for this bookmark (optional)"></textarea>
+                        <input type="text" v-model.trim="inputBookmark.title" placeholder="Custom bookmark title (optional)">
+                        <input type="text" v-model.trim="inputBookmark.tags" placeholder="Space separated tags for this bookmark (optional)">
+                        <textarea name="excerpt" v-model.trim="inputBookmark.excerpt" placeholder="Excerpt for this bookmark (optional)"></textarea>
                         <p v-if="inputBookmark.error !== ''" class="error-message">{{inputBookmark.error}}</p>
                         <div class="button-area">
                             <div class="spacer"></div>
@@ -127,8 +131,11 @@
         </div>
     </div>
     <script>
-        var instance = axios.create();
+        var token = Cookies.get('token'),
+            instance = axios.create();
+
         instance.defaults.timeout = 10000;
+        instance.defaults.headers.common['Authorization'] = 'Bearer ' + token;
 
         var app = new Vue({
             el: '#main-page',
@@ -427,6 +434,10 @@
                         app.dialog.visible = false;
                     }
                     this.dialog.secondAction = function () {}
+                },
+                logout: function () {
+                    Cookies.remove('token');
+                    location.href = '/login';
                 }
             },
             computed: {
