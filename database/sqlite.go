@@ -396,10 +396,10 @@ func (db *SQLiteDatabase) SearchBookmarks(keyword string, tags ...string) ([]mod
 
 	// Create where clause for keyword
 	if keyword != "" {
-		whereClause += ` AND id IN (
+		whereClause += ` AND (url LIKE ? OR id IN (
 			SELECT docid id FROM bookmark_content 
-			WHERE title MATCH ? OR content MATCH ?)`
-		args = append(args, keyword, keyword)
+			WHERE title MATCH ? OR content MATCH ?))`
+		args = append(args, "%"+keyword+"%", keyword, keyword)
 	}
 
 	// Create where clause for tags
