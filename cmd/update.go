@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 	"github.com/RadhiFadlillah/go-readability"
-	db "github.com/RadhiFadlillah/shiori/database"
 	"github.com/RadhiFadlillah/shiori/model"
 	"github.com/spf13/cobra"
 	"html/template"
@@ -84,7 +83,7 @@ func init() {
 func updateBookmarks(indices []string, url, title, excerpt string, tags []string, offline bool) ([]model.Bookmark, error) {
 	mutex := sync.Mutex{}
 	// Read bookmarks from database
-	bookmarks, err := DB.GetBookmarks(db.GetBookmarksOptions{WithContents: true}, indices...)
+	bookmarks, err := DB.GetBookmarks(true, indices...)
 	if err != nil {
 		return []model.Bookmark{}, err
 	}

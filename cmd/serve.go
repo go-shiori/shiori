@@ -4,7 +4,6 @@ import (
 	"crypto/rand"
 	"encoding/json"
 	"fmt"
-	db "github.com/RadhiFadlillah/shiori/database"
 	"github.com/RadhiFadlillah/shiori/model"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/dgrijalva/jwt-go/request"
@@ -99,7 +98,7 @@ func serveBookmarkCache(w http.ResponseWriter, r *http.Request, ps httprouter.Pa
 	id := ps.ByName("id")
 
 	// Read bookmarks
-	bookmarks, err := DB.GetBookmarks(db.GetBookmarksOptions{WithContents: true}, id)
+	bookmarks, err := DB.GetBookmarks(true, id)
 	checkError(err)
 
 	if len(bookmarks) == 0 {
@@ -159,7 +158,7 @@ func apiGetBookmarks(w http.ResponseWriter, r *http.Request, ps httprouter.Param
 	checkError(err)
 
 	// Fetch all bookmarks
-	bookmarks, err := DB.GetBookmarks(db.GetBookmarksOptions{OrderLatest: true})
+	bookmarks, err := DB.GetBookmarks(false)
 	checkError(err)
 
 	err = json.NewEncoder(w).Encode(&bookmarks)

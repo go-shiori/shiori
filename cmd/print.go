@@ -3,7 +3,6 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	db "github.com/RadhiFadlillah/shiori/database"
 	"github.com/RadhiFadlillah/shiori/model"
 	"github.com/spf13/cobra"
 	"os"
@@ -23,7 +22,7 @@ var (
 			indexOnly, _ := cmd.Flags().GetBool("index-only")
 
 			// Read bookmarks from database
-			bookmarks, err := DB.GetBookmarks(db.GetBookmarksOptions{}, args...)
+			bookmarks, err := DB.GetBookmarks(false, args...)
 			if err != nil {
 				cError.Println(err)
 				os.Exit(1)
