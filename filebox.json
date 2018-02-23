@@ -1,0 +1,17 @@
+{
+    "pkg": "assets",
+    "dest": "./assets/",
+    "fmt": true,
+    "compression": {
+        "compress": true,
+        "method": ""
+    },
+    "output": "assets.go",
+    "custom": [{
+        "files": ["./view/"],
+        "base": "view/",
+        "exclude": [
+            "less/*.less"
+        ]
+    }]
+}

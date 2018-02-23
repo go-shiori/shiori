@@ -1,3 +1,4 @@
+//go:generate fileb0x filebox.json
 package main
 
 import (

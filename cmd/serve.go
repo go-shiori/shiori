@@ -1,9 +1,11 @@
 package cmd
 
 import (
+	"bytes"
 	"crypto/rand"
 	"encoding/json"
 	"fmt"
+	"github.com/RadhiFadlillah/shiori/assets"
 	"github.com/RadhiFadlillah/shiori/model"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/dgrijalva/jwt-go/request"
@@ -12,6 +14,8 @@ import (
 	"github.com/spf13/cobra"
 	"golang.org/x/crypto/bcrypt"
 	"html/template"
+	"io"
+	"mime"
 	"net/http"
 	fp "path/filepath"
 	"strings"
@@ -20,6 +24,7 @@ import (
 
 var (
 	jwtKey   []byte
+	tplCache *template.Template
 	serveCmd = &cobra.Command{
 		Use:   "serve",
 		Short: "Serve web app for managing bookmarks.",
@@ -31,6 +36,19 @@ var (
 			_, err := rand.Read(jwtKey)
 			if err != nil {
 				cError.Println("Failed generating key for token")
+				return
+			}
+
+			// Prepare template
+			tplFile, err := assets.ReadFile("content.html")
+			if err != nil {
+				cError.Println("Failed generating HTML template")
+				return
+			}
+
+			tplCache, err = template.New("content.html").Parse(string(tplFile))
+			if err != nil {
+				cError.Println("Failed generating HTML template")
 				return
 			}
 
@@ -70,10 +88,26 @@ func init() {
 }
 
 func serveFiles(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	filepath := r.URL.Path
-	filepath = strings.TrimPrefix(filepath, "/")
-	filepath = fp.Join("view", filepath)
-	http.ServeFile(w, r, filepath)
+	// Read asset path
+	path := r.URL.Path
+	if path[0:1] == "/" {
+		path = path[1:]
+	}
+
+	// Load asset
+	asset, err := assets.ReadFile(path)
+	checkError(err)
+
+	// Set response header content type
+	ext := fp.Ext(path)
+	mimeType := mime.TypeByExtension(ext)
+	if mimeType != "" {
+		w.Header().Set("Content-Type", mimeType)
+	}
+
+	// Serve asset
+	buffer := bytes.NewBuffer(asset)
+	io.Copy(w, buffer)
 }
 
 func serveIndexPage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -84,13 +118,21 @@ func serveIndexPage(w http.ResponseWriter, r *http.Request, ps httprouter.Params
 		return
 	}
 
-	filepath := fp.Join("view", "index.html")
-	http.ServeFile(w, r, filepath)
+	asset, err := assets.ReadFile("index.html")
+	checkError(err)
+
+	w.Header().Set("Content-Type", "text/html")
+	buffer := bytes.NewBuffer(asset)
+	io.Copy(w, buffer)
 }
 
 func serveLoginPage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	filepath := fp.Join("view", "login.html")
-	http.ServeFile(w, r, filepath)
+	asset, err := assets.ReadFile("login.html")
+	checkError(err)
+
+	w.Header().Set("Content-Type", "text/html")
+	buffer := bytes.NewBuffer(asset)
+	io.Copy(w, buffer)
 }
 
 func serveBookmarkCache(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -106,10 +148,7 @@ func serveBookmarkCache(w http.ResponseWriter, r *http.Request, ps httprouter.Pa
 	}
 
 	// Read template
-	templates, err := template.New("content.html").ParseFiles("view/content.html")
-	checkError(err)
-
-	err = templates.ExecuteTemplate(w, "content.html", &bookmarks[0])
+	err = tplCache.Execute(w, &bookmarks[0])
 	checkError(err)
 }
 
