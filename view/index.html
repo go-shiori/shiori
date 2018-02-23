@@ -21,13 +21,13 @@
                 <a id="logo" href="/">
                     <span>栞</span>shiori</a>
                 <div id="search-box">
-                    <input type="text" name="keyword" id="input-search" placeholder="Search tags, title or content">
-                    <a class="button">
+                    <input type="text" name="keyword" v-model.trim="search.query" @keyup.enter="loadData" placeholder="Search url, tags, title or content">
+                    <a class="button" @click="loadData">
                         <i class="fas fa-search fa-fw"></i>
                     </a>
                 </div>
                 <div id="header-menu" v-if="!loading">
-                    <a @click="loadData">
+                    <a @click="reloadData">
                         <i class="fas fa-cloud fa-fw"></i> Reload
                     </a>
                     <a @click="toggleImage">
@@ -74,6 +74,10 @@
                             </template>
                         </div>
                     </template>
+                </div>
+                <div v-if="search.query !== '' && !loading" id="search-parameter">
+                    <a v-if="search.keyword !== ''" @click="removeSearchParam(search.keyword)">{{search.keyword}}</a>
+                    <a v-for="tag in search.tags" @click="removeSearchParam('#'+tag)">#{{tag}}</a>
                 </div>
                 <div id="grid">
                     <div v-for="column in gridColumns" class="column">
@@ -142,10 +146,15 @@
             data: {
                 windowWidth: 0,
                 error: "",
-                loading: true,
+                loading: false,
                 bookmarks: [],
                 checkedBookmarks: [],
                 showImage: true,
+                search: {
+                    query: "",
+                    keyword: "",
+                    tags: []
+                },
                 inputBookmark: {
                     index: -1,
                     id: -1,
@@ -169,10 +178,40 @@
                 }
             },
             methods: {
+                removeSearchParam: function (param) {
+                    if (this.loading) return;
+                    this.search.query = this.search.query.replace(param, ' ').trim().replace(/\s+/g, ' ');
+                    this.loadData();
+                },
+                reloadData: function () {
+                    if (this.loading) return;
+                    this.search.query = '';
+                    this.loadData();
+                },
                 loadData: function () {
+                    if (this.loading) return;
+
+                    // Parse search query
+                    var rxTags = /(^|\s+)#(\S+)/g,
+                        tags = [];
+
+                    while ((result = rxTags.exec(this.search.query)) !== null) {
+                        tags.push(result[2]);
+                    }
+
+                    var keyword = this.search.query.replace(/(^|\s+)#(\S+)/g, ' ').trim().replace(/\s+/g, ' ');
+
+                    // Fetch data
                     this.error = '';
                     this.loading = true;
-                    instance.get('/api/bookmarks')
+                    this.search.tags = tags;
+                    this.search.keyword = keyword;
+                    instance.get('/api/bookmarks', {
+                            params: {
+                                keyword: this.search.keyword,
+                                tags: this.search.tags.join(" ")
+                            }
+                        })
                         .then(function (response) {
                             app.loading = false;
                             app.bookmarks = response.data;
@@ -460,7 +499,7 @@
                     }
 
                     return finalContent;
-                }
+                },
             },
             watch: {
                 'inputBookmark.url': function (newURL) {

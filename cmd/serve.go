@@ -153,12 +153,17 @@ func apiLogin(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 }
 
 func apiGetBookmarks(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	// Get query parameter
+	keyword := r.URL.Query().Get("keyword")
+	strTags := r.URL.Query().Get("tags")
+	tags := strings.Fields(strTags)
+
 	// Check token
 	err := checkAPIToken(r)
 	checkError(err)
 
 	// Fetch all bookmarks
-	bookmarks, err := DB.GetBookmarks(false)
+	bookmarks, err := DB.SearchBookmarks(keyword, tags...)
 	checkError(err)
 
 	err = json.NewEncoder(w).Encode(&bookmarks)

@@ -263,6 +263,25 @@
                 }
             }
         }
+        #search-parameter {
+            display: flex;
+            flex-flow: row wrap;
+            padding: 0 8px;
+            a {
+                display: block;
+                margin: 8px;
+                padding: 8px;
+                font-size: 0.9em;
+                background-color: @fontLightColor;
+                color: white;
+                border-radius: 16px;
+                cursor: pointer;
+                &:hover {
+                    background-color: @main;
+                    text-decoration: line-through;
+                }
+            }
+        }
         #grid {
             display: flex;
             flex-flow: row;
@@ -299,6 +318,8 @@
     display: flex;
     flex-flow: column nowrap;
     align-items: center;
+    height: auto;
+    min-height: 100vh;
     a {
         color: @main;
         &:visited {
