@@ -40,13 +40,8 @@ var (
 			}
 
 			// Prepare template
-			tplFile, err := assets.ReadFile("content.html")
-			if err != nil {
-				cError.Println("Failed generating HTML template")
-				return
-			}
-
-			tplCache, err = template.New("content.html").Parse(string(tplFile))
+			tplFile, _ := assets.ReadFile("cache.html")
+			tplCache, err = template.New("cache.html").Parse(string(tplFile))
 			if err != nil {
 				cError.Println("Failed generating HTML template")
 				return
@@ -118,18 +113,14 @@ func serveIndexPage(w http.ResponseWriter, r *http.Request, ps httprouter.Params
 		return
 	}
 
-	asset, err := assets.ReadFile("index.html")
-	checkError(err)
-
+	asset, _ := assets.ReadFile("index.html")
 	w.Header().Set("Content-Type", "text/html")
 	buffer := bytes.NewBuffer(asset)
 	io.Copy(w, buffer)
 }
 
 func serveLoginPage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	asset, err := assets.ReadFile("login.html")
-	checkError(err)
-
+	asset, _ := assets.ReadFile("login.html")
 	w.Header().Set("Content-Type", "text/html")
 	buffer := bytes.NewBuffer(asset)
 	io.Copy(w, buffer)
