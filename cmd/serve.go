@@ -202,7 +202,7 @@ func apiGetBookmarks(w http.ResponseWriter, r *http.Request, ps httprouter.Param
 	checkError(err)
 
 	// Fetch all bookmarks
-	bookmarks, err := DB.SearchBookmarks(keyword, tags...)
+	bookmarks, err := DB.SearchBookmarks(true, keyword, tags...)
 	checkError(err)
 
 	err = json.NewEncoder(w).Encode(&bookmarks)

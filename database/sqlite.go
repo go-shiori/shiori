@@ -384,7 +384,7 @@ func (db *SQLiteDatabase) DeleteBookmarks(indices ...string) (oldIndices, newInd
 }
 
 // SearchBookmarks search bookmarks by the keyword or tags.
-func (db *SQLiteDatabase) SearchBookmarks(keyword string, tags ...string) ([]model.Bookmark, error) {
+func (db *SQLiteDatabase) SearchBookmarks(orderLatest bool, keyword string, tags ...string) ([]model.Bookmark, error) {
 	// Create initial variable
 	keyword = strings.TrimSpace(keyword)
 	whereClause := "WHERE 1"
@@ -420,6 +420,10 @@ func (db *SQLiteDatabase) SearchBookmarks(keyword string, tags ...string) ([]mod
 		url, title, image_url, excerpt, author, 
 		min_read_time, max_read_time, modified
 		FROM bookmark ` + whereClause
+
+	if orderLatest {
+		query += ` ORDER BY modified DESC`
+	}
 
 	bookmarks := []model.Bookmark{}
 	err := db.Select(&bookmarks, query, args...)

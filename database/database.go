@@ -17,7 +17,7 @@ type Database interface {
 	DeleteBookmarks(indices ...string) ([]int, []int, error)
 
 	// SearchBookmarks search bookmarks by the keyword or tags.
-	SearchBookmarks(keyword string, tags ...string) ([]model.Bookmark, error)
+	SearchBookmarks(orderLatest bool, keyword string, tags ...string) ([]model.Bookmark, error)
 
 	// UpdateBookmarks updates the saved bookmark in database.
 	UpdateBookmarks(bookmarks []model.Bookmark) error

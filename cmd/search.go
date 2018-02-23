@@ -30,7 +30,7 @@ var (
 			}
 
 			// Read bookmarks from database
-			bookmarks, err := DB.SearchBookmarks(keyword, tags...)
+			bookmarks, err := DB.SearchBookmarks(false, keyword, tags...)
 			if err != nil {
 				cError.Println(err)
 				os.Exit(1)
