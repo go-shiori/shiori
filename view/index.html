@@ -92,7 +92,7 @@
                             </a>
                             <p v-if="item.excerpt !== ''" class="bookmark-excerpt">{{item.excerpt}}</p>
                             <div v-if="item.tags.length > 0" class="bookmark-tags">
-                                <a v-for="tag in item.tags">{{tag.name}}</a>
+                                <a v-for="tag in item.tags" @click="searchTag(tag.name)">{{tag.name}}</a>
                             </div>
                             <div class="bookmark-menu">
                                 <a @click="updateBookmark(item.index)">
@@ -178,6 +178,16 @@
                 }
             },
             methods: {
+                searchTag: function (tag) {
+                    if (this.loading) return;
+
+                    var newTag = '#' + tag;
+                    if (this.search.query.indexOf(newTag) === -1) {
+                        this.search.query += ' ' + newTag;
+                        this.search.query = this.search.query.trim().replace(/\s+/g, ' ');
+                        this.loadData();
+                    }
+                },
                 removeSearchParam: function (param) {
                     if (this.loading) return;
                     this.search.query = this.search.query.replace(param, ' ').trim().replace(/\s+/g, ' ');

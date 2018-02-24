@@ -401,7 +401,7 @@ func (db *SQLiteDatabase) SearchBookmarks(orderLatest bool, keyword string, tags
 	// Create where clause for tags
 	if len(tags) > 0 {
 		whereTagClause := ` AND id IN (
-			SELECT DISTINCT bookmark_id FROM bookmark_tag 
+			SELECT bookmark_id FROM bookmark_tag 
 			WHERE tag_id IN (SELECT id FROM tag WHERE name IN (`
 
 		for _, tag := range tags {
@@ -410,7 +410,8 @@ func (db *SQLiteDatabase) SearchBookmarks(orderLatest bool, keyword string, tags
 		}
 
 		whereTagClause = whereTagClause[:len(whereTagClause)-1]
-		whereTagClause += ")))"
+		whereTagClause += `)) GROUP BY bookmark_id HAVING COUNT(bookmark_id) >= ?)`
+		args = append(args, len(tags))
 
 		whereClause += whereTagClause
 	}
