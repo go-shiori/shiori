@@ -120,6 +120,13 @@ func serveIndexPage(w http.ResponseWriter, r *http.Request, ps httprouter.Params
 }
 
 func serveLoginPage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	// Check token
+	err := checkToken(r)
+	if err == nil {
+		redirectPage(w, r, "/")
+		return
+	}
+
 	asset, _ := assets.ReadFile("login.html")
 	w.Header().Set("Content-Type", "text/html")
 	buffer := bytes.NewBuffer(asset)
