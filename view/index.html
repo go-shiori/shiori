@@ -28,13 +28,16 @@
                 </div>
                 <div id="header-menu" v-if="!loading">
                     <a @click="reloadData">
-                        <i class="fas fa-cloud fa-fw"></i> Reload
+                        <i class="fas fa-cloud fa-fw"></i>
+                        <span>Reload</span>
                     </a>
                     <a @click="toggleImage">
-                        <i class="fas fa-fw" :class="showImage ? 'fa-eye-slash' : 'fa-eye'"></i> {{showImage ? 'Hide image' : 'Show image'}}
+                        <i class="fas fa-fw" :class="showImage ? 'fa-eye-slash' : 'fa-eye'"></i>
+                        <span>{{showImage ? 'Hide image' : 'Show image'}}</span>
                     </a>
                     <a @click="logout">
-                        <i class="fas fa-sign-out-alt fa-fw"></i> Logout
+                        <i class="fas fa-sign-out-alt fa-fw"></i>
+                        <span>Logout</span>
                     </a>
                 </div>
             </template>
@@ -42,13 +45,16 @@
                 <p id="n-selected">{{checkedBookmarks.length}} selected</p>
                 <div id="header-menu">
                     <a @click="clearSelectedBookmarks">
-                        <i class="fas fa-fw fa-ban"></i> Cancel
+                        <i class="fas fa-fw fa-ban"></i>
+                        <span>Cancel</span>
                     </a>
                     <a @click="selectAllBookmarks">
-                        <i class="fas fa-fw fa-check-square"></i> Select all
+                        <i class="fas fa-fw fa-check-square"></i>
+                        <span>Select all</span>
                     </a>
                     <a @click="deleteBookmarks(checkedBookmarks)">
-                        <i class="fas fa-fw fa-trash"></i> Delete
+                        <i class="fas fa-fw fa-trash"></i>
+                        <span>Delete</span>
                     </a>
                 </div>
             </template>
@@ -57,7 +63,7 @@
             <template v-if="!loading && error === ''">
                 <div id="input-bookmark">
                     <p v-if="inputBookmark.url !== ''">{{inputBookmark.id === -1 ? 'New bookmark' : 'Edit bookmark'}}</p>
-                    <input type="text" ref="inputURL" v-model.trim="inputBookmark.url" placeholder="URL for the bookmark" @focus="clearSelectedBookmarks">
+                    <input type="text" ref="inputURL" v-model.trim="inputBookmark.url" placeholder="URL for the new bookmark" @focus="clearSelectedBookmarks">
                     <template v-if="inputBookmark.url !== ''">
                         <input type="text" v-model.trim="inputBookmark.title" placeholder="Custom bookmark title (optional)">
                         <input type="text" v-model.trim="inputBookmark.tags" placeholder="Space separated tags for this bookmark (optional)">
@@ -96,16 +102,20 @@
                             </div>
                             <div class="bookmark-menu">
                                 <a @click="updateBookmark(item.index)">
-                                    <i class="fas fa-sync"></i> Update
+                                    <i class="fas fa-sync"></i>
+                                    <span>Update</span>
                                 </a>
                                 <a @click="editBookmark(item.index)">
-                                    <i class="fas fa-pencil-alt"></i> Edit
+                                    <i class="fas fa-pencil-alt"></i>
+                                    <span>Edit</span>
                                 </a>
                                 <a @click="deleteBookmarks([item.index])">
-                                    <i class="far fa-trash-alt"></i> Delete
+                                    <i class="far fa-trash-alt"></i>
+                                    <span>Delete</span>
                                 </a>
                                 <a :href="'/bookmark/'+item.id" target="_blank">
-                                    <i class="fas fa-history"></i> Cache
+                                    <i class="fas fa-history"></i>
+                                    <span>Cache</span>
                                 </a>
                             </div>
                         </div>

@@ -6,6 +6,7 @@
     margin: 0;
     padding: 0;
     text-decoration: none;
+    hyphens: auto;
 }
 
 .spacer {
@@ -128,7 +129,7 @@
         top: 0;
         z-index: 99;
         display: flex;
-        flex-flow: row nowrap;
+        flex-flow: row wrap;
         #n-selected {
             line-height: @headerHeight;
             font-size: 1.3em;
@@ -182,6 +183,8 @@
                 border-right: 0;
                 flex: 1 0;
                 padding: 8px 16px;
+                min-width: 0;
+                width: 100%;
             }
         }
         #header-menu {
@@ -196,8 +199,8 @@
                 &:not(:last-child) {
                     border-right: 1px solid @border;
                 }
-                i {
-                    margin-right: 4px;
+                span {
+                    margin-left: 4px;
                 }
                 &:hover {
                     color: @main;
@@ -216,7 +219,7 @@
             width: 100%;
             display: flex;
             flex-flow: column nowrap;
-            margin: 32px 8px 20px;
+            margin: 32px 16px 20px;
             background-color: @headerInputBg;
             outline: 1px solid @border;
             >p {
@@ -284,11 +287,12 @@
         }
         #grid {
             display: flex;
-            flex-flow: row;
+            flex-flow: row nowrap;
             padding: 4px;
             >.column {
                 flex: 1 0;
                 padding: 12px;
+                max-width: 100%;
                 >*:not(:last-child) {
                     margin-bottom: 24px;
                 }
@@ -310,6 +314,31 @@
                 color: @fontLightColor;
                 font-size: 3em;
             }
+        }
+    }
+    @media screen and (max-width: 800px) {
+        #header {
+            position: static;
+            #header-menu>a>span {
+                display: none;
+            }
+        }
+        #main {
+            margin-top: 0;
+            .bookmark-menu>a>span {
+                display: none;
+            }
+        }
+    }
+    @media screen and (max-width: 632px) {
+        #main #input-bookmark {
+            width: auto;
+            align-self: auto;
+        }
+    }
+    @media screen and (max-width: 500px) {
+        #header #logo {
+            display: none;
         }
     }
 }
@@ -594,8 +623,8 @@
             padding: 8px;
             font-size: 0.9em;
             text-align: center;
-            i {
-                margin-right: 4px;
+            span {
+                margin-left: 4px;
             }
             &:not(:last-child) {
                 border-right: 1px solid @border;
