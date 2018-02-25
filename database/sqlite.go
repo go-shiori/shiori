@@ -9,6 +9,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // SQLiteDatabase is implementation of Database interface for connecting to SQLite3 database.
@@ -87,6 +88,10 @@ func (db *SQLiteDatabase) CreateBookmark(bookmark model.Bookmark) (bookmarkID in
 		return -1, fmt.Errorf("Title must not empty")
 	}
 
+	if bookmark.Modified == "" {
+		bookmark.Modified = time.Now().UTC().Format("2006-01-02 15:04:05")
+	}
+
 	// Prepare transaction
 	tx, err := db.Beginx()
 	if err != nil {
@@ -107,15 +112,16 @@ func (db *SQLiteDatabase) CreateBookmark(bookmark model.Bookmark) (bookmarkID in
 	// Save article to database
 	res := tx.MustExec(`INSERT INTO bookmark (
 		url, title, image_url, excerpt, author, 
-		min_read_time, max_read_time) 
-		VALUES(?, ?, ?, ?, ?, ?, ?)`,
+		min_read_time, max_read_time, modified) 
+		VALUES(?, ?, ?, ?, ?, ?, ?, ?)`,
 		bookmark.URL,
 		bookmark.Title,
 		bookmark.ImageURL,
 		bookmark.Excerpt,
 		bookmark.Author,
 		bookmark.MinReadTime,
-		bookmark.MaxReadTime)
+		bookmark.MaxReadTime,
+		bookmark.Modified)
 
 	// Get last inserted ID
 	bookmarkID, err = res.LastInsertId()

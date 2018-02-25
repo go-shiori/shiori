@@ -218,12 +218,7 @@ func apiInsertBookmarks(w http.ResponseWriter, r *http.Request, ps httprouter.Pa
 	checkError(err)
 
 	// Save bookmark
-	tags := make([]string, len(request.Tags))
-	for i, tag := range request.Tags {
-		tags[i] = tag.Name
-	}
-
-	book, err := addBookmark(request.URL, request.Title, request.Excerpt, tags, false)
+	book, err := addBookmark(request, false)
 	checkError(err)
 
 	// Return new saved result

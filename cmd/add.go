@@ -5,7 +5,7 @@ import (
 	"github.com/RadhiFadlillah/shiori/model"
 	"github.com/spf13/cobra"
 	"html/template"
-	"os"
+	"strings"
 	"time"
 )
 
@@ -22,14 +22,26 @@ var (
 			tags, _ := cmd.Flags().GetStringSlice("tags")
 			offline, _ := cmd.Flags().GetBool("offline")
 
-			// Save new bookmark
-			bookmark, err := addBookmark(url, title, excerpt, tags, offline)
-			if err != nil {
-				cError.Println(err)
-				os.Exit(1)
+			// Create bookmark item
+			bookmark := model.Bookmark{
+				URL:     url,
+				Title:   normalizeSpace(title),
+				Excerpt: normalizeSpace(excerpt),
 			}
 
-			printBookmark(bookmark)
+			bookmark.Tags = make([]model.Tag, len(tags))
+			for i, tag := range tags {
+				bookmark.Tags[i].Name = tag
+			}
+
+			// Save new bookmark
+			result, err := addBookmark(bookmark, offline)
+			if err != nil {
+				cError.Println(err)
+				return
+			}
+
+			printBookmark(result)
 		},
 	}
 )
@@ -42,53 +54,42 @@ func init() {
 	rootCmd.AddCommand(addCmd)
 }
 
-func addBookmark(url, title, excerpt string, tags []string, offline bool) (book model.Bookmark, err error) {
+func addBookmark(base model.Bookmark, offline bool) (book model.Bookmark, err error) {
+	// Prepare initial result
+	book = base
+
 	// Fetch data from internet
-	article := readability.Article{}
 	if !offline {
-		article, err = readability.Parse(url, 10*time.Second)
+		article, err := readability.Parse(book.URL, 10*time.Second)
 		if err != nil {
 			cError.Println("Failed to fetch article from internet:", err)
-			article.URL = url
-			article.Meta.Title = "Untitled"
+			if book.Title == "" {
+				book.Title = "Untitled"
+			}
+		} else {
+			book.URL = article.URL
+			book.ImageURL = article.Meta.Image
+			book.Author = article.Meta.Author
+			book.MinReadTime = article.Meta.MinReadTime
+			book.MaxReadTime = article.Meta.MaxReadTime
+			book.Content = article.Content
+			book.HTML = template.HTML(article.RawContent)
+
+			if book.Title == "" {
+				book.Title = article.Meta.Title
+			}
+
+			if book.Excerpt == "" {
+				book.Excerpt = article.Meta.Excerpt
+			}
 		}
 	}
 
-	// Prepare bookmark
-	bookmark := model.Bookmark{
-		URL:         article.URL,
-		Title:       article.Meta.Title,
-		ImageURL:    article.Meta.Image,
-		Excerpt:     article.Meta.Excerpt,
-		Author:      article.Meta.Author,
-		MinReadTime: article.Meta.MinReadTime,
-		MaxReadTime: article.Meta.MaxReadTime,
-		Content:     article.Content,
-		HTML:        template.HTML(article.RawContent),
-	}
-
-	bookTags := make([]model.Tag, len(tags))
-	for i, tag := range tags {
-		bookTags[i].Name = tag
-	}
-
-	bookmark.Tags = bookTags
-
-	// Set custom value
-	if title != "" {
-		bookmark.Title = title
-	}
-
-	if excerpt != "" {
-		bookmark.Excerpt = excerpt
-	}
-
 	// Save to database
-	bookmark.ID, err = DB.CreateBookmark(bookmark)
-	if err != nil {
-		return book, err
-	}
+	book.ID, err = DB.CreateBookmark(book)
+	return book, err
+}
 
-	bookmark.Modified = time.Now().UTC().Format("2006-01-02 15:04:05")
-	return bookmark, nil
+func normalizeSpace(str string) string {
+	return strings.Join(strings.Fields(str), " ")
 }
