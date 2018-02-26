@@ -367,8 +367,9 @@
 
                                 var scrollIdx = smallestIndex === 1 ? 1 : smallestIndex - 1;
                                 app.$nextTick(function () {
-                                    var el = app.$refs['bookmark-' + scrollIdx];
-                                    if (el) el[0].scrollIntoView();
+                                    var el = app.$refs['bookmark-' + smallestIndex][0];
+                                    if (el) el.scrollIntoView();
+                                    else window.scrollTo(0, 0);
                                 });
                             })
                             .catch(function (error) {
