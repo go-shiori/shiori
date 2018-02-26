@@ -13,7 +13,7 @@ import (
 
 var (
 	importCmd = &cobra.Command{
-		Use:   "import file",
+		Use:   "import source-file",
 		Short: "Import bookmarks from HTML file in Firefox format.",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
