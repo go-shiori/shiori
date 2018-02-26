@@ -14,7 +14,7 @@ import (
 var (
 	importCmd = &cobra.Command{
 		Use:   "import source-file",
-		Short: "Import bookmarks from HTML file in Firefox format.",
+		Short: "Import bookmarks from HTML file in Netscape Bookmark format.",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			generateTag := cmd.Flags().Changed("generate-tag")

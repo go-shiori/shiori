@@ -13,7 +13,7 @@ import (
 var (
 	exportCmd = &cobra.Command{
 		Use:   "export target-file",
-		Short: "Export bookmarks into HTML file in Firefox format.",
+		Short: "Export bookmarks into HTML file in Netscape Bookmark format.",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			err := exportBookmarks(args[0])
