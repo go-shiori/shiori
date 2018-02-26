@@ -14,8 +14,8 @@ import (
 	"github.com/spf13/cobra"
 	"golang.org/x/crypto/bcrypt"
 	"html/template"
-	"mime"
 	"io"
+	"mime"
 	"net/http"
 	fp "path/filepath"
 	"strings"
@@ -51,6 +51,7 @@ var (
 			router := httprouter.New()
 
 			router.GET("/js/*filepath", serveFiles)
+			router.GET("/res/*filepath", serveFiles)
 			router.GET("/css/*filepath", serveFiles)
 			router.GET("/webfonts/*filepath", serveFiles)
 
