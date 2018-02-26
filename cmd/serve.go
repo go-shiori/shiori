@@ -14,6 +14,7 @@ import (
 	"github.com/spf13/cobra"
 	"golang.org/x/crypto/bcrypt"
 	"html/template"
+	"mime"
 	"io"
 	"net/http"
 	fp "path/filepath"
@@ -82,30 +83,26 @@ func init() {
 }
 
 func serveFiles(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	// // Read asset path
-	// path := r.URL.Path
-	// if path[0:1] == "/" {
-	// 	path = path[1:]
-	// }
+	// Read asset path
+	path := r.URL.Path
+	if path[0:1] == "/" {
+		path = path[1:]
+	}
 
-	// // Load asset
-	// asset, err := assets.ReadFile(path)
-	// checkError(err)
+	// Load asset
+	asset, err := assets.ReadFile(path)
+	checkError(err)
 
-	// // Set response header content type
-	// ext := fp.Ext(path)
-	// mimeType := mime.TypeByExtension(ext)
-	// if mimeType != "" {
-	// 	w.Header().Set("Content-Type", mimeType)
-	// }
+	// Set response header content type
+	ext := fp.Ext(path)
+	mimeType := mime.TypeByExtension(ext)
+	if mimeType != "" {
+		w.Header().Set("Content-Type", mimeType)
+	}
 
-	// // Serve asset
-	// buffer := bytes.NewBuffer(asset)
-	// io.Copy(w, buffer)
-	filepath := r.URL.Path
-	filepath = strings.TrimPrefix(filepath, "/")
-	filepath = fp.Join("view", filepath)
-	http.ServeFile(w, r, filepath)
+	// Serve asset
+	buffer := bytes.NewBuffer(asset)
+	io.Copy(w, buffer)
 }
 
 func serveIndexPage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -116,12 +113,10 @@ func serveIndexPage(w http.ResponseWriter, r *http.Request, ps httprouter.Params
 		return
 	}
 
-	// asset, _ := assets.ReadFile("index.html")
-	// w.Header().Set("Content-Type", "text/html")
-	// buffer := bytes.NewBuffer(asset)
-	// io.Copy(w, buffer)
-	filepath := fp.Join("view", "index.html")
-	http.ServeFile(w, r, filepath)
+	asset, _ := assets.ReadFile("index.html")
+	w.Header().Set("Content-Type", "text/html")
+	buffer := bytes.NewBuffer(asset)
+	io.Copy(w, buffer)
 
 }
 
