@@ -6,10 +6,10 @@ Shiori is a simple bookmarks manager written in Go language. You can use it as c
 
 ## Table of Contents
 
-- Features
-- Installation
-- Usage
-- License
+- [Features](#features)
+- [Installation](#installation)
+- [Usage](#usage)
+- [License](#license)
 
 ## Features
 
@@ -58,4 +58,4 @@ Use "shiori [command] --help" for more information about a command.
 
 ## License
 
-Shiori is distributed using [MIT license](https://choosealicense.com/licenses/mit/), which means you can use and modify it however you want. However, if you make an enchancement for shiori, if possible, please send the pull request.
+Shiori is distributed using [MIT license](https://choosealicense.com/licenses/mit/), which means you can use and modify it however you want. However, if you make an enchancement for it, if possible, please send the pull request.
