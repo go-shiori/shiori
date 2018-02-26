@@ -20,7 +20,7 @@ type Database interface {
 	SearchBookmarks(orderLatest bool, keyword string, tags ...string) ([]model.Bookmark, error)
 
 	// UpdateBookmarks updates the saved bookmark in database.
-	UpdateBookmarks(bookmarks []model.Bookmark) error
+	UpdateBookmarks(bookmarks []model.Bookmark) ([]model.Bookmark, error)
 
 	// CreateAccount creates new account in database
 	CreateAccount(username, password string) error

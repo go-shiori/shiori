@@ -19,7 +19,6 @@ var (
 		Long: "Update fields of an existing bookmark. " +
 			"Accepts space-separated list of indices (e.g. 5 6 23 4 110 45), hyphenated range (e.g. 100-200) or both (e.g. 1-3 7 9). " +
 			"If no arguments, ALL bookmarks will be updated. Update works differently depending on the flags:\n" +
-			"- If --title, --tag or --comment is passed without any value, clear the corresponding field from DB.\n" +
 			"- If indices are passed without any flags (--url, --title, --tag and --excerpt), read the URLs from DB and update titles from web.\n" +
 			"- If --url is passed (and --title is omitted), update the title from web using the URL. While using this flag, update only accept EXACTLY one index.\n" +
 			"While updating bookmark's tags, you can use - to remove tag (e.g. -nature to remove nature tag from this bookmark).",
@@ -176,10 +175,10 @@ func updateBookmarks(indices []string, url, title, excerpt string, tags []string
 		bookmarks[i].Tags = newTags
 	}
 
-	err = DB.UpdateBookmarks(bookmarks)
+	result, err := DB.UpdateBookmarks(bookmarks)
 	if err != nil {
 		return []model.Bookmark{}, fmt.Errorf("Failed to update bookmarks: %v", err)
 	}
 
-	return bookmarks, nil
+	return result, nil
 }

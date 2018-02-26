@@ -252,12 +252,24 @@
 
                     if (this.inputBookmark.url === "") return;
 
-                    var tags = this.inputBookmark.tags.replace(/\s+/g, " "),
-                        listTag = tags === "" ? [] : listTag = tags.split(/\s+/g),
-                        finalTag = [];
+                    var idx = this.inputBookmark.index,
+                        tags = this.inputBookmark.tags.replace(/\s+/g, " "),
+                        newTags = tags === "" ? [] : listTag = tags.split(/\s+/g),
+                        finalTags = [];
 
-                    for (var i = 0; i < listTag.length; i++) {
-                        finalTag.push({
+                    if (idx !== -1) {
+                        var oldTags = this.bookmarks[idx].tags;
+                        for (var i = 0; i < oldTags.length; i++) {
+                            if (newTags.indexOf(oldTags[i].name) === -1) {
+                                finalTags.push({
+                                    name: '-' + oldTags[i].name
+                                })
+                            }
+                        }
+                    }
+
+                    for (var i = 0; i < newTags.length; i++) {
+                        finalTags.push({
                             name: listTag[i]
                         });
                     }
@@ -271,12 +283,10 @@
                                 url: this.inputBookmark.url,
                                 title: this.inputBookmark.title,
                                 excerpt: this.inputBookmark.excerpt,
-                                tags: finalTag
+                                tags: finalTags
                             }
                         })
                         .then(function (response) {
-                            var idx = app.inputBookmark.index;
-
                             if (idx === -1) app.bookmarks.unshift(response.data);
                             else {
                                 app.bookmarks.splice(idx, 1, response.data);
