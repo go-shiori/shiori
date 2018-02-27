@@ -1,6 +1,6 @@
 # Shiori
 
-Shiori is a simple bookmarks manager written in Go language. You can use it as command line application (like [`buku`](https://github.com/jarun/Buku)) or as web application (like [Pocket](https://getpocket.com//) or [Pinterest](https://www.pinterest.com/)). This application is distributed as a single binary, which make it can be installed and used easily.
+Shiori is a simple bookmarks manager written in Go language. Intended as a simple clone of [Pocket](https://getpocket.com//). You can use it as command line application or as web application. This application is distributed as a single binary, which make it can be installed and used easily.
 
 ![Screenshot](https://raw.githubusercontent.com/RadhiFadlillah/shiori/master/screenshot.png)
 
@@ -9,6 +9,7 @@ Shiori is a simple bookmarks manager written in Go language. You can use it as c
 - [Features](#features)
 - [Installation](#installation)
 - [Usage](#usage)
+- [Examples](#examples)
 - [License](#license)
 
 ## Features
@@ -55,6 +56,110 @@ Flags:
 
 Use "shiori [command] --help" for more information about a command.
 ```
+
+## Examples
+
+1. Save new bookmark with tags "nature" and "climate-change".
+
+   ```
+   shiori add https://grist.org/article/let-it-go-the-arctic-will-never-be-frozen-again/ -t nature,climate-change
+   ```
+
+2. Print all saved bookmarks.
+
+   ```
+   shiori print
+   ```
+
+2. Print bookmarks with index 1 and 2.
+
+   ```
+   shiori print 1 2
+   ```
+
+3. Search bookmarks that contains "sqlite" in its title, excerpt, url or content.
+
+   ```
+   shiori search sqlite
+   ```
+
+4. Search bookmarks with tag "nature".
+
+   ```
+   shiori search -t nature
+   ```
+
+5. Delete all bookmarks.
+
+   ```
+   shiori delete
+   ```
+
+6. Delete all bookmarks with tag "nature".
+
+   ```
+   shiori delete $(shiori search -t nature -i)
+   ```
+
+7. Update all bookmarks' data and content.
+
+   ```
+   shiori update
+   ```
+
+8. Update bookmark in index 1.
+
+   ```
+   shiori update 1
+   ```
+
+9. Change title and excerpt from bookmark in index 1.
+
+   ```
+   shiori update 1 -i "New Title" -e "New excerpt"
+   ```
+
+10. Add tag "future" and remove tag "climate-change" from bookmark in index 1.
+
+   ```
+   shiori update 1 -t future,-climate-change
+   ```
+
+11. Import bookmarks from HTML Netscape Bookmark file.
+
+    ```
+    shiori import exported-from-firefox.html
+    ```
+
+12. Export saved bookmarks to HTML Netscape Bookmark file.
+
+    ```
+    shiori export target.html
+    ```
+
+13. Open all saved bookmarks in browser.
+
+    ```
+    shiori open
+    ```
+
+14. Open text cache of bookmark in index 1.
+
+    ```
+    shiori open 1 -c
+    ```
+
+15. Serve web app in port 9000.
+
+    ```
+    shiori serve -p 9000
+    ```
+
+16. Create new account for login to web app.
+
+    ```
+    shiori account add username
+    ```
 
 ## License
 
