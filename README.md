@@ -121,9 +121,9 @@ Use "shiori [command] --help" for more information about a command.
 
 10. Add tag "future" and remove tag "climate-change" from bookmark in index 1.
 
-   ```
-   shiori update 1 -t future,-climate-change
-   ```
+    ```
+    shiori update 1 -t future,-climate-change
+    ```
 
 11. Import bookmarks from HTML Netscape Bookmark file.
 
