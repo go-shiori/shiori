@@ -1,0 +1,14 @@
+[Unit]
+Description=Simple bookmark manager built with Go
+Documentation=https://github.com/RadhiFadlillah/shiori
+After=network.target
+
+[Service]
+Type=simple
+User=shiori
+WorkingDirectory=/home/shiori
+ExecStart=/usr/local/bin/shiori serve -p 9000
+Restart=on-abort
+
+[Install]
+WantedBy=multi-user.target
