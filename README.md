@@ -163,4 +163,4 @@ Use "shiori [command] --help" for more information about a command.
 
 ## License
 
-Shiori is distributed using [MIT license](https://choosealicense.com/licenses/mit/), which means you can use and modify it however you want. However, if you make an enchancement for it, if possible, please send the pull request.
+Shiori is distributed using [MIT license](https://choosealicense.com/licenses/mit/), which means you can use and modify it however you want. However, if you make an enhancement for it, if possible, please send the pull request.
