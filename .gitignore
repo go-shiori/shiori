@@ -6,6 +6,5 @@ sample.txt
 *.toml
 
 # Exclude generated file
-assets/
 shiori*
 *.db
