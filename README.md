@@ -30,6 +30,10 @@ You can download the latest version of `shiori` from the release page, then put 
 go get github.com/RadhiFadlillah/go-readability
 ```
 
+### Advanced
+
+You can provide a path to the created SQLite database. To do this, set the environment variable `ENV_SHIORI_DB` to the desired path.
+
 ## Usage
 
 ```
