@@ -18,10 +18,10 @@ type SQLiteDatabase struct {
 }
 
 // OpenSQLiteDatabase creates and open connection to new SQLite3 database.
-func OpenSQLiteDatabase() (*SQLiteDatabase, error) {
+func OpenSQLiteDatabase(databasePath string) (*SQLiteDatabase, error) {
 	// Open database and start transaction
 	var err error
-	db := sqlx.MustConnect("sqlite3", "shiori.db")
+	db := sqlx.MustConnect("sqlite3", databasePath)
 	tx := db.MustBegin()
 
 	// Make sure to rollback if panic ever happened
