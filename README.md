@@ -27,7 +27,7 @@ Shiori is a simple bookmarks manager written in Go language. Intended as a simpl
 You can download the latest version of `shiori` from the release page, then put it in your `PATH`. If you want to build from source, make sure `go` is installed, then run :
 
 ```
-go get github.com/RadhiFadlillah/go-readability
+go get github.com/RadhiFadlillah/shiori
 ```
 
 ## Usage
