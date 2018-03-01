@@ -19,7 +19,7 @@ Shiori is a simple bookmarks manager written in Go language. Intended as a simpl
 - Search bookmarks by its titles, tags, url and page content.
 - Import and export bookmarks from and to Netscape Bookmark file.
 - Portable, thanks to its single binary format and sqlite3 database.
-- Simple web interface for those who doesn't used to command line app.
+- Simple web interface for those who are not used to command line app.
 - Where possible, by default `shiori` will download a static copy of the webpage in simple text and HTML format, which later can be used as offline archive for that page.
 
 ## Installation
