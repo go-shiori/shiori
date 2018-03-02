@@ -2,20 +2,21 @@ package cmd
 
 import (
 	"fmt"
+	"syscall"
+
 	"github.com/spf13/cobra"
 	"golang.org/x/crypto/ssh/terminal"
-	"syscall"
 )
 
 var (
 	accountCmd = &cobra.Command{
 		Use:   "account",
-		Short: "Manage account for accessing web interface.",
+		Short: "Manage account for accessing web interface",
 	}
 
 	addAccountCmd = &cobra.Command{
 		Use:   "add username",
-		Short: "Create new account.",
+		Short: "Create new account",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			username := args[0]
@@ -40,7 +41,7 @@ var (
 
 	printAccountCmd = &cobra.Command{
 		Use:   "print",
-		Short: "Print the saved accounts.",
+		Short: "Print the saved accounts",
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			keyword, _ := cmd.Flags().GetString("search")
@@ -54,7 +55,7 @@ var (
 
 	deleteAccountCmd = &cobra.Command{
 		Use:   "delete [usernames]",
-		Short: "Delete the saved accounts.",
+		Short: "Delete the saved accounts",
 		Long: "Delete accounts. " +
 			"Accepts space-separated list of usernames. " +
 			"If no arguments, all records will be deleted.",

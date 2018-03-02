@@ -3,14 +3,15 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/spf13/cobra"
 	"os"
+
+	"github.com/spf13/cobra"
 )
 
 var (
 	searchCmd = &cobra.Command{
 		Use:   "search keyword",
-		Short: "Search bookmarks by submitted keyword.",
+		Short: "Search bookmarks by submitted keyword",
 		Long: "Search bookmarks by looking for matching keyword in bookmark's title and content. " +
 			"If no keyword submitted, print all saved bookmarks. " +
 			"Search results will be different depending on DBMS that used by shiori :\n" +

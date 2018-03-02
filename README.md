@@ -39,17 +39,17 @@ Usage:
   shiori [command]
 
 Available Commands:
-  account     Manage account for accessing web interface.
-  add         Bookmark the specified URL.
-  delete      Delete the saved bookmarks.
-  export      Export bookmarks into HTML file in Netscape Bookmark format.
+  account     Manage account for accessing web interface
+  add         Bookmark the specified URL
+  delete      Delete the saved bookmarks
+  export      Export bookmarks into HTML file in Netscape Bookmark format
   help        Help about any command
-  import      Import bookmarks from HTML file in Netscape Bookmark format.
-  open        Open the saved bookmarks.
-  print       Print the saved bookmarks.
-  search      Search bookmarks by submitted keyword.
-  serve       Serve web app for managing bookmarks.
-  update      Update the saved bookmarks.
+  import      Import bookmarks from HTML file in Netscape Bookmark format
+  open        Open the saved bookmarks
+  print       Print the saved bookmarks
+  search      Search bookmarks by submitted keyword
+  serve       Serve web app for managing bookmarks
+  update      Update the saved bookmarks
 
 Flags:
   -h, --help   help for shiori
