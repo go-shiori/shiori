@@ -40,6 +40,15 @@ func init() {
 	rootCmd.AddCommand(importCmd)
 }
 
+func printTagName(s *goquery.Selection) string {
+	tags := []string{}
+	for _, nd := range s.Nodes {
+		tags = append(tags, nd.Data)
+	}
+
+	return strings.Join(tags, ",")
+}
+
 func importBookmarks(pth string, generateTag bool) error {
 	// Open file
 	srcFile, err := os.Open(pth)
@@ -54,48 +63,50 @@ func importBookmarks(pth string, generateTag bool) error {
 		return err
 	}
 
-	// Fetch each bookmark categories
+	// Loop each bookmark item
 	bookmarks := []model.Bookmark{}
-	doc.Find("body>dl>dt").Each(func(_ int, el *goquery.Selection) {
-		// Create category title
-		category := el.Find("h3").First().Text()
-		category = normalizeSpace(category)
-		category = strings.ToLower(category)
-		category = strings.Replace(category, " ", "-", -1)
+	doc.Find("dt>a").Each(func(_ int, a *goquery.Selection) {
+		// Get related elements
+		dt := a.Parent()
+		dl := dt.Parent()
 
-		// Fetch all link in this categories
-		el.Find("dl>dt").Each(func(_ int, dt *goquery.Selection) {
-			// Get bookmark link
-			a := dt.Find("a").First()
-			title := a.Text()
-			url, _ := a.Attr("href")
-			strModified, _ := a.Attr("last_modified")
-			intModified, _ := strconv.ParseInt(strModified, 10, 64)
-			modified := time.Unix(intModified, 0)
+		// Get metadata
+		title := a.Text()
+		url, _ := a.Attr("href")
+		strModified, _ := a.Attr("last_modified")
+		intModified, _ := strconv.ParseInt(strModified, 10, 64)
+		modified := time.Unix(intModified, 0)
 
-			// Get bookmark excerpt
-			excerpt := ""
-			if nxt := dt.Next(); nxt.Is("dd") {
-				excerpt = nxt.Text()
-			}
+		// Get bookmark excerpt
+		excerpt := ""
+		if dd := dt.Next(); dd.Is("dd") {
+			excerpt = dd.Text()
+		}
 
-			// Create bookmark item
-			bookmark := model.Bookmark{
-				URL:      url,
-				Title:    normalizeSpace(title),
-				Excerpt:  normalizeSpace(excerpt),
-				Modified: modified.Format("2006-01-02 15:04:05"),
-				Tags:     []model.Tag{},
-			}
+		// Get category name for this bookmark
+		category := ""
+		if dtCategory := dl.Prev(); dtCategory.Is("h3") {
+			category = dtCategory.Text()
+			category = normalizeSpace(category)
+			category = strings.ToLower(category)
+			category = strings.Replace(category, " ", "-", -1)
+		}
 
-			if generateTag {
-				bookmark.Tags = []model.Tag{
-					{Name: category},
-				}
-			}
+		tags := []model.Tag{}
+		if category != "" && generateTag {
+			tags = []model.Tag{{Name: category}}
+		}
 
-			bookmarks = append(bookmarks, bookmark)
-		})
+		// Add item to list
+		bookmark := model.Bookmark{
+			URL:      url,
+			Title:    normalizeSpace(title),
+			Excerpt:  normalizeSpace(excerpt),
+			Modified: modified.Format("2006-01-02 15:04:05"),
+			Tags:     tags,
+		}
+
+		bookmarks = append(bookmarks, bookmark)
 	})
 
 	// Save bookmarks to database
