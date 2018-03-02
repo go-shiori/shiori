@@ -39,7 +39,7 @@ func exportBookmarks(dstPath string) error {
 	}
 
 	if len(bookmarks) == 0 {
-		return fmt.Errorf("No saved bookmarks yet")
+		return fmt.Errorf("No bookmarks saved yet")
 	}
 
 	// Open destination file
