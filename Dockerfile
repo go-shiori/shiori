@@ -13,4 +13,6 @@ RUN apk --no-cache add git build-base \
 && go install -v ./... \
 && touch shiori.db
 
+EXPOSE 8080
+
 CMD ["shiori", "serve"]
