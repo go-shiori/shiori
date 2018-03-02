@@ -80,7 +80,11 @@ var (
 				return
 			}
 
-			fmt.Println("Accounts has been deleted")
+			if len(args) == 1 {
+				fmt.Println("Account has been deleted")
+				return
+			}
+			fmt.Println("Accounts have been deleted")
 		},
 	}
 )
