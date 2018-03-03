@@ -66,23 +66,29 @@ func importBookmarks(pth string, generateTag bool) error {
 
 	// Loop each bookmark item
 	bookmarks := []model.Bookmark{}
-	doc.Find("dt>a").Each(func(_ int, a *goquery.Selection) {
-		// Get related elements
-		dt := a.Parent()
-		dl := dt.Parent()
+	doc.Find("body>dl>dt").Each(func(_ int, el *goquery.Selection) {
+		// Create category title
+		category := el.Find("h3").First().Text()
+		category = normalizeSpace(category)
+		category = strings.ToLower(category)
+		category = strings.Replace(category, " ", "-", -1)
 
-		// Get metadata
-		title := a.Text()
-		url, _ := a.Attr("href")
-		strModified, _ := a.Attr("last_modified")
-		intModified, _ := strconv.ParseInt(strModified, 10, 64)
-		modified := time.Unix(intModified, 0)
+		// Fetch all link in this categories
+		el.Find("dl>dt").Each(func(_ int, dt *goquery.Selection) {
+			// Get bookmark link
+			a := dt.Find("a").First()
+			title := a.Text()
+			url, _ := a.Attr("href")
+			strModified, _ := a.Attr("last_modified")
+			strTags, _ := a.Attr("tags")
+			intModified, _ := strconv.ParseInt(strModified, 10, 64)
+			modified := time.Unix(intModified, 0)
 
-		// Get bookmark excerpt
-		excerpt := ""
-		if dd := dt.Next(); dd.Is("dd") {
-			excerpt = dd.Text()
-		}
+			// Get bookmark excerpt
+			excerpt := ""
+			if nxt := dt.Next(); nxt.Is("dd") {
+				excerpt = nxt.Text()
+			}
 
 		// Get category name for this bookmark
 		category := ""
@@ -107,7 +113,15 @@ func importBookmarks(pth string, generateTag bool) error {
 			Tags:     tags,
 		}
 
-		bookmarks = append(bookmarks, bookmark)
+			//
+			// Add any tags from the bookmark itself.
+			//
+			tags := strings.Split(strTags, ",")
+			for _,entry := range(tags) {
+				bookmark.Tags = append(bookmark.Tags, model.Tag{Name: entry} )
+			}
+			bookmarks = append(bookmarks, bookmark)
+		})
 	})
 
 	// Save bookmarks to database
