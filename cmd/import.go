@@ -41,15 +41,6 @@ func init() {
 	rootCmd.AddCommand(importCmd)
 }
 
-func printTagName(s *goquery.Selection) string {
-	tags := []string{}
-	for _, nd := range s.Nodes {
-		tags = append(tags, nd.Data)
-	}
-
-	return strings.Join(tags, ",")
-}
-
 func importBookmarks(pth string, generateTag bool) error {
 	// Open file
 	srcFile, err := os.Open(pth)
@@ -74,9 +65,16 @@ func importBookmarks(pth string, generateTag bool) error {
 		// Get metadata
 		title := a.Text()
 		url, _ := a.Attr("href")
+		strTags, _ := a.Attr("tags")
 		strModified, _ := a.Attr("last_modified")
 		intModified, _ := strconv.ParseInt(strModified, 10, 64)
 		modified := time.Unix(intModified, 0)
+
+		// Get bookmark tags
+		tags := []model.Tag{}
+		for _, strTag := range strings.Split(strTags, ",") {
+			tags = append(tags, model.Tag{Name: strTag})
+		}
 
 		// Get bookmark excerpt
 		excerpt := ""
@@ -85,6 +83,7 @@ func importBookmarks(pth string, generateTag bool) error {
 		}
 
 		// Get category name for this bookmark
+		// and add it as tags (if necessary)
 		category := ""
 		if dtCategory := dl.Prev(); dtCategory.Is("h3") {
 			category = dtCategory.Text()
@@ -93,9 +92,8 @@ func importBookmarks(pth string, generateTag bool) error {
 			category = strings.Replace(category, " ", "-", -1)
 		}
 
-		tags := []model.Tag{}
 		if category != "" && generateTag {
-			tags = []model.Tag{{Name: category}}
+			tags = append(tags, model.Tag{Name: category})
 		}
 
 		// Add item to list
