@@ -2,19 +2,20 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/PuerkitoBio/goquery"
-	"github.com/RadhiFadlillah/shiori/model"
-	"github.com/spf13/cobra"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/PuerkitoBio/goquery"
+	"github.com/RadhiFadlillah/shiori/model"
+	"github.com/spf13/cobra"
 )
 
 var (
 	importCmd = &cobra.Command{
 		Use:   "import source-file",
-		Short: "Import bookmarks from HTML file in Netscape Bookmark format.",
+		Short: "Import bookmarks from HTML file in Netscape Bookmark format",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			generateTag := cmd.Flags().Changed("generate-tag")
@@ -40,6 +41,15 @@ func init() {
 	rootCmd.AddCommand(importCmd)
 }
 
+func printTagName(s *goquery.Selection) string {
+	tags := []string{}
+	for _, nd := range s.Nodes {
+		tags = append(tags, nd.Data)
+	}
+
+	return strings.Join(tags, ",")
+}
+
 func importBookmarks(pth string, generateTag bool) error {
 	// Open file
 	srcFile, err := os.Open(pth)
@@ -54,7 +64,7 @@ func importBookmarks(pth string, generateTag bool) error {
 		return err
 	}
 
-	// Fetch each bookmark categories
+	// Loop each bookmark item
 	bookmarks := []model.Bookmark{}
 	doc.Find("body>dl>dt").Each(func(_ int, el *goquery.Selection) {
 		// Create category title
@@ -80,21 +90,28 @@ func importBookmarks(pth string, generateTag bool) error {
 				excerpt = nxt.Text()
 			}
 
-			// Create bookmark item
-			bookmark := model.Bookmark{
-				URL:      url,
-				Title:    normalizeSpace(title),
-				Excerpt:  normalizeSpace(excerpt),
-				Modified: modified.Format("2006-01-02 15:04:05"),
-				Tags:     []model.Tag{},
-			}
+		// Get category name for this bookmark
+		category := ""
+		if dtCategory := dl.Prev(); dtCategory.Is("h3") {
+			category = dtCategory.Text()
+			category = normalizeSpace(category)
+			category = strings.ToLower(category)
+			category = strings.Replace(category, " ", "-", -1)
+		}
 
-			if generateTag {
-				bookmark.Tags = []model.Tag{
-					{Name: category},
-				}
-			}
+		tags := []model.Tag{}
+		if category != "" && generateTag {
+			tags = []model.Tag{{Name: category}}
+		}
 
+		// Add item to list
+		bookmark := model.Bookmark{
+			URL:      url,
+			Title:    normalizeSpace(title),
+			Excerpt:  normalizeSpace(excerpt),
+			Modified: modified.Format("2006-01-02 15:04:05"),
+			Tags:     tags,
+		}
 
 			//
 			// Add any tags from the bookmark itself.

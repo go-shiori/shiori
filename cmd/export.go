@@ -2,18 +2,19 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/RadhiFadlillah/shiori/model"
-	"github.com/spf13/cobra"
 	"html/template"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/RadhiFadlillah/shiori/model"
+	"github.com/spf13/cobra"
 )
 
 var (
 	exportCmd = &cobra.Command{
 		Use:   "export target-file",
-		Short: "Export bookmarks into HTML file in Netscape Bookmark format.",
+		Short: "Export bookmarks into HTML file in Netscape Bookmark format",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			err := exportBookmarks(args[0])
@@ -39,7 +40,7 @@ func exportBookmarks(dstPath string) error {
 	}
 
 	if len(bookmarks) == 0 {
-		return fmt.Errorf("No saved bookmarks yet")
+		return fmt.Errorf("No bookmarks saved yet")
 	}
 
 	// Open destination file

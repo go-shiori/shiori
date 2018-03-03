@@ -5,6 +5,14 @@ import (
 	"crypto/rand"
 	"encoding/json"
 	"fmt"
+	"html/template"
+	"io"
+	"mime"
+	"net/http"
+	fp "path/filepath"
+	"strings"
+	"time"
+
 	"github.com/RadhiFadlillah/shiori/assets"
 	"github.com/RadhiFadlillah/shiori/model"
 	"github.com/dgrijalva/jwt-go"
@@ -13,13 +21,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"golang.org/x/crypto/bcrypt"
-	"html/template"
-	"io"
-	"mime"
-	"net/http"
-	fp "path/filepath"
-	"strings"
-	"time"
 )
 
 var (
@@ -27,7 +28,7 @@ var (
 	tplCache *template.Template
 	serveCmd = &cobra.Command{
 		Use:   "serve",
-		Short: "Serve web app for managing bookmarks.",
+		Short: "Serve web app for managing bookmarks",
 		Long: "Run a simple annd performant web server which serves the site for managing bookmarks." +
 			"If --port flag is not used, it will use port 8080 by default.",
 		Run: func(cmd *cobra.Command, args []string) {
@@ -35,7 +36,7 @@ var (
 			jwtKey = make([]byte, 32)
 			_, err := rand.Read(jwtKey)
 			if err != nil {
-				cError.Println("Failed generating key for token")
+				cError.Println("Failed to generate key for token")
 				return
 			}
 
@@ -43,7 +44,7 @@ var (
 			tplFile, _ := assets.ReadFile("cache.html")
 			tplCache, err = template.New("cache.html").Parse(string(tplFile))
 			if err != nil {
-				cError.Println("Failed generating HTML template")
+				cError.Println("Failed to generate HTML template")
 				return
 			}
 
@@ -161,14 +162,14 @@ func apiLogin(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	// Get account data from database
 	accounts, err := DB.GetAccounts(request.Username, true)
 	if err != nil || len(accounts) == 0 {
-		panic(fmt.Errorf("Account is not exist"))
+		panic(fmt.Errorf("Account does not exist"))
 	}
 
 	// Compare password with database
 	account := accounts[0]
 	err = bcrypt.CompareHashAndPassword([]byte(account.Password), []byte(request.Password))
 	if err != nil {
-		panic(fmt.Errorf("Username and password doesn't match"))
+		panic(fmt.Errorf("Username and password don't match"))
 	}
 
 	// Calculate expiration time
@@ -274,7 +275,7 @@ func apiDeleteBookmarks(w http.ResponseWriter, r *http.Request, ps httprouter.Pa
 func checkToken(r *http.Request) error {
 	tokenCookie, err := r.Cookie("token")
 	if err != nil {
-		return fmt.Errorf("Token is not exist")
+		return fmt.Errorf("Token does not exist")
 	}
 
 	token, err := jwt.Parse(tokenCookie.Value, jwtKeyFunc)
