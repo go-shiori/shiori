@@ -5,6 +5,14 @@ import (
 	"crypto/rand"
 	"encoding/json"
 	"fmt"
+	"html/template"
+	"io"
+	"mime"
+	"net/http"
+	fp "path/filepath"
+	"strings"
+	"time"
+
 	"github.com/RadhiFadlillah/shiori/assets"
 	"github.com/RadhiFadlillah/shiori/model"
 	"github.com/dgrijalva/jwt-go"
@@ -13,13 +21,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"golang.org/x/crypto/bcrypt"
-	"html/template"
-	"io"
-	"mime"
-	"net/http"
-	fp "path/filepath"
-	"strings"
-	"time"
 )
 
 var (
@@ -27,7 +28,7 @@ var (
 	tplCache *template.Template
 	serveCmd = &cobra.Command{
 		Use:   "serve",
-		Short: "Serve web app for managing bookmarks.",
+		Short: "Serve web app for managing bookmarks",
 		Long: "Run a simple annd performant web server which serves the site for managing bookmarks." +
 			"If --port flag is not used, it will use port 8080 by default.",
 		Run: func(cmd *cobra.Command, args []string) {

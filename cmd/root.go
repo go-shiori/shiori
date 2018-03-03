@@ -2,9 +2,10 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/RadhiFadlillah/shiori/database"
 	"github.com/spf13/cobra"
-	"os"
 )
 
 var (
@@ -13,7 +14,7 @@ var (
 
 	rootCmd = &cobra.Command{
 		Use:   "shiori",
-		Short: "Simple command-line bookmark manager built with Go.",
+		Short: "Simple command-line bookmark manager built with Go",
 	}
 )
 

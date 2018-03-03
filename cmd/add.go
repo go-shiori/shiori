@@ -1,18 +1,19 @@
 package cmd
 
 import (
-	"github.com/RadhiFadlillah/go-readability"
-	"github.com/RadhiFadlillah/shiori/model"
-	"github.com/spf13/cobra"
 	"html/template"
 	"strings"
 	"time"
+
+	"github.com/RadhiFadlillah/go-readability"
+	"github.com/RadhiFadlillah/shiori/model"
+	"github.com/spf13/cobra"
 )
 
 var (
 	addCmd = &cobra.Command{
 		Use:   "add url",
-		Short: "Bookmark the specified URL.",
+		Short: "Bookmark the specified URL",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Read flag and arguments

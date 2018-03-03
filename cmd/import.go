@@ -2,19 +2,20 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/PuerkitoBio/goquery"
-	"github.com/RadhiFadlillah/shiori/model"
-	"github.com/spf13/cobra"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/PuerkitoBio/goquery"
+	"github.com/RadhiFadlillah/shiori/model"
+	"github.com/spf13/cobra"
 )
 
 var (
 	importCmd = &cobra.Command{
 		Use:   "import source-file",
-		Short: "Import bookmarks from HTML file in Netscape Bookmark format.",
+		Short: "Import bookmarks from HTML file in Netscape Bookmark format",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			generateTag := cmd.Flags().Changed("generate-tag")
