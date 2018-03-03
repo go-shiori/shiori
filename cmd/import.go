@@ -70,6 +70,7 @@ func importBookmarks(pth string, generateTag bool) error {
 			title := a.Text()
 			url, _ := a.Attr("href")
 			strModified, _ := a.Attr("last_modified")
+			strTags, _ := a.Attr("tags")
 			intModified, _ := strconv.ParseInt(strModified, 10, 64)
 			modified := time.Unix(intModified, 0)
 
@@ -94,6 +95,14 @@ func importBookmarks(pth string, generateTag bool) error {
 				}
 			}
 
+
+			//
+			// Add any tags from the bookmark itself.
+			//
+			tags := strings.Split(strTags, ",")
+			for _,entry := range(tags) {
+				bookmark.Tags = append(bookmark.Tags, model.Tag{Name: entry} )
+			}
 			bookmarks = append(bookmarks, bookmark)
 		})
 	})
