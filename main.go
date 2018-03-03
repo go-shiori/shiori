@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	sqliteDB, err := db.OpenSQLiteDatabase()
+	sqliteDB, err := db.OpenSQLiteDatabase("shiori.db")
 	checkError(err)
 
 	cmd.DB = sqliteDB

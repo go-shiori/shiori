@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"fmt"
+	"io"
+	"os"
 	"syscall"
 
 	"github.com/spf13/cobra"
@@ -45,7 +47,7 @@ var (
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			keyword, _ := cmd.Flags().GetString("search")
-			err := printAccounts(keyword)
+			err := printAccounts(keyword, os.Stdout)
 			if err != nil {
 				cError.Println(err)
 				return
@@ -103,7 +105,7 @@ func init() {
 
 func addAccount(username, password string) error {
 	if username == "" {
-		return fmt.Errorf("Username must not empty")
+		return fmt.Errorf("Username must not be empty")
 	}
 
 	if len(password) < 8 {
@@ -118,15 +120,15 @@ func addAccount(username, password string) error {
 	return nil
 }
 
-func printAccounts(keyword string) error {
+func printAccounts(keyword string, wr io.Writer) error {
 	accounts, err := DB.GetAccounts(keyword, false)
 	if err != nil {
 		return err
 	}
 
 	for _, account := range accounts {
-		cIndex.Print("- ")
-		fmt.Println(account.Username)
+		cIndex.Fprint(wr, "- ")
+		fmt.Fprintln(wr, account.Username)
 	}
 
 	return nil
