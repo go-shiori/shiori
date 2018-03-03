@@ -57,6 +57,48 @@ Flags:
 Use "shiori [command] --help" for more information about a command.
 ```
 
+## Usage with Docker
+
+There's a Dockerfile that enables you to build your own dockerized Shiori (as by now there is no official image available on Docker Hub).
+
+### Build the image
+
+```bash
+$ docker build -t shiori .
+```
+
+### Run the container
+
+After building the image you will be able to start a container from it;
+
+```bash
+$ docker run -d --name shiori -p 8080:8080 shiori
+```
+
+As after running the container there will be no accounts created, you need to run the following commands:
+
+```bash
+# First open a console to the container (as you will need to enter your password)
+# and the default tty does not support hidden inputs
+$ docker exec -it shiori /bin/sh
+/go/src/shiori # shiori account add <your-desired-username>
+Password: <enter-your-password>
+```
+
+And you're now ready to go and access shiori via web.
+
+> For preserving the database, look at the next section.
+
+### Bind the database
+
+As you've probably noticed, if you dont preserve the database, all your bookmarks will be lost in case of rebooting/rebuilding the container.
+
+To preserve the database you need to bind the file. In this example we're locating the `shiori.db` file in our CWD.
+
+```bash
+$ docker run -d --name shiori -p 8080:8080 -v $(PWD)/shiori.db:/go/src/shiori/shiori.db shiori
+```
+
 ## Examples
 
 1. Save new bookmark with tags "nature" and "climate-change".
