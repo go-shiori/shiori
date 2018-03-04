@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/RadhiFadlillah/shiori/database"
+	"../database"
 	"github.com/spf13/cobra"
 )
 

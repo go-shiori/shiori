@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/RadhiFadlillah/shiori/model"
+	"../model"
 	"github.com/spf13/cobra"
 )
 

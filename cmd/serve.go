@@ -13,8 +13,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/RadhiFadlillah/shiori/assets"
-	"github.com/RadhiFadlillah/shiori/model"
+	"../assets"
+	"../model"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/dgrijalva/jwt-go/request"
 	"github.com/julienschmidt/httprouter"
