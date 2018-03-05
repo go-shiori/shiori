@@ -73,7 +73,9 @@ func importBookmarks(pth string, generateTag bool) error {
 		// Get bookmark tags
 		tags := []model.Tag{}
 		for _, strTag := range strings.Split(strTags, ",") {
-			tags = append(tags, model.Tag{Name: strTag})
+			if strTag != "" {
+				tags = append(tags, model.Tag{Name: strTag})
+			}
 		}
 
 		// Get bookmark excerpt
