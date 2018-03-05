@@ -2,19 +2,19 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/spf13/cobra"
 	"os"
-	db "github.com/RadhiFadlillah/shiori/database"
-	_ "github.com/mattn/go-sqlite3"
+
+	"github.com/RadhiFadlillah/shiori/database"
+	"github.com/spf13/cobra"
 )
 
 var (
 	// DB is database that used by this cli
-	DB db.Database
+	DB database.Database
 
 	rootCmd = &cobra.Command{
 		Use:   "shiori",
-		Short: "Simple command-line bookmark manager built with Go.",
+		Short: "Simple command-line bookmark manager built with Go",
 	}
 )
 
@@ -25,15 +25,4 @@ func Execute() {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-}
-
-func init () {
-	databasePath := "shiori.db"
-	if value, found := os.LookupEnv("ENV_SHIORI_DB"); found {
-		databasePath = value
-	}
-	sqliteDB, err := db.OpenSQLiteDatabase(databasePath)
-	checkError(err)
-
-	DB = sqliteDB
 }
