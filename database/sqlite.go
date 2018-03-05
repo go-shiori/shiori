@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"../model"
+	"github.com/RadhiFadlillah/shiori/model"
 	"github.com/jmoiron/sqlx"
 	"golang.org/x/crypto/bcrypt"
 )

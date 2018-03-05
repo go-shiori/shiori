@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
-	"../model"
 	"github.com/RadhiFadlillah/go-readability"
+	"github.com/RadhiFadlillah/shiori/model"
 	"github.com/spf13/cobra"
 )
 

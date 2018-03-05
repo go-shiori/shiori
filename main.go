@@ -2,8 +2,8 @@
 package main
 
 import (
-	"./cmd"
-	db "./database"
+	"github.com/RadhiFadlillah/shiori/cmd"
+	db "github.com/RadhiFadlillah/shiori/database"
 	_ "github.com/mattn/go-sqlite3"
 )
 

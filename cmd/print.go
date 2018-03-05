@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"../model"
+	"github.com/RadhiFadlillah/shiori/model"
 	"github.com/spf13/cobra"
 )
 
