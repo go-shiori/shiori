@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -35,7 +34,6 @@ var (
 			err := DB.DeleteBookmarks(args...)
 			if err != nil {
 				cError.Println(err)
-				os.Exit(1)
 			}
 		},
 	}
