@@ -1,5 +1,8 @@
 # Shiori
 
+[![Travis CI](https://travis-ci.org/RadhiFadlillah/shiori.svg?branch=master)](https://travis-ci.org/RadhiFadlillah/shiori)
+[![Go Report Card](https://goreportcard.com/badge/github.com/radhifadlillah/shiori)](https://goreportcard.com/report/github.com/radhifadlillah/shiori)
+
 Shiori is a simple bookmarks manager written in Go language. Intended as a simple clone of [Pocket](https://getpocket.com//). You can use it as command line application or as web application. This application is distributed as a single binary, which means it can be installed and used easily.
 
 ![Screenshot](https://raw.githubusercontent.com/RadhiFadlillah/shiori/master/screenshot.png)
