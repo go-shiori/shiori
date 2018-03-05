@@ -15,7 +15,7 @@ type Database interface {
 	GetBookmarks(withContent bool, indices ...string) ([]model.Bookmark, error)
 
 	// DeleteBookmarks removes all record with matching indices from database.
-	DeleteBookmarks(indices ...string) ([]int, []int, error)
+	DeleteBookmarks(indices ...string) error
 
 	// SearchBookmarks search bookmarks by the keyword or tags.
 	SearchBookmarks(orderLatest bool, keyword string, tags ...string) ([]model.Bookmark, error)

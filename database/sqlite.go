@@ -3,7 +3,6 @@ package database
 import (
 	"database/sql"
 	"fmt"
-	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -263,7 +262,7 @@ func (db *SQLiteDatabase) GetBookmarks(withContent bool, indices ...string) ([]m
 }
 
 // DeleteBookmarks removes all record with matching indices from database.
-func (db *SQLiteDatabase) DeleteBookmarks(indices ...string) (oldIndices, newIndices []int, err error) {
+func (db *SQLiteDatabase) DeleteBookmarks(indices ...string) (err error) {
 	// Convert list of index to int
 	listIndex := []int{}
 	errInvalidIndex := fmt.Errorf("Index is not valid")
@@ -272,13 +271,13 @@ func (db *SQLiteDatabase) DeleteBookmarks(indices ...string) (oldIndices, newInd
 		if strings.Contains(strIndex, "-") {
 			parts := strings.Split(strIndex, "-")
 			if len(parts) != 2 {
-				return nil, nil, errInvalidIndex
+				return errInvalidIndex
 			}
 
 			minIndex, errMin := strconv.Atoi(parts[0])
 			maxIndex, errMax := strconv.Atoi(parts[1])
 			if errMin != nil || errMax != nil || minIndex < 1 || minIndex > maxIndex {
-				return nil, nil, errInvalidIndex
+				return errInvalidIndex
 			}
 
 			for i := minIndex; i <= maxIndex; i++ {
@@ -287,15 +286,12 @@ func (db *SQLiteDatabase) DeleteBookmarks(indices ...string) (oldIndices, newInd
 		} else {
 			index, err := strconv.Atoi(strIndex)
 			if err != nil || index < 1 {
-				return nil, nil, errInvalidIndex
+				return errInvalidIndex
 			}
 
 			listIndex = append(listIndex, index)
 		}
 	}
-
-	// Sort the index
-	sort.Ints(listIndex)
 
 	// Create args and where clause
 	args := []interface{}{}
@@ -315,7 +311,7 @@ func (db *SQLiteDatabase) DeleteBookmarks(indices ...string) (oldIndices, newInd
 	// Begin transaction
 	tx, err := db.Beginx()
 	if err != nil {
-		return nil, nil, errInvalidIndex
+		return errInvalidIndex
 	}
 
 	// Make sure to rollback if panic ever happened
@@ -324,8 +320,6 @@ func (db *SQLiteDatabase) DeleteBookmarks(indices ...string) (oldIndices, newInd
 			panicErr, _ := r.(error)
 			tx.Rollback()
 
-			oldIndices = nil
-			newIndices = nil
 			err = panicErr
 		}
 	}()
@@ -338,56 +332,11 @@ func (db *SQLiteDatabase) DeleteBookmarks(indices ...string) (oldIndices, newInd
 	tx.MustExec("DELETE FROM bookmark_tag "+whereTagClause, args...)
 	tx.MustExec("DELETE FROM bookmark_content "+whereContentClause, args...)
 
-	// Prepare statement for updating index
-	stmtGetMaxID, err := tx.Preparex(`SELECT IFNULL(MAX(id), 0) FROM bookmark`)
-	checkError(err)
-
-	stmtUpdateBookmark, err := tx.Preparex(`UPDATE bookmark SET id = ? WHERE id = ?`)
-	checkError(err)
-
-	stmtUpdateBookmarkTag, err := tx.Preparex(`UPDATE bookmark_tag SET bookmark_id = ? WHERE bookmark_id = ?`)
-	checkError(err)
-
-	stmtUpdateBookmarkContent, err := tx.Preparex(`UPDATE bookmark_content SET docid = ? WHERE docid = ?`)
-	checkError(err)
-
-	// Get list of removed indices
-	maxIndex := 0
-	err = stmtGetMaxID.Get(&maxIndex)
-	checkError(err)
-
-	removedIndices := []int{}
-	err = tx.Select(&removedIndices,
-		`WITH cnt(x) AS (SELECT 1 UNION ALL SELECT x+1 FROM cnt LIMIT ?)
-		SELECT x FROM cnt WHERE x NOT IN (SELECT id FROM bookmark)`,
-		maxIndex)
-	checkError(err)
-
-	// Fill removed indices
-	newIndices = []int{}
-	oldIndices = []int{}
-	for _, removedIndex := range removedIndices {
-		oldIndex := 0
-		err = stmtGetMaxID.Get(&oldIndex)
-		checkError(err)
-
-		if oldIndex <= removedIndex {
-			break
-		}
-
-		stmtUpdateBookmark.MustExec(removedIndex, oldIndex)
-		stmtUpdateBookmarkTag.MustExec(removedIndex, oldIndex)
-		stmtUpdateBookmarkContent.MustExec(removedIndex, oldIndex)
-
-		newIndices = append(newIndices, removedIndex)
-		oldIndices = append(oldIndices, oldIndex)
-	}
-
 	// Commit transaction
 	err = tx.Commit()
 	checkError(err)
 
-	return oldIndices, newIndices, err
+	return err
 }
 
 // SearchBookmarks search bookmarks by the keyword or tags.
