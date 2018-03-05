@@ -9,6 +9,7 @@ Shiori is a simple bookmarks manager written in Go language. Intended as a simpl
 - [Features](#features)
 - [Installation](#installation)
 - [Usage](#usage)
+- [Advanced](#advanced)
 - [Examples](#examples)
 - [License](#license)
 
@@ -29,10 +30,6 @@ You can download the latest version of `shiori` from the release page, then put 
 ```
 go get github.com/RadhiFadlillah/go-readability
 ```
-
-### Advanced
-
-You can provide a path to the created SQLite database. To do this, set the environment variable `ENV_SHIORI_DB` to the desired path.
 
 ## Usage
 
@@ -60,6 +57,10 @@ Flags:
 
 Use "shiori [command] --help" for more information about a command.
 ```
+
+### Advanced
+
+By default, `shiori` will create database in the location where you run it. For example, if you run `shiori`. To set the database to a specific location, you can set the environment variable `ENV_SHIORI_DB` to your desired path. 
 
 ## Examples
 
