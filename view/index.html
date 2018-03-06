@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="/css/stylesheet.css">
     <link rel="stylesheet" href="/css/fontawesome.css">
     <link rel="stylesheet" href="/css/source-sans-pro.css">
+    <link rel="stylesheet" href="/css/cloud.css">
     <script src="/js/vue.js"></script>
     <script src="/js/axios.js"></script>
     <script src="/js/js-cookie.js"></script>
@@ -34,6 +35,10 @@
                     <a @click="reloadData">
                         <i class="fas fa-cloud fa-fw"></i>
                         <span>Reload</span>
+                    </a>
+                     <a @click="showTags">
+                        <i class="fas fa-hashtag fa-fw"></i>
+                        <span>Tags</span>
                     </a>
                     <a @click="toggleImage">
                         <i class="fas fa-fw" :class="showImage ? 'fa-eye-slash' : 'fa-eye'"></i>
@@ -89,6 +94,7 @@
                     <a v-if="search.keyword !== ''" @click="removeSearchParam(search.keyword)">{{search.keyword}}</a>
                     <a v-for="tag in search.tags" @click="removeSearchParam('#'+tag)">#{{tag}}</a>
                 </div>
+                <template v-if="!displayTags">
                 <div id="grid">
                     <div v-for="column in gridColumns" class="column">
                         <div v-for="item in column" class="bookmark" :class="{checked: isBookmarkChecked(item.index)}" :ref="'bookmark-'+item.index">
@@ -126,6 +132,16 @@
                     </div>
                 </div>
             </template>
+            <template v-if="displayTags">
+             <div id="tagcloud">
+                    <ul class="cloud">
+                        <li v-for="item in this.tagCloud">
+                           <a href="javascript: void(0);" @click="selectTag(item.name)" v-bind:style="'font-size:' + item.count +'em;'">#{{item.name}}</a>
+                        </li>
+                    </ul>
+                </div>
+            </template>
+            </template>
             <div v-if="loading || error !== ''" id="message-bar">
                 <i v-if="loading" class="fas fa-fw fa-spinner fa-spin"></i>
                 <p v-if="error !== ''" class="error-message">{{error}}</p>
@@ -161,8 +177,10 @@
                 windowWidth: 0,
                 error: "",
                 loading: false,
+                displayTags: false,
                 bookmarks: [],
                 checkedBookmarks: [],
+                tagCloud:[],
                 showImage: true,
                 search: {
                     query: "",
@@ -195,9 +213,8 @@
                 searchTag: function (tag) {
                     if (this.loading) return;
 
-                    var newTag = '#' + tag;
-                    if (this.search.query.indexOf(newTag) === -1) {
-                        this.search.query += ' ' + newTag;
+                    if (this.search.query.indexOf(tag) === -1) {
+                        this.search.query += ' ' + tag;
                         this.search.query = this.search.query.trim().replace(/\s+/g, ' ');
                         this.loadData();
                     }
@@ -453,6 +470,44 @@
                         var bookmarkItem = app.$refs['bookmark-' + idx];
                         bookmarkItem[0].scrollIntoView();
                     })
+                },
+                showTags: function(){
+                    instance.get('/api/tags')
+                    .then(function (response){
+                        app.displayTags = true
+                        app.loading = false;
+                        app.tagCloud = response.data;
+                        var minFont = 1;
+                        var maxFont = 8;
+                        var maxCount = 0;
+                        //find largest count value
+                        for (var i = 0; i < app.tagCloud.length; i++){
+                            if (app.tagCloud[i].count > maxCount) {
+                                maxCount = app.tagCloud[i].count;
+                           }
+                        }
+           
+                        //update tag count value to be fontsize we want to display 
+                        for (var i = 0; i < app.tagCloud.length; i++){
+                            var size = (Math.log(app.tagCloud[i].count)/Math.log(maxCount)) * (maxFont - minFont) + minFont;
+                            app.tagCloud[i].count = size;
+                        }
+
+                    })
+                    .catch(function (error){
+                        var errorMsg = error.response ? error.response.data : error.message;
+                        app.loading = false;
+                        app.error = errorMsg.trim();
+                    });
+                },
+                selectTag: function(tag){
+                    app.displayTags = false
+
+                    if (this.search.query.indexOf(newTag) === -1) {
+                        this.search.query += ' ' + newTag;
+                        this.search.query = this.search.query.trim().replace(/\s+/g, ' ');
+                        this.loadData();
+                    }
                 },
                 bookmarkTime: function (book) {
                     var time = book.modified,

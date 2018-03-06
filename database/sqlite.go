@@ -564,3 +564,15 @@ func (db *SQLiteDatabase) DeleteAccounts(usernames ...string) error {
 	_, err := db.Exec(`DELETE FROM account `+whereClause, args...)
 	return err
 }
+
+func (db *SQLiteDatabase) GetTags() ([]model.Tag, error) {
+	tags := []model.Tag{}
+
+	query := `select T.id, T.name, C.count  from tag T inner join (select tag_id, count(tag_id) as count from bookmark_tag group by tag_id) C on T.id = C.tag_id`
+
+	err := db.Select(&tags, query)
+	if err != nil && err != sql.ErrNoRows {
+		return nil, err
+	}
+	return tags, nil
+}
