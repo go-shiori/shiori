@@ -32,7 +32,7 @@ var (
 			skipConfirmation, _ := cmd.Flags().GetBool("yes")
 
 			// Check if --url flag is used
-			if url != "" {
+			if cmd.Flags().Changed("url") {
 				if len(args) != 1 {
 					cError.Println("Update only accepts one index while using --url flag")
 					return
@@ -43,6 +43,11 @@ var (
 					cError.Println("Index is not valid")
 					return
 				}
+			}
+
+			// Check if --excerpt flag is used
+			if !cmd.Flags().Changed("excerpt") {
+				excerpt = "|-|-|"
 			}
 
 			// If no arguments, confirm to user
@@ -153,7 +158,7 @@ func updateBookmarks(indices []string, url, title, excerpt string, tags []string
 			bookmarks[i].Title = title
 		}
 
-		if excerpt != "" {
+		if excerpt != "|-|-|" {
 			bookmarks[i].Excerpt = excerpt
 		}
 
