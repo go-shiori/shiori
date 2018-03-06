@@ -3,7 +3,6 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -34,12 +33,12 @@ var (
 			bookmarks, err := DB.SearchBookmarks(false, keyword, tags...)
 			if err != nil {
 				cError.Println(err)
-				os.Exit(1)
+				return
 			}
 
 			if len(bookmarks) == 0 {
 				cError.Println("No matching bookmarks found")
-				os.Exit(1)
+				return
 			}
 
 			// Print data
@@ -47,7 +46,7 @@ var (
 				bt, err := json.MarshalIndent(&bookmarks, "", "    ")
 				if err != nil {
 					cError.Println(err)
-					os.Exit(1)
+					return
 				}
 				fmt.Println(string(bt))
 			} else if indexOnly {

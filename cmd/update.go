@@ -82,6 +82,13 @@ func init() {
 
 func updateBookmarks(indices []string, url, title, excerpt string, tags []string, offline bool) ([]model.Bookmark, error) {
 	mutex := sync.Mutex{}
+
+	// Clear UTM parameters from URL
+	url, err := clearUTMParams(url)
+	if err != nil {
+		return []model.Bookmark{}, err
+	}
+
 	// Read bookmarks from database
 	bookmarks, err := DB.GetBookmarks(true, indices...)
 	if err != nil {

@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os/exec"
+	"runtime"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -67,7 +68,7 @@ func openBookmarks(args ...string) {
 
 	// Open in browser
 	for _, book := range bookmarks {
-		exec.Command("xdg-open", book.URL).Run()
+		err = openBrowser(book.URL)
 		if err != nil {
 			cError.Printf("Failed to open %s: %v\n", book.URL, err)
 		}
@@ -109,4 +110,21 @@ func openBookmarksCache(trimSpace bool, args ...string) {
 		cSymbol.Println(strings.Repeat("-", termWidth))
 		fmt.Println()
 	}
+}
+
+// openBrowser tries to open the URL in a browser,
+// and returns whether it succeed in doing so.
+func openBrowser(url string) error {
+	var args []string
+	switch runtime.GOOS {
+	case "darwin":
+		args = []string{"open"}
+	case "windows":
+		args = []string{"cmd", "/c", "start"}
+	default:
+		args = []string{"xdg-open"}
+	}
+
+	cmd := exec.Command(args[0], append(args[1:], url)...)
+	return cmd.Run()
 }

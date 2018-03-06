@@ -1,9 +1,10 @@
 package cmd
 
 import (
+	"os"
+
 	"github.com/fatih/color"
 	"golang.org/x/crypto/ssh/terminal"
-	"os"
 )
 
 var (

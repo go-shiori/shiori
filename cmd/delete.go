@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -32,16 +31,9 @@ var (
 			}
 
 			// Delete bookmarks from database
-			oldIndices, newIndices, err := DB.DeleteBookmarks(args...)
+			err := DB.DeleteBookmarks(args...)
 			if err != nil {
 				cError.Println(err)
-				os.Exit(1)
-			}
-
-			fmt.Println("Bookmarks has been deleted")
-			for i, oldIndex := range oldIndices {
-				newIndex := newIndices[i]
-				fmt.Printf("Index %d moved to %d\n", oldIndex, newIndex)
 			}
 		},
 	}
