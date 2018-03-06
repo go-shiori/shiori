@@ -466,7 +466,7 @@ func (db *SQLiteDatabase) UpdateBookmarks(bookmarks []model.Bookmark) (result []
 		stmtUpdateBookmarkContent.MustExec(
 			book.Title,
 			book.Content,
-			string(book.HTML),
+			book.HTML,
 			book.ID)
 
 		newTags := []model.Tag{}
