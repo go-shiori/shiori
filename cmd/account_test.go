@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"bytes"
 	"strings"
 	"testing"
 )
@@ -37,8 +38,8 @@ func TestPrintAccounts(t *testing.T) {
 		t.Errorf("failed to add test account: %v", err)
 		return
 	}
-	var b strings.Builder
-	err := printAccounts("", &b)
+	b := bytes.NewBufferString("")
+	err := printAccounts("", b)
 	if err != nil {
 		t.Errorf("got unexpected error: %v", err)
 	}
