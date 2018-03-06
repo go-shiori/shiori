@@ -1,0 +1,10 @@
+.cloud {
+    margin: auto;
+    width: 75%;
+    padding: 10px;
+}
+.cloud li {
+    list-style: none;
+    padding: 5px;   
+    display: inline;
+}
