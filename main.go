@@ -12,7 +12,7 @@ import (
 func main() {
 	databasePath := "shiori.db"
 	if value, found := os.LookupEnv("ENV_SHIORI_DB"); found {
-		databasePath = value
+		databasePath = value + "/" + databasePath
 	}
 
 	sqliteDB, err := db.OpenSQLiteDatabase(databasePath)
