@@ -213,8 +213,8 @@
                 searchTag: function (tag) {
                     if (this.loading) return;
 
-                    if (this.search.query.indexOf(newTag) === -1) {
-                        this.search.query += ' ' + newTag;
+                    if (this.search.query.indexOf(tag) === -1) {
+                        this.search.query += ' ' + tag;
                         this.search.query = this.search.query.trim().replace(/\s+/g, ' ');
                         this.loadData();
                     }
