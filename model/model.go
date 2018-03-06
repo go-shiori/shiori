@@ -7,6 +7,7 @@ type Tag struct {
 	ID      int64  `db:"id"   json:"id"`
 	Name    string `db:"name" json:"name"`
 	Deleted bool   `json:"-"`
+	Count   int64  `db:"count" json:"count"`
 }
 
 // Bookmark is record of a specified URL
