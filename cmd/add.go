@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"html/template"
 	nurl "net/url"
 	"strings"
 	"time"
@@ -81,7 +80,7 @@ func addBookmark(base model.Bookmark, offline bool) (book model.Bookmark, err er
 			book.MinReadTime = article.Meta.MinReadTime
 			book.MaxReadTime = article.Meta.MaxReadTime
 			book.Content = article.Content
-			book.HTML = template.HTML(article.RawContent)
+			book.HTML = article.RawContent
 
 			if book.Title == "" {
 				book.Title = article.Meta.Title
