@@ -652,4 +652,11 @@
             color: white;
         }
     }
+    @supports not (hyphens: auto) {
+        .bookmark-title,
+        .bookmark-url,
+        .bookmark-excerpt {
+            word-break: break-all;
+        }
+    }
 }
