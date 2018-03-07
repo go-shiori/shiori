@@ -242,6 +242,10 @@ func apiInsertBookmarks(w http.ResponseWriter, r *http.Request, ps httprouter.Pa
 }
 
 func apiUpdateBookmarks(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	// Get url parameter
+	_, dontOverwrite := r.URL.Query()["dont-overwrite"]
+	overwrite := !dontOverwrite
+
 	// Check token
 	err := checkAPIToken(r)
 	checkError(err)
@@ -253,13 +257,9 @@ func apiUpdateBookmarks(w http.ResponseWriter, r *http.Request, ps httprouter.Pa
 
 	// Convert tags and ID
 	id := []string{fmt.Sprintf("%d", request.ID)}
-	tags := make([]string, len(request.Tags))
-	for i, tag := range request.Tags {
-		tags[i] = tag.Name
-	}
 
 	// Update bookmark
-	bookmarks, err := updateBookmarks(id, request.URL, request.Title, request.Excerpt, tags, false)
+	bookmarks, err := updateBookmarks(id, request, false, overwrite)
 	checkError(err)
 
 	// Return new saved result
