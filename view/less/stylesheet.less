@@ -538,6 +538,8 @@
             color: @fontColor;
             font-size: 1.3em;
             font-weight: 600;
+            text-overflow: ellipsis;
+            overflow: hidden;
         }
         .bookmark-url {
             .bookmark-time;
@@ -586,6 +588,8 @@
     .bookmark-excerpt {
         padding: 16px 16px 0;
         color: @fontColor;
+        text-overflow: ellipsis;
+        overflow: hidden;
     }
     .bookmark-tags {
         display: flex;
@@ -650,13 +654,6 @@
             outline: 0;
             background-color: @borderDark;
             color: white;
-        }
-    }
-    @supports not (hyphens: auto) {
-        .bookmark-title,
-        .bookmark-url,
-        .bookmark-excerpt {
-            word-break: break-all;
         }
     }
 }

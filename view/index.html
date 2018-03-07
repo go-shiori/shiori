@@ -90,7 +90,7 @@
                     <a v-for="tag in search.tags" @click="removeSearchParam('#'+tag)">#{{tag}}</a>
                 </div>
                 <div id="grid">
-                    <div v-for="column in gridColumns" class="column">
+                    <div v-for="column in gridColumns" class="column" :style="{maxWidth: columnWidth}">
                         <div v-for="item in column" class="bookmark" :class="{checked: isBookmarkChecked(item.index)}" :ref="'bookmark-'+item.index">
                             <a class="checkbox" @click="toggleBookmarkCheck(item.index)">
                                 <i class="fas fa-check"></i>
@@ -535,6 +535,12 @@
 
                     return finalContent;
                 },
+                columnWidth: function () {
+                    var nColumn = Math.round(this.windowWidth / 500),
+                        percent = Math.round(100 / nColumn * 1000) / 1000;
+
+                    return percent + "%";
+                }
             },
             watch: {
                 'inputBookmark.url': function (newURL) {
