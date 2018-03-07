@@ -64,7 +64,18 @@ func TestUpdateBookMark(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		bks, err := updateBookmarks(tt.indices, tt.url, tt.title, tt.excerpt, tt.tags, tt.offline)
+		base := model.Bookmark{
+			URL:     tt.url,
+			Title:   tt.title,
+			Excerpt: tt.excerpt,
+		}
+
+		base.Tags = make([]model.Tag, len(tt.tags))
+		for i, tag := range tt.tags {
+			base.Tags[i] = model.Tag{Name: tag}
+		}
+
+		bks, err := updateBookmarks(tt.indices, base, tt.offline, true)
 		if err != nil {
 			if tt.want == "" {
 				t.Errorf("got unexpected error: '%v'", err)
