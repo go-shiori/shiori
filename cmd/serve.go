@@ -41,8 +41,14 @@ var (
 			}
 
 			// Prepare template
+			funcMap := template.FuncMap{
+				"html": func(s string) template.HTML {
+					return template.HTML(s)
+				},
+			}
+
 			tplFile, _ := assets.ReadFile("cache.html")
-			tplCache, err = template.New("cache.html").Parse(string(tplFile))
+			tplCache, err = template.New("cache.html").Funcs(funcMap).Parse(string(tplFile))
 			if err != nil {
 				cError.Println("Failed to generate HTML template")
 				return
