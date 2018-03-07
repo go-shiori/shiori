@@ -74,7 +74,13 @@ var (
 			port, _ := cmd.Flags().GetInt("port")
 			url := fmt.Sprintf(":%d", port)
 			logrus.Infoln("Serve shiori in", url)
-			logrus.Fatalln(http.ListenAndServe(url, router))
+			svr := &http.Server{
+				Addr:         url,
+				Handler:      router,
+				ReadTimeout:  10 * time.Second,
+				WriteTimeout: 20 * time.Second,
+			}
+			logrus.Fatalln(svr.ListenAndServe())
 		},
 	}
 )
