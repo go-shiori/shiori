@@ -96,7 +96,7 @@
                 </div>
                 <template v-if="!displayTags">
                  <div id="grid">
-                    <div v-for="column in gridColumns" class="column">
+                    <div v-for="column in gridColumns" class="column" :style="{maxWidth: columnWidth}">
                         <div v-for="item in column" class="bookmark" :class="{checked: isBookmarkChecked(item.index)}" :ref="'bookmark-'+item.index">
                             <a class="checkbox" @click="toggleBookmarkCheck(item.index)">
                                 <i class="fas fa-check"></i>
@@ -404,7 +404,28 @@
 
                 },
                 updateBookmark: function (idx) {
-                    var bookmark = this.bookmarks[idx];
+                    var bookmark = this.bookmarks[idx],
+                        sendUpdateRequest = function (overwrite) {
+                            var url = "/api/bookmarks";
+                            if (!overwrite) url += "?dont-overwrite";
+
+                            instance.put(url, {
+                                    id: bookmark.id,
+                                    excerpt: overwrite ? "empty" : bookmark.excerpt
+                                }, {
+                                    timeout: 15000,
+                                })
+                                .then(function (response) {
+                                    app.dialog.loading = false;
+                                    app.dialog.visible = false;
+                                    app.bookmarks.splice(idx, 1, response.data);
+                                    app.bookmarks[idx].tags.splice(0, app.bookmarks[idx].tags.length, ...response.data.tags);
+                                })
+                                .catch(function (error) {
+                                    var errorMsg = error.response ? error.response.data : error.message;
+                                    app.showDialogError("Error Updating Bookmark", errorMsg.trim());
+                                });
+                        };
 
                     this.dialog.visible = true;
                     this.dialog.isError = false;
@@ -414,22 +435,18 @@
                     this.dialog.mainChoice = "Yes";
                     this.dialog.secondChoice = "No";
                     this.dialog.mainAction = function () {
-                        app.dialog.loading = true;
-                        instance.put('/api/bookmarks', {
-                                id: bookmark.id,
-                            }, {
-                                timeout: 15000,
-                            })
-                            .then(function (response) {
-                                app.dialog.loading = false;
-                                app.dialog.visible = false;
-                                app.bookmarks.splice(idx, 1, response.data);
-                                app.bookmarks[idx].tags.splice(0, app.bookmarks[idx].tags.length, ...response.data.tags);
-                            })
-                            .catch(function (error) {
-                                var errorMsg = error.response ? error.response.data : error.message;
-                                app.showDialogError("Error Updating Bookmark", errorMsg.trim());
-                            });
+                        app.dialog.title = "Overwrite Metadata";
+                        app.dialog.content = "Overwrite the existing bookmark's metadata ?";
+                        app.dialog.mainChoice = "Yes";
+                        app.dialog.secondChoice = "No";
+                        app.dialog.mainAction = function () {
+                            app.dialog.loading = true;
+                            sendUpdateRequest(true);
+                        };
+                        app.dialog.secondAction = function () {
+                            app.dialog.loading = true;
+                            sendUpdateRequest(false);
+                        };
                     };
                     this.dialog.secondAction = function () {
                         app.dialog.visible = false;
@@ -585,6 +602,12 @@
 
                     return finalContent;
                 },
+                columnWidth: function () {
+                    var nColumn = Math.round(this.windowWidth / 500),
+                        percent = Math.round(100 / nColumn * 1000) / 1000;
+
+                    return percent + "%";
+                }
             },
             watch: {
                 'inputBookmark.url': function (newURL) {

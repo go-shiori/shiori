@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"html/template"
 	"strconv"
 	"strings"
 	"sync"
@@ -31,9 +30,10 @@ var (
 			tags, _ := cmd.Flags().GetStringSlice("tags")
 			offline, _ := cmd.Flags().GetBool("offline")
 			skipConfirmation, _ := cmd.Flags().GetBool("yes")
+			overwriteMetadata := !cmd.Flags().Changed("dont-overwrite")
 
 			// Check if --url flag is used
-			if url != "" {
+			if cmd.Flags().Changed("url") {
 				if len(args) != 1 {
 					cError.Println("Update only accepts one index while using --url flag")
 					return
@@ -44,6 +44,11 @@ var (
 					cError.Println("Index is not valid")
 					return
 				}
+			}
+
+			// Check if --excerpt flag is used
+			if !cmd.Flags().Changed("excerpt") {
+				excerpt = "empty"
 			}
 
 			// If no arguments, confirm to user
@@ -59,7 +64,18 @@ var (
 			}
 
 			// Update bookmarks
-			bookmarks, err := updateBookmarks(args, url, title, excerpt, tags, offline)
+			base := model.Bookmark{
+				URL:     url,
+				Title:   title,
+				Excerpt: excerpt,
+			}
+
+			base.Tags = make([]model.Tag, len(tags))
+			for i, tag := range tags {
+				base.Tags[i] = model.Tag{Name: tag}
+			}
+
+			bookmarks, err := updateBookmarks(args, base, offline, overwriteMetadata)
 			if err != nil {
 				cError.Println(err)
 				return
@@ -77,14 +93,15 @@ func init() {
 	updateCmd.Flags().StringSliceP("tags", "t", []string{}, "Comma-separated tags for this bookmark.")
 	updateCmd.Flags().BoolP("offline", "o", false, "Update bookmark without fetching data from internet.")
 	updateCmd.Flags().BoolP("yes", "y", false, "Skip confirmation prompt and update ALL bookmarks")
+	updateCmd.Flags().Bool("dont-overwrite", false, "Don't overwrite existing metadata. Useful when only want to update bookmark's content.")
 	rootCmd.AddCommand(updateCmd)
 }
 
-func updateBookmarks(indices []string, url, title, excerpt string, tags []string, offline bool) ([]model.Bookmark, error) {
+func updateBookmarks(indices []string, base model.Bookmark, offline, overwrite bool) ([]model.Bookmark, error) {
 	mutex := sync.Mutex{}
 
 	// Clear UTM parameters from URL
-	url, err := clearUTMParams(url)
+	url, err := clearUTMParams(base.URL)
 	if err != nil {
 		return []model.Bookmark{}, err
 	}
@@ -114,14 +131,17 @@ func updateBookmarks(indices []string, url, title, excerpt string, tags []string
 
 				article, err := readability.Parse(book.URL, 10*time.Second)
 				if err == nil {
-					book.Title = article.Meta.Title
+					if overwrite {
+						book.Title = article.Meta.Title
+						book.Excerpt = article.Meta.Excerpt
+					}
+
 					book.ImageURL = article.Meta.Image
-					book.Excerpt = article.Meta.Excerpt
 					book.Author = article.Meta.Author
 					book.MinReadTime = article.Meta.MinReadTime
 					book.MaxReadTime = article.Meta.MaxReadTime
 					book.Content = article.Content
-					book.HTML = template.HTML(article.RawContent)
+					book.HTML = article.RawContent
 
 					mutex.Lock()
 					bookmarks[pos] = book
@@ -136,26 +156,26 @@ func updateBookmarks(indices []string, url, title, excerpt string, tags []string
 	// Map the tags to be deleted
 	addedTags := make(map[string]struct{})
 	deletedTags := make(map[string]struct{})
-	for _, tag := range tags {
-		tag = strings.ToLower(tag)
-		tag = strings.TrimSpace(tag)
+	for _, tag := range base.Tags {
+		tagName := strings.ToLower(tag.Name)
+		tagName = strings.TrimSpace(tagName)
 
-		if strings.HasPrefix(tag, "-") {
-			tag = strings.TrimPrefix(tag, "-")
-			deletedTags[tag] = struct{}{}
+		if strings.HasPrefix(tagName, "-") {
+			tagName = strings.TrimPrefix(tagName, "-")
+			deletedTags[tagName] = struct{}{}
 		} else {
-			addedTags[tag] = struct{}{}
+			addedTags[tagName] = struct{}{}
 		}
 	}
 
 	// Set default title, excerpt and tags
 	for i := range bookmarks {
-		if title != "" {
-			bookmarks[i].Title = title
+		if base.Title != "" && overwrite {
+			bookmarks[i].Title = base.Title
 		}
 
-		if excerpt != "" {
-			bookmarks[i].Excerpt = excerpt
+		if base.Excerpt != "empty" && overwrite {
+			bookmarks[i].Excerpt = base.Excerpt
 		}
 
 		tempAddedTags := make(map[string]struct{})

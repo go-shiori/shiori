@@ -41,8 +41,14 @@ var (
 			}
 
 			// Prepare template
+			funcMap := template.FuncMap{
+				"html": func(s string) template.HTML {
+					return template.HTML(s)
+				},
+			}
+
 			tplFile, _ := assets.ReadFile("cache.html")
-			tplCache, err = template.New("cache.html").Parse(string(tplFile))
+			tplCache, err = template.New("cache.html").Funcs(funcMap).Parse(string(tplFile))
 			if err != nil {
 				cError.Println("Failed to generate HTML template")
 				return
@@ -75,7 +81,13 @@ var (
 			port, _ := cmd.Flags().GetInt("port")
 			url := fmt.Sprintf(":%d", port)
 			logrus.Infoln("Serve shiori in", url)
-			logrus.Fatalln(http.ListenAndServe(url, router))
+			svr := &http.Server{
+				Addr:         url,
+				Handler:      router,
+				ReadTimeout:  10 * time.Second,
+				WriteTimeout: 20 * time.Second,
+			}
+			logrus.Fatalln(svr.ListenAndServe())
 		},
 	}
 )
@@ -245,6 +257,10 @@ func apiInsertBookmarks(w http.ResponseWriter, r *http.Request, ps httprouter.Pa
 }
 
 func apiUpdateBookmarks(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	// Get url parameter
+	_, dontOverwrite := r.URL.Query()["dont-overwrite"]
+	overwrite := !dontOverwrite
+
 	// Check token
 	err := checkAPIToken(r)
 	checkError(err)
@@ -256,13 +272,9 @@ func apiUpdateBookmarks(w http.ResponseWriter, r *http.Request, ps httprouter.Pa
 
 	// Convert tags and ID
 	id := []string{fmt.Sprintf("%d", request.ID)}
-	tags := make([]string, len(request.Tags))
-	for i, tag := range request.Tags {
-		tags[i] = tag.Name
-	}
 
 	// Update bookmark
-	bookmarks, err := updateBookmarks(id, request.URL, request.Title, request.Excerpt, tags, false)
+	bookmarks, err := updateBookmarks(id, request, false, overwrite)
 	checkError(err)
 
 	// Return new saved result
