@@ -62,7 +62,7 @@ func addBookmark(base model.Bookmark, offline bool) (book model.Bookmark, err er
 
 	// Make sure URL valid
 	parsedURL, err := nurl.ParseRequestURI(book.URL)
-	if err != nil {
+	if err != nil || parsedURL.Host == "" {
 		return book, fmt.Errorf("URL is not valid")
 	}
 
