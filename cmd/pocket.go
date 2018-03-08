@@ -71,6 +71,8 @@ var (
 		Run: func(cmd *cobra.Command, args []string) {
 			offline, _ := cmd.Flags().GetBool("offline")
 			all, _ := cmd.Flags().GetBool("all")
+            tag, _ := cmd.Flags().GetString("tag") 
+
 
 			apikey := viper.Get("pocket.apikey")
 			if apikey == nil {
@@ -93,10 +95,15 @@ var (
 				state = pocketApi.StateAll
 			}
 
+            
 			options := pocketApi.RetrieveOption{
 				DetailType: "complete",
 				State:      state,
 			}
+
+            if tag != "" {
+                options.Tag = tag
+            }   
 
 			pocketBookmarks, err := client.Retrieve(&options)
 
@@ -189,6 +196,7 @@ func init() {
 
 	importPocketCmd.Flags().BoolP("offline", "o", false, "Import items from pocket without fetching data from internet.")
 	importPocketCmd.Flags().BoolP("all", "a", false, "Import all items from pocket, default is only to import unread items")
+	importPocketCmd.Flags().StringP("tag", "t", "", "Only import items with defined tag")
 	pocketCmd.AddCommand(importPocketCmd)
 
 	rootCmd.AddCommand(pocketCmd)
