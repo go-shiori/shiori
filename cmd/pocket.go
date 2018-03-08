@@ -21,8 +21,8 @@ var (
 		Short: "Manage pocket bookmarks",
 	}
 
-    //requires a consumer key to be set 
-    //https://getpocket.com/developer/docs/authentication
+	//requires a consumer key to be set
+	//https://getpocket.com/developer/docs/authentication
 	setConsumerKeyCmd = &cobra.Command{
 		Use:   "key apikey",
 		Short: "Set consumer key for pocket api",
