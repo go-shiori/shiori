@@ -71,8 +71,7 @@ var (
 		Run: func(cmd *cobra.Command, args []string) {
 			offline, _ := cmd.Flags().GetBool("offline")
 			all, _ := cmd.Flags().GetBool("all")
-            tag, _ := cmd.Flags().GetString("tag") 
-
+			tag, _ := cmd.Flags().GetString("tag")
 
 			apikey := viper.Get("pocket.apikey")
 			if apikey == nil {
@@ -95,15 +94,14 @@ var (
 				state = pocketApi.StateAll
 			}
 
-            
 			options := pocketApi.RetrieveOption{
 				DetailType: "complete",
 				State:      state,
 			}
 
-            if tag != "" {
-                options.Tag = tag
-            }   
+			if tag != "" {
+				options.Tag = tag
+			}
 
 			pocketBookmarks, err := client.Retrieve(&options)
 
