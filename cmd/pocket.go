@@ -48,7 +48,6 @@ var (
 			if apikey == nil {
 				cError.Println("Pocket consumer key not set")
 				cError.Println("Please set with: shiori pocket key")
-				fmt.Println("y")
 			}
 			auth, err := obtainPocketAccessToken(apikey.(string))
 			if err != nil {
