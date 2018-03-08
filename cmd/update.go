@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	nurl "net/url"
 	"strconv"
 	"strings"
 	"sync"
@@ -100,8 +101,14 @@ func init() {
 func updateBookmarks(indices []string, base model.Bookmark, offline, overwrite bool) ([]model.Bookmark, error) {
 	mutex := sync.Mutex{}
 
+	// Make sure URL valid
+	parsedURL, err := nurl.ParseRequestURI(base.URL)
+	if err != nil {
+		return []model.Bookmark{}, fmt.Errorf("URL is not valid")
+	}
+
 	// Clear UTM parameters from URL
-	url, err := clearUTMParams(base.URL)
+	url, err := clearUTMParams(parsedURL)
 	if err != nil {
 		return []model.Bookmark{}, err
 	}
