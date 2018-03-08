@@ -6,5 +6,5 @@
 .cloud li {
     list-style: none;
     padding: 5px;   
-    display: inline;
+    display: inline-block;
 }
