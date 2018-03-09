@@ -15,7 +15,7 @@ func TestAddBookMark(t *testing.T) {
 	}{
 		{
 			model.Bookmark{},
-			true, "URL must not be empty",
+			true, "URL is not valid",
 		},
 		{
 			model.Bookmark{
@@ -23,7 +23,6 @@ func TestAddBookMark(t *testing.T) {
 			},
 			true, "Title must not be empty",
 		},
-		{model.Bookmark{URL: "foo", Title: "Foo"}, true, ""},
 		{
 			model.Bookmark{
 				URL:   "https://github.com/RadhiFadlillah/shiori",

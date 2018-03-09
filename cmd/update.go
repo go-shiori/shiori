@@ -210,6 +210,7 @@ func updateBookmarks(indices []string, base model.Bookmark, offline, overwrite b
 		}
 
 		bookmarks[i].Tags = newTags
+		bookmarks[i].Modified = time.Now().UTC().Format("2006-01-02 15:04:05")
 	}
 
 	result, err := DB.UpdateBookmarks(bookmarks)
