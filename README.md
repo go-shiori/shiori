@@ -28,11 +28,27 @@ Shiori is a simple bookmarks manager written in Go language. Intended as a simpl
 
 ## Installation
 
+### Linux
+
 You can download the latest version of `shiori` from [the release page](https://github.com/RadhiFadlillah/shiori/releases/latest), then put it in your `PATH`. If you want to build from source, make sure `go` is installed, then run :
 
 ```
 go get github.com/RadhiFadlillah/shiori
 ```
+
+### Windows
+
+In order to build this project, you will need to have access to a Linux machine or a Windows Subsystem for Linux environment. The following commands work under Ubuntu 16.04 LTS:
+
+```bash
+go get -d github.com/RadhiFadlillah/shiori
+sudo apt install mingw-w64
+cd $GOPATH/src/github.com/RadhiFadlillah/shiori
+GOOS=windows CGO_ENABLED=1 CC=x86_64-w64-mingw32-gcc go build -ldflags "-extldflags -static"
+
+```
+
+Once this is done, copy `shiori.exe` to your Windows machine or environment. Happy bookmarking!
 
 ## Usage
 
