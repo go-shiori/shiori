@@ -522,10 +522,8 @@
                     app.searchTag(tag);
                 },
                 bookmarkTime: function (book) {
-                    var time = book.modified,
-                        readTime = "",
-                        finalBookmarkTime = "";
-
+                    // Define read time
+                    var readTime = "";
                     if (book.maxReadTime === 0) {
                         readTime = "";
                     } else if (book.minReadTime === book.maxReadTime) {
@@ -534,7 +532,20 @@
                         readTime = book.minReadTime + "-" + book.maxReadTime + " min read";
                     }
 
-                    finalBookmarkTime = "Updated " + time;
+                    // Convert modified time to local
+                    var time = new Date(book.modified.replace(/-/g, '/') + ' +00');
+
+                    // Create final time
+                    var month = ("00" + (time.getMonth() + 1)).slice(-2),
+                        date = ("00" + time.getDate()).slice(-2),
+                        hours = ("00" + time.getHours()).slice(-2),
+                        minutes = ("00" + time.getMinutes()).slice(-2),
+                        seconds = ("00" + time.getSeconds()).slice(-2);
+
+                    var finalBookmarkTime = "Updated " +
+                        time.getFullYear() + "-" + month + "-" + date + " " +
+                        hours + ":" + minutes + ":" + seconds;
+
                     if (readTime !== "") finalBookmarkTime += " \u00B7 " + readTime;
 
                     return finalBookmarkTime;

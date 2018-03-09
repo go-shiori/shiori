@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	nurl "net/url"
 	"strconv"
 	"strings"
 	"sync"
@@ -100,10 +101,18 @@ func init() {
 func updateBookmarks(indices []string, base model.Bookmark, offline, overwrite bool) ([]model.Bookmark, error) {
 	mutex := sync.Mutex{}
 
-	// Clear UTM parameters from URL
-	url, err := clearUTMParams(base.URL)
-	if err != nil {
-		return []model.Bookmark{}, err
+	if base.URL != "" {
+		// Make sure URL valid
+		parsedURL, err := nurl.ParseRequestURI(base.URL)
+		if err != nil || parsedURL.Host == "" {
+			return []model.Bookmark{}, fmt.Errorf("URL is not valid")
+		}
+
+		// Clear UTM parameters from URL
+		base.URL, err = clearUTMParams(parsedURL)
+		if err != nil {
+			return []model.Bookmark{}, err
+		}
 	}
 
 	// Read bookmarks from database
@@ -116,8 +125,8 @@ func updateBookmarks(indices []string, base model.Bookmark, offline, overwrite b
 		return []model.Bookmark{}, fmt.Errorf("No matching index found")
 	}
 
-	if url != "" && len(bookmarks) == 1 {
-		bookmarks[0].URL = url
+	if base.URL != "" && len(bookmarks) == 1 {
+		bookmarks[0].URL = base.URL
 	}
 
 	// If not offline, fetch articles from internet
@@ -201,6 +210,7 @@ func updateBookmarks(indices []string, base model.Bookmark, offline, overwrite b
 		}
 
 		bookmarks[i].Tags = newTags
+		bookmarks[i].Modified = time.Now().UTC().Format("2006-01-02 15:04:05")
 	}
 
 	result, err := DB.UpdateBookmarks(bookmarks)

@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	nurl "net/url"
 	"strings"
 	"time"
@@ -59,8 +60,14 @@ func addBookmark(base model.Bookmark, offline bool) (book model.Bookmark, err er
 	// Prepare initial result
 	book = base
 
+	// Make sure URL valid
+	parsedURL, err := nurl.ParseRequestURI(book.URL)
+	if err != nil || parsedURL.Host == "" {
+		return book, fmt.Errorf("URL is not valid")
+	}
+
 	// Clear UTM parameters from URL
-	book.URL, err = clearUTMParams(book.URL)
+	book.URL, err = clearUTMParams(parsedURL)
 	if err != nil {
 		return book, err
 	}
@@ -101,14 +108,9 @@ func normalizeSpace(str string) string {
 	return strings.Join(strings.Fields(str), " ")
 }
 
-func clearUTMParams(uri string) (string, error) {
-	tempURL, err := nurl.Parse(uri)
-	if err != nil {
-		return "", err
-	}
-
+func clearUTMParams(url *nurl.URL) (string, error) {
 	newQuery := nurl.Values{}
-	for key, value := range tempURL.Query() {
+	for key, value := range url.Query() {
 		if strings.HasPrefix(key, "utm_") {
 			continue
 		}
@@ -116,6 +118,6 @@ func clearUTMParams(uri string) (string, error) {
 		newQuery[key] = value
 	}
 
-	tempURL.RawQuery = newQuery.Encode()
-	return tempURL.String(), nil
+	url.RawQuery = newQuery.Encode()
+	return url.String(), nil
 }
