@@ -379,7 +379,7 @@ func (db *SQLiteDatabase) SearchBookmarks(orderLatest bool, keyword string, tags
 		FROM bookmark ` + whereClause
 
 	if orderLatest {
-		query += ` ORDER BY modified DESC`
+		query += ` ORDER BY id DESC`
 	}
 
 	bookmarks := []model.Bookmark{}
@@ -432,7 +432,7 @@ func (db *SQLiteDatabase) UpdateBookmarks(bookmarks []model.Bookmark) (result []
 	// Prepare statement
 	stmtUpdateBookmark, err := db.Preparex(`UPDATE bookmark SET
 		url = ?, title = ?, image_url = ?, excerpt = ?, author = ?,
-		min_read_time = ?, max_read_time = ? WHERE id = ?`)
+		min_read_time = ?, max_read_time = ?, modified = ? WHERE id = ?`)
 	checkError(err)
 
 	stmtUpdateBookmarkContent, err := db.Preparex(`UPDATE bookmark_content SET
@@ -461,6 +461,7 @@ func (db *SQLiteDatabase) UpdateBookmarks(bookmarks []model.Bookmark) (result []
 			book.Author,
 			book.MinReadTime,
 			book.MaxReadTime,
+			book.Modified,
 			book.ID)
 
 		stmtUpdateBookmarkContent.MustExec(
