@@ -256,6 +256,40 @@ console](#console-access-for-container). After that go along with the examples.
     ```sh
     shiori account add username
     ```
+## Contribute
+
+### Setup project
+
+To install dependencies required for development, please run the following
+command.
+
+```sh
+bin/setup
+# or
+make setup
+```
+
+### Build project
+
+To build the project, please run the following command.
+
+```sh
+bin/build
+# or
+make
+# or
+make build
+```
+
+### Build docker container
+
+There's a wrapper for building the docker container.
+
+```sh
+bin/docker/build
+# or
+make docker_build
+```
 
 ## License
 
