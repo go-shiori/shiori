@@ -2,10 +2,10 @@ package model
 
 // Tag is tag for the bookmark
 type Tag struct {
-	ID      int64  `db:"id"   json:"id"`
-	Name    string `db:"name" json:"name"`
-	Deleted bool   `json:"-"`
-	Count   int64  `db:"count" json:"count"`
+	ID         int64  `db:"id"          json:"id"`
+	Name       string `db:"name"        json:"name"`
+	NBookmarks int64  `db:"n_bookmarks" json:"nBookmarks"`
+	Deleted    bool   `json:"-"`
 }
 
 // Bookmark is record of a specified URL

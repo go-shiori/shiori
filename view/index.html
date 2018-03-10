@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="/css/stylesheet.css">
     <link rel="stylesheet" href="/css/fontawesome.css">
     <link rel="stylesheet" href="/css/source-sans-pro.css">
-    <link rel="stylesheet" href="/css/cloud.css">
     <script src="/js/vue.js"></script>
     <script src="/js/axios.js"></script>
     <script src="/js/js-cookie.js"></script>
@@ -36,7 +35,7 @@
                         <i class="fas fa-cloud fa-fw"></i>
                         <span>Reload</span>
                     </a>
-                     <a @click="showTags">
+                    <a @click="showTagCloud">
                         <i class="fas fa-hashtag fa-fw"></i>
                         <span>Tags</span>
                     </a>
@@ -94,8 +93,7 @@
                     <a v-if="search.keyword !== ''" @click="removeSearchParam(search.keyword)">{{search.keyword}}</a>
                     <a v-for="tag in search.tags" @click="removeSearchParam('#'+tag)">#{{tag}}</a>
                 </div>
-                <template v-if="!displayTags">
-                 <div id="grid">
+                <div id="grid">
                     <div v-for="column in gridColumns" class="column" :style="{maxWidth: columnWidth}">
                         <div v-for="item in column" class="bookmark" :class="{checked: isBookmarkChecked(item.index)}" :ref="'bookmark-'+item.index">
                             <a class="checkbox" @click="toggleBookmarkCheck(item.index)">
@@ -131,16 +129,6 @@
                         </div>
                     </div>
                 </div>
-              </template>
-              <template v-if="displayTags">
-                <div id="tagcloud">
-                    <ul class="cloud">
-                        <li v-for="item in this.tagCloud">
-                           <a href="javascript: void(0);" @click="selectTag(item.name)" v-bind:style="'font-size:' + item.count +'em;'">#{{item.name}}</a>
-                        </li>
-                    </ul>
-               </div>
-             </template>
             </template>
             <div v-if="loading || error !== ''" id="message-bar">
                 <i v-if="loading" class="fas fa-fw fa-spinner fa-spin"></i>
@@ -160,6 +148,19 @@
                         <a class="button" @click="dialog.secondAction">{{dialog.secondChoice}}</a>
                         <a class="button" @click="dialog.mainAction">{{dialog.mainChoice}}</a>
                     </template>
+                </div>
+            </div>
+        </div>
+        <div v-if="tagCloud.visible" id="tag-cloud-overlay">
+            <div id="tag-cloud">
+                <div id="tag-cloud-title">
+                    <p>Tag Cloud</p>
+                    <a @click="tagCloud.visible = false" id="close-tag-cloud">
+                        <i class="fas fa-fw fa-times"></i>
+                    </a>
+                </div>
+                <div id="tag-cloud-content">
+                    <a v-for="item in tagCloud.data" @click="selectTagCloud(item.name)" :style="{fontSize: item.fontSize+'em'}">#{{item.name}}</a>
                 </div>
             </div>
         </div>
@@ -207,6 +208,10 @@
                     secondChoice: '',
                     mainAction: function () {},
                     secondAction: function () {}
+                },
+                tagCloud: {
+                    visible: false,
+                    data: []
                 }
             },
             methods: {
@@ -489,37 +494,52 @@
                         bookmarkItem[0].scrollIntoView();
                     })
                 },
-                showTags: function(){
-                    instance.get('/api/tags')
-                    .then(function (response){
-                        app.displayTags = true
-                        app.loading = false;
-                        app.tagCloud = response.data;
-                        var minFont = 1;
-                        var maxFont = 8;
-                        var maxCount = 0;
-                        //find largest count value
-                        for (var i = 0; i < app.tagCloud.length; i++){
-                            if (app.tagCloud[i].count > maxCount) {
-                                maxCount = app.tagCloud[i].count;
-                           }
-                        }
-                        //update tag count value to be fontsize we want to display 
-                        for (var i = 0; i < app.tagCloud.length; i++){
-                            var size = (Math.log(app.tagCloud[i].count)/Math.log(maxCount)) * (maxFont - minFont) + minFont;
-                            app.tagCloud[i].count = size;
-                        }
+                showTagCloud: function () {
+                    if (this.loading) return;
 
-                    })
-                    .catch(function (error){
-                        var errorMsg = error.response ? error.response.data : error.message;
-                        app.loading = false;
-                        app.error = errorMsg.trim();
-                    });
+                    // Fetch data
+                    this.error = '';
+                    this.loading = true;
+                    instance.get('/api/tags')
+                        .then(function (response) {
+                            app.loading = false;
+                            app.tagCloud.data = response.data;
+
+                            if (app.tagCloud.data.length === 0) {
+                                app.tagCloud.visible = false;
+                                app.showDialogError("Error Creating Tag Cloud", "There are no saved tags");
+                                return;
+                            }
+
+                            app.tagCloud.visible = true;
+
+                            // Find largest tags frequency
+                            var minFont = 1,
+                                maxFont = 5,
+                                maxCount = 0;
+                            for (var i = 0; i < app.tagCloud.data.length; i++) {
+                                if (app.tagCloud.data[i].nBookmarks > maxCount) {
+                                    maxCount = app.tagCloud.data[i].nBookmarks;
+                                }
+                            }
+
+                            // Set font size for tags
+                            for (var i = 0; i < app.tagCloud.data.length; i++) {
+                                var size = (Math.log(app.tagCloud.data[i].nBookmarks) / Math.log(maxCount)) *
+                                    (maxFont - minFont) + minFont;
+                                app.tagCloud.data[i].fontSize = size;
+                            }
+                        })
+                        .catch(function (error) {
+                            var errorMsg = error.response ? error.response.data : error.message;
+                            app.loading = false;
+                            app.tagCloud.visible = false;
+                            app.showDialogError("Error Creating Tag Cloud", errorMsg.trim());
+                        });
                 },
-                selectTag: function(tag){
-                    app.displayTags = false;
-                    app.searchTag(tag);
+                selectTagCloud: function (tag) {
+                    this.tagCloud.visible = false;
+                    this.searchTag(tag);
                 },
                 bookmarkTime: function (book) {
                     // Define read time
@@ -593,6 +613,9 @@
                 }
             },
             computed: {
+                overlayVisible: function () {
+                    return this.dialog.visible || this.tagCloud.visible;
+                },
                 gridColumns: function () {
                     var nColumn = Math.round(this.windowWidth / 500),
                         finalContent = [],
@@ -621,6 +644,10 @@
                 }
             },
             watch: {
+                overlayVisible: function (isVisible) {
+                    if (isVisible) document.body.className = "noscroll";
+                    else document.body.removeAttribute("class");
+                },
                 'inputBookmark.url': function (newURL) {
                     if (newURL === "") this.clearInputBookmark();
                     else this.$nextTick(function () {
