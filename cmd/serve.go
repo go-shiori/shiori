@@ -68,6 +68,7 @@ var (
 
 			router.POST("/api/login", apiLogin)
 			router.GET("/api/bookmarks", apiGetBookmarks)
+			router.GET("/api/tags", apiGetTags)
 			router.POST("/api/bookmarks", apiInsertBookmarks)
 			router.PUT("/api/bookmarks", apiUpdateBookmarks)
 			router.DELETE("/api/bookmarks", apiDeleteBookmarks)
@@ -219,6 +220,20 @@ func apiGetBookmarks(w http.ResponseWriter, r *http.Request, ps httprouter.Param
 	checkError(err)
 
 	err = json.NewEncoder(w).Encode(&bookmarks)
+	checkError(err)
+}
+
+func apiGetTags(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+
+	// Check token
+	err := checkAPIToken(r)
+	checkError(err)
+
+	// Fetch all tags
+	tags, err := DB.GetTags()
+	checkError(err)
+
+	err = json.NewEncoder(w).Encode(&tags)
 	checkError(err)
 }
 

@@ -35,6 +35,10 @@
                         <i class="fas fa-cloud fa-fw"></i>
                         <span>Reload</span>
                     </a>
+                    <a @click="showTagCloud">
+                        <i class="fas fa-hashtag fa-fw"></i>
+                        <span>Tags</span>
+                    </a>
                     <a @click="toggleImage">
                         <i class="fas fa-fw" :class="showImage ? 'fa-eye-slash' : 'fa-eye'"></i>
                         <span>{{showImage ? 'Hide image' : 'Show image'}}</span>
@@ -147,6 +151,19 @@
                 </div>
             </div>
         </div>
+        <div v-if="tagCloud.visible" id="tag-cloud-overlay">
+            <div id="tag-cloud">
+                <div id="tag-cloud-title">
+                    <p>Tag Cloud</p>
+                    <a @click="tagCloud.visible = false" id="close-tag-cloud">
+                        <i class="fas fa-fw fa-times"></i>
+                    </a>
+                </div>
+                <div id="tag-cloud-content">
+                    <a v-for="item in tagCloud.data" @click="selectTagCloud(item.name)" :style="{fontSize: item.fontSize+'em'}">#{{item.name}}</a>
+                </div>
+            </div>
+        </div>
     </div>
     <script>
         var token = Cookies.get('token'),
@@ -161,7 +178,9 @@
                 windowWidth: 0,
                 error: "",
                 loading: false,
+                displayTags: false,
                 bookmarks: [],
+                tags: [],
                 checkedBookmarks: [],
                 showImage: true,
                 search: {
@@ -189,6 +208,10 @@
                     secondChoice: '',
                     mainAction: function () {},
                     secondAction: function () {}
+                },
+                tagCloud: {
+                    visible: false,
+                    data: []
                 }
             },
             methods: {
@@ -471,6 +494,53 @@
                         bookmarkItem[0].scrollIntoView();
                     })
                 },
+                showTagCloud: function () {
+                    if (this.loading) return;
+
+                    // Fetch data
+                    this.error = '';
+                    this.loading = true;
+                    instance.get('/api/tags')
+                        .then(function (response) {
+                            app.loading = false;
+                            app.tagCloud.data = response.data;
+
+                            if (app.tagCloud.data.length === 0) {
+                                app.tagCloud.visible = false;
+                                app.showDialogError("Error Creating Tag Cloud", "There are no saved tags");
+                                return;
+                            }
+
+                            app.tagCloud.visible = true;
+
+                            // Find largest tags frequency
+                            var minFont = 1,
+                                maxFont = 5,
+                                maxCount = 0;
+                            for (var i = 0; i < app.tagCloud.data.length; i++) {
+                                if (app.tagCloud.data[i].nBookmarks > maxCount) {
+                                    maxCount = app.tagCloud.data[i].nBookmarks;
+                                }
+                            }
+
+                            // Set font size for tags
+                            for (var i = 0; i < app.tagCloud.data.length; i++) {
+                                var size = (Math.log(app.tagCloud.data[i].nBookmarks) / Math.log(maxCount)) *
+                                    (maxFont - minFont) + minFont;
+                                app.tagCloud.data[i].fontSize = size;
+                            }
+                        })
+                        .catch(function (error) {
+                            var errorMsg = error.response ? error.response.data : error.message;
+                            app.loading = false;
+                            app.tagCloud.visible = false;
+                            app.showDialogError("Error Creating Tag Cloud", errorMsg.trim());
+                        });
+                },
+                selectTagCloud: function (tag) {
+                    this.tagCloud.visible = false;
+                    this.searchTag(tag);
+                },
                 bookmarkTime: function (book) {
                     // Define read time
                     var readTime = "";
@@ -543,6 +613,9 @@
                 }
             },
             computed: {
+                overlayVisible: function () {
+                    return this.dialog.visible || this.tagCloud.visible;
+                },
                 gridColumns: function () {
                     var nColumn = Math.round(this.windowWidth / 500),
                         finalContent = [],
@@ -571,6 +644,10 @@
                 }
             },
             watch: {
+                overlayVisible: function (isVisible) {
+                    if (isVisible) document.body.className = "noscroll";
+                    else document.body.removeAttribute("class");
+                },
                 'inputBookmark.url': function (newURL) {
                     if (newURL === "") this.clearInputBookmark();
                     else this.$nextTick(function () {

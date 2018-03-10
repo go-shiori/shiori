@@ -14,6 +14,9 @@ type Database interface {
 	// GetBookmarks fetch list of bookmarks based on submitted indices.
 	GetBookmarks(withContent bool, indices ...string) ([]model.Bookmark, error)
 
+	//GetTags fetch list of tags and their frequency
+	GetTags() ([]model.Tag, error)
+
 	// DeleteBookmarks removes all record with matching indices from database.
 	DeleteBookmarks(indices ...string) error
 

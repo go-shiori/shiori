@@ -13,6 +13,10 @@
     flex: 1 0;
 }
 
+.noscroll {
+    overflow: hidden;
+}
+
 #login-page {
     display: flex;
     flex-flow: column nowrap;
@@ -437,18 +441,7 @@
 }
 
 #dialog-overlay {
-    position: fixed;
-    z-index: 101;
-    display: flex;
-    flex-flow: column;
-    background-color: rgba(0, 0, 0, 0.5);
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    overflow: hidden;
-    justify-content: center;
-    padding: 32px;
+    .full-overlay();
     #dialog {
         display: flex;
         background-color: @contentBg;
@@ -485,6 +478,54 @@
                     &:hover {
                         color: @accent;
                     }
+                }
+            }
+        }
+    }
+}
+
+#tag-cloud-overlay {
+    .full-overlay();
+    #tag-cloud {
+        display: flex;
+        background-color: @contentBg;
+        flex-flow: column nowrap;
+        border: 1px solid @border;
+        max-height: 100%;
+        #tag-cloud-title {
+            display: flex;
+            flex-flow: row nowrap;
+            padding: 16px;
+            border-bottom: 1px solid @border;
+            align-items: center;
+            p {
+                color: @fontColor;
+                font-weight: 600;
+                text-transform: uppercase;
+                font-size: 1em;
+                flex: 1 0;
+            }
+            a {
+                color: @fontLightColor;
+                cursor: pointer;
+                &:hover {
+                    color: @main;
+                }
+            }
+        }
+        #tag-cloud-content {
+            display: flex;
+            flex-flow: row wrap;
+            align-items: center;
+            justify-content: center;
+            overflow-y: auto;
+            padding: 12px;
+            a {
+                color: @fontLightColor;
+                cursor: pointer;
+                margin: 4px;
+                &:hover {
+                    color: @main;
                 }
             }
         }

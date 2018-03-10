@@ -565,3 +565,19 @@ func (db *SQLiteDatabase) DeleteAccounts(usernames ...string) error {
 	_, err := db.Exec(`DELETE FROM account `+whereClause, args...)
 	return err
 }
+
+// GetTags fetch list of tags and their frequency
+func (db *SQLiteDatabase) GetTags() ([]model.Tag, error) {
+	tags := []model.Tag{}
+	query := `SELECT bt.tag_id id, t.name, COUNT(bt.tag_id) n_bookmarks 
+		FROM bookmark_tag bt 
+		LEFT JOIN tag t ON bt.tag_id = t.id
+		GROUP BY bt.tag_id ORDER BY t.name`
+
+	err := db.Select(&tags, query)
+	if err != nil && err != sql.ErrNoRows {
+		return nil, err
+	}
+
+	return tags, nil
+}
