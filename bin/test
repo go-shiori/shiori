@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+
+echo Testing project
+go vet $(go list ./... | grep -v /vendor/)
+go test -v -race ./...

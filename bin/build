@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+
+: ${OSSES:=linux}
+
+echo Build project for $OSSES
+gox -os="$OSSES" -arch="amd64" -output "shiori_{{.OS}}_{{.Arch}}" -ldflags "-X main.Rev=`git rev-parse --short HEAD`" -verbose ./...

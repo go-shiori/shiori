@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+
+echo Install cross compiler
+go get github.com/mitchellh/gox
+
+echo Install dependencies
+go get github.com/inconshreveable/mousetrap
+go get -t -v ./...

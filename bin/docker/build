@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+: ${DOCKER_IMAGE:=radhifadlillah/shiori}
+: ${DOCKER_FILE:=Dockerfile}
+: ${WORK_DIR:=./}
+
+echo docker build $* -t $DOCKER_IMAGE -f $DOCKER_FILE $WORK_DIR
+docker build $* -t $DOCKER_IMAGE -f $DOCKER_FILE $WORK_DIR
