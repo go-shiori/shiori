@@ -2,6 +2,7 @@
 
 [![Travis CI](https://travis-ci.org/RadhiFadlillah/shiori.svg?branch=master)](https://travis-ci.org/RadhiFadlillah/shiori)
 [![Go Report Card](https://goreportcard.com/badge/github.com/radhifadlillah/shiori)](https://goreportcard.com/report/github.com/radhifadlillah/shiori)
+[![Docker Build Status](https://img.shields.io/docker/build/radhifadlillah/shiori.svg)](https://hub.docker.com/r/radhifadlillah/shiori/)
 
 Shiori is a simple bookmarks manager written in Go language. Intended as a simple clone of [Pocket](https://getpocket.com//). You can use it as command line application or as web application. This application is distributed as a single binary, which means it can be installed and used easily.
 
@@ -61,18 +62,22 @@ Flags:
 Use "shiori [command] --help" for more information about a command.
 ```
 
-### Advanced
+## Advanced
 
 By default, `shiori` will create database in the location where you run it. For example, if you run `shiori`. To set the database to a specific location, you can set the environment variable `ENV_SHIORI_DB` to your desired path. 
 
 ## Usage with Docker
 
-There's a Dockerfile that enables you to build your own dockerized Shiori (as by now there is no official image available on Docker Hub).
-
-### Build the image
+There's a Dockerfile that enables you to build your own dockerized Shiori :
 
 ```bash
-$ docker build -t shiori .
+docker build -t shiori .
+```
+
+You can also pull the latest automated build from Docker Hub :
+
+```bash
+docker pull radhifadlillah/shiori
 ```
 
 ### Run the container
