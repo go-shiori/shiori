@@ -72,7 +72,7 @@ There's a Dockerfile that enables you to build your own dockerized Shiori (as by
 ### Build the image
 
 ```bash
-$ docker build -t shiori .
+bin/docker/build
 ```
 
 ### Run the container
