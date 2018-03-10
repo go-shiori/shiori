@@ -77,138 +77,183 @@ $ docker build -t shiori .
 
 ### Run the container
 
-After building the image you will be able to start a container from it;
+After building the image you will be able to start a container from it. To
+preserve the database you need to bind the file. In this example we're locating
+the `shiori.db` file in our CWD.
 
-```bash
-$ docker run -d --name shiori -p 8080:8080 shiori
+```sh
+touch shiori.db
+docker run --rm --name shiori -p 8080:8080 -v $(pwd)/shiori.db:/srv/shiori.db radhifadlillah/shiori
 ```
 
-As after running the container there will be no accounts created, you need to run the following commands:
+If you want to run the container in the background add `-d` after `run`.
 
-```bash
+### Console access for container
+
+```sh
 # First open a console to the container (as you will need to enter your password)
 # and the default tty does not support hidden inputs
-$ docker exec -it shiori /bin/sh
-/go/src/shiori # shiori account add <your-desired-username>
+docker exec -it shiori sh
+```
+
+### Initialize shiori with password
+
+As after running the container there will be no accounts created, you need to
+open a console within your container and run the following command:
+
+```sh
+shiori account add <your-desired-username>
 Password: <enter-your-password>
 ```
 
 And you're now ready to go and access shiori via web.
 
-> For preserving the database, look at the next section.
+### Run Shiori docker container as systemd image
 
-### Bind the database
+1. Create a service unit for `systemd` at `/etc/systemd/system/shiori.service`.
 
-As you've probably noticed, if you dont preserve the database, all your bookmarks will be lost in case of rebooting/rebuilding the container.
+    ```ini
+    [Unit]
+    Description=Shiori container
+    After=docker.service
 
-To preserve the database you need to bind the file. In this example we're locating the `shiori.db` file in our CWD.
+    [Service]
+    Restart=always
+    ExecStartPre=-/usr/bin/docker rm shiori-1
+    ExecStart=/usr/bin/docker run \
+      --rm \
+      --name shiori-1 \
+      -p 8080:8080 \
+      -v /srv/machines/shiori/shiori.db:/srv/shiori/shiori.db \
+      radhifadlillah/shiori
+    ExecStop=/usr/bin/docker stop -t 2 shiori-1
 
-```bash
-$ docker run -d --name shiori -p 8080:8080 -v $(PWD)/shiori.db:/go/src/shiori/shiori.db shiori
-```
->>>>>>> Added Docker usage to README
+    [Install]
+    WantedBy=multi-user.target
+    ```
+
+2. Set up data directory
+
+    This assumes, that the Shiori container has a runtime directory to store their
+    database, which is at `/srv/machines/shiori`. If you want to modify that,
+    make sure, to fix your `shiori.service` as well.
+
+    ```sh
+    install -d /srv/machines/shiori
+    touch /srv/machines/shiori/shiori.db
+    ```
+
+3. Enable and start the container
+
+    ```sh
+    systemctl enable --now shiori
+    ```
 
 ## Examples
 
+*Hint:* If you want to practice the following commands with the docker container,
+[run the image](#run-the-container) and [open a
+console](#console-access-for-container). After that go along with the examples.
+
 1. Save new bookmark with tags "nature" and "climate-change".
 
-   ```
+   ```sh
    shiori add https://grist.org/article/let-it-go-the-arctic-will-never-be-frozen-again/ -t nature,climate-change
    ```
 
 2. Print all saved bookmarks.
 
-   ```
+   ```sh
    shiori print
    ```
 
 2. Print bookmarks with index 1 and 2.
 
-   ```
+   ```sh
    shiori print 1 2
    ```
 
 3. Search bookmarks that contains "sqlite" in their title, excerpt, url or content.
 
-   ```
+   ```sh
    shiori search sqlite
    ```
 
 4. Search bookmarks with tag "nature".
 
-   ```
+   ```sh
    shiori search -t nature
    ```
 
 5. Delete all bookmarks.
 
-   ```
+   ```sh
    shiori delete
    ```
 
 6. Delete all bookmarks with tag "nature".
 
-   ```
+   ```sh
    shiori delete $(shiori search -t nature -i)
    ```
 
 7. Update all bookmarks' data and content.
 
-   ```
+   ```sh
    shiori update
    ```
 
 8. Update bookmark in index 1.
 
-   ```
+   ```sh
    shiori update 1
    ```
 
 9. Change title and excerpt from bookmark in index 1.
 
-   ```
+   ```sh
    shiori update 1 -i "New Title" -e "New excerpt"
    ```
 
 10. Add tag "future" and remove tag "climate-change" from bookmark in index 1.
 
-    ```
+    ```sh
     shiori update 1 -t future,-climate-change
     ```
 
 11. Import bookmarks from HTML Netscape Bookmark file.
 
-    ```
+    ```sh
     shiori import exported-from-firefox.html
     ```
 
 12. Export saved bookmarks to HTML Netscape Bookmark file.
 
-    ```
+    ```sh
     shiori export target.html
     ```
 
 13. Open all saved bookmarks in browser.
 
-    ```
+    ```sh
     shiori open
     ```
 
 14. Open text cache of bookmark in index 1.
 
-    ```
+    ```sh
     shiori open 1 -c
     ```
 
 15. Serve web app in port 9000.
 
-    ```
+    ```sh
     shiori serve -p 9000
     ```
 
 16. Create new account for login to web app.
 
-    ```
+    ```sh
     shiori account add username
     ```
 
