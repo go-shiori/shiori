@@ -10,6 +10,7 @@ import (
 
 	"github.com/RadhiFadlillah/go-readability"
 	"github.com/RadhiFadlillah/shiori/model"
+	"github.com/gosuri/uiprogress"
 	"github.com/spf13/cobra"
 )
 
@@ -99,8 +100,10 @@ func init() {
 }
 
 func updateBookmarks(indices []string, base model.Bookmark, offline, overwrite bool) ([]model.Bookmark, error) {
-	mutex := sync.Mutex{}
+	// Prepare wait group
+	waitGroup := sync.WaitGroup{}
 
+	// Check if URL is not empty
 	if base.URL != "" {
 		// Make sure URL valid
 		parsedURL, err := nurl.ParseRequestURI(base.URL)
@@ -131,35 +134,45 @@ func updateBookmarks(indices []string, base model.Bookmark, offline, overwrite b
 
 	// If not offline, fetch articles from internet
 	if !offline {
-		waitGroup := sync.WaitGroup{}
+		fmt.Println("Fetching new bookmarks data")
+		uiprogress.Start()
+		bar := uiprogress.AddBar(len(bookmarks)).AppendCompleted().PrependElapsed()
+
 		for i, book := range bookmarks {
 			waitGroup.Add(1)
 
 			go func(pos int, book model.Bookmark) {
-				defer waitGroup.Done()
+				defer func() {
+					bar.Incr()
+					waitGroup.Done()
+				}()
 
 				article, err := readability.Parse(book.URL, 10*time.Second)
-				if err == nil {
-					if overwrite {
-						book.Title = article.Meta.Title
-						book.Excerpt = article.Meta.Excerpt
-					}
-
-					book.ImageURL = article.Meta.Image
-					book.Author = article.Meta.Author
-					book.MinReadTime = article.Meta.MinReadTime
-					book.MaxReadTime = article.Meta.MaxReadTime
-					book.Content = article.Content
-					book.HTML = article.RawContent
-
-					mutex.Lock()
-					bookmarks[pos] = book
-					mutex.Unlock()
+				if err != nil {
+					return
 				}
+
+				if overwrite {
+					book.Title = article.Meta.Title
+					book.Excerpt = article.Meta.Excerpt
+				}
+
+				book.ImageURL = article.Meta.Image
+				book.Author = article.Meta.Author
+				book.MinReadTime = article.Meta.MinReadTime
+				book.MaxReadTime = article.Meta.MaxReadTime
+				book.Content = article.Content
+				book.HTML = article.RawContent
+
+				bookmarks[pos] = book
 			}(i, book)
 		}
 
+		time.Sleep(1 * time.Second)
 		waitGroup.Wait()
+
+		uiprogress.Stop()
+		fmt.Println("\nSaving new data")
 	}
 
 	// Map the tags to be deleted
