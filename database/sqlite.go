@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -168,34 +169,10 @@ func (db *SQLiteDatabase) CreateBookmark(bookmark model.Bookmark) (bookmarkID in
 
 // GetBookmarks fetch list of bookmarks based on submitted indices.
 func (db *SQLiteDatabase) GetBookmarks(withContent bool, indices ...string) ([]model.Bookmark, error) {
-	// Convert list of index to int
-	listIndex := []int{}
-	errInvalidIndex := fmt.Errorf("Index is not valid")
 
-	for _, strIndex := range indices {
-		if strings.Contains(strIndex, "-") {
-			parts := strings.Split(strIndex, "-")
-			if len(parts) != 2 {
-				return nil, errInvalidIndex
-			}
-
-			minIndex, errMin := strconv.Atoi(parts[0])
-			maxIndex, errMax := strconv.Atoi(parts[1])
-			if errMin != nil || errMax != nil || minIndex < 1 || minIndex > maxIndex {
-				return nil, errInvalidIndex
-			}
-
-			for i := minIndex; i <= maxIndex; i++ {
-				listIndex = append(listIndex, i)
-			}
-		} else {
-			index, err := strconv.Atoi(strIndex)
-			if err != nil || index < 1 {
-				return nil, errInvalidIndex
-			}
-
-			listIndex = append(listIndex, index)
-		}
+	listIndex, err := parseIndexList(indices)
+	if err != nil {
+		return nil, err
 	}
 
 	// Prepare where clause
@@ -220,7 +197,7 @@ func (db *SQLiteDatabase) GetBookmarks(withContent bool, indices ...string) ([]m
 		FROM bookmark` + whereClause
 
 	bookmarks := []model.Bookmark{}
-	err := db.Select(&bookmarks, query, args...)
+	err = db.Select(&bookmarks, query, args...)
 	if err != nil && err != sql.ErrNoRows {
 		return nil, err
 	}
@@ -263,34 +240,10 @@ func (db *SQLiteDatabase) GetBookmarks(withContent bool, indices ...string) ([]m
 
 // DeleteBookmarks removes all record with matching indices from database.
 func (db *SQLiteDatabase) DeleteBookmarks(indices ...string) (err error) {
-	// Convert list of index to int
-	listIndex := []int{}
-	errInvalidIndex := fmt.Errorf("Index is not valid")
 
-	for _, strIndex := range indices {
-		if strings.Contains(strIndex, "-") {
-			parts := strings.Split(strIndex, "-")
-			if len(parts) != 2 {
-				return errInvalidIndex
-			}
-
-			minIndex, errMin := strconv.Atoi(parts[0])
-			maxIndex, errMax := strconv.Atoi(parts[1])
-			if errMin != nil || errMax != nil || minIndex < 1 || minIndex > maxIndex {
-				return errInvalidIndex
-			}
-
-			for i := minIndex; i <= maxIndex; i++ {
-				listIndex = append(listIndex, i)
-			}
-		} else {
-			index, err := strconv.Atoi(strIndex)
-			if err != nil || index < 1 {
-				return errInvalidIndex
-			}
-
-			listIndex = append(listIndex, index)
-		}
+	listIndex, err := parseIndexList(indices)
+	if err != nil {
+		return err
 	}
 
 	// Create args and where clause
@@ -311,7 +264,7 @@ func (db *SQLiteDatabase) DeleteBookmarks(indices ...string) (err error) {
 	// Begin transaction
 	tx, err := db.Beginx()
 	if err != nil {
-		return errInvalidIndex
+		return ErrInvalidIndex
 	}
 
 	// Make sure to rollback if panic ever happened
@@ -517,11 +470,8 @@ func (db *SQLiteDatabase) CreateAccount(username, password string) (err error) {
 	_, err = db.Exec(`INSERT INTO account
 		(username, password) VALUES (?, ?)`,
 		username, hashedPassword)
-	if err != nil {
-		return err
-	}
 
-	return nil
+	return err
 }
 
 // GetAccounts fetch list of accounts in database
@@ -580,4 +530,39 @@ func (db *SQLiteDatabase) GetTags() ([]model.Tag, error) {
 	}
 
 	return tags, nil
+}
+
+// ErrInvalidIndex is returned is an index is not valid
+var ErrInvalidIndex = errors.New("Index is not valid")
+
+// parseIndexList converts a list of indices to their integer values
+func parseIndexList(indices []string) ([]int, error) {
+	var listIndex []int
+	for _, strIndex := range indices {
+		if !strings.Contains(strIndex, "-") {
+			index, err := strconv.Atoi(strIndex)
+			if err != nil || index < 1 {
+				return nil, ErrInvalidIndex
+			}
+
+			listIndex = append(listIndex, index)
+			continue
+		}
+
+		parts := strings.Split(strIndex, "-")
+		if len(parts) != 2 {
+			return nil, ErrInvalidIndex
+		}
+
+		minIndex, errMin := strconv.Atoi(parts[0])
+		maxIndex, errMax := strconv.Atoi(parts[1])
+		if errMin != nil || errMax != nil || minIndex < 1 || minIndex > maxIndex {
+			return nil, ErrInvalidIndex
+		}
+
+		for i := minIndex; i <= maxIndex; i++ {
+			listIndex = append(listIndex, i)
+		}
+	}
+	return listIndex, nil
 }

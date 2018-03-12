@@ -112,12 +112,7 @@ func addAccount(username, password string) error {
 		return fmt.Errorf("Password must be at least 8 characters")
 	}
 
-	err := DB.CreateAccount(username, password)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return DB.CreateAccount(username, password)
 }
 
 func printAccounts(keyword string, wr io.Writer) error {
