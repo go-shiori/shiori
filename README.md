@@ -64,7 +64,10 @@ Use "shiori [command] --help" for more information about a command.
 
 ## Advanced
 
-By default, `shiori` will create database in the location where you run it. For example, if you run `shiori`. To set the database to a specific location, you can set the environment variable `ENV_SHIORI_DB` to your desired path. 
+By default, `shiori` will create database in `$HOME/.shiori.db`. If you want to set the database to another location, you can set the environment variable `ENV_SHIORI_DB` to your desired path :
+
+- If `ENV_SHIORI_DB` points to a directory, it will create `.shiori.db` file inside that directory, so the final path for database is `$ENV_SHIORI_DB/.shiori.db`.
+- Else, it will create a new database file in the specified path.
 
 ## Usage with Docker
 
