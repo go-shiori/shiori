@@ -430,12 +430,12 @@ func (db *SQLiteDatabase) UpdateBookmarks(bookmarks []model.Bookmark) (result []
 	}()
 
 	// Prepare statement
-	stmtUpdateBookmark, err := db.Preparex(`UPDATE bookmark SET
+	stmtUpdateBookmark, err := tx.Preparex(`UPDATE bookmark SET
 		url = ?, title = ?, image_url = ?, excerpt = ?, author = ?,
 		min_read_time = ?, max_read_time = ?, modified = ? WHERE id = ?`)
 	checkError(err)
 
-	stmtUpdateBookmarkContent, err := db.Preparex(`UPDATE bookmark_content SET
+	stmtUpdateBookmarkContent, err := tx.Preparex(`UPDATE bookmark_content SET
 		title = ?, content = ?, html = ? WHERE docid = ?`)
 	checkError(err)
 
