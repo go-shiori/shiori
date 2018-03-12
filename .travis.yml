@@ -9,6 +9,7 @@ matrix:
 
 before_install:
   - go get github.com/mitchellh/gox # go tool for cross compiling
+  - go get github.com/mattn/go-isatty # needed for progress bar in windows
   - go get github.com/inconshreveable/mousetrap # needed for windows builds
 
 install:
