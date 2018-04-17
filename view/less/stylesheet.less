@@ -22,14 +22,11 @@
     flex-flow: column nowrap;
     align-items: center;
     height: 100vh;
-    background-color: @appBg;
     justify-content: center;
     >.error-message {
         width: 100%;
         margin: 16px 16px 0;
         max-width: 400px;
-        background-color: @contentBg;
-        border: 1px solid @border;
         padding: 16px;
         text-align: center;
     }
@@ -37,62 +34,48 @@
         width: 100%;
         margin: 16px;
         max-width: 400px;
-        background-color: @contentBg;
         display: flex;
         flex-flow: column nowrap;
-        border: 1px solid @border;
         #logo-area {
             display: flex;
             align-items: center;
             flex-flow: column nowrap;
             padding: 16px;
-            border-bottom: 1px solid @border;
             #logo {
                 font-size: 3em;
                 font-weight: 100;
-                color: @main;
                 span {
                     margin-right: 8px;
                 }
             }
             #tagline {
                 font-weight: 100;
-                color: @main;
             }
         }
         #input-area {
             padding: 8px;
-            border-bottom: 1px solid @border;
             .input-field {
                 display: flex;
                 align-items: baseline;
                 padding: 8px;
                 p {
-                    color: @fontLightColor;
                     font-size: 0.9em;
                     margin-right: 16px;
                     min-width: 65px;
                 }
                 input {
-                    color: @fontColor;
                     padding: 8px;
-                    border: 1px solid @border;
                     flex: 1 0;
                     font-size: 0.9em;
                 }
                 a {
                     display: block;
                     cursor: pointer;
-                    color: @fontLightColor;
                     text-align: center;
                     font-size: 0.9em;
                     flex: 1 0;
                     i {
                         margin-right: 8px;
-                        color: @fontLightColor;
-                    }
-                    &:hover {
-                        color: @main;
                     }
                 }
             }
@@ -102,16 +85,11 @@
             flex-flow: row nowrap;
             padding: 16px;
             a {
-                color: @linkColor;
                 text-transform: uppercase;
-                background-color: @headerInputBg;
                 flex: 1 0;
                 text-align: center;
                 &.button {
                     cursor: pointer;
-                    &:hover {
-                        color: @accent;
-                    }
                 }
             }
         }
@@ -119,14 +97,11 @@
 }
 
 #main-page {
-    background-color: @appBg;
     display: flex;
     flex-flow: column nowrap;
     height: auto;
     min-height: 100vh;
     #header {
-        background-color: @contentBg;
-        box-shadow: 0 0 3px @headerShadow;
         left: 0;
         position: fixed;
         right: 0;
@@ -137,13 +112,10 @@
         #n-selected {
             line-height: @headerHeight;
             font-size: 1.3em;
-            color: @fontLightColor;
             flex: 1 0;
-            border-right: 1px solid @border;
             padding: 0 32px;
         }
         #logo {
-            border-left: 1px solid @border;
             cursor: default;
             flex-shrink: 0;
             .header-link;
@@ -152,17 +124,12 @@
             flex-flow: row nowrap;
             font-size: 1.5em;
             font-weight: 100;
-            color: @main;
             span {
                 margin-right: 8px;
-            }
-            &:hover {
-                background-color: @appBg;
             }
         }
         #search-box {
             align-items: center;
-            border-right: 1px solid @border;
             display: flex;
             flex: 1 0;
             flex-flow: row nowrap;
@@ -170,18 +137,11 @@
             width: 100%;
             .button,
             input {
-                background-color: @headerInputBg;
-                border: 1px solid @border;
-                color: @fontColor;
                 font-size: 0.9em;
                 padding: 8px;
             }
             .button {
                 cursor: pointer;
-                color: @linkColor;
-                &:hover {
-                    color: @accent;
-                }
             }
             input {
                 border-right: 0;
@@ -197,18 +157,10 @@
             a {
                 line-height: @headerHeight;
                 padding: 0 16px;
-                color: @linkColor;
                 font-size: 0.9em;
                 cursor: pointer;
-                &:not(:last-child) {
-                    border-right: 1px solid @border;
-                }
                 span {
                     margin-left: 4px;
-                }
-                &:hover {
-                    color: @main;
-                    background-color: @appBg;
                 }
             }
         }
@@ -224,25 +176,18 @@
             display: flex;
             flex-flow: column nowrap;
             margin: 32px 16px 20px;
-            background-color: @headerInputBg;
-            outline: 1px solid @border;
             >p {
-                color: @fontColor;
                 font-weight: 600;
                 text-transform: uppercase;
                 padding: 16px;
                 &.error-message {
-                    color: @main;
                     font-size: 0.9em;
-                    border-bottom: 1px solid @border;
                     font-weight: 500;
                     text-transform: none;
                 }
             }
             input[type=text],
             textarea {
-                outline: 1px solid @border;
-                color: @fontColor;
                 font-size: 0.9em;
                 padding: 12px 16px;
             }
@@ -256,16 +201,11 @@
                 flex-flow: row nowrap;
                 padding: 8px;
                 a {
-                    color: @linkColor;
                     text-transform: uppercase;
                     padding: 8px;
-                    background-color: @headerInputBg;
                     font-size: 0.9em;
                     &.button {
                         cursor: pointer;
-                        &:hover {
-                            color: @accent;
-                        }
                     }
                 }
             }
@@ -279,12 +219,9 @@
                 margin: 8px;
                 padding: 8px;
                 font-size: 0.9em;
-                background-color: @fontLightColor;
-                color: white;
                 border-radius: 16px;
                 cursor: pointer;
                 &:hover {
-                    background-color: @main;
                     text-decoration: line-through;
                 }
             }
@@ -315,7 +252,6 @@
             margin-top: -60px;
             height: 120px;
             i {
-                color: @fontLightColor;
                 font-size: 3em;
             }
         }
@@ -354,10 +290,6 @@
     height: auto;
     min-height: 100vh;
     a {
-        color: @main;
-        &:visited {
-            color: @main;
-        }
         &:hover {
             text-decoration: underline;
         }
@@ -370,32 +302,22 @@
         display: flex;
         flex-flow: row nowrap;
         max-width: 864px;
-        border-bottom: 1px solid @border;
         a {
             flex: 1 0;
             font-size: 0.9em;
             text-align: center;
-            color: @linkColor;
             padding: 16px;
             i {
                 margin-right: 4px;
             }
             cursor: pointer;
-            &:not(:last-child) {
-                border-right: 1px solid @border;
-            }
-            &:visited {
-                color: @linkColor
-            }
             &:hover {
-                color: @main;
                 text-decoration: none;
             }
         }
     }
     #metadata {
         padding: 32px;
-        border-bottom: 1px solid @border;
         a {
             font-size: 0.9em;
             display: block;
@@ -406,7 +328,6 @@
         }
         p {
             font-size: 0.9em;
-            color: @fontColor;
         }
     }
     #content {
@@ -422,20 +343,10 @@
         }
     }
     &.dark-mode {
-        background-color: #222;
-        color: white;
         #menu a {
-            color: white;
-            &:visited {
-                color: white;
-            }
             &:hover {
-                color: @main;
                 text-decoration: none;
             }
-        }
-        #metadata p {
-            color: white;
         }
     }
 }
@@ -444,18 +355,14 @@
     .full-overlay();
     #dialog {
         display: flex;
-        background-color: @contentBg;
         align-self: center;
         flex-flow: column;
-        border: 1px solid @border;
         max-width: 500px;
         #dialog-title {
-            color: @fontColor;
             font-weight: 600;
             text-transform: uppercase;
             padding: 16px;
             font-size: 1em;
-            border-bottom: 1px solid @border;
         }
         #dialog-content {
             padding: 16px;
@@ -464,19 +371,13 @@
             display: flex;
             flex-flow: row nowrap;
             padding: 8px;
-            border-top: 1px solid @border;
             a {
-                color: @linkColor;
                 text-transform: uppercase;
                 padding: 8px;
-                background-color: @headerInputBg;
                 &.button {
                     cursor: pointer;
                     &:not(:last-child) {
                         margin-right: 16px;
-                    }
-                    &:hover {
-                        color: @accent;
                     }
                 }
             }
@@ -488,29 +389,21 @@
     .full-overlay();
     #tag-cloud {
         display: flex;
-        background-color: @contentBg;
         flex-flow: column nowrap;
-        border: 1px solid @border;
         max-height: 100%;
         #tag-cloud-title {
             display: flex;
             flex-flow: row nowrap;
             padding: 16px;
-            border-bottom: 1px solid @border;
             align-items: center;
             p {
-                color: @fontColor;
                 font-weight: 600;
                 text-transform: uppercase;
                 font-size: 1em;
                 flex: 1 0;
             }
             a {
-                color: @fontLightColor;
                 cursor: pointer;
-                &:hover {
-                    color: @main;
-                }
             }
         }
         #tag-cloud-content {
@@ -521,19 +414,14 @@
             overflow-y: auto;
             padding: 12px;
             a {
-                color: @fontLightColor;
                 cursor: pointer;
                 margin: 4px;
-                &:hover {
-                    color: @main;
-                }
             }
         }
     }
 }
 
 .error-message {
-    color: @main !important;
     font-size: 0.9em;
     &::before {
         content: "\f071";
@@ -544,36 +432,24 @@
 }
 
 .bookmark {
-    background-color: @contentBg;
-    border: 1px solid @border;
     position: relative;
     .checkbox {
         z-index: 9;
         right: 0;
         opacity: 0;
         position: absolute;
-        outline: 1px solid @border;
-        color: @linkColor;
-        background-color: @contentBg;
         width: 32px;
         line-height: 32px;
         text-align: center;
         display: block;
         cursor: pointer;
         font-size: 0.9em;
-        &:hover {
-            color: @accent !important;
-        }
     }
     .bookmark-metadata {
         padding: 16px;
         display: flex;
         flex-flow: column nowrap;
-        border-bottom: 1px solid @border;
         .bookmark-index {
-            color: @fontLightColor;
-            border: 1px solid @border;
-            background-color: @contentBg;
             font-size: 0.7em;
             font-weight: bold;
             left:-1px;
@@ -583,12 +459,10 @@
             opacity: 0.7;
         }
         .bookmark-time {
-            color: @fontLightColor;
             font-size: 0.9em;
             margin-bottom: 8px;
         }
         .bookmark-title {
-            color: @fontColor;
             font-size: 1.3em;
             font-weight: 600;
             text-overflow: ellipsis;
@@ -623,12 +497,10 @@
             .bookmark-time,
             .bookmark-url {
                 z-index: 2;
-                color: white;
                 text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
             }
             .bookmark-title {
                 z-index: 2;
-                color: white;
                 text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
             }
         }
@@ -640,7 +512,6 @@
     }
     .bookmark-excerpt {
         padding: 16px 16px 0;
-        color: @fontColor;
         text-overflow: ellipsis;
         overflow: hidden;
     }
@@ -653,7 +524,6 @@
             cursor: pointer;
             font-size: 0.9em;
             padding: 4px;
-            color: @main !important;
             &::before {
                 content: "#"
             }
@@ -665,7 +535,6 @@
     .bookmark-menu {
         display: flex;
         flex-flow: row nowrap;
-        border-top: 1px solid @border;
         visibility: hidden;
         margin-top: 16px;
         &:nth-child(3) {
@@ -676,18 +545,11 @@
             cursor: pointer;
             display: block;
             flex: 1 0;
-            color: @linkColor !important;
             padding: 8px;
             font-size: 0.9em;
             text-align: center;
             span {
                 margin-left: 4px;
-            }
-            &:not(:last-child) {
-                border-right: 1px solid @border;
-            }
-            &:hover {
-                color: @accent !important;
             }
         }
     }
@@ -700,13 +562,11 @@
         }
     }
     &.checked {
-        border: 1px solid @borderDark;
-        outline: 6px solid @borderDark;
         .checkbox {
             opacity: 1;
             outline: 0;
-            background-color: @borderDark;
-            color: white;
         }
     }
 }
+@import "themes";
+

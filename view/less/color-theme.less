@@ -1,0 +1,319 @@
+.theme(@appBg, @border, @borderDark, @contentBg, @headerInputBg, @fontColor, @linkColor, @fontLightColor, @main, @accent, @headerShadow) {
+// Mixin
+.header-link-colors {
+    border-right: 1px solid @border;
+    color: @fontColor;
+    font-size: @fontSize;
+    line-height: @headerHeight;
+    &:hover {
+        color: @main;
+    }
+}
+
+#login-page {
+    background-color: @appBg;
+    >.error-message {
+        background-color: @contentBg;
+        border: 1px solid @border;
+    }
+    #login-box {
+        background-color: @contentBg;
+        border: 1px solid @border;
+        #logo-area {
+            border-bottom: 1px solid @border;
+            #logo {
+                color: @main;
+            }
+            #tagline {
+                color: @main;
+            }
+        }
+        #input-area {
+            border-bottom: 1px solid @border;
+            .input-field {
+                p {
+                    color: @fontLightColor;
+                }
+                input {
+                    color: @fontColor;
+                    border: 1px solid @border;
+                }
+                a {
+                    color: @fontLightColor;
+                    i {
+                        color: @fontLightColor;
+                    }
+                    &:hover {
+                        color: @main;
+                    }
+                }
+            }
+        }
+        #button-area {
+            a {
+                color: @linkColor;
+                background-color: @headerInputBg;
+                &.button {
+                    &:hover {
+                        color: @accent;
+                    }
+                }
+            }
+        }
+    }
+}
+
+#main-page {
+    background-color: @appBg;
+    #header {
+        background-color: @contentBg;
+        box-shadow: 0 0 3px @headerShadow;
+        #n-selected {
+            color: @fontLightColor;
+            border-right: 1px solid @border;
+        }
+        #logo {
+            border-left: 1px solid @border;
+            color: @main;
+            .header-link-colors;
+            &:hover {
+                background-color: @appBg;
+            }
+        }
+        #search-box {
+            border-right: 1px solid @border;
+            input {
+                background-color: @headerInputBg;
+                border: 1px solid @border;
+                color: @fontColor;
+            }
+            .button {
+                color: @linkColor;
+                &:hover {
+                    color: @accent;
+                }
+            }
+        }
+        #header-menu {
+            a {
+                color: @linkColor;
+                &:not(:last-child) {
+                    border-right: 1px solid @border;
+                }
+                &:hover {
+                    color: @main;
+                    background-color: @appBg;
+                }
+            }
+        }
+    }
+    #main {
+        #input-bookmark {
+            background-color: @headerInputBg;
+            outline: 1px solid @border;
+            >p {
+                color: @fontColor;
+                &.error-message {
+                    color: @main;
+                    border-bottom: 1px solid @border;
+                }
+            }
+            input[type=text],
+            textarea {
+                outline: 1px solid @border;
+                color: @fontColor;
+            }
+            .button-area {
+                a {
+                    color: @linkColor;
+                    background-color: @headerInputBg;
+                    &.button {
+                        &:hover {
+                            color: @accent;
+                        }
+                    }
+                }
+            }
+        }
+        #search-parameter {
+            a {
+                background-color: @fontLightColor;
+                color: white;
+                &:hover {
+                    background-color: @main;
+                }
+            }
+        }
+        #message-bar {
+            i {
+                color: @fontLightColor;
+            }
+        }
+    }
+}
+
+#cache-page {
+    a {
+        color: @main;
+        &:visited {
+            color: @main;
+        }
+    }
+    #menu {
+        border-bottom: 1px solid @border;
+        a {
+            color: @linkColor;
+            &:not(:last-child) {
+                border-right: 1px solid @border;
+            }
+            &:visited {
+                color: @linkColor
+            }
+            &:hover {
+                color: @main;
+            }
+        }
+    }
+    #metadata {
+        border-bottom: 1px solid @border;
+        p {
+            color: @fontColor;
+        }
+    }
+    &.dark-mode {
+        background-color: #222;
+        color: white;
+        #menu a {
+            color: white;
+            &:visited {
+                color: white;
+            }
+            &:hover {
+                color: @main;
+            }
+        }
+        #metadata p {
+            color: white;
+        }
+    }
+}
+
+#dialog-overlay {
+    #dialog {
+        background-color: @contentBg;
+        border: 1px solid @border;
+        #dialog-title {
+            color: @fontColor;
+            border-bottom: 1px solid @border;
+        }
+        #dialog-button {
+            border-top: 1px solid @border;
+            a {
+                color: @linkColor;
+                background-color: @headerInputBg;
+                &.button {
+                    &:hover {
+                        color: @accent;
+                    }
+                }
+            }
+        }
+    }
+}
+
+#tag-cloud-overlay {
+    #tag-cloud {
+        background-color: @contentBg;
+        border: 1px solid @border;
+        #tag-cloud-title {
+            border-bottom: 1px solid @border;
+            p {
+                color: @fontColor;
+            }
+            a {
+                color: @fontLightColor;
+                &:hover {
+                    color: @main;
+                }
+            }
+        }
+        #tag-cloud-content {
+            a {
+                color: @fontLightColor;
+                &:hover {
+                    color: @main;
+                }
+            }
+        }
+    }
+}
+
+.error-message {
+    color: @main !important;
+}
+
+.bookmark {
+    background-color: @contentBg;
+    border: 1px solid @border;
+    .checkbox {
+        outline: 1px solid @border;
+        color: @linkColor;
+        background-color: @contentBg;
+        &:hover {
+            color: @accent !important;
+        }
+    }
+    .bookmark-metadata {
+        border-bottom: 1px solid @border;
+        .bookmark-index {
+            color: @fontLightColor;
+            border: 1px solid @border;
+            background-color: @contentBg;
+        }
+        .bookmark-time {
+            color: @fontLightColor;
+        }
+        .bookmark-title {
+            color: @fontColor;
+        }
+        &.has-image {
+            .bookmark-time,
+            .bookmark-url {
+                color: white;
+            }
+            .bookmark-title {
+                color: white;
+            }
+        }
+    }
+    .bookmark-excerpt {
+        color: @fontColor;
+    }
+    .bookmark-tags {
+        a {
+            color: @main !important;
+        }
+    }
+    .bookmark-menu {
+        border-top: 1px solid @border;
+        a {
+            color: @linkColor !important;
+            &:not(:last-child) {
+                border-right: 1px solid @border;
+            }
+            &:hover {
+                color: @accent !important;
+            }
+        }
+    }
+    &.checked {
+        border: 1px solid @borderDark;
+        outline: 6px solid @borderDark;
+        .checkbox {
+            background-color: @borderDark;
+            color: white;
+        }
+    }
+}
+}
+
