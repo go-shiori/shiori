@@ -69,6 +69,14 @@ By default, `shiori` will create database in `$HOME/.shiori.db`. If you want to 
 - If `ENV_SHIORI_DB` points to a directory, it will create `.shiori.db` file inside that directory, so the final path for database is `$ENV_SHIORI_DB/.shiori.db`.
 - Else, it will create a new database file in the specified path.
 
+### Using MySQL Database
+
+You can configure `shiori` to use MySQL by setting the following environment variables: 
+- `SHIORI_MYSQL_USER` - The database user
+- `SHIORI_MYSQL_PASS` - The database user's password
+- `SHIORI_MYSQL_DBNAME` - The database name
+
+
 ## Usage with Docker
 
 There's a Dockerfile that enables you to build your own dockerized Shiori :

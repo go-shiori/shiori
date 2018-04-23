@@ -12,6 +12,18 @@ import (
 )
 
 func main() {
+
+	// check and use mysql if env values set
+	if mysqlDBName := os.Getenv("SHIORI_MYSQL_DBNAME"); mysqlDBName != "" {
+		mysqlDBUser := os.Getenv("SHIORI_MYSQL_USER")
+		mysqlDBPass := os.Getenv("SHIORI_MYSQL_PASS")
+		mysqlDB, err := db.OpenMySQLDatabase(mysqlDBUser, mysqlDBPass, mysqlDBName)
+		checkError(err)
+		cmd.DB = mysqlDB
+		cmd.Execute()
+		return
+	}
+
 	databasePath := fp.Join(getHomeDir(), ".shiori.db")
 	if value, found := os.LookupEnv("ENV_SHIORI_DB"); found {
 		// If ENV_SHIORI_DB is directory, append ".shiori.db" as filename
