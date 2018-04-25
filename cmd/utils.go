@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/fatih/color"
+	"github.com/mitchellh/go-homedir"
 	"golang.org/x/crypto/ssh/terminal"
 )
 
@@ -27,4 +28,16 @@ func checkError(err error) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func configDir() string {
+	homeDir, err := homedir.Dir()
+	checkError(err)
+	configDir := homeDir + "/.shiori"
+	return configDir
+}
+
+func configPath() string {
+	configPath := configDir() + "/config.json"
+	return configPath
 }
