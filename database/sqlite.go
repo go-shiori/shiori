@@ -169,7 +169,7 @@ func (db *SQLiteDatabase) CreateBookmark(bookmark model.Bookmark) (bookmarkID in
 
 // GetBookmarks fetch list of bookmarks based on submitted indices.
 func (db *SQLiteDatabase) GetBookmarks(withContent bool, indices ...string) ([]model.Bookmark, error) {
-
+	// Get list of index
 	listIndex, err := parseIndexList(indices)
 	if err != nil {
 		return nil, err
@@ -240,7 +240,7 @@ func (db *SQLiteDatabase) GetBookmarks(withContent bool, indices ...string) ([]m
 
 // DeleteBookmarks removes all record with matching indices from database.
 func (db *SQLiteDatabase) DeleteBookmarks(indices ...string) (err error) {
-
+	// Get list of index
 	listIndex, err := parseIndexList(indices)
 	if err != nil {
 		return err
@@ -364,7 +364,7 @@ func (db *SQLiteDatabase) SearchBookmarks(orderLatest bool, keyword string, tags
 }
 
 // UpdateBookmarks updates the saved bookmark in database.
-func (db *SQLiteDatabase) UpdateBookmarks(bookmarks []model.Bookmark) (result []model.Bookmark, err error) {
+func (db *SQLiteDatabase) UpdateBookmarks(bookmarks ...model.Bookmark) (result []model.Bookmark, err error) {
 	// Prepare transaction
 	tx, err := db.Beginx()
 	if err != nil {
@@ -474,21 +474,31 @@ func (db *SQLiteDatabase) CreateAccount(username, password string) (err error) {
 	return err
 }
 
-// GetAccounts fetch list of accounts in database
-func (db *SQLiteDatabase) GetAccounts(keyword string, exact bool) ([]model.Account, error) {
-	query := `SELECT id, username, password FROM account`
+// GetAccount fetch account with matching username
+func (db *SQLiteDatabase) GetAccount(username string) (model.Account, error) {
+	account := model.Account{}
+	err := db.Get(&account,
+		`SELECT id, username, password FROM account WHERE username = ?`,
+		username)
+	return account, err
+}
+
+// GetAccounts fetch list of accounts with matching keyword
+func (db *SQLiteDatabase) GetAccounts(keyword string) ([]model.Account, error) {
+	// Create query
 	args := []interface{}{}
-	if keyword != "" {
-		if exact {
-			query += ` WHERE username = ?`
-			args = append(args, keyword)
-		} else {
-			query += ` WHERE username LIKE ?`
-			args = append(args, "%"+keyword+"%")
-		}
+	query := `SELECT id, username, password FROM account`
+
+	if keyword == "" {
+		query += " WHERE 1"
+	} else {
+		query += " WHERE username LIKE ?"
+		args = append(args, "%"+keyword+"%")
 	}
+
 	query += ` ORDER BY username`
 
+	// Fetch list account
 	accounts := []model.Account{}
 	err := db.Select(&accounts, query, args...)
 	return accounts, err
