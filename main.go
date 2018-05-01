@@ -4,43 +4,54 @@ package main
 
 import (
 	"os"
-	"os/user"
 	fp "path/filepath"
-
-	"github.com/sirupsen/logrus"
 
 	"github.com/RadhiFadlillah/shiori/cmd"
 	dt "github.com/RadhiFadlillah/shiori/database"
 	_ "github.com/mattn/go-sqlite3"
+	apppaths "github.com/muesli/go-app-paths"
+	"github.com/sirupsen/logrus"
 )
 
 func main() {
-	databasePath := fp.Join(getHomeDir(), ".shiori.db")
-	if value, found := os.LookupEnv("ENV_SHIORI_DB"); found {
-		// If ENV_SHIORI_DB is directory, append ".shiori.db" as filename
-		if f1, err := os.Stat(value); err == nil && f1.IsDir() {
-			value = fp.Join(value, ".shiori.db")
-		}
+	// Create database path
+	dbPath := createDatabasePath()
 
-		databasePath = value
-	}
+	// Make sure directory exist
+	os.MkdirAll(fp.Dir(dbPath), os.ModePerm)
 
-	sqliteDB, err := dt.OpenSQLiteDatabase(databasePath)
+	// Open database
+	sqliteDB, err := dt.OpenSQLiteDatabase(dbPath)
 	checkError(err)
 
+	// Start cmd
 	shioriCmd := cmd.NewShioriCmd(sqliteDB)
 	if err := shioriCmd.Execute(); err != nil {
 		logrus.Fatalln(err)
 	}
 }
 
-func getHomeDir() string {
-	user, err := user.Current()
-	if err != nil {
-		return ""
+func createDatabasePath() string {
+	// Try to look at environment variables
+	dbPath, found := os.LookupEnv("ENV_SHIORI_DB")
+	if found {
+		// If ENV_SHIORI_DB is directory, append "shiori.db" as filename
+		if f1, err := os.Stat(dbPath); err == nil && f1.IsDir() {
+			dbPath = fp.Join(dbPath, "shiori.db")
+		}
+
+		return dbPath
 	}
 
-	return user.HomeDir
+	// Try to use platform specific app path
+	userScope := apppaths.NewScope(apppaths.User, "shiori", "shiori")
+	dataDir, err := userScope.DataDir()
+	if err == nil {
+		return fp.Join(dataDir, "shiori.db")
+	}
+
+	// When all fail, create database in working directory
+	return "shiori.db"
 }
 
 func checkError(err error) {
