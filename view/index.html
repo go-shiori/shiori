@@ -100,6 +100,7 @@
                                 <i class="fas fa-check"></i>
                             </a>
                             <a class="bookmark-metadata" target="_blank" :class="{'has-image':bookmarkImage(item) !== ''}" :style="bookmarkImage(item)" :href="item.url">
+                                <p class="bookmark-index">{{item.id}}</p>
                                 <p class="bookmark-time">{{bookmarkTime(item)}}</p>
                                 <p class="bookmark-title">{{item.title}}</p>
                                 <p class="bookmark-url">{{getDomainURL(item.url)}}</p>
