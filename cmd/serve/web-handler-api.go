@@ -3,8 +3,11 @@ package serve
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	nurl "net/url"
+	"os"
+	fp "path/filepath"
 	"strings"
 	"time"
 
@@ -97,12 +100,17 @@ func (h *webHandler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, p
 	err = json.NewDecoder(r.Body).Decode(&book)
 	checkError(err)
 
+	// Get new bookmark id
+	book.ID, err = h.db.GetNewID("bookmark")
+	checkError(err)
+
 	// Fetch data from internet
 	article, err := readability.Parse(book.URL, 20*time.Second)
 	checkError(err)
 
 	book.URL = article.URL
-	book.ImageURL = article.Meta.Image
+	book.Title = article.Meta.Title
+	book.Excerpt = article.Meta.Excerpt
 	book.Author = article.Meta.Author
 	book.MinReadTime = article.Meta.MinReadTime
 	book.MaxReadTime = article.Meta.MaxReadTime
@@ -114,8 +122,15 @@ func (h *webHandler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, p
 		book.Title = book.URL
 	}
 
-	// Save to database
-	book.ID, err = h.db.CreateBookmark(book)
+	// Save bookmark image to local disk
+	imgPath := fp.Join(h.dataDir, "thumb", fmt.Sprintf("%d", book.ID))
+	err = downloadFile(article.Meta.Image, imgPath, 20*time.Second)
+	if err == nil {
+		book.ImageURL = fmt.Sprintf("/thumb/%d", book.ID)
+	}
+
+	// Save bookmark to database
+	_, err = h.db.CreateBookmark(book)
 	checkError(err)
 
 	// Return new saved result
@@ -142,9 +157,6 @@ func (h *webHandler) apiUpdateBookmark(w http.ResponseWriter, r *http.Request, p
 	if err != nil || parsedURL.Host == "" {
 		panic(fmt.Errorf("URL is not valid"))
 	}
-
-	// Clear UTM parameters from URL
-	request.URL = clearUTMParams(parsedURL)
 
 	// Get existing bookmark from database
 	bookmarks, err := h.db.GetBookmarks(true, fmt.Sprintf("%d", request.ID))
@@ -249,16 +261,33 @@ func (h *webHandler) apiDeleteBookmark(w http.ResponseWriter, r *http.Request, p
 	fmt.Fprint(w, 1)
 }
 
-func clearUTMParams(url *nurl.URL) string {
-	newQuery := nurl.Values{}
-	for key, value := range url.Query() {
-		if strings.HasPrefix(key, "utm_") {
-			continue
-		}
+func downloadFile(url, dstPath string, timeout time.Duration) error {
+	// Fetch data from URL
+	client := &http.Client{Timeout: timeout}
+	resp, err := client.Get(url)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
 
-		newQuery[key] = value
+	// Make sure destination directory exist
+	err = os.MkdirAll(fp.Dir(dstPath), os.ModePerm)
+	if err != nil {
+		return err
 	}
 
-	url.RawQuery = newQuery.Encode()
-	return url.String()
+	// Create destination file
+	dst, err := os.Create(dstPath)
+	if err != nil {
+		return err
+	}
+	defer dst.Close()
+
+	// Write response body to the file
+	_, err = io.Copy(dst, resp.Body)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

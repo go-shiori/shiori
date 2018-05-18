@@ -8,7 +8,7 @@ import (
 )
 
 // NewShioriCmd creates new command for shiori
-func NewShioriCmd(db dt.Database) *cobra.Command {
+func NewShioriCmd(db dt.Database, dataDir string) *cobra.Command {
 	// Create handler
 	hdl := cmdHandler{db: db}
 
@@ -89,7 +89,7 @@ func NewShioriCmd(db dt.Database) *cobra.Command {
 
 	// Create sub command that has its own sub command
 	accountCmd := account.NewAccountCmd(db)
-	serveCmd := serve.NewServeCmd(db)
+	serveCmd := serve.NewServeCmd(db, dataDir)
 
 	// Set sub command flags
 	addCmd.Flags().StringP("title", "i", "", "Custom title for this bookmark.")

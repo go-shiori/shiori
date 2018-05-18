@@ -15,12 +15,13 @@ import (
 // webHandler is handler for every API and routes to web page
 type webHandler struct {
 	db       dt.Database
+	dataDir  string
 	jwtKey   []byte
 	tplCache *template.Template
 }
 
 // newWebHandler returns new webHandler
-func newWebHandler(db dt.Database) (*webHandler, error) {
+func newWebHandler(db dt.Database, dataDir string) (*webHandler, error) {
 	// Create JWT key
 	jwtKey := make([]byte, 32)
 	_, err := rand.Read(jwtKey)
@@ -45,6 +46,7 @@ func newWebHandler(db dt.Database) (*webHandler, error) {
 	// Create handler
 	handler := &webHandler{
 		db:       db,
+		dataDir:  dataDir,
 		jwtKey:   jwtKey,
 		tplCache: tplCache,
 	}

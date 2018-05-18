@@ -95,7 +95,7 @@
         var token = Cookies.get('token'),
             rest = axios.create();
 
-        rest.defaults.timeout = 15000;
+        rest.defaults.timeout = 60000;
         rest.defaults.headers.common['Authorization'] = 'Bearer ' + token;
 
         // Register Vue component

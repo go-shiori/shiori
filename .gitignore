@@ -8,3 +8,4 @@ sample.txt
 # Exclude generated file
 shiori*
 *.db
+thumb/

@@ -89,6 +89,14 @@ func (db *SQLiteDatabase) CreateBookmark(bookmark model.Bookmark) (bookmarkID in
 		return -1, fmt.Errorf("Title must not be empty")
 	}
 
+	// Set default ID and modified time
+	if bookmark.ID == 0 {
+		bookmark.ID, err = db.GetNewID("bookmark")
+		if err != nil {
+			return -1, err
+		}
+	}
+
 	if bookmark.Modified == "" {
 		bookmark.Modified = time.Now().UTC().Format("2006-01-02 15:04:05")
 	}
@@ -111,10 +119,11 @@ func (db *SQLiteDatabase) CreateBookmark(bookmark model.Bookmark) (bookmarkID in
 	}()
 
 	// Save article to database
-	res := tx.MustExec(`INSERT INTO bookmark (
-		url, title, image_url, excerpt, author, 
+	tx.MustExec(`INSERT INTO bookmark (
+		id, url, title, image_url, excerpt, author, 
 		min_read_time, max_read_time, modified) 
-		VALUES(?, ?, ?, ?, ?, ?, ?, ?)`,
+		VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		bookmark.ID,
 		bookmark.URL,
 		bookmark.Title,
 		bookmark.ImageURL,
@@ -124,14 +133,10 @@ func (db *SQLiteDatabase) CreateBookmark(bookmark model.Bookmark) (bookmarkID in
 		bookmark.MaxReadTime,
 		bookmark.Modified)
 
-	// Get last inserted ID
-	bookmarkID, err = res.LastInsertId()
-	checkError(err)
-
 	// Save bookmark content
 	tx.MustExec(`INSERT INTO bookmark_content 
 		(docid, title, content, html) VALUES (?, ?, ?, ?)`,
-		bookmarkID, bookmark.Title, bookmark.Content, bookmark.HTML)
+		bookmark.ID, bookmark.Title, bookmark.Content, bookmark.HTML)
 
 	// Save tags
 	stmtGetTag, err := tx.Preparex(`SELECT id FROM tag WHERE name = ?`)
@@ -157,13 +162,14 @@ func (db *SQLiteDatabase) CreateBookmark(bookmark model.Bookmark) (bookmarkID in
 			checkError(err)
 		}
 
-		stmtInsertBookmarkTag.Exec(tagID, bookmarkID)
+		stmtInsertBookmarkTag.Exec(tagID, bookmark.ID)
 	}
 
 	// Commit transaction
 	err = tx.Commit()
 	checkError(err)
 
+	bookmarkID = bookmark.ID
 	return bookmarkID, err
 }
 
@@ -540,6 +546,19 @@ func (db *SQLiteDatabase) GetTags() ([]model.Tag, error) {
 	}
 
 	return tags, nil
+}
+
+// GetNewID creates new ID for specified table
+func (db *SQLiteDatabase) GetNewID(table string) (int64, error) {
+	var tableID int64
+	query := fmt.Sprintf(`SELECT IFNULL(MAX(id) + 1, 1) FROM %s`, table)
+
+	err := db.Get(&tableID, query)
+	if err != nil && err != sql.ErrNoRows {
+		return -1, err
+	}
+
+	return tableID, nil
 }
 
 // ErrInvalidIndex is returned is an index is not valid

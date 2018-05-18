@@ -13,9 +13,9 @@ import (
 )
 
 // NewServeCmd creates new command for serving web page
-func NewServeCmd(db dt.Database) *cobra.Command {
+func NewServeCmd(db dt.Database, dataDir string) *cobra.Command {
 	// Create handler
-	hdl, err := newWebHandler(db)
+	hdl, err := newWebHandler(db, dataDir)
 	checkError(err)
 
 	// Create root command
@@ -39,6 +39,7 @@ func NewServeCmd(db dt.Database) *cobra.Command {
 			router.GET("/", hdl.serveIndexPage)
 			router.GET("/login", hdl.serveLoginPage)
 			router.GET("/bookmark/:id", hdl.serveBookmarkCache)
+			router.GET("/thumb/:id", hdl.serveThumbnailImage)
 
 			router.POST("/api/login", hdl.apiLogin)
 			router.GET("/api/bookmarks", hdl.apiGetBookmarks)

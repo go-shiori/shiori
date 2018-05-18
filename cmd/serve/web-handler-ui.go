@@ -5,6 +5,7 @@ import (
 	"io"
 	"mime"
 	"net/http"
+	"os"
 	fp "path/filepath"
 
 	"github.com/julienschmidt/httprouter"
@@ -57,6 +58,31 @@ func (h *webHandler) serveBookmarkCache(w http.ResponseWriter, r *http.Request, 
 
 	// Execute template
 	err = h.tplCache.Execute(w, &bookmarks[0])
+	checkError(err)
+}
+
+// serveThumbnailImage is handler for GET /thumb/:id
+func (h *webHandler) serveThumbnailImage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	// Get bookmark ID from URL
+	id := ps.ByName("id")
+
+	// Open image
+	imgPath := fp.Join(h.dataDir, "thumb", id)
+	img, err := os.Open(imgPath)
+	checkError(err)
+	defer img.Close()
+
+	// Get image type from its 512 first bytes
+	buffer := make([]byte, 512)
+	_, err = img.Read(buffer)
+	checkError(err)
+
+	mimeType := http.DetectContentType(buffer)
+	w.Header().Set("Content-Type", mimeType)
+
+	// Serve image
+	img.Seek(0, 0)
+	_, err = io.Copy(w, img)
 	checkError(err)
 }
 
