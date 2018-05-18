@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	readability "github.com/RadhiFadlillah/go-readability"
 	"github.com/RadhiFadlillah/shiori/model"
+	"github.com/RadhiFadlillah/shiori/readability"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/julienschmidt/httprouter"
 	"golang.org/x/crypto/bcrypt"

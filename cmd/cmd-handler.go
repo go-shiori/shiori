@@ -13,9 +13,9 @@ import (
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
-	readability "github.com/RadhiFadlillah/go-readability"
 	dt "github.com/RadhiFadlillah/shiori/database"
 	"github.com/RadhiFadlillah/shiori/model"
+	"github.com/RadhiFadlillah/shiori/readability"
 	"github.com/gosuri/uiprogress"
 	"github.com/spf13/cobra"
 )
