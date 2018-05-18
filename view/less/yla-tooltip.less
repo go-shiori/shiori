@@ -1,0 +1,52 @@
+@import "variable";
+.yla-tooltip {
+    font-size: 14px;
+    color: @colorLight;
+    background-color: @tooltipBg;
+    padding: 8px;
+    border-radius: 4px;
+    position: relative;
+    z-index: 1000;
+    &::after {
+        content: '';
+        display: block;
+        position: absolute;
+        border: @arrowWidth solid transparent;
+    }
+    &.left {
+        margin-left: -(@arrowWidth*2-2);
+        &::after {
+            top: 50%;
+            right: -2*@arrowWidth;
+            margin-top: -@arrowWidth;
+            border-left-color: @tooltipBg
+        }
+    }
+    &.top {
+        margin-top: -(@arrowWidth*2-2);
+        &::after {
+            left: 50%;
+            bottom: -2*@arrowWidth;
+            margin-left: -@arrowWidth;
+            border-top-color: @tooltipBg
+        }
+    }
+    &.right {
+        margin-left: @arrowWidth*2-2;
+        &::after {
+            top: 50%;
+            left: -2*@arrowWidth;
+            margin-top: -@arrowWidth;
+            border-right-color: @tooltipBg
+        }
+    }
+    &.bottom {
+        margin-top: @arrowWidth*2-2;
+        &::after {
+            left: 50%;
+            top: -2*@arrowWidth;
+            margin-left: -@arrowWidth;
+            border-bottom-color: @tooltipBg
+        }
+    }
+}

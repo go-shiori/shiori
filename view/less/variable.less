@@ -1,21 +1,36 @@
 // out: false
-@appBg: #F5F5F5;
+//
+// Background
+@bg: #EEE;
+@darkBg: #353535;
+@contentBg: #FFF;
+//
+// Border
 @border: #E5E5E5;
 @borderDark: #9E9E9E;
-@contentBg: #FFF;
-@headerInputBg: #FFF;
-@fontColor: #000;
-@linkColor: #535A60;
-@fontLightColor: #6F757A;
+//
+// Font color
+@color: #232323;
+@colorLink: #999;
+@colorLight: #EEE;
 @fontSize: 0.9em;
-@headerHeight: 70px;
+//
+// Color theme
 @main: #F44336;
-@accent: #F44336;
-@headerShadow: rgba(0, 0, 0, 0.3);
+@mainDark: #B71C1C;
+@accent: #f4a236;
+//
+// Tooltip
+@tooltipBg: #232323;
+@arrowWidth: 8px;
+//
+// Other variable
+@headerHeight: 60px;
+//
 // Mixin
 .header-link {
     border-right: 1px solid @border;
-    color: @fontColor;
+    color: @color;
     cursor: pointer;
     font-size: @fontSize;
     line-height: @headerHeight;

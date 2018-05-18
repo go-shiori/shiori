@@ -1,0 +1,101 @@
+@import "variable";
+.yla-dialog__overlay {
+    display: flex;
+    flex-flow: column nowrap;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 10001;
+    background-color: rgba(0, 0, 0, 0.6);
+    padding: 32px;
+    .yla-dialog {
+        display: flex;
+        flex-flow: column nowrap;
+        min-width: 400px;
+        min-height: 0;
+        max-height: 100%;
+        overflow: hidden;
+        background-color: #FFF;
+        font-size: 16px;
+        >.yla-dialog__header {
+            display: flex;
+            flex-flow: row nowrap;
+            padding: 16px;
+            min-height: 0;
+            background-color: @darkBg;
+            color: @colorLight;
+            flex-shrink: 0;
+            >p {
+                flex: 1 0;
+                font-weight: 600;
+                font-size: 1em;
+                text-transform: uppercase;
+            }
+            >a:hover {
+                color: @main;
+            }
+        }
+        >.yla-dialog__body {
+            padding: 16px;
+            display: grid;
+            max-height: 100%;
+            min-height: 80px;
+            min-width: 0;
+            font-size: 0.9em;
+            overflow: auto;
+            grid-template-columns: max-content 1fr;
+            align-items: baseline;
+            grid-gap: 16px;
+            >.yla-dialog__content {
+                grid-column-start: 1;
+                grid-column-end: 3;
+                align-self: baseline;
+            }
+            >input {
+                color: @color;
+                padding: 8px;
+                border: 1px solid @border;
+            }
+            >.suggestion {
+                position: absolute;
+                display: block;
+                padding: 8px;
+                background-color: @bg;
+                border: 1px solid @border;
+            }
+        }
+        >.yla-dialog__footer {
+            padding: 16px;
+            display: flex;
+            flex-flow: row wrap;
+            justify-content: flex-end;
+            border-top: 1px solid @border;
+            >a {
+                text-transform: uppercase;
+                padding: 0 8px;
+                font-size: 0.9em;
+                font-weight: 600;
+                &:hover {
+                    color: @main;
+                }
+                &:focus {
+                    outline: none;
+                    color: @main;
+                    border-bottom: 1px dashed @main;
+                }
+            }
+            >i {
+                width: 19px;
+                line-height: 19px;
+                text-align: center;
+            }
+        }
+    }
+}

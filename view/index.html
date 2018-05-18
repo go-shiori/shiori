@@ -5,12 +5,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <link rel="stylesheet" href="/css/stylesheet.css">
     <link rel="stylesheet" href="/css/fontawesome.css">
     <link rel="stylesheet" href="/css/source-sans-pro.css">
+    <link rel="stylesheet" href="/css/yla-dialog.css">
+    <link rel="stylesheet" href="/css/yla-tooltip.css">
+    <link rel="stylesheet" href="/css/stylesheet.css">
     <script src="/js/vue.js"></script>
     <script src="/js/axios.js"></script>
     <script src="/js/js-cookie.js"></script>
+    <script src="/js/component/yla-tooltip.js"></script>
+    <script src="/js/component/yla-dialog.js"></script>
+    <script src="/js/page/base.js"></script>
     <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/res/apple-touch-icon-144x144.png" />
     <link rel="apple-touch-icon-precomposed" sizes="152x152" href="/res/apple-touch-icon-152x152.png" />
     <link rel="icon" type="image/png" href="/res/favicon-32x32.png" sizes="32x32" />
@@ -19,653 +24,146 @@
 </head>
 
 <body>
-    <div id="main-page">
-        <div id="header">
-            <template v-if="checkedBookmarks.length === 0">
-                <a id="logo" href="/">
-                    <span>栞</span>shiori</a>
-                <div id="search-box">
-                    <input type="text" name="keyword" v-model.trim="search.query" @keyup.enter="loadData" placeholder="Search url, tags, title or content">
-                    <a class="button" @click="loadData">
-                        <i class="fas fa-search fa-fw"></i>
-                    </a>
-                </div>
-                <div id="header-menu" v-if="!loading">
-                    <a @click="reloadData">
-                        <i class="fas fa-cloud fa-fw"></i>
-                        <span>Reload</span>
-                    </a>
-                    <a @click="showTagCloud">
-                        <i class="fas fa-hashtag fa-fw"></i>
-                        <span>Tags</span>
-                    </a>
-                    <a @click="toggleImage">
-                        <i class="fas fa-fw" :class="showImage ? 'fa-eye-slash' : 'fa-eye'"></i>
-                        <span>{{showImage ? 'Hide image' : 'Show image'}}</span>
-                    </a>
-                    <a @click="logout">
-                        <i class="fas fa-sign-out-alt fa-fw"></i>
-                        <span>Logout</span>
-                    </a>
-                </div>
-            </template>
-            <template v-else>
-                <p id="n-selected">{{checkedBookmarks.length}} selected</p>
-                <div id="header-menu">
-                    <a @click="clearSelectedBookmarks">
-                        <i class="fas fa-fw fa-ban"></i>
-                        <span>Cancel</span>
-                    </a>
-                    <a @click="selectAllBookmarks">
-                        <i class="fas fa-fw fa-check-square"></i>
-                        <span>Select all</span>
-                    </a>
-                    <a @click="deleteBookmarks(checkedBookmarks)">
-                        <i class="fas fa-fw fa-trash"></i>
-                        <span>Delete</span>
-                    </a>
-                </div>
-            </template>
+    <div id="index-page">
+        <div id="sidebar">
+            <p id="logo">栞</p>
+            <yla-tooltip placement="right" content="Reload data">
+                <a>
+                    <i class="fas fa-sync-alt fa-fw"></i>
+                </a>
+            </yla-tooltip>
+            <yla-tooltip placement="right" content="Add new bookmark">
+                <a @click="showDialogAdd">
+                    <i class="fas fa-plus fa-fw"></i>
+                </a>
+            </yla-tooltip>
+            <yla-tooltip placement="right" content="Batch edit">
+                <a>
+                    <i class="fas fa-pencil-alt fa-fw"></i>
+                </a>
+            </yla-tooltip>
+            <div class="spacer"></div>
+            <yla-tooltip placement="right" content="Toggle night mode">
+                <a>
+                    <i class="fas fa-moon fa-fw"></i>
+                </a>
+            </yla-tooltip>
+            <yla-tooltip placement="right" content="Log out">
+                <a>
+                    <i class="fas fa-sign-out-alt fa-fw"></i>
+                </a>
+            </yla-tooltip>
         </div>
-        <div id="main">
-            <template v-if="!loading && error === ''">
-                <div id="input-bookmark">
-                    <p v-if="inputBookmark.url !== ''">{{inputBookmark.id === -1 ? 'New bookmark' : 'Edit bookmark'}}</p>
-                    <input type="text" ref="inputURL" v-model.trim="inputBookmark.url" placeholder="URL for the new bookmark" @focus="clearSelectedBookmarks">
-                    <template v-if="inputBookmark.url !== ''">
-                        <input type="text" v-model.trim="inputBookmark.title" placeholder="Custom bookmark title (optional)">
-                        <input type="text" v-model.trim="inputBookmark.tags" placeholder="Space separated tags for this bookmark (optional)">
-                        <textarea name="excerpt" v-model.trim="inputBookmark.excerpt" placeholder="Excerpt for this bookmark (optional)"></textarea>
-                        <p v-if="inputBookmark.error !== ''" class="error-message">{{inputBookmark.error}}</p>
-                        <div class="button-area">
-                            <div class="spacer"></div>
-                            <a v-if="inputBookmark.loading">
-                                <i class="fas fa-fw fa-spinner fa-spin"></i>
-                            </a>
-                            <template v-else>
-                                <a class="button" @click="clearInputBookmark">Cancel</a>
-                                <a class="button" @click="saveBookmark">Done</a>
-                            </template>
-                        </div>
-                    </template>
-                </div>
-                <div v-if="search.query !== '' && !loading" id="search-parameter">
-                    <a v-if="search.keyword !== ''" @click="removeSearchParam(search.keyword)">{{search.keyword}}</a>
-                    <a v-for="tag in search.tags" @click="removeSearchParam('#'+tag)">#{{tag}}</a>
-                </div>
-                <div id="grid">
-                    <div v-for="column in gridColumns" class="column" :style="{maxWidth: columnWidth}">
-                        <div v-for="item in column" class="bookmark" :class="{checked: isBookmarkChecked(item.index)}" :ref="'bookmark-'+item.index">
-                            <a class="checkbox" @click="toggleBookmarkCheck(item.index)">
-                                <i class="fas fa-check"></i>
-                            </a>
-                            <a class="bookmark-metadata" target="_blank" :class="{'has-image':bookmarkImage(item) !== ''}" :style="bookmarkImage(item)" :href="item.url">
-                                <p class="bookmark-time">{{bookmarkTime(item)}}</p>
-                                <p class="bookmark-title">{{item.title}}</p>
-                                <p class="bookmark-url">{{getDomainURL(item.url)}}</p>
-                            </a>
-                            <p v-if="item.excerpt !== ''" class="bookmark-excerpt">{{item.excerpt}}</p>
-                            <div v-if="item.tags.length > 0" class="bookmark-tags">
-                                <a v-for="tag in item.tags" @click="searchTag(tag.name)">{{tag.name}}</a>
-                            </div>
-                            <div class="bookmark-menu">
-                                <a @click="updateBookmark(item.index)">
-                                    <i class="fas fa-sync"></i>
-                                    <span>Update</span>
-                                </a>
-                                <a @click="editBookmark(item.index)">
-                                    <i class="fas fa-pencil-alt"></i>
-                                    <span>Edit</span>
-                                </a>
-                                <a @click="deleteBookmarks([item.index])">
-                                    <i class="far fa-trash-alt"></i>
-                                    <span>Delete</span>
-                                </a>
-                                <a :href="'/bookmark/'+item.id" target="_blank">
-                                    <i class="fas fa-history"></i>
-                                    <span>Cache</span>
-                                </a>
-                            </div>
-                        </div>
+        <div id="body">
+            <div id="header">
+                <input type="text" placeholder="Search bookmarks by url, tags, title or content">
+                <a>
+                    <i class="fas fa-search fa-fw"></i>
+                </a>
+            </div>
+            <div id="grid">
+                <div class="bookmark" v-for="book in bookmarks">
+                    <a class="bookmark-content" :href="'/bookmark/'+book.id" target="_blank">
+                        <img v-if="book.imageURL !== ''" :src="book.imageURL">
+                        <p class="title">{{book.title}}</p>
+                        <p class="excerpt" v-if="book.imageURL === ''">{{book.excerpt}}</p>
+                    </a>
+                    <div class="bookmark-menu">
+                        <a class="url" title="View original" :href="book.url" target="_blank">
+                            {{getHostname(book.url)}}
+                        </a>
+                        <a title="Edit bookmark">
+                            <i class="fas fa-pencil-alt"></i>
+                        </a>
+                        <a title="Edit tags">
+                            <i class="fas fa-tags"></i>
+                        </a>
+                        <a title="Delete bookmark">
+                            <i class="fas fa-trash-alt"></i>
+                        </a>
+                        <a title="Update cache">
+                            <i class="fas fa-cloud-download-alt"></i>
+                        </a>
                     </div>
                 </div>
-            </template>
-            <div v-if="loading || error !== ''" id="message-bar">
-                <i v-if="loading" class="fas fa-fw fa-spinner fa-spin"></i>
-                <p v-if="error !== ''" class="error-message">{{error}}</p>
             </div>
         </div>
-        <div v-if="dialog.visible" id="dialog-overlay">
-            <div id="dialog">
-                <p id="dialog-title" :class="{'error-message': dialog.isError}">{{dialog.title}}</p>
-                <p v-html="dialog.content" id="dialog-content"></p>
-                <div id="dialog-button">
-                    <div class="spacer"></div>
-                    <a v-if="dialog.loading">
-                        <i class="fas fa-fw fa-spinner fa-spin"></i>
-                    </a>
-                    <template v-else>
-                        <a class="button" @click="dialog.secondAction">{{dialog.secondChoice}}</a>
-                        <a class="button" @click="dialog.mainAction">{{dialog.mainChoice}}</a>
-                    </template>
-                </div>
-            </div>
-        </div>
-        <div v-if="tagCloud.visible" id="tag-cloud-overlay">
-            <div id="tag-cloud">
-                <div id="tag-cloud-title">
-                    <p>Tag Cloud</p>
-                    <a @click="tagCloud.visible = false" id="close-tag-cloud">
-                        <i class="fas fa-fw fa-times"></i>
-                    </a>
-                </div>
-                <div id="tag-cloud-content">
-                    <a v-for="item in tagCloud.data" @click="selectTagCloud(item.name)" :style="{fontSize: item.fontSize+'em'}">#{{item.name}}</a>
-                </div>
-            </div>
-        </div>
+        <yla-dialog v-bind="dialog"></yla-dialog>
     </div>
     <script>
+        // Prepare axios instance
         var token = Cookies.get('token'),
-            instance = axios.create();
+            rest = axios.create();
 
-        instance.defaults.timeout = 10000;
-        instance.defaults.headers.common['Authorization'] = 'Bearer ' + token;
+        rest.defaults.timeout = 15000;
+        rest.defaults.headers.common['Authorization'] = 'Bearer ' + token;
 
-        var app = new Vue({
-            el: '#main-page',
+        // Register Vue component
+        Vue.component('yla-dialog', new YlaDialog());
+        Vue.component('yla-tooltip', new YlaTooltip());
+
+        new Vue({
+            el: '#index-page',
+            mixins: [new Base()],
             data: {
-                windowWidth: 0,
-                error: "",
                 loading: false,
-                displayTags: false,
                 bookmarks: [],
-                tags: [],
-                checkedBookmarks: [],
-                showImage: true,
-                search: {
-                    query: "",
-                    keyword: "",
-                    tags: []
-                },
-                inputBookmark: {
-                    index: -1,
-                    id: -1,
-                    url: "",
-                    title: "",
-                    tags: "",
-                    excerpt: "",
-                    error: "",
-                    loading: false
-                },
-                dialog: {
-                    visible: false,
-                    loading: false,
-                    isError: false,
-                    title: '',
-                    content: '',
-                    mainChoice: '',
-                    secondChoice: '',
-                    mainAction: function () {},
-                    secondAction: function () {}
-                },
-                tagCloud: {
-                    visible: false,
-                    data: []
-                }
             },
             methods: {
-                searchTag: function (tag) {
-                    if (this.loading) return;
-
-                    var newTag = '#' + tag;
-                    if (this.search.query.indexOf(newTag) === -1) {
-                        this.search.query += ' ' + newTag;
-                        this.search.query = this.search.query.trim().replace(/\s+/g, ' ');
-                        this.loadData();
-                    }
-                },
-                removeSearchParam: function (param) {
-                    if (this.loading) return;
-                    this.search.query = this.search.query.replace(param, ' ').trim().replace(/\s+/g, ' ');
-                    this.loadData();
-                },
-                reloadData: function () {
-                    if (this.loading) return;
-                    this.search.query = '';
-                    this.loadData();
-                },
-                loadData: function () {
-                    if (this.loading) return;
-
-                    // Parse search query
-                    var rxTags = /(^|\s+)#(\S+)/g,
-                        tags = [];
-
-                    while ((result = rxTags.exec(this.search.query)) !== null) {
-                        tags.push(result[2]);
-                    }
-
-                    var keyword = this.search.query.replace(/(^|\s+)#(\S+)/g, ' ').trim().replace(/\s+/g, ' ');
-
-                    // Fetch data
-                    this.error = '';
-                    this.loading = true;
-                    this.search.tags = tags;
-                    this.search.keyword = keyword;
-                    instance.get('/api/bookmarks', {
-                            params: {
-                                keyword: this.search.keyword,
-                                tags: this.search.tags.join(" ")
-                            }
-                        })
-                        .then(function (response) {
-                            app.loading = false;
-                            app.bookmarks = response.data;
-                        })
-                        .catch(function (error) {
-                            var errorMsg = error.response ? error.response.data : error.message;
-                            app.loading = false;
-                            app.error = errorMsg.trim();
-                        });
-                },
-                saveBookmark: function () {
-                    if (this.inputBookmark.loading) return;
-                    this.inputBookmark.loading = true;
-
-                    if (this.inputBookmark.url === "") return;
-
-                    var idx = this.inputBookmark.index,
-                        tags = this.inputBookmark.tags.replace(/\s+/g, " "),
-                        newTags = tags === "" ? [] : listTag = tags.split(/\s+/g),
-                        finalTags = [];
-
-                    if (idx !== -1) {
-                        var oldTags = this.bookmarks[idx].tags;
-                        for (var i = 0; i < oldTags.length; i++) {
-                            if (newTags.indexOf(oldTags[i].name) === -1) {
-                                finalTags.push({
-                                    name: '-' + oldTags[i].name
-                                })
-                            }
-                        }
-                    }
-
-                    for (var i = 0; i < newTags.length; i++) {
-                        finalTags.push({
-                            name: listTag[i]
-                        });
-                    }
-
-                    instance.request({
-                            method: this.inputBookmark.id === -1 ? 'post' : 'put',
-                            url: '/api/bookmarks',
-                            timeout: 15000,
-                            data: {
-                                id: this.inputBookmark.id,
-                                url: this.inputBookmark.url,
-                                title: this.inputBookmark.title,
-                                excerpt: this.inputBookmark.excerpt,
-                                tags: finalTags
-                            }
-                        })
-                        .then(function (response) {
-                            if (idx === -1) app.bookmarks.unshift(response.data);
-                            else {
-                                app.bookmarks.splice(idx, 1, response.data);
-                                app.bookmarks[idx].tags.splice(0, app.bookmarks[idx].tags.length, ...response.data.tags);
-                            }
-
-                            app.clearInputBookmark();
-                        })
-                        .catch(function (error) {
-                            var errorMsg = error.response ? error.response.data : error.message;
-                            app.inputBookmark.loading = false;
-                            app.inputBookmark.error = errorMsg.trim();
-                        });
-                },
-                editBookmark: function (idx) {
-                    var bookmark = this.bookmarks[idx],
-                        tags = [];
-
-                    for (var i = 0; i < bookmark.tags.length; i++) {
-                        tags.push(bookmark.tags[i].name);
-                    }
-
-                    this.inputBookmark.index = idx;
-                    this.inputBookmark.id = bookmark.id;
-                    this.inputBookmark.url = bookmark.url;
-                    this.inputBookmark.title = bookmark.title;
-                    this.inputBookmark.tags = tags.join(" ");
-                    this.inputBookmark.excerpt = bookmark.excerpt;
-
-                    this.$nextTick(function () {
-                        window.scrollTo(0, 0);
-                        app.$refs.inputURL.focus();
-                    });
-                },
-                deleteBookmarks: function (indices) {
-                    var title = "Delete Bookmarks",
-                        content = "Delete the selected bookmark(s) ? This action is irreversible.",
-                        smallestIndex = 1;
-
-                    if (indices.length === 0) return;
-                    else if (indices.length === 1) {
-                        var bookmark = this.bookmarks[indices[0]];
-
-                        smallestIndex = indices[0];
-                        title = "Delete Bookmark";
-                        content = "Delete <b>\"" + bookmark.title.trim() + "\"</b> from bookmarks ? This action is irreversible.";
-                    } else {
-                        indices.sort();
-                        smallestIndex = indices[indices.length - 1];
-                    }
-
-                    this.dialog.visible = true;
-                    this.dialog.isError = false;
-                    this.dialog.loading = false;
-                    this.dialog.title = title;
-                    this.dialog.content = content;
-                    this.dialog.mainChoice = "Yes";
-                    this.dialog.secondChoice = "No";
-                    this.dialog.mainAction = function () {
-                        app.dialog.loading = true;
-
-                        var listId = [];
-                        for (var i = 0; i < indices.length; i++) {
-                            listId.push('' + app.bookmarks[indices[i]].id);
-                        }
-
-                        instance.delete('/api/bookmarks/', {
-                                data: listId
-                            })
-                            .then(function (response) {
-                                app.dialog.loading = false;
-                                app.dialog.visible = false;
-
-                                for (var i = indices.length - 1; i >= 0; i--) {
-                                    app.bookmarks.splice(indices[i], 1);
-                                }
-                                app.clearSelectedBookmarks();
-
-                                var scrollIdx = smallestIndex === 1 ? 1 : smallestIndex - 1;
-                                app.$nextTick(function () {
-                                    var el = app.$refs['bookmark-' + smallestIndex][0];
-                                    if (el) el.scrollIntoView();
-                                    else window.scrollTo(0, 0);
-                                });
-                            })
-                            .catch(function (error) {
-                                var errorMsg = error.response ? error.response.data : error.message;
-                                app.showDialogError("Error Deleting Bookmark", errorMsg.trim());
-                            });
-                    };
-                    this.dialog.secondAction = function () {
-                        app.dialog.visible = false;
-                        app.$nextTick(function () {
-                            app.$refs['bookmark-' + smallestIndex][0].scrollIntoView();
-                        });
-                    };
-
-                },
-                updateBookmark: function (idx) {
-                    var bookmark = this.bookmarks[idx],
-                        sendUpdateRequest = function (overwrite) {
-                            var url = "/api/bookmarks";
-                            if (!overwrite) url += "?dont-overwrite";
-
-                            instance.put(url, {
-                                    id: bookmark.id,
-                                    excerpt: overwrite ? "empty" : bookmark.excerpt
-                                }, {
-                                    timeout: 15000,
-                                })
-                                .then(function (response) {
-                                    app.dialog.loading = false;
-                                    app.dialog.visible = false;
-                                    app.bookmarks.splice(idx, 1, response.data);
-                                    app.bookmarks[idx].tags.splice(0, app.bookmarks[idx].tags.length, ...response.data.tags);
-                                })
-                                .catch(function (error) {
-                                    var errorMsg = error.response ? error.response.data : error.message;
-                                    app.showDialogError("Error Updating Bookmark", errorMsg.trim());
-                                });
-                        };
-
-                    this.dialog.visible = true;
-                    this.dialog.isError = false;
-                    this.dialog.loading = false;
-                    this.dialog.title = "Update Bookmark";
-                    this.dialog.content = "Update data of <b>\"" + bookmark.title.trim() + "\"</b> ? This action is irreversible.";
-                    this.dialog.mainChoice = "Yes";
-                    this.dialog.secondChoice = "No";
-                    this.dialog.mainAction = function () {
-                        app.dialog.title = "Overwrite Metadata";
-                        app.dialog.content = "Overwrite the existing bookmark's metadata ?";
-                        app.dialog.mainChoice = "Yes";
-                        app.dialog.secondChoice = "No";
-                        app.dialog.mainAction = function () {
-                            app.dialog.loading = true;
-                            sendUpdateRequest(true);
-                        };
-                        app.dialog.secondAction = function () {
-                            app.dialog.loading = true;
-                            sendUpdateRequest(false);
-                        };
-                    };
-                    this.dialog.secondAction = function () {
-                        app.dialog.visible = false;
-                        app.$nextTick(function () {
-                            app.$refs['bookmark-' + idx][0].scrollIntoView();
-                        });
-                    };
-                },
-                toggleBookmarkCheck: function (idx) {
-                    var checkedIdx = this.checkedBookmarks.indexOf(idx);
-                    if (checkedIdx !== -1) this.checkedBookmarks.splice(checkedIdx, 1);
-                    else this.checkedBookmarks.push(idx);
-                },
-                selectAllBookmarks: function () {
-                    this.clearSelectedBookmarks();
-                    for (var i = 0; i < this.bookmarks.length; i++) {
-                        this.checkedBookmarks.push(i);
-                    }
-                },
-                clearSelectedBookmarks: function () {
-                    this.checkedBookmarks.splice(0, this.checkedBookmarks.length);
-                },
-                isBookmarkChecked: function (idx) {
-                    return this.checkedBookmarks.indexOf(idx) !== -1;
-                },
-                clearInputBookmark: function () {
-                    var idx = this.inputBookmark.index;
-
-                    this.inputBookmark.index = -1;
-                    this.inputBookmark.id = -1;
-                    this.inputBookmark.url = "";
-                    this.inputBookmark.title = "";
-                    this.inputBookmark.tags = "";
-                    this.inputBookmark.excerpt = "";
-                    this.inputBookmark.error = "";
-                    this.inputBookmark.loading = false;
-
-                    if (idx !== -1) app.$nextTick(function () {
-                        var bookmarkItem = app.$refs['bookmark-' + idx];
-                        bookmarkItem[0].scrollIntoView();
-                    })
-                },
-                showTagCloud: function () {
+                loadData() {
                     if (this.loading) return;
 
                     // Fetch data
-                    this.error = '';
                     this.loading = true;
-                    instance.get('/api/tags')
-                        .then(function (response) {
-                            app.loading = false;
-                            app.tagCloud.data = response.data;
-
-                            if (app.tagCloud.data.length === 0) {
-                                app.tagCloud.visible = false;
-                                app.showDialogError("Error Creating Tag Cloud", "There are no saved tags");
-                                return;
-                            }
-
-                            app.tagCloud.visible = true;
-
-                            // Find largest tags frequency
-                            var minFont = 1,
-                                maxFont = 5,
-                                maxCount = 0;
-                            for (var i = 0; i < app.tagCloud.data.length; i++) {
-                                if (app.tagCloud.data[i].nBookmarks > maxCount) {
-                                    maxCount = app.tagCloud.data[i].nBookmarks;
-                                }
-                            }
-
-                            // Set font size for tags
-                            for (var i = 0; i < app.tagCloud.data.length; i++) {
-                                var size = (Math.log(app.tagCloud.data[i].nBookmarks) / Math.log(maxCount)) *
-                                    (maxFont - minFont) + minFont;
-                                app.tagCloud.data[i].fontSize = size;
-                            }
+                    rest.get('/api/bookmarks')
+                        .then((response) => {
+                            this.loading = false;
+                            this.bookmarks = response.data;
+                            console.log(JSON.stringify(response.data));
                         })
-                        .catch(function (error) {
-                            var errorMsg = error.response ? error.response.data : error.message;
-                            app.loading = false;
-                            app.tagCloud.visible = false;
-                            app.showDialogError("Error Creating Tag Cloud", errorMsg.trim());
+                        .catch((error) => {
+                            var errorMsg = (error.response ? error.response.data : error.message).trim();
+                            this.loading = false;
+                            this.showErrorDialog(errorMsg);
                         });
                 },
-                selectTagCloud: function (tag) {
-                    this.tagCloud.visible = false;
-                    this.searchTag(tag);
-                },
-                bookmarkTime: function (book) {
-                    // Define read time
-                    var readTime = "";
-                    if (book.maxReadTime === 0) {
-                        readTime = "";
-                    } else if (book.minReadTime === book.maxReadTime) {
-                        readTime = book.minReadTime + " min read";
-                    } else {
-                        readTime = book.minReadTime + "-" + book.maxReadTime + " min read";
-                    }
-
-                    // Convert modified time to local
-                    var time = new Date(book.modified.replace(/-/g, '/') + ' +00');
-
-                    // Create final time
-                    var month = ("00" + (time.getMonth() + 1)).slice(-2),
-                        date = ("00" + time.getDate()).slice(-2),
-                        hours = ("00" + time.getHours()).slice(-2),
-                        minutes = ("00" + time.getMinutes()).slice(-2),
-                        seconds = ("00" + time.getSeconds()).slice(-2);
-
-                    var finalBookmarkTime = "Updated " +
-                        time.getFullYear() + "-" + month + "-" + date + " " +
-                        hours + ":" + minutes + ":" + seconds;
-
-                    if (readTime !== "") finalBookmarkTime += " \u00B7 " + readTime;
-
-                    return finalBookmarkTime;
-                },
-                toggleImage: function () {
-                    this.showImage = !this.showImage;
-                    if (this.showImage) localStorage.setItem('show-image', '');
-                    else localStorage.removeItem('show-image');
-                },
-                bookmarkImage: function (book) {
-                    if (!this.showImage) return "";
-                    if (book.imageURL === "") return "";
-                    return "background-image: url(" + book.imageURL + ")";
-                },
-                getDomainURL: function (url) {
-                    var hostname;
-
-                    if (url.indexOf("://") > -1) {
-                        hostname = url.split('/')[2];
-                    } else {
-                        hostname = url.split('/')[0];
-                    }
-
-                    hostname = hostname.split(':')[0];
-                    hostname = hostname.split('?')[0];
-
-                    return hostname;
-                },
-                showDialogError: function (title, msg) {
-                    this.dialog.isError = true;
-                    this.dialog.visible = true;
-                    this.dialog.loading = false;
-                    this.dialog.title = title;
-                    this.dialog.content = msg;
-                    this.dialog.mainChoice = "OK"
-                    this.dialog.secondChoice = ""
-                    this.dialog.mainAction = function () {
-                        app.dialog.visible = false;
-                    }
-                    this.dialog.secondAction = function () {}
-                },
-                logout: function () {
-                    Cookies.remove('token');
-                    location.href = '/login';
-                }
-            },
-            computed: {
-                overlayVisible: function () {
-                    return this.dialog.visible || this.tagCloud.visible;
-                },
-                gridColumns: function () {
-                    var nColumn = Math.round(this.windowWidth / 500),
-                        finalContent = [],
-                        currentColumn = 0;
-
-                    for (var i = 0; i < nColumn; i++) {
-                        finalContent.push([]);
-                    }
-
-                    for (var i = 0; i < this.bookmarks.length; i++) {
-                        var bookmark = this.bookmarks[i];
-                        bookmark.index = i;
-                        finalContent[currentColumn].push(bookmark);
-
-                        currentColumn += 1;
-                        if (currentColumn >= nColumn) currentColumn = 0;
-                    }
-
-                    return finalContent;
-                },
-                columnWidth: function () {
-                    var nColumn = Math.round(this.windowWidth / 500),
-                        percent = Math.round(100 / nColumn * 1000) / 1000;
-
-                    return percent + "%";
-                }
-            },
-            watch: {
-                overlayVisible: function (isVisible) {
-                    if (isVisible) document.body.className = "noscroll";
-                    else document.body.removeAttribute("class");
-                },
-                'inputBookmark.url': function (newURL) {
-                    if (newURL === "") this.clearInputBookmark();
-                    else this.$nextTick(function () {
-                        app.$refs.inputURL.focus();
+                showDialogAdd() {
+                    this.showDialog({
+                        title: 'New Bookmark',
+                        content: 'Save an URL to bookmark',
+                        fields: [{
+                            name: 'url',
+                            label: 'http://...',
+                        }],
+                        mainText: 'OK',
+                        secondText: 'Cancel',
+                        mainClick: (data) => {
+                            this.dialog.loading = true;
+                            rest.post('/api/bookmarks', {
+                                    url: data.url,
+                                })
+                                .then((response) => {
+                                    this.dialog.loading = false;
+                                    this.dialog.visible = false;
+                                    this.bookmarks.unshift(response.data);
+                                })
+                                .catch((error) => {
+                                    var errorMsg = (error.response ? error.response.data : error.message).trim();
+                                    this.showErrorDialog(errorMsg);
+                                });
+                        }
                     });
+                },
+                getHostname(url) {
+                    parser = document.createElement('a');
+                    parser.href = url;
+                    return parser.hostname;
                 }
             },
-            mounted: function () {
-                this.showImage = localStorage.getItem('show-image') !== null;
-                this.windowWidth = window.innerWidth;
-
-                window.addEventListener('resize', function () {
-                    app.windowWidth = window.innerWidth;
-                })
-
+            mounted() {
                 this.loadData();
             }
-        })
+        });
     </script>
 </body>
 

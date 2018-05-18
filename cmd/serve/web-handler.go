@@ -28,6 +28,8 @@ func newWebHandler(db dt.Database) (*webHandler, error) {
 		return nil, err
 	}
 
+	jwtKey = []byte("Test12345")
+
 	// Create templates
 	funcMap := template.FuncMap{
 		"html": func(s string) template.HTML {

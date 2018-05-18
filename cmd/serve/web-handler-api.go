@@ -97,18 +97,11 @@ func (h *webHandler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, p
 	err = json.NewDecoder(r.Body).Decode(&book)
 	checkError(err)
 
-	// Make sure URL valid
-	parsedURL, err := nurl.ParseRequestURI(book.URL)
-	if err != nil || parsedURL.Host == "" {
-		panic(fmt.Errorf("URL is not valid"))
-	}
-
-	// Clear UTM parameters from URL
-	book.URL = clearUTMParams(parsedURL)
-
 	// Fetch data from internet
-	article, _ := readability.Parse(book.URL, 10*time.Second)
+	article, err := readability.Parse(book.URL, 20*time.Second)
+	checkError(err)
 
+	book.URL = article.URL
 	book.ImageURL = article.Meta.Image
 	book.Author = article.Meta.Author
 	book.MinReadTime = article.Meta.MinReadTime
@@ -116,18 +109,9 @@ func (h *webHandler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, p
 	book.Content = article.Content
 	book.HTML = article.RawContent
 
-	// If title and excerpt doesnt have submitted value, use from article
-	if book.Title == "" {
-		book.Title = article.Meta.Title
-	}
-
-	if book.Excerpt == "" {
-		book.Excerpt = article.Meta.Excerpt
-	}
-
 	// Make sure title is not empty
 	if book.Title == "" {
-		book.Title = "Untitled"
+		book.Title = book.URL
 	}
 
 	// Save to database
