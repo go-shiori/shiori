@@ -45,6 +45,7 @@ func NewServeCmd(db dt.Database, dataDir string) *cobra.Command {
 			router.GET("/api/bookmarks", hdl.apiGetBookmarks)
 			router.GET("/api/tags", hdl.apiGetTags)
 			router.POST("/api/bookmarks", hdl.apiInsertBookmark)
+			router.PUT("/api/cache", hdl.apiUpdateCache)
 			router.PUT("/api/bookmarks", hdl.apiUpdateBookmark)
 			router.DELETE("/api/bookmarks", hdl.apiDeleteBookmark)
 

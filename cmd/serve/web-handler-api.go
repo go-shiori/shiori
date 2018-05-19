@@ -9,6 +9,7 @@ import (
 	"os"
 	fp "path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/RadhiFadlillah/shiori/model"
@@ -188,7 +189,7 @@ func (h *webHandler) apiUpdateBookmark(w http.ResponseWriter, r *http.Request, p
 	checkError(err)
 
 	// Validate input
-	if request.Title != "" {
+	if request.Title == "" {
 		panic(fmt.Errorf("Title must not empty"))
 	}
 
@@ -229,6 +230,84 @@ func (h *webHandler) apiUpdateBookmark(w http.ResponseWriter, r *http.Request, p
 
 	// Return new saved result
 	err = json.NewEncoder(w).Encode(&res[0])
+	checkError(err)
+}
+
+// apiUpdateCache is handler for PUT /api/cache
+func (h *webHandler) apiUpdateCache(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	// Check token
+	err := h.checkAPIToken(r)
+	checkError(err)
+
+	// Decode request
+	indices := []string{}
+	err = json.NewDecoder(r.Body).Decode(&indices)
+	checkError(err)
+
+	// Prepare wait group
+	wg := sync.WaitGroup{}
+
+	// Fetch bookmarks from database
+	books, err := h.db.GetBookmarks(false, indices...)
+	checkError(err)
+
+	// Download new cache data
+	for i, book := range books {
+		wg.Add(1)
+
+		go func(pos int, book model.Bookmark) {
+			defer wg.Done()
+
+			// Parse URL
+			parsedURL, err := nurl.ParseRequestURI(book.URL)
+			if err != nil || parsedURL.Host == "" {
+				return
+			}
+
+			// Fetch data from internet
+			article, err := readability.Parse(parsedURL, 10*time.Second)
+			if err != nil {
+				return
+			}
+
+			book.Excerpt = article.Meta.Excerpt
+			book.ImageURL = article.Meta.Image
+			book.Author = article.Meta.Author
+			book.MinReadTime = article.Meta.MinReadTime
+			book.MaxReadTime = article.Meta.MaxReadTime
+			book.Content = article.Content
+			book.HTML = article.RawContent
+
+			// Make sure title is not empty
+			if article.Meta.Title != "" {
+				book.Title = article.Meta.Title
+			}
+
+			// Check if book has content
+			if book.Content != "" {
+				book.HasContent = true
+			}
+
+			// Update bookmark image in local disk
+			imgPath := fp.Join(h.dataDir, "thumb", fmt.Sprintf("%d", book.ID))
+			err = downloadFile(article.Meta.Image, imgPath, 20*time.Second)
+			if err == nil {
+				book.ImageURL = fmt.Sprintf("/thumb/%d", book.ID)
+			}
+
+			books[pos] = book
+		}(i, book)
+	}
+
+	// Wait until all finished
+	wg.Wait()
+
+	// Update database
+	res, err := h.db.UpdateBookmarks(books...)
+	checkError(err)
+
+	// Return new saved result
+	err = json.NewEncoder(w).Encode(&res)
 	checkError(err)
 }
 
