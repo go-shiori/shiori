@@ -10,7 +10,7 @@ var YlaDialog = function () {
                     <slot>
                         <p class="yla-dialog__content">{{content}}</p>
                         <template v-for="(field,index) in formFields">
-                            <p v-if="showLabel">{{field.label}} :</p>
+                            <p v-if="showLabel" class="label">{{field.label}} :</p>
                             <textarea v-if="field.type === 'area'"
                                       :style="{gridColumnEnd: showLabel ? null : 'span 2'}" 
                                       :placeholder="field.label" 

@@ -72,11 +72,8 @@
                         <a class="url" title="View original" :href="book.url" target="_blank">
                             {{getHostname(book.url)}}
                         </a>
-                        <a title="Edit bookmark">
+                        <a title="Edit bookmark" @click="showDialogEdit(idx)">
                             <i class="fas fa-pencil-alt"></i>
-                        </a>
-                        <a title="Edit tags">
-                            <i class="fas fa-tags"></i>
                         </a>
                         <a title="Delete bookmark" @click="showDialogDelete([idx])">
                             <i class="fas fa-trash-alt"></i>
@@ -170,6 +167,63 @@
                                     this.dialog.loading = false;
                                     this.dialog.visible = false;
                                     this.bookmarks.splice(0, 0, response.data);
+                                })
+                                .catch((error) => {
+                                    var errorMsg = (error.response ? error.response.data : error.message).trim();
+                                    this.showErrorDialog(errorMsg);
+                                });
+                        }
+                    });
+                },
+                showDialogEdit(idx) {
+                    var book = JSON.parse(JSON.stringify(this.bookmarks[idx])),
+                        strTags = book.tags.map(tag => tag.name).join(' ');
+
+                    this.showDialog({
+                        title: 'Edit Bookmark',
+                        content: 'Edit the bookmark\'s data',
+                        showLabel: true,
+                        fields: [{
+                            name: 'tags',
+                            label: 'Tags',
+                            value: strTags,
+                        }, {
+                            name: 'title',
+                            label: 'Title',
+                            value: book.title,
+                        }, {
+                            name: 'excerpt',
+                            label: 'Excerpt',
+                            type: 'area',
+                            value: book.excerpt,
+                        }],
+                        mainText: 'OK',
+                        secondText: 'Cancel',
+                        mainClick: (data) => {
+                            // Validate input
+                            if (data.title.trim() === '') return;
+
+                            // Prepare tags
+                            var tags = data.tags
+                                .toLowerCase()
+                                .split(/\s+/g).map(tag => {
+                                    return {
+                                        name: tag
+                                    };
+                                });
+
+                            // Set new data
+                            book.title = data.title.trim();
+                            book.excerpt = data.excerpt.trim();
+                            book.tags = tags;
+
+                            // Send data
+                            this.dialog.loading = true;
+                            rest.put('/api/bookmarks', book)
+                                .then((response) => {
+                                    this.dialog.loading = false;
+                                    this.dialog.visible = false;
+                                    this.bookmarks.splice(idx, 1, response.data);
                                 })
                                 .catch((error) => {
                                     var errorMsg = (error.response ? error.response.data : error.message).trim();

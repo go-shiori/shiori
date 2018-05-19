@@ -408,6 +408,7 @@ func (db *SQLiteDatabase) UpdateBookmarks(bookmarks ...model.Bookmark) (result [
 
 	result = []model.Bookmark{}
 	for _, book := range bookmarks {
+		// Save bookmark
 		stmtUpdateBookmark.MustExec(
 			book.URL,
 			book.Title,
@@ -419,12 +420,14 @@ func (db *SQLiteDatabase) UpdateBookmarks(bookmarks ...model.Bookmark) (result [
 			book.Modified,
 			book.ID)
 
+		// Save bookmark content
 		stmtUpdateBookmarkContent.MustExec(
 			book.Title,
 			book.Content,
 			book.HTML,
 			book.ID)
 
+		// Save bookmark tags
 		newTags := []model.Tag{}
 		for _, tag := range book.Tags {
 			if tag.Deleted {

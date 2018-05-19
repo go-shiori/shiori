@@ -182,98 +182,48 @@ func (h *webHandler) apiUpdateBookmark(w http.ResponseWriter, r *http.Request, p
 	err := h.checkAPIToken(r)
 	checkError(err)
 
-	// Get url queries
-	_, dontOverwrite := r.URL.Query()["dont-overwrite"]
-
 	// Decode request
 	request := model.Bookmark{}
 	err = json.NewDecoder(r.Body).Decode(&request)
 	checkError(err)
 
-	// Make sure URL valid
-	parsedURL, err := nurl.ParseRequestURI(request.URL)
-	if err != nil || parsedURL.Host == "" {
-		panic(fmt.Errorf("URL is not valid"))
+	// Validate input
+	if request.Title != "" {
+		panic(fmt.Errorf("Title must not empty"))
 	}
-	clearUTMParams(parsedURL)
 
 	// Get existing bookmark from database
 	bookmarks, err := h.db.GetBookmarks(true, fmt.Sprintf("%d", request.ID))
 	checkError(err)
-
 	if len(bookmarks) == 0 {
 		panic(fmt.Errorf("No bookmark with matching index"))
 	}
 
+	// Set new bookmark data
 	book := bookmarks[0]
-	book.URL = parsedURL.String()
+	book.Title = request.Title
+	book.Excerpt = request.Excerpt
 
-	// Fetch data from internet
-	article, err := readability.Parse(parsedURL, 10*time.Second)
-	checkError(err)
-
-	book.ImageURL = article.Meta.Image
-	book.Author = article.Meta.Author
-	book.MinReadTime = article.Meta.MinReadTime
-	book.MaxReadTime = article.Meta.MaxReadTime
-	book.Content = article.Content
-	book.HTML = article.RawContent
-
-	if !dontOverwrite {
-		book.Title = article.Meta.Title
-		book.Excerpt = article.Meta.Excerpt
+	// Set new tags
+	for i := range book.Tags {
+		book.Tags[i].Deleted = true
 	}
 
-	// Check if user submit his own title or excerpt
-	if request.Title != "" {
-		book.Title = request.Title
-	}
-
-	if request.Excerpt != "" {
-		book.Excerpt = request.Excerpt
-	}
-
-	// Make sure title is not empty
-	if book.Title == "" {
-		book.Title = "Untitled"
-	}
-
-	// Create new tags from request
-	addedTags := make(map[string]struct{})
-	deletedTags := make(map[string]struct{})
-	for _, tag := range request.Tags {
-		tagName := strings.ToLower(tag.Name)
-		tagName = strings.TrimSpace(tagName)
-
-		if strings.HasPrefix(tagName, "-") {
-			tagName = strings.TrimPrefix(tagName, "-")
-			deletedTags[tagName] = struct{}{}
-		} else {
-			addedTags[tagName] = struct{}{}
-		}
-	}
-
-	newTags := []model.Tag{}
-	for _, tag := range book.Tags {
-		if _, isDeleted := deletedTags[tag.Name]; isDeleted {
-			tag.Deleted = true
+	for _, newTag := range request.Tags {
+		for i, oldTag := range book.Tags {
+			if newTag.Name == oldTag.Name {
+				newTag.ID = oldTag.ID
+				book.Tags[i].Deleted = false
+				break
+			}
 		}
 
-		if _, alreadyExist := addedTags[tag.Name]; alreadyExist {
-			delete(addedTags, tag.Name)
+		if newTag.ID == 0 {
+			book.Tags = append(book.Tags, newTag)
 		}
-
-		newTags = append(newTags, tag)
 	}
-
-	for tag := range addedTags {
-		newTags = append(newTags, model.Tag{Name: tag})
-	}
-
-	book.Tags = newTags
 
 	// Update database
-	book.Modified = time.Now().UTC().Format("2006-01-02 15:04:05")
 	res, err := h.db.UpdateBookmarks(book)
 	checkError(err)
 
