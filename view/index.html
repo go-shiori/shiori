@@ -62,8 +62,8 @@
                 </a>
             </div>
             <div id="grid">
-                <div class="bookmark" v-for="book in bookmarks">
-                    <a class="bookmark-content" :href="'/bookmark/'+book.id" target="_blank">
+                <div class="bookmark" v-for="(book, idx) in bookmarks">
+                    <a class="bookmark-content" :href="book.hasContent ? '/bookmark/'+book.id : null" target="_blank">
                         <img v-if="book.imageURL !== ''" :src="book.imageURL">
                         <p class="title">{{book.title}}</p>
                         <p class="excerpt" v-if="book.imageURL === ''">{{book.excerpt}}</p>
@@ -78,7 +78,7 @@
                         <a title="Edit tags">
                             <i class="fas fa-tags"></i>
                         </a>
-                        <a title="Delete bookmark">
+                        <a title="Delete bookmark" @click="showDialogDelete([idx])">
                             <i class="fas fa-trash-alt"></i>
                         </a>
                         <a title="Update cache">
@@ -86,6 +86,7 @@
                         </a>
                     </div>
                 </div>
+                <div></div>
             </div>
         </div>
         <yla-dialog v-bind="dialog"></yla-dialog>
@@ -119,7 +120,7 @@
                         .then((response) => {
                             this.loading = false;
                             this.bookmarks = response.data;
-                            console.log(JSON.stringify(response.data));
+                            console.log(JSON.stringify(response.data, '', '  '));
                         })
                         .catch((error) => {
                             var errorMsg = (error.response ? error.response.data : error.message).trim();
@@ -130,22 +131,92 @@
                 showDialogAdd() {
                     this.showDialog({
                         title: 'New Bookmark',
-                        content: 'Save an URL to bookmark',
+                        content: 'Create a new bookmark',
                         fields: [{
                             name: 'url',
-                            label: 'http://...',
+                            label: 'Url, start with http://...',
+                        }, {
+                            name: 'tags',
+                            label: 'Space separated tags (optional)'
+                        }, {
+                            name: 'title',
+                            label: 'Custom title (optional)'
+                        }, {
+                            name: 'excerpt',
+                            label: 'Custom excerpt (optional)',
+                            type: 'area'
                         }],
                         mainText: 'OK',
                         secondText: 'Cancel',
                         mainClick: (data) => {
+                            // Prepare tags
+                            var tags = data.tags
+                                .toLowerCase()
+                                .split(/\s+/g).map(tag => {
+                                    return {
+                                        name: tag
+                                    };
+                                });
+
+                            // Send data
                             this.dialog.loading = true;
                             rest.post('/api/bookmarks', {
-                                    url: data.url,
+                                    url: data.url.trim(),
+                                    title: data.title.trim(),
+                                    excerpt: data.excerpt.trim(),
+                                    tags: tags
                                 })
                                 .then((response) => {
                                     this.dialog.loading = false;
                                     this.dialog.visible = false;
-                                    this.bookmarks.unshift(response.data);
+                                    this.bookmarks.splice(0, 0, response.data);
+                                })
+                                .catch((error) => {
+                                    var errorMsg = (error.response ? error.response.data : error.message).trim();
+                                    this.showErrorDialog(errorMsg);
+                                });
+                        }
+                    });
+                },
+                showDialogDelete(indices) {
+                    // Check and prepare indices
+                    if (!(indices instanceof Array)) return;
+                    if (indices.length === 0) return;
+                    indices.sort();
+
+                    // Create title andd content
+                    var title = "Delete Bookmarks",
+                        content = "Delete the selected bookmarks ? This action is irreversible.";
+
+                    if (indices.length === 1) {
+                        var book = this.bookmarks[indices[0]];
+                        title = "Delete Bookmark";
+                        content = "Are you sure ? This action is irreversible.";
+                    }
+
+                    // Get list of bookmark ID
+                    var listID = [];
+                    for (var i = 0; i < indices.length; i++) {
+                        listID.push('' + this.bookmarks[indices[i]].id);
+                    }
+
+                    // Show dialog
+                    this.showDialog({
+                        title: title,
+                        content: content,
+                        mainText: 'Yes',
+                        secondText: 'No',
+                        mainClick: () => {
+                            this.dialog.loading = true;
+                            rest.delete('/api/bookmarks/', {
+                                    data: listID
+                                })
+                                .then((response) => {
+                                    this.dialog.loading = false;
+                                    this.dialog.visible = false;
+                                    for (var i = indices.length - 1; i >= 0; i--) {
+                                        this.bookmarks.splice(indices[i], 1);
+                                    }
                                 })
                                 .catch((error) => {
                                     var errorMsg = (error.response ? error.response.data : error.message).trim();
@@ -157,7 +228,7 @@
                 getHostname(url) {
                     parser = document.createElement('a');
                     parser.href = url;
-                    return parser.hostname;
+                    return parser.hostname.replace(/^www\./g, '');
                 }
             },
             mounted() {

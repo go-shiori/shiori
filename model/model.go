@@ -21,6 +21,7 @@ type Bookmark struct {
 	Modified    string `db:"modified"      json:"modified"`
 	Content     string `db:"content"       json:"-"`
 	HTML        string `db:"html"          json:"-"`
+	HasContent  bool   `db:"has_content"   json:"hasContent"`
 	Tags        []Tag  `json:"tags"`
 }
 

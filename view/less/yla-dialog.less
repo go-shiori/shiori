@@ -48,7 +48,6 @@
             max-height: 100%;
             min-height: 80px;
             min-width: 0;
-            font-size: 0.9em;
             overflow: auto;
             grid-template-columns: max-content 1fr;
             align-items: baseline;
@@ -57,11 +56,15 @@
                 grid-column-start: 1;
                 grid-column-end: 3;
                 align-self: baseline;
+                font-size: 0.9em;
             }
-            >input {
+            >input,
+            >textarea {
                 color: @color;
                 padding: 8px;
                 border: 1px solid @border;
+                font-size: 0.9em;
+                min-height: 37px;
             }
             >.suggestion {
                 position: absolute;
@@ -82,6 +85,7 @@
                 padding: 0 8px;
                 font-size: 0.9em;
                 font-weight: 600;
+                border-bottom: 1px dashed transparent;
                 &:hover {
                     color: @main;
                 }

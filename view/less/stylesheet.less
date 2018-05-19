@@ -204,7 +204,12 @@ a {
             grid-template-rows: auto;
             grid-template-columns: repeat(4, 1fr);
             grid-gap: 16px;
-            padding: 16px;
+            padding: 16px 16px 0;
+            >div:last-child {
+                grid-column-start: 1;
+                grid-column-end: -1;
+                height: 1px;
+            }
             .bookmark {
                 display: flex;
                 flex-flow: column nowrap;
@@ -212,10 +217,8 @@ a {
                 border: 1px solid @border;
                 background-color: @contentBg;
                 height: 100%;
-                &:last-child {
-                    margin-bottom: 16px;
-                }
-                &:hover {
+                &:hover,
+                &:focus {
                     .bookmark-menu>a {
                         display: block;
                     }
@@ -224,30 +227,37 @@ a {
                     display: block;
                     position: relative;
                     flex: 1;
-                    &:hover,
-                    &:focus {
-                        .title {
-                            color: @main;
+                    cursor: default;
+                    &[href] {
+                        cursor: pointer;
+                        &:hover,
+                        &:focus {
+                            .title {
+                                color: @main;
+                            }
                         }
-                    }
-                    >*:not(:last-child) {
-                        margin-bottom: 8px;
                     }
                     img {
                         max-width: 100%;
+                        margin-bottom: 8px;
                     }
                     .title {
+                        text-overflow: ellipsis;
+                        word-wrap: break-word;
+                        overflow: hidden;
                         font-size: 1.2em;
+                        line-height: 1.3em;
+                        max-height: 5.2em;
                         font-weight: 600;
                         padding: 0 16px;
                         color: @color;
                         &:first-child {
-                            padding-top: 16px;
+                            margin-top: 16px;
                         }
                     }
                     .excerpt {
                         color: @color;
-                        padding: 0 16px;
+                        padding: 8px 16px 0;
                         text-overflow: ellipsis;
                         word-wrap: break-word;
                         overflow: hidden;

@@ -100,26 +100,46 @@ func (h *webHandler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, p
 	err = json.NewDecoder(r.Body).Decode(&book)
 	checkError(err)
 
+	// Make sure URL valid
+	parsedURL, err := nurl.ParseRequestURI(book.URL)
+	if err != nil || parsedURL.Host == "" {
+		panic(fmt.Errorf("URL is not valid"))
+	}
+
+	// Clear UTM parameter from URL
+	clearUTMParams(parsedURL)
+	book.URL = parsedURL.String()
+
 	// Get new bookmark id
 	book.ID, err = h.db.GetNewID("bookmark")
 	checkError(err)
 
 	// Fetch data from internet
-	article, err := readability.Parse(book.URL, 20*time.Second)
-	checkError(err)
+	article, _ := readability.Parse(parsedURL, 20*time.Second)
 
-	book.URL = article.URL
-	book.Title = article.Meta.Title
-	book.Excerpt = article.Meta.Excerpt
 	book.Author = article.Meta.Author
 	book.MinReadTime = article.Meta.MinReadTime
 	book.MaxReadTime = article.Meta.MaxReadTime
 	book.Content = article.Content
 	book.HTML = article.RawContent
 
+	// If title and excerpt doesnt have submitted value, use from article
+	if book.Title == "" {
+		book.Title = article.Meta.Title
+	}
+
+	if book.Excerpt == "" {
+		book.Excerpt = article.Meta.Excerpt
+	}
+
 	// Make sure title is not empty
 	if book.Title == "" {
 		book.Title = book.URL
+	}
+
+	// Check if book has content
+	if book.Content != "" {
+		book.HasContent = true
 	}
 
 	// Save bookmark image to local disk
@@ -136,6 +156,24 @@ func (h *webHandler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, p
 	// Return new saved result
 	err = json.NewEncoder(w).Encode(&book)
 	checkError(err)
+}
+
+// apiDeleteBookmarks is handler for DELETE /api/bookmark
+func (h *webHandler) apiDeleteBookmark(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	// Check token
+	err := h.checkAPIToken(r)
+	checkError(err)
+
+	// Decode request
+	indices := []string{}
+	err = json.NewDecoder(r.Body).Decode(&indices)
+	checkError(err)
+
+	// Delete bookmarks
+	err = h.db.DeleteBookmarks(indices...)
+	checkError(err)
+
+	fmt.Fprint(w, 1)
 }
 
 // apiUpdateBookmark is handler for PUT /api/bookmark
@@ -157,6 +195,7 @@ func (h *webHandler) apiUpdateBookmark(w http.ResponseWriter, r *http.Request, p
 	if err != nil || parsedURL.Host == "" {
 		panic(fmt.Errorf("URL is not valid"))
 	}
+	clearUTMParams(parsedURL)
 
 	// Get existing bookmark from database
 	bookmarks, err := h.db.GetBookmarks(true, fmt.Sprintf("%d", request.ID))
@@ -167,10 +206,10 @@ func (h *webHandler) apiUpdateBookmark(w http.ResponseWriter, r *http.Request, p
 	}
 
 	book := bookmarks[0]
-	book.URL = request.URL
+	book.URL = parsedURL.String()
 
 	// Fetch data from internet
-	article, err := readability.Parse(book.URL, 10*time.Second)
+	article, err := readability.Parse(parsedURL, 10*time.Second)
 	checkError(err)
 
 	book.ImageURL = article.Meta.Image
@@ -243,24 +282,6 @@ func (h *webHandler) apiUpdateBookmark(w http.ResponseWriter, r *http.Request, p
 	checkError(err)
 }
 
-// apiDeleteBookmarks is handler for DELETE /api/bookmark
-func (h *webHandler) apiDeleteBookmark(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	// Check token
-	err := h.checkAPIToken(r)
-	checkError(err)
-
-	// Decode request
-	indices := []string{}
-	err = json.NewDecoder(r.Body).Decode(&indices)
-	checkError(err)
-
-	// Delete bookmarks
-	err = h.db.DeleteBookmarks(indices...)
-	checkError(err)
-
-	fmt.Fprint(w, 1)
-}
-
 func downloadFile(url, dstPath string, timeout time.Duration) error {
 	// Fetch data from URL
 	client := &http.Client{Timeout: timeout}
@@ -290,4 +311,15 @@ func downloadFile(url, dstPath string, timeout time.Duration) error {
 	}
 
 	return nil
+}
+
+func clearUTMParams(url *nurl.URL) {
+	newQuery := nurl.Values{}
+	for key, value := range url.Query() {
+		if !strings.HasPrefix(key, "utm_") {
+			newQuery[key] = value
+		}
+	}
+
+	url.RawQuery = newQuery.Encode()
 }

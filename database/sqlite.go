@@ -181,12 +181,27 @@ func (db *SQLiteDatabase) GetBookmarks(withContent bool, indices ...string) ([]m
 		return nil, err
 	}
 
+	// Create query
+	query := `SELECT 
+		b.id, b.url, b.title, b.image_url, b.excerpt, b.author, 
+		b.min_read_time, b.max_read_time, b.modified, bc.content <> "" has_content
+		FROM bookmark b
+		LEFT JOIN bookmark_content bc ON bc.docid = b.id`
+
+	if withContent {
+		query = `SELECT 
+			b.id, b.url, b.title, b.image_url, b.excerpt, b.author, 
+			b.min_read_time, b.max_read_time, b.modified, bc.content, bc.html
+			FROM bookmark b
+			LEFT JOIN bookmark_content bc ON bc.docid = b.id`
+	}
+
 	// Prepare where clause
 	args := []interface{}{}
 	whereClause := " WHERE 1"
 
 	if len(listIndex) > 0 {
-		whereClause = " WHERE id IN ("
+		whereClause = " WHERE b.id IN ("
 		for _, idx := range listIndex {
 			args = append(args, idx)
 			whereClause += "?,"
@@ -197,45 +212,27 @@ func (db *SQLiteDatabase) GetBookmarks(withContent bool, indices ...string) ([]m
 	}
 
 	// Fetch bookmarks
-	query := `SELECT id, 
-		url, title, image_url, excerpt, author, 
-		min_read_time, max_read_time, modified
-		FROM bookmark` + whereClause
-
+	query += whereClause
 	bookmarks := []model.Bookmark{}
 	err = db.Select(&bookmarks, query, args...)
 	if err != nil && err != sql.ErrNoRows {
 		return nil, err
 	}
 
-	// Fetch tags and contents for each bookmarks
+	// Fetch tags for each bookmarks
 	stmtGetTags, err := db.Preparex(`SELECT t.id, t.name 
 		FROM bookmark_tag bt LEFT JOIN tag t ON bt.tag_id = t.id
 		WHERE bt.bookmark_id = ? ORDER BY t.name`)
 	if err != nil {
 		return nil, err
 	}
-
-	stmtGetContent, err := db.Preparex(`SELECT title, content, html FROM bookmark_content WHERE docid = ?`)
-	if err != nil {
-		return nil, err
-	}
-
 	defer stmtGetTags.Close()
-	defer stmtGetContent.Close()
 
 	for i, book := range bookmarks {
 		book.Tags = []model.Tag{}
 		err = stmtGetTags.Select(&book.Tags, book.ID)
 		if err != nil && err != sql.ErrNoRows {
 			return nil, err
-		}
-
-		if withContent {
-			err = stmtGetContent.Get(&book, book.ID)
-			if err != nil && err != sql.ErrNoRows {
-				return nil, err
-			}
 		}
 
 		bookmarks[i] = book
@@ -300,22 +297,25 @@ func (db *SQLiteDatabase) DeleteBookmarks(indices ...string) (err error) {
 
 // SearchBookmarks search bookmarks by the keyword or tags.
 func (db *SQLiteDatabase) SearchBookmarks(orderLatest bool, keyword string, tags ...string) ([]model.Bookmark, error) {
-	// Create initial variable
-	keyword = strings.TrimSpace(keyword)
-	whereClause := "WHERE 1"
+	// Prepare query
 	args := []interface{}{}
+	query := `SELECT 
+		b.id, b.url, b.title, b.image_url, b.excerpt, b.author, 
+		b.min_read_time, b.max_read_time, b.modified, bc.content <> "" has_content
+		FROM bookmark b
+		LEFT JOIN bookmark_content bc ON bc.docid = b.id
+		WHERE 1`
 
 	// Create where clause for keyword
+	keyword = strings.TrimSpace(keyword)
 	if keyword != "" {
-		whereClause += ` AND (url LIKE ? OR id IN (
-			SELECT docid id FROM bookmark_content 
-			WHERE title MATCH ? OR content MATCH ?))`
+		query += ` AND (b.url LIKE ? OR bc.title MATCH ? OR bc.content MATCH ?)`
 		args = append(args, "%"+keyword+"%", keyword, keyword)
 	}
 
 	// Create where clause for tags
 	if len(tags) > 0 {
-		whereTagClause := ` AND id IN (
+		whereTagClause := ` AND b.id IN (
 			SELECT bookmark_id FROM bookmark_tag 
 			WHERE tag_id IN (SELECT id FROM tag WHERE name IN (`
 
@@ -328,19 +328,15 @@ func (db *SQLiteDatabase) SearchBookmarks(orderLatest bool, keyword string, tags
 		whereTagClause += `)) GROUP BY bookmark_id HAVING COUNT(bookmark_id) >= ?)`
 		args = append(args, len(tags))
 
-		whereClause += whereTagClause
+		query += whereTagClause
 	}
 
-	// Search bookmarks
-	query := `SELECT id, 
-		url, title, image_url, excerpt, author, 
-		min_read_time, max_read_time, modified
-		FROM bookmark ` + whereClause
-
+	// Set order clause
 	if orderLatest {
 		query += ` ORDER BY id DESC`
 	}
 
+	// Fetch bookmarks
 	bookmarks := []model.Bookmark{}
 	err := db.Select(&bookmarks, query, args...)
 	if err != nil && err != sql.ErrNoRows {

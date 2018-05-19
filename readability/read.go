@@ -1131,24 +1131,9 @@ func estimateReadTime(articleContent *goquery.Selection) (int, int) {
 }
 
 // Parse an URL to readability format
-func Parse(url string, timeout time.Duration) (Article, error) {
-	// Make sure url is valid
-	parsedURL, err := nurl.ParseRequestURI(url)
-	if err != nil {
-		return Article{}, err
-	}
-
-	// Clear UTM parameters from URL
-	newQuery := nurl.Values{}
-	for key, value := range parsedURL.Query() {
-		if !strings.HasPrefix(key, "utm_") {
-			newQuery[key] = value
-		}
-	}
-	parsedURL.RawQuery = newQuery.Encode()
-
+func Parse(url *nurl.URL, timeout time.Duration) (Article, error) {
 	// Fetch page
-	doc, err := fetchURL(parsedURL, timeout)
+	doc, err := fetchURL(url, timeout)
 	if err != nil {
 		return Article{}, err
 	}
@@ -1165,7 +1150,7 @@ func Parse(url string, timeout time.Duration) (Article, error) {
 	}
 
 	// Post process content
-	postProcessContent(articleContent, parsedURL)
+	postProcessContent(articleContent, url)
 
 	// Estimate read time
 	minTime, maxTime := estimateReadTime(articleContent)
@@ -1188,7 +1173,7 @@ func Parse(url string, timeout time.Duration) (Article, error) {
 	htmlContent := getHTMLContent(articleContent)
 
 	article := Article{
-		URL:        parsedURL.String(),
+		URL:        url.String(),
 		Meta:       metadata,
 		Content:    textContent,
 		RawContent: htmlContent,

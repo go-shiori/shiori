@@ -11,7 +11,17 @@ var YlaDialog = function () {
                         <p class="yla-dialog__content">{{content}}</p>
                         <template v-for="(field,index) in formFields">
                             <p v-if="showLabel">{{field.label}} :</p>
-                            <input :style="{gridColumnEnd: showLabel ? null : 'span 2'}" 
+                            <textarea v-if="field.type === 'area'"
+                                      :style="{gridColumnEnd: showLabel ? null : 'span 2'}" 
+                                      :placeholder="field.label" 
+                                      :tabindex="index+1"
+                                      ref="input"
+                                      v-model="field.value" 
+                                      @focus="$event.target.select()"
+                                      @keyup="handleInput(index)">
+                            </textarea>
+                            <input v-else
+                                   :style="{gridColumnEnd: showLabel ? null : 'span 2'}" 
                                    :type="fieldType(field)" 
                                    :placeholder="field.label" 
                                    :tabindex="index+1"
