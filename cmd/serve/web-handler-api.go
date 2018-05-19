@@ -166,13 +166,19 @@ func (h *webHandler) apiDeleteBookmark(w http.ResponseWriter, r *http.Request, p
 	checkError(err)
 
 	// Decode request
-	indices := []string{}
-	err = json.NewDecoder(r.Body).Decode(&indices)
+	ids := []int{}
+	err = json.NewDecoder(r.Body).Decode(&ids)
 	checkError(err)
 
 	// Delete bookmarks
-	err = h.db.DeleteBookmarks(indices...)
+	err = h.db.DeleteBookmarks(ids...)
 	checkError(err)
+
+	// Delete thumbnail image from local disk
+	for _, id := range ids {
+		imgPath := fp.Join(h.dataDir, "thumb", fmt.Sprintf("%d", id))
+		os.Remove(imgPath)
+	}
 
 	fmt.Fprint(w, 1)
 }
@@ -194,7 +200,7 @@ func (h *webHandler) apiUpdateBookmark(w http.ResponseWriter, r *http.Request, p
 	}
 
 	// Get existing bookmark from database
-	bookmarks, err := h.db.GetBookmarks(true, fmt.Sprintf("%d", request.ID))
+	bookmarks, err := h.db.GetBookmarks(true, request.ID)
 	checkError(err)
 	if len(bookmarks) == 0 {
 		panic(fmt.Errorf("No bookmark with matching index"))
@@ -240,15 +246,15 @@ func (h *webHandler) apiUpdateCache(w http.ResponseWriter, r *http.Request, ps h
 	checkError(err)
 
 	// Decode request
-	indices := []string{}
-	err = json.NewDecoder(r.Body).Decode(&indices)
+	ids := []int{}
+	err = json.NewDecoder(r.Body).Decode(&ids)
 	checkError(err)
 
 	// Prepare wait group
 	wg := sync.WaitGroup{}
 
 	// Fetch bookmarks from database
-	books, err := h.db.GetBookmarks(false, indices...)
+	books, err := h.db.GetBookmarks(false, ids...)
 	checkError(err)
 
 	// Download new cache data
@@ -265,13 +271,12 @@ func (h *webHandler) apiUpdateCache(w http.ResponseWriter, r *http.Request, ps h
 			}
 
 			// Fetch data from internet
-			article, err := readability.Parse(parsedURL, 10*time.Second)
+			article, err := readability.Parse(parsedURL, 20*time.Second)
 			if err != nil {
 				return
 			}
 
 			book.Excerpt = article.Meta.Excerpt
-			book.ImageURL = article.Meta.Image
 			book.Author = article.Meta.Author
 			book.MinReadTime = article.Meta.MinReadTime
 			book.MaxReadTime = article.Meta.MaxReadTime

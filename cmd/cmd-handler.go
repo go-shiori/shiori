@@ -22,7 +22,8 @@ import (
 
 // cmdHandler is handler for all action in AccountCmd
 type cmdHandler struct {
-	db dt.Database
+	db      dt.Database
+	dataDir string
 }
 
 // addBookmark is handler for adding new bookmark
@@ -42,15 +43,23 @@ func (h *cmdHandler) addBookmark(cmd *cobra.Command, args []string) {
 	}
 
 	// Clear UTM parameters from URL
-	url = clearUTMParams(parsedURL)
+	clearUTMParams(parsedURL)
 
 	// Create bookmark item
 	book := model.Bookmark{
-		URL:     url,
+		URL:     parsedURL.String(),
 		Title:   normalizeSpace(title),
 		Excerpt: normalizeSpace(excerpt),
 	}
 
+	// Get new bookmark id
+	book.ID, err = h.db.GetNewID("bookmark")
+	if err != nil {
+		cError.Println(err)
+		return
+	}
+
+	// Set bookmark tags
 	book.Tags = make([]model.Tag, len(tags))
 	for i, tag := range tags {
 		book.Tags[i].Name = strings.TrimSpace(tag)
@@ -58,9 +67,8 @@ func (h *cmdHandler) addBookmark(cmd *cobra.Command, args []string) {
 
 	// If it's not offline mode, fetch data from internet
 	if !offline {
-		article, _ := readability.Parse(book.URL, 10*time.Second)
+		article, _ := readability.Parse(parsedURL, 20*time.Second)
 
-		book.ImageURL = article.Meta.Image
 		book.Author = article.Meta.Author
 		book.MinReadTime = article.Meta.MinReadTime
 		book.MaxReadTime = article.Meta.MaxReadTime
@@ -75,14 +83,21 @@ func (h *cmdHandler) addBookmark(cmd *cobra.Command, args []string) {
 		if book.Excerpt == "" {
 			book.Excerpt = article.Meta.Excerpt
 		}
+
+		// Save bookmark image to local disk
+		imgPath := fp.Join(h.dataDir, "thumb", fmt.Sprintf("%d", book.ID))
+		err = downloadFile(article.Meta.Image, imgPath, 20*time.Second)
+		if err == nil {
+			book.ImageURL = fmt.Sprintf("/thumb/%d", book.ID)
+		}
 	}
 
 	// Make sure title is not empty
 	if book.Title == "" {
-		book.Title = "Untitled"
+		book.Title = book.URL
 	}
 
-	// Save to database
+	// Save bookmark to database
 	book.ID, err = h.db.CreateBookmark(book)
 	if err != nil {
 		cError.Println(err)
@@ -98,8 +113,15 @@ func (h *cmdHandler) printBookmarks(cmd *cobra.Command, args []string) {
 	useJSON, _ := cmd.Flags().GetBool("json")
 	indexOnly, _ := cmd.Flags().GetBool("index-only")
 
+	// Convert args to ids
+	ids, err := parseIndexList(args)
+	if err != nil {
+		cError.Println(err)
+		return
+	}
+
 	// Read bookmarks from database
-	bookmarks, err := h.db.GetBookmarks(false, args...)
+	bookmarks, err := h.db.GetBookmarks(false, ids...)
 	if err != nil {
 		cError.Println(err)
 		return
@@ -199,6 +221,13 @@ func (h *cmdHandler) updateBookmarks(cmd *cobra.Command, args []string) {
 	title = normalizeSpace(title)
 	excerpt = normalizeSpace(excerpt)
 
+	// Convert args to ids
+	ids, err := parseIndexList(args)
+	if err != nil {
+		cError.Println(err)
+		return
+	}
+
 	// Check if --url flag is used
 	if cmd.Flags().Changed("url") {
 		// Make sure URL is valid
@@ -209,17 +238,12 @@ func (h *cmdHandler) updateBookmarks(cmd *cobra.Command, args []string) {
 		}
 
 		// Clear UTM parameters from URL
-		url = clearUTMParams(parsedURL)
+		clearUTMParams(parsedURL)
+		url = parsedURL.String()
 
 		// Make sure there is only one arguments
-		if len(args) != 1 {
+		if len(ids) != 1 {
 			cError.Println("Update only accepts one index while using --url flag")
-			return
-		}
-
-		idx, err := strconv.Atoi(args[0])
-		if err != nil || idx < -1 {
-			cError.Println("Index is not valid")
 			return
 		}
 	}
@@ -238,10 +262,10 @@ func (h *cmdHandler) updateBookmarks(cmd *cobra.Command, args []string) {
 	}
 
 	// Prepare wait group
-	waitGroup := sync.WaitGroup{}
+	wg := sync.WaitGroup{}
 
 	// Fetch bookmarks from database
-	bookmarks, err := h.db.GetBookmarks(true, args...)
+	bookmarks, err := h.db.GetBookmarks(true, ids...)
 	if err != nil {
 		cError.Println(err)
 		return
@@ -261,12 +285,12 @@ func (h *cmdHandler) updateBookmarks(cmd *cobra.Command, args []string) {
 		bar := uiprogress.AddBar(len(bookmarks)).AppendCompleted().PrependElapsed()
 
 		for i, book := range bookmarks {
-			waitGroup.Add(1)
+			wg.Add(1)
 
 			go func(pos int, book model.Bookmark) {
 				defer func() {
 					bar.Incr()
-					waitGroup.Done()
+					wg.Done()
 				}()
 
 				// If used, use submitted URL
@@ -274,13 +298,18 @@ func (h *cmdHandler) updateBookmarks(cmd *cobra.Command, args []string) {
 					book.URL = url
 				}
 
+				// Parse URL
+				parsedURL, err := nurl.ParseRequestURI(book.URL)
+				if err != nil || parsedURL.Host == "" {
+					return
+				}
+
 				// Fetch data from internet
-				article, err := readability.Parse(book.URL, 10*time.Second)
+				article, err := readability.Parse(nil, 20*time.Second)
 				if err != nil {
 					return
 				}
 
-				book.ImageURL = article.Meta.Image
 				book.Author = article.Meta.Author
 				book.MinReadTime = article.Meta.MinReadTime
 				book.MaxReadTime = article.Meta.MaxReadTime
@@ -292,11 +321,18 @@ func (h *cmdHandler) updateBookmarks(cmd *cobra.Command, args []string) {
 					book.Excerpt = article.Meta.Excerpt
 				}
 
+				// Update bookmark image in local disk
+				imgPath := fp.Join(h.dataDir, "thumb", fmt.Sprintf("%d", book.ID))
+				err = downloadFile(article.Meta.Image, imgPath, 20*time.Second)
+				if err == nil {
+					book.ImageURL = fmt.Sprintf("/thumb/%d", book.ID)
+				}
+
 				bookmarks[pos] = book
 			}(i, book)
 		}
 
-		waitGroup.Wait()
+		wg.Wait()
 		uiprogress.Stop()
 		fmt.Println("\nSaving new data")
 	}
@@ -317,19 +353,19 @@ func (h *cmdHandler) updateBookmarks(cmd *cobra.Command, args []string) {
 	}
 
 	// Set title, excerpt and tags from user submitted value
-	for i := range bookmarks {
+	for i, book := range bookmarks {
 		// Check if user submit his own title or excerpt
 		if title != "" {
-			bookmarks[i].Title = title
+			book.Title = title
 		}
 
 		if excerpt != "" {
-			bookmarks[i].Excerpt = excerpt
+			book.Excerpt = excerpt
 		}
 
 		// Make sure title is not empty
-		if bookmarks[i].Title == "" {
-			bookmarks[i].Title = "Untitled"
+		if book.Title == "" {
+			book.Title = book.URL
 		}
 
 		// Generate new tags
@@ -339,7 +375,7 @@ func (h *cmdHandler) updateBookmarks(cmd *cobra.Command, args []string) {
 		}
 
 		newTags := []model.Tag{}
-		for _, tag := range bookmarks[i].Tags {
+		for _, tag := range book.Tags {
 			if _, isDeleted := deletedTags[tag.Name]; isDeleted {
 				tag.Deleted = true
 			}
@@ -355,10 +391,10 @@ func (h *cmdHandler) updateBookmarks(cmd *cobra.Command, args []string) {
 			newTags = append(newTags, model.Tag{Name: tag})
 		}
 
-		bookmarks[i].Tags = newTags
+		book.Tags = newTags
 
-		// Set modification time
-		bookmarks[i].Modified = time.Now().UTC().Format("2006-01-02 15:04:05")
+		// Set bookmark new data
+		bookmarks[i] = book
 	}
 
 	// Update database
@@ -390,10 +426,23 @@ func (h *cmdHandler) deleteBookmarks(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	// Delete bookmarks from database
-	err := h.db.DeleteBookmarks(args...)
+	// Convert args to ids
+	ids, err := parseIndexList(args)
 	if err != nil {
 		cError.Println(err)
+		return
+	}
+
+	// Delete bookmarks from database
+	err = h.db.DeleteBookmarks(ids...)
+	if err != nil {
+		cError.Println(err)
+	}
+
+	// Delete thumbnail image from local disk
+	for _, id := range ids {
+		imgPath := fp.Join(h.dataDir, "thumb", fmt.Sprintf("%d", id))
+		os.Remove(imgPath)
 	}
 
 	fmt.Println("Bookmark(s) have been deleted")
@@ -418,8 +467,15 @@ func (h *cmdHandler) openBookmarks(cmd *cobra.Command, args []string) {
 		}
 	}
 
+	// Convert args to ids
+	ids, err := parseIndexList(args)
+	if err != nil {
+		cError.Println(err)
+		return
+	}
+
 	// Fetch bookmarks from database
-	bookmarks, err := h.db.GetBookmarks(true, args...)
+	bookmarks, err := h.db.GetBookmarks(true, ids...)
 	if err != nil {
 		cError.Println(err)
 		return
@@ -567,7 +623,8 @@ func (h *cmdHandler) importBookmarks(cmd *cobra.Command, args []string) {
 		}
 
 		// Clear UTM parameters from URL
-		book.URL = clearUTMParams(parsedURL)
+		clearUTMParams(parsedURL)
+		book.URL = parsedURL.String()
 
 		// Save book to database
 		book.ID, err = h.db.CreateBookmark(book)

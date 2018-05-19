@@ -10,7 +10,10 @@ import (
 // NewShioriCmd creates new command for shiori
 func NewShioriCmd(db dt.Database, dataDir string) *cobra.Command {
 	// Create handler
-	hdl := cmdHandler{db: db}
+	hdl := cmdHandler{
+		db:      db,
+		dataDir: dataDir,
+	}
 
 	// Create sub command
 	addCmd := &cobra.Command{

@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	fp "path/filepath"
+	"strconv"
 
 	"github.com/julienschmidt/httprouter"
 )
@@ -46,7 +47,9 @@ func (h *webHandler) serveLoginPage(w http.ResponseWriter, r *http.Request, ps h
 // serveBookmarkCache is handler for GET /bookmark/:id
 func (h *webHandler) serveBookmarkCache(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	// Get bookmark ID from URL
-	id := ps.ByName("id")
+	strID := ps.ByName("id")
+	id, err := strconv.Atoi(strID)
+	checkError(err)
 
 	// Get bookmarks in database
 	bookmarks, err := h.db.GetBookmarks(true, id)

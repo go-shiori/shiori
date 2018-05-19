@@ -2,9 +2,7 @@ package database
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -79,7 +77,7 @@ func OpenSQLiteDatabase(databasePath string) (*SQLiteDatabase, error) {
 }
 
 // CreateBookmark saves new bookmark to database. Returns new ID and error if any happened.
-func (db *SQLiteDatabase) CreateBookmark(bookmark model.Bookmark) (bookmarkID int64, err error) {
+func (db *SQLiteDatabase) CreateBookmark(bookmark model.Bookmark) (bookmarkID int, err error) {
 	// Check URL and title
 	if bookmark.URL == "" {
 		return -1, fmt.Errorf("URL must not be empty")
@@ -152,14 +150,16 @@ func (db *SQLiteDatabase) CreateBookmark(bookmark model.Bookmark) (bookmarkID in
 		tagName := strings.ToLower(tag.Name)
 		tagName = strings.TrimSpace(tagName)
 
-		tagID := int64(-1)
+		tagID := -1
 		err = stmtGetTag.Get(&tagID, tagName)
 		checkError(err)
 
 		if tagID == -1 {
 			res := stmtInsertTag.MustExec(tagName)
-			tagID, err = res.LastInsertId()
+			tagID64, err := res.LastInsertId()
 			checkError(err)
+
+			tagID = int(tagID64)
 		}
 
 		stmtInsertBookmarkTag.Exec(tagID, bookmark.ID)
@@ -173,14 +173,8 @@ func (db *SQLiteDatabase) CreateBookmark(bookmark model.Bookmark) (bookmarkID in
 	return bookmarkID, err
 }
 
-// GetBookmarks fetch list of bookmarks based on submitted indices.
-func (db *SQLiteDatabase) GetBookmarks(withContent bool, indices ...string) ([]model.Bookmark, error) {
-	// Get list of index
-	listIndex, err := parseIndexList(indices)
-	if err != nil {
-		return nil, err
-	}
-
+// GetBookmarks fetch list of bookmarks based on submitted ids.
+func (db *SQLiteDatabase) GetBookmarks(withContent bool, ids ...int) ([]model.Bookmark, error) {
 	// Create query
 	query := `SELECT 
 		b.id, b.url, b.title, b.image_url, b.excerpt, b.author, 
@@ -200,10 +194,10 @@ func (db *SQLiteDatabase) GetBookmarks(withContent bool, indices ...string) ([]m
 	args := []interface{}{}
 	whereClause := " WHERE 1"
 
-	if len(listIndex) > 0 {
+	if len(ids) > 0 {
 		whereClause = " WHERE b.id IN ("
-		for _, idx := range listIndex {
-			args = append(args, idx)
+		for _, id := range ids {
+			args = append(args, id)
 			whereClause += "?,"
 		}
 
@@ -214,7 +208,7 @@ func (db *SQLiteDatabase) GetBookmarks(withContent bool, indices ...string) ([]m
 	// Fetch bookmarks
 	query += whereClause
 	bookmarks := []model.Bookmark{}
-	err = db.Select(&bookmarks, query, args...)
+	err := db.Select(&bookmarks, query, args...)
 	if err != nil && err != sql.ErrNoRows {
 		return nil, err
 	}
@@ -241,22 +235,16 @@ func (db *SQLiteDatabase) GetBookmarks(withContent bool, indices ...string) ([]m
 	return bookmarks, nil
 }
 
-// DeleteBookmarks removes all record with matching indices from database.
-func (db *SQLiteDatabase) DeleteBookmarks(indices ...string) (err error) {
-	// Get list of index
-	listIndex, err := parseIndexList(indices)
-	if err != nil {
-		return err
-	}
-
+// DeleteBookmarks removes all record with matching ids from database.
+func (db *SQLiteDatabase) DeleteBookmarks(ids ...int) (err error) {
 	// Create args and where clause
 	args := []interface{}{}
 	whereClause := " WHERE 1"
 
-	if len(listIndex) > 0 {
+	if len(ids) > 0 {
 		whereClause = " WHERE id IN ("
-		for _, idx := range listIndex {
-			args = append(args, idx)
+		for _, id := range ids {
+			args = append(args, id)
 			whereClause += "?,"
 		}
 
@@ -267,7 +255,7 @@ func (db *SQLiteDatabase) DeleteBookmarks(indices ...string) (err error) {
 	// Begin transaction
 	tx, err := db.Beginx()
 	if err != nil {
-		return ErrInvalidIndex
+		return err
 	}
 
 	// Make sure to rollback if panic ever happened
@@ -436,14 +424,16 @@ func (db *SQLiteDatabase) UpdateBookmarks(bookmarks ...model.Bookmark) (result [
 			}
 
 			if tag.ID == 0 {
-				tagID := int64(-1)
+				tagID := -1
 				err = stmtGetTag.Get(&tagID, tag.Name)
 				checkError(err)
 
 				if tagID == -1 {
 					res := stmtInsertTag.MustExec(tag.Name)
-					tagID, err = res.LastInsertId()
+					tagID64, err := res.LastInsertId()
 					checkError(err)
+
+					tagID = int(tagID64)
 				}
 
 				stmtInsertBookmarkTag.Exec(tagID, book.ID)
@@ -548,8 +538,8 @@ func (db *SQLiteDatabase) GetTags() ([]model.Tag, error) {
 }
 
 // GetNewID creates new ID for specified table
-func (db *SQLiteDatabase) GetNewID(table string) (int64, error) {
-	var tableID int64
+func (db *SQLiteDatabase) GetNewID(table string) (int, error) {
+	var tableID int
 	query := fmt.Sprintf(`SELECT IFNULL(MAX(id) + 1, 1) FROM %s`, table)
 
 	err := db.Get(&tableID, query)
@@ -558,39 +548,4 @@ func (db *SQLiteDatabase) GetNewID(table string) (int64, error) {
 	}
 
 	return tableID, nil
-}
-
-// ErrInvalidIndex is returned is an index is not valid
-var ErrInvalidIndex = errors.New("Index is not valid")
-
-// parseIndexList converts a list of indices to their integer values
-func parseIndexList(indices []string) ([]int, error) {
-	var listIndex []int
-	for _, strIndex := range indices {
-		if !strings.Contains(strIndex, "-") {
-			index, err := strconv.Atoi(strIndex)
-			if err != nil || index < 1 {
-				return nil, ErrInvalidIndex
-			}
-
-			listIndex = append(listIndex, index)
-			continue
-		}
-
-		parts := strings.Split(strIndex, "-")
-		if len(parts) != 2 {
-			return nil, ErrInvalidIndex
-		}
-
-		minIndex, errMin := strconv.Atoi(parts[0])
-		maxIndex, errMax := strconv.Atoi(parts[1])
-		if errMin != nil || errMax != nil || minIndex < 1 || minIndex > maxIndex {
-			return nil, ErrInvalidIndex
-		}
-
-		for i := minIndex; i <= maxIndex; i++ {
-			listIndex = append(listIndex, i)
-		}
-	}
-	return listIndex, nil
 }

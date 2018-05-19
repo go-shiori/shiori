@@ -2,15 +2,15 @@ package model
 
 // Tag is tag for the bookmark
 type Tag struct {
-	ID         int64  `db:"id"          json:"id"`
+	ID         int    `db:"id"          json:"id"`
 	Name       string `db:"name"        json:"name"`
-	NBookmarks int64  `db:"n_bookmarks" json:"nBookmarks"`
+	NBookmarks int    `db:"n_bookmarks" json:"nBookmarks"`
 	Deleted    bool   `json:"-"`
 }
 
 // Bookmark is record of a specified URL
 type Bookmark struct {
-	ID          int64  `db:"id"            json:"id"`
+	ID          int    `db:"id"            json:"id"`
 	URL         string `db:"url"           json:"url"`
 	Title       string `db:"title"         json:"title"`
 	ImageURL    string `db:"image_url"     json:"imageURL"`
@@ -27,7 +27,7 @@ type Bookmark struct {
 
 // Account is account for accessing bookmarks from web interface
 type Account struct {
-	ID       int64  `db:"id"       json:"id"`
+	ID       int    `db:"id"       json:"id"`
 	Username string `db:"username" json:"username"`
 	Password string `db:"password" json:"password"`
 }
