@@ -1128,14 +1128,14 @@ func FromURL(url *nurl.URL, timeout time.Duration) (Article, error) {
 	}
 	defer resp.Body.Close()
 
-	// If response is not HTML, stop process
-	mimeType, err := getMimeType(resp.Body)
-	if err != nil {
-		return Article{}, err
+	// Check content type. If not HTML, stop process
+	contentType := resp.Header.Get("Content-type")
+	if contentType == "" {
+		contentType = "application/octet-stream"
 	}
 
-	if !strings.HasPrefix(mimeType, "text/html") {
-		return Article{}, fmt.Errorf("URL must be a text/html, found %s", mimeType)
+	if !strings.HasPrefix(contentType, "text/html") {
+		return Article{}, fmt.Errorf("URL must be a text/html, found %s", contentType)
 	}
 
 	// Parse response body
