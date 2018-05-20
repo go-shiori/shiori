@@ -3,6 +3,8 @@ package readability
 import (
 	"crypto/md5"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"strings"
 	"unicode/utf8"
@@ -66,6 +68,17 @@ func removeSeparator(str string, separators ...string) string {
 	}
 
 	return strings.Join(finalWords, " ")
+}
+
+func getMimeType(resp io.Reader) (string, error) {
+	buffer := make([]byte, 512)
+	_, err := resp.Read(buffer)
+	if err != nil {
+		return "", err
+	}
+
+	mimeType := http.DetectContentType(buffer)
+	return mimeType, nil
 }
 
 func normalizeText(str string) string {

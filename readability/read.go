@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	ghtml "html"
+	"io"
 	"math"
 	"net/http"
 	nurl "net/url"
@@ -62,19 +63,6 @@ type Article struct {
 	Meta       Metadata
 	Content    string
 	RawContent string
-}
-
-func fetchURL(url *nurl.URL, timeout time.Duration) (*goquery.Document, error) {
-	// Fetch page from URL
-	client := &http.Client{Timeout: timeout}
-	resp, err := client.Get(url.String())
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	// Create goquery document
-	return goquery.NewDocumentFromReader(resp.Body)
 }
 
 // removeScripts removes script tags from the document.
@@ -1130,10 +1118,34 @@ func estimateReadTime(articleContent *goquery.Selection) (int, int) {
 	return int(minReadTime), int(maxReadTime)
 }
 
-// Parse an URL to readability format
-func Parse(url *nurl.URL, timeout time.Duration) (Article, error) {
-	// Fetch page
-	doc, err := fetchURL(url, timeout)
+// FromURL get readable content from the specified URL
+func FromURL(url *nurl.URL, timeout time.Duration) (Article, error) {
+	// Fetch page from URL
+	client := &http.Client{Timeout: timeout}
+	resp, err := client.Get(url.String())
+	if err != nil {
+		return Article{}, err
+	}
+	defer resp.Body.Close()
+
+	// If response is not HTML, stop process
+	mimeType, err := getMimeType(resp.Body)
+	if err != nil {
+		return Article{}, err
+	}
+
+	if !strings.HasPrefix(mimeType, "text/html") {
+		return Article{}, fmt.Errorf("URL must be a text/html, found %s", mimeType)
+	}
+
+	// Parse response body
+	return FromReader(resp.Body, url)
+}
+
+// FromReader get readable content from the specified io.Reader
+func FromReader(reader io.Reader, url *nurl.URL) (Article, error) {
+	// Create goquery document
+	doc, err := goquery.NewDocumentFromReader(reader)
 	if err != nil {
 		return Article{}, err
 	}
