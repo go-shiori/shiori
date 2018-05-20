@@ -67,7 +67,7 @@ func (h *cmdHandler) addBookmark(cmd *cobra.Command, args []string) {
 
 	// If it's not offline mode, fetch data from internet
 	if !offline {
-		article, _ := readability.Parse(parsedURL, 20*time.Second)
+		article, _ := readability.FromURL(parsedURL, 20*time.Second)
 
 		book.Author = article.Meta.Author
 		book.MinReadTime = article.Meta.MinReadTime
@@ -305,7 +305,7 @@ func (h *cmdHandler) updateBookmarks(cmd *cobra.Command, args []string) {
 				}
 
 				// Fetch data from internet
-				article, err := readability.Parse(nil, 20*time.Second)
+				article, err := readability.FromURL(parsedURL, 20*time.Second)
 				if err != nil {
 					return
 				}

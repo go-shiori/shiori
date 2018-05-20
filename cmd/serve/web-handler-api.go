@@ -116,7 +116,7 @@ func (h *webHandler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, p
 	checkError(err)
 
 	// Fetch data from internet
-	article, _ := readability.Parse(parsedURL, 20*time.Second)
+	article, _ := readability.FromURL(parsedURL, 20*time.Second)
 
 	book.Author = article.Meta.Author
 	book.MinReadTime = article.Meta.MinReadTime
@@ -271,7 +271,7 @@ func (h *webHandler) apiUpdateCache(w http.ResponseWriter, r *http.Request, ps h
 			}
 
 			// Fetch data from internet
-			article, err := readability.Parse(parsedURL, 20*time.Second)
+			article, err := readability.FromURL(parsedURL, 20*time.Second)
 			if err != nil {
 				return
 			}
