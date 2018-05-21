@@ -56,8 +56,8 @@
         </div>
         <div id="body">
             <div id="header">
-                <input type="text" placeholder="Search bookmarks by url, tags, title or content">
-                <a>
+                <input type="text" v-model.trim="search" placeholder="Search bookmarks by url, tags, title or content" @focus="$event.target.select()" @keyup.enter="loadData">
+                <a title="Search" @click="loadData">
                     <i class="fas fa-search fa-fw"></i>
                 </a>
             </div>
@@ -145,6 +145,7 @@
             data: {
                 loading: false,
                 bookmarks: [],
+                search: '',
                 page: 0,
                 maxPage: 0,
             },
@@ -160,14 +161,29 @@
                 loadData() {
                     if (this.loading) return;
 
+                    // Parse search query
+                    var rxTags = /(^|\s+)#(\S+)/g,
+                        keyword = this.search.replace(rxTags, ' ').trim().replace(/\s+/g, ' '),
+                        tags = [];
+
+                    while ((result = rxTags.exec(this.search)) !== null) {
+                        tags.push(result[2]);
+                    }
+
                     // Fetch data
                     this.loading = true;
-                    rest.get('/api/bookmarks')
+                    rest.get('/api/bookmarks', {
+                            params: {
+                                keyword: keyword,
+                                tags: tags.join(' ')
+                            }
+                        })
                         .then((response) => {
                             this.loading = false;
                             this.bookmarks = response.data;
                             this.page = 0;
                             this.maxPage = Math.ceil(this.bookmarks.length / pageSize) - 1;
+                            document.getElementById('grid').scrollTop = 0;
                         })
                         .catch((error) => {
                             var errorMsg = (error.response ? error.response.data : error.message).trim();

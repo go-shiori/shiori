@@ -297,7 +297,9 @@ func (db *SQLiteDatabase) SearchBookmarks(orderLatest bool, keyword string, tags
 	// Create where clause for keyword
 	keyword = strings.TrimSpace(keyword)
 	if keyword != "" {
-		query += ` AND (b.url LIKE ? OR bc.title MATCH ? OR bc.content MATCH ?)`
+		query += ` AND (b.url LIKE ? OR b.id IN (
+			SELECT docid id FROM bookmark_content 
+			WHERE title MATCH ? OR content MATCH ?))`
 		args = append(args, "%"+keyword+"%", keyword, keyword)
 	}
 
