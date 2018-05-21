@@ -43,6 +43,11 @@
                 </a>
             </yla-tooltip>
             <div class="spacer"></div>
+            <yla-tooltip placement="right" :content="listView ? 'Switch to grid view' : 'Switch to list view'">
+                <a @click="toggleListView">
+                    <i class="fas fa-fw" :class="listView ? 'fa-th-large' : 'fa-th-list'"></i>
+                </a>
+            </yla-tooltip>
             <yla-tooltip placement="right" content="Toggle night mode">
                 <a>
                     <i class="fas fa-moon fa-fw"></i>
@@ -61,65 +66,67 @@
                     <i class="fas fa-search fa-fw"></i>
                 </a>
             </div>
-            <div id="grid">
-                <div class="pagination-box" v-if="maxPage > 0">
-                    <p>Page</p>
-                    <input type="text" placeholder="1" :value="page+1" @focus="$event.target.select()" @keyup.enter="changePage($event.target.value-1)">
-                    <p>{{maxPage+1}}</p>
-                    <div class="spacer"></div>
-                    <a v-if="page > 1" title="Go to first page" @click="changePage(0)">
-                        <i class="fas fa-fw fa-angle-double-left"></i>
-                    </a>
-                    <a v-if="page > 0" title="Go to previous page" @click="changePage(page-1)">
-                        <i class="fa fa-fw fa-angle-left"></i>
-                    </a>
-                    <a v-if="page < maxPage" title="Go to next page" @click="changePage(page+1)">
-                        <i class="fa fa-fw fa-angle-right"></i>
-                    </a>
-                    <a v-if="page < maxPage - 1" title="Go to last page" @click="changePage(maxPage)">
-                        <i class="fas fa-fw fa-angle-double-right"></i>
-                    </a>
-                </div>
-                <div class="bookmark" v-for="(book, idx) in visibleBookmarks">
-                    <a class="bookmark-content" :href="book.hasContent ? '/bookmark/'+book.id : null" :title="book.hasContent ? 'View cache' : null" target="_blank">
-                        <img v-if="book.imageURL !== ''" :src="book.imageURL">
-                        <p class="title">{{book.title}}</p>
-                        <p class="excerpt" v-if="book.imageURL === ''">{{book.excerpt}}</p>
-                    </a>
-                    <div class="bookmark-menu">
-                        <a class="url" title="View original" :href="book.url" target="_blank">
-                            {{getHostname(book.url)}}
+            <div id="content" ref="content">
+                <div id="grid" :class="{list: listView}">
+                    <div class="pagination-box" v-if="maxPage > 0">
+                        <p>Page</p>
+                        <input type="text" placeholder="1" :value="page+1" @focus="$event.target.select()" @keyup.enter="changePage($event.target.value-1)">
+                        <p>{{maxPage+1}}</p>
+                        <div class="spacer"></div>
+                        <a v-if="page > 1" title="Go to first page" @click="changePage(0)">
+                            <i class="fas fa-fw fa-angle-double-left"></i>
                         </a>
-                        <a title="Edit bookmark" @click="showDialogEdit(idx)">
-                            <i class="fas fa-pencil-alt"></i>
+                        <a v-if="page > 0" title="Go to previous page" @click="changePage(page-1)">
+                            <i class="fa fa-fw fa-angle-left"></i>
                         </a>
-                        <a title="Delete bookmark" @click="showDialogDelete([idx])">
-                            <i class="fas fa-trash-alt"></i>
+                        <a v-if="page < maxPage" title="Go to next page" @click="changePage(page+1)">
+                            <i class="fa fa-fw fa-angle-right"></i>
                         </a>
-                        <a title="Update cache" @click="showDialogUpdateCache([idx])">
-                            <i class="fas fa-cloud-download-alt"></i>
+                        <a v-if="page < maxPage - 1" title="Go to last page" @click="changePage(maxPage)">
+                            <i class="fas fa-fw fa-angle-double-right"></i>
                         </a>
                     </div>
+                    <div class="bookmark" v-for="(book, idx) in visibleBookmarks">
+                        <a class="bookmark-content" :href="book.hasContent ? '/bookmark/'+book.id : null" :title="book.hasContent ? 'View cache' : null" target="_blank">
+                            <img v-if="book.imageURL !== ''" :src="book.imageURL">
+                            <p class="title">{{book.title}}</p>
+                            <p class="excerpt" v-if="book.imageURL === ''">{{book.excerpt}}</p>
+                        </a>
+                        <div class="bookmark-menu">
+                            <a class="url" title="View original" :href="book.url" target="_blank">
+                                {{getHostname(book.url)}}
+                            </a>
+                            <a title="Edit bookmark" @click="showDialogEdit(idx)">
+                                <i class="fas fa-pencil-alt"></i>
+                            </a>
+                            <a title="Delete bookmark" @click="showDialogDelete([idx])">
+                                <i class="fas fa-trash-alt"></i>
+                            </a>
+                            <a title="Update cache" @click="showDialogUpdateCache([idx])">
+                                <i class="fas fa-cloud-download-alt"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="pagination-box" v-if="maxPage > 0">
+                        <p>Page</p>
+                        <input type="text" placeholder="1" :value="page+1" @focus="$event.target.select()" @keyup.enter="changePage($event.target.value-1)">
+                        <p>{{maxPage+1}}</p>
+                        <div class="spacer"></div>
+                        <a v-if="page > 1" title="Go to first page" @click="changePage(0)">
+                            <i class="fas fa-fw fa-angle-double-left"></i>
+                        </a>
+                        <a v-if="page > 0" title="Go to previous page" @click="changePage(page-1)">
+                            <i class="fa fa-fw fa-angle-left"></i>
+                        </a>
+                        <a v-if="page < maxPage" title="Go to next page" @click="changePage(page+1)">
+                            <i class="fa fa-fw fa-angle-right"></i>
+                        </a>
+                        <a v-if="page < maxPage - 1" title="Go to last page" @click="changePage(maxPage)">
+                            <i class="fas fa-fw fa-angle-double-right"></i>
+                        </a>
+                    </div>
+                    <div id="grid-padding"></div>
                 </div>
-                <div class="pagination-box" v-if="maxPage > 0">
-                    <p>Page</p>
-                    <input type="text" placeholder="1" :value="page+1" @focus="$event.target.select()" @keyup.enter="changePage($event.target.value-1)">
-                    <p>{{maxPage+1}}</p>
-                    <div class="spacer"></div>
-                    <a v-if="page > 1" title="Go to first page" @click="changePage(0)">
-                        <i class="fas fa-fw fa-angle-double-left"></i>
-                    </a>
-                    <a v-if="page > 0" title="Go to previous page" @click="changePage(page-1)">
-                        <i class="fa fa-fw fa-angle-left"></i>
-                    </a>
-                    <a v-if="page < maxPage" title="Go to next page" @click="changePage(page+1)">
-                        <i class="fa fa-fw fa-angle-right"></i>
-                    </a>
-                    <a v-if="page < maxPage - 1" title="Go to last page" @click="changePage(maxPage)">
-                        <i class="fas fa-fw fa-angle-double-right"></i>
-                    </a>
-                </div>
-                <div id="grid-padding"></div>
             </div>
         </div>
         <yla-dialog v-bind="dialog"></yla-dialog>
@@ -148,6 +155,8 @@
                 search: '',
                 page: 0,
                 maxPage: 0,
+                listView: false,
+                nightMode: false
             },
             computed: {
                 visibleBookmarks() {
@@ -183,7 +192,7 @@
                             this.bookmarks = response.data;
                             this.page = 0;
                             this.maxPage = Math.ceil(this.bookmarks.length / pageSize) - 1;
-                            document.getElementById('grid').scrollTop = 0;
+                            this.$refs.content.scrollTop = 0;
                         })
                         .catch((error) => {
                             var errorMsg = (error.response ? error.response.data : error.message).trim();
@@ -191,7 +200,11 @@
                             this.showErrorDialog(errorMsg);
                         });
                 },
-                reloadData() {},
+                reloadData() {
+                    if (this.loading) return;
+                    this.search = '';
+                    this.loadData();
+                },
                 changePage(target) {
                     target = parseInt(target, 10) || 0;
 
@@ -199,7 +212,12 @@
                     else if (target <= 0) this.page = 0;
                     else this.page = target;
 
-                    document.getElementById('grid').scrollTop = 0;
+                    this.$refs.content.scrollTop = 0;
+                },
+                toggleListView() {
+                    this.listView = !this.listView;
+                    this.$refs.content.scrollTop = 0;
+                    localStorage.setItem('shiori-list-view', this.listView ? '1' : '0');
                 },
                 showDialogAdd() {
                     this.showDialog({
@@ -403,6 +421,14 @@
                 }
             },
             mounted() {
+                // Read config from local storage
+                var listView = localStorage.getItem('shiori-list-view'),
+                    nightMode = localStorage.getItem('shiori-night-mode');
+
+                this.listView = listView === '1';
+                this.nightMode = nightMode === '1';
+
+                // Load data
                 this.loadData();
             }
         });
