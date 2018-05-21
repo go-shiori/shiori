@@ -72,7 +72,7 @@ a {
                 align-items: baseline;
                 padding: 8px;
                 p {
-                    color: @colorLight;
+                    color: @color;
                     font-size: 0.9em;
                     margin-right: 16px;
                     min-width: 65px;
@@ -87,13 +87,13 @@ a {
                 a {
                     display: block;
                     cursor: pointer;
-                    color: @colorLight;
+                    color: @color;
                     text-align: center;
                     font-size: 0.9em;
                     flex: 1 0;
                     i {
                         margin-right: 8px;
-                        color: @colorLight;
+                        color: @color;
                     }
                     &:hover {
                         color: @main;
@@ -135,7 +135,7 @@ a {
         display: flex;
         flex-flow: column nowrap;
         flex-shrink: 0;
-        background-color: @darkBg;
+        background-color: @sidebarBg;
         min-width: 0;
         min-height: 0;
         overflow: hidden;
@@ -152,7 +152,7 @@ a {
             line-height: 60px;
             text-align: center;
             display: block;
-            color: @colorLight;
+            color: @colorSidebar;
             &:hover {
                 background-color: @color;
             }
@@ -185,6 +185,7 @@ a {
                 line-height: 60px;
                 padding: 0 16px;
                 font-size: 1em;
+                background-color: @contentBg;
                 border-right: 1px solid @border;
             }
             a {
@@ -315,7 +316,9 @@ a {
                         padding: 8px;
                         text-align: center;
                         font-size: 0.9em;
+                        color: @color;
                         border: 1px solid @border;
+                        background-color: @contentBg;
                         margin: 0 8px;
                     }
                     p {
@@ -350,14 +353,13 @@ a {
                         border-bottom-width: 1px;
                         position: relative;
                         padding-left: 100px;
-                        background-color: #FAFAFA;
+                        background-color: @contentBg;
                         &:first-of-type {
                             border-top-width: 1px;
                         }
                         .bookmark-content {
                             display: flex;
                             flex-flow: column nowrap;
-                            background-color: @contentBg;
                             border-left: 1px solid @border;
                             padding: 16px 24px 8px;
                             img {
@@ -378,13 +380,52 @@ a {
                             }
                         }
                         .bookmark-menu {
-                            background-color: @contentBg;
                             border-left: 1px solid @border;
                             padding: 0 24px 16px;
                         }
                     }
                     #grid-padding {
                         min-height: 16px
+                    }
+                }
+            }
+        }
+    }
+    &.night {
+        background-color: @nightBg;
+        #body {
+            #header {
+                color: @nightColor;
+                border-color: @nightBorder;
+                background-color: @nightContentBg;
+                input {
+                    color: @nightColor;
+                    border-color: @nightBorder;
+                    background-color: @nightContentBg;
+                }
+            }
+            #content {
+                #grid {
+                    .bookmark {
+                        border-color: @nightBorder;
+                        background-color: @nightContentBg;
+                        .bookmark-content {
+                            border-color: @nightBorder;
+                            .title,
+                            .excerpt {
+                                color: @nightColor;
+                            }
+                        }
+                        .bookmark-menu {
+                            border-color: @nightBorder;
+                        }
+                    }
+                    .pagination-box {
+                        input {
+                            color: @nightColor;
+                            border-color: @nightBorder;
+                            background-color: @nightContentBg;
+                        }
                     }
                 }
             }
@@ -482,5 +523,25 @@ a {
         #metadata p {
             color: white;
         }
+    }
+}
+
+.night .yla-dialog {
+    color: @nightColor;
+    background-color: @nightBg;
+    >.yla-dialog__header {
+        background-color: @nightContentBg;
+        border-bottom: 1px solid @nightBorder;
+    }
+    >.yla-dialog__body {
+        >input,
+        >textarea {
+            color: @nightColor;
+            border-color: @nightBorder;
+            background-color: @nightContentBg;
+        }
+    }
+    >.yla-dialog__footer {
+        border-color: @nightBorder;
     }
 }

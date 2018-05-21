@@ -24,7 +24,7 @@
 </head>
 
 <body>
-    <div id="index-page">
+    <div id="index-page" :class="{night: nightMode}">
         <div id="sidebar">
             <p id="logo">栞</p>
             <yla-tooltip placement="right" content="Reload data">
@@ -49,8 +49,8 @@
                 </a>
             </yla-tooltip>
             <yla-tooltip placement="right" content="Toggle night mode">
-                <a>
-                    <i class="fas fa-moon fa-fw"></i>
+                <a @click="toggleNightMode">
+                    <i class="fas fa-fw" :class="nightMode ? 'fa-moon' : 'fa-sun'"></i>
                 </a>
             </yla-tooltip>
             <yla-tooltip placement="right" content="Log out">
@@ -218,6 +218,10 @@
                     this.listView = !this.listView;
                     this.$refs.content.scrollTop = 0;
                     localStorage.setItem('shiori-list-view', this.listView ? '1' : '0');
+                },
+                toggleNightMode() {
+                    this.nightMode = !this.nightMode;
+                    localStorage.setItem('shiori-night-mode', this.nightMode ? '1' : '0');
                 },
                 showDialogAdd() {
                     this.showDialog({
