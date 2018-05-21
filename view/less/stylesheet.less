@@ -205,11 +205,6 @@ a {
             grid-template-columns: repeat(4, 1fr);
             grid-gap: 16px;
             padding: 16px 16px 0;
-            >div:last-child {
-                grid-column-start: 1;
-                grid-column-end: -1;
-                height: 1px;
-            }
             .bookmark {
                 display: flex;
                 flex-flow: column nowrap;
@@ -301,6 +296,43 @@ a {
                         line-height: 21px;
                     }
                 }
+            }
+            .pagination-box {
+                grid-column-start: 1;
+                grid-column-end: -1;
+                display: flex;
+                flex-flow: row nowrap;
+                a {
+                    padding: 8px;
+                    color: @colorLink;
+                    &:hover,
+                    &:focus {
+                        color: @main;
+                    }
+                }
+                input {
+                    width: 40px;
+                    padding: 8px;
+                    text-align: center;
+                    font-size: 0.9em;
+                    border: 1px solid @border;
+                    margin: 0 8px;
+                }
+                p {
+                    font-size: 0.9em;
+                    color: @colorLink;
+                    line-height: 37px;
+                    font-weight: 600;
+                    &:last-of-type::before {
+                        content: "/";
+                        margin-right: 8px;
+                    }
+                }
+            }
+            #grid-padding {
+                grid-column-start: 1;
+                grid-column-end: -1;
+                min-height: 1px;
             }
         }
     }
