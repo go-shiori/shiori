@@ -52,7 +52,8 @@ a {
             text-align: center;
             display: block;
             color: @colorSidebar;
-            &:hover {
+            &:hover,
+            &:focus {
                 background-color: @color;
             }
             &.active {
@@ -67,7 +68,8 @@ a {
         flex-flow: column nowrap;
         min-width: 0;
         min-height: 0;
-        overflow: hidden;
+        overflow-x: hidden;
+        overflow-y: auto;
     }
     &.night {
         #sidebar {
@@ -198,7 +200,7 @@ a {
 }
 
 #index-page {
-    #header {
+    .header {
         background-color: @contentBg;
         border-bottom: 1px solid @border;
         display: flex;
@@ -209,6 +211,8 @@ a {
         min-height: 0;
         overflow: hidden;
         flex-shrink: 0;
+    }
+    #header {
         input {
             flex: 1 0;
             line-height: 60px;
@@ -228,6 +232,46 @@ a {
             }
         }
     }
+    #batch-edit {
+        height: 61px;
+        flex-shrink: 0;
+        padding: 16px;
+        font-size: 0.9em;
+        >*:not(:last-child) {
+            margin-right: 32px;
+        }
+        p {
+            font-weight: 600;
+            flex: 1 0;
+        }
+        a {
+            color: @colorLink;
+            &.disabled {
+                opacity: 0.5;
+                cursor: default;
+            }
+            &:hover:not(.disabled),
+            &:focus:not(.disabled) {
+                color: @main;
+            }
+            i {
+                margin-right: 6px;
+            }
+        }
+        #cancel-edit {
+            color: @color;
+            padding: 4px;
+            border: 1px solid @border;
+            border-radius: 4px;
+            &:hover,
+            &:focus {
+                color: @main;
+            }
+            i {
+                margin: 0;
+            }
+        }
+    }
     #content {
         overflow-y: auto;
         #grid {
@@ -243,11 +287,23 @@ a {
                 border: 1px solid @border;
                 background-color: @contentBg;
                 height: 100%;
+                position: relative;
                 &:hover,
                 &:focus {
                     .bookmark-menu>a {
                         display: block;
                     }
+                }
+                &.selected {
+                    background-color: @selectedBg;
+                }
+                .bookmark-selector {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    z-index: 101;
                 }
                 .bookmark-content {
                     display: block;
@@ -380,9 +436,7 @@ a {
                 .bookmark {
                     border-top-width: 0;
                     border-bottom-width: 1px;
-                    position: relative;
                     padding-left: 100px;
-                    background-color: @contentBg;
                     &:first-of-type {
                         border-top-width: 1px;
                     }
@@ -420,14 +474,22 @@ a {
         }
     }
     &.night {
-        #header {
+        .header {
             color: @nightColor;
             border-color: @nightBorder;
             background-color: @nightContentBg;
-            input {
-                color: @nightColor;
-                border-color: @nightBorder;
-                background-color: @nightContentBg;
+        }
+        #header input {
+            color: @nightColor;
+            border-color: @nightBorder;
+            background-color: @nightContentBg;
+        }
+        #batch-edit #cancel-edit {
+            color: @nightColor;
+            border-color: @nightBorder;
+            &:hover,
+            &:focus {
+                color: @main;
             }
         }
         #content {
@@ -435,6 +497,9 @@ a {
                 .bookmark {
                     border-color: @nightBorder;
                     background-color: @nightContentBg;
+                    &.selected {
+                        background-color: @nightSelectedBg;
+                    }
                     .bookmark-content {
                         border-color: @nightBorder;
                         .title,

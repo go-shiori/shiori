@@ -4,8 +4,10 @@
 @bg: #EEE;
 @sidebarBg: #292929;
 @contentBg: #FFF;
+@selectedBg: #fcd2cf;
 @nightBg: #1F1F1F;
 @nightContentBg: #292929;
+@nightSelectedBg: #300603;
 //
 // Border
 @border: #E5E5E5;
@@ -34,32 +36,3 @@
 //
 // Other variable
 @headerHeight: 60px;
-//
-// Mixin
-.header-link {
-    border-right: 1px solid @border;
-    color: @color;
-    cursor: pointer;
-    font-size: @fontSize;
-    line-height: @headerHeight;
-    overflow: hidden;
-    padding: 0 16px;
-    &:hover {
-        color: @main;
-    }
-}
-
-.full-overlay {
-    position: fixed;
-    z-index: 101;
-    display: flex;
-    flex-flow: column;
-    background-color: rgba(0, 0, 0, 0.5);
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    overflow: hidden;
-    justify-content: center;
-    padding: 32px;
-}
