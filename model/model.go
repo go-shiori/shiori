@@ -20,7 +20,7 @@ type Bookmark struct {
 	MaxReadTime int    `db:"max_read_time" json:"maxReadTime"`
 	Modified    string `db:"modified"      json:"modified"`
 	Content     string `db:"content"       json:"-"`
-	HTML        string `db:"html"          json:"-"`
+	HTML        string `db:"html"          json:"html,omitempty"`
 	HasContent  bool   `db:"has_content"   json:"hasContent"`
 	Tags        []Tag  `json:"tags"`
 }

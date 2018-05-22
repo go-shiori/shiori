@@ -5,61 +5,98 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <link rel="stylesheet" href="/css/stylesheet.css">
     <link rel="stylesheet" href="/css/fontawesome.css">
-    <link rel="stylesheet" href="/css/ubuntu-mono.css">
     <link rel="stylesheet" href="/css/source-sans-pro.css">
+    <link rel="stylesheet" href="/css/source-serif-pro.css">
+    <link rel="stylesheet" href="/css/yla-dialog.css">
+    <link rel="stylesheet" href="/css/yla-tooltip.css">
+    <link rel="stylesheet" href="/css/stylesheet.css">
+    <script src="/js/vue.js"></script>
+    <script src="/js/component/yla-tooltip.js"></script>
+    <script src="/js/component/yla-dialog.js"></script>
+    <script src="/js/page/base.js"></script>
     <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/res/apple-touch-icon-144x144.png" />
     <link rel="apple-touch-icon-precomposed" sizes="152x152" href="/res/apple-touch-icon-152x152.png" />
     <link rel="icon" type="image/png" href="/res/favicon-32x32.png" sizes="32x32" />
     <link rel="icon" type="image/png" href="/res/favicon-16x16.png" sizes="16x16" />
-    <title>{{.Title}} - Shiori - Bookmarks Manager</title>
+    <title>Shiori - Bookmarks Manager</title>
 </head>
 
 <body>
-    <div id="cache-page">
-        <div id="menu">
-            <a href="/">
-                <i class="fas fa-fw fa-home"></i> Back to home</a>
-            <a id="toggle-light">
-                <i class="fas fa-fw fa-moon"></i> Use dark mode</a>
+    <div id="cache-page" class="page" :class="{night: nightMode}">
+        <div id="sidebar">
+            <yla-tooltip placement="right" content="Toggle night mode">
+                <a @click="toggleNightMode">
+                    <i class="fas fa-fw" :class="nightMode ? 'fa-sun' : 'fa-moon'"></i>
+                </a>
+            </yla-tooltip>
+            <yla-tooltip placement="right" content="Toggle font type">
+                <a @click="toggleSerifMode" id="toggle-font" :class="{serif: !serifMode}">Aa</a>
+            </yla-tooltip>
         </div>
-        <div id="metadata">
-            <a href="{{.URL}}">{{.URL}}</a>
-            <h3>{{.Title}}</h3>
-            {{if gt .MaxReadTime 0}} {{if eq .MinReadTime .MaxReadTime}}
-            <p>{{.MinReadTime}} minutes read time</p>
-            {{else}}
-            <p>{{.MinReadTime}}-{{.MaxReadTime}} minutes read time</p>
-            {{end}} {{end}}
+        <div id="body" :class="{serif: serifMode}">
+            <div id="header">
+                <p id="title">{{title}}</p>
+                <p id="time">Added
+                    <b>{{modified}}</b> UTC</p>
+                <a id="url" :href="url">{{getHostname(url)}}</a>
+            </div>
+            <div id="content" v-html="html"></div>
+            <div id="body-padding"></div>
         </div>
-        <div id="content">
-            {{html .HTML}}
-        </div>
+        <yla-dialog v-bind="dialog"></yla-dialog>
     </div>
     <script>
-        var useDarkMode = localStorage.getItem('dark-mode') !== null,
-            cachePage = document.getElementById('cache-page'),
-            btnToggleLight = document.getElementById('toggle-light');
+        // Create initial variable
+        var init = JSON.parse('$|.|$');
 
-        function updatePage() {
-            if (useDarkMode) {
-                localStorage.setItem('dark-mode', '');
-                cachePage.className = 'dark-mode';
-                btnToggleLight.innerHTML = '<i class="fas fa-fw fa-sun"></i> Use light mode</a>';
-            } else {
-                localStorage.removeItem('dark-mode');
-                cachePage.removeAttribute('class');
-                btnToggleLight.innerHTML = '<i class="fas fa-fw fa-moon"></i> Use dark mode</a>';
+        // Register Vue component
+        Vue.component('yla-dialog', new YlaDialog());
+        Vue.component('yla-tooltip', new YlaTooltip());
+
+        new Vue({
+            el: '#cache-page',
+            mixins: [new Base()],
+            data: {
+                id: init.id,
+                url: init.url,
+                title: init.title,
+                author: init.author,
+                minReadTime: init.minReadTime,
+                maxReadTime: init.maxReadTime,
+                modified: init.modified,
+                html: init.html,
+                tags: init.tags,
+                nightMode: false,
+                serifMode: false,
+            },
+            methods: {
+                toggleNightMode() {
+                    this.nightMode = !this.nightMode;
+                    localStorage.setItem('shiori-night-mode', this.nightMode ? '1' : '0');
+                },
+                toggleSerifMode() {
+                    this.serifMode = !this.serifMode;
+                    localStorage.setItem('shiori-serif-mode', this.serifMode ? '1' : '0');
+                },
+                getHostname(url) {
+                    parser = document.createElement('a');
+                    parser.href = url;
+                    return parser.hostname.replace(/^www\./g, '');
+                }
+            },
+            mounted() {
+                // Set title
+                document.title = this.title + ' - Shiori - Bookmarks Manager';
+
+                // Set night and serif mode
+                var nightMode = localStorage.getItem('shiori-night-mode'),
+                    serifMode = localStorage.getItem('shiori-serif-mode');
+
+                this.nightMode = nightMode === '1';
+                this.serifMode = serifMode === '1';
             }
-        }
-
-        btnToggleLight.onclick = function () {
-            useDarkMode = !useDarkMode;
-            updatePage();
-        };
-
-        updatePage();
+        });
     </script>
 </body>
 

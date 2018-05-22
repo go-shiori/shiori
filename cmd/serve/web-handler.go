@@ -31,24 +31,11 @@ func newWebHandler(db dt.Database, dataDir string) (*webHandler, error) {
 
 	jwtKey = []byte("Test12345")
 
-	// Create templates
-	funcMap := template.FuncMap{
-		"html": func(s string) template.HTML {
-			return template.HTML(s)
-		},
-	}
-
-	tplCache, err := createTemplate("cache.html", funcMap)
-	if err != nil {
-		return nil, err
-	}
-
 	// Create handler
 	handler := &webHandler{
-		db:       db,
-		dataDir:  dataDir,
-		jwtKey:   jwtKey,
-		tplCache: tplCache,
+		db:      db,
+		dataDir: dataDir,
+		jwtKey:  jwtKey,
 	}
 
 	return handler, nil
@@ -104,7 +91,7 @@ func createTemplate(filename string, funcMap template.FuncMap) (*template.Templa
 	}
 
 	// Create template
-	return template.New(filename).Funcs(funcMap).Parse(string(srcContent))
+	return template.New(filename).Delims("$|", "|$").Funcs(funcMap).Parse(string(srcContent))
 }
 
 func redirectPage(w http.ResponseWriter, r *http.Request, url string) {

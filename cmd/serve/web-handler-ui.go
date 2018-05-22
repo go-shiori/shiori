@@ -1,10 +1,13 @@
 package serve
 
 import (
+	"encoding/json"
 	"fmt"
+	"html/template"
 	"io"
 	"mime"
 	"net/http"
+	nurl "net/url"
 	"os"
 	fp "path/filepath"
 	"strconv"
@@ -59,8 +62,30 @@ func (h *webHandler) serveBookmarkCache(w http.ResponseWriter, r *http.Request, 
 		panic(fmt.Errorf("No bookmark with matching index"))
 	}
 
+	// Create template
+	funcMap := template.FuncMap{
+		"html": func(s string) template.HTML {
+			return template.HTML(s)
+		},
+		"hostname": func(s string) string {
+			parsed, err := nurl.ParseRequestURI(s)
+			if err != nil || parsed.Host == "" {
+				return s
+			}
+
+			return parsed.Hostname()
+		},
+	}
+
+	tplCache, err := createTemplate("cache.html", funcMap)
+	checkError(err)
+
+	bt, err := json.Marshal(&bookmarks[0])
+	checkError(err)
+
 	// Execute template
-	err = h.tplCache.Execute(w, &bookmarks[0])
+	strBt := string(bt)
+	err = tplCache.Execute(w, &strBt)
 	checkError(err)
 }
 

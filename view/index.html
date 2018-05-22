@@ -24,7 +24,7 @@
 </head>
 
 <body>
-    <div id="index-page" :class="{night: nightMode}">
+    <div id="index-page" class="page" :class="{night: nightMode}">
         <div id="sidebar">
             <p id="logo">栞</p>
             <yla-tooltip placement="right" content="Reload data">
@@ -50,7 +50,7 @@
             </yla-tooltip>
             <yla-tooltip placement="right" content="Toggle night mode">
                 <a @click="toggleNightMode">
-                    <i class="fas fa-fw" :class="nightMode ? 'fa-moon' : 'fa-sun'"></i>
+                    <i class="fas fa-fw" :class="nightMode ? 'fa-sun' : 'fa-moon'"></i>
                 </a>
             </yla-tooltip>
             <yla-tooltip placement="right" content="Log out">
