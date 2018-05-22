@@ -38,8 +38,9 @@
             <div id="header">
                 <p id="title">{{title}}</p>
                 <p id="time">Added
-                    <b>{{modified}}</b> UTC</p>
-                <a id="url" :href="url">{{getHostname(url)}}</a>
+                    <b>{{modified}} UTC</b>
+                </p>
+                <a id="url" :href="url" target="_blank">{{getHostname(url)}}</a>
             </div>
             <div id="content" v-html="html"></div>
             <div id="body-padding"></div>
