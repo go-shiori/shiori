@@ -27,21 +27,19 @@
     <div id="index-page" class="page" :class="{night: nightMode}">
         <div id="sidebar">
             <p id="logo">栞</p>
-            <template v-if="!editMode">
-                <yla-tooltip placement="right" content="Reload data">
-                    <a @click="reloadData">
-                        <i class="fas fa-sync-alt fa-fw" :class="loading && 'fa-spin'"></i>
-                    </a>
-                </yla-tooltip>
-                <yla-tooltip placement="right" content="Add new bookmark">
-                    <a @click="showDialogAdd">
-                        <i class="fas fa-plus fa-fw"></i>
-                    </a>
-                </yla-tooltip>
-            </template>
-            <yla-tooltip placement="right" content="Batch edit">
+            <yla-tooltip placement="right" content="Reload data">
+                <a @click="reloadData" v-show="!editMode">
+                    <i class="fas fa-sync-alt fa-fw" :class="loading && 'fa-spin'"></i>
+                </a>
+            </yla-tooltip>
+            <yla-tooltip placement="right" content="Add new bookmark">
+                <a @click="showDialogAdd" v-show="!editMode">
+                    <i class="fas fa-plus fa-fw"></i>
+                </a>
+            </yla-tooltip>
+            <yla-tooltip placement="right" :content="editMode ? 'Cancel batch edit' : 'Batch edit'">
                 <a @click="toggleEditMode">
-                    <i class="fas fa-pencil-alt fa-fw"></i>
+                    <i class="fas fa-fw" :class="editMode ? 'fa-times' : 'fa-pencil-alt'"></i>
                 </a>
             </yla-tooltip>
             <div class="spacer"></div>
@@ -74,7 +72,7 @@
                     <i class="fas fa-fw fa-trash-alt"></i>
                     Delete
                 </a>
-                <a :class="{disabled: selected.length === 0}">
+                <a :class="{disabled: selected.length === 0}" @click="showDialogAddTags(selected)">
                     <i class="fas fa-fw fa-tags"></i>
                     Add tags
                 </a>
@@ -110,11 +108,15 @@
                     </div>
                     <div class="bookmark" v-for="(book, idx) in visibleBookmarks" :class="{selected: isSelected(idx)}">
                         <a class="bookmark-selector" v-if="editMode" @click="toggleSelection(idx)"></a>
-                        <a class="bookmark-content" :href="book.hasContent ? '/bookmark/'+book.id : null" :title="book.hasContent ? 'View cache' : null" target="_blank">
+                        <a class="bookmark-link" :href="book.hasContent ? '/bookmark/'+book.id : null" :title="book.hasContent ? 'View cache' : null" target="_blank">
                             <img v-if="book.imageURL !== ''" :src="book.imageURL">
                             <p class="title">{{book.title}}</p>
                             <p class="excerpt" v-if="book.imageURL === ''">{{book.excerpt}}</p>
                         </a>
+                        <div class="bookmark-tags" v-if="book.tags.length > 0">
+                            <a v-for="tag in book.tags" @click="filterTag(tag.name)">{{tag.name}}</a>
+                        </div>
+                        <div class="spacer"></div>
                         <div class="bookmark-menu">
                             <a class="url" title="View original" :href="book.url" target="_blank">
                                 {{getHostname(book.url)}}
@@ -262,6 +264,21 @@
                 isSelected(idx) {
                     return this.selected.indexOf(idx) > -1;
                 },
+                filterTag(tag) {
+                    // Check if tag already exist in search
+                    var rxTag = new RegExp('#' + tag, 'g');
+                    if (rxTag.test(this.search)) return;
+
+                    // Create new search query
+                    var newSearch = this.search
+                        .replace(rxTag, '')
+                        .replace(/\s+/g, ' ')
+                        .trim();
+
+                    // Load data
+                    this.search = newSearch + ' #' + tag;
+                    this.loadData();
+                },
                 showDialogAdd() {
                     this.showDialog({
                         title: 'New Bookmark',
@@ -270,23 +287,25 @@
                             name: 'url',
                             label: 'Url, start with http://...',
                         }, {
-                            name: 'tags',
-                            label: 'Space separated tags (optional)'
-                        }, {
                             name: 'title',
                             label: 'Custom title (optional)'
                         }, {
                             name: 'excerpt',
                             label: 'Custom excerpt (optional)',
                             type: 'area'
-                        }],
+                        }, {
+                            name: 'tags',
+                            label: 'Space separated tags (optional)'
+                        }, ],
                         mainText: 'OK',
                         secondText: 'Cancel',
                         mainClick: (data) => {
                             // Prepare tags
                             var tags = data.tags
                                 .toLowerCase()
-                                .split(/\s+/g).map(tag => {
+                                .split(/\s+/g)
+                                .filter(tag => tag !== '')
+                                .map(tag => {
                                     return {
                                         name: tag
                                     };
@@ -343,7 +362,9 @@
                             // Prepare tags
                             var tags = data.tags
                                 .toLowerCase()
-                                .split(/\s+/g).map(tag => {
+                                .split(/\s+/g)
+                                .filter(tag => tag !== '')
+                                .map(tag => {
                                     return {
                                         name: tag
                                     };
@@ -438,6 +459,71 @@
                         mainClick: () => {
                             this.dialog.loading = true;
                             rest.put('/api/cache/', listID)
+                                .then((response) => {
+                                    this.selected = [];
+                                    this.editMode = false;
+                                    this.dialog.loading = false;
+                                    this.dialog.visible = false;
+
+                                    response.data.forEach(book => {
+                                        for (var i = 0; i < indices.length; i++) {
+                                            var idx = indices[i];
+                                            if (book.id === this.bookmarks[idx].id) {
+                                                this.bookmarks.splice(idx, 1, book);
+                                                break;
+                                            }
+                                        }
+                                    });
+                                })
+                                .catch((error) => {
+                                    var errorMsg = (error.response ? error.response.data : error.message).trim();
+                                    this.showErrorDialog(errorMsg);
+                                });
+                        }
+                    });
+                },
+                showDialogAddTags(indices) {
+                    // Check and prepare indices
+                    if (!(indices instanceof Array)) return;
+                    if (indices.length === 0) return;
+                    indices.sort();
+
+                    // Get list of bookmark ID
+                    var listID = [];
+                    for (var i = 0; i < indices.length; i++) {
+                        listID.push(this.bookmarks[indices[i]].id);
+                    }
+
+                    this.showDialog({
+                        title: 'Add New Tags',
+                        content: 'Add new tags to selected bookmarks',
+                        fields: [{
+                            name: 'tags',
+                            label: 'Space separated tags',
+                            value: '',
+                        }],
+                        mainText: 'OK',
+                        secondText: 'Cancel',
+                        mainClick: (data) => {
+                            // Validate input
+                            var tags = data.tags
+                                .toLowerCase()
+                                .split(/\s+/g)
+                                .filter(tag => tag !== '')
+                                .map(tag => {
+                                    return {
+                                        name: tag
+                                    };
+                                });
+
+                            if (tags.length === 0) return;
+
+                            // Send data
+                            this.dialog.loading = true;
+                            rest.put('/api/bookmarks/tags', {
+                                    ids: listID,
+                                    tags: tags,
+                                })
                                 .then((response) => {
                                     this.selected = [];
                                     this.editMode = false;

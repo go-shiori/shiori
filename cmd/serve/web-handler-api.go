@@ -183,7 +183,7 @@ func (h *webHandler) apiDeleteBookmark(w http.ResponseWriter, r *http.Request, p
 	fmt.Fprint(w, 1)
 }
 
-// apiUpdateBookmark is handler for PUT /api/bookmark
+// apiUpdateBookmark is handler for PUT /api/bookmarks
 func (h *webHandler) apiUpdateBookmark(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	// Check token
 	err := h.checkAPIToken(r)
@@ -236,6 +236,60 @@ func (h *webHandler) apiUpdateBookmark(w http.ResponseWriter, r *http.Request, p
 
 	// Return new saved result
 	err = json.NewEncoder(w).Encode(&res[0])
+	checkError(err)
+}
+
+// apiUpdateBookmarkTags is handler for PUT /api/bookmarks/tags
+func (h *webHandler) apiUpdateBookmarkTags(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	// Check token
+	err := h.checkAPIToken(r)
+	checkError(err)
+
+	// Decode request
+	request := struct {
+		IDs  []int       `json:"ids"`
+		Tags []model.Tag `json:"tags"`
+	}{}
+
+	err = json.NewDecoder(r.Body).Decode(&request)
+	checkError(err)
+
+	// Validate input
+	if len(request.IDs) == 0 || len(request.Tags) == 0 {
+		panic(fmt.Errorf("IDs and tags must not empty"))
+	}
+
+	// Get existing bookmark from database
+	bookmarks, err := h.db.GetBookmarks(true, request.IDs...)
+	checkError(err)
+	if len(bookmarks) == 0 {
+		panic(fmt.Errorf("No bookmark with matching index"))
+	}
+
+	// Set new tags
+	for i, book := range bookmarks {
+		for _, newTag := range request.Tags {
+			for _, oldTag := range book.Tags {
+				if newTag.Name == oldTag.Name {
+					newTag.ID = oldTag.ID
+					break
+				}
+			}
+
+			if newTag.ID == 0 {
+				book.Tags = append(book.Tags, newTag)
+			}
+		}
+
+		bookmarks[i] = book
+	}
+
+	// Update database
+	res, err := h.db.UpdateBookmarks(bookmarks...)
+	checkError(err)
+
+	// Return new saved result
+	err = json.NewEncoder(w).Encode(&res)
 	checkError(err)
 }
 

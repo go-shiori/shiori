@@ -305,9 +305,8 @@ a {
                     height: 100%;
                     z-index: 101;
                 }
-                .bookmark-content {
+                .bookmark-link {
                     display: block;
-                    flex: 1;
                     cursor: default;
                     &[href] {
                         cursor: pointer;
@@ -348,6 +347,25 @@ a {
                         font-size: 0.9em;
                         line-height: 1.5em;
                         max-height: 10.5em;
+                    }
+                }
+                .bookmark-tags {
+                    display: flex;
+                    flex-flow: row wrap;
+                    margin: 4px 0 -4px;
+                    padding: 0 8px;
+                    a {
+                        margin: 4px;
+                        padding: 4px 8px;
+                        font-size: 0.8em;
+                        font-weight: 600;
+                        border: 1px solid @border;
+                        border-radius: 4px;
+                        color: @colorLink;
+                        &:hover,
+                        &:focus {
+                            color: @main;
+                        }
                     }
                 }
                 .bookmark-menu {
@@ -436,15 +454,11 @@ a {
                 .bookmark {
                     border-top-width: 0;
                     border-bottom-width: 1px;
-                    padding-left: 100px;
-                    &:first-of-type {
+                    padding: 16px 24px 16px 100px;
+                    &:nth-child(2) {
                         border-top-width: 1px;
                     }
-                    .bookmark-content {
-                        display: flex;
-                        flex-flow: column nowrap;
-                        border-left: 1px solid @border;
-                        padding: 16px 24px 8px;
+                    .bookmark-link {
                         img {
                             position: absolute;
                             top: 0;
@@ -454,17 +468,24 @@ a {
                             margin-bottom: 0;
                         }
                         .title {
-                            padding: 0;
-                            margin-top: 0;
+                            margin: 0;
+                            padding-left: 24px;
                             white-space: nowrap;
                         }
-                        .excerpt {
-                            display: none;
-                        }
+                    }
+                    .excerpt,
+                    >.spacer {
+                        display: none;
+                    }
+                    .bookmark-tags {
+                        order: 5;
+                        padding-left: 16px;
+                        padding-right: 0;
+                        margin-right: -4px;
                     }
                     .bookmark-menu {
-                        border-left: 1px solid @border;
-                        padding: 0 24px 16px;
+                        padding: 4px 0 0 24px;
+                        align-items: flex-end;
                     }
                 }
                 #grid-padding {
@@ -500,14 +521,11 @@ a {
                     &.selected {
                         background-color: @nightSelectedBg;
                     }
-                    .bookmark-content {
-                        border-color: @nightBorder;
-                        .title,
-                        .excerpt {
-                            color: @nightColor;
-                        }
+                    .title,
+                    .excerpt {
+                        color: @nightColor;
                     }
-                    .bookmark-menu {
+                    .bookmark-tags a {
                         border-color: @nightBorder;
                     }
                 }
@@ -600,6 +618,10 @@ a {
             pre,
             code {
                 font-family: 'Ubuntu Mono', 'Courier New', Courier, monospace;
+            }
+            ol,
+            ul {
+                padding-left: 16px;
             }
         }
         #body-padding {

@@ -47,6 +47,7 @@ func NewServeCmd(db dt.Database, dataDir string) *cobra.Command {
 			router.POST("/api/bookmarks", hdl.apiInsertBookmark)
 			router.PUT("/api/cache", hdl.apiUpdateCache)
 			router.PUT("/api/bookmarks", hdl.apiUpdateBookmark)
+			router.PUT("/api/bookmarks/tags", hdl.apiUpdateBookmarkTags)
 			router.DELETE("/api/bookmarks", hdl.apiDeleteBookmark)
 
 			// Route for panic
