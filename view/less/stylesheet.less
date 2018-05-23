@@ -21,23 +21,29 @@ a {
     overflow: hidden;
 }
 
+body {
+    overflow-x: hidden;
+}
+
 .page {
     display: flex;
-    flex-flow: row nowrap;
-    width: 100vw;
-    height: 100vh;
+    flex-flow: column nowrap;
     background-color: @bg;
     min-width: 0;
-    min-height: 0;
-    overflow: hidden;
+    min-height: 100vh;
     #sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
         display: flex;
         flex-flow: column nowrap;
         flex-shrink: 0;
         background-color: @sidebarBg;
         min-width: 0;
         min-height: 0;
-        overflow: hidden;
+        z-index: 10;
+        overflow: auto;
         #logo {
             width: 60px;
             line-height: 60px;
@@ -45,6 +51,7 @@ a {
             font-size: 2em;
             color: @contentBg;
             background-color: @main;
+            flex-shrink: 0;
         }
         >a {
             width: 60px;
@@ -52,6 +59,7 @@ a {
             text-align: center;
             display: block;
             color: @colorSidebar;
+            flex-shrink: 0;
             &:hover,
             &:focus {
                 background-color: @color;
@@ -68,8 +76,7 @@ a {
         flex-flow: column nowrap;
         min-width: 0;
         min-height: 0;
-        overflow-x: hidden;
-        overflow-y: auto;
+        margin-left: 60px;
     }
     &.night {
         #sidebar {
@@ -96,6 +103,26 @@ a {
             }
         }
     }
+    @media (max-width: 600px) {
+        &.night #sidebar {
+            border-right-width: 0;
+            border-bottom: 1px solid @nightBorder;
+        }
+        #sidebar {
+            position: static;
+            flex-flow: row nowrap;
+            #logo,
+            .spacer {
+                display: none;
+            }
+            a {
+                margin: auto;
+            }
+        }
+        #body {
+            margin-left: 0;
+        }
+    }
 }
 
 #login-page {
@@ -105,20 +132,20 @@ a {
     height: 100vh;
     background-color: @bg;
     justify-content: center;
+    padding: 16px;
     >.error-message {
         width: 100%;
-        margin: 16px 16px 0;
         max-width: 400px;
         font-size: 0.9em;
         background-color: @contentBg;
         border: 1px solid @border;
         padding: 16px;
+        margin-bottom: 16px;
         text-align: center;
         color: @main;
     }
     #login-box {
         width: 100%;
-        margin: 16px;
         max-width: 400px;
         background-color: @contentBg;
         display: flex;
@@ -130,6 +157,7 @@ a {
             flex-flow: column nowrap;
             padding: 16px;
             border-bottom: 1px solid @border;
+            flex-shrink: 0;
             #logo {
                 font-size: 3em;
                 font-weight: 100;
@@ -258,12 +286,18 @@ a {
         min-height: 0;
         overflow: hidden;
         flex-shrink: 0;
+        position: fixed;
+        left: 60px;
+        top: 0;
+        right: 0;
+        z-index: 11;
     }
     #header {
         input {
             flex: 1 0;
             line-height: 60px;
             padding: 0 16px;
+            min-width: 0;
             font-size: 1em;
             background-color: @contentBg;
             border-right: 1px solid @border;
@@ -273,6 +307,7 @@ a {
             line-height: 60px;
             text-align: center;
             color: @colorLink;
+            flex-shrink: 0;
             &:hover,
             &:focus {
                 color: @main;
@@ -320,7 +355,7 @@ a {
         }
     }
     #content {
-        overflow-y: auto;
+        margin-top: 60px;
         #grid {
             display: grid;
             grid-template-rows: auto;
@@ -436,6 +471,12 @@ a {
                             color: @main;
                             opacity: 1;
                         }
+                        @media (max-width: 800px) {
+                            display: block;
+                            &:not(:last-child) {
+                                margin-right: 24px;
+                            }
+                        }
                     }
                     .url {
                         flex: 1 0;
@@ -539,6 +580,24 @@ a {
                     min-height: 16px
                 }
             }
+            @media (min-width: 2001px) {
+                grid-template-columns: repeat(6, 1fr);
+            }
+            @media (max-width: 2000px) and (min-width: 1601px) {
+                grid-template-columns: repeat(5, 1fr);
+            }
+            @media (max-width: 1600px) and (min-width: 1301px) {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            @media (max-width: 1300px) and (min-width: 1001px) {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            @media (max-width: 1000px) and (min-width: 601px) {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            @media (max-width: 600px) {
+                grid-template-columns: 1fr;
+            }
         }
     }
     &.night {
@@ -586,6 +645,22 @@ a {
             }
         }
     }
+    @media (max-width: 600px) {
+        .header {
+            position: static;
+        }
+        #batch-edit {
+            >*:not(:last-child) {
+                margin-right: 32px;
+            }
+            span {
+                display: none;
+            }
+        }
+        #content {
+            margin-top: 0;
+        }
+    }
 }
 
 #cache-page {
@@ -602,7 +677,7 @@ a {
         color: @color;
         overflow-y: auto;
         align-items: center;
-        padding: 16px 32px 0;
+        padding: 16px 16px 0;
         &.serif * {
             font-family: "Source Serif Pro", serif;
         }
@@ -613,7 +688,7 @@ a {
             width: 100%;
             max-width: 840px;
             grid-gap: 12px;
-            margin-bottom: 32px;
+            margin-bottom: 16px;
             background-color: @contentBg;
             padding: 20px;
             border: 1px solid @border;
@@ -637,6 +712,12 @@ a {
                 &:hover,
                 &:focus {
                     color: @main;
+                }
+            }
+            @media (max-width: 800px) {
+                grid-template-columns: 1fr;
+                #url {
+                    justify-self: start;
                 }
             }
         }
@@ -695,5 +776,11 @@ a {
                 }
             }
         }
+    }
+}
+
+.yla-tooltip {
+    @media (max-width: 800px) {
+        display: none;
     }
 }

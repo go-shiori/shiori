@@ -14,13 +14,15 @@
     height: 100vh;
     z-index: 10001;
     background-color: rgba(0, 0, 0, 0.6);
-    padding: 32px;
+    padding: 16px;
     .yla-dialog {
         display: flex;
         flex-flow: column nowrap;
-        min-width: 400px;
+        min-width: 0;
         min-height: 0;
+        max-width: 400px;
         max-height: 100%;
+        width: 100%;
         overflow: hidden;
         background-color: #FFF;
         font-size: 16px;
@@ -71,6 +73,7 @@
                 font-size: 0.9em;
                 min-height: 37px;
                 resize: vertical;
+                flex-shrink: 0;
             }
             >.suggestion {
                 position: absolute;

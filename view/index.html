@@ -70,15 +70,15 @@
                 <p>{{selected.length}} Items selected</p>
                 <a :class="{disabled: selected.length === 0}" @click="showDialogDelete(selected)">
                     <i class="fas fa-fw fa-trash-alt"></i>
-                    Delete
+                    <span>Delete</span>
                 </a>
                 <a :class="{disabled: selected.length === 0}" @click="showDialogAddTags(selected)">
                     <i class="fas fa-fw fa-tags"></i>
-                    Add tags
+                    <span>Add tags</span>
                 </a>
                 <a :class="{disabled: selected.length === 0}" @click="showDialogUpdateCache(selected)">
                     <i class="fas fa-fw fa-cloud-download-alt"></i>
-                    Update cache
+                    <span>Update cache</span>
                 </a>
                 <a id="cancel-edit" @click="toggleEditMode">
                     <i class="fas fa-fw fa-times"></i>
@@ -221,7 +221,7 @@
                             this.bookmarks = response.data;
                             this.page = 0;
                             this.maxPage = Math.ceil(this.bookmarks.length / pageSize) - 1;
-                            this.$refs.content.scrollTop = 0;
+                            window.scrollTo(0, 0);
                         })
                         .catch((error) => {
                             var errorMsg = (error.response ? error.response.data : error.message).trim();
@@ -241,11 +241,11 @@
                     else if (target <= 0) this.page = 0;
                     else this.page = target;
 
-                    this.$refs.content.scrollTop = 0;
+                    window.scrollTo(0, 0);
                 },
                 toggleListView() {
                     this.listView = !this.listView;
-                    this.$refs.content.scrollTop = 0;
+                    window.scrollTo(0, 0);
                     localStorage.setItem('shiori-list-view', this.listView ? '1' : '0');
                 },
                 toggleNightMode() {
