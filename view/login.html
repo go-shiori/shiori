@@ -29,9 +29,9 @@
                 <p id="tagline">simple bookmark manager</p>
             </div>
             <div id="input-area">
-                <div class="input-field" @keyup.enter="login">
+                <div class="input-field">
                     <p>Username: </p>
-                    <input type="text" name="username" v-model.trim="username" placeholder="Username">
+                    <input type="text" name="username" v-model.trim="username" placeholder="Username" @keyup.enter="login">
                 </div>
                 <div class="input-field">
                     <p>Password: </p>
