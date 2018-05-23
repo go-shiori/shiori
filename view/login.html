@@ -19,7 +19,7 @@
 </head>
 
 <body>
-    <div id="login-page">
+    <div id="login-page" :class="{night: nightMode}">
         <p class="error-message" v-if="error !== ''">{{error}}</p>
         <div id="login-box">
             <div id="logo-area">
@@ -29,7 +29,7 @@
                 <p id="tagline">simple bookmark manager</p>
             </div>
             <div id="input-area">
-                <div class="input-field">
+                <div class="input-field" @keyup.enter="login">
                     <p>Username: </p>
                     <input type="text" name="username" v-model.trim="username" placeholder="Username">
                 </div>
@@ -55,11 +55,12 @@
         var app = new Vue({
             el: '#login-page',
             data: {
-                error: "",
+                error: '',
                 loading: false,
                 username: '',
                 password: '',
-                rememberMe: false
+                rememberMe: false,
+                nightMode: false,
             },
             methods: {
                 toggleRemember: function () {
@@ -84,18 +85,23 @@
                         .then(function (response) {
                             var token = response.data;
                             Cookies.set('token', token, {
-                                expires: this.rememberMe ? 7 : 0.5
+                                expires: this.rememberMe ? 7 : 1
                             });
 
                             location.href = '/';
                         })
                         .catch(function (error) {
-                            var errorMsg = error.response ? error.response.data : error.message;
+                            var errorMsg = (error.response ? error.response.data : error.message).trim();
                             app.password = '';
                             app.loading = false;
-                            app.error = errorMsg.trim();
+                            app.error = errorMsg;
                         });
                 }
+            },
+            mounted() {
+                // Read config from local storage
+                var nightMode = localStorage.getItem('shiori-night-mode');
+                this.nightMode = nightMode === '1';
             }
         });
     </script>

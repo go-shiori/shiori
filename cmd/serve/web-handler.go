@@ -29,8 +29,6 @@ func newWebHandler(db dt.Database, dataDir string) (*webHandler, error) {
 		return nil, err
 	}
 
-	jwtKey = []byte("Test12345")
-
 	// Create handler
 	handler := &webHandler{
 		db:      db,

@@ -54,7 +54,7 @@
                 </a>
             </yla-tooltip>
             <yla-tooltip placement="right" content="Log out">
-                <a>
+                <a @click="showDialogLogout">
                     <i class="fas fa-sign-out-alt fa-fw"></i>
                 </a>
             </yla-tooltip>
@@ -544,6 +544,18 @@
                                     var errorMsg = (error.response ? error.response.data : error.message).trim();
                                     this.showErrorDialog(errorMsg);
                                 });
+                        }
+                    });
+                },
+                showDialogLogout() {
+                    this.showDialog({
+                        title: 'Log Out',
+                        content: 'Do you want to log out from shiori ?',
+                        mainText: 'Yes',
+                        secondText: 'No',
+                        mainClick: () => {
+                            Cookies.remove('token');
+                            location.href = '/login';
                         }
                     });
                 },

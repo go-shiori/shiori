@@ -109,10 +109,12 @@ a {
         width: 100%;
         margin: 16px 16px 0;
         max-width: 400px;
+        font-size: 0.9em;
         background-color: @contentBg;
         border: 1px solid @border;
         padding: 16px;
         text-align: center;
+        color: @main;
     }
     #login-box {
         width: 100%;
@@ -137,7 +139,8 @@ a {
                 }
             }
             #tagline {
-                font-weight: 100;
+                font-size: 0.9em;
+                font-weight: 500;
                 color: @main;
             }
         }
@@ -157,6 +160,7 @@ a {
                 input {
                     color: @color;
                     padding: 8px;
+                    background-color: @contentBg;
                     border: 1px solid @border;
                     flex: 1 0;
                     font-size: 0.9em;
@@ -172,7 +176,8 @@ a {
                         margin-right: 8px;
                         color: @color;
                     }
-                    &:hover {
+                    &:hover,
+                    &:focus {
                         color: @main;
                     }
                 }
@@ -182,17 +187,59 @@ a {
             display: flex;
             flex-flow: row nowrap;
             padding: 16px;
+            justify-content: center;
             a {
                 color: @colorLink;
                 text-transform: uppercase;
-                background-color: @contentBg;
-                flex: 1 0;
                 text-align: center;
-                &.button {
-                    cursor: pointer;
-                    &:hover {
-                        color: @accent;
+                font-size: 0.9em;
+                font-weight: 600;
+                &:hover,
+                &:focus {
+                    color: @main;
+                }
+            }
+        }
+    }
+    &.night {
+        background-color: @nightBg;
+        >.error-message {
+            border-color: @nightBorder;
+            background-color: @nightContentBg;
+        }
+        #login-box {
+            border-color: @nightBorder;
+            background-color: @nightContentBg;
+            #logo-area {
+                border-color: @nightBorder;
+            }
+            #input-area {
+                border-color: @nightBorder;
+                .input-field {
+                    p {
+                        color: @nightColor;
                     }
+                    input {
+                        border-color: @nightBorder;
+                        background-color: @nightContentBg;
+                        color: @nightColor;
+                    }
+                    a {
+                        color: @nightColor;
+                        i {
+                            color: @nightColor;
+                        }
+                        &:hover,
+                        &:focus {
+                            color: @main;
+                        }
+                    }
+                }
+            }
+            #button-area a {
+                &:hover,
+                &:focus {
+                    color: @main;
                 }
             }
         }
