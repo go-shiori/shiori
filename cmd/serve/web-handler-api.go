@@ -66,7 +66,10 @@ func (h *webHandler) apiGetBookmarks(w http.ResponseWriter, r *http.Request, ps 
 	// Get URL queries
 	keyword := r.URL.Query().Get("keyword")
 	strTags := r.URL.Query().Get("tags")
-	tags := strings.Fields(strTags)
+	tags := strings.Split(strTags, ",")
+	if len(tags) == 1 && tags[0] == "" {
+		tags = []string{}
+	}
 
 	// Fetch all matching bookmarks
 	bookmarks, err := h.db.SearchBookmarks(true, keyword, tags...)

@@ -221,20 +221,33 @@
                     if (this.loading) return;
 
                     // Parse search query
-                    var rxTags = /(^|\s+)#(\S+)/g,
-                        keyword = this.search.replace(rxTags, ' ').trim().replace(/\s+/g, ' '),
+                    var rxTagA = /['"]#([^'"]+)['"]/g,
+                        rxTagB = /(^|\s+)#(\S+)/g,
+                        keyword = this.search,
                         tags = [];
 
-                    while ((result = rxTags.exec(this.search)) !== null) {
+                    // Fetch tag A first
+                    while ((result = rxTagA.exec(keyword)) !== null) {
+                        tags.push(result[1]);
+                    }
+
+                    // Clear tag A from keyword
+                    keyword = keyword.replace(rxTagA, '');
+
+                    // Fetch tag B
+                    while ((result = rxTagB.exec(keyword)) !== null) {
                         tags.push(result[2]);
                     }
+
+                    // Clear tag B from keyword and clean it
+                    keyword = keyword.replace(rxTagB, '').trim().replace(/\s+/g, ' ');
 
                     // Fetch data
                     this.loading = true;
                     rest.get('/api/bookmarks', {
                             params: {
                                 keyword: keyword,
-                                tags: tags.join(' ')
+                                tags: tags.join(',')
                             }
                         })
                         .then((response) => {
@@ -286,18 +299,22 @@
                     return this.selected.indexOf(idx) > -1;
                 },
                 filterTag(tag) {
+                    // Prepare variable
+                    var rxSpace = /\s+/g,
+                        searchTag = rxSpace.test(tag) ? '"#' + tag + '"' : '#' + tag;
+
                     // Check if tag already exist in search
-                    var rxTag = new RegExp('#' + tag, 'g');
+                    rxTag = new RegExp(searchTag, 'g');
                     if (rxTag.test(this.search)) return;
 
                     // Create new search query
                     var newSearch = this.search
                         .replace(rxTag, '')
-                        .replace(/\s+/g, ' ')
+                        .replace(rxSpace, ' ')
                         .trim();
 
                     // Load data
-                    this.search = (newSearch + ' #' + tag).trim();
+                    this.search = (newSearch + ' ' + searchTag).trim();
                     this.dialogTags.visible = false;
                     this.loadData();
                 },
@@ -317,7 +334,7 @@
                             type: 'area'
                         }, {
                             name: 'tags',
-                            label: 'Space separated tags (optional)'
+                            label: 'Comma separated tags (optional)'
                         }, ],
                         mainText: 'OK',
                         secondText: 'Cancel',
@@ -325,7 +342,8 @@
                             // Prepare tags
                             var tags = data.tags
                                 .toLowerCase()
-                                .split(/\s+/g)
+                                .replace(/\s+/g, ' ')
+                                .split(/\s*,\s*/g)
                                 .filter(tag => tag !== '')
                                 .map(tag => {
                                     return {
@@ -384,7 +402,8 @@
                             // Prepare tags
                             var tags = data.tags
                                 .toLowerCase()
-                                .split(/\s+/g)
+                                .replace(/\s+/g, ' ')
+                                .split(/\s*,\s*/g)
                                 .filter(tag => tag !== '')
                                 .map(tag => {
                                     return {
@@ -521,7 +540,7 @@
                         content: 'Add new tags to selected bookmarks',
                         fields: [{
                             name: 'tags',
-                            label: 'Space separated tags',
+                            label: 'Comma separated tags',
                             value: '',
                         }],
                         mainText: 'OK',
@@ -530,7 +549,8 @@
                             // Validate input
                             var tags = data.tags
                                 .toLowerCase()
-                                .split(/\s+/g)
+                                .replace(/\s+/g, ' ')
+                                .split(/\s*,\s*/g)
                                 .filter(tag => tag !== '')
                                 .map(tag => {
                                     return {
