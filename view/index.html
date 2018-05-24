@@ -89,76 +89,74 @@
                     <i class="fas fa-fw fa-times"></i>
                 </a>
             </div>
-            <div id="content" ref="content">
-                <div id="grid" :class="{list: listView}">
-                    <div class="pagination-box" v-if="maxPage > 0">
-                        <p>Page</p>
-                        <input type="text" placeholder="1" :value="page+1" @focus="$event.target.select()" @keyup.enter="changePage($event.target.value-1)" :disabled="editMode">
-                        <p>{{maxPage+1}}</p>
-                        <div class="spacer"></div>
-                        <template v-if="!editMode">
-                            <a v-if="page > 1" title="Go to first page" @click="changePage(0)">
-                                <i class="fas fa-fw fa-angle-double-left"></i>
-                            </a>
-                            <a v-if="page > 0" title="Go to previous page" @click="changePage(page-1)">
-                                <i class="fa fa-fw fa-angle-left"></i>
-                            </a>
-                            <a v-if="page < maxPage" title="Go to next page" @click="changePage(page+1)">
-                                <i class="fa fa-fw fa-angle-right"></i>
-                            </a>
-                            <a v-if="page < maxPage - 1" title="Go to last page" @click="changePage(maxPage)">
-                                <i class="fas fa-fw fa-angle-double-right"></i>
-                            </a>
-                        </template>
-                    </div>
-                    <div class="bookmark" v-for="(book, idx) in visibleBookmarks" :class="{selected: isSelected(idx)}">
-                        <a class="bookmark-selector" v-if="editMode" @click="toggleSelection(idx)"></a>
-                        <a class="bookmark-link" :href="book.hasContent ? '/bookmark/'+book.id : null" :title="book.hasContent ? 'View cache' : null" target="_blank">
-                            <img v-if="book.imageURL !== ''" :src="book.imageURL">
-                            <p class="title">{{book.title}}</p>
-                            <p class="excerpt" v-if="book.imageURL === ''">{{book.excerpt}}</p>
+            <div id="grid" :class="{list: listView}">
+                <div class="pagination-box" v-if="maxPage > 0">
+                    <p>Page</p>
+                    <input type="text" placeholder="1" :value="page+1" @focus="$event.target.select()" @keyup.enter="changePage($event.target.value-1)" :disabled="editMode">
+                    <p>{{maxPage+1}}</p>
+                    <div class="spacer"></div>
+                    <template v-if="!editMode">
+                        <a v-if="page > 1" title="Go to first page" @click="changePage(0)">
+                            <i class="fas fa-fw fa-angle-double-left"></i>
                         </a>
-                        <div class="bookmark-tags" v-if="book.tags.length > 0">
-                            <a v-for="tag in book.tags" @click="filterTag(tag.name)">{{tag.name}}</a>
-                        </div>
-                        <div class="spacer"></div>
-                        <div class="bookmark-menu">
-                            <a class="url" title="View original" :href="book.url" target="_blank">
-                                {{getHostname(book.url)}}
-                            </a>
-                            <a title="Edit bookmark" @click="showDialogEdit(idx)">
-                                <i class="fas fa-pencil-alt"></i>
-                            </a>
-                            <a title="Delete bookmark" @click="showDialogDelete([idx])">
-                                <i class="fas fa-trash-alt"></i>
-                            </a>
-                            <a title="Update cache" @click="showDialogUpdateCache([idx])">
-                                <i class="fas fa-cloud-download-alt"></i>
-                            </a>
-                        </div>
-                    </div>
-                    <div class="pagination-box" v-if="maxPage > 0">
-                        <p>Page</p>
-                        <input type="text" placeholder="1" :value="page+1" @focus="$event.target.select()" @keyup.enter="changePage($event.target.value-1)" :disabled="editMode">
-                        <p>{{maxPage+1}}</p>
-                        <div class="spacer"></div>
-                        <template v-if="!editMode">
-                            <a v-if="page > 1" title="Go to first page" @click="changePage(0)">
-                                <i class="fas fa-fw fa-angle-double-left"></i>
-                            </a>
-                            <a v-if="page > 0" title="Go to previous page" @click="changePage(page-1)">
-                                <i class="fa fa-fw fa-angle-left"></i>
-                            </a>
-                            <a v-if="page < maxPage" title="Go to next page" @click="changePage(page+1)">
-                                <i class="fa fa-fw fa-angle-right"></i>
-                            </a>
-                            <a v-if="page < maxPage - 1" title="Go to last page" @click="changePage(maxPage)">
-                                <i class="fas fa-fw fa-angle-double-right"></i>
-                            </a>
-                        </template>
-                    </div>
-                    <div id="grid-padding"></div>
+                        <a v-if="page > 0" title="Go to previous page" @click="changePage(page-1)">
+                            <i class="fa fa-fw fa-angle-left"></i>
+                        </a>
+                        <a v-if="page < maxPage" title="Go to next page" @click="changePage(page+1)">
+                            <i class="fa fa-fw fa-angle-right"></i>
+                        </a>
+                        <a v-if="page < maxPage - 1" title="Go to last page" @click="changePage(maxPage)">
+                            <i class="fas fa-fw fa-angle-double-right"></i>
+                        </a>
+                    </template>
                 </div>
+                <div class="bookmark" v-for="(book, idx) in visibleBookmarks" :class="{selected: isSelected(idx)}">
+                    <a class="bookmark-selector" v-if="editMode" @click="toggleSelection(idx)"></a>
+                    <a class="bookmark-link" :href="book.hasContent ? '/bookmark/'+book.id : null" :title="book.hasContent ? 'View cache' : null" target="_blank">
+                        <img v-if="book.imageURL !== ''" :src="book.imageURL">
+                        <p class="title">{{book.title}}</p>
+                        <p class="excerpt" v-if="book.imageURL === ''">{{book.excerpt}}</p>
+                    </a>
+                    <div class="bookmark-tags" v-if="book.tags.length > 0">
+                        <a v-for="tag in book.tags" @click="filterTag(tag.name)">{{tag.name}}</a>
+                    </div>
+                    <div class="spacer"></div>
+                    <div class="bookmark-menu">
+                        <a class="url" title="View original" :href="book.url" target="_blank">
+                            {{getHostname(book.url)}}
+                        </a>
+                        <a title="Edit bookmark" @click="showDialogEdit(idx)">
+                            <i class="fas fa-pencil-alt"></i>
+                        </a>
+                        <a title="Delete bookmark" @click="showDialogDelete([idx])">
+                            <i class="fas fa-trash-alt"></i>
+                        </a>
+                        <a title="Update cache" @click="showDialogUpdateCache([idx])">
+                            <i class="fas fa-cloud-download-alt"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="pagination-box" v-if="maxPage > 0">
+                    <p>Page</p>
+                    <input type="text" placeholder="1" :value="page+1" @focus="$event.target.select()" @keyup.enter="changePage($event.target.value-1)" :disabled="editMode">
+                    <p>{{maxPage+1}}</p>
+                    <div class="spacer"></div>
+                    <template v-if="!editMode">
+                        <a v-if="page > 1" title="Go to first page" @click="changePage(0)">
+                            <i class="fas fa-fw fa-angle-double-left"></i>
+                        </a>
+                        <a v-if="page > 0" title="Go to previous page" @click="changePage(page-1)">
+                            <i class="fa fa-fw fa-angle-left"></i>
+                        </a>
+                        <a v-if="page < maxPage" title="Go to next page" @click="changePage(page+1)">
+                            <i class="fa fa-fw fa-angle-right"></i>
+                        </a>
+                        <a v-if="page < maxPage - 1" title="Go to last page" @click="changePage(maxPage)">
+                            <i class="fas fa-fw fa-angle-double-right"></i>
+                        </a>
+                    </template>
+                </div>
+                <div id="grid-padding"></div>
             </div>
         </div>
         <yla-dialog id="dialog-tags" v-bind="dialogTags">
