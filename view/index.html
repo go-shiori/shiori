@@ -33,13 +33,18 @@
                 </a>
             </yla-tooltip>
             <yla-tooltip placement="right" content="Add new bookmark">
-                <a @click="showDialogAdd" v-show="!editMode">
+                <a @click="showDialogAdd" v-show="!editMode && !loading">
                     <i class="fas fa-plus fa-fw"></i>
                 </a>
             </yla-tooltip>
             <yla-tooltip placement="right" :content="editMode ? 'Cancel batch edit' : 'Batch edit'">
-                <a @click="toggleEditMode">
+                <a @click="toggleEditMode" v-show="!loading">
                     <i class="fas fa-fw" :class="editMode ? 'fa-times' : 'fa-pencil-alt'"></i>
+                </a>
+            </yla-tooltip>
+            <yla-tooltip placement="right" content="Show tags">
+                <a @click="showDialogTags" v-show="!editMode && !loading">
+                    <i class="fas fa-fw fa-tags"></i>
                 </a>
             </yla-tooltip>
             <div class="spacer"></div>
@@ -156,6 +161,12 @@
                 </div>
             </div>
         </div>
+        <yla-dialog id="dialog-tags" v-bind="dialogTags">
+            <a v-for="tag in tags" @click="filterTag(tag.name)">
+                <span>{{tag.name}}</span>
+                <span>{{tag.nBookmarks}}</span>
+            </a>
+        </yla-dialog>
         <yla-dialog v-bind="dialog"></yla-dialog>
     </div>
     <script>
@@ -176,16 +187,28 @@
         new Vue({
             el: '#index-page',
             mixins: [new Base()],
-            data: {
-                loading: false,
-                bookmarks: [],
-                search: '',
-                page: 0,
-                maxPage: 0,
-                listView: false,
-                nightMode: false,
-                editMode: false,
-                selected: []
+            data() {
+                return {
+                    loading: false,
+                    tags: [],
+                    bookmarks: [],
+                    search: '',
+                    page: 0,
+                    maxPage: 0,
+                    listView: false,
+                    nightMode: false,
+                    editMode: false,
+                    selected: [],
+                    dialogTags: {
+                        visible: false,
+                        loading: false,
+                        title: 'Existing Tags',
+                        mainText: 'Cancel',
+                        mainClick: () => {
+                            this.dialogTags.visible = false;
+                        },
+                    }
+                }
             },
             computed: {
                 visibleBookmarks() {
@@ -276,7 +299,8 @@
                         .trim();
 
                     // Load data
-                    this.search = newSearch + ' #' + tag;
+                    this.search = (newSearch + ' #' + tag).trim();
+                    this.dialogTags.visible = false;
                     this.loadData();
                 },
                 showDialogAdd() {
@@ -546,6 +570,23 @@
                                 });
                         }
                     });
+                },
+                showDialogTags() {
+                    this.dialogTags.visible = true;
+                    this.dialogTags.loading = true;
+                    rest.get('/api/tags', {
+                            timeout: 5000
+                        })
+                        .then((response) => {
+                            this.tags = response.data;
+                            this.dialogTags.loading = false;
+                        })
+                        .catch((error) => {
+                            var errorMsg = (error.response ? error.response.data : error.message).trim();
+                            this.dialogTags.loading = false;
+                            this.dialogTags.visible = false;
+                            this.showErrorDialog(errorMsg);
+                        });
                 },
                 showDialogLogout() {
                     this.showDialog({

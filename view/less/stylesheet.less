@@ -784,3 +784,33 @@ body {
         display: none;
     }
 }
+
+#dialog-tags {
+    .yla-dialog__body {
+        grid-template-columns: 1fr 1fr;
+        a {
+            display: flex;
+            flex-flow: row nowrap;
+            align-items: baseline;
+            span {
+                &:last-child {
+                    font-size: 0.9em;
+                    color: @colorLink;
+                    margin-left: 8px;
+                    &::before {
+                        content: "(";
+                        margin-right: 2px;
+                    }
+                    &::after {
+                        content: ")";
+                        margin-left: 2px;
+                    }
+                }
+            }
+            &:hover,
+            &:focus {
+                color: @main;
+            }
+        }
+    }
+}
