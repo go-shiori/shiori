@@ -1,4 +1,42 @@
-@import "variable";
+:root {
+    --bg: #EEE;
+    --sidebarBg: #292929;
+    --contentBg: #FFF;
+    --selectedBg: #fcd2cf;
+    --border: #E5E5E5;
+    --color: #232323;
+    --colorLink: #999;
+    --colorSidebar: #FFF;
+    --main: #F44336;
+}
+
+&.night {
+    --bg: #1F1F1F;
+    --contentBg: #292929;
+    --selectedBg: #300603;
+    --border: #191919;
+    --color: #FFF;
+    .yla-dialog {
+        color: var(--color);
+        background-color: var(--bg);
+        >.yla-dialog__header {
+            background-color: var(--contentBg);
+            border-bottom: 1px solid var(--border);
+        }
+        >.yla-dialog__body {
+            >input,
+            >textarea {
+                color: var(--color);
+                border-color: var(--border);
+                background-color: var(--contentBg);
+            }
+        }
+        >.yla-dialog__footer {
+            border-color: var(--border);
+        }
+    }
+}
+
 * {
     border-width: 0;
     box-sizing: border-box;
@@ -28,7 +66,7 @@ body {
 .page {
     display: flex;
     flex-flow: column nowrap;
-    background-color: @bg;
+    background-color: var(--bg);
     min-width: 0;
     min-height: 100vh;
     #sidebar {
@@ -39,7 +77,7 @@ body {
         display: flex;
         flex-flow: column nowrap;
         flex-shrink: 0;
-        background-color: @sidebarBg;
+        background-color: var(--sidebarBg);
         min-width: 0;
         min-height: 0;
         z-index: 10;
@@ -49,8 +87,8 @@ body {
             line-height: 60px;
             text-align: center;
             font-size: 2em;
-            color: @contentBg;
-            background-color: @main;
+            color: var(--contentBg);
+            background-color: var(--main);
             flex-shrink: 0;
         }
         >a {
@@ -58,15 +96,11 @@ body {
             line-height: 60px;
             text-align: center;
             display: block;
-            color: @colorSidebar;
+            color: var(--colorSidebar);
             flex-shrink: 0;
             &:hover,
             &:focus {
-                background-color: @color;
-            }
-            &.active {
-                background-color: @color;
-                color: @main;
+                background-color: #232323;
             }
         }
     }
@@ -78,35 +112,10 @@ body {
         min-height: 0;
         margin-left: 60px;
     }
-    &.night {
-        #sidebar {
-            border-right: 1px solid @nightBorder;
-        }
-        background-color: @nightBg;
-        .yla-dialog {
-            color: @nightColor;
-            background-color: @nightBg;
-            >.yla-dialog__header {
-                background-color: @nightContentBg;
-                border-bottom: 1px solid @nightBorder;
-            }
-            >.yla-dialog__body {
-                >input,
-                >textarea {
-                    color: @nightColor;
-                    border-color: @nightBorder;
-                    background-color: @nightContentBg;
-                }
-            }
-            >.yla-dialog__footer {
-                border-color: @nightBorder;
-            }
-        }
-    }
     @media (max-width: 600px) {
         &.night #sidebar {
             border-right-width: 0;
-            border-bottom: 1px solid @nightBorder;
+            border-bottom: 1px solid var(--border);
         }
         #sidebar {
             position: static;
@@ -130,38 +139,38 @@ body {
     flex-flow: column nowrap;
     align-items: center;
     height: 100vh;
-    background-color: @bg;
+    background-color: var(--bg);
     justify-content: center;
     padding: 16px;
     >.error-message {
         width: 100%;
         max-width: 400px;
         font-size: 0.9em;
-        background-color: @contentBg;
-        border: 1px solid @border;
+        background-color: var(--contentBg);
+        border: 1px solid var(--border);
         padding: 16px;
         margin-bottom: 16px;
         text-align: center;
-        color: @main;
+        color: var(--main);
     }
     #login-box {
         width: 100%;
         max-width: 400px;
-        background-color: @contentBg;
+        background-color: var(--contentBg);
         display: flex;
         flex-flow: column nowrap;
-        border: 1px solid @border;
+        border: 1px solid var(--border);
         #logo-area {
             display: flex;
             align-items: center;
             flex-flow: column nowrap;
             padding: 16px;
-            border-bottom: 1px solid @border;
+            border-bottom: 1px solid var(--border);
             flex-shrink: 0;
             #logo {
                 font-size: 3em;
                 font-weight: 100;
-                color: @main;
+                color: var(--main);
                 span {
                     margin-right: 8px;
                 }
@@ -169,44 +178,44 @@ body {
             #tagline {
                 font-size: 0.9em;
                 font-weight: 500;
-                color: @main;
+                color: var(--main);
             }
         }
         #input-area {
             padding: 8px;
-            border-bottom: 1px solid @border;
+            border-bottom: 1px solid var(--border);
             .input-field {
                 display: flex;
                 align-items: baseline;
                 padding: 8px;
                 p {
-                    color: @color;
+                    color: var(--color);
                     font-size: 0.9em;
                     margin-right: 16px;
                     min-width: 65px;
                 }
                 input {
-                    color: @color;
+                    color: var(--color);
                     padding: 8px;
-                    background-color: @contentBg;
-                    border: 1px solid @border;
+                    background-color: var(--contentBg);
+                    border: 1px solid var(--border);
                     flex: 1 0;
                     font-size: 0.9em;
                 }
                 a {
                     display: block;
                     cursor: pointer;
-                    color: @color;
+                    color: var(--color);
                     text-align: center;
                     font-size: 0.9em;
                     flex: 1 0;
                     i {
                         margin-right: 8px;
-                        color: @color;
+                        color: var(--color);
                     }
                     &:hover,
                     &:focus {
-                        color: @main;
+                        color: var(--main);
                     }
                 }
             }
@@ -217,57 +226,14 @@ body {
             padding: 16px;
             justify-content: center;
             a {
-                color: @colorLink;
+                color: var(--colorLink);
                 text-transform: uppercase;
                 text-align: center;
                 font-size: 0.9em;
                 font-weight: 600;
                 &:hover,
                 &:focus {
-                    color: @main;
-                }
-            }
-        }
-    }
-    &.night {
-        background-color: @nightBg;
-        >.error-message {
-            border-color: @nightBorder;
-            background-color: @nightContentBg;
-        }
-        #login-box {
-            border-color: @nightBorder;
-            background-color: @nightContentBg;
-            #logo-area {
-                border-color: @nightBorder;
-            }
-            #input-area {
-                border-color: @nightBorder;
-                .input-field {
-                    p {
-                        color: @nightColor;
-                    }
-                    input {
-                        border-color: @nightBorder;
-                        background-color: @nightContentBg;
-                        color: @nightColor;
-                    }
-                    a {
-                        color: @nightColor;
-                        i {
-                            color: @nightColor;
-                        }
-                        &:hover,
-                        &:focus {
-                            color: @main;
-                        }
-                    }
-                }
-            }
-            #button-area a {
-                &:hover,
-                &:focus {
-                    color: @main;
+                    color: var(--main);
                 }
             }
         }
@@ -276,11 +242,11 @@ body {
 
 #index-page {
     .header {
-        background-color: @contentBg;
-        border-bottom: 1px solid @border;
+        background-color: var(--contentBg);
+        border-bottom: 1px solid var(--border);
         display: flex;
         flex-flow: row nowrap;
-        color: @color;
+        color: var(--color);
         align-items: center;
         min-width: 0;
         min-height: 0;
@@ -299,18 +265,18 @@ body {
             padding: 0 16px;
             min-width: 0;
             font-size: 1em;
-            background-color: @contentBg;
-            border-right: 1px solid @border;
+            background-color: var(--contentBg);
+            border-right: 1px solid var(--border);
         }
         a {
             width: 60px;
             line-height: 60px;
             text-align: center;
-            color: @colorLink;
+            color: var(--colorLink);
             flex-shrink: 0;
             &:hover,
             &:focus {
-                color: @main;
+                color: var(--main);
             }
         }
     }
@@ -327,27 +293,27 @@ body {
             flex: 1 0;
         }
         a {
-            color: @colorLink;
+            color: var(--colorLink);
             &.disabled {
                 opacity: 0.5;
                 cursor: default;
             }
             &:hover:not(.disabled),
             &:focus:not(.disabled) {
-                color: @main;
+                color: var(--main);
             }
             i {
                 margin-right: 6px;
             }
         }
         #cancel-edit {
-            color: @color;
+            color: var(--color);
             padding: 4px;
-            border: 1px solid @border;
+            border: 1px solid var(--border);
             border-radius: 4px;
             &:hover,
             &:focus {
-                color: @main;
+                color: var(--main);
             }
             i {
                 margin: 0;
@@ -366,8 +332,8 @@ body {
             display: flex;
             flex-flow: column nowrap;
             min-width: 0;
-            border: 1px solid @border;
-            background-color: @contentBg;
+            border: 1px solid var(--border);
+            background-color: var(--contentBg);
             height: 100%;
             position: relative;
             &:hover,
@@ -377,7 +343,7 @@ body {
                 }
             }
             &.selected {
-                background-color: @selectedBg;
+                background-color: var(--selectedBg);
             }
             .bookmark-selector {
                 position: absolute;
@@ -395,7 +361,7 @@ body {
                     &:hover,
                     &:focus {
                         .title {
-                            color: @main;
+                            color: var(--main);
                         }
                     }
                 }
@@ -414,13 +380,13 @@ body {
                     max-height: 5.2em;
                     font-weight: 600;
                     padding: 0 16px;
-                    color: @color;
+                    color: var(--color);
                     &:first-child {
                         margin-top: 16px;
                     }
                 }
                 .excerpt {
-                    color: @color;
+                    color: var(--color);
                     margin-top: 8px;
                     padding: 0 16px;
                     text-overflow: ellipsis;
@@ -441,12 +407,12 @@ body {
                     padding: 4px 8px;
                     font-size: 0.8em;
                     font-weight: 600;
-                    border: 1px solid @border;
+                    border: 1px solid var(--border);
                     border-radius: 4px;
-                    color: @colorLink;
+                    color: var(--colorLink);
                     &:hover,
                     &:focus {
-                        color: @main;
+                        color: var(--main);
                     }
                 }
             }
@@ -458,7 +424,7 @@ body {
                 min-height: 0;
                 align-items: center;
                 a {
-                    color: @colorLink;
+                    color: var(--colorLink);
                     flex-shrink: 0;
                     opacity: 0.8;
                     display: none;
@@ -468,7 +434,7 @@ body {
                     }
                     &:hover,
                     &:focus {
-                        color: @main;
+                        color: var(--main);
                         opacity: 1;
                     }
                     @media (max-width: 800px) {
@@ -496,10 +462,10 @@ body {
             flex-flow: row nowrap;
             a {
                 padding: 8px;
-                color: @colorLink;
+                color: var(--colorLink);
                 &:hover,
                 &:focus {
-                    color: @main;
+                    color: var(--main);
                 }
             }
             input {
@@ -507,14 +473,14 @@ body {
                 padding: 8px;
                 text-align: center;
                 font-size: 0.9em;
-                color: @color;
-                border: 1px solid @border;
-                background-color: @contentBg;
+                color: var(--color);
+                border: 1px solid var(--border);
+                background-color: var(--contentBg);
                 margin: 0 8px;
             }
             p {
                 font-size: 0.9em;
-                color: @colorLink;
+                color: var(--colorLink);
                 line-height: 37px;
                 font-weight: 600;
                 &:last-of-type::before {
@@ -599,49 +565,6 @@ body {
             grid-template-columns: 1fr;
         }
     }
-    &.night {
-        .header {
-            color: @nightColor;
-            border-color: @nightBorder;
-            background-color: @nightContentBg;
-        }
-        #header input {
-            color: @nightColor;
-            border-color: @nightBorder;
-            background-color: @nightContentBg;
-        }
-        #batch-edit #cancel-edit {
-            color: @nightColor;
-            border-color: @nightBorder;
-            &:hover,
-            &:focus {
-                color: @main;
-            }
-        }
-        #grid {
-            .bookmark {
-                border-color: @nightBorder;
-                background-color: @nightContentBg;
-                &.selected {
-                    background-color: @nightSelectedBg;
-                }
-                .title,
-                .excerpt {
-                    color: @nightColor;
-                }
-                .bookmark-tags a {
-                    border-color: @nightBorder;
-                }
-            }
-            .pagination-box {
-                input {
-                    color: @nightColor;
-                    border-color: @nightBorder;
-                    background-color: @nightContentBg;
-                }
-            }
-        }
-    }
     @media (max-width: 600px) {
         .header {
             position: static;
@@ -671,7 +594,7 @@ body {
         }
     }
     #body {
-        color: @color;
+        color: var(--color);
         overflow-y: auto;
         align-items: center;
         padding: 16px 16px 0;
@@ -686,9 +609,9 @@ body {
             max-width: 840px;
             grid-gap: 12px;
             margin-bottom: 16px;
-            background-color: @contentBg;
+            background-color: var(--contentBg);
             padding: 20px;
-            border: 1px solid @border;
+            border: 1px solid var(--border);
             #title {
                 grid-column-start: 1;
                 grid-column-end: -1;
@@ -699,16 +622,16 @@ body {
             }
             #time {
                 font-size: 16px;
-                color: @colorLink;
+                color: var(--colorLink);
             }
             #url {
                 font-size: 16px;
-                color: @colorLink;
+                color: var(--colorLink);
                 text-align: right;
                 justify-self: end;
                 &:hover,
                 &:focus {
-                    color: @main;
+                    color: var(--main);
                 }
             }
             @media (max-width: 800px) {
@@ -722,9 +645,9 @@ body {
             width: 100%;
             max-width: 840px;
             grid-gap: 12px;
-            background-color: @contentBg;
+            background-color: var(--contentBg);
             padding: 20px;
-            border: 1px solid @border;
+            border: 1px solid var(--border);
             * {
                 font-size: 18px;
                 line-height: 180%;
@@ -733,11 +656,11 @@ body {
                 }
             }
             a {
-                color: @color;
+                color: var(--color);
                 text-decoration: underline;
                 &:hover,
                 &:focus {
-                    color: @main;
+                    color: var(--main);
                 }
             }
             pre,
@@ -752,26 +675,6 @@ body {
         #body-padding {
             width: 100%;
             min-height: 16px;
-        }
-    }
-    &.night {
-        #body {
-            color: @nightColor;
-            #header {
-                border-color: @nightBorder;
-                background-color: @nightContentBg;
-            }
-            #content {
-                border-color: @nightBorder;
-                background-color: @nightContentBg;
-                a {
-                    color: @nightColor;
-                    &:hover,
-                    &:focus {
-                        color: @main;
-                    }
-                }
-            }
         }
     }
 }
@@ -792,7 +695,7 @@ body {
             span {
                 &:last-child {
                     font-size: 0.9em;
-                    color: @colorLink;
+                    color: var(--colorLink);
                     margin-left: 8px;
                     &::before {
                         content: "(";
@@ -806,7 +709,7 @@ body {
             }
             &:hover,
             &:focus {
-                color: @main;
+                color: var(--main);
             }
         }
     }
