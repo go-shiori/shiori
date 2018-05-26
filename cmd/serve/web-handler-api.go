@@ -111,7 +111,8 @@ func (h *webHandler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, p
 		panic(fmt.Errorf("URL is not valid"))
 	}
 
-	// Clear UTM parameter from URL
+	// Clear fragment and UTM parameters from URL
+	parsedURL.Fragment = ""
 	clearUTMParams(parsedURL)
 	book.URL = parsedURL.String()
 

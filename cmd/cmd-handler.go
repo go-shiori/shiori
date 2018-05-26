@@ -43,7 +43,8 @@ func (h *cmdHandler) addBookmark(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	// Clear UTM parameters from URL
+	// Clear fragment and UTM parameters from URL
+	parsedURL.Fragment = ""
 	clearUTMParams(parsedURL)
 
 	// Create bookmark item
@@ -238,7 +239,8 @@ func (h *cmdHandler) updateBookmarks(cmd *cobra.Command, args []string) {
 			return
 		}
 
-		// Clear UTM parameters from URL
+		// Clear fragment and UTM parameters from URL
+		parsedURL.Fragment = ""
 		clearUTMParams(parsedURL)
 		url = parsedURL.String()
 
@@ -623,7 +625,8 @@ func (h *cmdHandler) importBookmarks(cmd *cobra.Command, args []string) {
 			continue
 		}
 
-		// Clear UTM parameters from URL
+		// Clear fragment and UTM parameters from URL
+		parsedURL.Fragment = ""
 		clearUTMParams(parsedURL)
 		book.URL = parsedURL.String()
 
