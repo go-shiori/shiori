@@ -31,14 +31,14 @@
             <div id="input-area">
                 <div class="input-field">
                     <p>Username: </p>
-                    <input type="text" name="username" v-model.trim="username" placeholder="Username">
+                    <input type="text" name="username" v-model.trim="username" placeholder="Username" tabindex="1">
                 </div>
                 <div class="input-field">
                     <p>Password: </p>
-                    <input type="password" name="password" v-model.trim="password" placeholder="Password" @keyup.enter="login">
+                    <input type="password" name="password" v-model.trim="password" placeholder="Password" tabindex="2" @keyup.enter="login">
                 </div>
                 <div class="input-field">
-                    <a @click="toggleRemember">
+                    <a @click="toggleRemember" @keyup.enter="toggleRemember" tabindex="3">
                         <i class="fa-fw" :class="rememberMe ? 'fas fa-check-square' : 'far fa-square'"></i>Remember me
                     </a>
                 </div>
@@ -47,7 +47,7 @@
                 <a v-if="loading">
                     <i class="fas fa-fw fa-spinner fa-spin"></i>
                 </a>
-                <a v-else class="button" @click="login">Login</a>
+                <a v-else class="button" tabindex="4" @click="login" @keyup.enter="login">Login</a>
             </div>
         </div>
     </div>
