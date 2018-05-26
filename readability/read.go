@@ -932,7 +932,7 @@ func toAbsoluteURI(uri string, base *nurl.URL) string {
 
 	// If it is already an absolute URL, return as it is
 	tempURI, err := nurl.ParseRequestURI(uri)
-	if err == nil && tempURI.Host != "" {
+	if err == nil && len(tempURI.Scheme) == 0 {
 		return uri
 	}
 

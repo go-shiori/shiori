@@ -16,6 +16,7 @@ import (
 	dt "github.com/RadhiFadlillah/shiori/database"
 	"github.com/RadhiFadlillah/shiori/model"
 	"github.com/RadhiFadlillah/shiori/readability"
+	valid "github.com/asaskevich/govalidator"
 	"github.com/gosuri/uiprogress"
 	"github.com/spf13/cobra"
 )
@@ -36,8 +37,8 @@ func (h *cmdHandler) addBookmark(cmd *cobra.Command, args []string) {
 	offline, _ := cmd.Flags().GetBool("offline")
 
 	// Make sure URL valid
-	parsedURL, err := nurl.ParseRequestURI(url)
-	if err != nil || parsedURL.Host == "" {
+	parsedURL, err := nurl.Parse(url)
+	if err != nil || !valid.IsRequestURL(url) {
 		cError.Println("URL is not valid")
 		return
 	}
@@ -231,8 +232,8 @@ func (h *cmdHandler) updateBookmarks(cmd *cobra.Command, args []string) {
 	// Check if --url flag is used
 	if cmd.Flags().Changed("url") {
 		// Make sure URL is valid
-		parsedURL, err := nurl.ParseRequestURI(url)
-		if err != nil || parsedURL.Host == "" {
+		parsedURL, err := nurl.Parse(url)
+		if err != nil || !valid.IsRequestURL(url) {
 			cError.Println("URL is not valid")
 			return
 		}
@@ -299,8 +300,8 @@ func (h *cmdHandler) updateBookmarks(cmd *cobra.Command, args []string) {
 				}
 
 				// Parse URL
-				parsedURL, err := nurl.ParseRequestURI(book.URL)
-				if err != nil || parsedURL.Host == "" {
+				parsedURL, err := nurl.Parse(book.URL)
+				if err != nil || !valid.IsRequestURL(book.URL) {
 					return
 				}
 
@@ -616,8 +617,8 @@ func (h *cmdHandler) importBookmarks(cmd *cobra.Command, args []string) {
 	// Save bookmarks to database
 	for _, book := range bookmarks {
 		// Make sure URL valid
-		parsedURL, err := nurl.ParseRequestURI(book.URL)
-		if err != nil || parsedURL.Host == "" {
+		parsedURL, err := nurl.Parse(book.URL)
+		if err != nil || !valid.IsRequestURL(book.URL) {
 			cError.Println("URL is not valid")
 			continue
 		}

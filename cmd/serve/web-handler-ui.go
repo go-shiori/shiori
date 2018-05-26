@@ -69,7 +69,7 @@ func (h *webHandler) serveBookmarkCache(w http.ResponseWriter, r *http.Request, 
 		},
 		"hostname": func(s string) string {
 			parsed, err := nurl.ParseRequestURI(s)
-			if err != nil || parsed.Host == "" {
+			if err != nil || len(parsed.Scheme) == 0 {
 				return s
 			}
 

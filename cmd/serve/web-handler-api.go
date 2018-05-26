@@ -14,6 +14,7 @@ import (
 
 	"github.com/RadhiFadlillah/shiori/model"
 	"github.com/RadhiFadlillah/shiori/readability"
+	valid "github.com/asaskevich/govalidator"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/julienschmidt/httprouter"
 	"golang.org/x/crypto/bcrypt"
@@ -105,8 +106,8 @@ func (h *webHandler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, p
 	checkError(err)
 
 	// Make sure URL valid
-	parsedURL, err := nurl.ParseRequestURI(book.URL)
-	if err != nil || parsedURL.Host == "" {
+	parsedURL, err := nurl.Parse(book.URL)
+	if err != nil || !valid.IsRequestURL(book.URL) {
 		panic(fmt.Errorf("URL is not valid"))
 	}
 
@@ -322,8 +323,8 @@ func (h *webHandler) apiUpdateCache(w http.ResponseWriter, r *http.Request, ps h
 			defer wg.Done()
 
 			// Parse URL
-			parsedURL, err := nurl.ParseRequestURI(book.URL)
-			if err != nil || parsedURL.Host == "" {
+			parsedURL, err := nurl.Parse(book.URL)
+			if err != nil || !valid.IsRequestURL(book.URL) {
 				return
 			}
 
