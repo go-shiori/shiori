@@ -373,7 +373,7 @@
                 },
                 showDialogEdit(idx) {
                     var book = JSON.parse(JSON.stringify(this.bookmarks[idx])),
-                        strTags = book.tags.map(tag => tag.name).join(' ');
+                        strTags = book.tags.map(tag => tag.name).join(', ');
 
                     this.showDialog({
                         title: 'Edit Bookmark',

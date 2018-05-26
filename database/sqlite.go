@@ -185,7 +185,8 @@ func (db *SQLiteDatabase) GetBookmarks(withContent bool, ids ...int) ([]model.Bo
 	if withContent {
 		query = `SELECT 
 			b.id, b.url, b.title, b.image_url, b.excerpt, b.author, 
-			b.min_read_time, b.max_read_time, b.modified, bc.content, bc.html
+			b.min_read_time, b.max_read_time, b.modified, bc.content, bc.html, 
+			bc.content <> "" has_content
 			FROM bookmark b
 			LEFT JOIN bookmark_content bc ON bc.docid = b.id`
 	}
