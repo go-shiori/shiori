@@ -100,7 +100,7 @@ func (h *cmdHandler) addBookmark(cmd *cobra.Command, args []string) {
 	}
 
 	// Save bookmark to database
-	book.ID, err = h.db.CreateBookmark(book)
+	_, err = h.db.InsertBookmark(book)
 	if err != nil {
 		cError.Println(err)
 		return
@@ -281,6 +281,7 @@ func (h *cmdHandler) updateBookmarks(cmd *cobra.Command, args []string) {
 	}
 
 	// If not offline, fetch articles from internet
+	listErrorMsg := []string{}
 	if !offline {
 		fmt.Println("Fetching new bookmarks data")
 
@@ -306,12 +307,20 @@ func (h *cmdHandler) updateBookmarks(cmd *cobra.Command, args []string) {
 				// Parse URL
 				parsedURL, err := nurl.Parse(book.URL)
 				if err != nil || !valid.IsRequestURL(book.URL) {
+					mx.Lock()
+					errorMsg := fmt.Sprintf("Failed to fetch %s: URL is not valid", book.URL)
+					listErrorMsg = append(listErrorMsg, errorMsg)
+					mx.Unlock()
 					return
 				}
 
 				// Fetch data from internet
 				article, err := readability.FromURL(parsedURL, 20*time.Second)
 				if err != nil {
+					mx.Lock()
+					errorMsg := fmt.Sprintf("Failed to fetch %s: %v", book.URL, err)
+					listErrorMsg = append(listErrorMsg, errorMsg)
+					mx.Unlock()
 					return
 				}
 
@@ -342,7 +351,12 @@ func (h *cmdHandler) updateBookmarks(cmd *cobra.Command, args []string) {
 
 		wg.Wait()
 		uiprogress.Stop()
-		fmt.Println("\nSaving new data")
+
+		// Print error message
+		fmt.Println()
+		for _, errorMsg := range listErrorMsg {
+			cError.Println(errorMsg + "\n")
+		}
 	}
 
 	// Map the tags to be added or deleted from flag --tags
@@ -581,6 +595,17 @@ func (h *cmdHandler) importBookmarks(cmd *cobra.Command, args []string) {
 		intModified, _ := strconv.ParseInt(strModified, 10, 64)
 		modified := time.Unix(intModified, 0)
 
+		// Make sure URL valid
+		parsedURL, err := nurl.Parse(url)
+		if err != nil || !valid.IsRequestURL(url) {
+			cError.Printf("%s will be skipped: URL is not valid\n\n", url)
+			return
+		}
+
+		// Clear fragment and UTM parameters from URL
+		parsedURL.Fragment = ""
+		clearUTMParams(parsedURL)
+
 		// Get bookmark tags
 		tags := []model.Tag{}
 		for _, strTag := range strings.Split(strTags, ",") {
@@ -611,7 +636,7 @@ func (h *cmdHandler) importBookmarks(cmd *cobra.Command, args []string) {
 
 		// Add item to list
 		bookmark := model.Bookmark{
-			URL:      url,
+			URL:      parsedURL.String(),
 			Title:    normalizeSpace(title),
 			Excerpt:  normalizeSpace(excerpt),
 			Modified: modified.Format("2006-01-02 15:04:05"),
@@ -623,22 +648,10 @@ func (h *cmdHandler) importBookmarks(cmd *cobra.Command, args []string) {
 
 	// Save bookmarks to database
 	for _, book := range bookmarks {
-		// Make sure URL valid
-		parsedURL, err := nurl.Parse(book.URL)
-		if err != nil || !valid.IsRequestURL(book.URL) {
-			cError.Println("URL is not valid")
-			continue
-		}
-
-		// Clear fragment and UTM parameters from URL
-		parsedURL.Fragment = ""
-		clearUTMParams(parsedURL)
-		book.URL = parsedURL.String()
-
 		// Save book to database
-		book.ID, err = h.db.CreateBookmark(book)
+		book.ID, err = h.db.InsertBookmark(book)
 		if err != nil {
-			cError.Println(err)
+			cError.Printf("%s is skipped: %v\n\n", book.URL, err)
 			continue
 		}
 
@@ -747,6 +760,17 @@ func (h *cmdHandler) importPockets(cmd *cobra.Command, args []string) {
 		intModified, _ := strconv.ParseInt(strModified, 10, 64)
 		modified := time.Unix(intModified, 0)
 
+		// Make sure URL valid
+		parsedURL, err := nurl.Parse(url)
+		if err != nil || !valid.IsRequestURL(url) {
+			cError.Printf("%s will be skipped: URL is not valid\n\n", url)
+			return
+		}
+
+		// Clear fragment and UTM parameters from URL
+		parsedURL.Fragment = ""
+		clearUTMParams(parsedURL)
+
 		// Get bookmark tags
 		tags := []model.Tag{}
 		for _, strTag := range strings.Split(strTags, ",") {
@@ -757,7 +781,7 @@ func (h *cmdHandler) importPockets(cmd *cobra.Command, args []string) {
 
 		// Add item to list
 		bookmark := model.Bookmark{
-			URL:      url,
+			URL:      parsedURL.String(),
 			Title:    normalizeSpace(title),
 			Modified: modified.Format("2006-01-02 15:04:05"),
 			Tags:     tags,
@@ -768,22 +792,10 @@ func (h *cmdHandler) importPockets(cmd *cobra.Command, args []string) {
 
 	// Save bookmarks to database
 	for _, book := range bookmarks {
-		// Make sure URL valid
-		parsedURL, err := nurl.Parse(book.URL)
-		if err != nil || !valid.IsRequestURL(book.URL) {
-			cError.Println("URL is not valid")
-			continue
-		}
-
-		// Clear fragment and UTM parameters from URL
-		parsedURL.Fragment = ""
-		clearUTMParams(parsedURL)
-		book.URL = parsedURL.String()
-
 		// Save book to database
-		book.ID, err = h.db.CreateBookmark(book)
+		book.ID, err = h.db.InsertBookmark(book)
 		if err != nil {
-			cError.Println(err)
+			cError.Printf("%s is skipped: %v\n\n", book.URL, err)
 			continue
 		}
 

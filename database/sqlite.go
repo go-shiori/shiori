@@ -76,8 +76,8 @@ func OpenSQLiteDatabase(databasePath string) (*SQLiteDatabase, error) {
 	return &SQLiteDatabase{*db}, err
 }
 
-// CreateBookmark saves new bookmark to database. Returns new ID and error if any happened.
-func (db *SQLiteDatabase) CreateBookmark(bookmark model.Bookmark) (bookmarkID int, err error) {
+// InsertBookmark inserts new bookmark to database. Returns new ID and error if any happened.
+func (db *SQLiteDatabase) InsertBookmark(bookmark model.Bookmark) (bookmarkID int, err error) {
 	// Check URL and title
 	if bookmark.URL == "" {
 		return -1, fmt.Errorf("URL must not be empty")
@@ -99,7 +99,7 @@ func (db *SQLiteDatabase) CreateBookmark(bookmark model.Bookmark) (bookmarkID in
 		bookmark.Modified = time.Now().UTC().Format("2006-01-02 15:04:05")
 	}
 
-	// Prepare transaction
+	// Begin transaction
 	tx, err := db.Beginx()
 	if err != nil {
 		return -1, err

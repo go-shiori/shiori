@@ -156,7 +156,7 @@ func (h *webHandler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, p
 	}
 
 	// Save bookmark to database
-	_, err = h.db.CreateBookmark(book)
+	_, err = h.db.InsertBookmark(book)
 	checkError(err)
 
 	// Return new saved result

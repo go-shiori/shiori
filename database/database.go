@@ -8,8 +8,8 @@ import (
 
 // Database is interface for manipulating data in database.
 type Database interface {
-	// SaveBookmark saves new bookmark to database.
-	CreateBookmark(bookmark model.Bookmark) (int, error)
+	// InsertBookmark inserts new bookmark to database.
+	InsertBookmark(bookmark model.Bookmark) (int, error)
 
 	// GetBookmarks fetch list of bookmarks based on submitted ids.
 	GetBookmarks(withContent bool, ids ...int) ([]model.Bookmark, error)
