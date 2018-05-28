@@ -264,7 +264,8 @@ func (h *cmdHandler) updateBookmarks(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	// Prepare wait group
+	// Prepare wait group and mutex
+	mx := sync.Mutex{}
 	wg := sync.WaitGroup{}
 
 	// Fetch bookmarks from database
@@ -291,6 +292,7 @@ func (h *cmdHandler) updateBookmarks(cmd *cobra.Command, args []string) {
 			wg.Add(1)
 
 			go func(pos int, book model.Bookmark) {
+				// Make sure to increase bar
 				defer func() {
 					bar.Incr()
 					wg.Done()
@@ -331,7 +333,10 @@ func (h *cmdHandler) updateBookmarks(cmd *cobra.Command, args []string) {
 					book.ImageURL = fmt.Sprintf("/thumb/%d", book.ID)
 				}
 
+				// Update list of bookmarks
+				mx.Lock()
 				bookmarks[pos] = book
+				mx.Unlock()
 			}(i, book)
 		}
 

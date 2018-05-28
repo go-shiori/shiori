@@ -309,7 +309,8 @@ func (h *webHandler) apiUpdateCache(w http.ResponseWriter, r *http.Request, ps h
 	err = json.NewDecoder(r.Body).Decode(&ids)
 	checkError(err)
 
-	// Prepare wait group
+	// Prepare wait group and mutex
+	mx := sync.Mutex{}
 	wg := sync.WaitGroup{}
 
 	// Fetch bookmarks from database
@@ -321,6 +322,7 @@ func (h *webHandler) apiUpdateCache(w http.ResponseWriter, r *http.Request, ps h
 		wg.Add(1)
 
 		go func(pos int, book model.Bookmark) {
+			// Make sure to stop wait group
 			defer wg.Done()
 
 			// Parse URL
@@ -359,7 +361,10 @@ func (h *webHandler) apiUpdateCache(w http.ResponseWriter, r *http.Request, ps h
 				book.ImageURL = fmt.Sprintf("/thumb/%d", book.ID)
 			}
 
+			// Update list of bookmarks
+			mx.Lock()
 			books[pos] = book
+			mx.Unlock()
 		}(i, book)
 	}
 
