@@ -372,6 +372,8 @@
                     });
                 },
                 showDialogEdit(idx) {
+                    idx += this.page * pageSize;
+
                     var book = JSON.parse(JSON.stringify(this.bookmarks[idx])),
                         strTags = book.tags.map(tag => tag.name).join(', ');
 
@@ -437,7 +439,10 @@
                     if (indices.length === 0) return;
                     indices.sort();
 
-                    // Create title andd content
+                    // Set real indices value
+                    indices = indices.map(item => item + this.page * pageSize)
+
+                    // Create title and content
                     var title = "Delete Bookmarks",
                         content = "Delete the selected bookmarks ? This action is irreversible.";
 
@@ -485,6 +490,9 @@
                     if (indices.length === 0) return;
                     indices.sort();
 
+                    // Set real indices value
+                    indices = indices.map(item => item + this.page * pageSize)
+
                     // Get list of bookmark ID
                     var listID = [];
                     for (var i = 0; i < indices.length; i++) {
@@ -528,6 +536,9 @@
                     if (!(indices instanceof Array)) return;
                     if (indices.length === 0) return;
                     indices.sort();
+
+                    // Set real indices value
+                    indices = indices.map(item => item + this.page * pageSize)
 
                     // Get list of bookmark ID
                     var listID = [];
