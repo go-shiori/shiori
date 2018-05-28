@@ -714,6 +714,78 @@ func (h *cmdHandler) exportBookmarks(cmd *cobra.Command, args []string) {
 	fmt.Println("Export finished")
 }
 
+// importPockets is handler for importing bookmarks from Pocket exported HTML file.
+// Accept exactly one argument, the file to be imported.
+func (h *cmdHandler) importPockets(cmd *cobra.Command, args []string) {
+	// Open bookmark's file
+	srcFile, err := os.Open(args[0])
+	if err != nil {
+		cError.Println(err)
+		return
+	}
+	defer srcFile.Close()
+
+	// Parse bookmark's file
+	doc, err := goquery.NewDocumentFromReader(srcFile)
+	if err != nil {
+		cError.Println(err)
+		return
+	}
+
+	bookmarks := []model.Bookmark{}
+	doc.Find("a").Each(func(_ int, a *goquery.Selection) {
+		// Get metadata
+		title := a.Text()
+		url, _ := a.Attr("href")
+		strTags, _ := a.Attr("tags")
+		strModified, _ := a.Attr("time_added")
+		intModified, _ := strconv.ParseInt(strModified, 10, 64)
+		modified := time.Unix(intModified, 0)
+
+		// Get bookmark tags
+		tags := []model.Tag{}
+		for _, strTag := range strings.Split(strTags, ",") {
+			if strTag != "" {
+				tags = append(tags, model.Tag{Name: strTag})
+			}
+		}
+
+		// Add item to list
+		bookmark := model.Bookmark{
+			URL:      url,
+			Title:    normalizeSpace(title),
+			Modified: modified.Format("2006-01-02 15:04:05"),
+			Tags:     tags,
+		}
+
+		bookmarks = append(bookmarks, bookmark)
+	})
+
+	// Save bookmarks to database
+	for _, book := range bookmarks {
+		// Make sure URL valid
+		parsedURL, err := nurl.Parse(book.URL)
+		if err != nil || !valid.IsRequestURL(book.URL) {
+			cError.Println("URL is not valid")
+			continue
+		}
+
+		// Clear fragment and UTM parameters from URL
+		parsedURL.Fragment = ""
+		clearUTMParams(parsedURL)
+		book.URL = parsedURL.String()
+
+		// Save book to database
+		book.ID, err = h.db.CreateBookmark(book)
+		if err != nil {
+			cError.Println(err)
+			continue
+		}
+
+		printBookmarks(book)
+	}
+}
+
 func printBookmarks(bookmarks ...model.Bookmark) {
 	for _, bookmark := range bookmarks {
 		// Create bookmark index

@@ -90,6 +90,13 @@ func NewShioriCmd(db dt.Database, dataDir string) *cobra.Command {
 		Run:   hdl.exportBookmarks,
 	}
 
+	pocketCmd := &cobra.Command{
+		Use:   "pocket source-file",
+		Short: "Import bookmarks from Pocket's exported HTML file",
+		Args:  cobra.ExactArgs(1),
+		Run:   hdl.importPockets,
+	}
+
 	// Create sub command that has its own sub command
 	accountCmd := account.NewAccountCmd(db)
 	serveCmd := serve.NewServeCmd(db, dataDir)
@@ -130,6 +137,6 @@ func NewShioriCmd(db dt.Database, dataDir string) *cobra.Command {
 	}
 
 	rootCmd.AddCommand(accountCmd, serveCmd, addCmd, printCmd, searchCmd,
-		updateCmd, deleteCmd, openCmd, importCmd, exportCmd)
+		updateCmd, deleteCmd, openCmd, importCmd, exportCmd, pocketCmd)
 	return rootCmd
 }
