@@ -114,6 +114,7 @@
                     <a class="bookmark-selector" v-if="editMode" @click="toggleSelection(idx)"></a>
                     <a class="bookmark-link" :href="book.hasContent ? '/bookmark/'+book.id : null" :title="book.hasContent ? 'View cache' : null" target="_blank">
                         <img v-if="book.imageURL !== ''" :src="book.imageURL">
+                        <p class="id">{{book.id}}</p>
                         <p class="title">{{book.title}}</p>
                         <p class="excerpt" v-if="book.imageURL === ''">{{book.excerpt}}</p>
                     </a>
