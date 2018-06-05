@@ -5,12 +5,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <link rel="stylesheet" href="/css/stylesheet.css">
     <link rel="stylesheet" href="/css/fontawesome.css">
     <link rel="stylesheet" href="/css/source-sans-pro.css">
+    <link rel="stylesheet" href="/css/yla-dialog.css">
+    <link rel="stylesheet" href="/css/yla-tooltip.css">
+    <link rel="stylesheet" href="/css/stylesheet.css">
     <script src="/js/vue.js"></script>
     <script src="/js/axios.js"></script>
     <script src="/js/js-cookie.js"></script>
+    <script src="/js/component/yla-tooltip.js"></script>
+    <script src="/js/component/yla-dialog.js"></script>
+    <script src="/js/page/base.js"></script>
     <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/res/apple-touch-icon-144x144.png" />
     <link rel="apple-touch-icon-precomposed" sizes="152x152" href="/res/apple-touch-icon-152x152.png" />
     <link rel="icon" type="image/png" href="/res/favicon-32x32.png" sizes="32x32" />
@@ -19,542 +24,629 @@
 </head>
 
 <body>
-    <div id="main-page">
-        <div id="header">
-            <template v-if="checkedBookmarks.length === 0">
-                <a id="logo" href="/">
-                    <span>栞</span>shiori</a>
-                <div id="search-box">
-                    <input type="text" name="keyword" v-model.trim="search.query" @keyup.enter="loadData" placeholder="Search url, tags, title or content">
-                    <a class="button" @click="loadData">
-                        <i class="fas fa-search fa-fw"></i>
-                    </a>
-                </div>
-                <div id="header-menu" v-if="!loading">
-                    <a @click="reloadData">
-                        <i class="fas fa-cloud fa-fw"></i>
-                        <span>Reload</span>
-                    </a>
-                    <a @click="toggleImage">
-                        <i class="fas fa-fw" :class="showImage ? 'fa-eye-slash' : 'fa-eye'"></i>
-                        <span>{{showImage ? 'Hide image' : 'Show image'}}</span>
-                    </a>
-                    <a @click="logout">
-                        <i class="fas fa-sign-out-alt fa-fw"></i>
-                        <span>Logout</span>
-                    </a>
-                </div>
-            </template>
-            <template v-else>
-                <p id="n-selected">{{checkedBookmarks.length}} selected</p>
-                <div id="header-menu">
-                    <a @click="clearSelectedBookmarks">
-                        <i class="fas fa-fw fa-ban"></i>
-                        <span>Cancel</span>
-                    </a>
-                    <a @click="selectAllBookmarks">
-                        <i class="fas fa-fw fa-check-square"></i>
-                        <span>Select all</span>
-                    </a>
-                    <a @click="deleteBookmarks(checkedBookmarks)">
-                        <i class="fas fa-fw fa-trash"></i>
-                        <span>Delete</span>
-                    </a>
-                </div>
-            </template>
+    <div id="index-page" class="page" :class="{night: nightMode}">
+        <div id="sidebar">
+            <p id="logo">栞</p>
+            <yla-tooltip placement="right" content="Reload data">
+                <a @click="reloadData" v-show="!editMode">
+                    <i class="fas fa-sync-alt fa-fw" :class="loading && 'fa-spin'"></i>
+                </a>
+            </yla-tooltip>
+            <yla-tooltip placement="right" content="Add new bookmark">
+                <a @click="showDialogAdd" v-show="!editMode && !loading">
+                    <i class="fas fa-plus fa-fw"></i>
+                </a>
+            </yla-tooltip>
+            <yla-tooltip placement="right" :content="editMode ? 'Cancel batch edit' : 'Batch edit'">
+                <a @click="toggleEditMode" v-show="!loading">
+                    <i class="fas fa-fw" :class="editMode ? 'fa-times' : 'fa-pencil-alt'"></i>
+                </a>
+            </yla-tooltip>
+            <yla-tooltip placement="right" content="Show tags">
+                <a @click="showDialogTags" v-show="!editMode && !loading">
+                    <i class="fas fa-fw fa-tags"></i>
+                </a>
+            </yla-tooltip>
+            <div class="spacer"></div>
+            <yla-tooltip placement="right" :content="listView ? 'Switch to grid view' : 'Switch to list view'">
+                <a @click="toggleListView">
+                    <i class="fas fa-fw" :class="listView ? 'fa-th-large' : 'fa-th-list'"></i>
+                </a>
+            </yla-tooltip>
+            <yla-tooltip placement="right" content="Toggle night mode">
+                <a @click="toggleNightMode">
+                    <i class="fas fa-fw" :class="nightMode ? 'fa-sun' : 'fa-moon'"></i>
+                </a>
+            </yla-tooltip>
+            <yla-tooltip placement="right" content="Log out">
+                <a @click="showDialogLogout">
+                    <i class="fas fa-sign-out-alt fa-fw"></i>
+                </a>
+            </yla-tooltip>
         </div>
-        <div id="main">
-            <template v-if="!loading && error === ''">
-                <div id="input-bookmark">
-                    <p v-if="inputBookmark.url !== ''">{{inputBookmark.id === -1 ? 'New bookmark' : 'Edit bookmark'}}</p>
-                    <input type="text" ref="inputURL" v-model.trim="inputBookmark.url" placeholder="URL for the new bookmark" @focus="clearSelectedBookmarks">
-                    <template v-if="inputBookmark.url !== ''">
-                        <input type="text" v-model.trim="inputBookmark.title" placeholder="Custom bookmark title (optional)">
-                        <input type="text" v-model.trim="inputBookmark.tags" placeholder="Space separated tags for this bookmark (optional)">
-                        <textarea name="excerpt" v-model.trim="inputBookmark.excerpt" placeholder="Excerpt for this bookmark (optional)"></textarea>
-                        <p v-if="inputBookmark.error !== ''" class="error-message">{{inputBookmark.error}}</p>
-                        <div class="button-area">
-                            <div class="spacer"></div>
-                            <a v-if="inputBookmark.loading">
-                                <i class="fas fa-fw fa-spinner fa-spin"></i>
-                            </a>
-                            <template v-else>
-                                <a class="button" @click="clearInputBookmark">Cancel</a>
-                                <a class="button" @click="saveBookmark">Done</a>
-                            </template>
-                        </div>
+        <div id="body">
+            <div id="header" class="header" v-if="!editMode">
+                <input type="text" v-model.trim="search" placeholder="Search bookmarks by url, tags, title or content" @focus="$event.target.select()" @keyup.enter="loadData">
+                <a title="Search" @click="loadData">
+                    <i class="fas fa-search fa-fw"></i>
+                </a>
+            </div>
+            <div id="batch-edit" class="header" v-if="editMode">
+                <p>{{selected.length}} Items selected</p>
+                <a :class="{disabled: selected.length === 0}" @click="showDialogDelete(selected)">
+                    <i class="fas fa-fw fa-trash-alt"></i>
+                    <span>Delete</span>
+                </a>
+                <a :class="{disabled: selected.length === 0}" @click="showDialogAddTags(selected)">
+                    <i class="fas fa-fw fa-tags"></i>
+                    <span>Add tags</span>
+                </a>
+                <a :class="{disabled: selected.length === 0}" @click="showDialogUpdateCache(selected)">
+                    <i class="fas fa-fw fa-cloud-download-alt"></i>
+                    <span>Update cache</span>
+                </a>
+                <a id="cancel-edit" @click="toggleEditMode">
+                    <i class="fas fa-fw fa-times"></i>
+                </a>
+            </div>
+            <div id="grid" :class="{list: listView}">
+                <div class="pagination-box" v-if="maxPage > 0">
+                    <p>Page</p>
+                    <input type="text" placeholder="1" :value="page+1" @focus="$event.target.select()" @keyup.enter="changePage($event.target.value-1)" :disabled="editMode">
+                    <p>{{maxPage+1}}</p>
+                    <div class="spacer"></div>
+                    <template v-if="!editMode">
+                        <a v-if="page > 1" title="Go to first page" @click="changePage(0)">
+                            <i class="fas fa-fw fa-angle-double-left"></i>
+                        </a>
+                        <a v-if="page > 0" title="Go to previous page" @click="changePage(page-1)">
+                            <i class="fa fa-fw fa-angle-left"></i>
+                        </a>
+                        <a v-if="page < maxPage" title="Go to next page" @click="changePage(page+1)">
+                            <i class="fa fa-fw fa-angle-right"></i>
+                        </a>
+                        <a v-if="page < maxPage - 1" title="Go to last page" @click="changePage(maxPage)">
+                            <i class="fas fa-fw fa-angle-double-right"></i>
+                        </a>
                     </template>
                 </div>
-                <div v-if="search.query !== '' && !loading" id="search-parameter">
-                    <a v-if="search.keyword !== ''" @click="removeSearchParam(search.keyword)">{{search.keyword}}</a>
-                    <a v-for="tag in search.tags" @click="removeSearchParam('#'+tag)">#{{tag}}</a>
-                </div>
-                <div id="grid">
-                    <div v-for="column in gridColumns" class="column">
-                        <div v-for="item in column" class="bookmark" :class="{checked: isBookmarkChecked(item.index)}" :ref="'bookmark-'+item.index">
-                            <a class="checkbox" @click="toggleBookmarkCheck(item.index)">
-                                <i class="fas fa-check"></i>
-                            </a>
-                            <a class="bookmark-metadata" target="_blank" :class="{'has-image':bookmarkImage(item) !== ''}" :style="bookmarkImage(item)" :href="item.url">
-                                <p class="bookmark-time">{{bookmarkTime(item)}}</p>
-                                <p class="bookmark-title">{{item.title}}</p>
-                                <p class="bookmark-url">{{getDomainURL(item.url)}}</p>
-                            </a>
-                            <p v-if="item.excerpt !== ''" class="bookmark-excerpt">{{item.excerpt}}</p>
-                            <div v-if="item.tags.length > 0" class="bookmark-tags">
-                                <a v-for="tag in item.tags" @click="searchTag(tag.name)">{{tag.name}}</a>
-                            </div>
-                            <div class="bookmark-menu">
-                                <a @click="updateBookmark(item.index)">
-                                    <i class="fas fa-sync"></i>
-                                    <span>Update</span>
-                                </a>
-                                <a @click="editBookmark(item.index)">
-                                    <i class="fas fa-pencil-alt"></i>
-                                    <span>Edit</span>
-                                </a>
-                                <a @click="deleteBookmarks([item.index])">
-                                    <i class="far fa-trash-alt"></i>
-                                    <span>Delete</span>
-                                </a>
-                                <a :href="'/bookmark/'+item.id" target="_blank">
-                                    <i class="fas fa-history"></i>
-                                    <span>Cache</span>
-                                </a>
-                            </div>
-                        </div>
+                <div class="bookmark" v-for="(book, idx) in visibleBookmarks" :class="{selected: isSelected(idx)}">
+                    <a class="bookmark-selector" v-if="editMode" @click="toggleSelection(idx)"></a>
+                    <a class="bookmark-link" :href="book.hasContent ? '/bookmark/'+book.id : null" :title="book.hasContent ? 'View cache' : null" target="_blank">
+                        <img v-if="book.imageURL !== ''" :src="book.imageURL">
+                        <p class="title">{{book.title}}</p>
+                        <p class="excerpt" v-if="book.imageURL === ''">{{book.excerpt}}</p>
+                    </a>
+                    <div class="bookmark-tags" v-if="book.tags.length > 0">
+                        <a v-for="tag in book.tags" @click="filterTag(tag.name)">{{tag.name}}</a>
+                    </div>
+                    <div class="spacer"></div>
+                    <div class="bookmark-menu">
+                        <a class="url" title="View original" :href="book.url" target="_blank">
+                            {{getHostname(book.url)}}
+                        </a>
+                        <a title="Edit bookmark" @click="showDialogEdit(idx)">
+                            <i class="fas fa-pencil-alt"></i>
+                        </a>
+                        <a title="Delete bookmark" @click="showDialogDelete([idx])">
+                            <i class="fas fa-trash-alt"></i>
+                        </a>
+                        <a title="Update cache" @click="showDialogUpdateCache([idx])">
+                            <i class="fas fa-cloud-download-alt"></i>
+                        </a>
                     </div>
                 </div>
-            </template>
-            <div v-if="loading || error !== ''" id="message-bar">
-                <i v-if="loading" class="fas fa-fw fa-spinner fa-spin"></i>
-                <p v-if="error !== ''" class="error-message">{{error}}</p>
-            </div>
-        </div>
-        <div v-if="dialog.visible" id="dialog-overlay">
-            <div id="dialog">
-                <p id="dialog-title" :class="{'error-message': dialog.isError}">{{dialog.title}}</p>
-                <p v-html="dialog.content" id="dialog-content"></p>
-                <div id="dialog-button">
+                <div class="pagination-box" v-if="maxPage > 0">
+                    <p>Page</p>
+                    <input type="text" placeholder="1" :value="page+1" @focus="$event.target.select()" @keyup.enter="changePage($event.target.value-1)" :disabled="editMode">
+                    <p>{{maxPage+1}}</p>
                     <div class="spacer"></div>
-                    <a v-if="dialog.loading">
-                        <i class="fas fa-fw fa-spinner fa-spin"></i>
-                    </a>
-                    <template v-else>
-                        <a class="button" @click="dialog.secondAction">{{dialog.secondChoice}}</a>
-                        <a class="button" @click="dialog.mainAction">{{dialog.mainChoice}}</a>
+                    <template v-if="!editMode">
+                        <a v-if="page > 1" title="Go to first page" @click="changePage(0)">
+                            <i class="fas fa-fw fa-angle-double-left"></i>
+                        </a>
+                        <a v-if="page > 0" title="Go to previous page" @click="changePage(page-1)">
+                            <i class="fa fa-fw fa-angle-left"></i>
+                        </a>
+                        <a v-if="page < maxPage" title="Go to next page" @click="changePage(page+1)">
+                            <i class="fa fa-fw fa-angle-right"></i>
+                        </a>
+                        <a v-if="page < maxPage - 1" title="Go to last page" @click="changePage(maxPage)">
+                            <i class="fas fa-fw fa-angle-double-right"></i>
+                        </a>
                     </template>
                 </div>
+                <div id="grid-padding"></div>
             </div>
         </div>
+        <yla-dialog id="dialog-tags" v-bind="dialogTags">
+            <a v-for="tag in tags" @click="filterTag(tag.name)">
+                <span>{{tag.name}}</span>
+                <span>{{tag.nBookmarks}}</span>
+            </a>
+        </yla-dialog>
+        <yla-dialog v-bind="dialog"></yla-dialog>
     </div>
     <script>
+        // Define global variable
+        var pageSize = 30;
+
+        // Prepare axios instance
         var token = Cookies.get('token'),
-            instance = axios.create();
+            rest = axios.create();
 
-        instance.defaults.timeout = 10000;
-        instance.defaults.headers.common['Authorization'] = 'Bearer ' + token;
+        rest.defaults.timeout = 60000;
+        rest.defaults.headers.common['Authorization'] = 'Bearer ' + token;
 
-        var app = new Vue({
-            el: '#main-page',
-            data: {
-                windowWidth: 0,
-                error: "",
-                loading: false,
-                bookmarks: [],
-                checkedBookmarks: [],
-                showImage: true,
-                search: {
-                    query: "",
-                    keyword: "",
-                    tags: []
-                },
-                inputBookmark: {
-                    index: -1,
-                    id: -1,
-                    url: "",
-                    title: "",
-                    tags: "",
-                    excerpt: "",
-                    error: "",
-                    loading: false
-                },
-                dialog: {
-                    visible: false,
+        // Register Vue component
+        Vue.component('yla-dialog', new YlaDialog());
+        Vue.component('yla-tooltip', new YlaTooltip());
+
+        new Vue({
+            el: '#index-page',
+            mixins: [new Base()],
+            data() {
+                return {
                     loading: false,
-                    isError: false,
-                    title: '',
-                    content: '',
-                    mainChoice: '',
-                    secondChoice: '',
-                    mainAction: function () {},
-                    secondAction: function () {}
-                }
-            },
-            methods: {
-                searchTag: function (tag) {
-                    if (this.loading) return;
-
-                    var newTag = '#' + tag;
-                    if (this.search.query.indexOf(newTag) === -1) {
-                        this.search.query += ' ' + newTag;
-                        this.search.query = this.search.query.trim().replace(/\s+/g, ' ');
-                        this.loadData();
+                    tags: [],
+                    bookmarks: [],
+                    search: '',
+                    page: 0,
+                    maxPage: 0,
+                    listView: false,
+                    nightMode: false,
+                    editMode: false,
+                    selected: [],
+                    dialogTags: {
+                        visible: false,
+                        loading: false,
+                        title: 'Existing Tags',
+                        mainText: 'Cancel',
+                        mainClick: () => {
+                            this.dialogTags.visible = false;
+                        },
                     }
-                },
-                removeSearchParam: function (param) {
-                    if (this.loading) return;
-                    this.search.query = this.search.query.replace(param, ' ').trim().replace(/\s+/g, ' ');
-                    this.loadData();
-                },
-                reloadData: function () {
-                    if (this.loading) return;
-                    this.search.query = '';
-                    this.loadData();
-                },
-                loadData: function () {
-                    if (this.loading) return;
-
-                    // Parse search query
-                    var rxTags = /(^|\s+)#(\S+)/g,
-                        tags = [];
-
-                    while ((result = rxTags.exec(this.search.query)) !== null) {
-                        tags.push(result[2]);
-                    }
-
-                    var keyword = this.search.query.replace(/(^|\s+)#(\S+)/g, ' ').trim().replace(/\s+/g, ' ');
-
-                    // Fetch data
-                    this.error = '';
-                    this.loading = true;
-                    this.search.tags = tags;
-                    this.search.keyword = keyword;
-                    instance.get('/api/bookmarks', {
-                            params: {
-                                keyword: this.search.keyword,
-                                tags: this.search.tags.join(" ")
-                            }
-                        })
-                        .then(function (response) {
-                            app.loading = false;
-                            app.bookmarks = response.data;
-                        })
-                        .catch(function (error) {
-                            var errorMsg = error.response ? error.response.data : error.message;
-                            app.loading = false;
-                            app.error = errorMsg.trim();
-                        });
-                },
-                saveBookmark: function () {
-                    if (this.inputBookmark.loading) return;
-                    this.inputBookmark.loading = true;
-
-                    if (this.inputBookmark.url === "") return;
-
-                    var idx = this.inputBookmark.index,
-                        tags = this.inputBookmark.tags.replace(/\s+/g, " "),
-                        newTags = tags === "" ? [] : listTag = tags.split(/\s+/g),
-                        finalTags = [];
-
-                    if (idx !== -1) {
-                        var oldTags = this.bookmarks[idx].tags;
-                        for (var i = 0; i < oldTags.length; i++) {
-                            if (newTags.indexOf(oldTags[i].name) === -1) {
-                                finalTags.push({
-                                    name: '-' + oldTags[i].name
-                                })
-                            }
-                        }
-                    }
-
-                    for (var i = 0; i < newTags.length; i++) {
-                        finalTags.push({
-                            name: listTag[i]
-                        });
-                    }
-
-                    instance.request({
-                            method: this.inputBookmark.id === -1 ? 'post' : 'put',
-                            url: '/api/bookmarks',
-                            timeout: 15000,
-                            data: {
-                                id: this.inputBookmark.id,
-                                url: this.inputBookmark.url,
-                                title: this.inputBookmark.title,
-                                excerpt: this.inputBookmark.excerpt,
-                                tags: finalTags
-                            }
-                        })
-                        .then(function (response) {
-                            if (idx === -1) app.bookmarks.unshift(response.data);
-                            else {
-                                app.bookmarks.splice(idx, 1, response.data);
-                                app.bookmarks[idx].tags.splice(0, app.bookmarks[idx].tags.length, ...response.data.tags);
-                            }
-
-                            app.clearInputBookmark();
-                        })
-                        .catch(function (error) {
-                            var errorMsg = error.response ? error.response.data : error.message;
-                            app.inputBookmark.loading = false;
-                            app.inputBookmark.error = errorMsg.trim();
-                        });
-                },
-                editBookmark: function (idx) {
-                    var bookmark = this.bookmarks[idx],
-                        tags = [];
-
-                    for (var i = 0; i < bookmark.tags.length; i++) {
-                        tags.push(bookmark.tags[i].name);
-                    }
-
-                    this.inputBookmark.index = idx;
-                    this.inputBookmark.id = bookmark.id;
-                    this.inputBookmark.url = bookmark.url;
-                    this.inputBookmark.title = bookmark.title;
-                    this.inputBookmark.tags = tags.join(" ");
-                    this.inputBookmark.excerpt = bookmark.excerpt;
-
-                    this.$nextTick(function () {
-                        window.scrollTo(0, 0);
-                        app.$refs.inputURL.focus();
-                    });
-                },
-                deleteBookmarks: function (indices) {
-                    var title = "Delete Bookmarks",
-                        content = "Delete the selected bookmark(s) ? This action is irreversible.",
-                        smallestIndex = 1;
-
-                    if (indices.length === 0) return;
-                    else if (indices.length === 1) {
-                        var bookmark = this.bookmarks[indices[0]];
-
-                        smallestIndex = indices[0];
-                        title = "Delete Bookmark";
-                        content = "Delete <b>\"" + bookmark.title.trim() + "\"</b> from bookmarks ? This action is irreversible.";
-                    } else {
-                        indices.sort();
-                        smallestIndex = indices[indices.length - 1];
-                    }
-
-                    this.dialog.visible = true;
-                    this.dialog.isError = false;
-                    this.dialog.loading = false;
-                    this.dialog.title = title;
-                    this.dialog.content = content;
-                    this.dialog.mainChoice = "Yes";
-                    this.dialog.secondChoice = "No";
-                    this.dialog.mainAction = function () {
-                        app.dialog.loading = true;
-
-                        var listId = [];
-                        for (var i = 0; i < indices.length; i++) {
-                            listId.push('' + app.bookmarks[indices[i]].id);
-                        }
-
-                        instance.delete('/api/bookmarks/', {
-                                data: listId
-                            })
-                            .then(function (response) {
-                                app.dialog.loading = false;
-                                app.dialog.visible = false;
-
-                                for (var i = indices.length - 1; i >= 0; i--) {
-                                    app.bookmarks.splice(indices[i], 1);
-                                }
-                                app.clearSelectedBookmarks();
-
-                                var scrollIdx = smallestIndex === 1 ? 1 : smallestIndex - 1;
-                                app.$nextTick(function () {
-                                    var el = app.$refs['bookmark-' + smallestIndex][0];
-                                    if (el) el.scrollIntoView();
-                                    else window.scrollTo(0, 0);
-                                });
-                            })
-                            .catch(function (error) {
-                                var errorMsg = error.response ? error.response.data : error.message;
-                                app.showDialogError("Error Deleting Bookmark", errorMsg.trim());
-                            });
-                    };
-                    this.dialog.secondAction = function () {
-                        app.dialog.visible = false;
-                        app.$nextTick(function () {
-                            app.$refs['bookmark-' + smallestIndex][0].scrollIntoView();
-                        });
-                    };
-
-                },
-                updateBookmark: function (idx) {
-                    var bookmark = this.bookmarks[idx];
-
-                    this.dialog.visible = true;
-                    this.dialog.isError = false;
-                    this.dialog.loading = false;
-                    this.dialog.title = "Update Bookmark";
-                    this.dialog.content = "Update data of <b>\"" + bookmark.title.trim() + "\"</b> ? This action is irreversible.";
-                    this.dialog.mainChoice = "Yes";
-                    this.dialog.secondChoice = "No";
-                    this.dialog.mainAction = function () {
-                        app.dialog.loading = true;
-                        instance.put('/api/bookmarks', {
-                                id: bookmark.id,
-                            }, {
-                                timeout: 15000,
-                            })
-                            .then(function (response) {
-                                app.dialog.loading = false;
-                                app.dialog.visible = false;
-                                app.bookmarks.splice(idx, 1, response.data);
-                                app.bookmarks[idx].tags.splice(0, app.bookmarks[idx].tags.length, ...response.data.tags);
-                            })
-                            .catch(function (error) {
-                                var errorMsg = error.response ? error.response.data : error.message;
-                                app.showDialogError("Error Updating Bookmark", errorMsg.trim());
-                            });
-                    };
-                    this.dialog.secondAction = function () {
-                        app.dialog.visible = false;
-                        app.$nextTick(function () {
-                            app.$refs['bookmark-' + idx][0].scrollIntoView();
-                        });
-                    };
-                },
-                toggleBookmarkCheck: function (idx) {
-                    var checkedIdx = this.checkedBookmarks.indexOf(idx);
-                    if (checkedIdx !== -1) this.checkedBookmarks.splice(checkedIdx, 1);
-                    else this.checkedBookmarks.push(idx);
-                },
-                selectAllBookmarks: function () {
-                    this.clearSelectedBookmarks();
-                    for (var i = 0; i < this.bookmarks.length; i++) {
-                        this.checkedBookmarks.push(i);
-                    }
-                },
-                clearSelectedBookmarks: function () {
-                    this.checkedBookmarks.splice(0, this.checkedBookmarks.length);
-                },
-                isBookmarkChecked: function (idx) {
-                    return this.checkedBookmarks.indexOf(idx) !== -1;
-                },
-                clearInputBookmark: function () {
-                    var idx = this.inputBookmark.index;
-
-                    this.inputBookmark.index = -1;
-                    this.inputBookmark.id = -1;
-                    this.inputBookmark.url = "";
-                    this.inputBookmark.title = "";
-                    this.inputBookmark.tags = "";
-                    this.inputBookmark.excerpt = "";
-                    this.inputBookmark.error = "";
-                    this.inputBookmark.loading = false;
-
-                    if (idx !== -1) app.$nextTick(function () {
-                        var bookmarkItem = app.$refs['bookmark-' + idx];
-                        bookmarkItem[0].scrollIntoView();
-                    })
-                },
-                bookmarkTime: function (book) {
-                    var time = book.modified,
-                        readTime = "",
-                        finalBookmarkTime = "";
-
-                    if (book.maxReadTime === 0) {
-                        readTime = "";
-                    } else if (book.minReadTime === book.maxReadTime) {
-                        readTime = book.minReadTime + " min read";
-                    } else {
-                        readTime = book.minReadTime + "-" + book.maxReadTime + " min read";
-                    }
-
-                    finalBookmarkTime = "Updated " + time;
-                    if (readTime !== "") finalBookmarkTime += " \u00B7 " + readTime;
-
-                    return finalBookmarkTime;
-                },
-                toggleImage: function () {
-                    this.showImage = !this.showImage;
-                    if (this.showImage) localStorage.setItem('show-image', '');
-                    else localStorage.removeItem('show-image');
-                },
-                bookmarkImage: function (book) {
-                    if (!this.showImage) return "";
-                    if (book.imageURL === "") return "";
-                    return "background-image: url(" + book.imageURL + ")";
-                },
-                getDomainURL: function (url) {
-                    var hostname;
-
-                    if (url.indexOf("://") > -1) {
-                        hostname = url.split('/')[2];
-                    } else {
-                        hostname = url.split('/')[0];
-                    }
-
-                    hostname = hostname.split(':')[0];
-                    hostname = hostname.split('?')[0];
-
-                    return hostname;
-                },
-                showDialogError: function (title, msg) {
-                    this.dialog.isError = true;
-                    this.dialog.visible = true;
-                    this.dialog.loading = false;
-                    this.dialog.title = title;
-                    this.dialog.content = msg;
-                    this.dialog.mainChoice = "OK"
-                    this.dialog.secondChoice = ""
-                    this.dialog.mainAction = function () {
-                        app.dialog.visible = false;
-                    }
-                    this.dialog.secondAction = function () {}
-                },
-                logout: function () {
-                    Cookies.remove('token');
-                    location.href = '/login';
                 }
             },
             computed: {
-                gridColumns: function () {
-                    var nColumn = Math.round(this.windowWidth / 500),
-                        finalContent = [],
-                        currentColumn = 0;
+                visibleBookmarks() {
+                    var start = this.page * pageSize,
+                        finish = start + pageSize;
 
-                    for (var i = 0; i < nColumn; i++) {
-                        finalContent.push([]);
-                    }
-
-                    for (var i = 0; i < this.bookmarks.length; i++) {
-                        var bookmark = this.bookmarks[i];
-                        bookmark.index = i;
-                        finalContent[currentColumn].push(bookmark);
-
-                        currentColumn += 1;
-                        if (currentColumn >= nColumn) currentColumn = 0;
-                    }
-
-                    return finalContent;
-                },
-            },
-            watch: {
-                'inputBookmark.url': function (newURL) {
-                    if (newURL === "") this.clearInputBookmark();
-                    else this.$nextTick(function () {
-                        app.$refs.inputURL.focus();
-                    });
+                    return this.bookmarks.slice(start, finish);
                 }
             },
-            mounted: function () {
-                this.showImage = localStorage.getItem('show-image') !== null;
-                this.windowWidth = window.innerWidth;
+            methods: {
+                loadData() {
+                    if (this.loading) return;
 
-                window.addEventListener('resize', function () {
-                    app.windowWidth = window.innerWidth;
-                })
+                    // Parse search query
+                    var rxTagA = /['"]#([^'"]+)['"]/g,
+                        rxTagB = /(^|\s+)#(\S+)/g,
+                        keyword = this.search,
+                        tags = [];
 
+                    // Fetch tag A first
+                    while ((result = rxTagA.exec(keyword)) !== null) {
+                        tags.push(result[1]);
+                    }
+
+                    // Clear tag A from keyword
+                    keyword = keyword.replace(rxTagA, '');
+
+                    // Fetch tag B
+                    while ((result = rxTagB.exec(keyword)) !== null) {
+                        tags.push(result[2]);
+                    }
+
+                    // Clear tag B from keyword and clean it
+                    keyword = keyword.replace(rxTagB, '').trim().replace(/\s+/g, ' ');
+
+                    // Fetch data
+                    this.loading = true;
+                    rest.get('/api/bookmarks', {
+                            params: {
+                                keyword: keyword,
+                                tags: tags.join(',')
+                            }
+                        })
+                        .then((response) => {
+                            this.loading = false;
+                            this.bookmarks = response.data;
+                            this.page = 0;
+                            this.maxPage = Math.ceil(this.bookmarks.length / pageSize) - 1;
+                            window.scrollTo(0, 0);
+                        })
+                        .catch((error) => {
+                            var errorMsg = (error.response ? error.response.data : error.message).trim();
+                            this.loading = false;
+                            this.showErrorDialog(errorMsg);
+                        });
+                },
+                reloadData() {
+                    if (this.loading) return;
+                    this.search = '';
+                    this.loadData();
+                },
+                changePage(target) {
+                    target = parseInt(target, 10) || 0;
+
+                    if (target >= this.maxPage) this.page = this.maxPage;
+                    else if (target <= 0) this.page = 0;
+                    else this.page = target;
+
+                    window.scrollTo(0, 0);
+                },
+                toggleListView() {
+                    this.listView = !this.listView;
+                    window.scrollTo(0, 0);
+                    localStorage.setItem('shiori-list-view', this.listView ? '1' : '0');
+                },
+                toggleNightMode() {
+                    this.nightMode = !this.nightMode;
+                    localStorage.setItem('shiori-night-mode', this.nightMode ? '1' : '0');
+                },
+                toggleEditMode() {
+                    this.editMode = !this.editMode;
+                    this.selected = [];
+                },
+                toggleSelection(idx) {
+                    var pos = this.selected.indexOf(idx);
+                    if (pos === -1) this.selected.push(idx);
+                    else this.selected.splice(pos, 1);
+                },
+                isSelected(idx) {
+                    return this.selected.indexOf(idx) > -1;
+                },
+                filterTag(tag) {
+                    // Prepare variable
+                    var rxSpace = /\s+/g,
+                        searchTag = rxSpace.test(tag) ? '"#' + tag + '"' : '#' + tag;
+
+                    // Check if tag already exist in search
+                    rxTag = new RegExp(searchTag, 'g');
+                    if (rxTag.test(this.search)) return;
+
+                    // Create new search query
+                    var newSearch = this.search
+                        .replace(rxTag, '')
+                        .replace(rxSpace, ' ')
+                        .trim();
+
+                    // Load data
+                    this.search = (newSearch + ' ' + searchTag).trim();
+                    this.dialogTags.visible = false;
+                    this.loadData();
+                },
+                showDialogAdd() {
+                    this.showDialog({
+                        title: 'New Bookmark',
+                        content: 'Create a new bookmark',
+                        fields: [{
+                            name: 'url',
+                            label: 'Url, start with http://...',
+                        }, {
+                            name: 'title',
+                            label: 'Custom title (optional)'
+                        }, {
+                            name: 'excerpt',
+                            label: 'Custom excerpt (optional)',
+                            type: 'area'
+                        }, {
+                            name: 'tags',
+                            label: 'Comma separated tags (optional)'
+                        }, ],
+                        mainText: 'OK',
+                        secondText: 'Cancel',
+                        mainClick: (data) => {
+                            // Prepare tags
+                            var tags = data.tags
+                                .toLowerCase()
+                                .replace(/\s+/g, ' ')
+                                .split(/\s*,\s*/g)
+                                .filter(tag => tag !== '')
+                                .map(tag => {
+                                    return {
+                                        name: tag
+                                    };
+                                });
+
+                            // Send data
+                            this.dialog.loading = true;
+                            rest.post('/api/bookmarks', {
+                                    url: data.url.trim(),
+                                    title: data.title.trim(),
+                                    excerpt: data.excerpt.trim(),
+                                    tags: tags
+                                })
+                                .then((response) => {
+                                    this.dialog.loading = false;
+                                    this.dialog.visible = false;
+                                    this.bookmarks.splice(0, 0, response.data);
+                                })
+                                .catch((error) => {
+                                    var errorMsg = (error.response ? error.response.data : error.message).trim();
+                                    this.showErrorDialog(errorMsg);
+                                });
+                        }
+                    });
+                },
+                showDialogEdit(idx) {
+                    idx += this.page * pageSize;
+
+                    var book = JSON.parse(JSON.stringify(this.bookmarks[idx])),
+                        strTags = book.tags.map(tag => tag.name).join(', ');
+
+                    this.showDialog({
+                        title: 'Edit Bookmark',
+                        content: 'Edit the bookmark\'s data',
+                        showLabel: true,
+                        fields: [{
+                            name: 'title',
+                            label: 'Title',
+                            value: book.title,
+                        }, {
+                            name: 'excerpt',
+                            label: 'Excerpt',
+                            type: 'area',
+                            value: book.excerpt,
+                        }, {
+                            name: 'tags',
+                            label: 'Tags',
+                            value: strTags,
+                        }],
+                        mainText: 'OK',
+                        secondText: 'Cancel',
+                        mainClick: (data) => {
+                            // Validate input
+                            if (data.title.trim() === '') return;
+
+                            // Prepare tags
+                            var tags = data.tags
+                                .toLowerCase()
+                                .replace(/\s+/g, ' ')
+                                .split(/\s*,\s*/g)
+                                .filter(tag => tag !== '')
+                                .map(tag => {
+                                    return {
+                                        name: tag
+                                    };
+                                });
+
+                            // Set new data
+                            book.title = data.title.trim();
+                            book.excerpt = data.excerpt.trim();
+                            book.tags = tags;
+
+                            // Send data
+                            this.dialog.loading = true;
+                            rest.put('/api/bookmarks', book)
+                                .then((response) => {
+                                    this.dialog.loading = false;
+                                    this.dialog.visible = false;
+                                    this.bookmarks.splice(idx, 1, response.data);
+                                })
+                                .catch((error) => {
+                                    var errorMsg = (error.response ? error.response.data : error.message).trim();
+                                    this.showErrorDialog(errorMsg);
+                                });
+                        }
+                    });
+                },
+                showDialogDelete(indices) {
+                    // Check and prepare indices
+                    if (!(indices instanceof Array)) return;
+                    if (indices.length === 0) return;
+                    indices.sort();
+
+                    // Set real indices value
+                    indices = indices.map(item => item + this.page * pageSize)
+
+                    // Create title and content
+                    var title = "Delete Bookmarks",
+                        content = "Delete the selected bookmarks ? This action is irreversible.";
+
+                    if (indices.length === 1) {
+                        title = "Delete Bookmark";
+                        content = "Are you sure ? This action is irreversible.";
+                    }
+
+                    // Get list of bookmark ID
+                    var listID = [];
+                    for (var i = 0; i < indices.length; i++) {
+                        listID.push(this.bookmarks[indices[i]].id);
+                    }
+
+                    // Show dialog
+                    this.showDialog({
+                        title: title,
+                        content: content,
+                        mainText: 'Yes',
+                        secondText: 'No',
+                        mainClick: () => {
+                            this.dialog.loading = true;
+                            rest.delete('/api/bookmarks/', {
+                                    data: listID
+                                })
+                                .then((response) => {
+                                    this.selected = [];
+                                    this.editMode = false;
+                                    this.dialog.loading = false;
+                                    this.dialog.visible = false;
+                                    for (var i = indices.length - 1; i >= 0; i--) {
+                                        this.bookmarks.splice(indices[i], 1);
+                                    }
+                                })
+                                .catch((error) => {
+                                    var errorMsg = (error.response ? error.response.data : error.message).trim();
+                                    this.showErrorDialog(errorMsg);
+                                });
+                        }
+                    });
+                },
+                showDialogUpdateCache(indices) {
+                    // Check and prepare indices
+                    if (!(indices instanceof Array)) return;
+                    if (indices.length === 0) return;
+                    indices.sort();
+
+                    // Set real indices value
+                    indices = indices.map(item => item + this.page * pageSize)
+
+                    // Get list of bookmark ID
+                    var listID = [];
+                    for (var i = 0; i < indices.length; i++) {
+                        listID.push(this.bookmarks[indices[i]].id);
+                    }
+
+                    // Show dialog
+                    this.showDialog({
+                        title: 'Update Cache',
+                        content: 'Update cache for selected bookmarks ? This action is irreversible.',
+                        mainText: 'Yes',
+                        secondText: 'No',
+                        mainClick: () => {
+                            this.dialog.loading = true;
+                            rest.put('/api/cache/', listID)
+                                .then((response) => {
+                                    this.selected = [];
+                                    this.editMode = false;
+                                    this.dialog.loading = false;
+                                    this.dialog.visible = false;
+
+                                    response.data.forEach(book => {
+                                        for (var i = 0; i < indices.length; i++) {
+                                            var idx = indices[i];
+                                            if (book.id === this.bookmarks[idx].id) {
+                                                this.bookmarks.splice(idx, 1, book);
+                                                break;
+                                            }
+                                        }
+                                    });
+                                })
+                                .catch((error) => {
+                                    var errorMsg = (error.response ? error.response.data : error.message).trim();
+                                    this.showErrorDialog(errorMsg);
+                                });
+                        }
+                    });
+                },
+                showDialogAddTags(indices) {
+                    // Check and prepare indices
+                    if (!(indices instanceof Array)) return;
+                    if (indices.length === 0) return;
+                    indices.sort();
+
+                    // Set real indices value
+                    indices = indices.map(item => item + this.page * pageSize)
+
+                    // Get list of bookmark ID
+                    var listID = [];
+                    for (var i = 0; i < indices.length; i++) {
+                        listID.push(this.bookmarks[indices[i]].id);
+                    }
+
+                    this.showDialog({
+                        title: 'Add New Tags',
+                        content: 'Add new tags to selected bookmarks',
+                        fields: [{
+                            name: 'tags',
+                            label: 'Comma separated tags',
+                            value: '',
+                        }],
+                        mainText: 'OK',
+                        secondText: 'Cancel',
+                        mainClick: (data) => {
+                            // Validate input
+                            var tags = data.tags
+                                .toLowerCase()
+                                .replace(/\s+/g, ' ')
+                                .split(/\s*,\s*/g)
+                                .filter(tag => tag !== '')
+                                .map(tag => {
+                                    return {
+                                        name: tag
+                                    };
+                                });
+
+                            if (tags.length === 0) return;
+
+                            // Send data
+                            this.dialog.loading = true;
+                            rest.put('/api/bookmarks/tags', {
+                                    ids: listID,
+                                    tags: tags,
+                                })
+                                .then((response) => {
+                                    this.selected = [];
+                                    this.editMode = false;
+                                    this.dialog.loading = false;
+                                    this.dialog.visible = false;
+
+                                    response.data.forEach(book => {
+                                        for (var i = 0; i < indices.length; i++) {
+                                            var idx = indices[i];
+                                            if (book.id === this.bookmarks[idx].id) {
+                                                this.bookmarks.splice(idx, 1, book);
+                                                break;
+                                            }
+                                        }
+                                    });
+                                })
+                                .catch((error) => {
+                                    var errorMsg = (error.response ? error.response.data : error.message).trim();
+                                    this.showErrorDialog(errorMsg);
+                                });
+                        }
+                    });
+                },
+                showDialogTags() {
+                    this.dialogTags.visible = true;
+                    this.dialogTags.loading = true;
+                    rest.get('/api/tags', {
+                            timeout: 5000
+                        })
+                        .then((response) => {
+                            this.tags = response.data;
+                            this.dialogTags.loading = false;
+                        })
+                        .catch((error) => {
+                            var errorMsg = (error.response ? error.response.data : error.message).trim();
+                            this.dialogTags.loading = false;
+                            this.dialogTags.visible = false;
+                            this.showErrorDialog(errorMsg);
+                        });
+                },
+                showDialogLogout() {
+                    this.showDialog({
+                        title: 'Log Out',
+                        content: 'Do you want to log out from shiori ?',
+                        mainText: 'Yes',
+                        secondText: 'No',
+                        mainClick: () => {
+                            Cookies.remove('token');
+                            location.href = '/login';
+                        }
+                    });
+                },
+                getHostname(url) {
+                    parser = document.createElement('a');
+                    parser.href = url;
+                    return parser.hostname.replace(/^www\./g, '');
+                }
+            },
+            mounted() {
+                // Read config from local storage
+                var listView = localStorage.getItem('shiori-list-view'),
+                    nightMode = localStorage.getItem('shiori-night-mode');
+
+                this.listView = listView === '1';
+                this.nightMode = nightMode === '1';
+
+                // Load data
                 this.loadData();
             }
-        })
+        });
     </script>
 </body>
 

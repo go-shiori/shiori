@@ -1,18 +1,29 @@
-//go:generate fileb0x filebox.json
+//go:generate go run assets-generator.go
+
 package main
 
 import (
+	fp "path/filepath"
+
 	"github.com/RadhiFadlillah/shiori/cmd"
-	db "github.com/RadhiFadlillah/shiori/database"
+	dt "github.com/RadhiFadlillah/shiori/database"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/sirupsen/logrus"
 )
 
+var dataDir = "."
+
 func main() {
-	sqliteDB, err := db.OpenSQLiteDatabase()
+	// Open database
+	dbPath := fp.Join(dataDir, "shiori.db")
+	sqliteDB, err := dt.OpenSQLiteDatabase(dbPath)
 	checkError(err)
 
-	cmd.DB = sqliteDB
-	cmd.Execute()
+	// Start cmd
+	shioriCmd := cmd.NewShioriCmd(sqliteDB, dataDir)
+	if err := shioriCmd.Execute(); err != nil {
+		logrus.Fatalln(err)
+	}
 }
 
 func checkError(err error) {
