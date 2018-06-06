@@ -40,6 +40,9 @@ type Database interface {
 
 	// DeleteAccounts removes all record with matching usernames
 	DeleteAccounts(usernames ...string) error
+
+	// GetBookmarkID fetchs bookmark ID based by its url
+	GetBookmarkID(url string) int
 }
 
 func checkError(err error) {

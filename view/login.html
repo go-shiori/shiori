@@ -83,12 +83,22 @@
                             timeout: 10000
                         })
                         .then(function (response) {
+                            // Save token
                             var token = response.data;
                             Cookies.set('token', token, {
                                 expires: this.rememberMe ? 7 : 1
                             });
 
-                            location.href = '/';
+                            // Set destination URL
+                            var rx = /[&?]dst=([^&]+)(&|$)/g,
+                                match = rx.exec(location.href);
+
+                            if (match == null) {
+                                location.href = '/';
+                            } else {
+                                var dst = match[1];
+                                location.href = decodeURIComponent(dst);
+                            }
                         })
                         .catch(function (error) {
                             var errorMsg = (error.response ? error.response.data : error.message).trim();

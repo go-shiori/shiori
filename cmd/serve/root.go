@@ -40,6 +40,7 @@ func NewServeCmd(db dt.Database, dataDir string) *cobra.Command {
 			router.GET("/login", hdl.serveLoginPage)
 			router.GET("/bookmark/:id", hdl.serveBookmarkCache)
 			router.GET("/thumb/:id", hdl.serveThumbnailImage)
+			router.GET("/submit", hdl.serveSubmitPage)
 
 			router.POST("/api/login", hdl.apiLogin)
 			router.GET("/api/bookmarks", hdl.apiGetBookmarks)

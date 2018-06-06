@@ -98,6 +98,12 @@ body {
             display: block;
             color: var(--colorSidebar);
             flex-shrink: 0;
+            >span {
+                display: block;
+                height: 0;
+                line-height: 0;
+                overflow: hidden;
+            }
             &:hover,
             &:focus {
                 background-color: #232323;
@@ -676,6 +682,22 @@ body {
         #body-padding {
             width: 100%;
             min-height: 16px;
+        }
+    }
+}
+
+#submit-page {
+    background-color: transparent;
+    .yla-dialog__header {
+        text-align: center;
+    }
+    &:not(.iframe) {
+        background-color: var(--bg);
+        .yla-dialog__overlay {
+            background-color: transparent;
+            .yla-dialog {
+                border: 1px solid var(--border);
+            }
         }
     }
 }

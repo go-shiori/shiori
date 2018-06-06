@@ -324,7 +324,7 @@ func (db *SQLiteDatabase) SearchBookmarks(orderLatest bool, keyword string, tags
 
 	// Set order clause
 	if orderLatest {
-		query += ` ORDER BY id DESC`
+		query += ` ORDER BY modified DESC`
 	}
 
 	// Fetch bookmarks
@@ -551,4 +551,11 @@ func (db *SQLiteDatabase) GetNewID(table string) (int, error) {
 	}
 
 	return tableID, nil
+}
+
+// GetBookmarkID fetchs bookmark ID based by its url
+func (db *SQLiteDatabase) GetBookmarkID(url string) int {
+	var bookmarkID int
+	db.Get(&bookmarkID, `SELECT id FROM bookmark WHERE url = ?`, url)
+	return bookmarkID
 }
