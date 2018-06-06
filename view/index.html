@@ -117,6 +117,7 @@
                         <img v-if="book.imageURL !== ''" :src="book.imageURL">
                         <p class="title">{{book.title}}</p>
                         <p class="excerpt" v-if="book.imageURL === ''">{{book.excerpt}}</p>
+                        <p class="id">{{book.id}}</p>
                     </a>
                     <div class="bookmark-tags" v-if="book.tags.length > 0">
                         <a v-for="tag in book.tags" @click="filterTag(tag.name)">{{tag.name}}</a>
