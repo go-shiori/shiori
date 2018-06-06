@@ -12,10 +12,11 @@ import (
 )
 
 var dataDir = "."
+var databaseName = "shiori.db"
 
 func main() {
 	// Open database
-	dbPath := fp.Join(dataDir, "shiori.db")
+	dbPath := fp.Join(dataDir, databaseName)
 	sqliteDB, err := dt.OpenSQLiteDatabase(dbPath)
 	checkError(err)
 
