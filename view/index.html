@@ -283,9 +283,11 @@
                             this.loading = false;
                         })
                         .catch((error) => {
-                            var errorMsg = (error.response ? error.response.data : error.message).trim();
                             this.loading = false;
-                            this.showErrorDialog(errorMsg);
+
+                            var errorMsg = (error.response ? error.response.data : error.message).trim();
+                            if (errorMsg.startsWith('Token error')) this.showDialogSessionExpired(errorMsg);
+                            else this.showErrorDialog(errorMsg);
                         });
                 },
                 reloadData() {
@@ -398,7 +400,8 @@
                                 })
                                 .catch((error) => {
                                     var errorMsg = (error.response ? error.response.data : error.message).trim();
-                                    this.showErrorDialog(errorMsg);
+                                    if (errorMsg.startsWith('Token error')) this.showDialogSessionExpired(errorMsg);
+                                    else this.showErrorDialog(errorMsg);
                                 });
                         }
                     });
@@ -460,7 +463,8 @@
                                 })
                                 .catch((error) => {
                                     var errorMsg = (error.response ? error.response.data : error.message).trim();
-                                    this.showErrorDialog(errorMsg);
+                                    if (errorMsg.startsWith('Token error')) this.showDialogSessionExpired(errorMsg);
+                                    else this.showErrorDialog(errorMsg);
                                 });
                         }
                     });
@@ -511,7 +515,8 @@
                                 })
                                 .catch((error) => {
                                     var errorMsg = (error.response ? error.response.data : error.message).trim();
-                                    this.showErrorDialog(errorMsg);
+                                    if (errorMsg.startsWith('Token error')) this.showDialogSessionExpired(errorMsg);
+                                    else this.showErrorDialog(errorMsg);
                                 });
                         }
                     });
@@ -558,7 +563,8 @@
                                 })
                                 .catch((error) => {
                                     var errorMsg = (error.response ? error.response.data : error.message).trim();
-                                    this.showErrorDialog(errorMsg);
+                                    if (errorMsg.startsWith('Token error')) this.showDialogSessionExpired(errorMsg);
+                                    else this.showErrorDialog(errorMsg);
                                 });
                         }
                     });
@@ -627,7 +633,8 @@
                                 })
                                 .catch((error) => {
                                     var errorMsg = (error.response ? error.response.data : error.message).trim();
-                                    this.showErrorDialog(errorMsg);
+                                    if (errorMsg.startsWith('Token error')) this.showDialogSessionExpired(errorMsg);
+                                    else this.showErrorDialog(errorMsg);
                                 });
                         }
                     });
@@ -643,10 +650,12 @@
                             this.dialogTags.loading = false;
                         })
                         .catch((error) => {
-                            var errorMsg = (error.response ? error.response.data : error.message).trim();
                             this.dialogTags.loading = false;
                             this.dialogTags.visible = false;
-                            this.showErrorDialog(errorMsg);
+
+                            var errorMsg = (error.response ? error.response.data : error.message).trim();
+                            if (errorMsg.startsWith('Token error')) this.showDialogSessionExpired(errorMsg);
+                            else this.showErrorDialog(errorMsg);
                         });
                 },
                 showDialogLogout() {
@@ -655,6 +664,17 @@
                         content: 'Do you want to log out from shiori ?',
                         mainText: 'Yes',
                         secondText: 'No',
+                        mainClick: () => {
+                            Cookies.remove('token');
+                            location.href = '/login';
+                        }
+                    });
+                },
+                showDialogSessionExpired(msg) {
+                    this.showDialog({
+                        title: 'Error',
+                        content: msg + '. Please login again.',
+                        mainText: 'OK',
                         mainClick: () => {
                             Cookies.remove('token');
                             location.href = '/login';
