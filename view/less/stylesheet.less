@@ -684,7 +684,16 @@ body {
             }
             pre,
             code {
+                overflow: auto;
+                border: 1px solid var(--border);
                 font-family: 'Ubuntu Mono', 'Courier New', Courier, monospace;
+                font-size: 16px;
+            }
+            pre {
+                padding: 8px;
+                >code {
+                    border: 0;
+                }
             }
             ol,
             ul {
