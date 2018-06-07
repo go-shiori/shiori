@@ -163,10 +163,8 @@ func (h *webHandler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, p
 	// Save bookmark to database
 	_, err = h.db.InsertBookmark(book)
 	if err != nil {
-		fmt.Println(err)
 		book.ID = h.db.GetBookmarkID(book.URL)
 		book.Modified = time.Now().UTC().Format("2006-01-02 15:04:05")
-		fmt.Println(book.ID, book.Modified)
 		_, err = h.db.UpdateBookmarks(book)
 		checkError(err)
 	}
