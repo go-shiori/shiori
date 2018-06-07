@@ -271,11 +271,16 @@
                             }
                         })
                         .then((response) => {
-                            this.loading = false;
-                            this.bookmarks = response.data;
                             this.page = 0;
+                            this.bookmarks = response.data;
                             this.maxPage = Math.ceil(this.bookmarks.length / pageSize) - 1;
                             window.scrollTo(0, 0);
+
+                            return rest.get('/api/tags');
+                        })
+                        .then((response) => {
+                            this.tags = response.data;
+                            this.loading = false;
                         })
                         .catch((error) => {
                             var errorMsg = (error.response ? error.response.data : error.message).trim();
@@ -359,7 +364,9 @@
                             type: 'area'
                         }, {
                             name: 'tags',
-                            label: 'Comma separated tags (optional)'
+                            label: 'Comma separated tags (optional)',
+                            separator: ',',
+                            dictionary: this.tags.map(tag => tag.name)
                         }, ],
                         mainText: 'OK',
                         secondText: 'Cancel',
