@@ -749,3 +749,22 @@ body {
         }
     }
 }
+
+#dialog-options {
+    .yla-dialog__body {
+        grid-template-columns: 1fr;
+        a {
+            display: block;
+            cursor: pointer;
+            color: var(--color);
+            i {
+                margin-right: 8px;
+                color: var(--color);
+            }
+            &:hover,
+            &:focus {
+                color: var(--main);
+            }
+        }
+    }
+}
