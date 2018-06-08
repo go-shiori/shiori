@@ -11,7 +11,6 @@ import (
 func init() {
 	// Get data directory
 	dataDir = getDataDirectory()
-	databaseName = getDatabaseName()
 
 	// Make sure directory exist
 	os.MkdirAll(dataDir, os.ModePerm)
@@ -33,15 +32,4 @@ func getDataDirectory() string {
 
 	// When all fail, use current working directory
 	return "."
-}
-
-func getDatabaseName() string {
-	// Try to look at environment variables
-	databaseName, found := os.LookupEnv("ENV_SHIORI_DB")
-	if found {
-		return databaseName
-	}
-
-	// When all fail, use current working directory
-	return "shiori.db"
 }
