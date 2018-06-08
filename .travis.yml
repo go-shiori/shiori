@@ -23,10 +23,10 @@ script:
   - go test -v -race ./...
   # only build binaries from the latest Go release.
   - if [ "${LATEST}" = "true" ]; then 
-      env GOARCH=386 go build -o shiori_linux_386;
-      env GOARCH=amd64 go build -o shiori_linux_amd64;
-      env GOOS=windows GOARCH=386 CC=i686-w64-mingw32-gcc go build -o shiori_windows_386.exe;
-      env GOOS=windows GOARCH=amd64 CC=x86_64-w64-mingw32-gcc go build -o shiori_windows_amd64.exe;
+      env CGO_ENABLED=1 GOARCH=386 go build -v -o shiori_linux_386;
+      env CGO_ENABLED=1 GOARCH=amd64 go build -v -o shiori_linux_amd64;
+      env CGO_ENABLED=1 GOOS=windows GOARCH=386 CC=i686-w64-mingw32-gcc go build -v -o shiori_windows_386.exe;
+      env CGO_ENABLED=1 GOOS=windows GOARCH=amd64 CC=x86_64-w64-mingw32-gcc go build -v -o shiori_windows_amd64.exe;
     fi
 
 deploy:
