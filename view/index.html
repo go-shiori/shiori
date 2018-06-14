@@ -33,7 +33,7 @@
                 </a>
             </yla-tooltip>
             <yla-tooltip placement="right" content="Add new bookmark">
-                <a :href="bookmarklet" @click="showDialogAdd" v-show="!editMode && !loading">
+                <a @click="showDialogAdd" v-show="!editMode && !loading">
                     <span>+Shiori</span>
                     <i class="fas fa-plus fa-fw"></i>
                 </a>
@@ -49,6 +49,11 @@
                 </a>
             </yla-tooltip>
             <div class="spacer"></div>
+            <yla-tooltip placement="right" content="About">
+                <a @click="showDialogAbout">
+                    <i class="fas fa-fw fa-info-circle"></i>
+                </a>
+            </yla-tooltip>
             <yla-tooltip placement="right" content="Options">
                 <a @click="showDialogOptions">
                     <i class="fas fa-fw fa-cog"></i>
@@ -156,6 +161,17 @@
                 <div id="grid-padding"></div>
             </div>
         </div>
+        <yla-dialog id="dialog-about" v-bind="dialogAbout">
+            <p>
+                Shiori is a simple bookmarks manager written in Go language, developed by
+                <a target="_blank" href="https://github.com/RadhiFadlillah">Radhi Fadlillah</a> and other
+                <a target="_blank" href="https://github.com/RadhiFadlillah/shiori/graphs/contributors">contributors</a>. The source code is available on
+                <a target="_blank" href="https://github.com/RadhiFadlillah/shiori">GitHub</a> and released under MIT license.
+            </p>
+            <p>For ease of use, you can install the Shiori Bookmarklet by dragging this link (
+                <a :href="bookmarklet" onclick="event.preventDefault()">+Shiori</a>) to your bookmark bar.
+            </p>
+        </yla-dialog>
         <yla-dialog id="dialog-tags" v-bind="dialogTags">
             <a v-for="tag in tags" @click="filterTag(tag.name)">
                 <span>{{tag.name}}</span>
@@ -208,6 +224,13 @@
                         listView: false,
                         nightMode: false,
                         showBookmarkID: false,
+                    },
+                    dialogAbout: {
+                        visible: false,
+                        title: 'About',
+                        mainClick: () => {
+                            this.dialogAbout.visible = false;
+                        },
                     },
                     dialogTags: {
                         visible: false,
@@ -349,8 +372,7 @@
                     this.dialogTags.visible = false;
                     this.loadData();
                 },
-                showDialogAdd(e) {
-                    e.preventDefault();
+                showDialogAdd() {
                     this.showDialog({
                         title: 'New Bookmark',
                         content: 'Create a new bookmark',
@@ -680,6 +702,9 @@
                             location.href = '/login';
                         }
                     });
+                },
+                showDialogAbout() {
+                    this.dialogAbout.visible = true;
                 },
                 showDialogOptions() {
                     this.dialogOptions.visible = true;

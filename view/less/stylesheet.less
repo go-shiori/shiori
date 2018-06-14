@@ -740,6 +740,7 @@ body {
             display: flex;
             flex-flow: row nowrap;
             align-items: baseline;
+            font-size: 0.9em;
             span {
                 &:last-child {
                     font-size: 0.9em;
@@ -770,6 +771,7 @@ body {
             display: block;
             cursor: pointer;
             color: var(--color);
+            font-size: 0.9em;
             i {
                 margin-right: 8px;
                 color: var(--color);
@@ -777,6 +779,24 @@ body {
             &:hover,
             &:focus {
                 color: var(--main);
+            }
+        }
+    }
+}
+
+#dialog-about {
+    .yla-dialog__body {
+        grid-template-columns: 1fr;
+        p {
+            font-size: 0.9em;
+            line-height: 1.8em;
+            a {
+                color: var(--color);
+                text-decoration: underline;
+                &:hover,
+                &:focus {
+                    color: var(--main);
+                }
             }
         }
     }
