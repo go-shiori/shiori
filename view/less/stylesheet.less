@@ -475,6 +475,10 @@ body {
                     overflow: hidden;
                     text-overflow: ellipsis;
                     line-height: 21px;
+                    &:not([href]) {
+                        cursor: default;
+                        color: var(--colorLink);
+                    }
                 }
             }
         }
@@ -772,8 +776,12 @@ body {
             cursor: pointer;
             color: var(--color);
             font-size: 0.9em;
+            padding-left: 24px;
+            position: relative;
             i {
-                margin-right: 8px;
+                left: 0;
+                top: 2px;
+                position: absolute;
                 color: var(--color);
             }
             &:hover,
