@@ -18,7 +18,6 @@ install:
 script:
   - go generate
   - go get -t -v ./...
-  - diff -u <(echo -n) <(gofmt -d .)
   - go vet $(go list ./... | grep -v /vendor/)
   - go test -v -race ./...
   # only build binaries from the latest Go release.
