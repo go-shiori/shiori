@@ -26,6 +26,7 @@ func NewServeCmd(db dt.Database, dataDir string) *cobra.Command {
 			"If --port flag is not used, it will use port 8080 by default.",
 		Run: func(cmd *cobra.Command, args []string) {
 			// Parse flags
+			listenAddress, _ := cmd.Flags().GetString("listen")
 			port, _ := cmd.Flags().GetInt("port")
 
 			// Create router
@@ -57,7 +58,7 @@ func NewServeCmd(db dt.Database, dataDir string) *cobra.Command {
 			}
 
 			// Create server
-			url := fmt.Sprintf(":%d", port)
+			url := fmt.Sprintf("%s:%d", listenAddress, port)
 			svr := &http.Server{
 				Addr:         url,
 				Handler:      router,
@@ -72,6 +73,7 @@ func NewServeCmd(db dt.Database, dataDir string) *cobra.Command {
 	}
 
 	// Set flags for root command
+	rootCmd.Flags().StringP("listen", "l", "", "Address the server listens to")
 	rootCmd.Flags().IntP("port", "p", 8080, "Port that used by server")
 
 	return rootCmd
