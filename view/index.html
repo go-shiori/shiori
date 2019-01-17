@@ -24,7 +24,7 @@
 </head>
 
 <body>
-    <div id="index-page" class="page" :class="{night: nightMode}">
+    <div id="index-page" class="page" :class="{night: options.nightMode}">
         <div id="sidebar">
             <p id="logo">栞</p>
             <yla-tooltip placement="right" content="Reload data">
@@ -34,6 +34,7 @@
             </yla-tooltip>
             <yla-tooltip placement="right" content="Add new bookmark">
                 <a @click="showDialogAdd" v-show="!editMode && !loading">
+                    <span>+Shiori</span>
                     <i class="fas fa-plus fa-fw"></i>
                 </a>
             </yla-tooltip>
@@ -48,14 +49,14 @@
                 </a>
             </yla-tooltip>
             <div class="spacer"></div>
-            <yla-tooltip placement="right" :content="listView ? 'Switch to grid view' : 'Switch to list view'">
-                <a @click="toggleListView">
-                    <i class="fas fa-fw" :class="listView ? 'fa-th-large' : 'fa-th-list'"></i>
+            <yla-tooltip placement="right" content="About">
+                <a @click="showDialogAbout">
+                    <i class="fas fa-fw fa-info-circle"></i>
                 </a>
             </yla-tooltip>
-            <yla-tooltip placement="right" content="Toggle night mode">
-                <a @click="toggleNightMode">
-                    <i class="fas fa-fw" :class="nightMode ? 'fa-sun' : 'fa-moon'"></i>
+            <yla-tooltip placement="right" content="Options">
+                <a @click="showDialogOptions">
+                    <i class="fas fa-fw fa-cog"></i>
                 </a>
             </yla-tooltip>
             <yla-tooltip placement="right" content="Log out">
@@ -89,7 +90,7 @@
                     <i class="fas fa-fw fa-times"></i>
                 </a>
             </div>
-            <div id="grid" :class="{list: listView}">
+            <div id="grid" :class="{list: options.listView}">
                 <div class="pagination-box" v-if="maxPage > 0">
                     <p>Page</p>
                     <input type="text" placeholder="1" :value="page+1" @focus="$event.target.select()" @keyup.enter="changePage($event.target.value-1)" :disabled="editMode">
@@ -112,17 +113,18 @@
                 </div>
                 <div class="bookmark" v-for="(book, idx) in visibleBookmarks" :class="{selected: isSelected(idx)}">
                     <a class="bookmark-selector" v-if="editMode" @click="toggleSelection(idx)"></a>
-                    <a class="bookmark-link" :href="book.hasContent ? '/bookmark/'+book.id : null" :title="book.hasContent ? 'View cache' : null" target="_blank">
+                    <a class="bookmark-link" :href="getBookLink(book, true)" :title="getBookLinkTitle(book, true)" target="_blank">
                         <img v-if="book.imageURL !== ''" :src="book.imageURL">
                         <p class="title">{{book.title}}</p>
                         <p class="excerpt" v-if="book.imageURL === ''">{{book.excerpt}}</p>
+                        <p v-show="options.showBookmarkID" class="id">{{book.id}}</p>
                     </a>
                     <div class="bookmark-tags" v-if="book.tags.length > 0">
                         <a v-for="tag in book.tags" @click="filterTag(tag.name)">{{tag.name}}</a>
                     </div>
                     <div class="spacer"></div>
                     <div class="bookmark-menu">
-                        <a class="url" title="View original" :href="book.url" target="_blank">
+                        <a class="url" :href="getBookLink(book, false)" :title="getBookLinkTitle(book, false)" target="_blank">
                             {{getHostname(book.url)}}
                         </a>
                         <a title="Edit bookmark" @click="showDialogEdit(idx)">
@@ -159,10 +161,35 @@
                 <div id="grid-padding"></div>
             </div>
         </div>
+        <yla-dialog id="dialog-about" v-bind="dialogAbout">
+            <p>
+                Shiori is a simple bookmarks manager written in Go language, developed by
+                <a target="_blank" href="https://github.com/RadhiFadlillah">Radhi Fadlillah</a> and other
+                <a target="_blank" href="https://github.com/RadhiFadlillah/shiori/graphs/contributors">contributors</a>. The source code is available on
+                <a target="_blank" href="https://github.com/RadhiFadlillah/shiori">GitHub</a> and released under MIT license.
+            </p>
+            <p>For ease of use, you can install the Shiori Bookmarklet by dragging this link (
+                <a :href="bookmarklet" onclick="event.preventDefault()">+Shiori</a>) to your bookmark bar.
+            </p>
+        </yla-dialog>
         <yla-dialog id="dialog-tags" v-bind="dialogTags">
             <a v-for="tag in tags" @click="filterTag(tag.name)">
                 <span>{{tag.name}}</span>
                 <span>{{tag.nBookmarks}}</span>
+            </a>
+        </yla-dialog>
+        <yla-dialog id="dialog-options" v-bind="dialogOptions">
+            <a @click="toggleListView">
+                <i class="fa-fw" :class="options.listView ? 'fas fa-check-square' : 'far fa-square'"></i>Use list view
+            </a>
+            <a @click="toggleNightMode">
+                <i class="fa-fw" :class="options.nightMode ? 'fas fa-check-square' : 'far fa-square'"></i>Use night mode
+            </a>
+            <a @click="toggleBookmarkID">
+                <i class="fa-fw" :class="options.showBookmarkID ? 'fas fa-check-square' : 'far fa-square'"></i>Show bookmark's ID
+            </a>
+            <a @click="toggleBookmarkMainLink">
+                <i class="fa-fw" :class="options.mainOpenOriginal ? 'fas fa-check-square' : 'far fa-square'"></i>Bookmark's title open original webpage instead of the cache
             </a>
         </yla-dialog>
         <yla-dialog v-bind="dialog"></yla-dialog>
@@ -193,10 +220,22 @@
                     search: '',
                     page: 0,
                     maxPage: 0,
-                    listView: false,
-                    nightMode: false,
                     editMode: false,
                     selected: [],
+                    bookmarklet: '',
+                    options: {
+                        listView: false,
+                        nightMode: false,
+                        showBookmarkID: false,
+                        mainOpenOriginal: false,
+                    },
+                    dialogAbout: {
+                        visible: false,
+                        title: 'About',
+                        mainClick: () => {
+                            this.dialogAbout.visible = false;
+                        },
+                    },
                     dialogTags: {
                         visible: false,
                         loading: false,
@@ -204,6 +243,14 @@
                         mainText: 'Cancel',
                         mainClick: () => {
                             this.dialogTags.visible = false;
+                        },
+                    },
+                    dialogOptions: {
+                        visible: false,
+                        title: 'Options',
+                        mainText: 'OK',
+                        mainClick: () => {
+                            this.dialogOptions.visible = false;
                         },
                     }
                 }
@@ -251,16 +298,23 @@
                             }
                         })
                         .then((response) => {
-                            this.loading = false;
-                            this.bookmarks = response.data;
                             this.page = 0;
+                            this.bookmarks = response.data;
                             this.maxPage = Math.ceil(this.bookmarks.length / pageSize) - 1;
                             window.scrollTo(0, 0);
+
+                            return rest.get('/api/tags');
+                        })
+                        .then((response) => {
+                            this.tags = response.data;
+                            this.loading = false;
                         })
                         .catch((error) => {
-                            var errorMsg = (error.response ? error.response.data : error.message).trim();
                             this.loading = false;
-                            this.showErrorDialog(errorMsg);
+
+                            var errorMsg = (error.response ? error.response.data : error.message).trim();
+                            if (errorMsg.startsWith('Token error')) this.showDialogSessionExpired(errorMsg);
+                            else this.showErrorDialog(errorMsg);
                         });
                 },
                 reloadData() {
@@ -278,13 +332,21 @@
                     window.scrollTo(0, 0);
                 },
                 toggleListView() {
-                    this.listView = !this.listView;
+                    this.options.listView = !this.options.listView;
                     window.scrollTo(0, 0);
-                    localStorage.setItem('shiori-list-view', this.listView ? '1' : '0');
+                    localStorage.setItem('shiori-list-view', this.options.listView ? '1' : '0');
                 },
                 toggleNightMode() {
-                    this.nightMode = !this.nightMode;
-                    localStorage.setItem('shiori-night-mode', this.nightMode ? '1' : '0');
+                    this.options.nightMode = !this.options.nightMode;
+                    localStorage.setItem('shiori-night-mode', this.options.nightMode ? '1' : '0');
+                },
+                toggleBookmarkID() {
+                    this.options.showBookmarkID = !this.options.showBookmarkID;
+                    localStorage.setItem('shiori-show-id', this.options.showBookmarkID ? '1' : '0');
+                },
+                toggleBookmarkMainLink() {
+                    this.options.mainOpenOriginal = !this.options.mainOpenOriginal;
+                    localStorage.setItem('shiori-main-original', this.options.mainOpenOriginal ? '1' : '0');
                 },
                 toggleEditMode() {
                     this.editMode = !this.editMode;
@@ -334,7 +396,9 @@
                             type: 'area'
                         }, {
                             name: 'tags',
-                            label: 'Comma separated tags (optional)'
+                            label: 'Comma separated tags (optional)',
+                            separator: ',',
+                            dictionary: this.tags.map(tag => tag.name)
                         }, ],
                         mainText: 'OK',
                         secondText: 'Cancel',
@@ -366,7 +430,8 @@
                                 })
                                 .catch((error) => {
                                     var errorMsg = (error.response ? error.response.data : error.message).trim();
-                                    this.showErrorDialog(errorMsg);
+                                    if (errorMsg.startsWith('Token error')) this.showDialogSessionExpired(errorMsg);
+                                    else this.showErrorDialog(errorMsg);
                                 });
                         }
                     });
@@ -428,7 +493,8 @@
                                 })
                                 .catch((error) => {
                                     var errorMsg = (error.response ? error.response.data : error.message).trim();
-                                    this.showErrorDialog(errorMsg);
+                                    if (errorMsg.startsWith('Token error')) this.showDialogSessionExpired(errorMsg);
+                                    else this.showErrorDialog(errorMsg);
                                 });
                         }
                     });
@@ -479,7 +545,8 @@
                                 })
                                 .catch((error) => {
                                     var errorMsg = (error.response ? error.response.data : error.message).trim();
-                                    this.showErrorDialog(errorMsg);
+                                    if (errorMsg.startsWith('Token error')) this.showDialogSessionExpired(errorMsg);
+                                    else this.showErrorDialog(errorMsg);
                                 });
                         }
                     });
@@ -526,7 +593,8 @@
                                 })
                                 .catch((error) => {
                                     var errorMsg = (error.response ? error.response.data : error.message).trim();
-                                    this.showErrorDialog(errorMsg);
+                                    if (errorMsg.startsWith('Token error')) this.showDialogSessionExpired(errorMsg);
+                                    else this.showErrorDialog(errorMsg);
                                 });
                         }
                     });
@@ -595,7 +663,8 @@
                                 })
                                 .catch((error) => {
                                     var errorMsg = (error.response ? error.response.data : error.message).trim();
-                                    this.showErrorDialog(errorMsg);
+                                    if (errorMsg.startsWith('Token error')) this.showDialogSessionExpired(errorMsg);
+                                    else this.showErrorDialog(errorMsg);
                                 });
                         }
                     });
@@ -611,10 +680,12 @@
                             this.dialogTags.loading = false;
                         })
                         .catch((error) => {
-                            var errorMsg = (error.response ? error.response.data : error.message).trim();
                             this.dialogTags.loading = false;
                             this.dialogTags.visible = false;
-                            this.showErrorDialog(errorMsg);
+
+                            var errorMsg = (error.response ? error.response.data : error.message).trim();
+                            if (errorMsg.startsWith('Token error')) this.showDialogSessionExpired(errorMsg);
+                            else this.showErrorDialog(errorMsg);
                         });
                 },
                 showDialogLogout() {
@@ -629,19 +700,88 @@
                         }
                     });
                 },
+                showDialogSessionExpired(msg) {
+                    this.showDialog({
+                        title: 'Error',
+                        content: msg + '. Please login again.',
+                        mainText: 'OK',
+                        mainClick: () => {
+                            Cookies.remove('token');
+                            location.href = '/login';
+                        }
+                    });
+                },
+                showDialogAbout() {
+                    this.dialogAbout.visible = true;
+                },
+                showDialogOptions() {
+                    this.dialogOptions.visible = true;
+                },
                 getHostname(url) {
                     parser = document.createElement('a');
                     parser.href = url;
                     return parser.hostname.replace(/^www\./g, '');
+                },
+                getBookLink(book, isMainLink) {
+                    if ((this.options.mainOpenOriginal && isMainLink) ||
+                        (!this.options.mainOpenOriginal && !isMainLink)) return book.url;
+                    if (book.hasContent) return '/bookmark/' + book.id;
+                    return null;
+                },
+                getBookLinkTitle(book, isMainLink) {
+                    if ((this.options.mainOpenOriginal && isMainLink) ||
+                        (!this.options.mainOpenOriginal && !isMainLink)) return 'View original';
+                    if (book.hasContent) return 'View cache';
+                    return null;
                 }
             },
             mounted() {
                 // Read config from local storage
                 var listView = localStorage.getItem('shiori-list-view'),
-                    nightMode = localStorage.getItem('shiori-night-mode');
+                    nightMode = localStorage.getItem('shiori-night-mode'),
+                    showBookmarkID = localStorage.getItem('shiori-show-id'),
+                    mainOpenOriginal = localStorage.getItem('shiori-main-original');
 
-                this.listView = listView === '1';
-                this.nightMode = nightMode === '1';
+                this.options.listView = listView === '1';
+                this.options.nightMode = nightMode === '1';
+                this.options.showBookmarkID = showBookmarkID === '1';
+                this.options.mainOpenOriginal = mainOpenOriginal === '1';
+
+                // Create bookmarklet
+                var shioriURL = location.href.replace(/\/+$/g, ''),
+                    baseBookmarklet = `(function () {
+                        var shioriURL = '$SHIORI_URL',
+                            bookmarkURL = location.href,
+                            submitURL = shioriURL + '/submit?url=' + encodeURIComponent(bookmarkURL);
+
+                        if (bookmarkURL.startsWith('https://') && !shioriURL.startsWith('https://')) {
+                            window.open(submitURL, '_blank');
+                            return;
+                        }
+
+                        var i = document.createElement('iframe');
+                        i.src = submitURL;
+                        i.frameBorder = '0';
+                        i.allowTransparency = true;
+                        i.style.position = 'fixed';
+                        i.style.top = 0;
+                        i.style.left = 0;
+                        i.style.width = '100%';
+                        i.style.height = '100%';
+                        i.style.zIndex = 99999;
+                        document.body.appendChild(i);
+
+                        window.addEventListener('message', function onMessage(e) {
+                            if (e.origin !== shioriURL) return;
+                            if (e.data !== 'finished') return;
+                            window.removeEventListener('message', onMessage);
+                            document.body.removeChild(i);
+                        });
+                    }())`;
+
+                this.bookmarklet = 'javascript:' + baseBookmarklet
+                    .replace('$SHIORI_URL', shioriURL)
+                    .replace(/\s+/gm, ' ');
 
                 // Load data
                 this.loadData();

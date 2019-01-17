@@ -30,7 +30,7 @@ var YlaDialog = function () {
                                    @focus="$event.target.select()"
                                    @keyup="handleInput(index)"
                                    @keyup.enter="handleInputEnter(index)">
-                            <span ref="suggestion" v-if="field.suggestion" class="suggestion">{{field.suggestion}}</span>
+                            <span :ref="'suggestion-'+index" v-if="field.suggestion" class="suggestion">{{field.suggestion}}</span>
                         </template>
                     </slot>
                 </div>
@@ -112,6 +112,7 @@ var YlaDialog = function () {
                             value: '',
                             type: 'text',
                             dictionary: [],
+                            separator: ' ',
                             suggestion: undefined
                         }
 
@@ -121,6 +122,7 @@ var YlaDialog = function () {
                             value: field.value || '',
                             type: field.type || 'text',
                             dictionary: field.dictionary instanceof Array ? field.dictionary : [],
+                            separator: field.separator || ' ',
                             suggestion: undefined
                         }
                     });
@@ -161,7 +163,7 @@ var YlaDialog = function () {
                 if (dictionary.length === 0) return;
 
                 // Fetch suggestion from dictionary
-                var words = field.value.split(' '),
+                var words = field.value.split(field.separator),
                     lastWord = words[words.length - 1].toLowerCase(),
                     suggestion;
 
@@ -179,7 +181,7 @@ var YlaDialog = function () {
                 // Display suggestion
                 this.$nextTick(() => {
                     var input = this.$refs.input[index],
-                        span = this.$refs.suggestion[index],
+                        span = this.$refs['suggestion-' + index][0],
                         inputRect = input.getBoundingClientRect();
 
                     span.style.top = (inputRect.bottom - 1) + 'px';
@@ -194,11 +196,13 @@ var YlaDialog = function () {
                     return;
                 }
 
-                var words = this.formFields[index].value.split(' ');
+                var separator = this.formFields[index].separator,
+                    words = this.formFields[index].value.split(separator);
+
                 words.pop();
                 words.push(suggestion);
 
-                this.formFields[index].value = words.join(' ') + ' ';
+                this.formFields[index].value = words.join(separator) + separator;
                 this.formFields[index].suggestion = undefined;
             },
             focus() {

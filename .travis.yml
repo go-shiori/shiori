@@ -1,27 +1,32 @@
 language: go
-sudo: false
+sudo: true
 matrix:
   include:
     - go: 1.x
       env: LATEST=true
     - go: 1.9
-    - go: 1.8
 
 before_install:
-  - go get github.com/mitchellh/gox # go tool for cross compiling
   - go get github.com/mattn/go-isatty # needed for progress bar in windows
   - go get github.com/inconshreveable/mousetrap # needed for windows builds
+  - go get github.com/shurcooL/vfsgen # needed for go generate
+  - sudo apt install gcc-mingw-w64
 
 install:
   - go get github.com/RadhiFadlillah/shiori
 
 script:
+  - go generate
   - go get -t -v ./...
-  - diff -u <(echo -n) <(gofmt -d .)
   - go vet $(go list ./... | grep -v /vendor/)
   - go test -v -race ./...
   # only build binaries from the latest Go release.
-  - if [ "${LATEST}" = "true" ]; then gox -os="linux darwin windows" -arch="amd64" -output "shiori_{{.OS}}_{{.Arch}}" -ldflags "-X main.Rev=`git rev-parse --short HEAD`" -verbose ./...; fi
+  - if [ "${LATEST}" = "true" ]; then 
+      env CGO_ENABLED=1 GOARCH=386 go build -v -o shiori_linux_386;
+      env CGO_ENABLED=1 GOARCH=amd64 go build -v -o shiori_linux_amd64;
+      env CGO_ENABLED=1 GOOS=windows GOARCH=386 CC=i686-w64-mingw32-gcc go build -v -o shiori_windows_386.exe;
+      env CGO_ENABLED=1 GOOS=windows GOARCH=amd64 CC=x86_64-w64-mingw32-gcc go build -v -o shiori_windows_amd64.exe;
+    fi
 
 deploy:
   provider: releases
@@ -29,9 +34,10 @@ deploy:
   api_key:
     secure: $TOKEN
   file:
-  - shiori_windows_amd64.exe
-  - shiori_darwin_amd64
+  - shiori_linux_386
   - shiori_linux_amd64
+  - shiori_windows_386.exe
+  - shiori_windows_amd64.exe
   on:
     tags: true
     branches:

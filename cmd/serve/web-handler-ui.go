@@ -34,6 +34,12 @@ func (h *webHandler) serveIndexPage(w http.ResponseWriter, r *http.Request, ps h
 	checkError(err)
 }
 
+// serveSubmitPage is handler for GET /submit
+func (h *webHandler) serveSubmitPage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	err := serveFile(w, "submit.html")
+	checkError(err)
+}
+
 // serveLoginPage is handler for GET /login
 func (h *webHandler) serveLoginPage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	// Check token

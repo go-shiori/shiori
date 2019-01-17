@@ -2,8 +2,7 @@ bin/
 README.md
 Dockerfile
 LICENSE
-Makefile
 README.md
-screenshot.png
+screenshot/*
 shiori
 shiori.db

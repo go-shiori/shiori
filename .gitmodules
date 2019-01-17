@@ -1,0 +1,3 @@
+[submodule "readability"]
+	path = readability
+	url = https://github.com/RadhiFadlillah/go-readability

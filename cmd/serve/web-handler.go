@@ -42,16 +42,21 @@ func newWebHandler(db dt.Database, dataDir string) (*webHandler, error) {
 func (h *webHandler) checkToken(r *http.Request) error {
 	tokenCookie, err := r.Cookie("token")
 	if err != nil {
-		return fmt.Errorf("Token does not exist")
+		return fmt.Errorf("Token error: Token does not exist")
 	}
 
 	token, err := jwt.Parse(tokenCookie.Value, h.jwtKeyFunc)
 	if err != nil {
-		return err
+		return fmt.Errorf("Token error: %v", err)
 	}
 
 	claims := token.Claims.(jwt.MapClaims)
-	return claims.Valid()
+	err = claims.Valid()
+	if err != nil {
+		return fmt.Errorf("Token error: %v", err)
+	}
+
+	return nil
 }
 
 func (h *webHandler) checkAPIToken(r *http.Request) error {
@@ -59,11 +64,17 @@ func (h *webHandler) checkAPIToken(r *http.Request) error {
 		request.AuthorizationHeaderExtractor,
 		h.jwtKeyFunc)
 	if err != nil {
-		return err
+		// Try to check in cookie
+		return h.checkToken(r)
 	}
 
 	claims := token.Claims.(jwt.MapClaims)
-	return claims.Valid()
+	err = claims.Valid()
+	if err != nil {
+		return fmt.Errorf("Token error: %v", err)
+	}
+
+	return nil
 }
 
 func (h *webHandler) jwtKeyFunc(token *jwt.Token) (interface{}, error) {

@@ -96,6 +96,11 @@ func (h *webHandler) apiGetTags(w http.ResponseWriter, r *http.Request, ps httpr
 
 // apiInsertBookmark is handler for POST /api/bookmark
 func (h *webHandler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	// Enable CORS for this endpoint
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "POST")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
 	// Check token
 	err := h.checkAPIToken(r)
 	checkError(err)
@@ -157,7 +162,12 @@ func (h *webHandler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, p
 
 	// Save bookmark to database
 	_, err = h.db.InsertBookmark(book)
-	checkError(err)
+	if err != nil {
+		book.ID = h.db.GetBookmarkID(book.URL)
+		book.Modified = time.Now().UTC().Format("2006-01-02 15:04:05")
+		_, err = h.db.UpdateBookmarks(book)
+		checkError(err)
+	}
 
 	// Return new saved result
 	err = json.NewEncoder(w).Encode(&book)
