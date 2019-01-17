@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
+	nh "net/http"
 	nurl "net/url"
 	"os"
 	fp "path/filepath"
@@ -107,6 +108,42 @@ func (h *cmdHandler) addBookmark(cmd *cobra.Command, args []string) {
 	}
 
 	printBookmarks(book)
+}
+
+// checkBookmarks tries to reach each url
+func (h *cmdHandler) checkBookmarks(cmd *cobra.Command, args []string) {
+
+	indexOnly, _ := cmd.Flags().GetBool("index-only")
+	remove, _ := cmd.Flags().GetBool("remove")
+
+	// Read bookmarks from database
+	bookmarks, err := h.db.GetBookmarks(false)
+	if err != nil {
+		cError.Println(err)
+		return
+	}
+
+	for _, bookmark := range bookmarks {
+		_, err := nh.Get(bookmark.URL)
+		if err != nil {
+			if !indexOnly {
+				fmt.Printf("%d - %s is not available: %s\n", bookmark.ID, bookmark.URL, err)
+			} else {
+				fmt.Println(bookmark.ID)
+			}
+			if remove {
+				fmt.Printf("removing %d - %s because [%s]\n", bookmark.ID, bookmark.URL, err)
+				err = h.db.DeleteBookmarks(bookmark.ID)
+				if err != nil {
+					cError.Println(err)
+				}
+			}
+			continue
+		}
+		if !indexOnly {
+			fmt.Printf("%d - %s works\n", bookmark.ID, bookmark.URL)
+		}
+	}
 }
 
 // printBookmarks is handler for printing list of saved bookmarks
