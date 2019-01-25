@@ -3,6 +3,7 @@ package database
 import (
 	"database/sql"
 	"fmt"
+	"math"
 	"strings"
 	"time"
 
@@ -236,8 +237,27 @@ func (db *SQLiteDatabase) GetBookmarks(withContent bool, ids ...int) ([]model.Bo
 	return bookmarks, nil
 }
 
-// DeleteBookmarks removes all record with matching ids from database.
+// DeleteBookmarks removes all record with matching ids from database
+// by paginating if there are mor than 900
 func (db *SQLiteDatabase) DeleteBookmarks(ids ...int) (err error) {
+	if len(ids) == 0 {
+		return nil
+	}
+
+	page := 0
+	for ;len(ids) > page * 900; {
+		upperIndex := int(math.Min(float64(page*900+900), float64(len(ids))))
+		err := db.deleteBookmarks(ids[page*900:upperIndex]...)
+		if err != nil {
+			fmt.Println(err)
+		}
+		page = page + 1
+	}
+	return nil
+}
+
+// deleteBookmarks removes all record with matching ids from database
+func (db *SQLiteDatabase) deleteBookmarks(ids ...int) (err error) {
 	// Create args and where clause
 	args := []interface{}{}
 	whereClause := " WHERE 1"
