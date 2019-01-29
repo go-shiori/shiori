@@ -113,7 +113,7 @@
                 </div>
                 <div class="bookmark" v-for="(book, idx) in visibleBookmarks" :class="{selected: isSelected(idx)}">
                     <a class="bookmark-selector" v-if="editMode" @click="toggleSelection(idx)"></a>
-                    <a class="bookmark-link" :href="getBookLink(book, true)" :title="getBookLinkTitle(book, true)" target="_blank">
+                    <a class="bookmark-link" :href="getBookLink(book, true)" :title="getBookLinkTitle(book, true)" rel="noopener" target="_blank">
                         <img v-if="book.imageURL !== ''" :src="book.imageURL">
                         <p class="title">{{book.title}}</p>
                         <p class="excerpt" v-if="book.imageURL === ''">{{book.excerpt}}</p>
@@ -124,7 +124,7 @@
                     </div>
                     <div class="spacer"></div>
                     <div class="bookmark-menu">
-                        <a class="url" :href="getBookLink(book, false)" :title="getBookLinkTitle(book, false)" target="_blank">
+                        <a class="url" :href="getBookLink(book, false)" :title="getBookLinkTitle(book, false)" rel="noopener" target="_blank">
                             {{getHostname(book.url)}}
                         </a>
                         <a title="Edit bookmark" @click="showDialogEdit(idx)">
