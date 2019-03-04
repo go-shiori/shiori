@@ -17,7 +17,7 @@ func NewShioriCmd(db dt.Database, dataDir string) *cobra.Command {
 
 	// Create sub command
 	checkCmd := &cobra.Command{
-		Use: "check urls",
+		Use:   "check urls",
 		Short: "check bookmarks for existence",
 		Long: `runs through all bookmarks and check if
 they still exist`,
@@ -116,7 +116,7 @@ they still exist`,
 	addCmd.Flags().BoolP("offline", "o", false, "Save bookmark without fetching data from internet.")
 
 	checkCmd.Flags().BoolP("index-only", "i", false, "Only print the index of bookmarks")
-	checkCmd.Flags().BoolP("remove", "r", false, "Automatically remove non exiting bookmarks")
+	checkCmd.Flags().BoolP("remove", "r", false, "Automatically remove non existing bookmarks")
 
 	printCmd.Flags().BoolP("json", "j", false, "Output data in JSON format")
 	printCmd.Flags().BoolP("index-only", "i", false, "Only print the index of bookmarks")
