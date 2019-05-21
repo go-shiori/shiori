@@ -1,7 +1,21 @@
 package cmd
 
 import (
+	"net/http"
+	"time"
+
+	"github.com/go-shiori/shiori/internal/database"
 	"github.com/spf13/cobra"
+)
+
+var (
+	// DB is database that used by cmd
+	DB database.DB
+
+	// DataDir is directory for downloaded data
+	DataDir string
+
+	httpClient = &http.Client{Timeout: time.Minute}
 )
 
 // ShioriCmd returns the root command for shiori
@@ -12,10 +26,8 @@ func ShioriCmd() *cobra.Command {
 	}
 
 	rootCmd.AddCommand(
-		accountCmd(),
 		addCmd(),
 		printCmd(),
-		searchCmd(),
 		updateCmd(),
 		deleteCmd(),
 		openCmd(),
@@ -23,6 +35,7 @@ func ShioriCmd() *cobra.Command {
 		exportCmd(),
 		pocketCmd(),
 		serveCmd(),
+		accountCmd(),
 	)
 
 	return rootCmd
