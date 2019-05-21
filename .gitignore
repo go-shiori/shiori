@@ -1,3 +1,6 @@
 # Exclude config file
 .vscode/
 *.toml
+
+# Exclude executable file
+/shiori*
