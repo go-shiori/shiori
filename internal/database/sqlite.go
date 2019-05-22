@@ -77,36 +77,13 @@ func OpenSQLiteDatabase(databasePath string) (*SQLiteDatabase, error) {
 	return &SQLiteDatabase{*db}, err
 }
 
-// InsertBookmark saves new bookmark to database.
-// Returns new ID and error message if any happened.
-func (db *SQLiteDatabase) InsertBookmark(bookmark model.Bookmark) (bookmarkID int, err error) {
-	// Check URL and title
-	if bookmark.URL == "" {
-		return -1, fmt.Errorf("URL must not be empty")
-	}
-
-	if bookmark.Title == "" {
-		return -1, fmt.Errorf("title must not be empty")
-	}
-
-	// Create ID (if needed) and modified time
-	if bookmark.ID != 0 {
-		bookmarkID = bookmark.ID
-	} else {
-		bookmarkID, err = db.CreateNewID("bookmark")
-		if err != nil {
-			return -1, err
-		}
-	}
-
-	if bookmark.Modified == "" {
-		bookmark.Modified = time.Now().UTC().Format("2006-01-02 15:04:05")
-	}
-
-	// Begin transaction
+// SaveBookmarks saves new or updated bookmarks to database.
+// Returns the saved ID and error message if any happened.
+func (db *SQLiteDatabase) SaveBookmarks(bookmarks ...model.Bookmark) (result []model.Bookmark, err error) {
+	// Prepare transaction
 	tx, err := db.Beginx()
 	if err != nil {
-		return -1, err
+		return []model.Bookmark{}, err
 	}
 
 	// Make sure to rollback if panic ever happened
@@ -115,65 +92,108 @@ func (db *SQLiteDatabase) InsertBookmark(bookmark model.Bookmark) (bookmarkID in
 			panicErr, _ := r.(error)
 			tx.Rollback()
 
-			bookmarkID = -1
+			result = []model.Bookmark{}
 			err = panicErr
 		}
 	}()
 
-	// Save article to database
-	tx.MustExec(`INSERT INTO bookmark (
-		id, url, title, excerpt, author, modified) 
-		VALUES(?, ?, ?, ?, ?, ?)`,
-		bookmarkID,
-		bookmark.URL,
-		bookmark.Title,
-		bookmark.Excerpt,
-		bookmark.Author,
-		bookmark.Modified)
+	// Prepare statement
+	stmtInsertBook, _ := tx.Preparex(`INSERT INTO bookmark
+		(id, url, title, excerpt, author, modified)
+		VALUES(?, ?, ?, ?, ?, ?)
+		ON CONFLICT(id) DO UPDATE SET
+		url = ?, title = ?,	excerpt = ?, author = ?, modified = ?`)
 
-	// Save bookmark content
-	tx.MustExec(`INSERT INTO bookmark_content 
-		(docid, title, content, html) VALUES (?, ?, ?, ?)`,
-		bookmarkID,
-		bookmark.Title,
-		bookmark.Content,
-		bookmark.HTML)
+	stmtInsertBookContent, _ := tx.Preparex(`INSERT OR IGNORE INTO bookmark_content
+		(docid, title, content, html) 
+		VALUES (?, ?, ?, ?)`)
 
-	// Save tags
-	stmtGetTag, err := tx.Preparex(`SELECT id FROM tag WHERE name = ?`)
-	checkError(err)
+	stmtUpdateBookContent, _ := tx.Preparex(`UPDATE bookmark_content SET
+		title = ?, content = ?, html = ? 
+		WHERE docid = ?`)
 
-	stmtInsertTag, err := tx.Preparex(`INSERT INTO tag (name) VALUES (?)`)
-	checkError(err)
+	stmtGetTag, _ := tx.Preparex(`SELECT id FROM tag WHERE name = ?`)
 
-	stmtInsertBookmarkTag, err := tx.Preparex(`INSERT OR IGNORE INTO bookmark_tag 
+	stmtInsertTag, _ := tx.Preparex(`INSERT INTO tag (name) VALUES (?)`)
+
+	stmtInsertBookTag, _ := tx.Preparex(`INSERT OR IGNORE INTO bookmark_tag
 		(tag_id, bookmark_id) VALUES (?, ?)`)
-	checkError(err)
 
-	for _, tag := range bookmark.Tags {
-		tagName := strings.ToLower(tag.Name)
-		tagName = strings.TrimSpace(tagName)
+	stmtDeleteBookTag, _ := tx.Preparex(`DELETE FROM bookmark_tag
+		WHERE bookmark_id = ? AND tag_id = ?`)
 
-		tagID := -1
-		err = stmtGetTag.Get(&tagID, tagName)
-		checkError(err)
+	// Prepare modified time
+	modifiedTime := time.Now().UTC().Format("2006-01-02 15:04:05")
 
-		if tagID == -1 {
-			res := stmtInsertTag.MustExec(tagName)
-			tagID64, err := res.LastInsertId()
-			checkError(err)
-
-			tagID = int(tagID64)
+	// Execute statements
+	result = []model.Bookmark{}
+	for _, book := range bookmarks {
+		// Check ID, URL and title
+		if book.ID == 0 {
+			panic(fmt.Errorf("ID must not be empty"))
 		}
 
-		stmtInsertBookmarkTag.Exec(tagID, bookmarkID)
+		if book.URL == "" {
+			panic(fmt.Errorf("URL must not be empty"))
+		}
+
+		if book.Title == "" {
+			panic(fmt.Errorf("title must not be empty"))
+		}
+
+		// Set modified time
+		book.Modified = modifiedTime
+
+		// Save bookmark
+		stmtInsertBook.MustExec(book.ID,
+			book.URL, book.Title, book.Excerpt, book.Author, book.Modified,
+			book.URL, book.Title, book.Excerpt, book.Author, book.Modified)
+
+		stmtUpdateBookContent.MustExec(book.Title, book.Content, book.HTML, book.ID)
+		stmtInsertBookContent.MustExec(book.ID, book.Title, book.Content, book.HTML)
+
+		// Save book tags
+		newTags := []model.Tag{}
+		for _, tag := range book.Tags {
+			// If it's deleted tag, delete and continue
+			if tag.Deleted {
+				stmtDeleteBookTag.MustExec(book.ID, tag.ID)
+				continue
+			}
+
+			// Normalize tag name
+			tagName := strings.ToLower(tag.Name)
+			tagName = strings.Join(strings.Fields(tagName), " ")
+
+			// If tag doesn't have any ID, fetch it from database
+			if tag.ID == 0 {
+				err = stmtGetTag.Get(&tag.ID, tagName)
+				checkError(err)
+
+				// If tag doesn't exist in database, save it
+				if tag.ID == 0 {
+					res := stmtInsertTag.MustExec(tagName)
+					tagID64, err := res.LastInsertId()
+					checkError(err)
+
+					tag.ID = int(tagID64)
+				}
+
+				stmtInsertBookTag.Exec(tag.ID, book.ID)
+			}
+
+			newTags = append(newTags, tag)
+		}
+
+		book.Tags = newTags
+		result = append(result, book)
 	}
 
 	// Commit transaction
 	err = tx.Commit()
 	checkError(err)
 
-	return bookmarkID, err
+	return result, err
 }
 
 // GetBookmarks fetch list of bookmarks based on submitted ids.

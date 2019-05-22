@@ -53,6 +53,13 @@ func addHandler(cmd *cobra.Command, args []string) {
 		Excerpt: normalizeSpace(excerpt),
 	}
 
+	// Create bookmark ID
+	book.ID, err = DB.CreateNewID("bookmark")
+	if err != nil {
+		cError.Printf("Failed to create ID: %v\n", err)
+		return
+	}
+
 	// Set bookmark tags
 	book.Tags = make([]model.Tag, len(tags))
 	for i, tag := range tags {
@@ -63,6 +70,8 @@ func addHandler(cmd *cobra.Command, args []string) {
 	var imageURL string
 
 	if !offline {
+		cInfo.Println("Downloading article")
+
 		article, err := readability.FromURL(book.URL, time.Minute)
 		if err != nil {
 			cError.Printf("Failed to download article: %v\n", err)
@@ -96,9 +105,9 @@ func addHandler(cmd *cobra.Command, args []string) {
 	}
 
 	// Save bookmark to database
-	book.ID, err = DB.InsertBookmark(book)
+	_, err = DB.SaveBookmarks(book)
 	if err != nil {
-		cError.Printf("Failed to insert bookmark: %v\n", err)
+		cError.Printf("Failed to save bookmark: %v\n", err)
 		return
 	}
 
@@ -113,5 +122,7 @@ func addHandler(cmd *cobra.Command, args []string) {
 		}
 	}
 
+	// Print added bookmark
+	fmt.Println()
 	printBookmarks(book)
 }

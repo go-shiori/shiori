@@ -17,8 +17,8 @@ type GetBookmarksOptions struct {
 
 // DB is interface for accessing and manipulating data in database.
 type DB interface {
-	// InsertBookmark inserts new bookmark to database.
-	InsertBookmark(bookmark model.Bookmark) (int, error)
+	// SaveBookmarks saves bookmarks data to database.
+	SaveBookmarks(bookmarks ...model.Bookmark) ([]model.Bookmark, error)
 
 	// GetBookmarks fetch list of bookmarks based on submitted options.
 	GetBookmarks(opts GetBookmarksOptions) ([]model.Bookmark, error)

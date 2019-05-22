@@ -4,7 +4,7 @@ go 1.12
 
 require (
 	github.com/fatih/color v1.7.0
-	github.com/go-shiori/go-readability v0.0.0-20190521101123-866575e3f1b6
+	github.com/go-shiori/go-readability v0.0.0-20190522013032-128e0c654d14
 	github.com/go-sql-driver/mysql v1.4.1 // indirect
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/lib/pq v1.1.1 // indirect

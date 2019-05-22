@@ -10,8 +10,8 @@ github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSs
 github.com/fatih/color v1.7.0 h1:DkWD4oS2D8LGGgTQ6IvwJJXSL5Vp2ffcQg58nFV38Ys=
 github.com/fatih/color v1.7.0/go.mod h1:Zm6kSWBoL9eyXnKyktHP6abPY2pDugNf5KwzbycvMj4=
 github.com/fsnotify/fsnotify v1.4.7/go.mod h1:jwhsz4b93w/PPRr/qN1Yymfu8t87LnFCMoQvtojpjFo=
-github.com/go-shiori/go-readability v0.0.0-20190521101123-866575e3f1b6 h1:lp+AH6pCPsOKf9M2Az76JsxUneHweAsOlq0GMtOf6OY=
-github.com/go-shiori/go-readability v0.0.0-20190521101123-866575e3f1b6/go.mod h1:1tFV9uTM/xnAKQw5EgPs+ip50udKhCjaP0nYdkSDXcU=
+github.com/go-shiori/go-readability v0.0.0-20190522013032-128e0c654d14 h1:rvu9FluelHm3ykyizaBwhQMAxsDeg164iNEoMoZo7cI=
+github.com/go-shiori/go-readability v0.0.0-20190522013032-128e0c654d14/go.mod h1:1tFV9uTM/xnAKQw5EgPs+ip50udKhCjaP0nYdkSDXcU=
 github.com/go-sql-driver/mysql v1.4.0 h1:7LxgVwFb2hIQtMm87NdgAVfXjnt4OePseqT1tKx+opk=
 github.com/go-sql-driver/mysql v1.4.0/go.mod h1:zAC/RDZ24gD3HViQzih4MyKcchzm+sOG5ZlKdlhCg5w=
 github.com/go-sql-driver/mysql v1.4.1 h1:g24URVg0OFbNUTx9qqY1IRZ9D9z3iPyi5zKhQZpNwpA=
