@@ -162,7 +162,7 @@ func updateHandler(cmd *cobra.Command, args []string) {
 
 					err = downloadFile(imageURL, imgPath, time.Minute)
 					if err != nil {
-						cError.Printf("Failed to download image: %v\n", err)
+						cError.Printf("[ %d / %d ] Failed to download image: %v\n", i+1, nData, err)
 						return
 					}
 				}
