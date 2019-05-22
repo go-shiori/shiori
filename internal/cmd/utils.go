@@ -8,13 +8,16 @@ import (
 	"net/http"
 	nurl "net/url"
 	"os"
+	"os/exec"
 	fp "path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/fatih/color"
 	"github.com/go-shiori/shiori/internal/model"
+	"golang.org/x/crypto/ssh/terminal"
 )
 
 var (
@@ -168,4 +171,26 @@ func parseStrIndices(indices []string) ([]int, error) {
 	}
 
 	return listIndex, nil
+}
+
+// openBrowser tries to open the URL in a browser,
+// and returns any error if it happened.
+func openBrowser(url string) error {
+	var args []string
+	switch runtime.GOOS {
+	case "darwin":
+		args = []string{"open"}
+	case "windows":
+		args = []string{"cmd", "/c", "start"}
+	default:
+		args = []string{"xdg-open"}
+	}
+
+	cmd := exec.Command(args[0], append(args[1:], url)...)
+	return cmd.Run()
+}
+
+func getTerminalWidth() int {
+	width, _, _ := terminal.GetSize(int(os.Stdin.Fd()))
+	return width
 }

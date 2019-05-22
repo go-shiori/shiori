@@ -13,5 +13,6 @@ require (
 	github.com/mattn/go-sqlite3 v1.10.0
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/cobra v0.0.4
+	golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2
 	google.golang.org/appengine v1.6.0 // indirect
 )
