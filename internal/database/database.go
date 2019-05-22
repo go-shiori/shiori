@@ -23,6 +23,9 @@ type DB interface {
 	// GetBookmarks fetch list of bookmarks based on submitted options.
 	GetBookmarks(opts GetBookmarksOptions) ([]model.Bookmark, error)
 
+	// DeleteBookmarks removes all record with matching ids from database.
+	DeleteBookmarks(ids ...int) error
+
 	// CreateNewID creates new id for specified table.
 	CreateNewID(table string) (int, error)
 }

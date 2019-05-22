@@ -267,6 +267,57 @@ func (db *SQLiteDatabase) GetBookmarks(opts GetBookmarksOptions) ([]model.Bookma
 	return bookmarks, nil
 }
 
+// DeleteBookmarks removes all record with matching ids from database.
+func (db *SQLiteDatabase) DeleteBookmarks(ids ...int) (err error) {
+	// Begin transaction
+	tx, err := db.Beginx()
+	if err != nil {
+		return err
+	}
+
+	// Make sure to rollback if panic ever happened
+	defer func() {
+		if r := recover(); r != nil {
+			panicErr, _ := r.(error)
+			tx.Rollback()
+
+			err = panicErr
+		}
+	}()
+
+	// Prepare queries
+	delBookmark := `DELETE FROM bookmark`
+	delBookmarkTag := `DELETE FROM bookmark_tag`
+	delBookmarkContent := `DELETE FROM bookmark_content`
+
+	// Delete bookmark(s)
+	if len(ids) == 0 {
+		tx.MustExec(delBookmarkContent)
+		tx.MustExec(delBookmarkTag)
+		tx.MustExec(delBookmark)
+	} else {
+		delBookmark += ` WHERE id = ?`
+		delBookmarkTag += ` WHERE bookmark_id = ?`
+		delBookmarkContent += ` WHERE docid = ?`
+
+		stmtDelBookmark, _ := tx.Preparex(delBookmark)
+		stmtDelBookmarkTag, _ := tx.Preparex(delBookmarkTag)
+		stmtDelBookmarkContent, _ := tx.Preparex(delBookmarkContent)
+
+		for _, id := range ids {
+			stmtDelBookmarkContent.MustExec(id)
+			stmtDelBookmarkTag.MustExec(id)
+			stmtDelBookmark.MustExec(id)
+		}
+	}
+
+	// Commit transaction
+	err = tx.Commit()
+	checkError(err)
+
+	return err
+}
+
 // CreateNewID creates new ID for specified table
 func (db *SQLiteDatabase) CreateNewID(table string) (int, error) {
 	var tableID int

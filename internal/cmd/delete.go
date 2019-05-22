@@ -1,6 +1,11 @@
 package cmd
 
 import (
+	"fmt"
+	"os"
+	fp "path/filepath"
+	"strings"
+
 	"github.com/spf13/cobra"
 )
 
@@ -10,12 +15,70 @@ func deleteCmd() *cobra.Command {
 		Short: "Delete the saved bookmarks",
 		Long: "Delete bookmarks. " +
 			"When a record is deleted, the last record is moved to the removed index. " +
-			"Accepts space-separated list of indices (e.g. 5 6 23 4 110 45), hyphenated range (e.g. 100-200) or both (e.g. 1-3 7 9). " +
+			"Accepts space-separated list of indices (e.g. 5 6 23 4 110 45), " +
+			"hyphenated range (e.g. 100-200) or both (e.g. 1-3 7 9). " +
 			"If no arguments, ALL records will be deleted.",
 		Aliases: []string{"rm"},
+		Run:     deleteHandler,
 	}
 
 	cmd.Flags().BoolP("yes", "y", false, "Skip confirmation prompt and delete ALL bookmarks")
 
 	return cmd
+}
+
+func deleteHandler(cmd *cobra.Command, args []string) {
+	// Parse flags
+	skipConfirm, _ := cmd.Flags().GetBool("yes")
+
+	// If no arguments (i.e all bookmarks going to be deleted), confirm to user
+	if len(args) == 0 && !skipConfirm {
+		confirmDelete := ""
+		fmt.Print("Remove ALL bookmarks? (y/N): ")
+		fmt.Scanln(&confirmDelete)
+
+		if confirmDelete != "y" {
+			fmt.Println("No bookmarks deleted")
+			return
+		}
+	}
+
+	// Convert args to ids
+	ids, err := parseStrIndices(args)
+	if err != nil {
+		cError.Printf("Failed to parse args: %v\n", err)
+		return
+	}
+
+	// Delete bookmarks from database
+	err = DB.DeleteBookmarks(ids...)
+	if err != nil {
+		cError.Printf("Failed to delete bookmarks: %v\n", err)
+		return
+	}
+
+	// Delete thumbnail image from local disk
+	if len(ids) == 0 {
+		thumbDir := fp.Join(DataDir, "thumb")
+		os.RemoveAll(thumbDir)
+	} else {
+		for _, id := range ids {
+			imgPath := fp.Join(DataDir, "thumb", fmt.Sprintf("%d.*", id))
+			matchedFiles, _ := fp.Glob(imgPath)
+
+			for _, f := range matchedFiles {
+				os.Remove(f)
+			}
+		}
+	}
+
+	// Show finish message
+	switch len(args) {
+	case 0:
+		fmt.Println("All bookmarks have been deleted")
+	case 1, 2, 3, 4, 5:
+		fmt.Printf("Bookmark(s) %s have been deleted\n", strings.Join(args, ", "))
+	default:
+		fmt.Println("Bookmark(s) have been deleted")
+	}
 }
