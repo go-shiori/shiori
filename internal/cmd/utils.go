@@ -37,6 +37,7 @@ var (
 )
 
 func normalizeSpace(str string) string {
+	str = strings.TrimSpace(str)
 	return strings.Join(strings.Fields(str), " ")
 }
 

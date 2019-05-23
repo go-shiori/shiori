@@ -3,6 +3,7 @@ module github.com/go-shiori/shiori
 go 1.12
 
 require (
+	github.com/PuerkitoBio/goquery v1.5.0
 	github.com/fatih/color v1.7.0
 	github.com/go-shiori/go-readability v0.0.0-20190522013032-128e0c654d14
 	github.com/go-sql-driver/mysql v1.4.1 // indirect
@@ -13,6 +14,8 @@ require (
 	github.com/mattn/go-sqlite3 v1.10.0
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/cobra v0.0.4
-	golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2
+	golang.org/x/crypto v0.0.0-20190513172903-22d7a77e9e5f
+	golang.org/x/net v0.0.0-20190522135303-fa69b94a3b58 // indirect
+	golang.org/x/sys v0.0.0-20190522044717-8097e1b27ff5 // indirect
 	google.golang.org/appengine v1.6.0 // indirect
 )

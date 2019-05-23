@@ -338,6 +338,21 @@ func (db *SQLiteDatabase) DeleteBookmarks(ids ...int) (err error) {
 	return err
 }
 
+// GetBookmark fetchs bookmark based on its ID or URL.
+// Returns the bookmark and boolean whether it's exist or not.
+func (db *SQLiteDatabase) GetBookmark(id int, url string) (model.Bookmark, bool) {
+	book := model.Bookmark{}
+	db.Get(&book, `SELECT
+		b.id, b.url, b.title, b.excerpt, b.author, b.modified,
+		bc.content, bc.html, bc.content <> "" has_content
+		FROM bookmark b
+		LEFT JOIN bookmark_content bc ON bc.docid = b.id
+		WHERE b.id = ? OR b.url = ?`,
+		id, url)
+
+	return book, book.ID != 0
+}
+
 // CreateNewID creates new ID for specified table
 func (db *SQLiteDatabase) CreateNewID(table string) (int, error) {
 	var tableID int
