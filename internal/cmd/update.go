@@ -111,7 +111,11 @@ func updateHandler(cmd *cobra.Command, args []string) {
 	if !offline {
 		mx := sync.RWMutex{}
 		wg := sync.WaitGroup{}
+		chDone := make(chan struct{})
+		chMessage := make(chan interface{}, 10)
 		semaphore := make(chan struct{}, 10)
+
+		cInfo.Println("Downloading article(s)...")
 
 		for i, book := range bookmarks {
 			wg.Add(1)
@@ -121,7 +125,7 @@ func updateHandler(cmd *cobra.Command, args []string) {
 				book.URL = url
 			}
 
-			go func(i int, book model.Bookmark, nData int) {
+			go func(i int, book model.Bookmark) {
 				// Make sure to finish the WG
 				defer wg.Done()
 
@@ -132,11 +136,16 @@ func updateHandler(cmd *cobra.Command, args []string) {
 				}()
 
 				// Download article
-				cInfo.Printf("[ %d / %d ] Downloading %s\n", i+1, nData, book.URL)
-
-				article, err := readability.FromURL(book.URL, time.Minute)
+				resp, err := httpClient.Get(book.URL)
 				if err != nil {
-					cError.Printf("[ %d / %d ] Failed to download article: %v\n", i+1, nData, err)
+					chMessage <- fmt.Errorf("Failed to download %s: %v", book.URL, err)
+					return
+				}
+				defer resp.Body.Close()
+
+				article, err := readability.FromReader(resp.Body, book.URL)
+				if err != nil {
+					chMessage <- fmt.Errorf("Failed to parse %s: %v", book.URL, err)
 					return
 				}
 
@@ -159,23 +168,44 @@ func updateHandler(cmd *cobra.Command, args []string) {
 
 				if imageURL != "" {
 					imgPath := fp.Join(DataDir, "thumb", fmt.Sprintf("%d", book.ID))
-
-					err = downloadFile(imageURL, imgPath, time.Minute)
-					if err != nil {
-						cError.Printf("[ %d / %d ] Failed to download image: %v\n", i+1, nData, err)
-						return
-					}
+					downloadFile(imageURL, imgPath, time.Minute)
 				}
+
+				// Send success message
+				chMessage <- fmt.Sprintf("Downloaded %s", book.URL)
 
 				// Save parse result to bookmark
 				mx.Lock()
 				bookmarks[i] = book
 				mx.Unlock()
-			}(i, book, len(bookmarks))
+			}(i, book)
 		}
+
+		// Print log message
+		go func(nBookmark int) {
+			logIndex := 0
+
+			for {
+				select {
+				case <-chDone:
+					cInfo.Println("Download finished")
+					return
+				case msg := <-chMessage:
+					logIndex++
+
+					switch msg.(type) {
+					case error:
+						cError.Printf("[%d/%d] %v\n", logIndex, nBookmark, msg)
+					case string:
+						cInfo.Printf("[%d/%d] %s\n", logIndex, nBookmark, msg)
+					}
+				}
+			}
+		}(len(bookmarks))
 
 		// Wait until all download finished
 		wg.Wait()
+		close(chDone)
 	}
 
 	// Map which tags is new or deleted from flag --tags
