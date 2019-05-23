@@ -35,7 +35,6 @@ func ShioriCmd() *cobra.Command {
 		exportCmd(),
 		pocketCmd(),
 		serveCmd(),
-		accountCmd(),
 	)
 
 	return rootCmd
