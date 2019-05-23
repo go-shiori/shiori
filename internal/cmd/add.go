@@ -70,33 +70,42 @@ func addHandler(cmd *cobra.Command, args []string) {
 	var imageURL string
 
 	if !offline {
-		cInfo.Println("Downloading article")
+		func() {
+			cInfo.Println("Downloading article...")
 
-		article, err := readability.FromURL(book.URL, time.Minute)
-		if err != nil {
-			cError.Printf("Failed to download article: %v\n", err)
-			return
-		}
+			resp, err := httpClient.Get(url)
+			if err != nil {
+				cError.Printf("Failed to download article: %v\n", err)
+				return
+			}
+			defer resp.Body.Close()
 
-		book.Author = article.Byline
-		book.Content = article.TextContent
-		book.HTML = article.Content
+			article, err := readability.FromReader(resp.Body, url)
+			if err != nil {
+				cError.Printf("Failed to parse article: %v\n", err)
+				return
+			}
 
-		// If title and excerpt doesnt have submitted value, use from article
-		if book.Title == "" {
-			book.Title = article.Title
-		}
+			book.Author = article.Byline
+			book.Content = article.TextContent
+			book.HTML = article.Content
 
-		if book.Excerpt == "" {
-			book.Excerpt = article.Excerpt
-		}
+			// If title and excerpt doesnt have submitted value, use from article
+			if book.Title == "" {
+				book.Title = article.Title
+			}
 
-		// Get image URL
-		if article.Image != "" {
-			imageURL = article.Image
-		} else if article.Favicon != "" {
-			imageURL = article.Favicon
-		}
+			if book.Excerpt == "" {
+				book.Excerpt = article.Excerpt
+			}
+
+			// Get image URL
+			if article.Image != "" {
+				imageURL = article.Image
+			} else if article.Favicon != "" {
+				imageURL = article.Favicon
+			}
+		}()
 	}
 
 	// Make sure title is not empty
@@ -118,7 +127,6 @@ func addHandler(cmd *cobra.Command, args []string) {
 		err = downloadFile(imageURL, imgPath, time.Minute)
 		if err != nil {
 			cError.Printf("Failed to download image: %v\n", err)
-			return
 		}
 	}
 
