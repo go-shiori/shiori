@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"mime"
 	"net/http"
 	nurl "net/url"
 	"os"
@@ -71,25 +70,6 @@ func downloadBookImage(url, dstPath string, timeout time.Duration) error {
 	err = os.MkdirAll(fp.Dir(dstPath), os.ModePerm)
 	if err != nil {
 		return err
-	}
-
-	// If destination path doesn't have extension, create it
-	if fp.Ext(dstPath) == "" {
-		cp := resp.Header.Get("Content-Type")
-		if !strings.Contains(cp, "image/") {
-			return fmt.Errorf("%s is not an image", url)
-		}
-
-		exts, err := mime.ExtensionsByType(cp)
-		if err != nil {
-			return fmt.Errorf("failed to create extension: %v", err)
-		}
-
-		if len(exts) == 0 {
-			return fmt.Errorf("unknown content type")
-		}
-
-		dstPath += exts[0]
 	}
 
 	// Create destination file
