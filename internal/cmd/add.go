@@ -67,7 +67,7 @@ func addHandler(cmd *cobra.Command, args []string) {
 	}
 
 	// If it's not offline mode, fetch data from internet
-	var imageURL string
+	var imageURLs []string
 
 	if !offline {
 		func() {
@@ -101,10 +101,13 @@ func addHandler(cmd *cobra.Command, args []string) {
 
 			// Get image URL
 			if article.Image != "" {
-				imageURL = article.Image
-			} else if article.Favicon != "" {
-				imageURL = article.Favicon
+				imageURLs = append(imageURLs, article.Image)
 			}
+
+			if article.Favicon != "" {
+				imageURLs = append(imageURLs, article.Favicon)
+			}
+
 		}()
 	}
 
@@ -121,12 +124,14 @@ func addHandler(cmd *cobra.Command, args []string) {
 	}
 
 	// Save article image to local disk
-	if imageURL != "" {
-		imgPath := fp.Join(DataDir, "thumb", fmt.Sprintf("%d", book.ID))
-
-		err = downloadFile(imageURL, imgPath, time.Minute)
-		if err != nil {
+	imgPath := fp.Join(DataDir, "thumb", fmt.Sprintf("%d", book.ID))
+	for _, imageURL := range imageURLs {
+		err = downloadBookImage(imageURL, imgPath, time.Minute)
+		if err == nil {
+			break
+		} else {
 			cError.Printf("Failed to download image: %v\n", err)
+			continue
 		}
 	}
 

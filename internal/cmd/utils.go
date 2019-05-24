@@ -58,7 +58,7 @@ func clearUTMParams(url *nurl.URL) {
 	url.RawQuery = queries.Encode()
 }
 
-func downloadFile(url, dstPath string, timeout time.Duration) error {
+func downloadBookImage(url, dstPath string, timeout time.Duration) error {
 	// Fetch data from URL
 	client := &http.Client{Timeout: timeout}
 	resp, err := client.Get(url)
@@ -76,6 +76,10 @@ func downloadFile(url, dstPath string, timeout time.Duration) error {
 	// If destination path doesn't have extension, create it
 	if fp.Ext(dstPath) == "" {
 		cp := resp.Header.Get("Content-Type")
+		if !strings.Contains(cp, "image/") {
+			return fmt.Errorf("%s is not an image", url)
+		}
+
 		exts, err := mime.ExtensionsByType(cp)
 		if err != nil {
 			return fmt.Errorf("failed to create extension: %v", err)

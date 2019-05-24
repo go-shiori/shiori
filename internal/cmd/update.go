@@ -158,17 +158,22 @@ func updateHandler(cmd *cobra.Command, args []string) {
 					book.Excerpt = article.Excerpt
 				}
 
-				// Get image URL and save it to local disk
-				var imageURL string
+				// Get image for thumbnail and save it to local disk
+				var imageURLs []string
 				if article.Image != "" {
-					imageURL = article.Image
-				} else if article.Favicon != "" {
-					imageURL = article.Favicon
+					imageURLs = append(imageURLs, article.Image)
 				}
 
-				if imageURL != "" {
-					imgPath := fp.Join(DataDir, "thumb", fmt.Sprintf("%d", book.ID))
-					downloadFile(imageURL, imgPath, time.Minute)
+				if article.Favicon != "" {
+					imageURLs = append(imageURLs, article.Favicon)
+				}
+
+				imgPath := fp.Join(DataDir, "thumb", fmt.Sprintf("%d", book.ID))
+				for _, imageURL := range imageURLs {
+					err = downloadBookImage(imageURL, imgPath, time.Minute)
+					if err == nil {
+						break
+					}
 				}
 
 				// Send success message
