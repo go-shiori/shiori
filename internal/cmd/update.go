@@ -4,6 +4,7 @@ import (
 	"fmt"
 	nurl "net/url"
 	fp "path/filepath"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -108,10 +109,13 @@ func updateHandler(cmd *cobra.Command, args []string) {
 	}
 
 	// If it's not offline mode, fetch data from internet
+	idWithProblems := []int{}
+
 	if !offline {
 		mx := sync.RWMutex{}
 		wg := sync.WaitGroup{}
 		chDone := make(chan struct{})
+		chProblem := make(chan int, 10)
 		chMessage := make(chan interface{}, 10)
 		semaphore := make(chan struct{}, 10)
 
@@ -138,6 +142,7 @@ func updateHandler(cmd *cobra.Command, args []string) {
 				// Download article
 				resp, err := httpClient.Get(book.URL)
 				if err != nil {
+					chProblem <- book.ID
 					chMessage <- fmt.Errorf("Failed to download %s: %v", book.URL, err)
 					return
 				}
@@ -145,6 +150,7 @@ func updateHandler(cmd *cobra.Command, args []string) {
 
 				article, err := readability.FromReader(resp.Body, book.URL)
 				if err != nil {
+					chProblem <- book.ID
 					chMessage <- fmt.Errorf("Failed to parse %s: %v", book.URL, err)
 					return
 				}
@@ -195,6 +201,8 @@ func updateHandler(cmd *cobra.Command, args []string) {
 				case <-chDone:
 					cInfo.Println("Download finished")
 					return
+				case id := <-chProblem:
+					idWithProblems = append(idWithProblems, id)
 				case msg := <-chMessage:
 					logIndex++
 
@@ -283,4 +291,14 @@ func updateHandler(cmd *cobra.Command, args []string) {
 	// Print updated bookmarks
 	fmt.Println()
 	printBookmarks(bookmarks...)
+
+	if len(idWithProblems) > 0 {
+		sort.Ints(idWithProblems)
+
+		cError.Println("Encountered error while downloading some bookmark(s):")
+		for _, id := range idWithProblems {
+			cError.Printf("%d ", id)
+		}
+		fmt.Println()
+	}
 }
