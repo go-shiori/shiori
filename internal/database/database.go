@@ -13,6 +13,8 @@ type GetBookmarksOptions struct {
 	Keyword     string
 	WithContent bool
 	OrderLatest bool
+	Limit       int
+	Offset      int
 }
 
 // DB is interface for accessing and manipulating data in database.
@@ -23,11 +25,20 @@ type DB interface {
 	// GetBookmarks fetch list of bookmarks based on submitted options.
 	GetBookmarks(opts GetBookmarksOptions) ([]model.Bookmark, error)
 
+	// GetBookmarksCount get count of bookmarks in database.
+	GetBookmarksCount(opts GetBookmarksOptions) (int, error)
+
 	// DeleteBookmarks removes all record with matching ids from database.
 	DeleteBookmarks(ids ...int) error
 
 	// GetBookmark fetchs bookmark based on its ID or URL.
 	GetBookmark(id int, url string) (model.Bookmark, bool)
+
+	// GetAccounts fetch list of accounts with matching keyword.
+	GetAccounts(keyword string) ([]model.Account, error)
+
+	// GetAccount fetch account with matching username.
+	GetAccount(username string) (model.Account, bool)
 
 	// CreateNewID creates new id for specified table.
 	CreateNewID(table string) (int, error)

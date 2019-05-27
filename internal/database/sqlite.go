@@ -196,7 +196,7 @@ func (db *SQLiteDatabase) SaveBookmarks(bookmarks ...model.Bookmark) (result []m
 	return result, err
 }
 
-// GetBookmarks fetch list of bookmarks based on submitted ids.
+// GetBookmarks fetch list of bookmarks based on submitted options.
 func (db *SQLiteDatabase) GetBookmarks(opts GetBookmarksOptions) ([]model.Bookmark, error) {
 	// Create initial query
 	columns := []string{
@@ -250,6 +250,11 @@ func (db *SQLiteDatabase) GetBookmarks(opts GetBookmarksOptions) ([]model.Bookma
 		query += ` ORDER BY b.modified DESC`
 	}
 
+	if opts.Limit > 0 && opts.Offset >= 0 {
+		query += ` LIMIT ? OFFSET ?`
+		args = append(args, opts.Limit, opts.Offset)
+	}
+
 	// Expand query, because some of the args might be an array
 	query, args, err := sqlx.In(query, args...)
 	if err != nil {
@@ -285,6 +290,58 @@ func (db *SQLiteDatabase) GetBookmarks(opts GetBookmarksOptions) ([]model.Bookma
 	}
 
 	return bookmarks, nil
+}
+
+// GetBookmarksCount fetch count of bookmarks based on submitted options.
+func (db *SQLiteDatabase) GetBookmarksCount(opts GetBookmarksOptions) (int, error) {
+	// Create initial query
+	query := `SELECT COUNT(b.id)
+		FROM bookmark b
+		LEFT JOIN bookmark_content bc ON bc.docid = b.id
+		WHERE 1`
+
+	// Add where clause
+	args := []interface{}{}
+
+	if len(opts.IDs) > 0 {
+		query += ` AND b.id IN (?)`
+		args = append(args, opts.IDs)
+	}
+
+	if opts.Keyword != "" {
+		query += ` AND (b.url LIKE ? OR b.id IN (
+			SELECT docid id 
+			FROM bookmark_content 
+			WHERE title MATCH ? OR content MATCH ?))`
+
+		args = append(args,
+			"%"+opts.Keyword+"%",
+			opts.Keyword,
+			opts.Keyword)
+	}
+
+	if len(opts.Tags) > 0 {
+		query += ` AND b.id IN (
+			SELECT bookmark_id FROM bookmark_tag 
+			WHERE tag_id IN (SELECT id FROM tag WHERE name IN (?)))`
+
+		args = append(args, opts.Tags)
+	}
+
+	// Expand query, because some of the args might be an array
+	query, args, err := sqlx.In(query, args...)
+	if err != nil {
+		return 0, fmt.Errorf("failed to expand query: %v", err)
+	}
+
+	// Fetch count
+	var nBookmarks int
+	err = db.Get(&nBookmarks, query, args...)
+	if err != nil && err != sql.ErrNoRows {
+		return 0, fmt.Errorf("failed to fetch count: %v", err)
+	}
+
+	return nBookmarks, nil
 }
 
 // DeleteBookmarks removes all record with matching ids from database.
@@ -351,6 +408,40 @@ func (db *SQLiteDatabase) GetBookmark(id int, url string) (model.Bookmark, bool)
 		id, url)
 
 	return book, book.ID != 0
+}
+
+// GetAccounts fetch list of accounts with matching keyword.
+func (db *SQLiteDatabase) GetAccounts(keyword string) ([]model.Account, error) {
+	// Create query
+	args := []interface{}{}
+	query := `SELECT id, username, password FROM account WHERE 1`
+
+	if keyword != "" {
+		query += " AND username LIKE ?"
+		args = append(args, "%"+keyword+"%")
+	}
+
+	query += ` ORDER BY username`
+
+	// Fetch list account
+	accounts := []model.Account{}
+	err := db.Select(&accounts, query, args...)
+	if err != nil && err != sql.ErrNoRows {
+		return nil, fmt.Errorf("failed to fetch accounts: %v", err)
+	}
+
+	return accounts, nil
+}
+
+// GetAccount fetch account with matching username.
+// Returns the account and boolean whether it's exist or not.
+func (db *SQLiteDatabase) GetAccount(username string) (model.Account, bool) {
+	account := model.Account{}
+	db.Get(&account, `SELECT 
+		id, username, password FROM account WHERE username = ?`,
+		username)
+
+	return account, account.ID != 0
 }
 
 // CreateNewID creates new ID for specified table

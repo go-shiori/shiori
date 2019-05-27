@@ -3,7 +3,11 @@ package cmd
 import (
 	"errors"
 	"fmt"
-	"io"
+	"image"
+	clr "image/color"
+	"image/draw"
+	"image/jpeg"
+	"math"
 	"net/http"
 	nurl "net/url"
 	"os"
@@ -14,9 +18,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/disintegration/imaging"
 	"github.com/fatih/color"
 	"github.com/go-shiori/shiori/internal/model"
 	"golang.org/x/crypto/ssh/terminal"
+
+	// Add supports for PNG image
+	_ "image/png"
 )
 
 var (
@@ -66,23 +74,69 @@ func downloadBookImage(url, dstPath string, timeout time.Duration) error {
 	}
 	defer resp.Body.Close()
 
-	// Make sure destination directory exist
+	// Make sure it's JPG or PNG image
+	cp := resp.Header.Get("Content-Type")
+	if !strings.Contains(cp, "image/jpeg") && !strings.Contains(cp, "image/png") {
+		return fmt.Errorf("%s is not a supported image", url)
+	}
+
+	// At this point, the download has finished successfully.
+	// Prepare destination file.
 	err = os.MkdirAll(fp.Dir(dstPath), os.ModePerm)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create image dir: %v", err)
 	}
 
-	// Create destination file
-	dst, err := os.Create(dstPath)
+	dstFile, err := os.Create(dstPath)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create image file: %v", err)
 	}
-	defer dst.Close()
+	defer dstFile.Close()
 
-	// Write response body to the file
-	_, err = io.Copy(dst, resp.Body)
+	// Parse image and process it.
+	// If image is smaller than 600x400 or its ratio is less than 4:3, resize.
+	// Else, save it as it is.
+	img, _, err := image.Decode(resp.Body)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to parse image %s: %v", url, err)
+	}
+
+	imgRect := img.Bounds()
+	imgWidth := imgRect.Dx()
+	imgHeight := imgRect.Dy()
+	imgRatio := float64(imgWidth) / float64(imgHeight)
+
+	if imgWidth >= 600 && imgHeight >= 400 && imgRatio > 1.3 {
+		err = jpeg.Encode(dstFile, img, nil)
+	} else {
+		// Create background
+		bg := image.NewNRGBA(imgRect)
+		draw.Draw(bg, imgRect, image.NewUniform(clr.White), image.Point{}, draw.Src)
+		draw.Draw(bg, imgRect, img, image.Point{}, draw.Over)
+
+		bg = imaging.Fill(bg, 600, 400, imaging.Center, imaging.Lanczos)
+		bg = imaging.Blur(bg, 150)
+		bg = imaging.AdjustBrightness(bg, 30)
+
+		// Create foreground
+		fg := imaging.Fit(img, 600, 400, imaging.Lanczos)
+
+		// Merge foreground and background
+		bgRect := bg.Bounds()
+		fgRect := fg.Bounds()
+		fgPosition := image.Point{
+			X: bgRect.Min.X - int(math.Round(float64(bgRect.Dx()-fgRect.Dx())/2)),
+			Y: bgRect.Min.Y - int(math.Round(float64(bgRect.Dy()-fgRect.Dy())/2)),
+		}
+
+		draw.Draw(bg, bgRect, fg, fgPosition, draw.Over)
+
+		// Save to file
+		err = jpeg.Encode(dstFile, bg, nil)
+	}
+
+	if err != nil {
+		return fmt.Errorf("failed to save image %s: %v", url, err)
 	}
 
 	return nil

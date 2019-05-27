@@ -19,6 +19,7 @@ type Bookmark struct {
 	Content    string `db:"content"       json:"-"`
 	HTML       string `db:"html"          json:"html,omitempty"`
 	HasContent bool   `db:"has_content"   json:"hasContent"`
+	ImageURL   string `json:"imageURL"`
 	Tags       []Tag  `json:"tags"`
 }
 
@@ -33,5 +34,5 @@ type Account struct {
 type LoginRequest struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
-	Remember bool   `json:"remember"`
+	Remember int    `json:"remember"`
 }

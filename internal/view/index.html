@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Shiori - Bookmarks Manager</title>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="apple-touch-icon-precomposed" sizes="152x152" href="/res/apple-touch-icon-152x152.png">
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/res/apple-touch-icon-144x144.png">
+    <link rel="icon" type="image/png" href="/res/favicon-32x32.png" sizes="32x32">
+    <link rel="icon" type="image/png" href="/res/favicon-16x16.png" sizes="16x16">
+    <link rel="icon" type="image/x-icon" href="/res/favicon.ico">
+
+    <link href="/css/fontawesome.min.css" rel="stylesheet">
+    <link href="/css/stylesheet.css" rel="stylesheet">
+    <link href="/css/custom-dialog.css" rel="stylesheet">
+    <link href="/css/bookmark-item.css" rel="stylesheet">
+
+    <script src="/js/vue.min.js"></script>
+</head>
+
+<body>
+    <div class="home" id="app">
+        <div class="home-sidebar">
+            <a v-for="item in sidebarItems" :title="item.title" :class="{active: activePage === item.page}" @click="activePage = item.page">
+                <i class="fas fa-fw" :class="item.icon"></i>
+            </a>
+            <div class="spacer"></div>
+            <a title="Logout" @click="logout">
+                <i class="fas fa-fw fa-sign-out-alt"></i>
+            </a>
+        </div>
+        <keep-alive>
+            <component :is="activePage"></component>
+        </keep-alive>
+        <custom-dialog v-bind="dialog" />
+    </div>
+
+    <script type="module">
+        import pageHome from "./js/page/home.js";
+        import basePage from "./js/page/base.js";
+        import customDialog from "./js/component/dialog.js";
+
+        var app = new Vue({
+            el: '#app',
+            mixins: [basePage],
+            components: {
+                pageHome,
+                customDialog
+            },
+            data: {
+                activePage: "page-home",
+                sidebarItems: [{
+                    title: "Home",
+                    icon: "fa-home",
+                    page: "page-home",
+                },{
+                    title: "Setting",
+                    icon: "fa-cog",
+                    page: "page-setting",
+                }]
+            },
+            methods: {
+                logout() {
+                    this.showDialog({
+                        title: "Log Out",
+                        content: "Are you sure you want to log out ?",
+                        mainText: "Yes",
+                        secondText: "No",
+                        mainClick: () => {
+                            this.dialog.loading = true;
+                            fetch("/api/logout", { method: "post" })
+                                .then(response => {
+                                    if (!response.ok) throw response;
+                                    return response;
+                                })
+                                .then(() => {
+                                    document.cookie = "session-id=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+                                    location.href = "/login";
+                                })
+                                .catch(err => {
+                                    this.dialog.loading = false;
+                                    err.text().then(msg => {
+                                        this.showErrorDialog(`${msg} (${err.status})`);
+                                    })
+                                });
+                        }
+                    });
+                }
+            }
+        })
+    </script>
+</body>
+
+</html>

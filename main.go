@@ -1,3 +1,5 @@
+//go:generate go run assets-generator.go
+
 package main
 
 import (
@@ -8,6 +10,9 @@ import (
 	"github.com/go-shiori/shiori/internal/database"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/sirupsen/logrus"
+
+	// Add this to prevent it removed by go mod tidy
+	_ "github.com/shurcooL/vfsgen"
 )
 
 var dataDir = "dev-data"
