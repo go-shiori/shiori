@@ -237,6 +237,8 @@ body {
 
         input[type="text"] {
             flex: 1 0;
+            min-width: 0;
+            margin-right: 8px;
             font-size: 1.1em;
             font-weight: 500;
             line-height: 60px;
@@ -415,11 +417,16 @@ body {
             grid-template-columns: minmax(0, 1000px);
 
             .pagination-box {
-                padding-top: 16px;
-                padding-bottom: 16px;
+                padding: 16px 0;
+            }
+
+            @media (max-width: 600px) {
+                padding: 0;
+
+                .pagination-box {
+                    padding: 16px;
+                }
             }
         }
     }
-
-    @media (max-width: 600px) {}
 }
