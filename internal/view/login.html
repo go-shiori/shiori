@@ -93,6 +93,10 @@
                             })
                         });
                 }
+            },
+            mounted() {
+                // Set initial URL
+                history.replaceState(null, "login", "login");
             }
         })
     </script>

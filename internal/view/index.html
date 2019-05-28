@@ -24,7 +24,7 @@
 <body>
     <div class="home" id="app">
         <div class="home-sidebar">
-            <a v-for="item in sidebarItems" :title="item.title" :class="{active: activePage === item.page}" @click="activePage = item.page">
+            <a v-for="item in sidebarItems" :title="item.title" :class="{active: activePage === item.page}" @click="switchPage(item.page)">
                 <i class="fas fa-fw" :class="item.icon"></i>
             </a>
             <div class="spacer"></div>
@@ -60,9 +60,17 @@
                     title: "Setting",
                     icon: "fa-cog",
                     page: "page-setting",
-                }]
+                }],
+                historyState: {},
             },
             methods: {
+                switchPage(page) {
+                    var pageName = page.replace("page-", ""),
+                        state = {activePage: page};
+
+                    this.activePage = page;
+                    history.pushState(state, page, `#${pageName}`);
+                },
                 logout() {
                     this.showDialog({
                         title: "Log Out",
@@ -89,6 +97,21 @@
                         }
                     });
                 }
+            },
+            mounted() {
+                // Prepare history state watcher
+                var stateWatcher = (e) => {
+                    var state = e.state || {};
+                    this.activePage = state.activePage || "page-home";
+                }
+
+                window.addEventListener('popstate', stateWatcher);
+                this.$once('hook:beforeDestroy', function () {
+                    window.removeEventListener('popstate', stateWatcher);
+                })
+
+                // Set initial URL
+                history.replaceState(null, "page-home", "#home");
             }
         })
     </script>

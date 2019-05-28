@@ -1,7 +1,7 @@
 var template = `
 <div id="page-home">
     <div class="page-header">
-        <input type="text" placeholder="Search url, keyword or tags" v-model.trim="search" @focus="$event.target.select()" @keyup.enter="loadBookmarks()"/>
+        <input type="text" placeholder="Search url, keyword or tags" v-model.trim="search" @focus="$event.target.select()" @keyup.enter="searchBookmarks"/>
         <a title="Refresh storage" @click="reloadData">
             <i class="fas fa-fw fa-sync-alt" :class="loading && 'fa-spin'"></i>
         </a>
@@ -87,8 +87,11 @@ export default {
             this.search = "";
             this.loadBookmarks();
         },
-        loadBookmarks() {
+        loadBookmarks(saveState) {
             if (this.loading) return;
+
+            // By default, we eill save the state
+            saveState = (typeof saveState === "boolean") ? saveState : true;
 
             // Parse search query
             var rxTagA = /['"]#([^'"]+)['"]/g, // "#tag with space"
@@ -130,10 +133,31 @@ export default {
                     return response.json();
                 })
                 .then(json => {
+                    // Set data
                     this.page = json.page;
                     this.maxPage = json.maxPage;
                     this.bookmarks = json.bookmarks;
                     this.loading = false;
+
+                    // Save state and change URL if needed
+                    if (saveState) {
+                        var history = {
+                            activePage: "page-home",
+                            search: this.search,
+                            page: this.page
+                        };
+
+                        var urlQueries = [];
+                        if (this.page > 1) urlQueries.push(`page=${this.page}`);
+                        if (this.search !== "") urlQueries.push(`search=${this.search}`);
+
+                        var url = "#home"
+                        if (urlQueries.length > 0) {
+                            url += `?${urlQueries.join("&")}`;
+                        }
+
+                        window.history.pushState(history, "page-home", url);
+                    }
                 })
                 .catch(err => {
                     this.loading = false;
@@ -142,9 +166,11 @@ export default {
                     })
                 });
         },
+        searchBookmarks() {
+            this.page = 1;
+            this.loadBookmarks();
+        },
         changePage(page) {
-            if (this.loading) return;
-
             page = parseInt(page, 10) || 0;
             if (page >= this.maxPage) this.page = this.maxPage;
             else if (page <= 1) this.page = 1;
@@ -164,6 +190,24 @@ export default {
         }
     },
     mounted() {
-        this.loadBookmarks();
+        var stateWatcher = (e) => {
+            var state = e.state || {},
+                activePage = state.activePage || "page-home",
+                search = state.search || "",
+                page = state.page || 1;
+
+            if (activePage !== "page-home") return;
+
+            this.page = page;
+            this.search = search;
+            this.loadBookmarks(false);
+        }
+
+        window.addEventListener('popstate', stateWatcher);
+        this.$once('hook:beforeDestroy', function() {
+            window.removeEventListener('popstate', stateWatcher);
+        })
+
+        this.loadBookmarks(false);
     }
 }
