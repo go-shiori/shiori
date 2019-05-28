@@ -40,6 +40,9 @@ type DB interface {
 	// GetAccount fetch account with matching username.
 	GetAccount(username string) (model.Account, bool)
 
+	// GetTags fetch list of tags and its frequency from database.
+	GetTags() ([]model.Tag, error)
+
 	// CreateNewID creates new id for specified table.
 	CreateNewID(table string) (int, error)
 }

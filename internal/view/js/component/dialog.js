@@ -3,18 +3,34 @@ var template = `
     <div class="custom-dialog">
         <p class="custom-dialog-header">{{title}}</p>
         <div class="custom-dialog-body">
-            <p class="custom-dialog-content">{{content}}</p>
-            <template v-for="(field,index) in formFields">
-                <label v-if="showLabel">{{field.label}} :</label>
-                <input :style="{gridColumnEnd: showLabel ? null : 'span 2'}" 
-                    :type="fieldType(field)" 
-                    :placeholder="field.label" 
-                    :tabindex="index+1"
-                    ref="input"
-                    v-model="field.value" 
-                    @focus="$event.target.select()"
-                    @keyup.enter="handleMainClick">
-            </template>
+            <slot>
+                <p class="custom-dialog-content">{{content}}</p>
+                <template v-for="(field,index) in formFields">
+                    <label v-if="showLabel">{{field.label}} :</label>
+                    <textarea v-if="field.type === 'area'"
+                        :style="{gridColumnEnd: showLabel ? null : 'span 2'}" 
+                        :placeholder="field.label" 
+                        :tabindex="index+1"
+                        ref="input"
+                        v-model="field.value" 
+                        @focus="$event.target.select()"
+                        @keyup="handleInput(index)">
+                    </textarea>
+                    <input v-else
+                        :style="{gridColumnEnd: showLabel ? null : 'span 2'}" 
+                        :type="fieldType(field)" 
+                        :placeholder="field.label" 
+                        :tabindex="index+1"
+                        ref="input"
+                        v-model="field.value" 
+                        @focus="$event.target.select()"
+                        @keyup="handleInput(index)"
+                        @keyup.enter="handleInputEnter(index)">
+                    <span :ref="'suggestion-'+index" 
+                        v-if="field.suggestion" 
+                        class="suggestion">{{field.suggestion}}</span>
+                </template>
+            </slot>
         </div>
         <div class="custom-dialog-footer">
             <i v-if="loading" class="fas fa-fw fa-spinner fa-spin"></i>
@@ -90,6 +106,9 @@ export default {
                         label: field,
                         value: '',
                         type: 'text',
+                        dictionary: [],
+                        separator: ' ',
+                        suggestion: undefined
                     }
 
                     if (typeof field === 'object') return {
@@ -97,6 +116,9 @@ export default {
                         label: field.label || '',
                         value: field.value || '',
                         type: field.type || 'text',
+                        dictionary: field.dictionary instanceof Array ? field.dictionary : [],
+                        separator: field.separator || ' ',
+                        suggestion: undefined
                     }
                 });
             }
@@ -128,6 +150,57 @@ export default {
         },
         handleSecondClick() {
             this.secondClick();
+        },
+        handleInput(index) {
+            // Create initial variable
+            var field = this.formFields[index],
+                dictionary = field.dictionary;
+
+            // Make sure dictionary is not empty
+            if (dictionary.length === 0) return;
+
+            // Fetch suggestion from dictionary
+            var words = field.value.split(field.separator),
+                lastWord = words[words.length - 1].toLowerCase(),
+                suggestion;
+
+            if (lastWord !== '') {
+                suggestion = dictionary.find(word => {
+                    return word.toLowerCase().startsWith(lastWord)
+                });
+            }
+
+            this.formFields[index].suggestion = suggestion;
+
+            // Make sure suggestion exist
+            if (suggestion == null) return;
+
+            // Display suggestion
+            this.$nextTick(() => {
+                var input = this.$refs.input[index],
+                    span = this.$refs['suggestion-' + index][0],
+                    inputRect = input.getBoundingClientRect();
+
+                span.style.top = (inputRect.bottom - 1) + 'px';
+                span.style.left = inputRect.left + 'px';
+            });
+        },
+        handleInputEnter(index) {
+            var suggestion = this.formFields[index].suggestion;
+
+            if (suggestion == null) {
+                this.handleMainClick();
+                return;
+            }
+
+            var separator = this.formFields[index].separator,
+                words = this.formFields[index].value.split(separator);
+
+            words.pop();
+            words.push(suggestion);
+
+            this.formFields[index].value = words.join(separator) + separator;
+            this.formFields[index].suggestion = undefined;
         },
         focus() {
             this.$nextTick(() => {

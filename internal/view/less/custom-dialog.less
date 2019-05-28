@@ -38,6 +38,7 @@
             font-weight: 600;
             font-size: 1em;
             text-transform: uppercase;
+            border-bottom: 1px solid var(--border);
         }
 
         .custom-dialog-body {
@@ -58,12 +59,29 @@
                 align-self: baseline;
             }
 
-            >input {
+            >input,
+            >textarea {
                 color: var(--color);
                 padding: 8px;
                 font-size: 1em;
                 border: 1px solid var(--border);
+                background-color: var(--contentBg);
                 min-width: 0;
+            }
+
+            >textarea {
+                min-height: 37px;
+                resize: vertical;
+            }
+
+            >.suggestion {
+                position: absolute;
+                display: block;
+                padding: 8px;
+                background-color: var(--contentBg);
+                border: 1px solid var(--border);
+                color: var(--color);
+                font-size: 0.9em;
             }
         }
 

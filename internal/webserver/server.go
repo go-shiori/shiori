@@ -11,6 +11,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+var httpClient = &http.Client{Timeout: time.Minute}
+
 // ServeApp serves wb interface in specified port
 func ServeApp(DB database.DB, dataDir string, port int) error {
 	// Create handler
@@ -36,8 +38,8 @@ func ServeApp(DB database.DB, dataDir string, port int) error {
 	router.POST("/api/login", hdl.apiLogin)
 	router.POST("/api/logout", hdl.apiLogout)
 	router.GET("/api/bookmarks", hdl.apiGetBookmarks)
-	// router.GET("/api/tags", hdl.apiGetTags)
-	// router.POST("/api/bookmarks", hdl.apiInsertBookmark)
+	router.GET("/api/tags", hdl.apiGetTags)
+	router.POST("/api/bookmarks", hdl.apiInsertBookmark)
 	// router.PUT("/api/cache", hdl.apiUpdateCache)
 	// router.PUT("/api/bookmarks", hdl.apiUpdateBookmark)
 	// router.PUT("/api/bookmarks/tags", hdl.apiUpdateBookmarkTags)

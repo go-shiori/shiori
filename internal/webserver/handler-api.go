@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"math"
 	"net/http"
+	nurl "net/url"
 	"path"
 	fp "path/filepath"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/go-shiori/go-readability"
 	"github.com/go-shiori/shiori/internal/database"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/gofrs/uuid"
@@ -165,5 +167,113 @@ func (h *handler) apiGetBookmarks(w http.ResponseWriter, r *http.Request, ps htt
 
 	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(&resp)
+	checkError(err)
+}
+
+// apiGetTags is handler for GET /api/tags
+func (h *handler) apiGetTags(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	// Make sure session still valid
+	err := h.validateSession(r)
+	checkError(err)
+
+	// Fetch all tags
+	tags, err := h.DB.GetTags()
+	checkError(err)
+
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(&tags)
+	checkError(err)
+}
+
+// apiInsertBookmark is handler for POST /api/bookmark
+func (h *handler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	// Make sure session still valid
+	err := h.validateSession(r)
+	checkError(err)
+
+	// Decode request
+	book := model.Bookmark{}
+	err = json.NewDecoder(r.Body).Decode(&book)
+	checkError(err)
+
+	// Clean up URL by removing its fragment and UTM parameters
+	tmp, err := nurl.Parse(book.URL)
+	if err != nil || tmp.Scheme == "" || tmp.Hostname() == "" {
+		panic(fmt.Errorf("URL is not valid"))
+	}
+
+	tmp.Fragment = ""
+	clearUTMParams(tmp)
+	book.URL = tmp.String()
+
+	// Create bookmark ID
+	book.ID, err = h.DB.CreateNewID("bookmark")
+	if err != nil {
+		panic(fmt.Errorf("failed to create ID: %v", err))
+	}
+
+	// Fetch data from internet
+	var imageURLs []string
+	func() {
+		resp, err := httpClient.Get(book.URL)
+		if err != nil {
+			return
+		}
+		defer resp.Body.Close()
+
+		article, err := readability.FromReader(resp.Body, book.URL)
+		if err != nil {
+			return
+		}
+
+		book.Author = article.Byline
+		book.Content = article.TextContent
+		book.HTML = article.Content
+
+		// If title and excerpt doesnt have submitted value, use from article
+		if book.Title == "" {
+			book.Title = article.Title
+		}
+
+		if book.Excerpt == "" {
+			book.Excerpt = article.Excerpt
+		}
+
+		// Get image URL
+		if article.Image != "" {
+			imageURLs = append(imageURLs, article.Image)
+		}
+
+		if article.Favicon != "" {
+			imageURLs = append(imageURLs, article.Favicon)
+		}
+	}()
+
+	// Make sure title is not empty
+	if book.Title == "" {
+		book.Title = book.URL
+	}
+
+	// Save bookmark to database
+	results, err := h.DB.SaveBookmarks(book)
+	if err != nil || len(results) == 0 {
+		panic(fmt.Errorf("failed to save bookmark: %v", err))
+	}
+	book = results[0]
+
+	// Save article image to local disk
+	imgPath := fp.Join(h.DataDir, "thumb", fmt.Sprintf("%d", book.ID))
+	for _, imageURL := range imageURLs {
+		err = downloadBookImage(imageURL, imgPath, time.Minute)
+		if err == nil {
+			strID := strconv.Itoa(book.ID)
+			book.ImageURL = path.Join("/", "thumb", strID)
+			break
+		}
+	}
+
+	// Return the new bookmark
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(&book)
 	checkError(err)
 }

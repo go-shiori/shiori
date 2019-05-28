@@ -444,6 +444,22 @@ func (db *SQLiteDatabase) GetAccount(username string) (model.Account, bool) {
 	return account, account.ID != 0
 }
 
+// GetTags fetch list of tags and their frequency.
+func (db *SQLiteDatabase) GetTags() ([]model.Tag, error) {
+	tags := []model.Tag{}
+	query := `SELECT bt.tag_id id, t.name, COUNT(bt.tag_id) n_bookmarks 
+		FROM bookmark_tag bt 
+		LEFT JOIN tag t ON bt.tag_id = t.id
+		GROUP BY bt.tag_id ORDER BY t.name`
+
+	err := db.Select(&tags, query)
+	if err != nil && err != sql.ErrNoRows {
+		return nil, fmt.Errorf("failed to fetch tags: %v", err)
+	}
+
+	return tags, nil
+}
+
 // CreateNewID creates new ID for specified table
 func (db *SQLiteDatabase) CreateNewID(table string) (int, error) {
 	var tableID int

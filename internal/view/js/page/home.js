@@ -5,7 +5,7 @@ var template = `
         <a title="Refresh storage" @click="reloadData">
             <i class="fas fa-fw fa-sync-alt" :class="loading && 'fa-spin'"></i>
         </a>
-        <a title="Add new bookmark">
+        <a title="Add new bookmark" @click="showDialogAdd">
             <i class="fas fa-fw fa-plus-circle"></i>
         </a>
         <a title="Batch edit">
@@ -72,7 +72,8 @@ export default {
             search: "",
             page: 0,
             maxPage: 0,
-            bookmarks: []
+            bookmarks: [],
+            tags: [],
         }
     },
     computed: {
@@ -85,13 +86,14 @@ export default {
             if (this.loading) return;
             this.page = 1;
             this.search = "";
-            this.loadBookmarks();
+            this.loadData(true, true);
         },
-        loadBookmarks(saveState) {
+        loadData(saveState, fetchTags) {
             if (this.loading) return;
 
-            // By default, we eill save the state
+            // Set default args
             saveState = (typeof saveState === "boolean") ? saveState : true;
+            fetchTags = (typeof fetchTags === "boolean") ? fetchTags : false;
 
             // Parse search query
             var rxTagA = /['"]#([^'"]+)['"]/g, // "#tag with space"
@@ -125,8 +127,9 @@ export default {
             });
 
             // Fetch data from API
-            this.loading = true;
+            var skipFetchTags = Error("skip fetching tags");
 
+            this.loading = true;
             fetch(url)
                 .then(response => {
                     if (!response.ok) throw response;
@@ -137,7 +140,6 @@ export default {
                     this.page = json.page;
                     this.maxPage = json.maxPage;
                     this.bookmarks = json.bookmarks;
-                    this.loading = false;
 
                     // Save state and change URL if needed
                     if (saveState) {
@@ -158,17 +160,36 @@ export default {
 
                         window.history.pushState(history, "page-home", url);
                     }
+
+                    // Fetch tags if requested
+                    if (fetchTags) {
+                        return fetch("/api/tags");
+                    } else {
+                        this.loading = false;
+                        throw skipFetchTags;
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) throw response;
+                    return response.json();
+                })
+                .then(json => {
+                    this.tags = json;
+                    this.loading = false;
                 })
                 .catch(err => {
                     this.loading = false;
-                    err.text().then(msg => {
-                        this.showErrorDialog(`${msg} (${err.status})`);
-                    })
+
+                    if (err !== skipFetchTags) {
+                        err.text().then(msg => {
+                            this.showErrorDialog(`${msg} (${err.status})`);
+                        })
+                    }
                 });
         },
         searchBookmarks() {
             this.page = 1;
-            this.loadBookmarks();
+            this.loadData();
         },
         changePage(page) {
             page = parseInt(page, 10) || 0;
@@ -177,7 +198,7 @@ export default {
             else this.page = page;
 
             this.$refs.bookmarksGrid.scrollTop = 0;
-            this.loadBookmarks();
+            this.loadData();
         },
         filterTag(tagName) {
             var rxSpace = /\s+/g,
@@ -185,9 +206,84 @@ export default {
 
             if (!this.search.includes(newTag)) {
                 this.search += ` ${newTag}`;
-                this.loadBookmarks();
+                this.loadData();
             }
-        }
+        },
+        showDialogAdd() {
+            this.showDialog({
+                title: 'New Bookmark',
+                content: 'Create a new bookmark',
+                fields: [{
+                    name: 'url',
+                    label: 'Url, start with http://...',
+                }, {
+                    name: 'title',
+                    label: 'Custom title (optional)'
+                }, {
+                    name: 'excerpt',
+                    label: 'Custom excerpt (optional)',
+                    type: 'area'
+                }, {
+                    name: 'tags',
+                    label: 'Comma separated tags (optional)',
+                    separator: ',',
+                    dictionary: this.tags.map(tag => tag.name)
+                }],
+                mainText: 'OK',
+                secondText: 'Cancel',
+                mainClick: (data) => {
+                    // Make sure URL is not empty
+                    if (data.url.trim() === "") {
+                        this.showErrorDialog("URL must not empty");
+                        return;
+                    }
+
+                    // Prepare tags
+                    var tags = data.tags
+                        .toLowerCase()
+                        .replace(/\s+/g, ' ')
+                        .split(/\s*,\s*/g)
+                        .filter(tag => tag !== '')
+                        .map(tag => {
+                            return {
+                                name: tag
+                            };
+                        });
+
+                    // Send data
+                    var data = {
+                        url: data.url.trim(),
+                        title: data.title.trim(),
+                        excerpt: data.excerpt.trim(),
+                        tags: tags
+                    };
+
+                    this.dialog.loading = true;
+                    fetch("/api/bookmarks", {
+                            method: "post",
+                            body: JSON.stringify(data),
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                        })
+                        .then(response => {
+                            if (!response.ok) throw response;
+                            return response.json();
+                        })
+                        .then(json => {
+                            this.dialog.loading = false;
+                            this.dialog.visible = false;
+                            this.bookmarks.splice(0, 0, json);
+                        })
+                        .catch(err => {
+                            this.dialog.loading = false;
+                            err.text().then(msg => {
+                                this.showErrorDialog(`${msg} (${err.status})`);
+                            })
+                        });
+                }
+            });
+        },
     },
     mounted() {
         var stateWatcher = (e) => {
@@ -200,7 +296,7 @@ export default {
 
             this.page = page;
             this.search = search;
-            this.loadBookmarks(false);
+            this.loadData(false);
         }
 
         window.addEventListener('popstate', stateWatcher);
@@ -208,6 +304,6 @@ export default {
             window.removeEventListener('popstate', stateWatcher);
         })
 
-        this.loadBookmarks(false);
+        this.loadData(false, true);
     }
 }
