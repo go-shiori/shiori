@@ -36,6 +36,7 @@ export default {
         imageURL: String,
         showId: Boolean,
         listMode: Boolean,
+        index: Number,
         tags: {
             type: Array,
             default () {
@@ -62,13 +63,16 @@ export default {
             this.$emit("tagClicked", name);
         },
         editBookmark() {
-            this.$emit("edit", this.id);
+            this.$emit("edit", this.id, this.index);
         },
         deleteBookmark() {
-            this.$emit("delete", this.id);
+            this.$emit("delete", {
+                id: this.id,
+                index: this.index
+            });
         },
         updateBookmark() {
-            this.$emit("update", this.id);
+            this.$emit("update", this.id, this.index);
         }
     }
 }

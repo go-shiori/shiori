@@ -6,6 +6,7 @@ import (
 	"math"
 	"net/http"
 	nurl "net/url"
+	"os"
 	"path"
 	fp "path/filepath"
 	"strconv"
@@ -276,4 +277,29 @@ func (h *handler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(&book)
 	checkError(err)
+}
+
+// apiDeleteBookmarks is handler for DELETE /api/bookmark
+func (h *handler) apiDeleteBookmark(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	// Make sure session still valid
+	err := h.validateSession(r)
+	checkError(err)
+
+	// Decode request
+	ids := []int{}
+	err = json.NewDecoder(r.Body).Decode(&ids)
+	checkError(err)
+
+	// Delete bookmarks
+	err = h.DB.DeleteBookmarks(ids...)
+	checkError(err)
+
+	// Delete thumbnail image from local disk
+	for _, id := range ids {
+		strID := strconv.Itoa(id)
+		imgPath := fp.Join(h.DataDir, "thumb", strID)
+		os.Remove(imgPath)
+	}
+
+	fmt.Fprint(w, 1)
 }

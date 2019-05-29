@@ -16,12 +16,14 @@ var template = `
         </a>
     </div>
     <div id="bookmarks-grid" ref="bookmarksGrid" :class="{list: displayOptions.listMode}">
-        <bookmark-item v-for="book in bookmarks" 
-                        v-bind="book" 
-                        :key="book.id" 
-                        :showId="displayOptions.showId"
-                        :listMode="displayOptions.listMode"
-                        @tagClicked="filterTag">
+        <bookmark-item v-for="(book, index) in bookmarks" 
+            v-bind="book" 
+            :index="index"
+            :key="book.id" 
+            :showId="displayOptions.showId"
+            :listMode="displayOptions.listMode"
+            @tagClicked="filterTag"
+            @delete="showDialogDelete">
         </bookmark-item>
         <div class="pagination-box" v-if="maxPage > 0">
             <p>Page</p>
@@ -274,6 +276,70 @@ export default {
                             this.dialog.loading = false;
                             this.dialog.visible = false;
                             this.bookmarks.splice(0, 0, json);
+                        })
+                        .catch(err => {
+                            this.dialog.loading = false;
+                            err.text().then(msg => {
+                                this.showErrorDialog(`${msg} (${err.status})`);
+                            })
+                        });
+                }
+            });
+        },
+        showDialogDelete(items) {
+            // Check and filter items
+            if (typeof items !== "object") return;
+            if (!Array.isArray(items)) items = [items];
+
+            items = items.filter(item => {
+                var id = (typeof item.id === "number") ? item.id : 0,
+                    index = (typeof item.index === "number") ? item.index : -1;
+
+                return id > 0 && index > -1;
+            });
+
+            if (items.length === 0) return;
+
+            // Split ids and indices
+            var ids = items.map(item => item.id),
+                indices = items.map(item => item.index).sort((a, b) => b - a);
+
+            // Create title and content
+            var title = "Delete Bookmarks",
+                content = "Delete the selected bookmarks ? This action is irreversible.";
+
+            if (items.length === 1) {
+                title = "Delete Bookmark";
+                content = "Are you sure ? This action is irreversible.";
+            }
+
+            // Show dialog
+            this.showDialog({
+                title: title,
+                content: content,
+                mainText: 'Yes',
+                secondText: 'No',
+                mainClick: () => {
+                    this.dialog.loading = true;
+                    fetch("/api/bookmarks", {
+                            method: "delete",
+                            body: JSON.stringify(ids),
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                        })
+                        .then(response => {
+                            if (!response.ok) throw response;
+                            return response;
+                        })
+                        .then(() => {
+                            this.dialog.loading = false;
+                            this.dialog.visible = false;
+                            indices.forEach(index => this.bookmarks.splice(index, 1))
+
+                            if (this.bookmarks.length < 20) {
+                                this.loadData(false);
+                            }
                         })
                         .catch(err => {
                             this.dialog.loading = false;
