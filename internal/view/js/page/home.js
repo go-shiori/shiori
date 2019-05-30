@@ -31,6 +31,12 @@ var template = `
         </a>
     </div>
     <div id="bookmarks-grid" ref="bookmarksGrid" :class="{list: displayOptions.listMode}">
+        <pagination-box v-if="maxPage > 0" 
+            :page="page" 
+            :maxPage="maxPage" 
+            :editMode="editMode"
+            @change="changePage">
+        </pagination-box>
         <bookmark-item v-for="(book, index) in bookmarks" 
             v-bind="book" 
             :index="index"
@@ -45,31 +51,12 @@ var template = `
             @delete="showDialogDelete"
             @update="showDialogUpdateArchive">
         </bookmark-item>
-        <div class="pagination-box" v-if="maxPage > 0">
-            <p>Page</p>
-            <input type="text" 
-                placeholder="1" 
-                :value="page" 
-                @focus="$event.target.select()" 
-                @keyup.enter="changePage($event.target.value)" 
-                :disabled="editMode">
-            <p>{{maxPage}}</p>
-            <div class="spacer"></div>
-            <template v-if="!editMode">
-                <a v-if="page > 2" title="Go to first page" @click="changePage(1)">
-                    <i class="fas fa-fw fa-angle-double-left"></i>
-                </a>
-                <a v-if="page > 1" title="Go to previous page" @click="changePage(page-1)">
-                    <i class="fa fa-fw fa-angle-left"></i>
-                </a>
-                <a v-if="page < maxPage" title="Go to next page" @click="changePage(page+1)">
-                    <i class="fa fa-fw fa-angle-right"></i>
-                </a>
-                <a v-if="page < maxPage - 1" title="Go to last page" @click="changePage(maxPage)">
-                    <i class="fas fa-fw fa-angle-double-right"></i>
-                </a>
-            </template>
-        </div>
+        <pagination-box v-if="maxPage > 0" 
+            :page="page" 
+            :maxPage="maxPage" 
+            :editMode="editMode"
+            @change="changePage">
+        </pagination-box>
     </div>
     <p class="empty-message" v-if="!loading && listIsEmpty">No saved bookmarks yet :(</p>
     <div class="loading-overlay" v-if="loading"><i class="fas fa-fw fa-spin fa-spinner"></i></div>
@@ -81,6 +68,7 @@ var template = `
     <custom-dialog v-bind="dialog"/>
 </div>`
 
+import paginationBox from "../component/pagination.js";
 import bookmarkItem from "../component/bookmark.js";
 import customDialog from "../component/dialog.js";
 import basePage from "./base.js";
@@ -90,6 +78,7 @@ export default {
     mixins: [basePage],
     components: {
         bookmarkItem,
+        paginationBox,
         customDialog
     },
     data() {
@@ -105,7 +94,7 @@ export default {
             tags: [],
 
             dialogTags: {
-                visible: true,
+                visible: false,
                 title: 'Existing Tags',
                 mainText: 'OK',
                 mainClick: () => {
@@ -230,11 +219,7 @@ export default {
             this.loadData();
         },
         changePage(page) {
-            page = parseInt(page, 10) || 0;
-            if (page >= this.maxPage) this.page = this.maxPage;
-            else if (page <= 1) this.page = 1;
-            else this.page = page;
-
+            this.page = page;
             this.$refs.bookmarksGrid.scrollTop = 0;
             this.loadData();
         },

@@ -52,9 +52,6 @@ export default {
             }
         }
     },
-    data() {
-        return {};
-    },
     computed: {
         hostnameURL() {
             var url = new URL(this.url);
