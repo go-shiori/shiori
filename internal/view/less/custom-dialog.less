@@ -53,8 +53,17 @@
             align-items: baseline;
             grid-gap: 16px;
 
+            &::after {
+                content: "";
+                display: block;
+                min-height: 1px;
+                grid-column-end: -1;
+                grid-column-start: 1;
+            }
+
             .custom-dialog-content {
-                grid-column: 1 / span 2;
+                grid-column-end: -1;
+                grid-column-start: 1;
                 color: var(--color);
                 align-self: baseline;
             }
@@ -70,6 +79,7 @@
             }
 
             >textarea {
+                height: 6em;
                 min-height: 37px;
                 resize: vertical;
             }

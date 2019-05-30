@@ -246,8 +246,13 @@ func (db *SQLiteDatabase) GetBookmarks(opts GetBookmarksOptions) ([]model.Bookma
 	}
 
 	// Add order clause
-	if opts.OrderLatest {
+	switch opts.OrderMethod {
+	case ByLastAdded:
+		query += ` ORDER BY b.id DESC`
+	case ByLastModified:
 		query += ` ORDER BY b.modified DESC`
+	default:
+		query += ` ORDER BY b.id`
 	}
 
 	if opts.Limit > 0 && opts.Offset >= 0 {
@@ -398,14 +403,21 @@ func (db *SQLiteDatabase) DeleteBookmarks(ids ...int) (err error) {
 // GetBookmark fetchs bookmark based on its ID or URL.
 // Returns the bookmark and boolean whether it's exist or not.
 func (db *SQLiteDatabase) GetBookmark(id int, url string) (model.Bookmark, bool) {
-	book := model.Bookmark{}
-	db.Get(&book, `SELECT
+	args := []interface{}{id}
+	query := `SELECT
 		b.id, b.url, b.title, b.excerpt, b.author, b.modified,
 		bc.content, bc.html, bc.content <> "" has_content
 		FROM bookmark b
 		LEFT JOIN bookmark_content bc ON bc.docid = b.id
-		WHERE b.id = ? OR b.url = ?`,
-		id, url)
+		WHERE b.id = ?`
+
+	if url != "" {
+		query += ` OR b.url = ?`
+		args = append(args, url)
+	}
+
+	book := model.Bookmark{}
+	db.Get(&book, query, args...)
 
 	return book, book.ID != 0
 }

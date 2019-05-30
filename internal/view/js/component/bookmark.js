@@ -56,6 +56,12 @@ export default {
             return {
                 backgroundImage: `url("${this.imageURL}")`
             }
+        },
+        eventItem() {
+            return {
+                id: this.id,
+                index: this.index,
+            }
         }
     },
     methods: {
@@ -63,13 +69,10 @@ export default {
             this.$emit("tagClicked", name);
         },
         editBookmark() {
-            this.$emit("edit", this.id, this.index);
+            this.$emit("edit", this.eventItem);
         },
         deleteBookmark() {
-            this.$emit("delete", {
-                id: this.id,
-                index: this.index
-            });
+            this.$emit("delete", this.eventItem);
         },
         updateBookmark() {
             this.$emit("update", this.id, this.index);

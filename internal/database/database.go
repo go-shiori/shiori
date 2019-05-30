@@ -6,13 +6,25 @@ import (
 	"github.com/go-shiori/shiori/internal/model"
 )
 
+// OrderMethod is the order method for getting bookmarks
+type OrderMethod int
+
+const (
+	// DefaultOrder is oldest to newest.
+	DefaultOrder OrderMethod = iota
+	// ByLastAdded is from newest addition to the oldest.
+	ByLastAdded
+	// ByLastModified is from latest modified to the oldest.
+	ByLastModified
+)
+
 // GetBookmarksOptions is options for fetching bookmarks from database.
 type GetBookmarksOptions struct {
 	IDs         []int
 	Tags        []string
 	Keyword     string
 	WithContent bool
-	OrderLatest bool
+	OrderMethod OrderMethod
 	Limit       int
 	Offset      int
 }

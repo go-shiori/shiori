@@ -136,7 +136,7 @@ func (h *handler) apiGetBookmarks(w http.ResponseWriter, r *http.Request, ps htt
 		Keyword:     keyword,
 		Limit:       30,
 		Offset:      (page - 1) * 30,
-		OrderLatest: true,
+		OrderMethod: database.ByLastAdded,
 	}
 
 	// Calculate max page
@@ -302,4 +302,70 @@ func (h *handler) apiDeleteBookmark(w http.ResponseWriter, r *http.Request, ps h
 	}
 
 	fmt.Fprint(w, 1)
+}
+
+// apiUpdateBookmark is handler for PUT /api/bookmarks
+func (h *handler) apiUpdateBookmark(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	// Make sure session still valid
+	err := h.validateSession(r)
+	checkError(err)
+
+	// Decode request
+	request := model.Bookmark{}
+	err = json.NewDecoder(r.Body).Decode(&request)
+	checkError(err)
+
+	// Validate input
+	if request.Title == "" {
+		panic(fmt.Errorf("Title must not empty"))
+	}
+
+	// Get existing bookmark from database
+	filter := database.GetBookmarksOptions{
+		IDs:         []int{request.ID},
+		WithContent: true,
+	}
+
+	bookmarks, err := h.DB.GetBookmarks(filter)
+	checkError(err)
+	if len(bookmarks) == 0 {
+		panic(fmt.Errorf("no bookmark with matching index"))
+	}
+
+	// Set new bookmark data
+	book := bookmarks[0]
+	book.Title = request.Title
+	book.Excerpt = request.Excerpt
+
+	// Set new tags
+	for i := range book.Tags {
+		book.Tags[i].Deleted = true
+	}
+
+	for _, newTag := range request.Tags {
+		for i, oldTag := range book.Tags {
+			if newTag.Name == oldTag.Name {
+				newTag.ID = oldTag.ID
+				book.Tags[i].Deleted = false
+				break
+			}
+		}
+
+		if newTag.ID == 0 {
+			book.Tags = append(book.Tags, newTag)
+		}
+	}
+
+	// Update database
+	res, err := h.DB.SaveBookmarks(book)
+	checkError(err)
+
+	// Add thumbnail image to the saved bookmarks again
+	newBook := res[0]
+	newBook.ImageURL = request.ImageURL
+
+	// Return new saved result
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(&newBook)
+	checkError(err)
 }

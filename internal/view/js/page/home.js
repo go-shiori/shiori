@@ -23,7 +23,8 @@ var template = `
             :showId="displayOptions.showId"
             :listMode="displayOptions.listMode"
             @tagClicked="filterTag"
-            @delete="showDialogDelete">
+            @delete="showDialogDelete"
+            @edit="showDialogEdit">
         </bookmark-item>
         <div class="pagination-box" v-if="maxPage > 0">
             <p>Page</p>
@@ -110,7 +111,7 @@ export default {
             }
 
             // Clear tag A from keyword
-            keyword = keyword.replace(rxTagA, '');
+            keyword = keyword.replace(rxTagA, "");
 
             // Fetch tag B
             while (rxResult = rxTagB.exec(keyword)) {
@@ -118,7 +119,7 @@ export default {
             }
 
             // Clear tag B from keyword, then trim keyword
-            keyword = keyword.replace(rxTagB, '').trim().replace(/\s+/g, ' ');
+            keyword = keyword.replace(rxTagB, "").trim().replace(/\s+/g, " ");
 
             // Prepare URL for API
             var url = new URL("/api/bookmarks", document.URL);
@@ -213,26 +214,26 @@ export default {
         },
         showDialogAdd() {
             this.showDialog({
-                title: 'New Bookmark',
-                content: 'Create a new bookmark',
+                title: "New Bookmark",
+                content: "Create a new bookmark",
                 fields: [{
-                    name: 'url',
-                    label: 'Url, start with http://...',
+                    name: "url",
+                    label: "Url, start with http://...",
                 }, {
-                    name: 'title',
-                    label: 'Custom title (optional)'
+                    name: "title",
+                    label: "Custom title (optional)"
                 }, {
-                    name: 'excerpt',
-                    label: 'Custom excerpt (optional)',
-                    type: 'area'
+                    name: "excerpt",
+                    label: "Custom excerpt (optional)",
+                    type: "area"
                 }, {
-                    name: 'tags',
-                    label: 'Comma separated tags (optional)',
-                    separator: ',',
+                    name: "tags",
+                    label: "Comma separated tags (optional)",
+                    separator: ",",
                     dictionary: this.tags.map(tag => tag.name)
                 }],
-                mainText: 'OK',
-                secondText: 'Cancel',
+                mainText: "OK",
+                secondText: "Cancel",
                 mainClick: (data) => {
                     // Make sure URL is not empty
                     if (data.url.trim() === "") {
@@ -243,12 +244,12 @@ export default {
                     // Prepare tags
                     var tags = data.tags
                         .toLowerCase()
-                        .replace(/\s+/g, ' ')
+                        .replace(/\s+/g, " ")
                         .split(/\s*,\s*/g)
-                        .filter(tag => tag !== '')
+                        .filter(tag => tag.trim() !== "")
                         .map(tag => {
                             return {
-                                name: tag
+                                name: tag.trim()
                             };
                         });
 
@@ -317,8 +318,8 @@ export default {
             this.showDialog({
                 title: title,
                 content: content,
-                mainText: 'Yes',
-                secondText: 'No',
+                mainText: "Yes",
+                secondText: "No",
                 mainClick: () => {
                     this.dialog.loading = true;
                     fetch("/api/bookmarks", {
@@ -340,6 +341,89 @@ export default {
                             if (this.bookmarks.length < 20) {
                                 this.loadData(false);
                             }
+                        })
+                        .catch(err => {
+                            this.dialog.loading = false;
+                            err.text().then(msg => {
+                                this.showErrorDialog(`${msg} (${err.status})`);
+                            })
+                        });
+                }
+            });
+        },
+        showDialogEdit(item) {
+            // Check the item
+            if (typeof item !== "object") return;
+
+            var id = (typeof item.id === "number") ? item.id : 0,
+                index = (typeof item.index === "number") ? item.index : -1;
+
+            if (id < 1 || index < 0) return;
+
+            // Get the existing bookmark value
+            var book = JSON.parse(JSON.stringify(this.bookmarks[index])),
+                strTags = book.tags.map(tag => tag.name).join(", ");
+
+            this.showDialog({
+                title: "Edit Bookmark",
+                content: "Edit the bookmark's data",
+                showLabel: true,
+                fields: [{
+                    name: "title",
+                    label: "Title",
+                    value: book.title,
+                }, {
+                    name: "excerpt",
+                    label: "Excerpt",
+                    type: "area",
+                    value: book.excerpt,
+                }, {
+                    name: "tags",
+                    label: "Tags",
+                    value: strTags,
+                    separator: ",",
+                    dictionary: this.tags.map(tag => tag.name)
+                }],
+                mainText: "OK",
+                secondText: "Cancel",
+                mainClick: (data) => {
+                    // Validate input
+                    if (data.title.trim() === "") return;
+
+                    // Prepare tags
+                    var tags = data.tags
+                        .toLowerCase()
+                        .replace(/\s+/g, " ")
+                        .split(/\s*,\s*/g)
+                        .filter(tag => tag.trim() !== "")
+                        .map(tag => {
+                            return {
+                                name: tag.trim()
+                            };
+                        });
+
+                    // Set new data
+                    book.title = data.title.trim();
+                    book.excerpt = data.excerpt.trim();
+                    book.tags = tags;
+
+                    // Send data
+                    this.dialog.loading = true;
+                    fetch("/api/bookmarks", {
+                            method: "put",
+                            body: JSON.stringify(book),
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                        })
+                        .then(response => {
+                            if (!response.ok) throw response;
+                            return response.json();
+                        })
+                        .then(json => {
+                            this.dialog.loading = false;
+                            this.dialog.visible = false;
+                            this.bookmarks.splice(index, 1, json);
                         })
                         .catch(err => {
                             this.dialog.loading = false;

@@ -45,11 +45,16 @@ func printHandler(cmd *cobra.Command, args []string) {
 	}
 
 	// Read bookmarks from database
+	orderMethod := database.DefaultOrder
+	if orderLatest {
+		orderMethod = database.ByLastModified
+	}
+
 	searchOptions := database.GetBookmarksOptions{
 		IDs:         ids,
 		Tags:        tags,
 		Keyword:     keyword,
-		OrderLatest: orderLatest,
+		OrderMethod: orderMethod,
 	}
 
 	bookmarks, err := DB.GetBookmarks(searchOptions)
