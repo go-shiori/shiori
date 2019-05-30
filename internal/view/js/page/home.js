@@ -31,7 +31,7 @@ var template = `
         </a>
     </div>
     <div id="bookmarks-grid" ref="bookmarksGrid" :class="{list: displayOptions.listMode}">
-        <pagination-box v-if="maxPage > 0" 
+        <pagination-box v-if="maxPage > 1" 
             :page="page" 
             :maxPage="maxPage" 
             :editMode="editMode"
@@ -51,7 +51,7 @@ var template = `
             @delete="showDialogDelete"
             @update="showDialogUpdateArchive">
         </bookmark-item>
-        <pagination-box v-if="maxPage > 0" 
+        <pagination-box v-if="maxPage > 1" 
             :page="page" 
             :maxPage="maxPage" 
             :editMode="editMode"
