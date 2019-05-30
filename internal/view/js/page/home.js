@@ -24,7 +24,8 @@ var template = `
             :listMode="displayOptions.listMode"
             @tagClicked="filterTag"
             @delete="showDialogDelete"
-            @edit="showDialogEdit">
+            @edit="showDialogEdit"
+            @update="showDialogUpdateArchive">
         </bookmark-item>
         <div class="pagination-box" v-if="maxPage > 0">
             <p>Page</p>
@@ -287,70 +288,6 @@ export default {
                 }
             });
         },
-        showDialogDelete(items) {
-            // Check and filter items
-            if (typeof items !== "object") return;
-            if (!Array.isArray(items)) items = [items];
-
-            items = items.filter(item => {
-                var id = (typeof item.id === "number") ? item.id : 0,
-                    index = (typeof item.index === "number") ? item.index : -1;
-
-                return id > 0 && index > -1;
-            });
-
-            if (items.length === 0) return;
-
-            // Split ids and indices
-            var ids = items.map(item => item.id),
-                indices = items.map(item => item.index).sort((a, b) => b - a);
-
-            // Create title and content
-            var title = "Delete Bookmarks",
-                content = "Delete the selected bookmarks ? This action is irreversible.";
-
-            if (items.length === 1) {
-                title = "Delete Bookmark";
-                content = "Are you sure ? This action is irreversible.";
-            }
-
-            // Show dialog
-            this.showDialog({
-                title: title,
-                content: content,
-                mainText: "Yes",
-                secondText: "No",
-                mainClick: () => {
-                    this.dialog.loading = true;
-                    fetch("/api/bookmarks", {
-                            method: "delete",
-                            body: JSON.stringify(ids),
-                            headers: {
-                                "Content-Type": "application/json",
-                            },
-                        })
-                        .then(response => {
-                            if (!response.ok) throw response;
-                            return response;
-                        })
-                        .then(() => {
-                            this.dialog.loading = false;
-                            this.dialog.visible = false;
-                            indices.forEach(index => this.bookmarks.splice(index, 1))
-
-                            if (this.bookmarks.length < 20) {
-                                this.loadData(false);
-                            }
-                        })
-                        .catch(err => {
-                            this.dialog.loading = false;
-                            err.text().then(msg => {
-                                this.showErrorDialog(`${msg} (${err.status})`);
-                            })
-                        });
-                }
-            });
-        },
         showDialogEdit(item) {
             // Check the item
             if (typeof item !== "object") return;
@@ -434,6 +371,122 @@ export default {
                 }
             });
         },
+        showDialogDelete(items) {
+            // Check and filter items
+            if (typeof items !== "object") return;
+            if (!Array.isArray(items)) items = [items];
+
+            items = items.filter(item => {
+                var id = (typeof item.id === "number") ? item.id : 0,
+                    index = (typeof item.index === "number") ? item.index : -1;
+
+                return id > 0 && index > -1;
+            });
+
+            if (items.length === 0) return;
+
+            // Split ids and indices
+            var ids = items.map(item => item.id),
+                indices = items.map(item => item.index).sort((a, b) => b - a);
+
+            // Create title and content
+            var title = "Delete Bookmarks",
+                content = "Delete the selected bookmarks ? This action is irreversible.";
+
+            if (items.length === 1) {
+                title = "Delete Bookmark";
+                content = "Are you sure ? This action is irreversible.";
+            }
+
+            // Show dialog
+            this.showDialog({
+                title: title,
+                content: content,
+                mainText: "Yes",
+                secondText: "No",
+                mainClick: () => {
+                    this.dialog.loading = true;
+                    fetch("/api/bookmarks", {
+                            method: "delete",
+                            body: JSON.stringify(ids),
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                        })
+                        .then(response => {
+                            if (!response.ok) throw response;
+                            return response;
+                        })
+                        .then(() => {
+                            this.dialog.loading = false;
+                            this.dialog.visible = false;
+                            indices.forEach(index => this.bookmarks.splice(index, 1))
+
+                            if (this.bookmarks.length < 20) {
+                                this.loadData(false);
+                            }
+                        })
+                        .catch(err => {
+                            this.dialog.loading = false;
+                            err.text().then(msg => {
+                                this.showErrorDialog(`${msg} (${err.status})`);
+                            })
+                        });
+                }
+            });
+        },
+        showDialogUpdateArchive(items) {
+            // Check and filter items
+            if (typeof items !== "object") return;
+            if (!Array.isArray(items)) items = [items];
+
+            items = items.filter(item => {
+                var id = (typeof item.id === "number") ? item.id : 0,
+                    index = (typeof item.index === "number") ? item.index : -1;
+
+                return id > 0 && index > -1;
+            });
+
+            if (items.length === 0) return;
+
+            // Show dialog
+            var ids = items.map(item => item.id);
+
+            this.showDialog({
+                title: 'Update Archive',
+                content: 'Update archive for selected bookmarks ? This action is irreversible.',
+                mainText: 'Yes',
+                secondText: 'No',
+                mainClick: () => {
+                    this.dialog.loading = true;
+                    fetch("/api/archive", {
+                            method: "put",
+                            body: JSON.stringify(ids),
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                        })
+                        .then(response => {
+                            if (!response.ok) throw response;
+                            return response.json();
+                        })
+                        .then(json => {
+                            this.dialog.loading = false;
+                            this.dialog.visible = false;
+                            json.forEach(book => {
+                                var item = items.find(el => el.id === book.id);
+                                this.bookmarks.splice(item.index, 1, book);
+                            });
+                        })
+                        .catch(err => {
+                            this.dialog.loading = false;
+                            err.text().then(msg => {
+                                this.showErrorDialog(`${msg} (${err.status})`);
+                            })
+                        });
+                }
+            });
+        }
     },
     mounted() {
         var stateWatcher = (e) => {

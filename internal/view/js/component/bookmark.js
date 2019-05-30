@@ -75,7 +75,7 @@ export default {
             this.$emit("delete", this.eventItem);
         },
         updateBookmark() {
-            this.$emit("update", this.id, this.index);
+            this.$emit("update", this.eventItem);
         }
     }
 }

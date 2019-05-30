@@ -11,6 +11,7 @@ import (
 	fp "path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/go-shiori/go-readability"
@@ -263,11 +264,11 @@ func (h *handler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 	book = results[0]
 
 	// Save article image to local disk
-	imgPath := fp.Join(h.DataDir, "thumb", fmt.Sprintf("%d", book.ID))
+	strID := strconv.Itoa(book.ID)
+	imgPath := fp.Join(h.DataDir, "thumb", strID)
 	for _, imageURL := range imageURLs {
 		err = downloadBookImage(imageURL, imgPath, time.Minute)
 		if err == nil {
-			strID := strconv.Itoa(book.ID)
 			book.ImageURL = path.Join("/", "thumb", strID)
 			break
 		}
@@ -329,7 +330,7 @@ func (h *handler) apiUpdateBookmark(w http.ResponseWriter, r *http.Request, ps h
 	bookmarks, err := h.DB.GetBookmarks(filter)
 	checkError(err)
 	if len(bookmarks) == 0 {
-		panic(fmt.Errorf("no bookmark with matching index"))
+		panic(fmt.Errorf("no bookmark with matching ids"))
 	}
 
 	// Set new bookmark data
@@ -367,5 +368,135 @@ func (h *handler) apiUpdateBookmark(w http.ResponseWriter, r *http.Request, ps h
 	// Return new saved result
 	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(&newBook)
+	checkError(err)
+}
+
+// apiUpdateArchive is handler for PUT /api/archive
+func (h *handler) apiUpdateArchive(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	// Make sure session still valid
+	err := h.validateSession(r)
+	checkError(err)
+
+	// Decode request
+	ids := []int{}
+	err = json.NewDecoder(r.Body).Decode(&ids)
+	checkError(err)
+
+	// Get existing bookmark from database
+	filter := database.GetBookmarksOptions{
+		IDs: ids,
+	}
+
+	bookmarks, err := h.DB.GetBookmarks(filter)
+	checkError(err)
+	if len(bookmarks) == 0 {
+		panic(fmt.Errorf("no bookmark with matching ids"))
+	}
+
+	// For web interface, let's limit to max 20 IDs to update.
+	// This is done to prevent the REST request from client took too long to finish.
+	if len(bookmarks) > 20 {
+		panic(fmt.Errorf("max 20 bookmarks to update"))
+	}
+
+	// Fetch data from internet
+	mx := sync.RWMutex{}
+	wg := sync.WaitGroup{}
+	chDone := make(chan struct{})
+	chProblem := make(chan int, 10)
+	semaphore := make(chan struct{}, 10)
+
+	for i, book := range bookmarks {
+		wg.Add(1)
+
+		go func(i int, book model.Bookmark) {
+			// Make sure to finish the WG
+			defer wg.Done()
+
+			// Register goroutine to semaphore
+			semaphore <- struct{}{}
+			defer func() {
+				<-semaphore
+			}()
+
+			// Download article
+			resp, err := httpClient.Get(book.URL)
+			if err != nil {
+				chProblem <- book.ID
+				return
+			}
+			defer resp.Body.Close()
+
+			article, err := readability.FromReader(resp.Body, book.URL)
+			if err != nil {
+				chProblem <- book.ID
+				return
+			}
+
+			book.Author = article.Byline
+			book.Content = article.TextContent
+			book.HTML = article.Content
+			book.HasContent = book.Content != ""
+
+			if article.Title != "" {
+				book.Title = article.Title
+			}
+
+			if article.Excerpt != "" {
+				book.Excerpt = article.Excerpt
+			}
+
+			// Get image for thumbnail and save it to local disk
+			var imageURLs []string
+			if article.Image != "" {
+				imageURLs = append(imageURLs, article.Image)
+			}
+
+			if article.Favicon != "" {
+				imageURLs = append(imageURLs, article.Favicon)
+			}
+
+			// Save article image to local disk
+			strID := strconv.Itoa(book.ID)
+			imgPath := fp.Join(h.DataDir, "thumb", strID)
+			for _, imageURL := range imageURLs {
+				err = downloadBookImage(imageURL, imgPath, time.Minute)
+				if err == nil {
+					book.ImageURL = path.Join("/", "thumb", strID)
+					break
+				}
+			}
+
+			// Update list of bookmarks
+			mx.Lock()
+			bookmarks[i] = book
+			mx.Unlock()
+		}(i, book)
+	}
+
+	// Receive all problematic bookmarks
+	idWithProblems := []int{}
+	go func() {
+		for {
+			select {
+			case <-chDone:
+				return
+			case id := <-chProblem:
+				idWithProblems = append(idWithProblems, id)
+			}
+		}
+	}()
+
+	// Wait until all download finished
+	wg.Wait()
+	close(chDone)
+
+	// Update database
+	_, err = h.DB.SaveBookmarks(bookmarks...)
+	checkError(err)
+
+	// Return new saved result
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(&bookmarks)
 	checkError(err)
 }

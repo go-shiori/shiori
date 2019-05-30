@@ -42,7 +42,7 @@ func ServeApp(DB database.DB, dataDir string, port int) error {
 	router.POST("/api/bookmarks", hdl.apiInsertBookmark)
 	router.DELETE("/api/bookmarks", hdl.apiDeleteBookmark)
 	router.PUT("/api/bookmarks", hdl.apiUpdateBookmark)
-	// router.PUT("/api/cache", hdl.apiUpdateCache)
+	router.PUT("/api/archive", hdl.apiUpdateArchive)
 	// router.PUT("/api/bookmarks/tags", hdl.apiUpdateBookmarkTags)
 
 	// Route for panic
