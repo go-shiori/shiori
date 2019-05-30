@@ -8,7 +8,7 @@ var template = `
         <a title="Add new bookmark" @click="showDialogAdd">
             <i class="fas fa-fw fa-plus-circle"></i>
         </a>
-        <a title="Show tags">
+        <a title="Show tags" @click="showDialogTags">
             <i class="fas fa-fw fa-tags"></i>
         </a>
         <a title="Batch edit" @click="toggleEditMode">
@@ -73,6 +73,11 @@ var template = `
     </div>
     <p class="empty-message" v-if="!loading && listIsEmpty">No saved bookmarks yet :(</p>
     <div class="loading-overlay" v-if="loading"><i class="fas fa-fw fa-spin fa-spinner"></i></div>
+    <custom-dialog id="dialog-tags" v-bind="dialogTags">
+        <a v-for="tag in tags" @click="filterTag(tag.name)">
+            {{tag.name}}<span>{{tag.nBookmarks}}</span>
+        </a>
+    </custom-dialog>
     <custom-dialog v-bind="dialog"/>
 </div>`
 
@@ -98,6 +103,15 @@ export default {
             maxPage: 0,
             bookmarks: [],
             tags: [],
+
+            dialogTags: {
+                visible: true,
+                title: 'Existing Tags',
+                mainText: 'OK',
+                mainClick: () => {
+                    this.dialogTags.visible = false;
+                },
+            },
         }
     },
     computed: {
@@ -612,6 +626,9 @@ export default {
                         });
                 }
             });
+        },
+        showDialogTags() {
+            this.dialogTags.visible = true;
         }
     },
     mounted() {

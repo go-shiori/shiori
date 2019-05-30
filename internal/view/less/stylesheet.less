@@ -434,4 +434,41 @@ body {
             }
         }
     }
+
+    #dialog-tags {
+        .custom-dialog-body {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+
+            @media (max-width: 600px) {
+                grid-template-columns: minmax(0, 1fr);
+            }
+
+            a {
+                font-size: 1em;
+
+                span {
+                    &:last-child {
+                        font-size: 1em;
+                        color: var(--colorLink);
+                        margin-left: 4px;
+
+                        &::before {
+                            content: "(";
+                            margin-right: 2px;
+                        }
+
+                        &::after {
+                            content: ")";
+                            margin-left: 2px;
+                        }
+                    }
+                }
+
+                &:hover,
+                &:focus {
+                    color: var(--main);
+                }
+            }
+        }
+    }
 }
