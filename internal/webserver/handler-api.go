@@ -384,7 +384,8 @@ func (h *handler) apiUpdateArchive(w http.ResponseWriter, r *http.Request, ps ht
 
 	// Get existing bookmark from database
 	filter := database.GetBookmarksOptions{
-		IDs: ids,
+		IDs:         ids,
+		WithContent: true,
 	}
 
 	bookmarks, err := h.DB.GetBookmarks(filter)
@@ -497,6 +498,76 @@ func (h *handler) apiUpdateArchive(w http.ResponseWriter, r *http.Request, ps ht
 
 	// Return new saved result
 	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(&bookmarks)
+	checkError(err)
+}
+
+// apiUpdateBookmarkTags is handler for PUT /api/bookmarks/tags
+func (h *handler) apiUpdateBookmarkTags(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	// Make sure session still valid
+	err := h.validateSession(r)
+	checkError(err)
+
+	// Decode request
+	request := struct {
+		IDs  []int       `json:"ids"`
+		Tags []model.Tag `json:"tags"`
+	}{}
+
+	err = json.NewDecoder(r.Body).Decode(&request)
+	checkError(err)
+
+	// Validate input
+	if len(request.IDs) == 0 || len(request.Tags) == 0 {
+		panic(fmt.Errorf("IDs and tags must not empty"))
+	}
+
+	// Get existing bookmark from database
+	filter := database.GetBookmarksOptions{
+		IDs:         request.IDs,
+		WithContent: true,
+	}
+
+	bookmarks, err := h.DB.GetBookmarks(filter)
+	checkError(err)
+	if len(bookmarks) == 0 {
+		panic(fmt.Errorf("no bookmark with matching ids"))
+	}
+
+	// Set new tags
+	for i, book := range bookmarks {
+		for _, newTag := range request.Tags {
+			for _, oldTag := range book.Tags {
+				if newTag.Name == oldTag.Name {
+					newTag.ID = oldTag.ID
+					break
+				}
+			}
+
+			if newTag.ID == 0 {
+				book.Tags = append(book.Tags, newTag)
+			}
+		}
+
+		bookmarks[i] = book
+	}
+
+	// Update database
+	bookmarks, err = h.DB.SaveBookmarks(bookmarks...)
+	checkError(err)
+
+	// Get image URL for each bookmark
+	for i := range bookmarks {
+		strID := strconv.Itoa(bookmarks[i].ID)
+		imgPath := fp.Join(h.DataDir, "thumb", strID)
+		imgURL := path.Join("/", "thumb", strID)
+
+		if fileExists(imgPath) {
+			bookmarks[i].ImageURL = imgURL
+		}
+	}
+
+	// Return new saved result
 	err = json.NewEncoder(w).Encode(&bookmarks)
 	checkError(err)
 }

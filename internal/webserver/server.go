@@ -43,7 +43,7 @@ func ServeApp(DB database.DB, dataDir string, port int) error {
 	router.DELETE("/api/bookmarks", hdl.apiDeleteBookmark)
 	router.PUT("/api/bookmarks", hdl.apiUpdateBookmark)
 	router.PUT("/api/archive", hdl.apiUpdateArchive)
-	// router.PUT("/api/bookmarks/tags", hdl.apiUpdateBookmarkTags)
+	router.PUT("/api/bookmarks/tags", hdl.apiUpdateBookmarkTags)
 
 	// Route for panic
 	router.PanicHandler = func(w http.ResponseWriter, r *http.Request, arg interface{}) {

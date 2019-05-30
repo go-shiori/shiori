@@ -4,7 +4,7 @@ export default {
             dialog: {},
             displayOptions: {
                 showId: false,
-                listMode: true,
+                listMode: false,
             }
         }
     },

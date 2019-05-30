@@ -8,11 +8,26 @@ var template = `
         <a title="Add new bookmark" @click="showDialogAdd">
             <i class="fas fa-fw fa-plus-circle"></i>
         </a>
-        <a title="Batch edit">
-            <i class="fas fa-fw fa-pencil-alt"></i>
-        </a>
         <a title="Show tags">
             <i class="fas fa-fw fa-tags"></i>
+        </a>
+        <a title="Batch edit" @click="toggleEditMode">
+            <i class="fas fa-fw fa-pencil-alt"></i>
+        </a>
+    </div>
+    <div class="page-header" id="edit-box" v-if="editMode">
+        <p>{{selection.length}} items selected</p>
+        <a title="Delete bookmark" @click="showDialogDelete(selection)">
+            <i class="fas fa-fw fa-trash-alt"></i>
+        </a>
+        <a title="Add tags" @click="showDialogAddTags(selection)">
+            <i class="fas fa-fw fa-tags"></i>
+        </a>
+        <a title="Update archives" @click="showDialogUpdateArchive(selection)">
+            <i class="fas fa-fw fa-cloud-download-alt"></i>
+        </a>
+        <a title="Cancel" @click="toggleEditMode">
+            <i class="fas fa-fw fa-times"></i>
         </a>
     </div>
     <div id="bookmarks-grid" ref="bookmarksGrid" :class="{list: displayOptions.listMode}">
@@ -20,21 +35,24 @@ var template = `
             v-bind="book" 
             :index="index"
             :key="book.id" 
+            :editMode="editMode"
             :showId="displayOptions.showId"
             :listMode="displayOptions.listMode"
+            :selected="isSelected(book.id)"
+            @select="toggleSelection"
             @tagClicked="filterTag"
-            @delete="showDialogDelete"
             @edit="showDialogEdit"
+            @delete="showDialogDelete"
             @update="showDialogUpdateArchive">
         </bookmark-item>
         <div class="pagination-box" v-if="maxPage > 0">
             <p>Page</p>
             <input type="text" 
-                    placeholder="1" 
-                    :value="page" 
-                    @focus="$event.target.select()" 
-                    @keyup.enter="changePage($event.target.value)" 
-                    :disabled="editMode">
+                placeholder="1" 
+                :value="page" 
+                @focus="$event.target.select()" 
+                @keyup.enter="changePage($event.target.value)" 
+                :disabled="editMode">
             <p>{{maxPage}}</p>
             <div class="spacer"></div>
             <template v-if="!editMode">
@@ -73,6 +91,8 @@ export default {
         return {
             loading: false,
             editMode: false,
+            selection: [],
+
             search: "",
             page: 0,
             maxPage: 0,
@@ -212,6 +232,18 @@ export default {
                 this.search += ` ${newTag}`;
                 this.loadData();
             }
+        },
+        toggleEditMode() {
+            this.selection = [];
+            this.editMode = !this.editMode;
+        },
+        toggleSelection(item) {
+            var idx = this.selection.findIndex(el => el.id === item.id);
+            if (idx === -1) this.selection.push(item);
+            else this.selection.splice(idx, 1);
+        },
+        isSelected(bookId) {
+            return this.selection.findIndex(el => el.id === bookId) > -1;
         },
         showDialogAdd() {
             this.showDialog({
@@ -418,6 +450,8 @@ export default {
                             return response;
                         })
                         .then(() => {
+                            this.selection = [];
+                            this.editMode = false;
                             this.dialog.loading = false;
                             this.dialog.visible = false;
                             indices.forEach(index => this.bookmarks.splice(index, 1))
@@ -427,7 +461,10 @@ export default {
                             }
                         })
                         .catch(err => {
+                            this.selection = [];
+                            this.editMode = false;
                             this.dialog.loading = false;
+
                             err.text().then(msg => {
                                 this.showErrorDialog(`${msg} (${err.status})`);
                             })
@@ -453,10 +490,10 @@ export default {
             var ids = items.map(item => item.id);
 
             this.showDialog({
-                title: 'Update Archive',
-                content: 'Update archive for selected bookmarks ? This action is irreversible.',
-                mainText: 'Yes',
-                secondText: 'No',
+                title: "Update Archive",
+                content: "Update archive for selected bookmarks ? This action is irreversible.",
+                mainText: "Yes",
+                secondText: "No",
                 mainClick: () => {
                     this.dialog.loading = true;
                     fetch("/api/archive", {
@@ -471,15 +508,104 @@ export default {
                             return response.json();
                         })
                         .then(json => {
+                            this.selection = [];
+                            this.editMode = false;
                             this.dialog.loading = false;
                             this.dialog.visible = false;
+
                             json.forEach(book => {
                                 var item = items.find(el => el.id === book.id);
                                 this.bookmarks.splice(item.index, 1, book);
                             });
                         })
                         .catch(err => {
+                            this.selection = [];
+                            this.editMode = false;
                             this.dialog.loading = false;
+
+                            err.text().then(msg => {
+                                this.showErrorDialog(`${msg} (${err.status})`);
+                            })
+                        });
+                }
+            });
+        },
+        showDialogAddTags(items) {
+            // Check and filter items
+            if (typeof items !== "object") return;
+            if (!Array.isArray(items)) items = [items];
+
+            items = items.filter(item => {
+                var id = (typeof item.id === "number") ? item.id : 0,
+                    index = (typeof item.index === "number") ? item.index : -1;
+
+                return id > 0 && index > -1;
+            });
+
+            if (items.length === 0) return;
+
+            // Show dialog
+            this.showDialog({
+                title: "Add New Tags",
+                content: "Add new tags to selected bookmarks",
+                fields: [{
+                    name: "tags",
+                    label: "Comma separated tags",
+                    value: "",
+                    separator: ",",
+                    dictionary: this.tags.map(tag => tag.name)
+                }],
+                mainText: 'OK',
+                secondText: 'Cancel',
+                mainClick: (data) => {
+                    // Validate input
+                    var tags = data.tags
+                        .toLowerCase()
+                        .replace(/\s+/g, ' ')
+                        .split(/\s*,\s*/g)
+                        .filter(tag => tag.trim() !== '')
+                        .map(tag => {
+                            return {
+                                name: tag.trim()
+                            };
+                        });
+
+                    if (tags.length === 0) return;
+
+                    // Send data
+                    var request = {
+                        ids: items.map(item => item.id),
+                        tags: tags
+                    }
+
+                    this.dialog.loading = true;
+                    fetch("/api/bookmarks/tags", {
+                            method: "put",
+                            body: JSON.stringify(request),
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                        })
+                        .then(response => {
+                            if (!response.ok) throw response;
+                            return response.json();
+                        })
+                        .then(json => {
+                            this.selection = [];
+                            this.editMode = false;
+                            this.dialog.loading = false;
+                            this.dialog.visible = false;
+
+                            json.forEach(book => {
+                                var item = items.find(el => el.id === book.id);
+                                this.bookmarks.splice(item.index, 1, book);
+                            });
+                        })
+                        .catch(err => {
+                            this.selection = [];
+                            this.editMode = false;
+                            this.dialog.loading = false;
+
                             err.text().then(msg => {
                                 this.showErrorDialog(`${msg} (${err.status})`);
                             })

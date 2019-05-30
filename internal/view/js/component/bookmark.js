@@ -1,5 +1,9 @@
 var template = `
-<div class="bookmark" :class="{list: listMode}">
+<div class="bookmark" :class="{list: listMode, selected: selected}">
+    <a class="bookmark-selector" 
+        v-if="editMode" 
+        @click="selectBookmark">
+    </a>
     <a class="bookmark-link" :href="url" target="_blank">
         <span class="thumbnail" v-if="imageURL" :style="thumbnailStyleURL"></span>
         <p class="title">{{title}}</p>
@@ -14,15 +18,17 @@ var template = `
         <a class="url" :href="url" target="_blank">
             {{hostnameURL}}
         </a>
-        <a title="Edit bookmark" @click="editBookmark">
-            <i class="fas fa-pencil-alt"></i>
-        </a>
-        <a title="Delete bookmark" @click="deleteBookmark">
-            <i class="fas fa-trash-alt"></i>
-        </a>
-        <a title="Update cache" @click="updateBookmark">
-            <i class="fas fa-cloud-download-alt"></i>
-        </a>
+        <template v-if="!editMode">
+            <a title="Edit bookmark" @click="editBookmark">
+                <i class="fas fa-fw fa-pencil-alt"></i>
+            </a>
+            <a title="Delete bookmark" @click="deleteBookmark">
+                <i class="fas fa-fw fa-trash-alt"></i>
+            </a>
+            <a title="Update archive" @click="updateBookmark">
+                <i class="fas fa-fw fa-cloud-download-alt"></i>
+            </a>
+        </template>
     </div>
 </div>`;
 
@@ -34,9 +40,11 @@ export default {
         title: String,
         excerpt: String,
         imageURL: String,
-        showId: Boolean,
-        listMode: Boolean,
         index: Number,
+        showId: Boolean,
+        editMode: Boolean,
+        listMode: Boolean,
+        selected: Boolean,
         tags: {
             type: Array,
             default () {
@@ -67,6 +75,9 @@ export default {
     methods: {
         tagClicked(name) {
             this.$emit("tagClicked", name);
+        },
+        selectBookmark() {
+            this.$emit("select", this.eventItem);
         },
         editBookmark() {
             this.$emit("edit", this.eventItem);

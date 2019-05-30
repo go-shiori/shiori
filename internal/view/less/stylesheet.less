@@ -10,6 +10,7 @@
     --colorSidebar: #FFF;
     --main: #F44336;
     --errorColor: #F44336;
+    --selectedBg: #ffe7e5;
 }
 
 &.night {
@@ -18,6 +19,7 @@
     --contentBg: #292929;
     --border: #191919;
     --color: #FFF;
+    --selectedBg: #261918;
 }
 
 * {
@@ -226,6 +228,10 @@ body {
         background-color: var(--headerBg);
         border-bottom: 1px solid var(--border);
         padding: 0 16px;
+        grid-row-end: 1;
+        grid-row-start: 1;
+        grid-column-end: -1;
+        grid-column-start: 1;
 
         p {
             flex: 1 0;
@@ -317,11 +323,10 @@ body {
             flex-flow: row wrap;
 
             p {
-                flex: auto;
-                text-align: center;
+                flex: 1 0;
                 font-size: 1em;
+                font-weight: 500;
                 line-height: 3em;
-                width: 100%;
                 padding: 0;
             }
 
@@ -330,11 +335,6 @@ body {
                 font-size: 1em;
                 font-weight: 500;
                 line-height: 3em;
-                color: var(--color);
-
-                &::placeholder {
-                    color: var(--colorLink);
-                }
             }
 
             a {
@@ -350,6 +350,11 @@ body {
     display: grid;
     grid-template-columns: 1fr;
     grid-template-rows: auto minmax(0, 1fr);
+
+    #edit-box {
+        background-color: var(--selectedBg);
+        border-bottom: 1px solid var(--main);
+    }
 
     #bookmarks-grid {
         display: grid;
