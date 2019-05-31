@@ -24,7 +24,6 @@ require (
 	golang.org/x/image v0.0.0-20190523035834-f03afa92d3ff // indirect
 	golang.org/x/net v0.0.0-20190522155817-f3200d17e092 // indirect
 	golang.org/x/sys v0.0.0-20190526052359-791d8a0f4d09 // indirect
-	golang.org/x/text v0.3.2 // indirect
 	golang.org/x/tools v0.0.0-20190525145741-7be61e1b0e51 // indirect
 	google.golang.org/appengine v1.6.0 // indirect
 )
