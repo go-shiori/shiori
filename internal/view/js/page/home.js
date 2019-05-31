@@ -209,7 +209,7 @@ export default {
 
                     if (err !== skipFetchTags) {
                         err.text().then(msg => {
-                            this.showErrorDialog(`${msg} (${err.status})`);
+                            this.showErrorDialog(msg, err.status);
                         })
                     }
                 });
@@ -313,7 +313,7 @@ export default {
                         .catch(err => {
                             this.dialog.loading = false;
                             err.text().then(msg => {
-                                this.showErrorDialog(`${msg} (${err.status})`);
+                                this.showErrorDialog(msg, err.status);
                             })
                         });
                 }
@@ -396,7 +396,7 @@ export default {
                         .catch(err => {
                             this.dialog.loading = false;
                             err.text().then(msg => {
-                                this.showErrorDialog(`${msg} (${err.status})`);
+                                this.showErrorDialog(msg, err.status);
                             })
                         });
                 }
@@ -465,7 +465,7 @@ export default {
                             this.dialog.loading = false;
 
                             err.text().then(msg => {
-                                this.showErrorDialog(`${msg} (${err.status})`);
+                                this.showErrorDialog(msg, err.status);
                             })
                         });
                 }
@@ -523,7 +523,7 @@ export default {
                             this.dialog.loading = false;
 
                             err.text().then(msg => {
-                                this.showErrorDialog(`${msg} (${err.status})`);
+                                this.showErrorDialog(msg, err.status);
                             })
                         });
                 }
@@ -606,7 +606,7 @@ export default {
                             this.dialog.loading = false;
 
                             err.text().then(msg => {
-                                this.showErrorDialog(`${msg} (${err.status})`);
+                                this.showErrorDialog(msg, err.status);
                             })
                         });
                 }

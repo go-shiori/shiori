@@ -41,16 +41,32 @@ export default {
             if (cfg.secondClick) base.secondClick = cfg.secondClick;
             this.dialog = base;
         },
-        showErrorDialog(msg) {
+        isSessionError(err) {
+            switch (err.trim().toLowerCase()) {
+                case "session is not exist":
+                case "session has been expired":
+                    return true
+                default:
+                    return false;
+            }
+        },
+        showErrorDialog(msg, status) {
+            var sessionError = this.isSessionError(msg),
+                dialogContent = sessionError ? "Session has expired, please login again." : `${msg} (${status})`;
+
             this.showDialog({
                 visible: true,
                 title: 'Error',
-                content: msg,
+                content: dialogContent,
                 mainText: 'OK',
                 mainClick: () => {
                     this.dialog.visible = false;
+                    if (sessionError) {
+                        document.cookie = "session-id=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+                        location.href = "/login";
+                    }
                 }
             });
-        }
+        },
     }
 }
