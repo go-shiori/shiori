@@ -46,11 +46,17 @@ type DB interface {
 	// GetBookmark fetchs bookmark based on its ID or URL.
 	GetBookmark(id int, url string) (model.Bookmark, bool)
 
-	// GetAccounts fetch list of accounts with matching keyword.
+	// SaveAccount saves new account in database
+	SaveAccount(username, password string) error
+
+	// GetAccounts fetch list of account (without its password) with matching keyword.
 	GetAccounts(keyword string) ([]model.Account, error)
 
 	// GetAccount fetch account with matching username.
 	GetAccount(username string) (model.Account, bool)
+
+	// DeleteAccounts removes all record with matching usernames
+	DeleteAccounts(usernames ...string) error
 
 	// GetTags fetch list of tags and its frequency from database.
 	GetTags() ([]model.Tag, error)

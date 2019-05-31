@@ -571,3 +571,112 @@ func (h *handler) apiUpdateBookmarkTags(w http.ResponseWriter, r *http.Request, 
 	err = json.NewEncoder(w).Encode(&bookmarks)
 	checkError(err)
 }
+
+// apiGetAccounts is handler for GET /api/accounts
+func (h *handler) apiGetAccounts(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	// Make sure session still valid
+	err := h.validateSession(r)
+	checkError(err)
+
+	// Get list of usernames from database
+	accounts, err := h.DB.GetAccounts("")
+	checkError(err)
+
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(&accounts)
+	checkError(err)
+}
+
+// apiInsertAccount is handler for POST /api/accounts
+func (h *handler) apiInsertAccount(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	// Make sure session still valid
+	err := h.validateSession(r)
+	checkError(err)
+
+	// Decode request
+	var account model.Account
+	err = json.NewDecoder(r.Body).Decode(&account)
+	checkError(err)
+
+	// Save account to database
+	err = h.DB.SaveAccount(account.Username, account.Password)
+	checkError(err)
+
+	fmt.Fprint(w, 1)
+}
+
+// apiUpdateAccount is handler for PUT /api/accounts
+func (h *handler) apiUpdateAccount(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	// Make sure session still valid
+	err := h.validateSession(r)
+	checkError(err)
+
+	// Decode request
+	request := struct {
+		Username    string `json:"username"`
+		OldPassword string `json:"oldPassword"`
+		NewPassword string `json:"newPassword"`
+	}{}
+
+	err = json.NewDecoder(r.Body).Decode(&request)
+	checkError(err)
+
+	// Get existing account data from database
+	account, exist := h.DB.GetAccount(request.Username)
+	if !exist {
+		panic(fmt.Errorf("username doesn't exist"))
+	}
+
+	// Compare old password with database
+	err = bcrypt.CompareHashAndPassword([]byte(account.Password), []byte(request.OldPassword))
+	if err != nil {
+		panic(fmt.Errorf("old password doesn't match"))
+	}
+
+	// Save new password to database
+	err = h.DB.SaveAccount(request.Username, request.NewPassword)
+	checkError(err)
+
+	// Delete user's sessions
+	if val, found := h.UserCache.Get(request.Username); found {
+		userSessions := val.([]string)
+		for _, session := range userSessions {
+			h.SessionCache.Delete(session)
+		}
+
+		h.UserCache.Delete(request.Username)
+	}
+
+	fmt.Fprint(w, 1)
+}
+
+// apiDeleteAccount is handler for DELETE /api/accounts
+func (h *handler) apiDeleteAccount(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	// Make sure session still valid
+	err := h.validateSession(r)
+	checkError(err)
+
+	// Decode request
+	usernames := []string{}
+	err = json.NewDecoder(r.Body).Decode(&usernames)
+	checkError(err)
+
+	// Delete accounts
+	err = h.DB.DeleteAccounts(usernames...)
+	checkError(err)
+
+	// Delete user's sessions
+	userSessions := []string{}
+	for _, username := range usernames {
+		if val, found := h.UserCache.Get(username); found {
+			userSessions = val.([]string)
+			for _, session := range userSessions {
+				h.SessionCache.Delete(session)
+			}
+
+			h.UserCache.Delete(username)
+		}
+	}
+
+	fmt.Fprint(w, 1)
+}

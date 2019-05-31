@@ -27,7 +27,7 @@ type Bookmark struct {
 type Account struct {
 	ID       int    `db:"id"       json:"id"`
 	Username string `db:"username" json:"username"`
-	Password string `db:"password" json:"password"`
+	Password string `db:"password" json:"password,omitempty"`
 }
 
 // LoginRequest is request from user to access web interface.

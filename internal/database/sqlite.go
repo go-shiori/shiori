@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/jmoiron/sqlx"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // SQLiteDatabase is implementation of Database interface
@@ -422,11 +423,29 @@ func (db *SQLiteDatabase) GetBookmark(id int, url string) (model.Bookmark, bool)
 	return book, book.ID != 0
 }
 
-// GetAccounts fetch list of accounts with matching keyword.
+// SaveAccount saves new account to database. Returns error if any happened.
+func (db *SQLiteDatabase) SaveAccount(username, password string) (err error) {
+	// Hash password with bcrypt
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 10)
+	if err != nil {
+		return err
+	}
+
+	// Insert account to database
+	_, err = db.Exec(`INSERT INTO account
+		(username, password) VALUES (?, ?)
+		ON CONFLICT(username) DO UPDATE SET
+		password = ?`,
+		username, hashedPassword, hashedPassword)
+
+	return err
+}
+
+// GetAccounts fetch list of account (without its password) with matching keyword.
 func (db *SQLiteDatabase) GetAccounts(keyword string) ([]model.Account, error) {
 	// Create query
 	args := []interface{}{}
-	query := `SELECT id, username, password FROM account WHERE 1`
+	query := `SELECT id, username FROM account WHERE 1`
 
 	if keyword != "" {
 		query += " AND username LIKE ?"
@@ -454,6 +473,37 @@ func (db *SQLiteDatabase) GetAccount(username string) (model.Account, bool) {
 		username)
 
 	return account, account.ID != 0
+}
+
+// DeleteAccounts removes all record with matching usernames.
+func (db *SQLiteDatabase) DeleteAccounts(usernames ...string) (err error) {
+	// Begin transaction
+	tx, err := db.Beginx()
+	if err != nil {
+		return err
+	}
+
+	// Make sure to rollback if panic ever happened
+	defer func() {
+		if r := recover(); r != nil {
+			panicErr, _ := r.(error)
+			tx.Rollback()
+
+			err = panicErr
+		}
+	}()
+
+	// Delete account
+	stmtDelete, _ := tx.Preparex(`DELETE FROM account WHERE username = ?`)
+	for _, username := range usernames {
+		stmtDelete.MustExec(username)
+	}
+
+	// Commit transaction
+	err = tx.Commit()
+	checkError(err)
+
+	return err
 }
 
 // GetTags fetch list of tags and their frequency.

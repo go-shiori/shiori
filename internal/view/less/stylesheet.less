@@ -55,7 +55,7 @@ body {
     >.error-message {
         width: 100%;
         max-width: 400px;
-        font-size: 0.9em;
+        font-size: 1em;
         background-color: var(--contentBg);
         border: 1px solid var(--border);
         padding: 16px;
@@ -557,13 +557,13 @@ body {
                     font-weight: 600;
 
                     &:hover {
-                        color: var(--mainDark);
+                        color: var(--main);
                     }
 
                     &:focus {
                         outline: none;
-                        color: var(--mainDark);
-                        border-bottom: 1px dashed var(--mainDark);
+                        color: var(--main);
+                        border-bottom: 1px dashed var(--main);
                     }
                 }
             }
@@ -595,6 +595,42 @@ body {
 
             >input[type="checkbox"] {
                 margin-right: 8px;
+            }
+        }
+    }
+
+    #setting-accounts {
+        summary {
+            margin-bottom: 0;
+        }
+
+        ul {
+            list-style: none;
+
+            li {
+                padding: 8px;
+                display: flex;
+                flex-flow: row nowrap;
+                align-items: center;
+
+                &:not(:last-child) {
+                    border-bottom: 1px solid var(--border);
+                }
+
+                span {
+                    font-size: 1em;
+                    color: var(--color);
+                    flex: 1 0;
+                }
+
+                a {
+                    margin-left: 8px;
+                    color: var(--colorLink);
+
+                    &:hover {
+                        color: var(--main);
+                    }
+                }
             }
         }
     }
