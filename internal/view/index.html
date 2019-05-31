@@ -22,8 +22,8 @@
 </head>
 
 <body>
-    <div class="home" id="app">
-        <div class="home-sidebar">
+    <div id="main-scene" :class="{night: displayOptions.nightMode}">
+        <div id="main-sidebar">
             <a v-for="item in sidebarItems" :title="item.title" :class="{active: activePage === item.page}" @click="switchPage(item.page)">
                 <i class="fas fa-fw" :class="item.icon"></i>
             </a>
@@ -33,21 +33,23 @@
             </a>
         </div>
         <keep-alive>
-            <component :is="activePage"></component>
+            <component :is="activePage" :display-options="displayOptions" @setting-changed="saveSetting"></component>
         </keep-alive>
         <custom-dialog v-bind="dialog" />
     </div>
 
     <script type="module">
-        import pageHome from "./js/page/home.js";
         import basePage from "./js/page/base.js";
+        import pageHome from "./js/page/home.js";
+        import pageSetting from "./js/page/setting.js";
         import customDialog from "./js/component/dialog.js";
 
         var app = new Vue({
-            el: '#app',
+            el: '#main-scene',
             mixins: [basePage],
             components: {
                 pageHome,
+                pageSetting,
                 customDialog
             },
             data: {
@@ -96,9 +98,28 @@
                                 });
                         }
                     });
+                },
+                saveSetting(opts) {
+                    localStorage.setItem("shiori-setting", JSON.stringify(opts));
+                    this.displayOptions = opts;
+                },
+                loadSetting() {
+                    var opts = JSON.parse(localStorage.getItem("shiori-setting")) || {},
+                        showId = (typeof opts.showId === "boolean") ? opts.showId : false,
+                        listMode = (typeof opts.listMode === "boolean") ? opts.listMode : false,
+                        nightMode = (typeof opts.nightMode === "boolean") ? opts.nightMode : false;
+        
+                    this.displayOptions = {
+                        showId: showId,
+                        listMode: listMode,
+                        nightMode: nightMode,
+                    };
                 }
             },
             mounted() {
+                // Load setting
+                this.loadSetting();
+
                 // Prepare history state watcher
                 var stateWatcher = (e) => {
                     var state = e.state || {};

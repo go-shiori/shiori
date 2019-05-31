@@ -1,11 +1,19 @@
 export default {
+    props: {
+        displayOptions: {
+            type: Object,
+            default () {
+                return {
+                    showId: false,
+                    listMode: false,
+                    nightMode: false,
+                };
+            }
+        }
+    },
     data() {
         return {
-            dialog: {},
-            displayOptions: {
-                showId: false,
-                listMode: false,
-            }
+            dialog: {}
         }
     },
     methods: {

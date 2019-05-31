@@ -43,7 +43,7 @@ body {
     overflow: hidden;
 }
 
-.login {
+#login-scene {
     height: 100vh;
     padding: 16px;
     overflow: auto;
@@ -117,7 +117,6 @@ body {
 
             >label {
                 color: var(--color);
-                font-size: 0.9em;
             }
 
             >input {
@@ -125,8 +124,8 @@ body {
                 padding: 8px;
                 background-color: var(--contentBg);
                 border: 1px solid var(--border);
-                font-size: 0.9em;
                 min-width: 0;
+                font-size: 1em;
             }
 
             .checkbox-field {
@@ -135,8 +134,13 @@ body {
                 flex-flow: row nowrap;
                 align-items: center;
                 justify-content: center;
-                font-size: 0.9em;
                 cursor: pointer;
+
+                &:hover,
+                &:focus {
+                    text-decoration: underline;
+                    text-decoration-color: var(--main);
+                }
 
                 >input[type="checkbox"] {
                     margin-right: 8px;
@@ -154,7 +158,6 @@ body {
                 color: var(--color);
                 text-transform: uppercase;
                 text-align: center;
-                font-size: 0.9em;
                 font-weight: 600;
                 cursor: default;
 
@@ -171,7 +174,7 @@ body {
     }
 }
 
-.home {
+#main-scene {
     display: grid;
     grid-template-rows: minmax(0, 1fr);
     grid-template-columns: 60px minmax(0, 1fr);
@@ -179,7 +182,7 @@ body {
     width: 100vw;
     height: 100vh;
 
-    .home-sidebar {
+    #main-sidebar {
         display: flex;
         flex-flow: column nowrap;
         background-color: var(--sidebarBg);
@@ -423,6 +426,10 @@ body {
 
             .pagination-box {
                 padding: 16px 0;
+
+                &:first-child {
+                    padding-top: 0;
+                }
             }
 
             @media (max-width: 600px) {
@@ -468,6 +475,126 @@ body {
                 &:focus {
                     color: var(--main);
                 }
+            }
+        }
+    }
+}
+
+#page-setting {
+    min-height: 0;
+    max-height: 100%;
+    display: flex;
+    flex-flow: column nowrap;
+
+    .setting-container {
+        padding: 8px;
+        display: flex;
+        overflow: auto;
+        flex-flow: column nowrap;
+        flex: 1 0;
+
+        &::after {
+            content: "";
+            display: block;
+            min-height: 1px;
+        }
+
+        details.setting-group {
+            margin: 8px;
+            display: block;
+            max-width: 350px;
+            color: var(--color);
+            background-color: var(--contentBg);
+            border: 1px solid var(--border);
+
+            @media (max-width: 600px) {
+                max-width: 100%;
+            }
+
+            summary {
+                list-style: none;
+                font-weight: 600;
+                width: 100%;
+                padding: 12px 8px;
+                font-size: 1.1em;
+
+                cursor: pointer;
+
+                &:hover {
+                    color: var(--main)
+                }
+
+                &::-webkit-details-marker {
+                    display: none;
+                }
+
+                &::after {
+                    content: "+";
+                    margin-left: 8px;
+                    font-weight: 600;
+                }
+            }
+
+            &[open] summary {
+                border-bottom: 1px solid var(--border);
+
+                ::after {
+                    content: "-";
+                }
+            }
+
+            div.setting-group-footer {
+                padding: 4px 8px;
+                display: flex;
+                flex-flow: column nowrap;
+                align-items: flex-end;
+                border-top: 1px solid var(--border);
+
+                >a {
+                    text-transform: uppercase;
+                    padding: 8px 4px;
+                    font-size: 0.9em;
+                    font-weight: 600;
+
+                    &:hover {
+                        color: var(--mainDark);
+                    }
+
+                    &:focus {
+                        outline: none;
+                        color: var(--mainDark);
+                        border-bottom: 1px dashed var(--mainDark);
+                    }
+                }
+            }
+        }
+    }
+
+    #setting-display {
+        display: flex;
+        flex-flow: column nowrap;
+        padding-bottom: 8px;
+
+        summary {
+            margin-bottom: 8px;
+        }
+
+        label {
+            padding: 4px 8px;
+            color: var(--color);
+            display: flex;
+            flex-flow: row nowrap;
+            align-items: center;
+            cursor: pointer;
+
+            &:hover,
+            &:focus {
+                text-decoration: underline;
+                text-decoration-color: var(--main);
+            }
+
+            >input[type="checkbox"] {
+                margin-right: 8px;
             }
         }
     }

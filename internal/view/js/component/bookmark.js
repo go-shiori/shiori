@@ -71,7 +71,7 @@ export default {
     },
     methods: {
         tagClicked(name) {
-            this.$emit("tagClicked", name);
+            this.$emit("tag-clicked", name);
         },
         selectBookmark() {
             this.$emit("select", this.eventItem);

@@ -20,7 +20,7 @@
 </head>
 
 <body>
-    <div class="login" id="app">
+    <div id="login-scene" :class="{night: nightMode}">
         <p class="error-message" v-if="error !== ''">{{error}}</p>
         <div id="login-box">
             <div id="logo-area">
@@ -47,13 +47,14 @@
 
     <script type="module">
         var app = new Vue({
-            el: "#app",
+            el: "#login-scene",
             data: {
                 error: "",
                 loading: false,
                 username: "",
                 password: "",
                 remember: false,
+                nightMode: false,
             },
             methods: {
                 login() {
@@ -92,9 +93,18 @@
                                 this.error = `${msg} (${err.status})`;
                             })
                         });
+                },
+                loadSetting() {
+                    var opts = JSON.parse(localStorage.getItem("shiori-setting")) || {},
+                        nightMode = (typeof opts.nightMode === "boolean") ? opts.nightMode : false;
+
+                    this.nightMode = nightMode;
                 }
             },
             mounted() {
+                // Load setting
+                this.loadSetting();
+
                 // Set initial URL
                 history.replaceState(null, "login", "login");
             }
