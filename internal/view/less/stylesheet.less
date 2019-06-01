@@ -11,6 +11,17 @@
     --main: #F44336;
     --errorColor: #F44336;
     --selectedBg: #ffe7e5;
+
+    @media (prefers-color-scheme: dark) {
+        &:root {
+            --bg: #1F1F1F;
+            --headerBg: #292929;
+            --contentBg: #292929;
+            --border: #191919;
+            --color: #FFF;
+            --selectedBg: #261918;
+        }
+    }
 }
 
 &.night {
