@@ -76,21 +76,6 @@ func updateHandler(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	// Check if user really want to batch update archive
-	if len(ids) > 3 && !noArchival && !skipConfirm {
-		fmt.Println("This update process will also generate the offline archive for the selected bookmarks.")
-		fmt.Println("This might take a long time and a lot of your network bandwith.")
-
-		confirmUpdate := ""
-		fmt.Printf("Continue update and archival process for %d bookmark(s)? (y/N): ", len(ids))
-		fmt.Scanln(&confirmUpdate)
-
-		if confirmUpdate != "y" {
-			fmt.Println("No bookmarks updated")
-			return
-		}
-	}
-
 	// Clean up new parameter from flags
 	title = normalizeSpace(title)
 	excerpt = normalizeSpace(excerpt)
@@ -128,6 +113,22 @@ func updateHandler(cmd *cobra.Command, args []string) {
 	if len(bookmarks) == 0 {
 		cError.Println("No matching index found")
 		return
+	}
+
+	// Check if user really want to batch update archive
+	if nBook := len(bookmarks); nBook > 5 && !offline && !noArchival && !skipConfirm {
+		fmt.Println()
+		fmt.Printf("This update will also generate offline archive for %d bookmark(s).\n", nBook)
+		fmt.Println("This might take a long time and uses lot of your network bandwith.")
+
+		confirmUpdate := ""
+		fmt.Printf("Continue update and archival process ? (y/N): ")
+		fmt.Scanln(&confirmUpdate)
+
+		if confirmUpdate != "y" {
+			fmt.Println("No bookmarks updated")
+			return
+		}
 	}
 
 	// If it's not offline mode, fetch data from internet
