@@ -18,6 +18,7 @@ type ResourceURL struct {
 	DownloadURL string
 	ArchivalURL string
 	Parent      string
+	IsEmbedded  bool
 }
 
 // ToResourceURL generates an uri into a Resource URL.

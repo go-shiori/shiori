@@ -104,13 +104,15 @@ func (arc *Archiver) archive(res ResourceURL) {
 
 	// Process resource depending on its type.
 	// Since this `archive` method only used for processing sub
-	// resource, we will only process the CSS sub resources.
+	// resource, we will only process the CSS and HTML sub resources.
 	// For other file, we will simply download it as it is.
 	var result ProcessResult
 	var subResources []ResourceURL
 	cType := resp.Header.Get("Content-Type")
 
 	switch {
+	case strings.Contains(cType, "text/html") && res.IsEmbedded:
+		result, subResources, err = arc.ProcessHTMLFile(res, resp.Body)
 	case strings.Contains(cType, "text/css"):
 		result, subResources, err = arc.ProcessCSSFile(res, resp.Body)
 	default:

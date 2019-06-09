@@ -2,15 +2,7 @@ package archiver
 
 import (
 	nurl "net/url"
-	"regexp"
 	"strings"
-)
-
-var (
-	rxStyleURL      = regexp.MustCompile(`(?i)^url\((.+)\)$`)
-	rxSingleQuote   = regexp.MustCompile(`(?i)^'(.*)'$`)
-	rxDoubleQuote   = regexp.MustCompile(`(?i)^"(.*)"$`)
-	rxJSContentType = regexp.MustCompile(`(?i)(text|application)/(java|ecma)script`)
 )
 
 func clearUTMParams(url *nurl.URL) {

@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"mime"
 	nurl "net/url"
+	"path"
 	"regexp"
 	"strings"
 
@@ -24,6 +26,10 @@ var (
 	rxImageMeta       = regexp.MustCompile(`(?i)image|thumbnail`)
 	rxLazyImageSrcset = regexp.MustCompile(`(?i)\.(jpg|jpeg|png|webp)\s+\d`)
 	rxLazyImageSrc    = regexp.MustCompile(`(?i)^\s*\S+\.(jpg|jpeg|png|webp)\S*\s*$`)
+	rxStyleURL        = regexp.MustCompile(`(?i)^url\((.+)\)$`)
+	rxSingleQuote     = regexp.MustCompile(`(?i)^'([^']*)'$`)
+	rxDoubleQuote     = regexp.MustCompile(`(?i)^"([^"]*)"$`)
+	rxJSContentType   = regexp.MustCompile(`(?i)(text|application)/(java|ecma)script`)
 )
 
 // ProcessHTMLFile process HTML file that submitted through the io.Reader.
@@ -356,6 +362,11 @@ func extractGenericTag(node *html.Node, attrName string, pageURL *nurl.URL) []Re
 		return nil
 	}
 
+	// If this node is iframe, mark it as embedded
+	if tagName(node) == "iframe" {
+		res.IsEmbedded = true
+	}
+
 	setAttribute(node, attrName, res.ArchivalURL)
 	return []ResourceURL{res}
 }
@@ -431,9 +442,12 @@ func processJS(input io.Reader, baseURL *nurl.URL) (string, []ResourceURL) {
 
 		// Process the string.
 		// Unlike CSS, JS doesn't have it's own URL token. So, we can only guess whether
-		// a string is URL or not. For simplicity, we only catch those that wrapped in `url()`
-		// because it's usually CSS resource which downloaded via JS. However,
-		// if it doesn't fulfill the criteria above, just write it as it is.
+		// a string is URL or not. There are several criterias to decide if it's URL :
+		// - It surrounded by `url()` just like CSS
+		// - It started with http(s):// for absolute URL
+		// - It started with slash (/) for relative URL
+		// -
+		// If it doesn't fulfill any of criteria above, just write it as it is.
 		var res ResourceURL
 		var newURL string
 
@@ -448,6 +462,23 @@ func processJS(input io.Reader, baseURL *nurl.URL) (string, []ResourceURL) {
 
 			res = ToResourceURL(cssURL, baseURL)
 			newURL = fmt.Sprintf("\"url('%s')\"", res.ArchivalURL)
+		} else if strings.HasPrefix(text, "/") || rxHTTPScheme.MatchString(text) {
+			res = ToResourceURL(text, baseURL)
+
+			tmp, err := nurl.Parse(res.DownloadURL)
+			if err != nil {
+				buffer.Write(bt)
+				continue
+			}
+
+			ext := path.Ext(tmp.Path)
+			cType := mime.TypeByExtension(ext)
+			if !strings.Contains(cType, "text/css") && !rxJSContentType.MatchString(cType) {
+				buffer.Write(bt)
+				continue
+			}
+
+			newURL = fmt.Sprintf("\"%s\"", res.ArchivalURL)
 		} else {
 			buffer.Write(bt)
 			continue
