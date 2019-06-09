@@ -27,6 +27,7 @@ func openCmd() *cobra.Command {
 
 	cmd.Flags().BoolP("yes", "y", false, "Skip confirmation prompt and open ALL bookmarks")
 	cmd.Flags().BoolP("archive", "a", false, "Open the bookmark's archived content")
+	cmd.Flags().IntP("archive-port", "p", 0, "Port number that used to serve archive")
 	cmd.Flags().BoolP("text-cache", "t", false, "Open the bookmark's text cache in terminal")
 
 	return cmd
@@ -36,6 +37,7 @@ func openHandler(cmd *cobra.Command, args []string) {
 	// Parse flags
 	skipConfirm, _ := cmd.Flags().GetBool("yes")
 	archiveMode, _ := cmd.Flags().GetBool("archive")
+	archivePort, _ := cmd.Flags().GetInt("archive-port")
 	textCacheMode, _ := cmd.Flags().GetBool("text-cache")
 
 	// Convert args to ids
@@ -153,7 +155,8 @@ func openHandler(cmd *cobra.Command, args []string) {
 	}
 
 	// Choose random port
-	listener, err := net.Listen("tcp", ":0")
+	listenerAddr := fmt.Sprintf(":%d", archivePort)
+	listener, err := net.Listen("tcp", listenerAddr)
 	if err != nil {
 		cError.Printf("Failed to serve archive: %v\n", err)
 		return
