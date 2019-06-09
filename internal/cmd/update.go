@@ -34,13 +34,13 @@ func updateCmd() *cobra.Command {
 		Run: updateHandler,
 	}
 
-	cmd.Flags().StringP("url", "u", "", "New URL for this bookmark.")
-	cmd.Flags().StringP("title", "i", "", "New title for this bookmark.")
-	cmd.Flags().StringP("excerpt", "e", "", "New excerpt for this bookmark.")
-	cmd.Flags().StringSliceP("tags", "t", []string{}, "Comma-separated tags for this bookmark.")
-	cmd.Flags().BoolP("offline", "o", false, "Update bookmark without fetching data from internet.")
+	cmd.Flags().StringP("url", "u", "", "New URL for this bookmark")
+	cmd.Flags().StringP("title", "i", "", "New title for this bookmark")
+	cmd.Flags().StringP("excerpt", "e", "", "New excerpt for this bookmark")
+	cmd.Flags().StringSliceP("tags", "t", []string{}, "Comma-separated tags for this bookmark")
+	cmd.Flags().BoolP("offline", "o", false, "Update bookmark without fetching data from internet")
 	cmd.Flags().BoolP("yes", "y", false, "Skip confirmation prompt and update ALL bookmarks")
-	cmd.Flags().Bool("dont-overwrite", false, "Don't overwrite existing metadata. Useful when only want to update bookmark's content.")
+	cmd.Flags().Bool("dont-overwrite", false, "Don't overwrite existing metadata. Useful when only want to update bookmark's content")
 
 	return cmd
 }

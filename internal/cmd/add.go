@@ -25,10 +25,10 @@ func addCmd() *cobra.Command {
 		Run:   addHandler,
 	}
 
-	cmd.Flags().StringP("title", "i", "", "Custom title for this bookmark.")
-	cmd.Flags().StringP("excerpt", "e", "", "Custom excerpt for this bookmark.")
-	cmd.Flags().StringSliceP("tags", "t", []string{}, "Comma-separated tags for this bookmark.")
-	cmd.Flags().BoolP("offline", "o", false, "Save bookmark without fetching data from internet.")
+	cmd.Flags().StringP("title", "i", "", "Custom title for this bookmark")
+	cmd.Flags().StringP("excerpt", "e", "", "Custom excerpt for this bookmark")
+	cmd.Flags().StringSliceP("tags", "t", []string{}, "Comma-separated tags for this bookmark")
+	cmd.Flags().BoolP("offline", "o", false, "Save bookmark without fetching data from internet")
 
 	return cmd
 }
