@@ -96,11 +96,15 @@ func addHandler(cmd *cobra.Command, args []string) {
 
 			// Save as archive
 			buffer := bytes.NewBuffer(nil)
-			tee := io.TeeReader(resp.Body, buffer)
 
-			contentType := resp.Header.Get("Content-Type")
 			archivePath := fp.Join(DataDir, "archive", fmt.Sprintf("%d", book.ID))
-			err = warc.FromReader(tee, url, contentType, archivePath)
+			archivalRequest := warc.ArchivalRequest{
+				URL:         url,
+				Reader:      io.TeeReader(resp.Body, buffer),
+				ContentType: resp.Header.Get("Content-Type"),
+			}
+
+			err = warc.NewArchive(archivalRequest, archivePath)
 			if err != nil {
 				cError.Printf("Failed to create archive: %v\n", err)
 				return

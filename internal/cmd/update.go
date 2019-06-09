@@ -180,14 +180,18 @@ func updateHandler(cmd *cobra.Command, args []string) {
 				defer resp.Body.Close()
 
 				// Save as archive, make sure to delete the old one first
+				buffer := bytes.NewBuffer(nil)
+
 				archivePath := fp.Join(DataDir, "archive", fmt.Sprintf("%d", book.ID))
 				os.Remove(archivePath)
 
-				buffer := bytes.NewBuffer(nil)
-				tee := io.TeeReader(resp.Body, buffer)
+				archivalRequest := warc.ArchivalRequest{
+					URL:         book.URL,
+					Reader:      io.TeeReader(resp.Body, buffer),
+					ContentType: resp.Header.Get("Content-Type"),
+				}
 
-				contentType := resp.Header.Get("Content-Type")
-				err = warc.FromReader(tee, book.URL, contentType, archivePath)
+				err = warc.NewArchive(archivalRequest, archivePath)
 				if err != nil {
 					chProblem <- book.ID
 					chMessage <- fmt.Errorf("Failed to create archive %s: %v", book.URL, err)

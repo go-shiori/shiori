@@ -13,17 +13,39 @@ import (
 	"go.etcd.io/bbolt"
 )
 
-// FromReader create archive from the specified io.Reader.
-func FromReader(input io.Reader, url, contentType, dstPath string) error {
+// ArchivalRequest is request for archiving a web page,
+// either from URL or from an io.Reader.
+type ArchivalRequest struct {
+	URL         string
+	Reader      io.Reader
+	ContentType string
+	LogEnabled  bool
+}
+
+// NewArchive creates new archive based on submitted request,
+// then save it to specified path.
+func NewArchive(req ArchivalRequest, dstPath string) error {
 	// Make sure URL is valid
-	parsedURL, err := nurl.ParseRequestURI(url)
+	parsedURL, err := nurl.ParseRequestURI(req.URL)
 	if err != nil || parsedURL.Scheme == "" || parsedURL.Hostname() == "" {
-		return fmt.Errorf("url %s is not valid", url)
+		return fmt.Errorf("url %s is not valid", req.URL)
 	}
 
 	// Generate resource URL
-	res := archiver.ToResourceURL(url, parsedURL)
+	res := archiver.ToResourceURL(req.URL, parsedURL)
 	res.ArchivalURL = "archive-root"
+
+	// Download URL if needed
+	if req.Reader == nil || req.ContentType == "" {
+		resp, err := archiver.DownloadData(res.DownloadURL)
+		if err != nil {
+			return fmt.Errorf("failed to download %s: %v", req.URL, err)
+		}
+		defer resp.Body.Close()
+
+		req.Reader = resp.Body
+		req.ContentType = resp.Header.Get("Content-Type")
+	}
 
 	// Create database for archive
 	os.MkdirAll(fp.Dir(dstPath), os.ModePerm)
@@ -41,7 +63,7 @@ func FromReader(input io.Reader, url, contentType, dstPath string) error {
 		ChWarnings:  make(chan error),
 		ChRequest:   make(chan archiver.ResourceURL, 10),
 		ResourceMap: make(map[string]struct{}),
-		LogEnabled:  true,
+		LogEnabled:  req.LogEnabled,
 	}
 	defer arc.Close()
 
@@ -51,10 +73,10 @@ func FromReader(input io.Reader, url, contentType, dstPath string) error {
 	var result archiver.ProcessResult
 	var subResources []archiver.ResourceURL
 
-	if strings.Contains(contentType, "text/html") {
-		result, subResources, err = arc.ProcessHTMLFile(res, input)
+	if strings.Contains(req.ContentType, "text/html") {
+		result, subResources, err = arc.ProcessHTMLFile(res, req.Reader)
 	} else {
-		result, err = arc.ProcessOtherFile(res, input)
+		result, err = arc.ProcessOtherFile(res, req.Reader)
 	}
 
 	if err != nil {
@@ -67,7 +89,7 @@ func FromReader(input io.Reader, url, contentType, dstPath string) error {
 	// Save content to storage
 	arc.Logf(0, "Downloaded %s", res.DownloadURL)
 
-	result.ContentType = contentType
+	result.ContentType = req.ContentType
 	err = arc.SaveToStorage(result)
 	if err != nil {
 		return fmt.Errorf("failed to save %s: %v", res.DownloadURL, err)
@@ -89,17 +111,4 @@ func FromReader(input io.Reader, url, contentType, dstPath string) error {
 	time.Sleep(time.Second)
 	arc.StartArchiver()
 	return nil
-}
-
-// FromURL create archive from the specified URL.
-func FromURL(url, dstPath string) error {
-	// Download URL
-	resp, err := archiver.DownloadData(url)
-	if err != nil {
-		return fmt.Errorf("failed to download %s: %v", url, err)
-	}
-	defer resp.Body.Close()
-
-	contentType := resp.Header.Get("Content-Type")
-	return FromReader(resp.Body, url, contentType, dstPath)
 }
