@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	fp "path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -57,18 +58,20 @@ func deleteHandler(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	// Delete thumbnail image from local disk
+	// Delete thumbnail image and archives from local disk
 	if len(ids) == 0 {
 		thumbDir := fp.Join(DataDir, "thumb")
+		archiveDir := fp.Join(DataDir, "archive")
 		os.RemoveAll(thumbDir)
+		os.RemoveAll(archiveDir)
 	} else {
 		for _, id := range ids {
-			imgPath := fp.Join(DataDir, "thumb", fmt.Sprintf("%d.*", id))
-			matchedFiles, _ := fp.Glob(imgPath)
+			strID := strconv.Itoa(id)
+			imgPath := fp.Join(DataDir, "thumb", strID)
+			archivePath := fp.Join(DataDir, "archive", strID)
 
-			for _, f := range matchedFiles {
-				os.Remove(f)
-			}
+			os.Remove(imgPath)
+			os.Remove(archivePath)
 		}
 	}
 

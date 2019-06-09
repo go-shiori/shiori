@@ -1,7 +1,10 @@
 package cmd
 
 import (
+	"bytes"
 	"fmt"
+	"io"
+	"net/http"
 	nurl "net/url"
 	fp "path/filepath"
 	"sort"
@@ -12,6 +15,7 @@ import (
 	"github.com/go-shiori/go-readability"
 	"github.com/go-shiori/shiori/internal/database"
 	"github.com/go-shiori/shiori/internal/model"
+	"github.com/go-shiori/shiori/pkg/warc"
 	"github.com/spf13/cobra"
 )
 
@@ -139,8 +143,17 @@ func updateHandler(cmd *cobra.Command, args []string) {
 					<-semaphore
 				}()
 
-				// Download article
-				resp, err := httpClient.Get(book.URL)
+				// Prepare request
+				req, err := http.NewRequest("GET", book.URL, nil)
+				if err != nil {
+					chProblem <- book.ID
+					chMessage <- fmt.Errorf("Failed to download %s: %v", book.URL, err)
+					return
+				}
+
+				// Send request
+				req.Header.Set("User-Agent", "Shiori/2.0.0 (+https://github.com/go-shiori/shiori)")
+				resp, err := httpClient.Do(req)
 				if err != nil {
 					chProblem <- book.ID
 					chMessage <- fmt.Errorf("Failed to download %s: %v", book.URL, err)
@@ -148,7 +161,21 @@ func updateHandler(cmd *cobra.Command, args []string) {
 				}
 				defer resp.Body.Close()
 
-				article, err := readability.FromReader(resp.Body, book.URL)
+				// Save as archive
+				buffer := bytes.NewBuffer(nil)
+				tee := io.TeeReader(resp.Body, buffer)
+
+				contentType := resp.Header.Get("Content-Type")
+				archivePath := fp.Join(DataDir, "archive", fmt.Sprintf("%d", book.ID))
+				err = warc.FromReader(tee, book.URL, contentType, archivePath)
+				if err != nil {
+					chProblem <- book.ID
+					chMessage <- fmt.Errorf("Failed to create archive %s: %v", book.URL, err)
+					return
+				}
+
+				// Parse article
+				article, err := readability.FromReader(buffer, book.URL)
 				if err != nil {
 					chProblem <- book.ID
 					chMessage <- fmt.Errorf("Failed to parse %s: %v", book.URL, err)

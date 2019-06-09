@@ -20,9 +20,11 @@ require (
 	github.com/shurcooL/vfsgen v0.0.0-20181202132449-6a9ea43bcacd
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/cobra v0.0.4
+	github.com/tdewolff/parse/v2 v2.3.7
+	go.etcd.io/bbolt v1.3.2
 	golang.org/x/crypto v0.0.0-20190513172903-22d7a77e9e5f
 	golang.org/x/image v0.0.0-20190523035834-f03afa92d3ff // indirect
-	golang.org/x/net v0.0.0-20190522155817-f3200d17e092 // indirect
+	golang.org/x/net v0.0.0-20190522155817-f3200d17e092
 	golang.org/x/sys v0.0.0-20190526052359-791d8a0f4d09 // indirect
 	golang.org/x/tools v0.0.0-20190525145741-7be61e1b0e51 // indirect
 	google.golang.org/appengine v1.6.0 // indirect

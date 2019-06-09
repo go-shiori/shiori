@@ -1,11 +1,16 @@
 package cmd
 
 import (
+	"bytes"
 	"fmt"
+	"io"
+	"net/http"
 	nurl "net/url"
 	fp "path/filepath"
 	"strings"
 	"time"
+
+	"github.com/go-shiori/shiori/pkg/warc"
 
 	"github.com/go-shiori/go-readability"
 	"github.com/go-shiori/shiori/internal/model"
@@ -73,14 +78,36 @@ func addHandler(cmd *cobra.Command, args []string) {
 		func() {
 			cInfo.Println("Downloading article...")
 
-			resp, err := httpClient.Get(url)
+			// Prepare request
+			req, err := http.NewRequest("GET", url, nil)
+			if err != nil {
+				cError.Printf("Failed to download article: %v\n", err)
+				return
+			}
+
+			// Send request
+			req.Header.Set("User-Agent", "Shiori/2.0.0 (+https://github.com/go-shiori/shiori)")
+			resp, err := httpClient.Do(req)
 			if err != nil {
 				cError.Printf("Failed to download article: %v\n", err)
 				return
 			}
 			defer resp.Body.Close()
 
-			article, err := readability.FromReader(resp.Body, url)
+			// Save as archive
+			buffer := bytes.NewBuffer(nil)
+			tee := io.TeeReader(resp.Body, buffer)
+
+			contentType := resp.Header.Get("Content-Type")
+			archivePath := fp.Join(DataDir, "archive", fmt.Sprintf("%d", book.ID))
+			err = warc.FromReader(tee, url, contentType, archivePath)
+			if err != nil {
+				cError.Printf("Failed to create archive: %v\n", err)
+				return
+			}
+
+			// Parse article
+			article, err := readability.FromReader(buffer, url)
 			if err != nil {
 				cError.Printf("Failed to parse article: %v\n", err)
 				return
