@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	nurl "net/url"
+	"os"
 	fp "path/filepath"
 	"sort"
 	"strings"
@@ -161,12 +162,14 @@ func updateHandler(cmd *cobra.Command, args []string) {
 				}
 				defer resp.Body.Close()
 
-				// Save as archive
+				// Save as archive, make sure to delete the old one first
+				archivePath := fp.Join(DataDir, "archive", fmt.Sprintf("%d", book.ID))
+				os.Remove(archivePath)
+
 				buffer := bytes.NewBuffer(nil)
 				tee := io.TeeReader(resp.Body, buffer)
 
 				contentType := resp.Header.Get("Content-Type")
-				archivePath := fp.Join(DataDir, "archive", fmt.Sprintf("%d", book.ID))
 				err = warc.FromReader(tee, book.URL, contentType, archivePath)
 				if err != nil {
 					chProblem <- book.ID
