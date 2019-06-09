@@ -431,11 +431,9 @@ func processJS(input io.Reader, baseURL *nurl.URL) (string, []ResourceURL) {
 
 		// Process the string.
 		// Unlike CSS, JS doesn't have it's own URL token. So, we can only guess whether
-		// a string is URL or not. There are three criteria to decide if it's URL :
-		// - It started with http(s):// for absolute URL
-		// - It started with slash (/) for relative URL
-		// - It surrounded by `url()` just like CSS
-		// If it doesn't fulfill any of criteria above, just write it as it is.
+		// a string is URL or not. For simplicity, we only catch those that wrapped in `url()`
+		// because it's usually CSS resource which downloaded via JS. However,
+		// if it doesn't fulfill the criteria above, just write it as it is.
 		var res ResourceURL
 		var newURL string
 
