@@ -41,6 +41,7 @@ func updateCmd() *cobra.Command {
 	cmd.Flags().BoolP("offline", "o", false, "Update bookmark without fetching data from internet")
 	cmd.Flags().BoolP("yes", "y", false, "Skip confirmation prompt and update ALL bookmarks")
 	cmd.Flags().Bool("dont-overwrite", false, "Don't overwrite existing metadata. Useful when only want to update bookmark's content")
+	cmd.Flags().BoolP("no-archive", "a", false, "Update bookmark without creating offline archive")
 
 	return cmd
 }
@@ -53,6 +54,7 @@ func updateHandler(cmd *cobra.Command, args []string) {
 	tags, _ := cmd.Flags().GetStringSlice("tags")
 	offline, _ := cmd.Flags().GetBool("offline")
 	skipConfirm, _ := cmd.Flags().GetBool("yes")
+	noArchival, _ := cmd.Flags().GetBool("no-archive")
 	dontOverwrite := cmd.Flags().Changed("dont-overwrite")
 
 	// If no arguments (i.e all bookmarks going to be updated), confirm to user
@@ -72,6 +74,21 @@ func updateHandler(cmd *cobra.Command, args []string) {
 	if err != nil {
 		cError.Printf("Failed to parse args: %v\n", err)
 		return
+	}
+
+	// Check if user really want to batch update archive
+	if len(ids) > 3 && !noArchival && !skipConfirm {
+		fmt.Println("This update process will also generate the offline archive for the selected bookmarks.")
+		fmt.Println("This might take a long time and a lot of your network bandwith.")
+
+		confirmUpdate := ""
+		fmt.Printf("Continue update and archival process for %d bookmark(s)? (y/N): ", len(ids))
+		fmt.Scanln(&confirmUpdate)
+
+		if confirmUpdate != "y" {
+			fmt.Println("No bookmarks updated")
+			return
+		}
 	}
 
 	// Clean up new parameter from flags
