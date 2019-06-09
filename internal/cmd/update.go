@@ -41,7 +41,8 @@ func updateCmd() *cobra.Command {
 	cmd.Flags().BoolP("offline", "o", false, "Update bookmark without fetching data from internet")
 	cmd.Flags().BoolP("yes", "y", false, "Skip confirmation prompt and update ALL bookmarks")
 	cmd.Flags().Bool("dont-overwrite", false, "Don't overwrite existing metadata. Useful when only want to update bookmark's content")
-	cmd.Flags().BoolP("no-archive", "a", false, "Update bookmark without creating offline archive")
+	cmd.Flags().BoolP("no-archival", "a", false, "Update bookmark without updating offline archive")
+	cmd.Flags().Bool("log-archival", false, "Log the archival process")
 
 	return cmd
 }
@@ -54,7 +55,8 @@ func updateHandler(cmd *cobra.Command, args []string) {
 	tags, _ := cmd.Flags().GetStringSlice("tags")
 	offline, _ := cmd.Flags().GetBool("offline")
 	skipConfirm, _ := cmd.Flags().GetBool("yes")
-	noArchival, _ := cmd.Flags().GetBool("no-archive")
+	noArchival, _ := cmd.Flags().GetBool("no-archival")
+	logArchival, _ := cmd.Flags().GetBool("log-archival")
 	dontOverwrite := cmd.Flags().Changed("dont-overwrite")
 
 	// If no arguments (i.e all bookmarks going to be updated), confirm to user
@@ -190,6 +192,7 @@ func updateHandler(cmd *cobra.Command, args []string) {
 					URL:         book.URL,
 					Reader:      io.TeeReader(resp.Body, buffer),
 					ContentType: resp.Header.Get("Content-Type"),
+					LogEnabled:  logArchival,
 				}
 
 				err = warc.NewArchive(archivalRequest, archivePath)

@@ -29,6 +29,7 @@ func addCmd() *cobra.Command {
 	cmd.Flags().StringP("excerpt", "e", "", "Custom excerpt for this bookmark")
 	cmd.Flags().StringSliceP("tags", "t", []string{}, "Comma-separated tags for this bookmark")
 	cmd.Flags().BoolP("offline", "o", false, "Save bookmark without fetching data from internet")
+	cmd.Flags().Bool("log-archival", false, "Log the archival process")
 
 	return cmd
 }
@@ -40,6 +41,7 @@ func addHandler(cmd *cobra.Command, args []string) {
 	excerpt, _ := cmd.Flags().GetString("excerpt")
 	tags, _ := cmd.Flags().GetStringSlice("tags")
 	offline, _ := cmd.Flags().GetBool("offline")
+	logArchival, _ := cmd.Flags().GetBool("log-archival")
 
 	// Clean up URL by removing its fragment and UTM parameters
 	tmp, err := nurl.Parse(url)
@@ -102,6 +104,7 @@ func addHandler(cmd *cobra.Command, args []string) {
 				URL:         url,
 				Reader:      io.TeeReader(resp.Body, buffer),
 				ContentType: resp.Header.Get("Content-Type"),
+				LogEnabled:  logArchival,
 			}
 
 			err = warc.NewArchive(archivalRequest, archivePath)
