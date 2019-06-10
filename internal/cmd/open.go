@@ -117,6 +117,7 @@ func openHandler(cmd *cobra.Command, args []string) {
 			cSymbol.Println(strings.Repeat("=", termWidth))
 			fmt.Println()
 		}
+		return
 	}
 
 	// Open archive
