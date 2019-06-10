@@ -164,7 +164,7 @@ func updateHandler(cmd *cobra.Command, args []string) {
 					<-semaphore
 				}()
 
-				// Prepare request
+				// Prepare download request
 				req, err := http.NewRequest("GET", book.URL, nil)
 				if err != nil {
 					chProblem <- book.ID
@@ -172,7 +172,7 @@ func updateHandler(cmd *cobra.Command, args []string) {
 					return
 				}
 
-				// Send request
+				// Send download request
 				req.Header.Set("User-Agent", "Shiori/2.0.0 (+https://github.com/go-shiori/shiori)")
 				resp, err := httpClient.Do(req)
 				if err != nil {
@@ -182,19 +182,66 @@ func updateHandler(cmd *cobra.Command, args []string) {
 				}
 				defer resp.Body.Close()
 
-				// Save as archive, make sure to delete the old one first
-				var readabilityInput io.Reader = resp.Body
+				// Split response body so it can be processed twice
+				archivalInput := bytes.NewBuffer(nil)
+				readabilityInput := bytes.NewBuffer(nil)
+				multiWriter := io.MultiWriter(archivalInput, readabilityInput)
 
+				_, err = io.Copy(multiWriter, resp.Body)
+				if err != nil {
+					chProblem <- book.ID
+					chMessage <- fmt.Errorf("Failed to process %s: %v", book.URL, err)
+					return
+				}
+
+				// If this is HTML, parse for readable content
+				contentType := resp.Header.Get("Content-Type")
+				if strings.Contains(contentType, "text/html") {
+					article, err := readability.FromReader(readabilityInput, book.URL)
+					if err != nil {
+						chProblem <- book.ID
+						chMessage <- fmt.Errorf("Failed to parse %s: %v", book.URL, err)
+						return
+					}
+
+					book.Author = article.Byline
+					book.Content = article.TextContent
+					book.HTML = article.Content
+
+					if !dontOverwrite {
+						book.Title = article.Title
+						book.Excerpt = article.Excerpt
+					}
+
+					// Get image for thumbnail and save it to local disk
+					var imageURLs []string
+					if article.Image != "" {
+						imageURLs = append(imageURLs, article.Image)
+					}
+
+					if article.Favicon != "" {
+						imageURLs = append(imageURLs, article.Favicon)
+					}
+
+					imgPath := fp.Join(DataDir, "thumb", fmt.Sprintf("%d", book.ID))
+					for _, imageURL := range imageURLs {
+						err = downloadBookImage(imageURL, imgPath, time.Minute)
+						if err == nil {
+							break
+						}
+					}
+				}
+
+				// If needed, update offline archive as well.
+				// Make sure to delete the old one first.
 				if !noArchival {
-					buffer := bytes.NewBuffer(nil)
-
 					archivePath := fp.Join(DataDir, "archive", fmt.Sprintf("%d", book.ID))
 					os.Remove(archivePath)
 
 					archivalRequest := warc.ArchivalRequest{
 						URL:         book.URL,
-						Reader:      io.TeeReader(resp.Body, buffer),
-						ContentType: resp.Header.Get("Content-Type"),
+						Reader:      archivalInput,
+						ContentType: contentType,
 						LogEnabled:  logArchival,
 					}
 
@@ -203,43 +250,6 @@ func updateHandler(cmd *cobra.Command, args []string) {
 						chProblem <- book.ID
 						chMessage <- fmt.Errorf("Failed to create archive %s: %v", book.URL, err)
 						return
-					}
-
-					readabilityInput = buffer
-				}
-
-				// Parse article
-				article, err := readability.FromReader(readabilityInput, book.URL)
-				if err != nil {
-					chProblem <- book.ID
-					chMessage <- fmt.Errorf("Failed to parse %s: %v", book.URL, err)
-					return
-				}
-
-				book.Author = article.Byline
-				book.Content = article.TextContent
-				book.HTML = article.Content
-
-				if !dontOverwrite {
-					book.Title = article.Title
-					book.Excerpt = article.Excerpt
-				}
-
-				// Get image for thumbnail and save it to local disk
-				var imageURLs []string
-				if article.Image != "" {
-					imageURLs = append(imageURLs, article.Image)
-				}
-
-				if article.Favicon != "" {
-					imageURLs = append(imageURLs, article.Favicon)
-				}
-
-				imgPath := fp.Join(DataDir, "thumb", fmt.Sprintf("%d", book.ID))
-				for _, imageURL := range imageURLs {
-					err = downloadBookImage(imageURL, imgPath, time.Minute)
-					if err == nil {
-						break
 					}
 				}
 

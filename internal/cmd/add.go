@@ -82,14 +82,14 @@ func addHandler(cmd *cobra.Command, args []string) {
 		func() {
 			cInfo.Println("Downloading article...")
 
-			// Prepare request
+			// Prepare download request
 			req, err := http.NewRequest("GET", url, nil)
 			if err != nil {
 				cError.Printf("Failed to download article: %v\n", err)
 				return
 			}
 
-			// Send request
+			// Send download request
 			req.Header.Set("User-Agent", "Shiori/2.0.0 (+https://github.com/go-shiori/shiori)")
 			resp, err := httpClient.Do(req)
 			if err != nil {
@@ -98,17 +98,56 @@ func addHandler(cmd *cobra.Command, args []string) {
 			}
 			defer resp.Body.Close()
 
-			// Save as archive
-			var readabilityInput io.Reader = resp.Body
+			// Split response body so it can be processed twice
+			archivalInput := bytes.NewBuffer(nil)
+			readabilityInput := bytes.NewBuffer(nil)
+			multiWriter := io.MultiWriter(archivalInput, readabilityInput)
 
+			_, err = io.Copy(multiWriter, resp.Body)
+			if err != nil {
+				cError.Printf("Failed to process article: %v\n", err)
+				return
+			}
+
+			// If this is HTML, parse for readable content
+			contentType := resp.Header.Get("Content-Type")
+			if strings.Contains(contentType, "text/html") {
+				article, err := readability.FromReader(readabilityInput, url)
+				if err != nil {
+					cError.Printf("Failed to parse article: %v\n", err)
+					return
+				}
+
+				book.Author = article.Byline
+				book.Content = article.TextContent
+				book.HTML = article.Content
+
+				// If title and excerpt doesnt have submitted value, use from article
+				if book.Title == "" {
+					book.Title = article.Title
+				}
+
+				if book.Excerpt == "" {
+					book.Excerpt = article.Excerpt
+				}
+
+				// Get image URL
+				if article.Image != "" {
+					imageURLs = append(imageURLs, article.Image)
+				}
+
+				if article.Favicon != "" {
+					imageURLs = append(imageURLs, article.Favicon)
+				}
+			}
+
+			// If needed, create offline archive as well
 			if !noArchival {
-				buffer := bytes.NewBuffer(nil)
-
 				archivePath := fp.Join(DataDir, "archive", fmt.Sprintf("%d", book.ID))
 				archivalRequest := warc.ArchivalRequest{
 					URL:         url,
-					Reader:      io.TeeReader(resp.Body, buffer),
-					ContentType: resp.Header.Get("Content-Type"),
+					Reader:      archivalInput,
+					ContentType: contentType,
 					LogEnabled:  logArchival,
 				}
 
@@ -117,39 +156,7 @@ func addHandler(cmd *cobra.Command, args []string) {
 					cError.Printf("Failed to create archive: %v\n", err)
 					return
 				}
-
-				readabilityInput = buffer
 			}
-
-			// Parse article
-			article, err := readability.FromReader(readabilityInput, url)
-			if err != nil {
-				cError.Printf("Failed to parse article: %v\n", err)
-				return
-			}
-
-			book.Author = article.Byline
-			book.Content = article.TextContent
-			book.HTML = article.Content
-
-			// If title and excerpt doesnt have submitted value, use from article
-			if book.Title == "" {
-				book.Title = article.Title
-			}
-
-			if book.Excerpt == "" {
-				book.Excerpt = article.Excerpt
-			}
-
-			// Get image URL
-			if article.Image != "" {
-				imageURLs = append(imageURLs, article.Image)
-			}
-
-			if article.Favicon != "" {
-				imageURLs = append(imageURLs, article.Favicon)
-			}
-
 		}()
 	}
 
