@@ -132,7 +132,12 @@ func (arc *Archiver) archive(res ResourceURL) {
 	arc.Unlock()
 
 	// Save content to storage
-	arc.Logf(infoLog, "Downloaded %s, parent %s", res.DownloadURL, res.Parent)
+	arc.Logf(infoLog, "Downloaded %s\n"+
+		"\tParent %s\n"+
+		"\tSize %d Bytes\n",
+		res.DownloadURL,
+		res.Parent,
+		resp.ContentLength)
 
 	result.ContentType = cType
 	err = arc.SaveToStorage(result)
