@@ -29,6 +29,7 @@ func addCmd() *cobra.Command {
 	cmd.Flags().StringP("excerpt", "e", "", "Custom excerpt for this bookmark")
 	cmd.Flags().StringSliceP("tags", "t", []string{}, "Comma-separated tags for this bookmark")
 	cmd.Flags().BoolP("offline", "o", false, "Save bookmark without fetching data from internet")
+	cmd.Flags().BoolP("no-archival", "a", false, "Save bookmark without creating offline archive")
 	cmd.Flags().Bool("log-archival", false, "Log the archival process")
 
 	return cmd
@@ -41,6 +42,7 @@ func addHandler(cmd *cobra.Command, args []string) {
 	excerpt, _ := cmd.Flags().GetString("excerpt")
 	tags, _ := cmd.Flags().GetStringSlice("tags")
 	offline, _ := cmd.Flags().GetBool("offline")
+	noArchival, _ := cmd.Flags().GetBool("no-archival")
 	logArchival, _ := cmd.Flags().GetBool("log-archival")
 
 	// Clean up URL by removing its fragment and UTM parameters
@@ -97,24 +99,30 @@ func addHandler(cmd *cobra.Command, args []string) {
 			defer resp.Body.Close()
 
 			// Save as archive
-			buffer := bytes.NewBuffer(nil)
+			var readabilityInput io.Reader = resp.Body
 
-			archivePath := fp.Join(DataDir, "archive", fmt.Sprintf("%d", book.ID))
-			archivalRequest := warc.ArchivalRequest{
-				URL:         url,
-				Reader:      io.TeeReader(resp.Body, buffer),
-				ContentType: resp.Header.Get("Content-Type"),
-				LogEnabled:  logArchival,
-			}
+			if !noArchival {
+				buffer := bytes.NewBuffer(nil)
 
-			err = warc.NewArchive(archivalRequest, archivePath)
-			if err != nil {
-				cError.Printf("Failed to create archive: %v\n", err)
-				return
+				archivePath := fp.Join(DataDir, "archive", fmt.Sprintf("%d", book.ID))
+				archivalRequest := warc.ArchivalRequest{
+					URL:         url,
+					Reader:      io.TeeReader(resp.Body, buffer),
+					ContentType: resp.Header.Get("Content-Type"),
+					LogEnabled:  logArchival,
+				}
+
+				err = warc.NewArchive(archivalRequest, archivePath)
+				if err != nil {
+					cError.Printf("Failed to create archive: %v\n", err)
+					return
+				}
+
+				readabilityInput = buffer
 			}
 
 			// Parse article
-			article, err := readability.FromReader(buffer, url)
+			article, err := readability.FromReader(readabilityInput, url)
 			if err != nil {
 				cError.Printf("Failed to parse article: %v\n", err)
 				return

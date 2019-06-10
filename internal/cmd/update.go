@@ -183,27 +183,33 @@ func updateHandler(cmd *cobra.Command, args []string) {
 				defer resp.Body.Close()
 
 				// Save as archive, make sure to delete the old one first
-				buffer := bytes.NewBuffer(nil)
+				var readabilityInput io.Reader = resp.Body
 
-				archivePath := fp.Join(DataDir, "archive", fmt.Sprintf("%d", book.ID))
-				os.Remove(archivePath)
+				if !noArchival {
+					buffer := bytes.NewBuffer(nil)
 
-				archivalRequest := warc.ArchivalRequest{
-					URL:         book.URL,
-					Reader:      io.TeeReader(resp.Body, buffer),
-					ContentType: resp.Header.Get("Content-Type"),
-					LogEnabled:  logArchival,
-				}
+					archivePath := fp.Join(DataDir, "archive", fmt.Sprintf("%d", book.ID))
+					os.Remove(archivePath)
 
-				err = warc.NewArchive(archivalRequest, archivePath)
-				if err != nil {
-					chProblem <- book.ID
-					chMessage <- fmt.Errorf("Failed to create archive %s: %v", book.URL, err)
-					return
+					archivalRequest := warc.ArchivalRequest{
+						URL:         book.URL,
+						Reader:      io.TeeReader(resp.Body, buffer),
+						ContentType: resp.Header.Get("Content-Type"),
+						LogEnabled:  logArchival,
+					}
+
+					err = warc.NewArchive(archivalRequest, archivePath)
+					if err != nil {
+						chProblem <- book.ID
+						chMessage <- fmt.Errorf("Failed to create archive %s: %v", book.URL, err)
+						return
+					}
+
+					readabilityInput = buffer
 				}
 
 				// Parse article
-				article, err := readability.FromReader(buffer, book.URL)
+				article, err := readability.FromReader(readabilityInput, book.URL)
 				if err != nil {
 					chProblem <- book.ID
 					chMessage <- fmt.Errorf("Failed to parse %s: %v", book.URL, err)
