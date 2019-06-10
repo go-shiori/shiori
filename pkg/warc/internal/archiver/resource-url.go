@@ -39,22 +39,25 @@ func ToResourceURL(uri string, base *nurl.URL) ResourceURL {
 	// Create archival URL
 	archivalURL := downloadURL
 
-	// Some URL have its query escaped.
+	// Some URL have its query or path escaped, e.g. Wikipedia and Dev.to.
 	// For example, Wikipedia's stylesheet looks like this :
 	//   load.php?lang=en&modules=ext.3d.styles%7Cext.cite.styles%7Cext.uls.interlanguage
 	// However, when browser download it, it will be registered as unescaped query :
 	//   load.php?lang=en&modules=ext.3d.styles|ext.cite.styles|ext.uls.interlanguage
-	// So, for archival URL, we need to unescape the query first.
+	// So, for archival URL, we need to unescape the query and path first.
 	tmp, err := nurl.Parse(downloadURL)
 	if err == nil {
+		tmp.RawPath = tmp.Path
+
 		newQuery, _ := nurl.QueryUnescape(tmp.RawQuery)
 		if newQuery != "" {
 			tmp.RawQuery = newQuery
-			archivalURL = tmp.String()
 		}
+
+		archivalURL = tmp.String()
 	}
 
-	archivalURL = strings.Replace(archivalURL, "://", "/", 1)
+	archivalURL = strings.ReplaceAll(archivalURL, "://", "/")
 	archivalURL = strings.ReplaceAll(archivalURL, "?", "-")
 	archivalURL = strings.ReplaceAll(archivalURL, "#", "-")
 	archivalURL = strings.ReplaceAll(archivalURL, "/", "-")

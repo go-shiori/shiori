@@ -27,8 +27,6 @@ var (
 	rxLazyImageSrcset = regexp.MustCompile(`(?i)\.(jpg|jpeg|png|webp)\s+\d`)
 	rxLazyImageSrc    = regexp.MustCompile(`(?i)^\s*\S+\.(jpg|jpeg|png|webp)\S*\s*$`)
 	rxStyleURL        = regexp.MustCompile(`(?i)^url\((.+)\)$`)
-	rxSingleQuote     = regexp.MustCompile(`(?i)^'([^']*)'$`)
-	rxDoubleQuote     = regexp.MustCompile(`(?i)^"([^"]*)"$`)
 	rxJSContentType   = regexp.MustCompile(`(?i)(text|application)/(java|ecma)script`)
 )
 
@@ -398,8 +396,9 @@ func processCSS(input io.Reader, baseURL *nurl.URL) (string, []ResourceURL) {
 		// Sanitize the URL by removing `url()`, quotation mark and trailing slash
 		cssURL := string(bt)
 		cssURL = rxStyleURL.ReplaceAllString(cssURL, "$1")
-		cssURL = rxSingleQuote.ReplaceAllString(cssURL, "$1")
-		cssURL = rxDoubleQuote.ReplaceAllString(cssURL, "$1")
+		cssURL = strings.TrimSpace(cssURL)
+		cssURL = strings.Trim(cssURL, `'`)
+		cssURL = strings.Trim(cssURL, `"`)
 
 		// Save the CSS URL and replace it with archival URL
 		res := ToResourceURL(cssURL, baseURL)
@@ -453,13 +452,15 @@ func processJS(input io.Reader, baseURL *nurl.URL) (string, []ResourceURL) {
 		var newURL string
 
 		text := string(bt)
-		text = rxSingleQuote.ReplaceAllString(text, "$1")
-		text = rxDoubleQuote.ReplaceAllString(text, "$1")
+		text = strings.TrimSpace(text)
+		text = strings.Trim(text, `'`)
+		text = strings.Trim(text, `"`)
 
 		if strings.HasPrefix(text, "url(") {
 			cssURL := rxStyleURL.ReplaceAllString(text, "$1")
-			cssURL = rxSingleQuote.ReplaceAllString(cssURL, "$1")
-			cssURL = rxDoubleQuote.ReplaceAllString(cssURL, "$1")
+			cssURL = strings.TrimSpace(cssURL)
+			cssURL = strings.Trim(cssURL, `'`)
+			cssURL = strings.Trim(cssURL, `"`)
 
 			res = ToResourceURL(cssURL, baseURL)
 			newURL = fmt.Sprintf("\"url('%s')\"", res.ArchivalURL)
@@ -474,7 +475,14 @@ func processJS(input io.Reader, baseURL *nurl.URL) (string, []ResourceURL) {
 
 			ext := path.Ext(tmp.Path)
 			cType := mime.TypeByExtension(ext)
-			if !strings.Contains(cType, "text/css") && !rxJSContentType.MatchString(cType) {
+
+			switch {
+			case rxJSContentType.MatchString(cType),
+				strings.Contains(cType, "text/css"),
+				strings.Contains(cType, "image/"),
+				strings.Contains(cType, "audio/"),
+				strings.Contains(cType, "video/"):
+			default:
 				buffer.Write(bt)
 				continue
 			}

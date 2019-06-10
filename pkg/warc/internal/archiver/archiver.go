@@ -133,9 +133,11 @@ func (arc *Archiver) archive(res ResourceURL) {
 
 	// Save content to storage
 	arc.Logf(infoLog, "Downloaded %s\n"+
+		"\tArchive name %s\n"+
 		"\tParent %s\n"+
 		"\tSize %d Bytes\n",
 		res.DownloadURL,
+		res.ArchivalURL,
 		res.Parent,
 		resp.ContentLength)
 
