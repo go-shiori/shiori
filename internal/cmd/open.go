@@ -145,6 +145,7 @@ func openHandler(cmd *cobra.Command, args []string) {
 		}
 
 		w.Header().Set("Content-Type", contentType)
+		w.Header().Set("Content-Encoding", "gzip")
 		if _, err = w.Write(content); err != nil {
 			panic(err)
 		}

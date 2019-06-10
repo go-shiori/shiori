@@ -1,6 +1,8 @@
 package archiver
 
 import (
+	"bytes"
+	"compress/gzip"
 	"fmt"
 	"strings"
 	"sync"
@@ -147,7 +149,21 @@ func (arc *Archiver) archive(res ResourceURL) {
 
 // SaveToStorage save processing result to storage.
 func (arc *Archiver) SaveToStorage(result ProcessResult) error {
-	err := arc.DB.Batch(func(tx *bbolt.Tx) error {
+	// Compress content
+	buffer := bytes.NewBuffer(nil)
+	gzipper := gzip.NewWriter(buffer)
+
+	_, err := gzipper.Write(result.Content)
+	if err != nil {
+		return fmt.Errorf("compress failed: %v", err)
+	}
+
+	err = gzipper.Close()
+	if err != nil {
+		return fmt.Errorf("compress failed: %v", err)
+	}
+
+	err = arc.DB.Batch(func(tx *bbolt.Tx) error {
 		bucket := tx.Bucket([]byte(result.Name))
 		if bucket != nil {
 			return nil
@@ -158,7 +174,7 @@ func (arc *Archiver) SaveToStorage(result ProcessResult) error {
 			return err
 		}
 
-		err = bucket.Put([]byte("content"), result.Content)
+		err = bucket.Put([]byte("content"), buffer.Bytes())
 		if err != nil {
 			return err
 		}
