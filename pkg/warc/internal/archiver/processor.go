@@ -404,6 +404,7 @@ func processCSS(input io.Reader, baseURL *nurl.URL) (string, []ResourceURL) {
 		// Save the CSS URL and replace it with archival URL
 		res := ToResourceURL(cssURL, baseURL)
 		if res.ArchivalURL == "" {
+			buffer.Write(bt)
 			continue
 		}
 
