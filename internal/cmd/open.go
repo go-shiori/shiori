@@ -7,6 +7,7 @@ import (
 	fp "path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/go-shiori/shiori/internal/database"
 	"github.com/go-shiori/shiori/pkg/warc"
@@ -165,8 +166,20 @@ func openHandler(cmd *cobra.Command, args []string) {
 	}
 
 	portNumber := listener.Addr().(*net.TCPAddr).Port
-	cInfo.Printf("Archive served in http://localhost:%d\n", portNumber)
+	localhostAddr := fmt.Sprintf("http://localhost:%d", portNumber)
+	cInfo.Printf("Archive served in %s\n", localhostAddr)
 
+	// Open browser
+	go func() {
+		time.Sleep(time.Second)
+
+		err := openBrowser(localhostAddr)
+		if err != nil {
+			cError.Printf("Failed to open browser: %v\n", err)
+		}
+	}()
+
+	// Serve archive
 	err = http.Serve(listener, router)
 	if err != nil {
 		cError.Printf("Failed to serve archive: %v\n", err)
