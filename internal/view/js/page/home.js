@@ -266,7 +266,8 @@ export default {
                 }, {
                     name: "createArchive",
                     label: "Create archive",
-                    type: "check"
+                    type: "check",
+                    value: this.displayOptions.useArchive,
                 }],
                 mainText: "OK",
                 secondText: "Cancel",
@@ -499,7 +500,8 @@ export default {
                 fields: [{
                     name: "createArchive",
                     label: "Update archive as well",
-                    type: "check"
+                    type: "check",
+                    value: this.displayOptions.useArchive,
                 }],
                 mainText: "Yes",
                 secondText: "No",

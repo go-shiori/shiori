@@ -107,12 +107,14 @@
                     var opts = JSON.parse(localStorage.getItem("shiori-setting")) || {},
                         showId = (typeof opts.showId === "boolean") ? opts.showId : false,
                         listMode = (typeof opts.listMode === "boolean") ? opts.listMode : false,
-                        nightMode = (typeof opts.nightMode === "boolean") ? opts.nightMode : false;
+                        nightMode = (typeof opts.nightMode === "boolean") ? opts.nightMode : false,
+                        useArchive = (typeof opts.useArchive === "boolean") ? opts.useArchive : false;
         
                     this.displayOptions = {
                         showId: showId,
                         listMode: listMode,
                         nightMode: nightMode,
+                        useArchive: useArchive,
                     };
                 }
             },

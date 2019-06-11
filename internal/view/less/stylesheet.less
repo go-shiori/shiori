@@ -584,10 +584,13 @@ body {
     #setting-display {
         display: flex;
         flex-flow: column nowrap;
-        padding-bottom: 8px;
 
-        summary {
-            margin-bottom: 8px;
+        &[open] {
+            padding-bottom: 8px;
+
+            summary {
+                margin-bottom: 8px;
+            }
         }
 
         label {

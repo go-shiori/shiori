@@ -16,6 +16,10 @@ var template = `
                 <input type="checkbox" v-model="displayOptions.nightMode" @change="saveSetting">
                 Use dark theme
             </label>
+            <label>
+                <input type="checkbox" v-model="displayOptions.useArchive" @change="saveSetting">
+                Create archive by default
+            </label>
         </details>
         <details open class="setting-group" id="setting-accounts">
             <summary>Accounts</summary>
@@ -62,6 +66,7 @@ export default {
                 showId: this.displayOptions.showId,
                 listMode: this.displayOptions.listMode,
                 nightMode: this.displayOptions.nightMode,
+                useArchive: this.displayOptions.useArchive,
             });
         },
         loadAccounts() {
