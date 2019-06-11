@@ -1,8 +1,10 @@
 package webserver
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"math"
 	"net/http"
 	nurl "net/url"
@@ -17,6 +19,7 @@ import (
 	"github.com/go-shiori/go-readability"
 	"github.com/go-shiori/shiori/internal/database"
 	"github.com/go-shiori/shiori/internal/model"
+	"github.com/go-shiori/shiori/pkg/warc"
 	"github.com/gofrs/uuid"
 	"github.com/julienschmidt/httprouter"
 	"golang.org/x/crypto/bcrypt"
@@ -217,37 +220,74 @@ func (h *handler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 	// Fetch data from internet
 	var imageURLs []string
 	func() {
-		resp, err := httpClient.Get(book.URL)
+		// Prepare download request
+		req, err := http.NewRequest("GET", book.URL, nil)
+		if err != nil {
+			return
+		}
+
+		// Send download request
+		req.Header.Set("User-Agent", "Shiori/2.0.0 (+https://github.com/go-shiori/shiori)")
+		resp, err := httpClient.Do(req)
 		if err != nil {
 			return
 		}
 		defer resp.Body.Close()
 
-		article, err := readability.FromReader(resp.Body, book.URL)
+		// Split response body so it can be processed twice
+		archivalInput := bytes.NewBuffer(nil)
+		readabilityInput := bytes.NewBuffer(nil)
+		multiWriter := io.MultiWriter(archivalInput, readabilityInput)
+
+		_, err = io.Copy(multiWriter, resp.Body)
 		if err != nil {
 			return
 		}
 
-		book.Author = article.Byline
-		book.Content = article.TextContent
-		book.HTML = article.Content
+		// If this is HTML, parse for readable content
+		contentType := resp.Header.Get("Content-Type")
+		if strings.Contains(contentType, "text/html") {
+			article, err := readability.FromReader(readabilityInput, book.URL)
+			if err != nil {
+				return
+			}
 
-		// If title and excerpt doesnt have submitted value, use from article
-		if book.Title == "" {
-			book.Title = article.Title
+			book.Author = article.Byline
+			book.Content = article.TextContent
+			book.HTML = article.Content
+
+			// If title and excerpt doesnt have submitted value, use from article
+			if book.Title == "" {
+				book.Title = article.Title
+			}
+
+			if book.Excerpt == "" {
+				book.Excerpt = article.Excerpt
+			}
+
+			// Get image URL
+			if article.Image != "" {
+				imageURLs = append(imageURLs, article.Image)
+			}
+
+			if article.Favicon != "" {
+				imageURLs = append(imageURLs, article.Favicon)
+			}
 		}
 
-		if book.Excerpt == "" {
-			book.Excerpt = article.Excerpt
-		}
+		// If needed, create offline archive as well
+		if book.CreateArchive {
+			archivePath := fp.Join(h.DataDir, "archive", fmt.Sprintf("%d", book.ID))
+			archivalRequest := warc.ArchivalRequest{
+				URL:         book.URL,
+				Reader:      archivalInput,
+				ContentType: contentType,
+			}
 
-		// Get image URL
-		if article.Image != "" {
-			imageURLs = append(imageURLs, article.Image)
-		}
-
-		if article.Favicon != "" {
-			imageURLs = append(imageURLs, article.Favicon)
+			err = warc.NewArchive(archivalRequest, archivePath)
+			if err != nil {
+				return
+			}
 		}
 	}()
 
@@ -295,11 +335,14 @@ func (h *handler) apiDeleteBookmark(w http.ResponseWriter, r *http.Request, ps h
 	err = h.DB.DeleteBookmarks(ids...)
 	checkError(err)
 
-	// Delete thumbnail image from local disk
+	// Delete thumbnail image and archives from local disk
 	for _, id := range ids {
 		strID := strconv.Itoa(id)
 		imgPath := fp.Join(h.DataDir, "thumb", strID)
+		archivePath := fp.Join(h.DataDir, "archive", strID)
+
 		os.Remove(imgPath)
+		os.Remove(archivePath)
 	}
 
 	fmt.Fprint(w, 1)
@@ -371,20 +414,24 @@ func (h *handler) apiUpdateBookmark(w http.ResponseWriter, r *http.Request, ps h
 	checkError(err)
 }
 
-// apiUpdateArchive is handler for PUT /api/archive
-func (h *handler) apiUpdateArchive(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+// apiUpdateCache is handler for PUT /api/cache
+func (h *handler) apiUpdateCache(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	// Make sure session still valid
 	err := h.validateSession(r)
 	checkError(err)
 
 	// Decode request
-	ids := []int{}
-	err = json.NewDecoder(r.Body).Decode(&ids)
+	request := struct {
+		IDs           []int `json:"ids"`
+		CreateArchive bool  `json:"createArchive"`
+	}{}
+
+	err = json.NewDecoder(r.Body).Decode(&request)
 	checkError(err)
 
 	// Get existing bookmark from database
 	filter := database.GetBookmarksOptions{
-		IDs:         ids,
+		IDs:         request.IDs,
 		WithContent: true,
 	}
 
@@ -394,10 +441,12 @@ func (h *handler) apiUpdateArchive(w http.ResponseWriter, r *http.Request, ps ht
 		panic(fmt.Errorf("no bookmark with matching ids"))
 	}
 
-	// For web interface, let's limit to max 20 IDs to update.
+	// For web interface, let's limit to max 20 IDs to update, and 5 for archival.
 	// This is done to prevent the REST request from client took too long to finish.
 	if len(bookmarks) > 20 {
 		panic(fmt.Errorf("max 20 bookmarks to update"))
+	} else if len(bookmarks) > 5 && request.CreateArchive {
+		panic(fmt.Errorf("max 5 bookmarks to update with archival"))
 	}
 
 	// Fetch data from internet
@@ -420,51 +469,94 @@ func (h *handler) apiUpdateArchive(w http.ResponseWriter, r *http.Request, ps ht
 				<-semaphore
 			}()
 
-			// Download article
-			resp, err := httpClient.Get(book.URL)
+			// Prepare download request
+			req, err := http.NewRequest("GET", book.URL, nil)
+			if err != nil {
+				chProblem <- book.ID
+				return
+			}
+
+			// Send download request
+			req.Header.Set("User-Agent", "Shiori/2.0.0 (+https://github.com/go-shiori/shiori)")
+			resp, err := httpClient.Do(req)
 			if err != nil {
 				chProblem <- book.ID
 				return
 			}
 			defer resp.Body.Close()
 
-			article, err := readability.FromReader(resp.Body, book.URL)
+			// Split response body so it can be processed twice
+			archivalInput := bytes.NewBuffer(nil)
+			readabilityInput := bytes.NewBuffer(nil)
+			multiWriter := io.MultiWriter(archivalInput, readabilityInput)
+
+			_, err = io.Copy(multiWriter, resp.Body)
 			if err != nil {
 				chProblem <- book.ID
 				return
 			}
 
-			book.Author = article.Byline
-			book.Content = article.TextContent
-			book.HTML = article.Content
-			book.HasContent = book.Content != ""
-
-			if article.Title != "" {
-				book.Title = article.Title
-			}
-
-			if article.Excerpt != "" {
-				book.Excerpt = article.Excerpt
-			}
-
-			// Get image for thumbnail and save it to local disk
-			var imageURLs []string
-			if article.Image != "" {
-				imageURLs = append(imageURLs, article.Image)
-			}
-
-			if article.Favicon != "" {
-				imageURLs = append(imageURLs, article.Favicon)
-			}
-
-			// Save article image to local disk
+			// If this is HTML, parse for readable content
 			strID := strconv.Itoa(book.ID)
-			imgPath := fp.Join(h.DataDir, "thumb", strID)
-			for _, imageURL := range imageURLs {
-				err = downloadBookImage(imageURL, imgPath, time.Minute)
-				if err == nil {
-					book.ImageURL = path.Join("/", "thumb", strID)
-					break
+			contentType := resp.Header.Get("Content-Type")
+
+			if strings.Contains(contentType, "text/html") {
+				article, err := readability.FromReader(readabilityInput, book.URL)
+				if err != nil {
+					chProblem <- book.ID
+					return
+				}
+
+				book.Author = article.Byline
+				book.Content = article.TextContent
+				book.HTML = article.Content
+				book.HasContent = book.Content != ""
+
+				if article.Title != "" {
+					book.Title = article.Title
+				}
+
+				if article.Excerpt != "" {
+					book.Excerpt = article.Excerpt
+				}
+
+				// Get image for thumbnail and save it to local disk
+				var imageURLs []string
+				if article.Image != "" {
+					imageURLs = append(imageURLs, article.Image)
+				}
+
+				if article.Favicon != "" {
+					imageURLs = append(imageURLs, article.Favicon)
+				}
+
+				// Save article image to local disk
+				imgPath := fp.Join(h.DataDir, "thumb", strID)
+				for _, imageURL := range imageURLs {
+					err = downloadBookImage(imageURL, imgPath, time.Minute)
+					if err == nil {
+						book.ImageURL = path.Join("/", "thumb", strID)
+						break
+					}
+				}
+			}
+
+			// If needed, update offline archive as well.
+			// Make sure to delete the old one first.
+			if request.CreateArchive {
+				archivePath := fp.Join(h.DataDir, "archive", strID)
+				os.Remove(archivePath)
+
+				archivalRequest := warc.ArchivalRequest{
+					URL:         book.URL,
+					Reader:      archivalInput,
+					ContentType: contentType,
+				}
+
+				err = warc.NewArchive(archivalRequest, archivePath)
+				if err != nil {
+					chProblem <- book.ID
+					return
 				}
 			}
 

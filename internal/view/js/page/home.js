@@ -23,7 +23,7 @@ var template = `
         <a title="Add tags" @click="showDialogAddTags(selection)">
             <i class="fas fa-fw fa-tags"></i>
         </a>
-        <a title="Update archives" @click="showDialogUpdateArchive(selection)">
+        <a title="Update archives" @click="showDialogUpdateCache(selection)">
             <i class="fas fa-fw fa-cloud-download-alt"></i>
         </a>
         <a title="Cancel" @click="toggleEditMode">
@@ -49,7 +49,7 @@ var template = `
             @tag-clicked="filterTag"
             @edit="showDialogEdit"
             @delete="showDialogDelete"
-            @update="showDialogUpdateArchive">
+            @update="showDialogUpdateCache">
         </bookmark-item>
         <pagination-box v-if="maxPage > 1" 
             :page="page" 
@@ -263,6 +263,10 @@ export default {
                     label: "Comma separated tags (optional)",
                     separator: ",",
                     dictionary: this.tags.map(tag => tag.name)
+                }, {
+                    name: "createArchive",
+                    label: "Create archive",
+                    type: "check"
                 }],
                 mainText: "OK",
                 secondText: "Cancel",
@@ -290,7 +294,8 @@ export default {
                         url: data.url.trim(),
                         title: data.title.trim(),
                         excerpt: data.excerpt.trim(),
-                        tags: tags
+                        tags: tags,
+                        createArchive: data.createArchive,
                     };
 
                     this.dialog.loading = true;
@@ -471,7 +476,7 @@ export default {
                 }
             });
         },
-        showDialogUpdateArchive(items) {
+        showDialogUpdateCache(items) {
             // Check and filter items
             if (typeof items !== "object") return;
             if (!Array.isArray(items)) items = [items];
@@ -489,15 +494,25 @@ export default {
             var ids = items.map(item => item.id);
 
             this.showDialog({
-                title: "Update Archive",
-                content: "Update archive for selected bookmarks ? This action is irreversible.",
+                title: "Update Cache",
+                content: "Update cache for selected bookmarks ? This action is irreversible.",
+                fields: [{
+                    name: "createArchive",
+                    label: "Update archive as well",
+                    type: "check"
+                }],
                 mainText: "Yes",
                 secondText: "No",
-                mainClick: () => {
+                mainClick: (data) => {
+                    var data = {
+                        ids: ids,
+                        createArchive: data.createArchive,
+                    };
+
                     this.dialog.loading = true;
-                    fetch("/api/archive", {
+                    fetch("/api/cache", {
                             method: "put",
-                            body: JSON.stringify(ids),
+                            body: JSON.stringify(data),
                             headers: {
                                 "Content-Type": "application/json",
                             },

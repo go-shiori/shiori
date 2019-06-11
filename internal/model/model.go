@@ -10,17 +10,18 @@ type Tag struct {
 
 // Bookmark is the record for an URL.
 type Bookmark struct {
-	ID         int    `db:"id"            json:"id"`
-	URL        string `db:"url"           json:"url"`
-	Title      string `db:"title"         json:"title"`
-	Excerpt    string `db:"excerpt"       json:"excerpt"`
-	Author     string `db:"author"        json:"author"`
-	Modified   string `db:"modified"      json:"modified"`
-	Content    string `db:"content"       json:"-"`
-	HTML       string `db:"html"          json:"html,omitempty"`
-	HasContent bool   `db:"has_content"   json:"hasContent"`
-	ImageURL   string `json:"imageURL"`
-	Tags       []Tag  `json:"tags"`
+	ID            int    `db:"id"            json:"id"`
+	URL           string `db:"url"           json:"url"`
+	Title         string `db:"title"         json:"title"`
+	Excerpt       string `db:"excerpt"       json:"excerpt"`
+	Author        string `db:"author"        json:"author"`
+	Modified      string `db:"modified"      json:"modified"`
+	Content       string `db:"content"       json:"-"`
+	HTML          string `db:"html"          json:"html,omitempty"`
+	HasContent    bool   `db:"has_content"   json:"hasContent"`
+	ImageURL      string `json:"imageURL"`
+	Tags          []Tag  `json:"tags"`
+	CreateArchive bool   `json:"createArchive"`
 }
 
 // Account is person that allowed to access web interface.

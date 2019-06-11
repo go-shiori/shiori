@@ -16,6 +16,11 @@ var template = `
                         @focus="$event.target.select()"
                         @keyup="handleInput(index)">
                     </textarea>
+                    <label v-else-if="field.type === 'check'" class="checkbox-field">
+                        <input type="checkbox" 
+                            v-model="field.value" 
+                            :tabindex="index+1">{{field.label}}
+                    </label>
                     <input v-else
                         :style="{gridColumnEnd: showLabel ? null : 'span 2'}" 
                         :type="fieldType(field)" 

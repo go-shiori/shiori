@@ -42,7 +42,7 @@
         }
 
         .custom-dialog-body {
-            padding: 16px;
+            padding: 16px 16px 0;
             display: grid;
             max-height: 100%;
             min-height: 80px;
@@ -68,7 +68,13 @@
                 align-self: baseline;
             }
 
-            >input,
+            >label {
+                color: var(--color);
+                padding: 8px 0;
+                font-size: 1em;
+            }
+
+            >input[type="text"],
             >textarea {
                 color: var(--color);
                 padding: 8px;
@@ -76,6 +82,25 @@
                 border: 1px solid var(--border);
                 background-color: var(--contentBg);
                 min-width: 0;
+            }
+
+            .checkbox-field {
+                color: var(--color);
+                font-size: 1em;
+                display: flex;
+                flex-flow: row nowrap;
+                justify-content: center;
+                cursor: pointer;
+
+                &:hover,
+                &:focus {
+                    text-decoration: underline;
+                    text-decoration-color: var(--main);
+                }
+
+                >input[type="checkbox"] {
+                    margin-right: 8px;
+                }
             }
 
             >textarea {
