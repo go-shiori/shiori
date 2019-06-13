@@ -1,10 +1,13 @@
 FROM golang:1.10-alpine as builder
 
+LABEL MAINTAINER "Ashwin Goel"
+
 RUN apk update \
   && apk --no-cache add git build-base
 
 WORKDIR /go/src/github.com/RadhiFadlillah/shiori
 COPY . .
+RUN git submodule init && git submodule update
 RUN go get -d -v ./...
 RUN go build -o shiori
 
