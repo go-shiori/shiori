@@ -44,6 +44,9 @@ func (arc *Archiver) ProcessHTMLFile(res ResourceURL, input io.Reader) (result P
 		return ProcessResult{}, nil, fmt.Errorf("url %s is not valid", res.DownloadURL)
 	}
 
+	// TODO: I'm still not really sure, but IMHO it's safer to disable Javascript
+	removeNodes(getElementsByTagName(doc, "script"), nil)
+
 	// Convert lazy loaded image to normal
 	fixLazyImages(doc)
 
