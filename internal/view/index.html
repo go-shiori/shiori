@@ -102,6 +102,7 @@
                 saveSetting(opts) {
                     localStorage.setItem("shiori-setting", JSON.stringify(opts));
                     this.displayOptions = opts;
+                    document.body.className = opts.nightMode ? "night" : "";
                 },
                 loadSetting() {
                     var opts = JSON.parse(localStorage.getItem("shiori-setting")) || {},
@@ -116,6 +117,8 @@
                         nightMode: nightMode,
                         useArchive: useArchive,
                     };
+
+                    document.body.className = nightMode ? "night" : "";
                 }
             },
             mounted() {

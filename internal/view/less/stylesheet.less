@@ -42,16 +42,16 @@
     text-decoration: none;
 }
 
+body {
+    background-color: var(--bg);
+}
+
 a {
     cursor: pointer;
 }
 
 .spacer {
     flex: 1;
-}
-
-body {
-    overflow: hidden;
 }
 
 #login-scene {
@@ -186,17 +186,21 @@ body {
 }
 
 #main-scene {
-    display: grid;
-    grid-template-rows: minmax(0, 1fr);
-    grid-template-columns: 60px minmax(0, 1fr);
+    min-height: 100vh;
+    padding-top: 60px;
+    padding-left: 60px;
     background-color: var(--bg);
-    width: 100vw;
-    height: 100vh;
 
     #main-sidebar {
+        top: 0;
+        left: 0;
+        width: 60px;
+        height: 100vh;
+        position: fixed;
         display: flex;
         flex-flow: column nowrap;
         background-color: var(--sidebarBg);
+        z-index: 1;
 
         a {
             flex-shrink: 0;
@@ -209,6 +213,8 @@ body {
 
             &.active {
                 cursor: default;
+                color: var(--colorSidebar);
+                background-color: var(--main);
             }
 
             &:hover,
@@ -216,36 +222,32 @@ body {
                 color: var(--main);
                 background-color: var(--sidebarHoverBg);
             }
-
-            &.active {
-                color: var(--colorSidebar);
-                background-color: var(--main);
-            }
         }
     }
 
-    h1.page-header {
-        display: block;
+    .page-header {
+        top: 0px;
+        left: 60px;
+        right: 0px;
+        height: 60px;
+        position: fixed;
         color: var(--color);
         background-color: var(--headerBg);
         border-bottom: 1px solid var(--border);
+        padding: 0 16px;
+        z-index: 10;
+    }
+
+    h1.page-header {
         line-height: 60px;
         font-size: 1.3em;
         font-weight: 600;
-        padding: 0 16px;
     }
 
     div.page-header {
         display: flex;
         flex-flow: row nowrap;
         align-items: center;
-        background-color: var(--headerBg);
-        border-bottom: 1px solid var(--border);
-        padding: 0 16px;
-        grid-row-end: 1;
-        grid-row-start: 1;
-        grid-column-end: -1;
-        grid-column-start: 1;
 
         p {
             flex: 1 0;
@@ -312,25 +314,46 @@ body {
     }
 
     @media (max-width: 600px) {
-        grid-template-rows: minmax(0, 1fr);
-        grid-template-columns: minmax(0, 1fr);
+        padding-top: 50px;
+        padding-left: 0;
+        padding-bottom: 50px;
 
-        .home-sidebar {
-            display: none;
-            overflow-x: auto;
+        #main-sidebar {
+            top: auto;
+            right: 0;
+            bottom: 0;
+            width: 100vw;
+            height: 50px;
             flex-flow: row nowrap;
-            justify-content: center;
+            border-top: 1px solid var(--border);
 
             .spacer {
                 display: none;
             }
+
+            a {
+                width: auto;
+                flex: 1 0;
+                line-height: 50px;
+
+                &:hover,
+                &:focus {
+                    color: var(--colorSidebar);
+                    background-color: var(--main);
+                }
+            }
+        }
+
+        .page-header {
+            left: 0;
+            height: 50px;
         }
 
         h1.page-header {
             text-align: center;
             font-size: 1em;
-            line-height: 1.2em;
-            padding: 8px;
+            line-height: 50px;
+            text-transform: uppercase;
         }
 
         div.page-header {
@@ -361,10 +384,6 @@ body {
 }
 
 #page-home {
-    display: grid;
-    grid-template-columns: 1fr;
-    grid-template-rows: auto minmax(0, 1fr);
-
     #edit-box {
         background-color: var(--selectedBg);
         border-bottom: 1px solid var(--main);
@@ -377,14 +396,6 @@ body {
         grid-gap: 16px;
         padding: 16px;
         overflow: auto;
-
-        &::after {
-            content: "";
-            display: block;
-            min-height: 1px;
-            grid-column-end: -1;
-            grid-column-start: 1;
-        }
 
         .bookmark {
             align-self: start;
@@ -444,7 +455,7 @@ body {
             }
 
             @media (max-width: 600px) {
-                padding: 0;
+                padding: 16px 0 0;
 
                 .pagination-box {
                     padding: 16px;
@@ -463,6 +474,7 @@ body {
 
             a {
                 font-size: 1em;
+                color: var(--color);
 
                 span {
                     &:last-child {
