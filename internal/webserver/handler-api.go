@@ -156,7 +156,7 @@ func (h *handler) apiGetBookmarks(w http.ResponseWriter, r *http.Request, ps htt
 	for i := range bookmarks {
 		strID := strconv.Itoa(bookmarks[i].ID)
 		imgPath := fp.Join(h.DataDir, "thumb", strID)
-		imgURL := path.Join("/", "thumb", strID)
+		imgURL := path.Join("/", "bookmark", strID, "thumb")
 
 		if fileExists(imgPath) {
 			bookmarks[i].ImageURL = imgURL
@@ -309,7 +309,7 @@ func (h *handler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 	for _, imageURL := range imageURLs {
 		err = downloadBookImage(imageURL, imgPath, time.Minute)
 		if err == nil {
-			book.ImageURL = path.Join("/", "thumb", strID)
+			book.ImageURL = path.Join("/", "bookmark", strID, "thumb")
 			break
 		}
 	}
@@ -488,7 +488,8 @@ func (h *handler) apiUpdateCache(w http.ResponseWriter, r *http.Request, ps http
 			// Split response body so it can be processed twice
 			archivalInput := bytes.NewBuffer(nil)
 			readabilityInput := bytes.NewBuffer(nil)
-			multiWriter := io.MultiWriter(archivalInput, readabilityInput)
+			readabilityCheckInput := bytes.NewBuffer(nil)
+			multiWriter := io.MultiWriter(archivalInput, readabilityInput, readabilityCheckInput)
 
 			_, err = io.Copy(multiWriter, resp.Body)
 			if err != nil {
@@ -501,6 +502,8 @@ func (h *handler) apiUpdateCache(w http.ResponseWriter, r *http.Request, ps http
 			contentType := resp.Header.Get("Content-Type")
 
 			if strings.Contains(contentType, "text/html") {
+				isReadable := readability.IsReadable(readabilityCheckInput)
+
 				article, err := readability.FromReader(readabilityInput, book.URL)
 				if err != nil {
 					chProblem <- book.ID
@@ -510,7 +513,7 @@ func (h *handler) apiUpdateCache(w http.ResponseWriter, r *http.Request, ps http
 				book.Author = article.Byline
 				book.Content = article.TextContent
 				book.HTML = article.Content
-				book.HasContent = book.Content != ""
+				book.HasContent = book.Content != "" && isReadable
 
 				if article.Title != "" {
 					book.Title = article.Title
@@ -535,7 +538,7 @@ func (h *handler) apiUpdateCache(w http.ResponseWriter, r *http.Request, ps http
 				for _, imageURL := range imageURLs {
 					err = downloadBookImage(imageURL, imgPath, time.Minute)
 					if err == nil {
-						book.ImageURL = path.Join("/", "thumb", strID)
+						book.ImageURL = path.Join("/", "bookmark", strID, "thumb")
 						break
 					}
 				}
@@ -652,7 +655,7 @@ func (h *handler) apiUpdateBookmarkTags(w http.ResponseWriter, r *http.Request, 
 	for i := range bookmarks {
 		strID := strconv.Itoa(bookmarks[i].ID)
 		imgPath := fp.Join(h.DataDir, "thumb", strID)
-		imgURL := path.Join("/", "thumb", strID)
+		imgURL := path.Join("/", "bookmark", strID, "thumb")
 
 		if fileExists(imgPath) {
 			bookmarks[i].ImageURL = imgURL

@@ -33,7 +33,8 @@ func ServeApp(DB database.DB, dataDir string, port int) error {
 
 	router.GET("/", hdl.serveIndexPage)
 	router.GET("/login", hdl.serveLoginPage)
-	router.GET("/thumb/:id", hdl.serveThumbnailImage)
+	router.GET("/bookmark/:id/thumb", hdl.serveThumbnailImage)
+	router.GET("/bookmark/:id/content", hdl.serveBookmarkContent)
 
 	router.POST("/api/login", hdl.apiLogin)
 	router.POST("/api/logout", hdl.apiLogout)

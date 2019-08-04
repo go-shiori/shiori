@@ -1,11 +1,15 @@
 package webserver
 
 import (
+	"fmt"
+	"html/template"
 	"io"
 	"net/http"
+	nurl "net/url"
 	"os"
 	"path"
 	fp "path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/julienschmidt/httprouter"
@@ -63,7 +67,42 @@ func (h *handler) serveLoginPage(w http.ResponseWriter, r *http.Request, ps http
 	checkError(err)
 }
 
-// serveThumbnailImage is handler for GET /thumb/:id
+// serveBookmarkContent is handler for GET /bookmark/:id/content
+func (h *handler) serveBookmarkContent(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	// Get bookmark ID from URL
+	strID := ps.ByName("id")
+	id, err := strconv.Atoi(strID)
+	checkError(err)
+
+	// Get bookmark in database
+	bookmark, exist := h.DB.GetBookmark(id, "")
+	if !exist {
+		panic(fmt.Errorf("Bookmark not found"))
+	}
+
+	// Create template
+	funcMap := template.FuncMap{
+		"html": func(s string) template.HTML {
+			return template.HTML(s)
+		},
+		"hostname": func(s string) string {
+			parsed, err := nurl.ParseRequestURI(s)
+			if err != nil || len(parsed.Scheme) == 0 {
+				return s
+			}
+			return parsed.Hostname()
+		},
+	}
+
+	tplCache, err := createTemplate("content.html", funcMap)
+	checkError(err)
+
+	// Execute template
+	err = tplCache.Execute(w, &bookmark)
+	checkError(err)
+}
+
+// serveThumbnailImage is handler for GET /bookmark/:id/thumb
 func (h *handler) serveThumbnailImage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	// Get bookmark ID from URL
 	id := ps.ByName("id")

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Shiori - Bookmarks Manager</title>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="apple-touch-icon-precomposed" sizes="152x152" href="/res/apple-touch-icon-152x152.png">
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/res/apple-touch-icon-144x144.png">
+    <link rel="icon" type="image/png" href="/res/favicon-32x32.png" sizes="32x32">
+    <link rel="icon" type="image/png" href="/res/favicon-16x16.png" sizes="16x16">
+    <link rel="icon" type="image/x-icon" href="/res/favicon.ico">
+
+    <link href="/css/fontawesome.min.css" rel="stylesheet">
+    <link href="/css/stylesheet.css" rel="stylesheet">
+    <link href="/css/custom-dialog.css" rel="stylesheet">
+    <link href="/css/bookmark-item.css" rel="stylesheet">
+
+    <script src="/js/vue.min.js"></script>
+</head>
+
+<body>
+    <div id="content-scene" :class="{night: displayOptions.nightMode}">
+        <div id="header">
+            <p id="metadata">Added {{modified}} UTC</p>
+            <p id="title">{{title}}</p>
+            <div id="links">
+                <a href="$$.URL$$" target="_blank">View Original</a>
+                <a href="$$.URL$$" target="_blank">View Archive</a>
+            </div>
+        </div>
+        <div id="content">
+            $$html .HTML$$
+        </div>
+    </div>
+
+    <script type="module">
+        // Create initial variable
+        import basePage from "/js/page/base.js";
+
+        new Vue({
+            el: '#content-scene',
+            mixins: [basePage],
+            data: {
+                title: "$$.Title$$",
+                author: "$$.Author$$",
+                modified: "$$.Modified$$"
+            },
+            methods: {
+                loadSetting() {
+                    var opts = JSON.parse(localStorage.getItem("shiori-setting")) || {},
+                        showId = (typeof opts.showId === "boolean") ? opts.showId : false,
+                        listMode = (typeof opts.listMode === "boolean") ? opts.listMode : false,
+                        nightMode = (typeof opts.nightMode === "boolean") ? opts.nightMode : false,
+                        useArchive = (typeof opts.useArchive === "boolean") ? opts.useArchive : false;
+        
+                    this.displayOptions = {
+                        showId: showId,
+                        listMode: listMode,
+                        nightMode: nightMode,
+                        useArchive: useArchive,
+                    };
+
+                    document.body.className = nightMode ? "night" : "";
+                }
+            },
+            mounted() {
+                // Set title
+                document.title = `${this.title} - Shiori - Bookmarks Manager`;
+
+                // Load setting
+                this.loadSetting();
+            }
+        });
+    </script>
+</body>
+
+</html>

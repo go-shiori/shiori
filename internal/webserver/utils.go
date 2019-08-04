@@ -2,11 +2,13 @@ package webserver
 
 import (
 	"fmt"
+	"html/template"
 	"image"
 	"image/color"
 	"image/draw"
 	"image/jpeg"
 	"io"
+	"io/ioutil"
 	"math"
 	"mime"
 	"net/http"
@@ -160,6 +162,24 @@ func downloadBookImage(url, dstPath string, timeout time.Duration) error {
 	}
 
 	return nil
+}
+
+func createTemplate(filename string, funcMap template.FuncMap) (*template.Template, error) {
+	// Open file
+	src, err := assets.Open(filename)
+	if err != nil {
+		return nil, err
+	}
+	defer src.Close()
+
+	// Read file content
+	srcContent, err := ioutil.ReadAll(src)
+	if err != nil {
+		return nil, err
+	}
+
+	// Create template
+	return template.New(filename).Delims("$$", "$$").Funcs(funcMap).Parse(string(srcContent))
 }
 
 func checkError(err error) {

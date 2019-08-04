@@ -383,6 +383,114 @@ a {
     }
 }
 
+#content-scene {
+    padding: 20px;
+    display: flex;
+    color: var(--color);
+    background-color: var(--bg);
+    flex-flow: column nowrap;
+    align-items: center;
+
+    #header {
+        width: 100%;
+        padding: 20px;
+        max-width: 840px;
+        margin-bottom: 16px;
+        background-color: var(--contentBg);
+        border: 1px solid var(--border);
+        display: flex;
+        flex-flow: column;
+        align-items: center;
+
+        #metadata {
+            display: flex;
+            flex-flow: row wrap;
+            text-align: center;
+            font-size: 16px;
+            color: var(--colorLink);
+        }
+
+        #title {
+            padding: 8px 0;
+            grid-column-start: 1;
+            grid-column-end: -1;
+            font-size: 36px;
+            font-weight: 700;
+            word-break: break-word;
+            hyphens: none;
+            text-align: center;
+        }
+
+        #links {
+            display: flex;
+            flex-flow: row wrap;
+
+            a {
+                padding: 0 4px;
+                color: var(--color);
+                text-decoration: underline;
+
+                &:hover,
+                &:focus {
+                    color: var(--main);
+                }
+            }
+        }
+    }
+
+    #content {
+        width: 100%;
+        padding: 20px;
+        max-width: 840px;
+        background-color: var(--contentBg);
+        border: 1px solid var(--border);
+
+        * {
+            font-size: 18px;
+            line-height: 180%;
+
+            &:not(:last-child) {
+                margin-bottom: 20px;
+            }
+        }
+
+        a {
+            color: var(--color);
+            text-decoration: underline;
+
+            &:hover,
+            &:focus {
+                color: var(--main);
+            }
+        }
+
+        pre,
+        code {
+            overflow: auto;
+            border: 1px solid var(--border);
+            font-family: 'Ubuntu Mono', 'Courier New', Courier, monospace;
+            font-size: 16px;
+        }
+
+        pre {
+            padding: 8px;
+
+            >code {
+                border: 0;
+            }
+        }
+
+        ol,
+        ul {
+            padding-left: 16px;
+        }
+
+        img {
+            max-width: 100%;
+        }
+    }
+}
+
 #page-home {
     #edit-box {
         background-color: var(--selectedBg);
