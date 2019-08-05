@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-    <title>Shiori - Bookmarks Manager</title>
+    <title>$$.Title$$ - Shiori - Bookmarks Manager</title>
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -24,11 +24,11 @@
 <body>
     <div id="content-scene" :class="{night: displayOptions.nightMode}">
         <div id="header">
-            <p id="metadata">Added {{modified}} UTC</p>
-            <p id="title">{{title}}</p>
+            <p id="metadata">Added $$.Modified$$ UTC</p>
+            <p id="title">$$.Title$$</p>
             <div id="links">
                 <a href="$$.URL$$" target="_blank">View Original</a>
-                <a href="$$.URL$$" target="_blank">View Archive</a>
+                <a href="/bookmark/$$.ID$$/archive" target="_blank">View Archive</a>
             </div>
         </div>
         <div id="content">
@@ -43,11 +43,6 @@
         new Vue({
             el: '#content-scene',
             mixins: [basePage],
-            data: {
-                title: "$$.Title$$",
-                author: "$$.Author$$",
-                modified: "$$.Modified$$"
-            },
             methods: {
                 loadSetting() {
                     var opts = JSON.parse(localStorage.getItem("shiori-setting")) || {},
@@ -67,10 +62,6 @@
                 }
             },
             mounted() {
-                // Set title
-                document.title = `${this.title} - Shiori - Bookmarks Manager`;
-
-                // Load setting
                 this.loadSetting();
             }
         });

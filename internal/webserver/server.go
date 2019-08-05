@@ -21,6 +21,7 @@ func ServeApp(DB database.DB, dataDir string, port int) error {
 		DataDir:      dataDir,
 		UserCache:    cch.New(time.Hour, 10*time.Minute),
 		SessionCache: cch.New(time.Hour, 10*time.Minute),
+		ArchiveCache: cch.New(time.Minute, 5*time.Minute),
 	}
 
 	// Create router
@@ -35,6 +36,7 @@ func ServeApp(DB database.DB, dataDir string, port int) error {
 	router.GET("/login", hdl.serveLoginPage)
 	router.GET("/bookmark/:id/thumb", hdl.serveThumbnailImage)
 	router.GET("/bookmark/:id/content", hdl.serveBookmarkContent)
+	router.GET("/bookmark/:id/archive/*filepath", hdl.serveBookmarkArchive)
 
 	router.POST("/api/login", hdl.apiLogin)
 	router.POST("/api/logout", hdl.apiLogout)

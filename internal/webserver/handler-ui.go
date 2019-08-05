@@ -1,17 +1,20 @@
 package webserver
 
 import (
+	"bytes"
+	"compress/gzip"
 	"fmt"
 	"html/template"
 	"io"
 	"net/http"
-	nurl "net/url"
 	"os"
 	"path"
 	fp "path/filepath"
 	"strconv"
 	"strings"
 
+	"github.com/PuerkitoBio/goquery"
+	"github.com/go-shiori/shiori/pkg/warc"
 	"github.com/julienschmidt/httprouter"
 )
 
@@ -85,13 +88,6 @@ func (h *handler) serveBookmarkContent(w http.ResponseWriter, r *http.Request, p
 		"html": func(s string) template.HTML {
 			return template.HTML(s)
 		},
-		"hostname": func(s string) string {
-			parsed, err := nurl.ParseRequestURI(s)
-			if err != nil || len(parsed.Scheme) == 0 {
-				return s
-			}
-			return parsed.Hostname()
-		},
 	}
 
 	tplCache, err := createTemplate("content.html", funcMap)
@@ -125,4 +121,81 @@ func (h *handler) serveThumbnailImage(w http.ResponseWriter, r *http.Request, ps
 	img.Seek(0, 0)
 	_, err = io.Copy(w, img)
 	checkError(err)
+}
+
+// serveBookmarkArchive is handler for GET /bookmark/:id/archive/*filepath
+func (h *handler) serveBookmarkArchive(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	// Get parameter from URL
+	strID := ps.ByName("id")
+	resourcePath := ps.ByName("filepath")
+	resourcePath = strings.TrimPrefix(resourcePath, "/")
+
+	// Get bookmark from database
+	id, err := strconv.Atoi(strID)
+	checkError(err)
+
+	bookmark, exist := h.DB.GetBookmark(id, "")
+	if !exist {
+		panic(fmt.Errorf("Bookmark not found"))
+	}
+
+	// Open archive, look in cache first
+	var archive *warc.Archive
+	cacheData, found := h.ArchiveCache.Get(strID)
+
+	if found {
+		archive = cacheData.(*warc.Archive)
+	} else {
+		archivePath := fp.Join(h.DataDir, "archive", strID)
+		archive, err = warc.Open(archivePath)
+		checkError(err)
+
+		h.ArchiveCache.Set(strID, archive, 0)
+	}
+
+	content, contentType, err := archive.Read(resourcePath)
+	checkError(err)
+
+	// Set response header
+	w.Header().Set("Content-Encoding", "gzip")
+	w.Header().Set("Content-Type", contentType)
+
+	// If this is HTML and root, inject shiori header
+	if strings.Contains(strings.ToLower(contentType), "text/html") && resourcePath == "" {
+		// Extract gzip
+		buffer := bytes.NewBuffer(content)
+		gzipReader, err := gzip.NewReader(buffer)
+		checkError(err)
+
+		// Parse gzipped content
+		doc, err := goquery.NewDocumentFromReader(gzipReader)
+		checkError(err)
+
+		// Add Shiori overlay
+		headerHTML := fmt.Sprintf(
+			`<div id="shiori-archive-header">
+			<p id="shiori-logo">
+			<span>栞</span>shiori
+			</p>
+			<div class="spacer"></div>
+			<a href="%s" target="_blank">View Original</a>
+			<a href="/bookmark/%s/content" target="_blank">View Readable</a>
+			</div>`, bookmark.URL, strID)
+
+		doc.Find("head").AppendHtml(`<link href="/css/archive.css" rel="stylesheet">`)
+		doc.Find("body").PrependHtml(headerHTML)
+
+		// Revert back to HTML
+		outerHTML, err := goquery.OuterHtml(doc.Selection)
+		checkError(err)
+
+		// Gzip it again and send to response writer
+		gzipWriter := gzip.NewWriter(w)
+		gzipWriter.Write([]byte(outerHTML))
+		gzipWriter.Flush()
+		return
+	}
+
+	// Serve content
+	w.Write(content)
 }

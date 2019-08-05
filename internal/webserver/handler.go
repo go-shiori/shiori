@@ -16,6 +16,7 @@ type handler struct {
 	DataDir      string
 	UserCache    *cch.Cache
 	SessionCache *cch.Cache
+	ArchiveCache *cch.Cache
 }
 
 // prepareLoginCache prepares login cache for future use
