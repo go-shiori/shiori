@@ -101,7 +101,8 @@ func addHandler(cmd *cobra.Command, args []string) {
 			// Split response body so it can be processed twice
 			archivalInput := bytes.NewBuffer(nil)
 			readabilityInput := bytes.NewBuffer(nil)
-			multiWriter := io.MultiWriter(archivalInput, readabilityInput)
+			readabilityCheckInput := bytes.NewBuffer(nil)
+			multiWriter := io.MultiWriter(archivalInput, readabilityInput, readabilityCheckInput)
 
 			_, err = io.Copy(multiWriter, resp.Body)
 			if err != nil {
@@ -112,6 +113,8 @@ func addHandler(cmd *cobra.Command, args []string) {
 			// If this is HTML, parse for readable content
 			contentType := resp.Header.Get("Content-Type")
 			if strings.Contains(contentType, "text/html") {
+				isReadable := readability.IsReadable(readabilityCheckInput)
+
 				article, err := readability.FromReader(readabilityInput, url)
 				if err != nil {
 					cError.Printf("Failed to parse article: %v\n", err)
@@ -129,6 +132,10 @@ func addHandler(cmd *cobra.Command, args []string) {
 
 				if book.Excerpt == "" {
 					book.Excerpt = article.Excerpt
+				}
+
+				if !isReadable {
+					book.Content = ""
 				}
 
 				// Get image URL

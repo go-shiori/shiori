@@ -237,7 +237,8 @@ func (h *handler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 		// Split response body so it can be processed twice
 		archivalInput := bytes.NewBuffer(nil)
 		readabilityInput := bytes.NewBuffer(nil)
-		multiWriter := io.MultiWriter(archivalInput, readabilityInput)
+		readabilityCheckInput := bytes.NewBuffer(nil)
+		multiWriter := io.MultiWriter(archivalInput, readabilityInput, readabilityCheckInput)
 
 		_, err = io.Copy(multiWriter, resp.Body)
 		if err != nil {
@@ -247,6 +248,8 @@ func (h *handler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 		// If this is HTML, parse for readable content
 		contentType := resp.Header.Get("Content-Type")
 		if strings.Contains(contentType, "text/html") {
+			isReadable := readability.IsReadable(readabilityCheckInput)
+
 			article, err := readability.FromReader(readabilityInput, book.URL)
 			if err != nil {
 				return
@@ -272,6 +275,10 @@ func (h *handler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 
 			if article.Favicon != "" {
 				imageURLs = append(imageURLs, article.Favicon)
+			}
+
+			if !isReadable {
+				book.Content = ""
 			}
 		}
 
@@ -513,7 +520,6 @@ func (h *handler) apiUpdateCache(w http.ResponseWriter, r *http.Request, ps http
 				book.Author = article.Byline
 				book.Content = article.TextContent
 				book.HTML = article.Content
-				book.HasContent = book.Content != "" && isReadable
 
 				if article.Title != "" {
 					book.Title = article.Title
@@ -521,6 +527,10 @@ func (h *handler) apiUpdateCache(w http.ResponseWriter, r *http.Request, ps http
 
 				if article.Excerpt != "" {
 					book.Excerpt = article.Excerpt
+				}
+
+				if !isReadable {
+					book.Content = ""
 				}
 
 				// Get image for thumbnail and save it to local disk

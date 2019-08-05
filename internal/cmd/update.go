@@ -185,7 +185,8 @@ func updateHandler(cmd *cobra.Command, args []string) {
 				// Split response body so it can be processed twice
 				archivalInput := bytes.NewBuffer(nil)
 				readabilityInput := bytes.NewBuffer(nil)
-				multiWriter := io.MultiWriter(archivalInput, readabilityInput)
+				readabilityCheckInput := bytes.NewBuffer(nil)
+				multiWriter := io.MultiWriter(archivalInput, readabilityInput, readabilityCheckInput)
 
 				_, err = io.Copy(multiWriter, resp.Body)
 				if err != nil {
@@ -197,6 +198,8 @@ func updateHandler(cmd *cobra.Command, args []string) {
 				// If this is HTML, parse for readable content
 				contentType := resp.Header.Get("Content-Type")
 				if strings.Contains(contentType, "text/html") {
+					isReadable := readability.IsReadable(readabilityCheckInput)
+
 					article, err := readability.FromReader(readabilityInput, book.URL)
 					if err != nil {
 						chProblem <- book.ID
@@ -207,6 +210,10 @@ func updateHandler(cmd *cobra.Command, args []string) {
 					book.Author = article.Byline
 					book.Content = article.TextContent
 					book.HTML = article.Content
+
+					if !isReadable {
+						book.Content = ""
+					}
 
 					if !dontOverwrite {
 						book.Title = article.Title
