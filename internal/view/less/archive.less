@@ -52,7 +52,6 @@
     }
 
     a {
-        font-size: 1em;
         display: block;
         color: var(--colorLink);
         text-decoration: underline;
@@ -60,6 +59,15 @@
         &:hover,
         &:focus {
             color: var(--main);
+        }
+    }
+
+    @media (max-width: 600px) {
+        font-size: 14px;
+        height: 50px;
+
+        #shiori-logo {
+            font-size: 1.5em;
         }
     }
 }

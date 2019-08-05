@@ -152,14 +152,18 @@ func (h *handler) apiGetBookmarks(w http.ResponseWriter, r *http.Request, ps htt
 	bookmarks, err := h.DB.GetBookmarks(searchOptions)
 	checkError(err)
 
-	// Get image URL for each bookmark
+	// Get image URL for each bookmark, and check if it has archive
 	for i := range bookmarks {
 		strID := strconv.Itoa(bookmarks[i].ID)
 		imgPath := fp.Join(h.DataDir, "thumb", strID)
-		imgURL := path.Join("/", "bookmark", strID, "thumb")
+		archivePath := fp.Join(h.DataDir, "archive", strID)
 
 		if fileExists(imgPath) {
-			bookmarks[i].ImageURL = imgURL
+			bookmarks[i].ImageURL = path.Join("/", "bookmark", strID, "thumb")
+		}
+
+		if fileExists(archivePath) {
+			bookmarks[i].HasArchive = true
 		}
 	}
 

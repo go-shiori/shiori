@@ -4,7 +4,7 @@ var template = `
         v-if="editMode" 
         @click="selectBookmark">
     </a>
-    <a class="bookmark-link" :href="url" target="_blank">
+    <a class="bookmark-link" :href="mainURL" target="_blank">
         <span class="thumbnail" v-if="imageURL" :style="thumbnailStyleURL"></span>
         <p class="title">{{title}}</p>
         <p class="excerpt" v-if="!imageURL">{{excerpt}}</p>
@@ -40,6 +40,8 @@ export default {
         title: String,
         excerpt: String,
         imageURL: String,
+        hasContent: Boolean,
+        hasArchive: Boolean,
         index: Number,
         showId: Boolean,
         editMode: Boolean,
@@ -53,9 +55,14 @@ export default {
         }
     },
     computed: {
+        mainURL() {
+            if (this.hasContent) return `/bookmark/${this.id}/content`;
+            else if (this.hasArchive) return `/bookmark/${this.id}/archive`;
+            else return this.url;
+        },
         hostnameURL() {
             var url = new URL(this.url);
-            return url.hostname;
+            return url.hostname.replace(/^www\./, "");
         },
         thumbnailStyleURL() {
             return {

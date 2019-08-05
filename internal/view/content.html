@@ -28,7 +28,9 @@
             <p id="title">$$.Title$$</p>
             <div id="links">
                 <a href="$$.URL$$" target="_blank">View Original</a>
-                <a href="/bookmark/$$.ID$$/archive" target="_blank">View Archive</a>
+                $$if .HasArchive$$
+                <a href="/bookmark/$$.ID$$/archive">View Archive</a>
+                $$end$$
             </div>
         </div>
         <div id="content">
@@ -63,6 +65,10 @@
             },
             mounted() {
                 this.loadSetting();
+
+                document.querySelectorAll("#content a").forEach((elem) => {
+                    elem.setAttribute("target", "_blank");
+                });
             }
         });
     </script>

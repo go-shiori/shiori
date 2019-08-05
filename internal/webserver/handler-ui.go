@@ -83,6 +83,12 @@ func (h *handler) serveBookmarkContent(w http.ResponseWriter, r *http.Request, p
 		panic(fmt.Errorf("Bookmark not found"))
 	}
 
+	// Check if it has archive
+	archivePath := fp.Join(h.DataDir, "archive", strID)
+	if fileExists(archivePath) {
+		bookmark.HasArchive = true
+	}
+
 	// Create template
 	funcMap := template.FuncMap{
 		"html": func(s string) template.HTML {
@@ -172,18 +178,23 @@ func (h *handler) serveBookmarkArchive(w http.ResponseWriter, r *http.Request, p
 		checkError(err)
 
 		// Add Shiori overlay
-		headerHTML := fmt.Sprintf(
+		tpl, err := template.New("archive").Parse(
 			`<div id="shiori-archive-header">
-			<p id="shiori-logo">
-			<span>栞</span>shiori
-			</p>
+			<p id="shiori-logo"><span>栞</span>shiori</p>
 			<div class="spacer"></div>
-			<a href="%s" target="_blank">View Original</a>
-			<a href="/bookmark/%s/content" target="_blank">View Readable</a>
-			</div>`, bookmark.URL, strID)
+			<a href="{{.URL}}" target="_blank">View Original</a>
+			{{if .HasContent}}
+			<a href="/bookmark/{{.ID}}/content">View Readable</a>
+			{{end}}
+			</div>`)
+		checkError(err)
+
+		tplOutput := bytes.NewBuffer(nil)
+		err = tpl.Execute(tplOutput, &bookmark)
+		checkError(err)
 
 		doc.Find("head").AppendHtml(`<link href="/css/archive.css" rel="stylesheet">`)
-		doc.Find("body").PrependHtml(headerHTML)
+		doc.Find("body").PrependHtml(tplOutput.String())
 
 		// Revert back to HTML
 		outerHTML, err := goquery.OuterHtml(doc.Selection)
