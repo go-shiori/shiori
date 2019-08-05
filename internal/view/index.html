@@ -21,7 +21,7 @@
     <script src="/js/vue.min.js"></script>
 </head>
 
-<body>
+<body class="night">
     <div id="main-scene" :class="{night: displayOptions.nightMode}">
         <div id="main-sidebar">
             <a v-for="item in sidebarItems" :title="item.title" :class="{active: activePage === item.page}" @click="switchPage(item.page)">
