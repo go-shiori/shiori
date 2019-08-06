@@ -18,7 +18,7 @@ func init() {
 
 func getDataDirectory() string {
 	// Try to look at environment variables
-	dataDir, found := os.LookupEnv("ENV_SHIORI_DIR")
+	dataDir, found := os.LookupEnv("SHIORI_DIR")
 	if found {
 		return dataDir
 	}
