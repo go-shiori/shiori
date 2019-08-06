@@ -35,9 +35,8 @@ func (h *handler) serveJsFile(w http.ResponseWriter, r *http.Request, ps httprou
 		filePath = path.Join(fileDir, fileName)
 		if assetExists(filePath) {
 			redirectPage(w, r, filePath)
+			return
 		}
-
-		return
 	}
 
 	err := serveFile(w, r.URL.Path, true)

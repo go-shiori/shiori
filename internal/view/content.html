@@ -18,13 +18,14 @@
     <link href="/css/custom-dialog.css" rel="stylesheet">
     <link href="/css/bookmark-item.css" rel="stylesheet">
 
+    <script src="/js/dayjs.min.js"></script>
     <script src="/js/vue.min.js"></script>
 </head>
 
 <body class="night">
     <div id="content-scene" :class="{night: displayOptions.nightMode}">
         <div id="header">
-            <p id="metadata">Added $$.Modified$$ UTC</p>
+            <p id="metadata" v-cloak>Added {{localtime()}}</p>
             <p id="title">$$.Title$$</p>
             <div id="links">
                 <a href="$$.URL$$" target="_blank" rel="noopener">View Original</a>
@@ -45,7 +46,14 @@
         new Vue({
             el: '#content-scene',
             mixins: [basePage],
+            data: {
+                modified: "$$.Modified$$"
+            },
             methods: {
+                localtime() {
+                    var strTime = `${this.modified.replace(" ", "T")}+00:00`;
+                    return dayjs(strTime).format("D MMMM YYYY, HH:mm:ss");
+                },
                 loadSetting() {
                     var opts = JSON.parse(localStorage.getItem("shiori-setting")) || {},
                         showId = (typeof opts.showId === "boolean") ? opts.showId : false,
