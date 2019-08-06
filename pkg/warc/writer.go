@@ -54,6 +54,7 @@ func NewArchive(req ArchivalRequest, dstPath string) error {
 	if err != nil {
 		return fmt.Errorf("failed to create archive: %v", err)
 	}
+	defer db.Close()
 
 	// Create archiver
 	arc := &archiver.Archiver{

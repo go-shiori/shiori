@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/go-shiori/shiori/internal/database"
+	"github.com/go-shiori/shiori/pkg/warc"
 	"github.com/julienschmidt/httprouter"
 	cch "github.com/patrickmn/go-cache"
 	"github.com/sirupsen/logrus"
@@ -23,6 +24,11 @@ func ServeApp(DB database.DB, dataDir string, port int) error {
 		SessionCache: cch.New(time.Hour, 10*time.Minute),
 		ArchiveCache: cch.New(time.Minute, 5*time.Minute),
 	}
+
+	hdl.ArchiveCache.OnEvicted(func(key string, data interface{}) {
+		archive := data.(*warc.Archive)
+		archive.Close()
+	})
 
 	// Create router
 	router := httprouter.New()
