@@ -193,6 +193,7 @@ func (h *handler) serveBookmarkArchive(w http.ResponseWriter, r *http.Request, p
 		err = tpl.Execute(tplOutput, &bookmark)
 		checkError(err)
 
+		doc.Find("head").AppendHtml(`<link href="/css/source-sans-pro.min.css" rel="stylesheet">`)
 		doc.Find("head").AppendHtml(`<link href="/css/archive.css" rel="stylesheet">`)
 		doc.Find("body").PrependHtml(tplOutput.String())
 
