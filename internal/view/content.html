@@ -27,7 +27,7 @@
             <p id="metadata">Added $$.Modified$$ UTC</p>
             <p id="title">$$.Title$$</p>
             <div id="links">
-                <a href="$$.URL$$" target="_blank">View Original</a>
+                <a href="$$.URL$$" target="_blank" rel="noopener">View Original</a>
                 $$if .HasArchive$$
                 <a href="/bookmark/$$.ID$$/archive">View Archive</a>
                 $$end$$
@@ -66,8 +66,9 @@
             mounted() {
                 this.loadSetting();
 
-                document.querySelectorAll("#content a").forEach((elem) => {
+                document.querySelectorAll("#content a").forEach(elem => {
                     elem.setAttribute("target", "_blank");
+                    elem.setAttribute("rel", "noopener");
                 });
             }
         });

@@ -4,7 +4,7 @@ var template = `
         v-if="editMode" 
         @click="selectBookmark">
     </a>
-    <a class="bookmark-link" :href="mainURL" target="_blank">
+    <a class="bookmark-link" :href="mainURL" target="_blank" rel="noopener">
         <span class="thumbnail" v-if="imageURL" :style="thumbnailStyleURL"></span>
         <p class="title">{{title}}</p>
         <p class="excerpt" v-if="!imageURL">{{excerpt}}</p>
@@ -15,7 +15,7 @@ var template = `
     </div>
     <div class="spacer"></div>
     <div class="bookmark-menu">
-        <a class="url" :href="url" target="_blank">
+        <a class="url" :href="url" target="_blank" rel="noopener">
             {{hostnameURL}}
         </a>
         <template v-if="!editMode">
