@@ -284,6 +284,8 @@ func (h *handler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 			if !isReadable {
 				book.Content = ""
 			}
+
+			book.HasContent = book.Content != ""
 		}
 
 		// If needed, create offline archive as well
@@ -299,6 +301,8 @@ func (h *handler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 			if err != nil {
 				return
 			}
+
+			book.HasArchive = true
 		}
 	}()
 
@@ -537,6 +541,8 @@ func (h *handler) apiUpdateCache(w http.ResponseWriter, r *http.Request, ps http
 					book.Content = ""
 				}
 
+				book.HasContent = book.Content != ""
+
 				// Get image for thumbnail and save it to local disk
 				var imageURLs []string
 				if article.Image != "" {
@@ -575,6 +581,8 @@ func (h *handler) apiUpdateCache(w http.ResponseWriter, r *http.Request, ps http
 					chProblem <- book.ID
 					return
 				}
+
+				book.HasArchive = true
 			}
 
 			// Update list of bookmarks
