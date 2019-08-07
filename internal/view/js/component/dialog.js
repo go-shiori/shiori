@@ -1,5 +1,5 @@
 var template = `
-<div v-if="visible" class="custom-dialog-overlay">
+<div v-if="visible" class="custom-dialog-overlay" @keyup.esc="handleEscPressed">
     <div class="custom-dialog">
         <p class="custom-dialog-header">{{title}}</p>
         <div class="custom-dialog-body">
@@ -89,6 +89,10 @@ export default {
         secondClick: {
             type: Function,
             default () { this.visible = false; }
+        },
+        escPressed: {
+            type: Function,
+            default () { this.visible = false; }
         }
     },
     data() {
@@ -155,6 +159,9 @@ export default {
         },
         handleSecondClick() {
             this.secondClick();
+        },
+        handleEscPressed() {
+            this.escPressed();
         },
         handleInput(index) {
             // Create initial variable

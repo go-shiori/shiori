@@ -33,6 +33,9 @@ export default {
                 },
                 secondClick: () => {
                     this.dialog.visible = false;
+                },
+                escPressed: () => {
+                    if (!this.loading) this.dialog.visible = false;
                 }
             }
         },
