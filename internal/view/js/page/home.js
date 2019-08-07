@@ -634,6 +634,7 @@ export default {
         }
     },
     mounted() {
+        // Prepare history state watcher
         var stateWatcher = (e) => {
             var state = e.state || {},
                 activePage = state.activePage || "page-home",
@@ -651,6 +652,18 @@ export default {
         this.$once('hook:beforeDestroy', function() {
             window.removeEventListener('popstate', stateWatcher);
         })
+
+        // Set initial parameter
+        var url = new Url,
+            initialPage = url.hash.replace(/^([^?]+).*$/, "$1");
+
+        if (initialPage === "home") {
+            var search = url.hash.replace(/^.*(\?|&)search=([^?&]*).*$/, "$2"),
+                page = url.hash.replace(/^.*(\?|&)page=(\d+).*$/, "$2");
+
+            this.search = decodeURIComponent(search) || "";
+            this.page = parseInt(page) || 1;
+        }
 
         this.loadData(false, true);
     }

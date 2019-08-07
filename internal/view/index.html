@@ -20,6 +20,7 @@
     <link href="/css/bookmark-item.css" rel="stylesheet">
 
     <script src="/js/vue.min.js"></script>
+    <script src="/js/url.min.js"></script>
 </head>
 
 <body class="night">
@@ -64,7 +65,6 @@
                     icon: "fa-cog",
                     page: "page-setting",
                 }],
-                historyState: {},
             },
             methods: {
                 switchPage(page) {
@@ -137,8 +137,14 @@
                     window.removeEventListener('popstate', stateWatcher);
                 })
 
-                // Set initial URL
-                history.replaceState(null, "page-home", "#home");
+                // Set initial active page
+                var initialPage = (new Url).hash.replace(/^([^?]+).*$/, "$1");
+
+                if (initialPage === "home" || initialPage === "setting") {
+                    this.activePage = `page-${initialPage}`;
+                } else {
+                    history.replaceState(null, "page-home", "#home");
+                }
             }
         })
     </script>
