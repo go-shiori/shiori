@@ -227,12 +227,13 @@ func (db *SQLiteDatabase) GetBookmarks(opts GetBookmarksOptions) ([]model.Bookma
 	}
 
 	if opts.Keyword != "" {
-		query += ` AND (b.url LIKE ? OR b.id IN (
+		query += ` AND (b.url LIKE ? OR b.excerpt LIKE ? OR b.id IN (
 			SELECT docid id 
 			FROM bookmark_content 
 			WHERE title MATCH ? OR content MATCH ?))`
 
 		args = append(args,
+			"%"+opts.Keyword+"%",
 			"%"+opts.Keyword+"%",
 			opts.Keyword,
 			opts.Keyword)
