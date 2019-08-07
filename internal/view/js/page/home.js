@@ -61,7 +61,7 @@ var template = `
     <p class="empty-message" v-if="!loading && listIsEmpty">No saved bookmarks yet :(</p>
     <div class="loading-overlay" v-if="loading"><i class="fas fa-fw fa-spin fa-spinner"></i></div>
     <custom-dialog id="dialog-tags" v-bind="dialogTags">
-        <a v-for="tag in tags" @click="filterTag(tag.name)">
+        <a v-for="(tag, idx) in tags" @click="tagClicked(idx, tag)">
             {{tag.name}}<span>{{tag.nBookmarks}}</span>
         </a>
     </custom-dialog>
@@ -95,17 +95,43 @@ export default {
 
             dialogTags: {
                 visible: false,
+                editMode: false,
                 title: 'Existing Tags',
                 mainText: 'OK',
+                secondText: 'Rename Tags',
                 mainClick: () => {
-                    this.dialogTags.visible = false;
+                    if (this.dialogTags.editMode) {
+                        this.dialogTags.editMode = false;
+                    } else {
+                        this.dialogTags.visible = false;
+                    }
                 },
+                secondClick: () => {
+                    this.dialogTags.editMode = true;
+                },
+                escPressed: () => {
+                    this.dialogTags.visible = false;
+                    this.dialogTags.editMode = false;
+                }
             },
         }
     },
     computed: {
         listIsEmpty() {
             return this.bookmarks.length <= 0;
+        }
+    },
+    watch: {
+        "dialogTags.editMode"(editMode) {
+            if (editMode) {
+                this.dialogTags.title = "Rename Tags";
+                this.dialogTags.mainText = "Cancel";
+                this.dialogTags.secondText = "";
+            } else {
+                this.dialogTags.title = "Existing Tags";
+                this.dialogTags.mainText = "OK";
+                this.dialogTags.secondText = "Rename Tags";
+            }
         }
     },
     methods: {
@@ -223,15 +249,6 @@ export default {
             this.$refs.bookmarksGrid.scrollTop = 0;
             this.loadData();
         },
-        filterTag(tagName) {
-            var rxSpace = /\s+/g,
-                newTag = rxSpace.test(tagName) ? `"#${tagName}"` : `#${tagName}`;
-
-            if (!this.search.includes(newTag)) {
-                this.search += ` ${newTag}`;
-                this.loadData();
-            }
-        },
         toggleEditMode() {
             this.selection = [];
             this.editMode = !this.editMode;
@@ -243,6 +260,23 @@ export default {
         },
         isSelected(bookId) {
             return this.selection.findIndex(el => el.id === bookId) > -1;
+        },
+        tagClicked(idx, tag) {
+            if (!this.dialogTags.editMode) {
+                this.filterTag(tag.name);
+            } else {
+                this.dialogTags.visible = false;
+                this.showDialogRenameTag(idx, tag);
+            }
+        },
+        filterTag(tagName) {
+            var rxSpace = /\s+/g,
+                newTag = rxSpace.test(tagName) ? `"#${tagName}"` : `#${tagName}`;
+
+            if (!this.search.includes(newTag)) {
+                this.search += ` ${newTag}`;
+                this.loadData();
+            }
         },
         showDialogAdd() {
             this.showDialog({
@@ -631,7 +665,55 @@ export default {
         },
         showDialogTags() {
             this.dialogTags.visible = true;
-        }
+        },
+        showDialogRenameTag(idx, tag) {
+            this.showDialog({
+                title: "Rename Tag",
+                content: `Change the name for tag "#${tag.name}"`,
+                fields: [{
+                    name: "newName",
+                    label: "New tag name",
+                    value: tag.name,
+                }],
+                mainText: "OK",
+                secondText: "Cancel",
+                secondClick: () => {
+                    this.dialog.visible = false;
+                    this.dialogTags.visible = true;
+                },
+                mainClick: (data) => {
+                    // Send data
+                    tag.name = data.newName;
+
+                    this.dialog.loading = true;
+                    fetch("/api/tag", {
+                            method: "PUT",
+                            body: JSON.stringify(tag),
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                        })
+                        .then(response => {
+                            if (!response.ok) throw response;
+                            return response.json();
+                        })
+                        .then(() => {
+                            this.dialog.loading = false;
+                            this.dialog.visible = false;
+                            this.dialogTags.visible = true;
+                            this.tags.splice(idx, 1, tag);
+                        })
+                        .catch(err => {
+                            this.dialog.loading = false;
+                            this.dialogTags.visible = false;
+                            this.dialogTags.editMode = false;
+                            err.text().then(msg => {
+                                this.showErrorDialog(msg, err.status);
+                            })
+                        });
+                },
+            });
+        },
     },
     mounted() {
         // Prepare history state watcher
@@ -658,8 +740,9 @@ export default {
             initialPage = url.hash.replace(/^([^?]+).*$/, "$1");
 
         if (initialPage === "home") {
-            var search = url.hash.replace(/^.*(\?|&)search=([^?&]*).*$/, "$2"),
-                page = url.hash.replace(/^.*(\?|&)page=(\d+).*$/, "$2");
+            var urlHash = url.hash.replace(initialPage, ""),
+                search = urlHash.replace(/^.*(\?|&)search=([^?&]*).*$/, "$2"),
+                page = urlHash.replace(/^.*(\?|&)page=(\d+).*$/, "$2");
 
             this.search = decodeURIComponent(search) || "";
             this.page = parseInt(page) || 1;

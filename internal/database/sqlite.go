@@ -523,6 +523,12 @@ func (db *SQLiteDatabase) GetTags() ([]model.Tag, error) {
 	return tags, nil
 }
 
+// RenameTag change the name of a tag.
+func (db *SQLiteDatabase) RenameTag(id int, newName string) error {
+	_, err := db.Exec(`UPDATE tag SET name = ? WHERE id = ?`, newName, id)
+	return err
+}
+
 // CreateNewID creates new ID for specified table
 func (db *SQLiteDatabase) CreateNewID(table string) (int, error) {
 	var tableID int

@@ -61,6 +61,9 @@ type DB interface {
 	// GetTags fetch list of tags and its frequency from database.
 	GetTags() ([]model.Tag, error)
 
+	// RenameTag change the name of a tag.
+	RenameTag(id int, newName string) error
+
 	// CreateNewID creates new id for specified table.
 	CreateNewID(table string) (int, error)
 }

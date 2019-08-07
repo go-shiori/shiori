@@ -194,6 +194,24 @@ func (h *handler) apiGetTags(w http.ResponseWriter, r *http.Request, ps httprout
 	checkError(err)
 }
 
+// apiRenameTag is handler for PUT /api/tag
+func (h *handler) apiRenameTag(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	// Make sure session still valid
+	err := h.validateSession(r)
+	checkError(err)
+
+	// Decode request
+	tag := model.Tag{}
+	err = json.NewDecoder(r.Body).Decode(&tag)
+	checkError(err)
+
+	// Update name
+	err = h.DB.RenameTag(tag.ID, tag.Name)
+	checkError(err)
+
+	fmt.Fprint(w, 1)
+}
+
 // apiInsertBookmark is handler for POST /api/bookmark
 func (h *handler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	// Make sure session still valid

@@ -48,6 +48,7 @@ func ServeApp(DB database.DB, dataDir string, port int) error {
 	router.POST("/api/logout", hdl.apiLogout)
 	router.GET("/api/bookmarks", hdl.apiGetBookmarks)
 	router.GET("/api/tags", hdl.apiGetTags)
+	router.PUT("/api/tag", hdl.apiRenameTag)
 	router.POST("/api/bookmarks", hdl.apiInsertBookmark)
 	router.DELETE("/api/bookmarks", hdl.apiDeleteBookmark)
 	router.PUT("/api/bookmarks", hdl.apiUpdateBookmark)
