@@ -411,6 +411,7 @@ func (h *handler) apiUpdateBookmark(w http.ResponseWriter, r *http.Request, ps h
 
 	// Set new bookmark data
 	book := bookmarks[0]
+	book.URL = request.URL
 	book.Title = request.Title
 	book.Excerpt = request.Excerpt
 

@@ -378,6 +378,10 @@ export default {
                 content: "Edit the bookmark's data",
                 showLabel: true,
                 fields: [{
+                    name: "url",
+                    label: "Url",
+                    value: book.url,
+                }, {
                     name: "title",
                     label: "Title",
                     value: book.title,
@@ -412,6 +416,7 @@ export default {
                         });
 
                     // Set new data
+                    book.url = data.url.trim();
                     book.title = data.title.trim();
                     book.excerpt = data.excerpt.trim();
                     book.tags = tags;
