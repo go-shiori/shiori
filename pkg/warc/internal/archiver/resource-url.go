@@ -47,14 +47,13 @@ func ToResourceURL(uri string, base *nurl.URL) ResourceURL {
 	// So, for archival URL, we need to unescape the query and path first.
 	tmp, err := nurl.Parse(downloadURL)
 	if err == nil {
-		tmp.RawPath = tmp.Path
-
-		newQuery, _ := nurl.QueryUnescape(tmp.RawQuery)
-		if newQuery != "" {
-			tmp.RawQuery = newQuery
+		unescapedQuery, _ := nurl.QueryUnescape(tmp.RawQuery)
+		if unescapedQuery != "" {
+			tmp.RawQuery = unescapedQuery
 		}
 
 		archivalURL = tmp.String()
+		archivalURL = strings.Replace(archivalURL, tmp.EscapedPath(), tmp.Path, 1)
 	}
 
 	archivalURL = strings.ReplaceAll(archivalURL, "://", "/")
