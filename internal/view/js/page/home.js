@@ -275,6 +275,7 @@ export default {
 
             if (!this.search.includes(newTag)) {
                 this.search += ` ${newTag}`;
+                this.search = this.search.trim();
                 this.loadData();
             }
         },
@@ -664,6 +665,7 @@ export default {
             });
         },
         showDialogTags() {
+            this.dialogTags.editMode = false;
             this.dialogTags.visible = true;
         },
         showDialogRenameTag(idx, tag) {
@@ -681,14 +683,26 @@ export default {
                     this.dialog.visible = false;
                     this.dialogTags.visible = true;
                 },
+                escPressed: () => {
+                    this.dialog.visible = false;
+                    this.dialogTags.visible = true;
+                },
                 mainClick: (data) => {
+                    // Save the old query
+                    var rxSpace = /\s+/g,
+                        oldTagQuery = rxSpace.test(tag.name) ? `"#${tag.name}"` : `#${tag.name}`,
+                        newTagQuery = rxSpace.test(data.newName) ? `"#${data.newName}"` : `#${data.newName}`;
+
                     // Send data
-                    tag.name = data.newName;
+                    var newData = {
+                        id: tag.id,
+                        name: data.newName,
+                    };
 
                     this.dialog.loading = true;
                     fetch("/api/tag", {
                             method: "PUT",
-                            body: JSON.stringify(tag),
+                            body: JSON.stringify(newData),
                             headers: {
                                 "Content-Type": "application/json",
                             },
@@ -698,10 +712,25 @@ export default {
                             return response.json();
                         })
                         .then(() => {
+                            tag.name = data.newName;
+
                             this.dialog.loading = false;
                             this.dialog.visible = false;
                             this.dialogTags.visible = true;
-                            this.tags.splice(idx, 1, tag);
+                            this.dialogTags.editMode = false;
+                            this.tags.sort((a, b) => {
+                                var aName = a.name.toLowerCase(),
+                                    bName = b.name.toLowerCase();
+
+                                if (aName < bName) return -1;
+                                else if (aName > bName) return 1;
+                                else return 0;
+                            });
+
+                            if (this.search.includes(oldTagQuery)) {
+                                this.search = this.search.replace(oldTagQuery, newTagQuery);
+                                this.loadData();
+                            }
                         })
                         .catch(err => {
                             this.dialog.loading = false;

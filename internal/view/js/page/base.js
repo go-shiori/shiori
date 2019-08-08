@@ -51,6 +51,7 @@ export default {
             if (cfg.secondText) base.secondText = cfg.secondText;
             if (cfg.mainClick) base.mainClick = cfg.mainClick;
             if (cfg.secondClick) base.secondClick = cfg.secondClick;
+            if (cfg.escPressed) base.escPressed = cfg.escPressed;
             this.dialog = base;
         },
         isSessionError(err) {
