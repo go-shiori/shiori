@@ -41,31 +41,32 @@ func OpenSQLiteDatabase(databasePath string) (*SQLiteDatabase, error) {
 
 	// Create tables
 	tx.MustExec(`CREATE TABLE IF NOT EXISTS account(
-		id INTEGER NOT NULL,
-		username TEXT NOT NULL,
-		password TEXT NOT NULL,
+		id       INTEGER NOT NULL,
+		username TEXT    NOT NULL,
+		password TEXT    NOT NULL,
 		CONSTRAINT account_PK PRIMARY KEY(id),
 		CONSTRAINT account_username_UNIQUE UNIQUE(username))`)
 
 	tx.MustExec(`CREATE TABLE IF NOT EXISTS bookmark(
-		id INTEGER NOT NULL,
-		url TEXT NOT NULL,
-		title TEXT NOT NULL,
-		excerpt TEXT NOT NULL DEFAULT "",
-		author TEXT NOT NULL DEFAULT "",
-		modified TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		id       INTEGER NOT NULL,
+		url      TEXT    NOT NULL,
+		title    TEXT    NOT NULL,
+		excerpt  TEXT    NOT NULL DEFAULT "",
+		author   TEXT    NOT NULL DEFAULT "",
+		public   INTEGER NOT NULL DEFAULT 0,
+		modified TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP,
 		CONSTRAINT bookmark_PK PRIMARY KEY(id),
 		CONSTRAINT bookmark_url_UNIQUE UNIQUE(url))`)
 
 	tx.MustExec(`CREATE TABLE IF NOT EXISTS tag(
-		id INTEGER NOT NULL,
-		name TEXT NOT NULL,
+		id   INTEGER NOT NULL,
+		name TEXT    NOT NULL,
 		CONSTRAINT tag_PK PRIMARY KEY(id),
 		CONSTRAINT tag_name_UNIQUE UNIQUE(name))`)
 
 	tx.MustExec(`CREATE TABLE IF NOT EXISTS bookmark_tag(
 		bookmark_id INTEGER NOT NULL,
-		tag_id INTEGER NOT NULL,
+		tag_id      INTEGER NOT NULL,
 		CONSTRAINT bookmark_tag_PK PRIMARY KEY(bookmark_id, tag_id),
 		CONSTRAINT bookmark_id_FK FOREIGN KEY(bookmark_id) REFERENCES bookmark(id),
 		CONSTRAINT tag_id_FK FOREIGN KEY(tag_id) REFERENCES tag(id))`)
@@ -100,10 +101,11 @@ func (db *SQLiteDatabase) SaveBookmarks(bookmarks ...model.Bookmark) (result []m
 
 	// Prepare statement
 	stmtInsertBook, _ := tx.Preparex(`INSERT INTO bookmark
-		(id, url, title, excerpt, author, modified)
-		VALUES(?, ?, ?, ?, ?, ?)
+		(id, url, title, excerpt, author, public, modified)
+		VALUES(?, ?, ?, ?, ?, ?, ?)
 		ON CONFLICT(id) DO UPDATE SET
-		url = ?, title = ?,	excerpt = ?, author = ?, modified = ?`)
+		url = ?, title = ?,	excerpt = ?, author = ?, 
+		public = ?, modified = ?`)
 
 	stmtInsertBookContent, _ := tx.Preparex(`INSERT OR IGNORE INTO bookmark_content
 		(docid, title, content, html) 
@@ -147,8 +149,8 @@ func (db *SQLiteDatabase) SaveBookmarks(bookmarks ...model.Bookmark) (result []m
 
 		// Save bookmark
 		stmtInsertBook.MustExec(book.ID,
-			book.URL, book.Title, book.Excerpt, book.Author, book.Modified,
-			book.URL, book.Title, book.Excerpt, book.Author, book.Modified)
+			book.URL, book.Title, book.Excerpt, book.Author, book.Public, book.Modified,
+			book.URL, book.Title, book.Excerpt, book.Author, book.Public, book.Modified)
 
 		stmtUpdateBookContent.MustExec(book.Title, book.Content, book.HTML, book.ID)
 		stmtInsertBookContent.MustExec(book.ID, book.Title, book.Content, book.HTML)
@@ -206,6 +208,7 @@ func (db *SQLiteDatabase) GetBookmarks(opts GetBookmarksOptions) ([]model.Bookma
 		`b.title`,
 		`b.excerpt`,
 		`b.author`,
+		`b.public`,
 		`b.modified`,
 		`bc.content <> "" has_content`}
 
@@ -407,7 +410,7 @@ func (db *SQLiteDatabase) DeleteBookmarks(ids ...int) (err error) {
 func (db *SQLiteDatabase) GetBookmark(id int, url string) (model.Bookmark, bool) {
 	args := []interface{}{id}
 	query := `SELECT
-		b.id, b.url, b.title, b.excerpt, b.author, b.modified,
+		b.id, b.url, b.title, b.excerpt, b.author, b.public, b.modified,
 		bc.content, bc.html, bc.content <> "" has_content
 		FROM bookmark b
 		LEFT JOIN bookmark_content bc ON bc.docid = b.id

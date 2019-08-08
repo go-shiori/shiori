@@ -15,6 +15,7 @@ type Bookmark struct {
 	Title         string `db:"title"         json:"title"`
 	Excerpt       string `db:"excerpt"       json:"excerpt"`
 	Author        string `db:"author"        json:"author"`
+	Public        int    `db:"public"        json:"public"`
 	Modified      string `db:"modified"      json:"modified"`
 	Content       string `db:"content"       json:"-"`
 	HTML          string `db:"html"          json:"html,omitempty"`

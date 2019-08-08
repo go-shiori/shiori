@@ -1,5 +1,5 @@
 var template = `
-<div class="bookmark" :class="{list: listMode, selected: selected}">
+<div class="bookmark" :class="{list: listMode, selected: selected, public: public >= 1}">
     <a class="bookmark-selector" 
         v-if="editMode" 
         @click="selectBookmark">
@@ -39,6 +39,7 @@ export default {
         url: String,
         title: String,
         excerpt: String,
+        public: Number,
         imageURL: String,
         hasContent: Boolean,
         hasArchive: Boolean,

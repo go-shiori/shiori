@@ -38,7 +38,14 @@ var template = `
             @change="changePage">
         </pagination-box>
         <bookmark-item v-for="(book, index) in bookmarks" 
-            v-bind="book" 
+            :id="book.id"
+            :url="book.url"
+            :title="book.title"
+            :excerpt="book.excerpt"
+            :public="book.public"
+            :imageURL="book.imageURL"
+            :hasContent="book.hasContent"
+            :hasArchive="book.hasArchive"
             :index="index"
             :key="book.id" 
             :editMode="editMode"
@@ -303,6 +310,11 @@ export default {
                     label: "Create archive",
                     type: "check",
                     value: this.displayOptions.useArchive,
+                }, {
+                    name: "makePublic",
+                    label: "Make archive publicly available",
+                    type: "check",
+                    value: this.displayOptions.makePublic,
                 }],
                 mainText: "OK",
                 secondText: "Cancel",
@@ -330,6 +342,7 @@ export default {
                         url: data.url.trim(),
                         title: data.title.trim(),
                         excerpt: data.excerpt.trim(),
+                        public: data.makePublic ? 1 : 0,
                         tags: tags,
                         createArchive: data.createArchive,
                     };
@@ -396,6 +409,11 @@ export default {
                     value: strTags,
                     separator: ",",
                     dictionary: this.tags.map(tag => tag.name)
+                }, {
+                    name: "makePublic",
+                    label: "Make archive publicly available",
+                    type: "check",
+                    value: book.public >= 1,
                 }],
                 mainText: "OK",
                 secondText: "Cancel",
@@ -419,6 +437,7 @@ export default {
                     book.url = data.url.trim();
                     book.title = data.title.trim();
                     book.excerpt = data.excerpt.trim();
+                    book.public = data.makePublic ? 1 : 0;
                     book.tags = tags;
 
                     // Send data

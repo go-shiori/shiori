@@ -7,6 +7,7 @@ import (
 	"html/template"
 	"io"
 	"net/http"
+	nurl "net/url"
 	"os"
 	"path"
 	fp "path/filepath"
@@ -82,6 +83,21 @@ func (h *handler) serveBookmarkContent(w http.ResponseWriter, r *http.Request, p
 		panic(fmt.Errorf("Bookmark not found"))
 	}
 
+	// If it's not public, make sure session still valid
+	if bookmark.Public != 1 {
+		err = h.validateSession(r)
+		if err != nil {
+			urlQueries := nurl.Values{}
+			urlQueries.Set("dst", r.URL.Path)
+
+			redirectURL, _ := nurl.Parse("/login")
+			redirectURL.RawQuery = urlQueries.Encode()
+
+			redirectPage(w, r, redirectURL.String())
+			return
+		}
+	}
+
 	// Check if it has archive
 	archivePath := fp.Join(h.DataDir, "archive", strID)
 	if fileExists(archivePath) {
@@ -142,6 +158,21 @@ func (h *handler) serveBookmarkArchive(w http.ResponseWriter, r *http.Request, p
 	bookmark, exist := h.DB.GetBookmark(id, "")
 	if !exist {
 		panic(fmt.Errorf("Bookmark not found"))
+	}
+
+	// If it's not public, make sure session still valid
+	if bookmark.Public != 1 {
+		err = h.validateSession(r)
+		if err != nil {
+			urlQueries := nurl.Values{}
+			urlQueries.Set("dst", r.URL.Path)
+
+			redirectURL, _ := nurl.Parse("/login")
+			redirectURL.RawQuery = urlQueries.Encode()
+
+			redirectPage(w, r, redirectURL.String())
+			return
+		}
 	}
 
 	// Open archive, look in cache first

@@ -414,6 +414,7 @@ func (h *handler) apiUpdateBookmark(w http.ResponseWriter, r *http.Request, ps h
 	book.URL = request.URL
 	book.Title = request.Title
 	book.Excerpt = request.Excerpt
+	book.Public = request.Public
 
 	// Set new tags
 	for i := range book.Tags {

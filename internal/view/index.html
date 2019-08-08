@@ -110,13 +110,15 @@
                         showId = (typeof opts.showId === "boolean") ? opts.showId : false,
                         listMode = (typeof opts.listMode === "boolean") ? opts.listMode : false,
                         nightMode = (typeof opts.nightMode === "boolean") ? opts.nightMode : false,
-                        useArchive = (typeof opts.useArchive === "boolean") ? opts.useArchive : false;
+                        useArchive = (typeof opts.useArchive === "boolean") ? opts.useArchive : false,
+                        makePublic = (typeof opts.makePublic === "boolean") ? opts.makePublic : false;
         
                     this.displayOptions = {
                         showId: showId,
                         listMode: listMode,
                         nightMode: nightMode,
                         useArchive: useArchive,
+                        makePublic: makePublic,
                     };
 
                     document.body.className = nightMode ? "night" : "";

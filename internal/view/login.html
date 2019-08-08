@@ -18,6 +18,7 @@
     <link href="/css/stylesheet.css" rel="stylesheet">
 
     <script src="/js/vue.min.js"></script>
+    <script src="/js/url.min.js"></script>
 </head>
 
 <body>
@@ -86,7 +87,8 @@
                             return response;
                         })
                         .then(() => {
-                            location.href = "/";
+                            var dst = (new Url).query.dst;
+                            location.href = dst || "/";
                         })
                         .catch(err => {
                             this.loading = false;
@@ -105,9 +107,6 @@
             mounted() {
                 // Load setting
                 this.loadSetting();
-
-                // Set initial URL
-                history.replaceState(null, "login", "login");
             }
         })
     </script>

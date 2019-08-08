@@ -21,6 +21,17 @@ var template = `
                 Create archive by default
             </label>
         </details>
+        <details open class="setting-group" id="setting-bookmarks">
+            <summary>Bookmarks</summary>
+            <label>
+                <input type="checkbox" v-model="displayOptions.useArchive" @change="saveSetting">
+                Create archive by default
+            </label>
+            <label>
+                <input type="checkbox" v-model="displayOptions.makePublic" @change="saveSetting">
+                Make archive publicly available by default
+            </label>
+        </details>
         <details open class="setting-group" id="setting-accounts">
             <summary>Accounts</summary>
             <ul>
@@ -67,6 +78,7 @@ export default {
                 listMode: this.displayOptions.listMode,
                 nightMode: this.displayOptions.nightMode,
                 useArchive: this.displayOptions.useArchive,
+                makePublic: this.displayOptions.makePublic,
             });
         },
         loadAccounts() {

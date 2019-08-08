@@ -8,6 +8,7 @@ export default {
                     listMode: false,
                     nightMode: false,
                     useArchive: false,
+                    makePublic: false,
                 };
             }
         }

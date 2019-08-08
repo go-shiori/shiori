@@ -6,7 +6,7 @@ var template = `
             <slot>
                 <p class="custom-dialog-content">{{content}}</p>
                 <template v-for="(field,index) in formFields">
-                    <label v-if="showLabel">{{field.label}} :</label>
+                    <label v-if="showLabel && field.type !== 'check'">{{field.label}} :</label>
                     <textarea v-if="field.type === 'area'"
                         :style="{gridColumnEnd: showLabel ? null : 'span 2'}" 
                         :placeholder="field.label" 
