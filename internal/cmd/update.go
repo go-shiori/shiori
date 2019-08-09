@@ -28,7 +28,7 @@ func updateCmd() *cobra.Command {
 			"Accepts space-separated list of indices (e.g. 5 6 23 4 110 45), " +
 			"hyphenated range (e.g. 100-200) or both (e.g. 1-3 7 9). " +
 			"If no arguments, ALL bookmarks will be updated. Update works differently depending on the flags:\n" +
-			"- If indices are passed without any flags (--url, --title, --tag and --excerpt), read the URLs from DB and update titles from web.\n" +
+			"- If indices are passed without any flags (--url, --title, --tag and --excerpt), read the URLs from database and update titles from web.\n" +
 			"- If --url is passed (and --title is omitted), update the title from web using the URL. While using this flag, update only accept EXACTLY one index.\n" +
 			"While updating bookmark's tags, you can use - to remove tag (e.g. -nature to remove nature tag from this bookmark).",
 		Run: updateHandler,
@@ -106,7 +106,7 @@ func updateHandler(cmd *cobra.Command, args []string) {
 		IDs: ids,
 	}
 
-	bookmarks, err := DB.GetBookmarks(filterOptions)
+	bookmarks, err := db.GetBookmarks(filterOptions)
 	if err != nil {
 		cError.Printf("Failed to get bookmarks: %v\n", err)
 		return
@@ -230,7 +230,7 @@ func updateHandler(cmd *cobra.Command, args []string) {
 						imageURLs = append(imageURLs, article.Favicon)
 					}
 
-					imgPath := fp.Join(DataDir, "thumb", fmt.Sprintf("%d", book.ID))
+					imgPath := fp.Join(dataDir, "thumb", fmt.Sprintf("%d", book.ID))
 					for _, imageURL := range imageURLs {
 						err = downloadBookImage(imageURL, imgPath, time.Minute)
 						if err == nil {
@@ -242,7 +242,7 @@ func updateHandler(cmd *cobra.Command, args []string) {
 				// If needed, update offline archive as well.
 				// Make sure to delete the old one first.
 				if !noArchival {
-					archivePath := fp.Join(DataDir, "archive", fmt.Sprintf("%d", book.ID))
+					archivePath := fp.Join(dataDir, "archive", fmt.Sprintf("%d", book.ID))
 					os.Remove(archivePath)
 
 					archivalRequest := warc.ArchivalRequest{
@@ -360,7 +360,7 @@ func updateHandler(cmd *cobra.Command, args []string) {
 	}
 
 	// Save bookmarks to database
-	bookmarks, err = DB.SaveBookmarks(bookmarks...)
+	bookmarks, err = db.SaveBookmarks(bookmarks...)
 	if err != nil {
 		cError.Printf("Failed to save bookmark: %v\n", err)
 		return

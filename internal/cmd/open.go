@@ -72,7 +72,7 @@ func openHandler(cmd *cobra.Command, args []string) {
 		WithContent: true,
 	}
 
-	bookmarks, err := DB.GetBookmarks(getOptions)
+	bookmarks, err := db.GetBookmarks(getOptions)
 	if err != nil {
 		cError.Printf("Failed to get bookmarks: %v\n", err)
 		return
@@ -123,7 +123,7 @@ func openHandler(cmd *cobra.Command, args []string) {
 
 	// Open archive
 	id := strconv.Itoa(bookmarks[0].ID)
-	archivePath := fp.Join(DataDir, "archive", id)
+	archivePath := fp.Join(dataDir, "archive", id)
 
 	archive, err := warc.Open(archivePath)
 	if err != nil {

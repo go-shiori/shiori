@@ -52,7 +52,7 @@ func deleteHandler(cmd *cobra.Command, args []string) {
 	}
 
 	// Delete bookmarks from database
-	err = DB.DeleteBookmarks(ids...)
+	err = db.DeleteBookmarks(ids...)
 	if err != nil {
 		cError.Printf("Failed to delete bookmarks: %v\n", err)
 		return
@@ -60,15 +60,15 @@ func deleteHandler(cmd *cobra.Command, args []string) {
 
 	// Delete thumbnail image and archives from local disk
 	if len(ids) == 0 {
-		thumbDir := fp.Join(DataDir, "thumb")
-		archiveDir := fp.Join(DataDir, "archive")
+		thumbDir := fp.Join(dataDir, "thumb")
+		archiveDir := fp.Join(dataDir, "archive")
 		os.RemoveAll(thumbDir)
 		os.RemoveAll(archiveDir)
 	} else {
 		for _, id := range ids {
 			strID := strconv.Itoa(id)
-			imgPath := fp.Join(DataDir, "thumb", strID)
-			archivePath := fp.Join(DataDir, "archive", strID)
+			imgPath := fp.Join(dataDir, "thumb", strID)
+			archivePath := fp.Join(dataDir, "archive", strID)
 
 			os.Remove(imgPath)
 			os.Remove(archivePath)

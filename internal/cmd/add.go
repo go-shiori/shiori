@@ -63,7 +63,7 @@ func addHandler(cmd *cobra.Command, args []string) {
 	}
 
 	// Create bookmark ID
-	book.ID, err = DB.CreateNewID("bookmark")
+	book.ID, err = db.CreateNewID("bookmark")
 	if err != nil {
 		cError.Printf("Failed to create ID: %v\n", err)
 		return
@@ -150,7 +150,7 @@ func addHandler(cmd *cobra.Command, args []string) {
 
 			// If needed, create offline archive as well
 			if !noArchival {
-				archivePath := fp.Join(DataDir, "archive", fmt.Sprintf("%d", book.ID))
+				archivePath := fp.Join(dataDir, "archive", fmt.Sprintf("%d", book.ID))
 				archivalRequest := warc.ArchivalRequest{
 					URL:         url,
 					Reader:      archivalInput,
@@ -173,14 +173,14 @@ func addHandler(cmd *cobra.Command, args []string) {
 	}
 
 	// Save bookmark to database
-	_, err = DB.SaveBookmarks(book)
+	_, err = db.SaveBookmarks(book)
 	if err != nil {
 		cError.Printf("Failed to save bookmark: %v\n", err)
 		return
 	}
 
 	// Save article image to local disk
-	imgPath := fp.Join(DataDir, "thumb", fmt.Sprintf("%d", book.ID))
+	imgPath := fp.Join(dataDir, "thumb", fmt.Sprintf("%d", book.ID))
 	for _, imageURL := range imageURLs {
 		err = downloadBookImage(imageURL, imgPath, time.Minute)
 		if err == nil {

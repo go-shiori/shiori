@@ -12,7 +12,7 @@ func printCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "print [indices]",
 		Short: "Print the saved bookmarks",
-		Long: "Show the saved bookmarks by its DB index. " +
+		Long: "Show the saved bookmarks by its database index. " +
 			"Accepts space-separated list of indices (e.g. 5 6 23 4 110 45), " +
 			"hyphenated range (e.g. 100-200) or both (e.g. 1-3 7 9). " +
 			"If no arguments, all records with actual index from database are shown.",
@@ -57,7 +57,7 @@ func printHandler(cmd *cobra.Command, args []string) {
 		OrderMethod: orderMethod,
 	}
 
-	bookmarks, err := DB.GetBookmarks(searchOptions)
+	bookmarks, err := db.GetBookmarks(searchOptions)
 	if err != nil {
 		cError.Printf("Failed to get bookmarks: %v\n", err)
 		return

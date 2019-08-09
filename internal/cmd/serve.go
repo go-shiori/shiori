@@ -24,7 +24,7 @@ func serveCmd() *cobra.Command {
 func serveHandler(cmd *cobra.Command, args []string) {
 	port, _ := cmd.Flags().GetInt("port")
 
-	err := webserver.ServeApp(DB, DataDir, port)
+	err := webserver.ServeApp(db, dataDir, port)
 	if err != nil {
 		logrus.Fatalf("Server error: %v\n", err)
 	}
