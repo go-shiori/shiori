@@ -17,6 +17,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/disintegration/imaging"
 	"github.com/fatih/color"
@@ -232,4 +233,28 @@ func openBrowser(url string) error {
 func getTerminalWidth() int {
 	width, _, _ := terminal.GetSize(int(os.Stdin.Fd()))
 	return width
+}
+
+func toValidUtf8(src, fallback string) string {
+	// Check if it's already valid
+	if valid := utf8.ValidString(src); valid {
+		return src
+	}
+
+	// Remove invalid runes
+	fixUtf := func(r rune) rune {
+		if r == utf8.RuneError {
+			return -1
+		}
+		return r
+	}
+	validUtf := strings.Map(fixUtf, src)
+
+	// If it's empty use fallback string
+	validUtf = strings.TrimSpace(validUtf)
+	if validUtf == "" {
+		return fallback
+	}
+
+	return validUtf
 }

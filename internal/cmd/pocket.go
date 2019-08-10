@@ -70,6 +70,9 @@ func pocketHandler(cmd *cobra.Command, args []string) {
 		clearUTMParams(tmp)
 		url = tmp.String()
 
+		// Make sure title is valid Utf-8
+		title = toValidUtf8(title, url)
+
 		// Check if the URL already exist before, both in bookmark
 		// file or in database
 		if _, exist := mapURL[url]; exist {

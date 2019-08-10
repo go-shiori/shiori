@@ -71,6 +71,9 @@ func exportHandler(cmd *cobra.Command, args []string) {
 		}
 		strTags := strings.Join(tags, ",")
 
+		// Make sure title is valid Utf-8
+		book.Title = toValidUtf8(book.Title, book.URL)
+
 		// Write to file
 		exportLine := fmt.Sprintf(`<DT><A HREF="%s" ADD_DATE="%d" LAST_MODIFIED="%d" TAGS="%s">%s</A>`,
 			book.URL, unixTimestamp, unixTimestamp, strTags, book.Title)

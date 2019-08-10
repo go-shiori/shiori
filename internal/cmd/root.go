@@ -76,8 +76,7 @@ func preRunRootHandler(cmd *cobra.Command, args []string) {
 	}
 
 	// Open database
-	dbPath := fp.Join(dataDir, "shiori.db")
-	db, err = database.OpenSQLiteDatabase(dbPath)
+	db, err = openDatabase()
 	if err != nil {
 		cError.Printf("Failed to open database: %v\n", err)
 		os.Exit(1)
@@ -115,4 +114,19 @@ func getDataDir(portableMode bool) (string, error) {
 
 	// When all fail, use current working directory
 	return ".", nil
+}
+
+func openDatabase() (database.DB, error) {
+	// Check if it uses MySQL
+	if dbms, _ := os.LookupEnv("SHIORI_DBMS"); dbms == "mysql" {
+		user, _ := os.LookupEnv("SHIORI_MYSQL_USER")
+		password, _ := os.LookupEnv("SHIORI_MYSQL_PASS")
+		dbName, _ := os.LookupEnv("SHIORI_MYSQL_NAME")
+
+		return database.OpenMySQLDatabase(user, password, dbName)
+	}
+
+	// If not, just uses SQLite
+	dbPath := fp.Join(dataDir, "shiori.db")
+	return database.OpenSQLiteDatabase(dbPath)
 }
