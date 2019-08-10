@@ -24,6 +24,10 @@ var template = `
         <details open class="setting-group" id="setting-bookmarks">
             <summary>Bookmarks</summary>
             <label>
+                <input type="checkbox" v-model="displayOptions.keepMetadata" @change="saveSetting">
+                Keep bookmark's metadata when updating
+            </label>
+            <label>
                 <input type="checkbox" v-model="displayOptions.useArchive" @change="saveSetting">
                 Create archive by default
             </label>
@@ -77,6 +81,7 @@ export default {
                 showId: this.displayOptions.showId,
                 listMode: this.displayOptions.listMode,
                 nightMode: this.displayOptions.nightMode,
+                keepMetadata: this.displayOptions.keepMetadata,
                 useArchive: this.displayOptions.useArchive,
                 makePublic: this.displayOptions.makePublic,
             });

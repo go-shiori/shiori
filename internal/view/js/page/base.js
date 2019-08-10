@@ -7,6 +7,8 @@ export default {
                     showId: false,
                     listMode: false,
                     nightMode: false,
+
+                    keepMetadata: false,
                     useArchive: false,
                     makePublic: false,
                 };

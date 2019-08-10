@@ -40,7 +40,7 @@ func updateCmd() *cobra.Command {
 	cmd.Flags().StringSliceP("tags", "t", []string{}, "Comma-separated tags for this bookmark")
 	cmd.Flags().BoolP("offline", "o", false, "Update bookmark without fetching data from internet")
 	cmd.Flags().BoolP("yes", "y", false, "Skip confirmation prompt and update ALL bookmarks")
-	cmd.Flags().Bool("dont-overwrite", false, "Don't overwrite existing metadata. Useful when only want to update bookmark's content")
+	cmd.Flags().Bool("keep-metadata", false, "Keep existing metadata. Useful when only want to update bookmark's content")
 	cmd.Flags().BoolP("no-archival", "a", false, "Update bookmark without updating offline archive")
 	cmd.Flags().Bool("log-archival", false, "Log the archival process")
 
@@ -57,7 +57,7 @@ func updateHandler(cmd *cobra.Command, args []string) {
 	skipConfirm, _ := cmd.Flags().GetBool("yes")
 	noArchival, _ := cmd.Flags().GetBool("no-archival")
 	logArchival, _ := cmd.Flags().GetBool("log-archival")
-	dontOverwrite := cmd.Flags().Changed("dont-overwrite")
+	keepMetadata := cmd.Flags().Changed("keep-metadata")
 
 	// If no arguments (i.e all bookmarks going to be updated), confirm to user
 	if len(args) == 0 && !skipConfirm {
@@ -215,7 +215,7 @@ func updateHandler(cmd *cobra.Command, args []string) {
 						book.Content = ""
 					}
 
-					if !dontOverwrite {
+					if !keepMetadata {
 						book.Title = article.Title
 						book.Excerpt = article.Excerpt
 					}
