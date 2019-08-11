@@ -25,6 +25,7 @@ func printCmd() *cobra.Command {
 	cmd.Flags().BoolP("index-only", "i", false, "Only print the index of bookmarks")
 	cmd.Flags().StringP("search", "s", "", "Search bookmark with specified keyword")
 	cmd.Flags().StringSliceP("tags", "t", []string{}, "Print bookmarks with matching tag(s)")
+	cmd.Flags().StringSliceP("exclude-tags", "e", []string{}, "Print bookmarks without these tag(s)")
 
 	return cmd
 }
@@ -36,6 +37,7 @@ func printHandler(cmd *cobra.Command, args []string) {
 	useJSON, _ := cmd.Flags().GetBool("json")
 	indexOnly, _ := cmd.Flags().GetBool("index-only")
 	orderLatest, _ := cmd.Flags().GetBool("latest")
+	excludedTags, _ := cmd.Flags().GetStringSlice("exclude-tags")
 
 	// Convert args to ids
 	ids, err := parseStrIndices(args)
@@ -51,10 +53,11 @@ func printHandler(cmd *cobra.Command, args []string) {
 	}
 
 	searchOptions := database.GetBookmarksOptions{
-		IDs:         ids,
-		Tags:        tags,
-		Keyword:     keyword,
-		OrderMethod: orderMethod,
+		IDs:          ids,
+		Tags:         tags,
+		ExcludedTags: excludedTags,
+		Keyword:      keyword,
+		OrderMethod:  orderMethod,
 	}
 
 	bookmarks, err := db.GetBookmarks(searchOptions)

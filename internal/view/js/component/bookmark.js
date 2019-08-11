@@ -11,7 +11,7 @@ var template = `
         <p class="id" v-show="showId">{{id}}</p>
     </a>
     <div class="bookmark-tags" v-if="tags.length > 0">
-        <a v-for="tag in tags" @click="tagClicked(tag.name)">{{tag.name}}</a>
+        <a v-for="tag in tags" @click="tagClicked($event, tag.name)">{{tag.name}}</a>
     </div>
     <div class="spacer"></div>
     <div class="bookmark-menu">
@@ -78,8 +78,8 @@ export default {
         }
     },
     methods: {
-        tagClicked(name) {
-            this.$emit("tag-clicked", name);
+        tagClicked(name, event) {
+            this.$emit("tag-clicked", name, event);
         },
         selectBookmark() {
             this.$emit("select", this.eventItem);

@@ -224,11 +224,13 @@ func (db *SQLiteDatabase) GetBookmarks(opts GetBookmarksOptions) ([]model.Bookma
 	// Add where clause
 	args := []interface{}{}
 
+	// Add where clause for IDs
 	if len(opts.IDs) > 0 {
 		query += ` AND b.id IN (?)`
 		args = append(args, opts.IDs)
 	}
 
+	// Add where clause for search keyword
 	if opts.Keyword != "" {
 		query += ` AND (b.url LIKE ? OR b.excerpt LIKE ? OR b.id IN (
 			SELECT docid id 
@@ -242,12 +244,56 @@ func (db *SQLiteDatabase) GetBookmarks(opts GetBookmarksOptions) ([]model.Bookma
 			opts.Keyword)
 	}
 
+	// Add where clause for tags.
+	// First we check for * in excluded and included tags,
+	// which means all tags will be excluded and included, respectively.
+	excludeAllTags := false
+	for _, excludedTag := range opts.ExcludedTags {
+		if excludedTag == "*" {
+			excludeAllTags = true
+			opts.ExcludedTags = []string{}
+			break
+		}
+	}
+
+	includeAllTags := false
+	for _, includedTag := range opts.Tags {
+		if includedTag == "*" {
+			includeAllTags = true
+			opts.Tags = []string{}
+			break
+		}
+	}
+
+	// If all tags excluded, we will only show bookmark without tags.
+	// In other hand, if all tags included, we will only show bookmark with tags.
+	if excludeAllTags {
+		query += ` AND b.id NOT IN (SELECT DISTINCT bookmark_id FROM bookmark_tag)`
+	} else if includeAllTags {
+		query += ` AND b.id IN (SELECT DISTINCT bookmark_id FROM bookmark_tag)`
+	}
+
+	// Now we only need to find the normal tags
 	if len(opts.Tags) > 0 {
 		query += ` AND b.id IN (
-			SELECT bookmark_id FROM bookmark_tag 
-			WHERE tag_id IN (SELECT id FROM tag WHERE name IN (?)))`
+			SELECT bt.bookmark_id
+			FROM bookmark_tag bt
+			LEFT JOIN tag t ON bt.tag_id = t.id
+			WHERE t.name IN(?)
+			GROUP BY bt.bookmark_id
+			HAVING COUNT(bt.bookmark_id) = ?)`
 
-		args = append(args, opts.Tags)
+		args = append(args, opts.Tags, len(opts.Tags))
+	}
+
+	if len(opts.ExcludedTags) > 0 {
+		query += ` AND b.id NOT IN (
+			SELECT DISTINCT bt.bookmark_id
+			FROM bookmark_tag bt
+			LEFT JOIN tag t ON bt.tag_id = t.id
+			WHERE t.name IN(?))`
+
+		args = append(args, opts.ExcludedTags)
 	}
 
 	// Add order clause
@@ -313,11 +359,13 @@ func (db *SQLiteDatabase) GetBookmarksCount(opts GetBookmarksOptions) (int, erro
 	// Add where clause
 	args := []interface{}{}
 
+	// Add where clause for IDs
 	if len(opts.IDs) > 0 {
 		query += ` AND b.id IN (?)`
 		args = append(args, opts.IDs)
 	}
 
+	// Add where clause for search keyword
 	if opts.Keyword != "" {
 		query += ` AND (b.url LIKE ? OR b.excerpt LIKE ? OR b.id IN (
 			SELECT docid id 
@@ -331,12 +379,56 @@ func (db *SQLiteDatabase) GetBookmarksCount(opts GetBookmarksOptions) (int, erro
 			opts.Keyword)
 	}
 
+	// Add where clause for tags.
+	// First we check for * in excluded and included tags,
+	// which means all tags will be excluded and included, respectively.
+	excludeAllTags := false
+	for _, excludedTag := range opts.ExcludedTags {
+		if excludedTag == "*" {
+			excludeAllTags = true
+			opts.ExcludedTags = []string{}
+			break
+		}
+	}
+
+	includeAllTags := false
+	for _, includedTag := range opts.Tags {
+		if includedTag == "*" {
+			includeAllTags = true
+			opts.Tags = []string{}
+			break
+		}
+	}
+
+	// If all tags excluded, we will only show bookmark without tags.
+	// In other hand, if all tags included, we will only show bookmark with tags.
+	if excludeAllTags {
+		query += ` AND b.id NOT IN (SELECT DISTINCT bookmark_id FROM bookmark_tag)`
+	} else if includeAllTags {
+		query += ` AND b.id IN (SELECT DISTINCT bookmark_id FROM bookmark_tag)`
+	}
+
+	// Now we only need to find the normal tags
 	if len(opts.Tags) > 0 {
 		query += ` AND b.id IN (
-			SELECT bookmark_id FROM bookmark_tag 
-			WHERE tag_id IN (SELECT id FROM tag WHERE name IN (?)))`
+			SELECT bt.bookmark_id
+			FROM bookmark_tag bt
+			LEFT JOIN tag t ON bt.tag_id = t.id
+			WHERE t.name IN(?)
+			GROUP BY bt.bookmark_id
+			HAVING COUNT(bt.bookmark_id) = ?)`
 
-		args = append(args, opts.Tags)
+		args = append(args, opts.Tags, len(opts.Tags))
+	}
+
+	if len(opts.ExcludedTags) > 0 {
+		query += ` AND b.id NOT IN (
+			SELECT DISTINCT bt.bookmark_id
+			FROM bookmark_tag bt
+			LEFT JOIN tag t ON bt.tag_id = t.id
+			WHERE t.name IN(?))`
+
+		args = append(args, opts.ExcludedTags)
 	}
 
 	// Expand query, because some of the args might be an array

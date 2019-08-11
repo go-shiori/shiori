@@ -8,7 +8,7 @@ var template = `
         <a title="Add new bookmark" @click="showDialogAdd">
             <i class="fas fa-fw fa-plus-circle"></i>
         </a>
-        <a title="Show tags" @click="showDialogTags">
+        <a v-if="tags.length > 0" title="Show tags" @click="showDialogTags">
             <i class="fas fa-fw fa-tags"></i>
         </a>
         <a title="Batch edit" @click="toggleEditMode">
@@ -46,6 +46,7 @@ var template = `
             :imageURL="book.imageURL"
             :hasContent="book.hasContent"
             :hasArchive="book.hasArchive"
+            :tags="book.tags"
             :index="index"
             :key="book.id" 
             :editMode="editMode"
@@ -53,7 +54,7 @@ var template = `
             :listMode="displayOptions.listMode"
             :selected="isSelected(book.id)"
             @select="toggleSelection"
-            @tag-clicked="filterTag"
+            @tag-clicked="bookmarkTagClicked"
             @edit="showDialogEdit"
             @delete="showDialogDelete"
             @update="showDialogUpdateCache">
@@ -68,8 +69,10 @@ var template = `
     <p class="empty-message" v-if="!loading && listIsEmpty">No saved bookmarks yet :(</p>
     <div class="loading-overlay" v-if="loading"><i class="fas fa-fw fa-spin fa-spinner"></i></div>
     <custom-dialog id="dialog-tags" v-bind="dialogTags">
-        <a v-for="(tag, idx) in tags" @click="tagClicked(idx, tag)">
-            {{tag.name}}<span>{{tag.nBookmarks}}</span>
+        <a @click="filterTag('*')">(all tagged)</a>
+        <a @click="filterTag('*', true)">(all untagged)</a>
+        <a v-for="(tag, idx) in tags" @click="dialogTagClicked($event, idx, tag)">
+            #{{tag.name}}<span>{{tag.nBookmarks}}</span>
         </a>
     </custom-dialog>
     <custom-dialog v-bind="dialog"/>
@@ -156,33 +159,46 @@ export default {
             fetchTags = (typeof fetchTags === "boolean") ? fetchTags : false;
 
             // Parse search query
-            var rxTagA = /['"]#([^'"]+)['"]/g, // "#tag with space"
-                rxTagB = /(^|\s+)#(\S+)/g, // #tag-without-space
-                keyword = this.search,
+            var keyword = this.search,
+                rxExcludeTagA = /(^|\s)-tag:["']([^"']+)["']/i, // -tag:"with space"
+                rxExcludeTagB = /(^|\s)-tag:(\S+)/i, // -tag:without-space
+                rxIncludeTagA = /(^|\s)tag:["']([^"']+)["']/i, // tag:"with space"
+                rxIncludeTagB = /(^|\s)tag:(\S+)/i, // tag:without-space
                 tags = [],
+                excludedTags = [],
                 rxResult;
 
-            // Fetch tag A first
-            while (rxResult = rxTagA.exec(keyword)) {
-                tags.push(rxResult[1]);
+            // Get excluded tag first, while also removing it from keyword
+            while (rxResult = rxExcludeTagA.exec(keyword)) {
+                keyword = keyword.replace(rxResult[0], "");
+                excludedTags.push(rxResult[2]);
             }
 
-            // Clear tag A from keyword
-            keyword = keyword.replace(rxTagA, "");
+            while (rxResult = rxExcludeTagB.exec(keyword)) {
+                keyword = keyword.replace(rxResult[0], "");
+                excludedTags.push(rxResult[2]);
+            }
 
-            // Fetch tag B
-            while (rxResult = rxTagB.exec(keyword)) {
+            // Get included tags
+            while (rxResult = rxIncludeTagA.exec(keyword)) {
+                keyword = keyword.replace(rxResult[0], "");
                 tags.push(rxResult[2]);
             }
 
-            // Clear tag B from keyword, then trim keyword
-            keyword = keyword.replace(rxTagB, "").trim().replace(/\s+/g, " ");
+            while (rxResult = rxIncludeTagB.exec(keyword)) {
+                keyword = keyword.replace(rxResult[0], "");
+                tags.push(rxResult[2]);
+            }
+
+            // Trim keyword
+            keyword = keyword.trim().replace(/\s+/g, " ");
 
             // Prepare URL for API
             var url = new URL("/api/bookmarks", document.URL);
             url.search = new URLSearchParams({
                 keyword: keyword,
                 tags: tags.join(","),
+                exclude: excludedTags.join(","),
                 page: this.page
             });
 
@@ -268,23 +284,59 @@ export default {
         isSelected(bookId) {
             return this.selection.findIndex(el => el.id === bookId) > -1;
         },
-        tagClicked(idx, tag) {
+        dialogTagClicked(event, idx, tag) {
             if (!this.dialogTags.editMode) {
-                this.filterTag(tag.name);
+                this.filterTag(tag.name, event.altKey);
             } else {
                 this.dialogTags.visible = false;
                 this.showDialogRenameTag(idx, tag);
             }
         },
-        filterTag(tagName) {
-            var rxSpace = /\s+/g,
-                newTag = rxSpace.test(tagName) ? `"#${tagName}"` : `#${tagName}`;
+        bookmarkTagClicked(event, tagName) {
+            this.filterTag(tagName, event.altKey);
+        },
+        filterTag(tagName, excludeMode) {
+            // Set default parameter
+            excludeMode = (typeof excludeMode === "boolean") ? excludeMode : false;
 
-            if (!this.search.includes(newTag)) {
-                this.search += ` ${newTag}`;
-                this.search = this.search.trim();
+            if (tagName === "*") {
+                this.search = excludeMode ? "-tag:*" : "tag:*";
                 this.loadData();
+                return;
             }
+
+            var rxSpace = /\s+/g,
+                includeTag = rxSpace.test(tagName) ? `tag:"${tagName}"` : `tag:${tagName}`,
+                excludeTag = "-" + includeTag,
+                rxIncludeTag = new RegExp(`(^|\\s)${includeTag}`, "ig"),
+                rxExcludeTag = new RegExp(`(^|\\s)${excludeTag}`, "ig"),
+                search = this.search;
+
+            if (excludeMode) {
+                if (rxExcludeTag.test(search)) {
+                    return;
+                }
+
+                if (rxIncludeTag.test(search)) {
+                    this.search = search.replace(rxIncludeTag, "$1" + excludeTag);
+                } else {
+                    search += ` ${excludeTag}`;
+                    this.search = search.trim();
+                }
+            } else {
+                if (rxIncludeTag.test(search)) {
+                    return;
+                }
+
+                if (rxExcludeTag.test(search)) {
+                    this.search = search.replace(rxExcludeTag, "$1" + includeTag);
+                } else {
+                    search += ` ${includeTag}`;
+                    this.search = search.trim();
+                }
+            }
+
+            this.loadData();
         },
         showDialogAdd() {
             this.showDialog({

@@ -121,12 +121,18 @@ func (h *handler) apiGetBookmarks(w http.ResponseWriter, r *http.Request, ps htt
 
 	// Get URL queries
 	keyword := r.URL.Query().Get("keyword")
-	strTags := r.URL.Query().Get("tags")
 	strPage := r.URL.Query().Get("page")
+	strTags := r.URL.Query().Get("tags")
+	strExcludedTags := r.URL.Query().Get("exclude")
 
 	tags := strings.Split(strTags, ",")
 	if len(tags) == 1 && tags[0] == "" {
 		tags = []string{}
+	}
+
+	excludedTags := strings.Split(strExcludedTags, ",")
+	if len(excludedTags) == 1 && excludedTags[0] == "" {
+		excludedTags = []string{}
 	}
 
 	page, _ := strconv.Atoi(strPage)
@@ -136,11 +142,12 @@ func (h *handler) apiGetBookmarks(w http.ResponseWriter, r *http.Request, ps htt
 
 	// Prepare filter for database
 	searchOptions := database.GetBookmarksOptions{
-		Tags:        tags,
-		Keyword:     keyword,
-		Limit:       30,
-		Offset:      (page - 1) * 30,
-		OrderMethod: database.ByLastAdded,
+		Tags:         tags,
+		ExcludedTags: excludedTags,
+		Keyword:      keyword,
+		Limit:        30,
+		Offset:       (page - 1) * 30,
+		OrderMethod:  database.ByLastAdded,
 	}
 
 	// Calculate max page

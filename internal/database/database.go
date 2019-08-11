@@ -20,13 +20,14 @@ const (
 
 // GetBookmarksOptions is options for fetching bookmarks from database.
 type GetBookmarksOptions struct {
-	IDs         []int
-	Tags        []string
-	Keyword     string
-	WithContent bool
-	OrderMethod OrderMethod
-	Limit       int
-	Offset      int
+	IDs          []int
+	Tags         []string
+	ExcludedTags []string
+	Keyword      string
+	WithContent  bool
+	OrderMethod  OrderMethod
+	Limit        int
+	Offset       int
 }
 
 // DB is interface for accessing and manipulating data in database.
