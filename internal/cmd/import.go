@@ -4,9 +4,7 @@ import (
 	"fmt"
 	nurl "net/url"
 	"os"
-	"strconv"
 	"strings"
-	"time"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/go-shiori/shiori/internal/model"
@@ -74,9 +72,6 @@ func importHandler(cmd *cobra.Command, args []string) {
 		title := a.Text()
 		url, _ := a.Attr("href")
 		strTags, _ := a.Attr("tags")
-		strModified, _ := a.Attr("last_modified")
-		intModified, _ := strconv.ParseInt(strModified, 10, 64)
-		modified := time.Unix(intModified, 0)
 
 		// Clean up URL by removing its fragment and UTM parameters
 		tmp, err := nurl.Parse(url)
@@ -123,11 +118,10 @@ func importHandler(cmd *cobra.Command, args []string) {
 
 		// Add item to list
 		bookmark := model.Bookmark{
-			ID:       bookID,
-			URL:      url,
-			Title:    normalizeSpace(title),
-			Modified: modified.Format("2006-01-02 15:04:05"),
-			Tags:     tags,
+			ID:    bookID,
+			URL:   url,
+			Title: normalizeSpace(title),
+			Tags:  tags,
 		}
 
 		bookID++
