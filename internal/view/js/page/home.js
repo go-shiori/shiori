@@ -30,6 +30,7 @@ var template = `
             <i class="fas fa-fw fa-times"></i>
         </a>
     </div>
+    <p class="empty-message" v-if="!loading && listIsEmpty">No saved bookmarks yet :(</p>
     <div id="bookmarks-grid" ref="bookmarksGrid" :class="{list: appOptions.listMode}">
         <pagination-box v-if="maxPage > 1" 
             :page="page" 
@@ -67,7 +68,6 @@ var template = `
             @change="changePage">
         </pagination-box>
     </div>
-    <p class="empty-message" v-if="!loading && listIsEmpty">No saved bookmarks yet :(</p>
     <div class="loading-overlay" v-if="loading"><i class="fas fa-fw fa-spin fa-spinner"></i></div>
     <custom-dialog id="dialog-tags" v-bind="dialogTags">
         <a @click="filterTag('*')">(all tagged)</a>
