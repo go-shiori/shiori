@@ -38,14 +38,14 @@ func (h *handler) apiLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 	checkError(err)
 
 	// Prepare function to generate session
-	genSession := func(ownerMode bool, account model.Account, expTime time.Duration) {
+	genSession := func(account model.Account, expTime time.Duration) {
 		// Create session ID
 		sessionID, err := uuid.NewV4()
 		checkError(err)
 
 		// Save session ID to cache
 		strSessionID := sessionID.String()
-		h.SessionCache.Set(strSessionID, ownerMode, expTime)
+		h.SessionCache.Set(strSessionID, account.Owner, expTime)
 
 		// Save user's session IDs to cache as well
 		// useful for mass logout
@@ -78,7 +78,10 @@ func (h *handler) apiLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 	checkError(err)
 
 	if len(accounts) == 0 && request.Username == "shiori" && request.Password == "gopher" {
-		genSession(true, model.Account{}, time.Hour)
+		genSession(model.Account{
+			Username: "shiori",
+			Owner:    true,
+		}, time.Hour)
 		return
 	}
 
@@ -103,7 +106,7 @@ func (h *handler) apiLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 	}
 
 	// Create session
-	genSession(account.Owner, account, expTime)
+	genSession(account, expTime)
 }
 
 // apiLogout is handler for POST /api/logout
