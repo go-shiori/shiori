@@ -1,12 +1,16 @@
 var template = `
-<div class="bookmark" :class="{list: listMode, selected: selected, public: public >= 1}">
+<div class="bookmark" :class="{list: listMode, selected: selected}">
     <a class="bookmark-selector" 
         v-if="editMode" 
         @click="selectBookmark">
     </a>
     <a class="bookmark-link" :href="mainURL" target="_blank" rel="noopener">
         <span class="thumbnail" v-if="imageURL" :style="thumbnailStyleURL"></span>
-        <p class="title">{{title}}</p>
+        <p class="title">{{title}}
+            <i v-if="hasContent" class="fas fa-file-alt"></i>
+            <i v-if="hasArchive" class="fas fa-archive"></i>
+            <i v-if="public" class="fas fa-eye"></i>
+        </p>
         <p class="excerpt" v-if="!imageURL">{{excerpt}}</p>
         <p class="id" v-show="showId">{{id}}</p>
     </a>
