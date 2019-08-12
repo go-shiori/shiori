@@ -74,3 +74,20 @@ func (arc *Archive) Read(name string) ([]byte, string, error) {
 
 	return content, strContentType, nil
 }
+
+// HasResource checks if the resource exists in archive.
+func (arc *Archive) HasResource(name string) bool {
+	// Make sure name exists
+	if name == "" {
+		name = "archive-root"
+	}
+
+	var exists bool
+	arc.db.View(func(tx *bbolt.Tx) error {
+		bucket := tx.Bucket([]byte(name))
+		exists = bucket != nil
+		return nil
+	})
+
+	return exists
+}

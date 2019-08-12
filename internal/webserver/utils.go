@@ -16,12 +16,15 @@ import (
 	nurl "net/url"
 	"os"
 	fp "path/filepath"
+	"regexp"
 	"strings"
 	"syscall"
 	"time"
 
 	"github.com/disintegration/imaging"
 )
+
+var rxRepeatedStrip = regexp.MustCompile(`(?i)-+`)
 
 func serveFile(w http.ResponseWriter, filePath string, cache bool) error {
 	// Open file
@@ -182,6 +185,37 @@ func createTemplate(filename string, funcMap template.FuncMap) (*template.Templa
 
 	// Create template
 	return template.New(filename).Delims("$$", "$$").Funcs(funcMap).Parse(string(srcContent))
+}
+
+// getArchivalName converts an URL into an archival name.
+func getArchivalName(src string) string {
+	archivalURL := src
+
+	// Some URL have its query or path escaped, e.g. Wikipedia and Dev.to.
+	// For example, Wikipedia's stylesheet looks like this :
+	//   load.php?lang=en&modules=ext.3d.styles%7Cext.cite.styles%7Cext.uls.interlanguage
+	// However, when browser download it, it will be registered as unescaped query :
+	//   load.php?lang=en&modules=ext.3d.styles|ext.cite.styles|ext.uls.interlanguage
+	// So, for archival URL, we need to unescape the query and path first.
+	tmp, err := nurl.Parse(src)
+	if err == nil {
+		unescapedQuery, _ := nurl.QueryUnescape(tmp.RawQuery)
+		if unescapedQuery != "" {
+			tmp.RawQuery = unescapedQuery
+		}
+
+		archivalURL = tmp.String()
+		archivalURL = strings.Replace(archivalURL, tmp.EscapedPath(), tmp.Path, 1)
+	}
+
+	archivalURL = strings.ReplaceAll(archivalURL, "://", "/")
+	archivalURL = strings.ReplaceAll(archivalURL, "?", "-")
+	archivalURL = strings.ReplaceAll(archivalURL, "#", "-")
+	archivalURL = strings.ReplaceAll(archivalURL, "/", "-")
+	archivalURL = strings.ReplaceAll(archivalURL, " ", "-")
+	archivalURL = rxRepeatedStrip.ReplaceAllString(archivalURL, "-")
+
+	return archivalURL
 }
 
 func checkError(err error) {
