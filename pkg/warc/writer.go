@@ -66,7 +66,11 @@ func NewArchive(req ArchivalRequest, dstPath string) error {
 		ResourceMap: make(map[string]struct{}),
 		LogEnabled:  req.LogEnabled,
 	}
-	defer arc.Close()
+
+	// TODO: investigate whether the channel must be closed or not.
+	// At first, I thought the channels must be closed. Unfortunately, it leads to
+	// a panic when error message is accidentally sent after error channels closed.
+	// defer arc.Close()
 
 	// Process input depending on its type.
 	// If it's HTML, we need to extract the sub resources that used by it, e.g some CSS or JS files.
