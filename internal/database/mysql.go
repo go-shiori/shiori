@@ -43,9 +43,10 @@ func OpenMySQLDatabase(username, password, dbName string) (mysqlDB *MySQLDatabas
 
 	// Create tables
 	tx.MustExec(`CREATE TABLE IF NOT EXISTS account(
-		id        INT(11)      NOT NULL,
-		username  VARCHAR(250) NOT NULL,
-		password  BINARY(80)   NOT NULL,
+		id       INT(11)      NOT NULL,
+		username VARCHAR(250) NOT NULL,
+		password BINARY(80)   NOT NULL,
+		owner    TINYINT(1)   NOT NULL DEFAULT '0',
 		PRIMARY KEY (id),
 		UNIQUE KEY account_username_UNIQUE (username))`)
 
@@ -509,19 +510,20 @@ func (db *MySQLDatabase) GetBookmark(id int, url string) (model.Bookmark, bool) 
 }
 
 // SaveAccount saves new account to database. Returns error if any happened.
-func (db *MySQLDatabase) SaveAccount(username, password string) (err error) {
+func (db *MySQLDatabase) SaveAccount(account model.Account) (err error) {
 	// Hash password with bcrypt
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 10)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(account.Password), 10)
 	if err != nil {
 		return err
 	}
 
 	// Insert account to database
 	_, err = db.Exec(`INSERT INTO account
-		(username, password) VALUES (?, ?)
+		(username, password, owner) VALUES (?, ?, ?)
 		ON DUPLICATE KEY UPDATE
-		password = VALUES(password)`,
-		username, hashedPassword)
+		password = VALUES(password),
+		owner = VALUES(owner)`,
+		account.Username, hashedPassword, account.Owner)
 
 	return err
 }
@@ -530,7 +532,7 @@ func (db *MySQLDatabase) SaveAccount(username, password string) (err error) {
 func (db *MySQLDatabase) GetAccounts(keyword string) ([]model.Account, error) {
 	// Create query
 	args := []interface{}{}
-	query := `SELECT id, username FROM account WHERE 1`
+	query := `SELECT id, username, owner FROM account WHERE 1`
 
 	if keyword != "" {
 		query += " AND username LIKE ?"
@@ -554,7 +556,7 @@ func (db *MySQLDatabase) GetAccounts(keyword string) ([]model.Account, error) {
 func (db *MySQLDatabase) GetAccount(username string) (model.Account, bool) {
 	account := model.Account{}
 	db.Get(&account, `SELECT 
-		id, username, password FROM account WHERE username = ?`,
+		id, username, password, owner FROM account WHERE username = ?`,
 		username)
 
 	return account, account.ID != 0

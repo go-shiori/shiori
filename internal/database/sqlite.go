@@ -43,6 +43,7 @@ func OpenSQLiteDatabase(databasePath string) (sqliteDB *SQLiteDatabase, err erro
 		id       INTEGER NOT NULL,
 		username TEXT    NOT NULL,
 		password TEXT    NOT NULL,
+		owner    INTEGER NOT NULL DEFAULT 0,
 		CONSTRAINT account_PK PRIMARY KEY(id),
 		CONSTRAINT account_username_UNIQUE UNIQUE(username))`)
 
@@ -521,19 +522,20 @@ func (db *SQLiteDatabase) GetBookmark(id int, url string) (model.Bookmark, bool)
 }
 
 // SaveAccount saves new account to database. Returns error if any happened.
-func (db *SQLiteDatabase) SaveAccount(username, password string) (err error) {
+func (db *SQLiteDatabase) SaveAccount(account model.Account) (err error) {
 	// Hash password with bcrypt
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 10)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(account.Password), 10)
 	if err != nil {
 		return err
 	}
 
 	// Insert account to database
 	_, err = db.Exec(`INSERT INTO account
-		(username, password) VALUES (?, ?)
+		(username, password, owner) VALUES (?, ?, ?)
 		ON CONFLICT(username) DO UPDATE SET
-		password = ?`,
-		username, hashedPassword, hashedPassword)
+		password = ?, owner = ?`,
+		account.Username, hashedPassword, account.Owner,
+		hashedPassword, account.Owner)
 
 	return err
 }
@@ -542,7 +544,7 @@ func (db *SQLiteDatabase) SaveAccount(username, password string) (err error) {
 func (db *SQLiteDatabase) GetAccounts(keyword string) ([]model.Account, error) {
 	// Create query
 	args := []interface{}{}
-	query := `SELECT id, username FROM account WHERE 1`
+	query := `SELECT id, username, owner FROM account WHERE 1`
 
 	if keyword != "" {
 		query += " AND username LIKE ?"
@@ -566,7 +568,7 @@ func (db *SQLiteDatabase) GetAccounts(keyword string) ([]model.Account, error) {
 func (db *SQLiteDatabase) GetAccount(username string) (model.Account, bool) {
 	account := model.Account{}
 	db.Get(&account, `SELECT 
-		id, username, password FROM account WHERE username = ?`,
+		id, username, password, owner FROM account WHERE username = ?`,
 		username)
 
 	return account, account.ID != 0

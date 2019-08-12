@@ -28,19 +28,24 @@ import (
 // apiLogin is handler for POST /api/login
 func (h *handler) apiLogin(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	// Decode request
-	var request model.LoginRequest
+	request := struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+		Remember int    `json:"remember"`
+	}{}
+
 	err := json.NewDecoder(r.Body).Decode(&request)
 	checkError(err)
 
 	// Prepare function to generate session
-	genSession := func(expTime time.Duration) {
+	genSession := func(ownerMode bool, account model.Account, expTime time.Duration) {
 		// Create session ID
 		sessionID, err := uuid.NewV4()
 		checkError(err)
 
 		// Save session ID to cache
 		strSessionID := sessionID.String()
-		h.SessionCache.Set(strSessionID, request.Username, expTime)
+		h.SessionCache.Set(strSessionID, ownerMode, expTime)
 
 		// Save user's session IDs to cache as well
 		// useful for mass logout
@@ -59,8 +64,12 @@ func (h *handler) apiLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 			Expires: time.Now().Add(expTime),
 		})
 
-		w.Header().Set("Content-Type", "text/plain")
-		fmt.Fprint(w, strSessionID)
+		// Send account data
+		account.Password = ""
+
+		w.Header().Set("Content-Type", "application/json")
+		err = json.NewEncoder(w).Encode(&account)
+		checkError(err)
 	}
 
 	// Check if user's database is empty.
@@ -69,7 +78,7 @@ func (h *handler) apiLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 	checkError(err)
 
 	if len(accounts) == 0 && request.Username == "shiori" && request.Password == "gopher" {
-		genSession(time.Hour)
+		genSession(true, model.Account{}, time.Hour)
 		return
 	}
 
@@ -94,7 +103,7 @@ func (h *handler) apiLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 	}
 
 	// Create session
-	genSession(expTime)
+	genSession(account.Owner, account, expTime)
 }
 
 // apiLogout is handler for POST /api/logout
@@ -741,7 +750,7 @@ func (h *handler) apiInsertAccount(w http.ResponseWriter, r *http.Request, ps ht
 	checkError(err)
 
 	// Save account to database
-	err = h.DB.SaveAccount(account.Username, account.Password)
+	err = h.DB.SaveAccount(account)
 	checkError(err)
 
 	fmt.Fprint(w, 1)
@@ -758,6 +767,7 @@ func (h *handler) apiUpdateAccount(w http.ResponseWriter, r *http.Request, ps ht
 		Username    string `json:"username"`
 		OldPassword string `json:"oldPassword"`
 		NewPassword string `json:"newPassword"`
+		Owner       bool   `json:"owner"`
 	}{}
 
 	err = json.NewDecoder(r.Body).Decode(&request)
@@ -776,7 +786,9 @@ func (h *handler) apiUpdateAccount(w http.ResponseWriter, r *http.Request, ps ht
 	}
 
 	// Save new password to database
-	err = h.DB.SaveAccount(request.Username, request.NewPassword)
+	account.Password = request.NewPassword
+	account.Owner = request.Owner
+	err = h.DB.SaveAccount(account)
 	checkError(err)
 
 	// Delete user's sessions

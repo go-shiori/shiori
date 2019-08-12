@@ -23,7 +23,7 @@
 </head>
 
 <body class="night">
-    <div id="content-scene" :class="{night: displayOptions.nightMode}">
+    <div id="content-scene" :class="{night: appOptions.nightMode}">
         <div id="header">
             <p id="metadata" v-cloak>Added {{localtime()}}</p>
             <p id="title">$$.Title$$</p>
@@ -61,7 +61,7 @@
                         nightMode = (typeof opts.nightMode === "boolean") ? opts.nightMode : false,
                         useArchive = (typeof opts.useArchive === "boolean") ? opts.useArchive : false;
         
-                    this.displayOptions = {
+                    this.appOptions = {
                         showId: showId,
                         listMode: listMode,
                         nightMode: nightMode,

@@ -5,43 +5,41 @@ var template = `
         <details open class="setting-group" id="setting-display">
             <summary>Display</summary>
             <label>
-                <input type="checkbox" v-model="displayOptions.showId" @change="saveSetting">
+                <input type="checkbox" v-model="appOptions.showId" @change="saveSetting">
                 Show bookmark's ID
             </label>
             <label>
-                <input type="checkbox" v-model="displayOptions.listMode" @change="saveSetting">
+                <input type="checkbox" v-model="appOptions.listMode" @change="saveSetting">
                 Display bookmarks as list
             </label>
             <label>
-                <input type="checkbox" v-model="displayOptions.nightMode" @change="saveSetting">
+                <input type="checkbox" v-model="appOptions.nightMode" @change="saveSetting">
                 Use dark theme
             </label>
-            <label>
-                <input type="checkbox" v-model="displayOptions.useArchive" @change="saveSetting">
-                Create archive by default
-            </label>
         </details>
-        <details open class="setting-group" id="setting-bookmarks">
+        <details v-if="activeAccount.owner" open class="setting-group" id="setting-bookmarks">
             <summary>Bookmarks</summary>
             <label>
-                <input type="checkbox" v-model="displayOptions.keepMetadata" @change="saveSetting">
+                <input type="checkbox" v-model="appOptions.keepMetadata" @change="saveSetting">
                 Keep bookmark's metadata when updating
             </label>
             <label>
-                <input type="checkbox" v-model="displayOptions.useArchive" @change="saveSetting">
+                <input type="checkbox" v-model="appOptions.useArchive" @change="saveSetting">
                 Create archive by default
             </label>
             <label>
-                <input type="checkbox" v-model="displayOptions.makePublic" @change="saveSetting">
+                <input type="checkbox" v-model="appOptions.makePublic" @change="saveSetting">
                 Make archive publicly available by default
             </label>
         </details>
-        <details open class="setting-group" id="setting-accounts">
+        <details v-if="activeAccount.owner" open class="setting-group" id="setting-accounts">
             <summary>Accounts</summary>
             <ul>
                 <li v-if="accounts.length === 0">No accounts registered</li>
                 <li v-for="(account, idx) in accounts">
-                    <span>{{account.username}}</span>
+                    <p>{{account.username}}
+                        <span v-if="account.owner" class="account-level">(owner)</span>
+                    </p>
                     <a title="Change password" @click="showDialogChangePassword(account)">
                         <i class="fa fas fa-fw fa-key"></i>
                     </a>
@@ -52,7 +50,7 @@ var template = `
             </ul>
             <div class="setting-group-footer">
                 <a @click="loadAccounts">Refresh accounts</a>
-                <a @click="showDialogNewAccount">Add new account</a>
+                <a v-if="activeAccount.owner" @click="showDialogNewAccount">Add new account</a>
             </div>
         </details>
     </div>
@@ -78,12 +76,12 @@ export default {
     methods: {
         saveSetting() {
             this.$emit("setting-changed", {
-                showId: this.displayOptions.showId,
-                listMode: this.displayOptions.listMode,
-                nightMode: this.displayOptions.nightMode,
-                keepMetadata: this.displayOptions.keepMetadata,
-                useArchive: this.displayOptions.useArchive,
-                makePublic: this.displayOptions.makePublic,
+                showId: this.appOptions.showId,
+                listMode: this.appOptions.listMode,
+                nightMode: this.appOptions.nightMode,
+                keepMetadata: this.appOptions.keepMetadata,
+                useArchive: this.appOptions.useArchive,
+                makePublic: this.appOptions.makePublic,
             });
         },
         loadAccounts() {
@@ -124,6 +122,11 @@ export default {
                     label: "Repeat password",
                     type: "password",
                     value: "",
+                }, {
+                    name: "visitor",
+                    label: "This account is for visitor",
+                    type: "check",
+                    value: false,
                 }],
                 mainText: "OK",
                 secondText: "Cancel",
@@ -145,7 +148,8 @@ export default {
 
                     var request = {
                         username: data.username,
-                        password: data.password
+                        password: data.password,
+                        owner: !data.visitor,
                     }
 
                     this.dialog.loading = true;
@@ -164,7 +168,7 @@ export default {
                             this.dialog.loading = false;
                             this.dialog.visible = false;
 
-                            this.accounts.push({ username: data.username });
+                            this.accounts.push({ username: data.username, owner: !data.visitor });
                             this.accounts.sort((a, b) => {
                                 var nameA = a.username.toLowerCase(),
                                     nameB = b.username.toLowerCase();
@@ -230,7 +234,8 @@ export default {
                     var request = {
                         username: account.username,
                         oldPassword: data.oldPassword,
-                        newPassword: data.password
+                        newPassword: data.password,
+                        owner: account.owner,
                     }
 
                     this.dialog.loading = true;

@@ -1,6 +1,16 @@
 export default {
     props: {
-        displayOptions: {
+        activeAccount: {
+            type: Object,
+            default () {
+                return {
+                    id: 0,
+                    username: "",
+                    owner: false,
+                }
+            }
+        },
+        appOptions: {
             type: Object,
             default () {
                 return {

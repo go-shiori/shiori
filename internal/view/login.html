@@ -84,9 +84,13 @@
                         })
                         .then(response => {
                             if (!response.ok) throw response;
-                            return response;
+                            return response.json();
                         })
-                        .then(() => {
+                        .then(json => {
+                            // Save account data
+                            localStorage.setItem("shiori-account", JSON.stringify(json));
+
+                            // Go to destination page
                             var dst = (new Url).query.dst;
                             location.href = dst || "/";
                         })
@@ -107,6 +111,7 @@
             mounted() {
                 // Load setting
                 this.loadSetting();
+                localStorage.removeItem("shiori-account");
             }
         })
     </script>

@@ -22,7 +22,7 @@ var template = `
         <a class="url" :href="url" target="_blank" rel="noopener">
             {{hostnameURL}}
         </a>
-        <template v-if="!editMode">
+        <template v-if="!editMode && menuVisible">
             <a title="Edit bookmark" @click="editBookmark">
                 <i class="fas fa-fw fa-pencil-alt"></i>
             </a>
@@ -52,6 +52,7 @@ export default {
         editMode: Boolean,
         listMode: Boolean,
         selected: Boolean,
+        menuVisible: Boolean,
         tags: {
             type: Array,
             default () {

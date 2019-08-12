@@ -52,8 +52,16 @@ func (h *handler) validateSession(r *http.Request) error {
 	}
 
 	// Make sure session is not expired yet
-	if _, found := h.SessionCache.Get(sessionID.Value); !found {
+	val, found := h.SessionCache.Get(sessionID.Value)
+	if !found {
 		return fmt.Errorf("session has been expired")
+	}
+
+	// If this is not get request, make sure it's owner
+	if r.Method != "" && r.Method != "GET" {
+		if isOwner := val.(bool); !isOwner {
+			return fmt.Errorf("account level is not sufficient")
+		}
 	}
 
 	return nil

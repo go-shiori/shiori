@@ -48,7 +48,7 @@ type DB interface {
 	GetBookmark(id int, url string) (model.Bookmark, bool)
 
 	// SaveAccount saves new account in database
-	SaveAccount(username, password string) error
+	SaveAccount(model.Account) error
 
 	// GetAccounts fetch list of account (without its password) with matching keyword.
 	GetAccounts(keyword string) ([]model.Account, error)

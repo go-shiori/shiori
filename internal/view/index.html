@@ -24,7 +24,7 @@
 </head>
 
 <body class="night">
-    <div id="main-scene" :class="{night: displayOptions.nightMode}">
+    <div id="main-scene" :class="{night: appOptions.nightMode}">
         <div id="main-sidebar">
             <a v-for="item in sidebarItems" :title="item.title" :class="{active: activePage === item.page}" @click="switchPage(item.page)">
                 <i class="fas fa-fw" :class="item.icon"></i>
@@ -35,7 +35,7 @@
             </a>
         </div>
         <keep-alive>
-            <component :is="activePage" :display-options="displayOptions" @setting-changed="saveSetting"></component>
+            <component :is="activePage" :active-account="activeAccount" :app-options="appOptions" @setting-changed="saveSetting"></component>
         </keep-alive>
         <custom-dialog v-bind="dialog" />
     </div>
@@ -88,6 +88,7 @@
                                     return response;
                                 })
                                 .then(() => {
+                                    localStorage.removeItem("shiori-account");
                                     document.cookie = "session-id=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
                                     location.href = "/login";
                                 })
@@ -102,7 +103,7 @@
                 },
                 saveSetting(opts) {
                     localStorage.setItem("shiori-setting", JSON.stringify(opts));
-                    this.displayOptions = opts;
+                    this.appOptions = opts;
                     document.body.className = opts.nightMode ? "night" : "";
                 },
                 loadSetting() {
@@ -114,7 +115,7 @@
                         useArchive = (typeof opts.useArchive === "boolean") ? opts.useArchive : false,
                         makePublic = (typeof opts.makePublic === "boolean") ? opts.makePublic : false;
         
-                    this.displayOptions = {
+                    this.appOptions = {
                         showId: showId,
                         listMode: listMode,
                         nightMode: nightMode,
@@ -124,11 +125,24 @@
                     };
 
                     document.body.className = nightMode ? "night" : "";
+                },
+                loadAccount() {
+                    var account = JSON.parse(localStorage.getItem("shiori-account")) || {},
+                        id = (typeof account.id === "number") ? account.id : 0,
+                        username = (typeof account.username === "string") ? account.username : "",
+                        owner = (typeof account.owner === "boolean") ? account.owner : false;
+                    
+                    this.activeAccount = {
+                        id: id,
+                        username: username,
+                        owner: owner,
+                    };
                 }
             },
             mounted() {
                 // Load setting
                 this.loadSetting();
+                this.loadAccount();
 
                 // Prepare history state watcher
                 var stateWatcher = (e) => {

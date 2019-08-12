@@ -5,13 +5,13 @@ var template = `
         <a title="Refresh storage" @click="reloadData">
             <i class="fas fa-fw fa-sync-alt" :class="loading && 'fa-spin'"></i>
         </a>
-        <a title="Add new bookmark" @click="showDialogAdd">
+        <a v-if="activeAccount.owner" title="Add new bookmark" @click="showDialogAdd">
             <i class="fas fa-fw fa-plus-circle"></i>
         </a>
         <a v-if="tags.length > 0" title="Show tags" @click="showDialogTags">
             <i class="fas fa-fw fa-tags"></i>
         </a>
-        <a title="Batch edit" @click="toggleEditMode">
+        <a v-if="activeAccount.owner" title="Batch edit" @click="toggleEditMode">
             <i class="fas fa-fw fa-pencil-alt"></i>
         </a>
     </div>
@@ -30,7 +30,7 @@ var template = `
             <i class="fas fa-fw fa-times"></i>
         </a>
     </div>
-    <div id="bookmarks-grid" ref="bookmarksGrid" :class="{list: displayOptions.listMode}">
+    <div id="bookmarks-grid" ref="bookmarksGrid" :class="{list: appOptions.listMode}">
         <pagination-box v-if="maxPage > 1" 
             :page="page" 
             :maxPage="maxPage" 
@@ -50,9 +50,10 @@ var template = `
             :index="index"
             :key="book.id" 
             :editMode="editMode"
-            :showId="displayOptions.showId"
-            :listMode="displayOptions.listMode"
+            :showId="appOptions.showId"
+            :listMode="appOptions.listMode"
             :selected="isSelected(book.id)"
+            :menuVisible="activeAccount.owner"
             @select="toggleSelection"
             @tag-clicked="bookmarkTagClicked"
             @edit="showDialogEdit"
@@ -284,12 +285,12 @@ export default {
         isSelected(bookId) {
             return this.selection.findIndex(el => el.id === bookId) > -1;
         },
-        dialogTagClicked(event, idx, tag) {
+        dialogTagClicked(event, tag) {
             if (!this.dialogTags.editMode) {
                 this.filterTag(tag.name, event.altKey);
             } else {
                 this.dialogTags.visible = false;
-                this.showDialogRenameTag(idx, tag);
+                this.showDialogRenameTag(tag);
             }
         },
         bookmarkTagClicked(event, tagName) {
@@ -361,12 +362,12 @@ export default {
                     name: "createArchive",
                     label: "Create archive",
                     type: "check",
-                    value: this.displayOptions.useArchive,
+                    value: this.appOptions.useArchive,
                 }, {
                     name: "makePublic",
                     label: "Make archive publicly available",
                     type: "check",
-                    value: this.displayOptions.makePublic,
+                    value: this.appOptions.makePublic,
                 }],
                 mainText: "OK",
                 secondText: "Cancel",
@@ -612,12 +613,12 @@ export default {
                     name: "keepMetadata",
                     label: "Keep the old title and excerpt",
                     type: "check",
-                    value: this.displayOptions.keepMetadata,
+                    value: this.appOptions.keepMetadata,
                 }, {
                     name: "createArchive",
                     label: "Update archive as well",
                     type: "check",
-                    value: this.displayOptions.useArchive,
+                    value: this.appOptions.useArchive,
                 }],
                 mainText: "Yes",
                 secondText: "No",
@@ -747,10 +748,11 @@ export default {
             });
         },
         showDialogTags() {
-            this.dialogTags.editMode = false;
             this.dialogTags.visible = true;
+            this.dialogTags.editMode = false;
+            this.dialogTags.secondText = this.activeAccount.owner ? "Rename Tags" : "";
         },
-        showDialogRenameTag(idx, tag) {
+        showDialogRenameTag(tag) {
             this.showDialog({
                 title: "Rename Tag",
                 content: `Change the name for tag "#${tag.name}"`,
