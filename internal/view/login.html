@@ -88,7 +88,7 @@
                         })
                         .then(json => {
                             // Save account data
-                            localStorage.setItem("shiori-account", JSON.stringify(json));
+                            localStorage.setItem("shiori-account", JSON.stringify(json.account));
 
                             // Go to destination page
                             var dst = (new Url).query.dst;

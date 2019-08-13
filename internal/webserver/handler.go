@@ -40,19 +40,36 @@ func (h *handler) prepareLoginCache() {
 	})
 }
 
+func (h *handler) getSessionID(r *http.Request) string {
+	// Get session-id from header and cookie
+	headerSessionID := r.Header.Get("X-Session-Id")
+	cookieSessionID := func() string {
+		cookie, err := r.Cookie("session-id")
+		if err != nil {
+			return ""
+		}
+
+		return cookie.Value
+	}()
+
+	// Session ID in cookie is more priority than in header
+	sessionID := headerSessionID
+	if cookieSessionID != "" {
+		sessionID = cookieSessionID
+	}
+
+	return sessionID
+}
+
 // validateSession checks whether user session is still valid or not
 func (h *handler) validateSession(r *http.Request) error {
-	// Get session-id from cookie
-	sessionID, err := r.Cookie("session-id")
-	if err != nil {
-		if err == http.ErrNoCookie {
-			return fmt.Errorf("session is not exist")
-		}
-		return err
+	sessionID := h.getSessionID(r)
+	if sessionID == "" {
+		return fmt.Errorf("session is not exist")
 	}
 
 	// Make sure session is not expired yet
-	val, found := h.SessionCache.Get(sessionID.Value)
+	val, found := h.SessionCache.Get(sessionID)
 	if !found {
 		return fmt.Errorf("session has been expired")
 	}

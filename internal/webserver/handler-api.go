@@ -32,6 +32,7 @@ func (h *handler) apiLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 		Username string `json:"username"`
 		Password string `json:"password"`
 		Remember int    `json:"remember"`
+		Owner    bool   `json:"owner"`
 	}{}
 
 	err := json.NewDecoder(r.Body).Decode(&request)
@@ -66,9 +67,13 @@ func (h *handler) apiLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 
 		// Send account data
 		account.Password = ""
+		loginResult := struct {
+			Session string        `json:"session"`
+			Account model.Account `json:"account"`
+		}{strSessionID, account}
 
 		w.Header().Set("Content-Type", "application/json")
-		err = json.NewEncoder(w).Encode(&account)
+		err = json.NewEncoder(w).Encode(&loginResult)
 		checkError(err)
 	}
 
@@ -97,6 +102,11 @@ func (h *handler) apiLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 		panic(fmt.Errorf("username and password don't match"))
 	}
 
+	// If login request is as owner, make sure this account is owner
+	if request.Owner && !account.Owner {
+		panic(fmt.Errorf("account level is not sufficient as owner"))
+	}
+
 	// Calculate expiration time
 	expTime := time.Hour
 	if request.Remember > 0 {
@@ -112,16 +122,11 @@ func (h *handler) apiLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 // apiLogout is handler for POST /api/logout
 func (h *handler) apiLogout(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	// Get session ID
-	sessionID, err := r.Cookie("session-id")
-	if err != nil {
-		if err == http.ErrNoCookie {
-			panic(fmt.Errorf("session is expired"))
-		} else {
-			panic(err)
-		}
+	sessionID := h.getSessionID(r)
+	if sessionID != "" {
+		h.SessionCache.Delete(sessionID)
 	}
 
-	h.SessionCache.Delete(sessionID.Value)
 	fmt.Fprint(w, 1)
 }
 
