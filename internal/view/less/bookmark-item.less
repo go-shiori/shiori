@@ -104,7 +104,7 @@
     .bookmark-tags {
         display: flex;
         flex-flow: row wrap;
-        margin: 4px 0 -4px;
+        margin: 8px 0 -4px;
         padding: 0 8px;
 
         a {
@@ -162,6 +162,12 @@
             &:not([href]) {
                 cursor: default;
                 color: var(--colorLink);
+            }
+        }
+
+        @media (max-width: 600px) {
+            a {
+                display: block;
             }
         }
     }
@@ -231,10 +237,6 @@
 
             .bookmark-menu {
                 padding-left: 16px;
-
-                a:not(:first-of-type) {
-                    display: none;
-                }
             }
         }
     }
