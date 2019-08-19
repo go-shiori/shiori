@@ -333,6 +333,8 @@ func (h *handler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 		// If needed, create offline archive as well
 		if book.CreateArchive {
 			archivePath := fp.Join(h.DataDir, "archive", fmt.Sprintf("%d", book.ID))
+			os.Remove(archivePath)
+
 			archivalRequest := warc.ArchivalRequest{
 				URL:         book.URL,
 				Reader:      archivalInput,
@@ -581,6 +583,10 @@ func (h *handler) apiUpdateCache(w http.ResponseWriter, r *http.Request, ps http
 				if !keepMetadata {
 					book.Title = article.Title
 					book.Excerpt = article.Excerpt
+				}
+
+				if book.Title == "" {
+					book.Title = book.URL
 				}
 
 				book.HasContent = book.Content != ""
