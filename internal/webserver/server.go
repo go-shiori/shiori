@@ -73,7 +73,7 @@ func ServeApp(DB database.DB, dataDir string, port int) error {
 		Addr:         url,
 		Handler:      router,
 		ReadTimeout:  10 * time.Second,
-		WriteTimeout: 20 * time.Second,
+		WriteTimeout: time.Minute,
 	}
 
 	// Serve app
