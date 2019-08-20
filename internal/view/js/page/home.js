@@ -258,8 +258,8 @@ export default {
                     this.loading = false;
 
                     if (err !== skipFetchTags) {
-                        err.text().then(msg => {
-                            this.showErrorDialog(msg, err.status);
+                        this.getErrorMessage(err).then(msg => {
+                            this.showErrorDialog(msg);
                         })
                     }
                 });
@@ -419,8 +419,8 @@ export default {
                         })
                         .catch(err => {
                             this.dialog.loading = false;
-                            err.text().then(msg => {
-                                this.showErrorDialog(msg, err.status);
+                            this.getErrorMessage(err).then(msg => {
+                                this.showErrorDialog(msg);
                             })
                         });
                 }
@@ -513,8 +513,8 @@ export default {
                         })
                         .catch(err => {
                             this.dialog.loading = false;
-                            err.text().then(msg => {
-                                this.showErrorDialog(msg, err.status);
+                            this.getErrorMessage(err).then(msg => {
+                                this.showErrorDialog(msg);
                             })
                         });
                 }
@@ -582,8 +582,8 @@ export default {
                             this.editMode = false;
                             this.dialog.loading = false;
 
-                            err.text().then(msg => {
-                                this.showErrorDialog(msg, err.status);
+                            this.getErrorMessage(err).then(msg => {
+                                this.showErrorDialog(msg);
                             })
                         });
                 }
@@ -657,8 +657,8 @@ export default {
                             this.editMode = false;
                             this.dialog.loading = false;
 
-                            err.text().then(msg => {
-                                this.showErrorDialog(msg, err.status);
+                            this.getErrorMessage(err).then(msg => {
+                                this.showErrorDialog(msg);
                             })
                         });
                 }
@@ -740,8 +740,8 @@ export default {
                             this.editMode = false;
                             this.dialog.loading = false;
 
-                            err.text().then(msg => {
-                                this.showErrorDialog(msg, err.status);
+                            this.getErrorMessage(err).then(msg => {
+                                this.showErrorDialog(msg);
                             })
                         });
                 }
@@ -820,8 +820,8 @@ export default {
                             this.dialog.loading = false;
                             this.dialogTags.visible = false;
                             this.dialogTags.editMode = false;
-                            err.text().then(msg => {
-                                this.showErrorDialog(msg, err.status);
+                            this.getErrorMessage(err).then(msg => {
+                                this.showErrorDialog(msg);
                             })
                         });
                 },

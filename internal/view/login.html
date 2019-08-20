@@ -59,6 +59,17 @@
                 nightMode: false,
             },
             methods: {
+                async getErrorMessage(err) {
+                    switch (err.constructor) {
+                        case Error:
+                            return err.message;
+                        case Response:
+                            var text = await err.text();
+                            return `${text} (${err.status})`;
+                        default:
+                            return err;
+                    }
+                },
                 login() {
                     // Validate input
                     if (this.username === "") {
@@ -96,8 +107,8 @@
                         })
                         .catch(err => {
                             this.loading = false;
-                            err.text().then(msg => {
-                                this.error = `${msg} (${err.status})`;
+                            this.getErrorMessage(err).then(msg => {
+                                this.error = msg;
                             })
                         });
                 },

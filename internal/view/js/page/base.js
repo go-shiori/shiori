@@ -67,8 +67,19 @@ export default {
             if (cfg.escPressed) base.escPressed = cfg.escPressed;
             this.dialog = base;
         },
+        async getErrorMessage(err) {
+            switch (err.constructor) {
+                case Error:
+                    return err.message;
+                case Response:
+                    var text = await err.text();
+                    return `${text} (${err.status})`;
+                default:
+                    return err;
+            }
+        },
         isSessionError(err) {
-            switch (err.trim().toLowerCase()) {
+            switch (err.replace(/\(\d+\)/g, "").trim().toLowerCase()) {
                 case "session is not exist":
                 case "session has been expired":
                     return true
@@ -76,9 +87,9 @@ export default {
                     return false;
             }
         },
-        showErrorDialog(msg, status) {
+        showErrorDialog(msg) {
             var sessionError = this.isSessionError(msg),
-                dialogContent = sessionError ? "Session has expired, please login again." : `${msg} (${status})`;
+                dialogContent = sessionError ? "Session has expired, please login again." : msg;
 
             this.showDialog({
                 visible: true,

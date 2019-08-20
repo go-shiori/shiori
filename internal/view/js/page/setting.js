@@ -99,8 +99,8 @@ export default {
                 })
                 .catch(err => {
                     this.loading = false;
-                    err.text().then(msg => {
-                        this.showErrorDialog(msg, err.status);
+                    this.getErrorMessage(err).then(msg => {
+                        this.showErrorDialog(msg);
                     })
                 });
         },
@@ -186,8 +186,8 @@ export default {
                         })
                         .catch(err => {
                             this.dialog.loading = false;
-                            err.text().then(msg => {
-                                this.showErrorDialog(msg, err.status);
+                            this.getErrorMessage(err).then(msg => {
+                                this.showErrorDialog(msg);
                             })
                         });
                 }
@@ -256,8 +256,8 @@ export default {
                         })
                         .catch(err => {
                             this.dialog.loading = false;
-                            err.text().then(msg => {
-                                this.showErrorDialog(msg, err.status);
+                            this.getErrorMessage(err).then(msg => {
+                                this.showErrorDialog(msg);
                             })
                         });
                 }
@@ -289,8 +289,8 @@ export default {
                         })
                         .catch(err => {
                             this.dialog.loading = false;
-                            err.text().then(msg => {
-                                this.showErrorDialog(msg, err.status);
+                            this.getErrorMessage(err).then(msg => {
+                                this.showErrorDialog(msg);
                             })
                         });
                 }
