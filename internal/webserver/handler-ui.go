@@ -200,6 +200,14 @@ func (h *handler) serveThumbnailImage(w http.ResponseWriter, r *http.Request, ps
 	mimeType := http.DetectContentType(buffer)
 	w.Header().Set("Content-Type", mimeType)
 
+	// Set cache value
+	info, err := img.Stat()
+	checkError(err)
+
+	etag := fmt.Sprintf(`W/"%x-%x"`, info.ModTime().Unix(), info.Size())
+	w.Header().Set("ETag", etag)
+	w.Header().Set("Cache-Control", "max-age=86400")
+
 	// Serve image
 	img.Seek(0, 0)
 	_, err = io.Copy(w, img)
