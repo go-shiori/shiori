@@ -543,15 +543,19 @@ func (db *SQLiteDatabase) SaveAccount(account model.Account) (err error) {
 	return err
 }
 
-// GetAccounts fetch list of account (without its password) with matching keyword.
-func (db *SQLiteDatabase) GetAccounts(keyword string) ([]model.Account, error) {
+// GetAccounts fetch list of account (without its password) based on submitted options.
+func (db *SQLiteDatabase) GetAccounts(opts GetAccountsOptions) ([]model.Account, error) {
 	// Create query
 	args := []interface{}{}
 	query := `SELECT id, username, owner FROM account WHERE 1`
 
-	if keyword != "" {
+	if opts.Keyword != "" {
 		query += " AND username LIKE ?"
-		args = append(args, "%"+keyword+"%")
+		args = append(args, "%"+opts.Keyword+"%")
+	}
+
+	if opts.Owner {
+		query += " AND owner = 1"
 	}
 
 	query += ` ORDER BY username`

@@ -30,6 +30,12 @@ type GetBookmarksOptions struct {
 	Offset       int
 }
 
+// GetAccountsOptions is options for fetching accounts from database.
+type GetAccountsOptions struct {
+	Keyword string
+	Owner   bool
+}
+
 // DB is interface for accessing and manipulating data in database.
 type DB interface {
 	// SaveBookmarks saves bookmarks data to database.
@@ -51,7 +57,7 @@ type DB interface {
 	SaveAccount(model.Account) error
 
 	// GetAccounts fetch list of account (without its password) with matching keyword.
-	GetAccounts(keyword string) ([]model.Account, error)
+	GetAccounts(opts GetAccountsOptions) ([]model.Account, error)
 
 	// GetAccount fetch account with matching username.
 	GetAccount(username string) (model.Account, bool)

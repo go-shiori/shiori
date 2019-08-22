@@ -77,9 +77,13 @@ func (h *handler) apiLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 		checkError(err)
 	}
 
-	// Check if user's database is empty.
-	// If database still empty, and user uses default account, let him in.
-	accounts, err := h.DB.GetAccounts("")
+	// Check if user's database is empty or there are no owner.
+	// If yes, and user uses default account, let him in.
+	searchOptions := database.GetAccountsOptions{
+		Owner: true,
+	}
+
+	accounts, err := h.DB.GetAccounts(searchOptions)
 	checkError(err)
 
 	if len(accounts) == 0 && request.Username == "shiori" && request.Password == "gopher" {
@@ -744,7 +748,7 @@ func (h *handler) apiGetAccounts(w http.ResponseWriter, r *http.Request, ps http
 	checkError(err)
 
 	// Get list of usernames from database
-	accounts, err := h.DB.GetAccounts("")
+	accounts, err := h.DB.GetAccounts(database.GetAccountsOptions{})
 	checkError(err)
 
 	w.Header().Set("Content-Type", "application/json")
