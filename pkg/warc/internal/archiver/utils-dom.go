@@ -249,6 +249,22 @@ func appendChild(node *html.Node, child *html.Node) {
 	}
 }
 
+// prependChild works like appendChild, except it adds a node to the
+// beginning of the list of children of a specified parent node.
+func prependChild(node *html.Node, child *html.Node) {
+	if child.Parent != nil {
+		temp := cloneNode(child)
+		child.Parent.RemoveChild(child)
+		child = temp
+	}
+
+	if node.FirstChild != nil {
+		node.InsertBefore(child, node.FirstChild)
+	} else {
+		node.AppendChild(child)
+	}
+}
+
 // replaceNode replaces an OldNode with a NewNode.
 func replaceNode(oldNode *html.Node, newNode *html.Node) {
 	if oldNode.Parent == nil {

@@ -45,6 +45,8 @@ func (arc *Archiver) ProcessHTMLFile(res ResourceURL, input io.Reader) (result P
 	}
 
 	// TODO: I'm still not really sure, but IMHO it's safer to disable Javascript
+	// Ideally, we only want to remove XHR request by using function disableXHR(doc).
+	// Unfortunately, the result is not that good for now, so it's still not used.
 	removeNodes(getElementsByTagName(doc, "script"), nil)
 
 	// Convert lazy loaded image to normal
@@ -127,6 +129,36 @@ func (arc *Archiver) ProcessOtherFile(res ResourceURL, input io.Reader) (result 
 	}
 
 	return result, nil
+}
+
+func disableXHR(doc *html.Node) {
+	var head *html.Node
+	heads := getElementsByTagName(doc, "head")
+	if len(heads) > 0 {
+		head = heads[0]
+	} else {
+		head = createElement("head")
+		prependChild(doc, head)
+	}
+
+	xhrDisabler := `
+	fetch = new Promise();
+
+	XMLHttpRequest = function() {};
+	XMLHttpRequest.prototype = {
+		open: function(){},
+		send: function(){},
+		abort: function(){},
+		setRequestHeader: function(){},
+		overrideMimeType: function(){},
+		getResponseHeaders(): function(){},
+		getAllResponseHeaders(): function(){},
+	};`
+
+	script := createElement("script")
+	scriptContent := createTextNode(xhrDisabler)
+	prependChild(script, scriptContent)
+	prependChild(head, script)
 }
 
 // fixRelativeURIs converts each <a> in the given element
