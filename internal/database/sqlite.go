@@ -73,6 +73,9 @@ func OpenSQLiteDatabase(databasePath string) (sqliteDB *SQLiteDatabase, err erro
 
 	tx.MustExec(`CREATE VIRTUAL TABLE IF NOT EXISTS bookmark_content USING fts4(title, content, html)`)
 
+	// Alter table if needed
+	tx.Exec(`ALTER TABLE account ADD COLUMN owner INTEGER NOT NULL DEFAULT 0`)
+
 	err = tx.Commit()
 	checkError(err)
 
