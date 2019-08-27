@@ -72,7 +72,7 @@ var template = `
     <custom-dialog id="dialog-tags" v-bind="dialogTags">
         <a @click="filterTag('*')">(all tagged)</a>
         <a @click="filterTag('*', true)">(all untagged)</a>
-        <a v-for="(tag, idx) in tags" @click="dialogTagClicked($event, idx, tag)">
+        <a v-for="tag in tags" @click="dialogTagClicked($event, tag)">
             #{{tag.name}}<span>{{tag.nBookmarks}}</span>
         </a>
     </custom-dialog>
