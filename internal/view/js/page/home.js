@@ -300,6 +300,10 @@ export default {
             // Set default parameter
             excludeMode = (typeof excludeMode === "boolean") ? excludeMode : false;
 
+            if (this.dialogTags.editMode) {
+                return;
+            }
+
             if (tagName === "*") {
                 this.search = excludeMode ? "-tag:*" : "tag:*";
                 this.loadData();
@@ -312,6 +316,10 @@ export default {
                 rxIncludeTag = new RegExp(`(^|\\s)${includeTag}`, "ig"),
                 rxExcludeTag = new RegExp(`(^|\\s)${excludeTag}`, "ig"),
                 search = this.search;
+
+            search = search.replace("-tag:*", "");
+            search = search.replace("tag:*", "");
+            search = search.trim();
 
             if (excludeMode) {
                 if (rxExcludeTag.test(search)) {
