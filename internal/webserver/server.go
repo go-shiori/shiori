@@ -15,7 +15,7 @@ import (
 var httpClient = &http.Client{Timeout: time.Minute}
 
 // ServeApp serves wb interface in specified port
-func ServeApp(DB database.DB, dataDir string, port int) error {
+func ServeApp(DB database.DB, dataDir string, address string, port int) error {
 	// Create handler
 	hdl := handler{
 		DB:           DB,
@@ -68,7 +68,7 @@ func ServeApp(DB database.DB, dataDir string, port int) error {
 	}
 
 	// Create server
-	url := fmt.Sprintf(":%d", port)
+	url := fmt.Sprintf("%s:%d", address, port)
 	svr := &http.Server{
 		Addr:         url,
 		Handler:      router,

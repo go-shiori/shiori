@@ -17,14 +17,16 @@ func serveCmd() *cobra.Command {
 	}
 
 	cmd.Flags().IntP("port", "p", 8080, "Port that used by server")
+	cmd.Flags().StringP("address", "a", "", "Address the server listens to")
 
 	return cmd
 }
 
 func serveHandler(cmd *cobra.Command, args []string) {
 	port, _ := cmd.Flags().GetInt("port")
+	address, _ := cmd.Flags().GetString("address")
 
-	err := webserver.ServeApp(db, dataDir, port)
+	err := webserver.ServeApp(db, dataDir, address, port)
 	if err != nil {
 		logrus.Fatalf("Server error: %v\n", err)
 	}
