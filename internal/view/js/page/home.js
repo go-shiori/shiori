@@ -226,14 +226,11 @@ export default {
                             page: this.page
                         };
 
-                        var urlQueries = [];
-                        if (this.page > 1) urlQueries.push(`page=${this.page}`);
-                        if (this.search !== "") urlQueries.push(`search=${this.search}`);
-
-                        var url = "#home"
-                        if (urlQueries.length > 0) {
-                            url += `?${urlQueries.join("&")}`;
-                        }
+                        var url = new Url("/");
+                        url.hash = "home";
+                        url.clearQuery();
+                        if (this.page > 1) url.query.page = this.page;
+                        if (this.search !== "") url.query.search = this.search;
 
                         window.history.pushState(history, "page-home", url);
                     }
@@ -410,27 +407,22 @@ export default {
 
                     this.dialog.loading = true;
                     fetch("/api/bookmarks", {
-                            method: "post",
-                            body: JSON.stringify(data),
-                            headers: {
-                                "Content-Type": "application/json",
-                            },
+                        method: "post",
+                        body: JSON.stringify(data),
+                        headers: { "Content-Type": "application/json" }
+                    }).then(response => {
+                        if (!response.ok) throw response;
+                        return response.json();
+                    }).then(json => {
+                        this.dialog.loading = false;
+                        this.dialog.visible = false;
+                        this.bookmarks.splice(0, 0, json);
+                    }).catch(err => {
+                        this.dialog.loading = false;
+                        this.getErrorMessage(err).then(msg => {
+                            this.showErrorDialog(msg);
                         })
-                        .then(response => {
-                            if (!response.ok) throw response;
-                            return response.json();
-                        })
-                        .then(json => {
-                            this.dialog.loading = false;
-                            this.dialog.visible = false;
-                            this.bookmarks.splice(0, 0, json);
-                        })
-                        .catch(err => {
-                            this.dialog.loading = false;
-                            this.getErrorMessage(err).then(msg => {
-                                this.showErrorDialog(msg);
-                            })
-                        });
+                    });
                 }
             });
         },
@@ -504,27 +496,22 @@ export default {
                     // Send data
                     this.dialog.loading = true;
                     fetch("/api/bookmarks", {
-                            method: "put",
-                            body: JSON.stringify(book),
-                            headers: {
-                                "Content-Type": "application/json",
-                            },
+                        method: "put",
+                        body: JSON.stringify(book),
+                        headers: { "Content-Type": "application/json" }
+                    }).then(response => {
+                        if (!response.ok) throw response;
+                        return response.json();
+                    }).then(json => {
+                        this.dialog.loading = false;
+                        this.dialog.visible = false;
+                        this.bookmarks.splice(index, 1, json);
+                    }).catch(err => {
+                        this.dialog.loading = false;
+                        this.getErrorMessage(err).then(msg => {
+                            this.showErrorDialog(msg);
                         })
-                        .then(response => {
-                            if (!response.ok) throw response;
-                            return response.json();
-                        })
-                        .then(json => {
-                            this.dialog.loading = false;
-                            this.dialog.visible = false;
-                            this.bookmarks.splice(index, 1, json);
-                        })
-                        .catch(err => {
-                            this.dialog.loading = false;
-                            this.getErrorMessage(err).then(msg => {
-                                this.showErrorDialog(msg);
-                            })
-                        });
+                    });
                 }
             });
         },
@@ -564,36 +551,31 @@ export default {
                 mainClick: () => {
                     this.dialog.loading = true;
                     fetch("/api/bookmarks", {
-                            method: "delete",
-                            body: JSON.stringify(ids),
-                            headers: {
-                                "Content-Type": "application/json",
-                            },
-                        })
-                        .then(response => {
-                            if (!response.ok) throw response;
-                            return response;
-                        })
-                        .then(() => {
-                            this.selection = [];
-                            this.editMode = false;
-                            this.dialog.loading = false;
-                            this.dialog.visible = false;
-                            indices.forEach(index => this.bookmarks.splice(index, 1))
+                        method: "delete",
+                        body: JSON.stringify(ids),
+                        headers: { "Content-Type": "application/json" },
+                    }).then(response => {
+                        if (!response.ok) throw response;
+                        return response;
+                    }).then(() => {
+                        this.selection = [];
+                        this.editMode = false;
+                        this.dialog.loading = false;
+                        this.dialog.visible = false;
+                        indices.forEach(index => this.bookmarks.splice(index, 1))
 
-                            if (this.bookmarks.length < 20) {
-                                this.loadData(false);
-                            }
-                        })
-                        .catch(err => {
-                            this.selection = [];
-                            this.editMode = false;
-                            this.dialog.loading = false;
+                        if (this.bookmarks.length < 20) {
+                            this.loadData(false);
+                        }
+                    }).catch(err => {
+                        this.selection = [];
+                        this.editMode = false;
+                        this.dialog.loading = false;
 
-                            this.getErrorMessage(err).then(msg => {
-                                this.showErrorDialog(msg);
-                            })
-                        });
+                        this.getErrorMessage(err).then(msg => {
+                            this.showErrorDialog(msg);
+                        })
+                    });
                 }
             });
         },
@@ -639,36 +621,31 @@ export default {
 
                     this.dialog.loading = true;
                     fetch("/api/cache", {
-                            method: "put",
-                            body: JSON.stringify(data),
-                            headers: {
-                                "Content-Type": "application/json",
-                            },
-                        })
-                        .then(response => {
-                            if (!response.ok) throw response;
-                            return response.json();
-                        })
-                        .then(json => {
-                            this.selection = [];
-                            this.editMode = false;
-                            this.dialog.loading = false;
-                            this.dialog.visible = false;
+                        method: "put",
+                        body: JSON.stringify(data),
+                        headers: { "Content-Type": "application/json" },
+                    }).then(response => {
+                        if (!response.ok) throw response;
+                        return response.json();
+                    }).then(json => {
+                        this.selection = [];
+                        this.editMode = false;
+                        this.dialog.loading = false;
+                        this.dialog.visible = false;
 
-                            json.forEach(book => {
-                                var item = items.find(el => el.id === book.id);
-                                this.bookmarks.splice(item.index, 1, book);
-                            });
-                        })
-                        .catch(err => {
-                            this.selection = [];
-                            this.editMode = false;
-                            this.dialog.loading = false;
-
-                            this.getErrorMessage(err).then(msg => {
-                                this.showErrorDialog(msg);
-                            })
+                        json.forEach(book => {
+                            var item = items.find(el => el.id === book.id);
+                            this.bookmarks.splice(item.index, 1, book);
                         });
+                    }).catch(err => {
+                        this.selection = [];
+                        this.editMode = false;
+                        this.dialog.loading = false;
+
+                        this.getErrorMessage(err).then(msg => {
+                            this.showErrorDialog(msg);
+                        })
+                    });
                 }
             });
         },
@@ -722,36 +699,31 @@ export default {
 
                     this.dialog.loading = true;
                     fetch("/api/bookmarks/tags", {
-                            method: "put",
-                            body: JSON.stringify(request),
-                            headers: {
-                                "Content-Type": "application/json",
-                            },
-                        })
-                        .then(response => {
-                            if (!response.ok) throw response;
-                            return response.json();
-                        })
-                        .then(json => {
-                            this.selection = [];
-                            this.editMode = false;
-                            this.dialog.loading = false;
-                            this.dialog.visible = false;
+                        method: "put",
+                        body: JSON.stringify(request),
+                        headers: { "Content-Type": "application/json" },
+                    }).then(response => {
+                        if (!response.ok) throw response;
+                        return response.json();
+                    }).then(json => {
+                        this.selection = [];
+                        this.editMode = false;
+                        this.dialog.loading = false;
+                        this.dialog.visible = false;
 
-                            json.forEach(book => {
-                                var item = items.find(el => el.id === book.id);
-                                this.bookmarks.splice(item.index, 1, book);
-                            });
-                        })
-                        .catch(err => {
-                            this.selection = [];
-                            this.editMode = false;
-                            this.dialog.loading = false;
-
-                            this.getErrorMessage(err).then(msg => {
-                                this.showErrorDialog(msg);
-                            })
+                        json.forEach(book => {
+                            var item = items.find(el => el.id === book.id);
+                            this.bookmarks.splice(item.index, 1, book);
                         });
+                    }).catch(err => {
+                        this.selection = [];
+                        this.editMode = false;
+                        this.dialog.loading = false;
+
+                        this.getErrorMessage(err).then(msg => {
+                            this.showErrorDialog(msg);
+                        })
+                    });
                 }
             });
         },
@@ -793,45 +765,40 @@ export default {
 
                     this.dialog.loading = true;
                     fetch("/api/tag", {
-                            method: "PUT",
-                            body: JSON.stringify(newData),
-                            headers: {
-                                "Content-Type": "application/json",
-                            },
-                        })
-                        .then(response => {
-                            if (!response.ok) throw response;
-                            return response.json();
-                        })
-                        .then(() => {
-                            tag.name = data.newName;
+                        method: "PUT",
+                        body: JSON.stringify(newData),
+                        headers: { "Content-Type": "application/json" },
+                    }).then(response => {
+                        if (!response.ok) throw response;
+                        return response.json();
+                    }).then(() => {
+                        tag.name = data.newName;
 
-                            this.dialog.loading = false;
-                            this.dialog.visible = false;
-                            this.dialogTags.visible = true;
-                            this.dialogTags.editMode = false;
-                            this.tags.sort((a, b) => {
-                                var aName = a.name.toLowerCase(),
-                                    bName = b.name.toLowerCase();
+                        this.dialog.loading = false;
+                        this.dialog.visible = false;
+                        this.dialogTags.visible = true;
+                        this.dialogTags.editMode = false;
+                        this.tags.sort((a, b) => {
+                            var aName = a.name.toLowerCase(),
+                                bName = b.name.toLowerCase();
 
-                                if (aName < bName) return -1;
-                                else if (aName > bName) return 1;
-                                else return 0;
-                            });
-
-                            if (this.search.includes(oldTagQuery)) {
-                                this.search = this.search.replace(oldTagQuery, newTagQuery);
-                                this.loadData();
-                            }
-                        })
-                        .catch(err => {
-                            this.dialog.loading = false;
-                            this.dialogTags.visible = false;
-                            this.dialogTags.editMode = false;
-                            this.getErrorMessage(err).then(msg => {
-                                this.showErrorDialog(msg);
-                            })
+                            if (aName < bName) return -1;
+                            else if (aName > bName) return 1;
+                            else return 0;
                         });
+
+                        if (this.search.includes(oldTagQuery)) {
+                            this.search = this.search.replace(oldTagQuery, newTagQuery);
+                            this.loadData();
+                        }
+                    }).catch(err => {
+                        this.dialog.loading = false;
+                        this.dialogTags.visible = false;
+                        this.dialogTags.editMode = false;
+                        this.getErrorMessage(err).then(msg => {
+                            this.showErrorDialog(msg);
+                        })
+                    });
                 },
             });
         },
@@ -852,22 +819,14 @@ export default {
         }
 
         window.addEventListener('popstate', stateWatcher);
-        this.$once('hook:beforeDestroy', function() {
+        this.$once('hook:beforeDestroy', () => {
             window.removeEventListener('popstate', stateWatcher);
         })
 
         // Set initial parameter
-        var url = new Url,
-            initialPage = url.hash.replace(/^([^?]+).*$/, "$1");
-
-        if (initialPage === "home") {
-            var urlHash = url.hash.replace(initialPage, ""),
-                search = urlHash.replace(/^.*(\?|&)search=([^?&]*).*$/, "$2"),
-                page = urlHash.replace(/^.*(\?|&)page=(\d+).*$/, "$2");
-
-            this.search = decodeURIComponent(search) || "";
-            this.page = parseInt(page) || 1;
-        }
+        var url = new Url;
+        this.search = url.query.search || "";
+        this.page = url.query.page || 1;
 
         this.loadData(false, true);
     }

@@ -49,7 +49,8 @@ func (h *handler) serveIndexPage(w http.ResponseWriter, r *http.Request, ps http
 	// Make sure session still valid
 	err := h.validateSession(r)
 	if err != nil {
-		redirectPage(w, r, "/login")
+		redirectURL := createRedirectURL("/login", r.URL.String())
+		redirectPage(w, r, redirectURL)
 		return
 	}
 
@@ -87,13 +88,8 @@ func (h *handler) serveBookmarkContent(w http.ResponseWriter, r *http.Request, p
 	if bookmark.Public != 1 {
 		err = h.validateSession(r)
 		if err != nil {
-			urlQueries := nurl.Values{}
-			urlQueries.Set("dst", r.URL.Path)
-
-			redirectURL, _ := nurl.Parse("/login")
-			redirectURL.RawQuery = urlQueries.Encode()
-
-			redirectPage(w, r, redirectURL.String())
+			redirectURL := createRedirectURL("/login", r.URL.String())
+			redirectPage(w, r, redirectURL)
 			return
 		}
 	}

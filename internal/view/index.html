@@ -60,7 +60,7 @@
                     title: "Home",
                     icon: "fa-home",
                     page: "page-home",
-                },{
+                }, {
                     title: "Setting",
                     icon: "fa-cog",
                     page: "page-setting",
@@ -69,10 +69,12 @@
             methods: {
                 switchPage(page) {
                     var pageName = page.replace("page-", ""),
-                        state = {activePage: page};
+                        state = { activePage: page },
+                        url = new Url;
 
+                    url.hash = pageName;
                     this.activePage = page;
-                    history.pushState(state, page, `#${pageName}`);
+                    history.pushState(state, page, url);
                 },
                 logout() {
                     this.showDialog({
@@ -114,7 +116,7 @@
                         keepMetadata = (typeof opts.keepMetadata === "boolean") ? opts.keepMetadata : false,
                         useArchive = (typeof opts.useArchive === "boolean") ? opts.useArchive : false,
                         makePublic = (typeof opts.makePublic === "boolean") ? opts.makePublic : false;
-        
+
                     this.appOptions = {
                         showId: showId,
                         listMode: listMode,
@@ -131,7 +133,7 @@
                         id = (typeof account.id === "number") ? account.id : 0,
                         username = (typeof account.username === "string") ? account.username : "",
                         owner = (typeof account.owner === "boolean") ? account.owner : false;
-                    
+
                     this.activeAccount = {
                         id: id,
                         username: username,
@@ -156,12 +158,11 @@
                 })
 
                 // Set initial active page
-                var initialPage = (new Url).hash.replace(/^([^?]+).*$/, "$1");
-
+                var initialPage = (new Url).hash || "home";
                 if (initialPage === "home" || initialPage === "setting") {
                     this.activePage = `page-${initialPage}`;
                 } else {
-                    history.replaceState(null, "page-home", "#home");
+                    history.replaceState(null, "page-home", "/#home");
                 }
             }
         })

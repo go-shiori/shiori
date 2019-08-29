@@ -79,38 +79,42 @@
 
                     // Remove old cookie
                     document.cookie = "session-id=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
-                    
+
                     // Send request
                     this.loading = true;
                     fetch("/api/login", {
-                            method: "post",
-                            body: JSON.stringify({
-                                username: this.username,
-                                password: this.password,
-                                remember: this.remember ? 12 : 1,
-                            }),
-                            headers: {
-                                "Content-Type": "application/json",
-                            },
-                        })
-                        .then(response => {
-                            if (!response.ok) throw response;
-                            return response.json();
-                        })
-                        .then(json => {
-                            // Save account data
-                            localStorage.setItem("shiori-account", JSON.stringify(json.account));
+                        method: "post",
+                        body: JSON.stringify({
+                            username: this.username,
+                            password: this.password,
+                            remember: this.remember ? 12 : 1,
+                        }),
+                        headers: { "Content-Type": "application/json" },
+                    }).then(response => {
+                        if (!response.ok) throw response;
+                        return response.json();
+                    }).then(json => {
+                        // Save account data
+                        localStorage.setItem("shiori-account", JSON.stringify(json.account));
 
-                            // Go to destination page
-                            var dst = (new Url).query.dst;
-                            location.href = dst || "/";
+                        // Go to destination page
+                        var currentUrl = new Url,
+                            dstUrl = currentUrl.query.dst,
+                            dstPage = currentUrl.hash || "home";
+
+                        if (dstPage !== "home" && dstPage !== "setting") {
+                            dstPage = "";
+                        }
+
+                        var newUrl = new Url(dstUrl || "/");
+                        newUrl.hash = dstPage;
+                        location.href = newUrl;
+                    }).catch(err => {
+                        this.loading = false;
+                        this.getErrorMessage(err).then(msg => {
+                            this.error = msg;
                         })
-                        .catch(err => {
-                            this.loading = false;
-                            this.getErrorMessage(err).then(msg => {
-                                this.error = msg;
-                            })
-                        });
+                    });
                 },
                 loadSetting() {
                     var opts = JSON.parse(localStorage.getItem("shiori-setting")) || {},

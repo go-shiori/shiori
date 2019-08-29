@@ -60,6 +60,15 @@ func serveFile(w http.ResponseWriter, filePath string, cache bool) error {
 	return err
 }
 
+func createRedirectURL(newPath, previousPath string) string {
+	urlQueries := nurl.Values{}
+	urlQueries.Set("dst", previousPath)
+
+	redirectURL, _ := nurl.Parse(newPath)
+	redirectURL.RawQuery = urlQueries.Encode()
+	return redirectURL.String()
+}
+
 func redirectPage(w http.ResponseWriter, r *http.Request, url string) {
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	w.Header().Set("Pragma", "no-cache")
