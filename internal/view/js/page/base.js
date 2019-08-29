@@ -2,7 +2,7 @@ export default {
     props: {
         activeAccount: {
             type: Object,
-            default () {
+            default() {
                 return {
                     id: 0,
                     username: "",
@@ -12,7 +12,7 @@ export default {
         },
         appOptions: {
             type: Object,
-            default () {
+            default() {
                 return {
                     showId: false,
                     listMode: false,
@@ -99,8 +99,11 @@ export default {
                 mainClick: () => {
                     this.dialog.visible = false;
                     if (sessionError) {
+                        var loginUrl = new Url("/login");
+                        loginUrl.query.dst = window.location.href;
+
                         document.cookie = "session-id=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
-                        location.href = "/login";
+                        location.href = loginUrl.toString();
                     }
                 }
             });
