@@ -75,6 +75,7 @@ func OpenSQLiteDatabase(databasePath string) (sqliteDB *SQLiteDatabase, err erro
 
 	// Alter table if needed
 	tx.Exec(`ALTER TABLE account ADD COLUMN owner INTEGER NOT NULL DEFAULT 0`)
+	tx.Exec(`ALTER TABLE bookmark ADD COLUMN public INTEGER NOT NULL DEFAULT 0`)
 
 	err = tx.Commit()
 	checkError(err)
