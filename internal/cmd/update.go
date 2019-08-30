@@ -120,7 +120,7 @@ func updateHandler(cmd *cobra.Command, args []string) {
 	// Check if user really want to batch update archive
 	if nBook := len(bookmarks); nBook > 5 && !offline && !noArchival && !skipConfirm {
 		fmt.Printf("This update will generate offline archive for %d bookmark(s).\n", nBook)
-		fmt.Println("This might take a long time and uses lot of your network bandwith.")
+		fmt.Println("This might take a long time and uses lot of your network bandwidth.")
 
 		confirmUpdate := ""
 		fmt.Printf("Continue update and archival process ? (y/N): ")
