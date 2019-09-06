@@ -1,0 +1,57 @@
+version: '3'
+
+services:
+  shiori:
+    image: shiori
+    build: .
+    restart: unless-stopped
+    ports:
+      - 8080:8080
+    environment:
+      SHIORI_DIR": "/srv/shiori/"
+      SHIORI_DBMS: "postgresql" # or mysql
+      SHIORI_DEFAULT_USER: "shiori"
+      SHIORI_DEFAULT_PASSWORD: "gopher"
+      SHIORI_MYSQL_USER: "shiori"
+      SHIORI_MYSQL_PASS: "gopher"
+      SHIORI_MYSQL_NAME: "shiori"
+      SHIORI_MYSQL_ADDRESS: "db:3306"
+      SHIORI_PG_HOST: "db"
+      SHIORI_PG_PORT: 5432
+      SHIORI_PG_USER: "shiori"
+      SHIORI_PG_PASS: "gopher"
+      SHIORI_PG_NAME: "shiori"
+      SHIORI_AUTH_LDAP: "false"
+      SHIORI_AUTH_LDAP_HOST: "ldap.example.com"
+      SHIORI_AUTH_LDAP_PORT: 389
+      SHIORI_AUTH_LDAP_TLS_ENABLED: "true"
+      SHIORI_AUTH_LDAP_TLS_SKIP_VERIF: "false"
+      SHIORI_AUTH_LDAP_TLS_THRUSTED_CERTIFICATES: "ca.pem,server.pem"
+      SHIORI_AUTH_LDAP_BIND_USERDN: "cn=shiori,ou=Users,dc=example,dc=com"
+      SHIORI_AUTH_LDAP_BIND_PASSWORD: "gopher"
+      SHIORI_AUTH_LDAP_SEARCH_BASE: "ou=Users,dc=example,dc=com"
+      SHIORI_AUTH_LDAP_SEARCH_FILTER: "(&(|(mail={{.Login}})(sAMAccountName={{.Login}}))(memberOf={{.Group}}))"
+      SHIORI_AUTH_LDAP_LOGIN_FIELD: "sAMAccountName"
+      SHIORI_AUTH_LDAP_OWNER_GROUP: "cn=shiori_owner,ou=Groups,dc=example,dc=com"
+      SHIORI_AUTH_LDAP_VISITOR_GROUP: "cn=shiori_visitor,ou=Groups,dc=example,dc=com"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+
+  db:
+    image: postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: "shiori"
+      POSTGRES_PASSWORD: "gopher"
+      POSTGRES_DB: "shiori"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+
+volumes:
+  dbdata: {}

@@ -1,17 +1,21 @@
-FROM golang:1.13-alpine as builder
+FROM golang:1.14-alpine AS builder
 
-RUN apk update && apk --no-cache add git build-base
-RUN go get -u -v github.com/go-shiori/shiori
+ADD . /go/src/shiori
 
-# ========== END OF BUILDER ========== #
+WORKDIR /go/src/shiori
 
-FROM alpine:latest
+RUN apk add --no-cache build-base \
+&& CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -mod=vendor -v -ldflags '-s -w -linkmode external -extldflags "-static"' .
 
-RUN apk update && apk --no-cache add dumb-init ca-certificates
-COPY --from=builder /go/bin/shiori /usr/local/bin/shiori
+FROM busybox
 
+COPY --from=builder /go/src/shiori/shiori /shiori
+COPY --from=builder /usr/share/ca-certificates /usr/share/ca-certificates
+COPY --from=builder /etc/ssl /etc/ssl
+
+WORKDIR /srv/shiori
 ENV SHIORI_DIR /srv/shiori/
 EXPOSE 8080
 
-ENTRYPOINT ["/usr/bin/dumb-init", "--"]
-CMD ["/usr/local/bin/shiori", "serve"]
+ENTRYPOINT ["/shiori"]
+CMD ["serve"]
