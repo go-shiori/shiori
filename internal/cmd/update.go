@@ -1,22 +1,14 @@
 package cmd
 
 import (
-	"bytes"
 	"fmt"
-	"io"
-	"net/http"
-	nurl "net/url"
-	"os"
-	fp "path/filepath"
 	"sort"
 	"strings"
 	"sync"
-	"time"
 
-	"github.com/go-shiori/go-readability"
+	"github.com/go-shiori/shiori/internal/core"
 	"github.com/go-shiori/shiori/internal/database"
 	"github.com/go-shiori/shiori/internal/model"
-	"github.com/go-shiori/shiori/pkg/warc"
 	"github.com/spf13/cobra"
 )
 
@@ -83,16 +75,11 @@ func updateHandler(cmd *cobra.Command, args []string) {
 	excerpt = normalizeSpace(excerpt)
 
 	if cmd.Flags().Changed("url") {
-		// Clean up URL by removing its fragment and UTM parameters
-		tmp, err := nurl.Parse(url)
-		if err != nil || tmp.Scheme == "" || tmp.Hostname() == "" {
-			cError.Println("URL is not valid")
-			return
+		// Clean up bookmark URL
+		url, err = core.RemoveUTMParams(url)
+		if err != nil {
+			panic(fmt.Errorf("failed to clean URL: %v", err))
 		}
-
-		tmp.Fragment = ""
-		clearUTMParams(tmp)
-		url = tmp.String()
 
 		// Since user uses custom URL, make sure there is only one ID to update
 		if len(ids) != 1 {
@@ -149,6 +136,9 @@ func updateHandler(cmd *cobra.Command, args []string) {
 		for i, book := range bookmarks {
 			wg.Add(1)
 
+			// Mark whether book will be archived
+			book.CreateArchive = !noArchival
+
 			// If used, use submitted URL
 			if url != "" {
 				book.URL = url
@@ -164,100 +154,30 @@ func updateHandler(cmd *cobra.Command, args []string) {
 					<-semaphore
 				}()
 
-				// Prepare download request
-				req, err := http.NewRequest("GET", book.URL, nil)
+				// Download data from internet
+				content, contentType, err := core.DownloadBookmark(book.URL)
 				if err != nil {
 					chProblem <- book.ID
 					chMessage <- fmt.Errorf("Failed to download %s: %v", book.URL, err)
 					return
 				}
 
-				// Send download request
-				req.Header.Set("User-Agent", "Shiori/2.0.0 (+https://github.com/go-shiori/shiori)")
-				resp, err := httpClient.Do(req)
-				if err != nil {
-					chProblem <- book.ID
-					chMessage <- fmt.Errorf("Failed to download %s: %v", book.URL, err)
-					return
+				request := core.ProcessRequest{
+					DataDir:      dataDir,
+					Bookmark:     book,
+					Content:      content,
+					ContentType:  contentType,
+					KeepMetadata: keepMetadata,
+					LogArchival:  logArchival,
 				}
-				defer resp.Body.Close()
 
-				// Split response body so it can be processed twice
-				archivalInput := bytes.NewBuffer(nil)
-				readabilityInput := bytes.NewBuffer(nil)
-				readabilityCheckInput := bytes.NewBuffer(nil)
-				multiWriter := io.MultiWriter(archivalInput, readabilityInput, readabilityCheckInput)
+				book, _, err = core.ProcessBookmark(request)
+				content.Close()
 
-				_, err = io.Copy(multiWriter, resp.Body)
 				if err != nil {
 					chProblem <- book.ID
 					chMessage <- fmt.Errorf("Failed to process %s: %v", book.URL, err)
 					return
-				}
-
-				// If this is HTML, parse for readable content
-				contentType := resp.Header.Get("Content-Type")
-				if strings.Contains(contentType, "text/html") {
-					isReadable := readability.IsReadable(readabilityCheckInput)
-
-					article, err := readability.FromReader(readabilityInput, book.URL)
-					if err != nil {
-						chProblem <- book.ID
-						chMessage <- fmt.Errorf("Failed to parse %s: %v", book.URL, err)
-						return
-					}
-
-					book.Author = article.Byline
-					book.Content = article.TextContent
-					book.HTML = article.Content
-
-					if !isReadable {
-						book.Content = ""
-					}
-
-					if !keepMetadata {
-						book.Title = article.Title
-						book.Excerpt = article.Excerpt
-					}
-
-					// Get image for thumbnail and save it to local disk
-					var imageURLs []string
-					if article.Image != "" {
-						imageURLs = append(imageURLs, article.Image)
-					}
-
-					if article.Favicon != "" {
-						imageURLs = append(imageURLs, article.Favicon)
-					}
-
-					imgPath := fp.Join(dataDir, "thumb", fmt.Sprintf("%d", book.ID))
-					for _, imageURL := range imageURLs {
-						err = downloadBookImage(imageURL, imgPath, time.Minute)
-						if err == nil {
-							break
-						}
-					}
-				}
-
-				// If needed, update offline archive as well.
-				// Make sure to delete the old one first.
-				if !noArchival {
-					archivePath := fp.Join(dataDir, "archive", fmt.Sprintf("%d", book.ID))
-					os.Remove(archivePath)
-
-					archivalRequest := warc.ArchivalRequest{
-						URL:         book.URL,
-						Reader:      archivalInput,
-						ContentType: contentType,
-						LogEnabled:  logArchival,
-					}
-
-					err = warc.NewArchive(archivalRequest, archivePath)
-					if err != nil {
-						chProblem <- book.ID
-						chMessage <- fmt.Errorf("Failed to create archive %s: %v", book.URL, err)
-						return
-					}
 				}
 
 				// Send success message

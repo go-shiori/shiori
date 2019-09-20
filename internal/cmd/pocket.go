@@ -2,13 +2,13 @@ package cmd
 
 import (
 	"fmt"
-	nurl "net/url"
 	"os"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/go-shiori/shiori/internal/core"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/spf13/cobra"
 )
@@ -59,16 +59,13 @@ func pocketHandler(cmd *cobra.Command, args []string) {
 		intModified, _ := strconv.ParseInt(strModified, 10, 64)
 		modified := time.Unix(intModified, 0)
 
-		// Clean up URL by removing its fragment and UTM parameters
-		tmp, err := nurl.Parse(url)
-		if err != nil || tmp.Scheme == "" || tmp.Hostname() == "" {
+		// Clean up URL
+		var err error
+		url, err = core.RemoveUTMParams(url)
+		if err != nil {
 			cError.Printf("Skip %s: URL is not valid\n", url)
 			return
 		}
-
-		tmp.Fragment = ""
-		clearUTMParams(tmp)
-		url = tmp.String()
 
 		// Make sure title is valid Utf-8
 		title = toValidUtf8(title, url)

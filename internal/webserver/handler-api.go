@@ -1,13 +1,10 @@
 package webserver
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"math"
 	"net/http"
-	nurl "net/url"
 	"os"
 	"path"
 	fp "path/filepath"
@@ -16,10 +13,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-shiori/go-readability"
+	"github.com/go-shiori/shiori/internal/core"
 	"github.com/go-shiori/shiori/internal/database"
 	"github.com/go-shiori/shiori/internal/model"
-	"github.com/go-shiori/shiori/pkg/warc"
 	"github.com/gofrs/uuid"
 	"github.com/julienschmidt/httprouter"
 	"golang.org/x/crypto/bcrypt"
@@ -251,112 +247,35 @@ func (h *handler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 	err = json.NewDecoder(r.Body).Decode(&book)
 	checkError(err)
 
-	// Clean up URL by removing its fragment and UTM parameters
-	tmp, err := nurl.Parse(book.URL)
-	if err != nil || tmp.Scheme == "" || tmp.Hostname() == "" {
-		panic(fmt.Errorf("URL is not valid"))
-	}
-
-	tmp.Fragment = ""
-	clearUTMParams(tmp)
-	book.URL = tmp.String()
-
 	// Create bookmark ID
 	book.ID, err = h.DB.CreateNewID("bookmark")
 	if err != nil {
 		panic(fmt.Errorf("failed to create ID: %v", err))
 	}
 
+	// Clean up bookmark URL
+	book.URL, err = core.RemoveUTMParams(book.URL)
+	if err != nil {
+		panic(fmt.Errorf("failed to clean URL: %v", err))
+	}
+
 	// Fetch data from internet
-	var imageURLs []string
-	func() {
-		// Prepare download request
-		req, err := http.NewRequest("GET", book.URL, nil)
-		if err != nil {
-			return
+	var isFatalErr bool
+	content, contentType, err := core.DownloadBookmark(book.URL)
+	if err == nil && content != nil {
+		request := core.ProcessRequest{
+			DataDir:     h.DataDir,
+			Bookmark:    book,
+			Content:     content,
+			ContentType: contentType,
 		}
 
-		// Send download request
-		req.Header.Set("User-Agent", "Shiori/2.0.0 (+https://github.com/go-shiori/shiori)")
-		resp, err := httpClient.Do(req)
-		if err != nil {
-			return
+		book, isFatalErr, err = core.ProcessBookmark(request)
+		content.Close()
+
+		if err != nil && isFatalErr {
+			panic(fmt.Errorf("failed to process bookmark: %v", err))
 		}
-		defer resp.Body.Close()
-
-		// Split response body so it can be processed twice
-		archivalInput := bytes.NewBuffer(nil)
-		readabilityInput := bytes.NewBuffer(nil)
-		readabilityCheckInput := bytes.NewBuffer(nil)
-		multiWriter := io.MultiWriter(archivalInput, readabilityInput, readabilityCheckInput)
-
-		_, err = io.Copy(multiWriter, resp.Body)
-		if err != nil {
-			return
-		}
-
-		// If this is HTML, parse for readable content
-		contentType := resp.Header.Get("Content-Type")
-		if strings.Contains(contentType, "text/html") {
-			isReadable := readability.IsReadable(readabilityCheckInput)
-
-			article, err := readability.FromReader(readabilityInput, book.URL)
-			if err != nil {
-				return
-			}
-
-			book.Author = article.Byline
-			book.Content = article.TextContent
-			book.HTML = article.Content
-
-			// If title and excerpt doesnt have submitted value, use from article
-			if book.Title == "" {
-				book.Title = article.Title
-			}
-
-			if book.Excerpt == "" {
-				book.Excerpt = article.Excerpt
-			}
-
-			// Get image URL
-			if article.Image != "" {
-				imageURLs = append(imageURLs, article.Image)
-			}
-
-			if article.Favicon != "" {
-				imageURLs = append(imageURLs, article.Favicon)
-			}
-
-			if !isReadable {
-				book.Content = ""
-			}
-
-			book.HasContent = book.Content != ""
-		}
-
-		// If needed, create offline archive as well
-		if book.CreateArchive {
-			archivePath := fp.Join(h.DataDir, "archive", fmt.Sprintf("%d", book.ID))
-			os.Remove(archivePath)
-
-			archivalRequest := warc.ArchivalRequest{
-				URL:         book.URL,
-				Reader:      archivalInput,
-				ContentType: contentType,
-			}
-
-			err = warc.NewArchive(archivalRequest, archivePath)
-			if err != nil {
-				return
-			}
-
-			book.HasArchive = true
-		}
-	}()
-
-	// Make sure title is not empty
-	if book.Title == "" {
-		book.Title = book.URL
 	}
 
 	// Save bookmark to database
@@ -365,17 +284,6 @@ func (h *handler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 		panic(fmt.Errorf("failed to save bookmark: %v", err))
 	}
 	book = results[0]
-
-	// Save article image to local disk
-	strID := strconv.Itoa(book.ID)
-	imgPath := fp.Join(h.DataDir, "thumb", strID)
-	for _, imageURL := range imageURLs {
-		err = downloadBookImage(imageURL, imgPath, time.Minute)
-		if err == nil {
-			book.ImageURL = path.Join("/", "bookmark", strID, "thumb")
-			break
-		}
-	}
 
 	// Return the new bookmark
 	w.Header().Set("Content-Type", "application/json")
@@ -445,6 +353,12 @@ func (h *handler) apiUpdateBookmark(w http.ResponseWriter, r *http.Request, ps h
 	book.Title = request.Title
 	book.Excerpt = request.Excerpt
 	book.Public = request.Public
+
+	// Clean up bookmark URL
+	book.URL, err = core.RemoveUTMParams(book.URL)
+	if err != nil {
+		panic(fmt.Errorf("failed to clean URL: %v", err))
+	}
 
 	// Set new tags
 	for i := range book.Tags {
@@ -525,6 +439,9 @@ func (h *handler) apiUpdateCache(w http.ResponseWriter, r *http.Request, ps http
 	for i, book := range bookmarks {
 		wg.Add(1)
 
+		// Mark whether book will be archived
+		book.CreateArchive = request.CreateArchive
+
 		go func(i int, book model.Bookmark, keepMetadata bool) {
 			// Make sure to finish the WG
 			defer wg.Done()
@@ -535,106 +452,27 @@ func (h *handler) apiUpdateCache(w http.ResponseWriter, r *http.Request, ps http
 				<-semaphore
 			}()
 
-			// Prepare download request
-			req, err := http.NewRequest("GET", book.URL, nil)
+			// Download data from internet
+			content, contentType, err := core.DownloadBookmark(book.URL)
 			if err != nil {
 				chProblem <- book.ID
 				return
 			}
 
-			// Send download request
-			req.Header.Set("User-Agent", "Shiori/2.0.0 (+https://github.com/go-shiori/shiori)")
-			resp, err := httpClient.Do(req)
+			request := core.ProcessRequest{
+				DataDir:      h.DataDir,
+				Bookmark:     book,
+				Content:      content,
+				ContentType:  contentType,
+				KeepMetadata: keepMetadata,
+			}
+
+			book, _, err = core.ProcessBookmark(request)
+			content.Close()
+
 			if err != nil {
 				chProblem <- book.ID
 				return
-			}
-			defer resp.Body.Close()
-
-			// Split response body so it can be processed twice
-			archivalInput := bytes.NewBuffer(nil)
-			readabilityInput := bytes.NewBuffer(nil)
-			readabilityCheckInput := bytes.NewBuffer(nil)
-			multiWriter := io.MultiWriter(archivalInput, readabilityInput, readabilityCheckInput)
-
-			_, err = io.Copy(multiWriter, resp.Body)
-			if err != nil {
-				chProblem <- book.ID
-				return
-			}
-
-			// If this is HTML, parse for readable content
-			strID := strconv.Itoa(book.ID)
-			contentType := resp.Header.Get("Content-Type")
-
-			if strings.Contains(contentType, "text/html") {
-				isReadable := readability.IsReadable(readabilityCheckInput)
-
-				article, err := readability.FromReader(readabilityInput, book.URL)
-				if err != nil {
-					chProblem <- book.ID
-					return
-				}
-
-				book.Author = article.Byline
-				book.Content = article.TextContent
-				book.HTML = article.Content
-
-				if !isReadable {
-					book.Content = ""
-				}
-
-				if !keepMetadata {
-					book.Title = article.Title
-					book.Excerpt = article.Excerpt
-				}
-
-				if book.Title == "" {
-					book.Title = book.URL
-				}
-
-				book.HasContent = book.Content != ""
-
-				// Get image for thumbnail and save it to local disk
-				var imageURLs []string
-				if article.Image != "" {
-					imageURLs = append(imageURLs, article.Image)
-				}
-
-				if article.Favicon != "" {
-					imageURLs = append(imageURLs, article.Favicon)
-				}
-
-				// Save article image to local disk
-				imgPath := fp.Join(h.DataDir, "thumb", strID)
-				for _, imageURL := range imageURLs {
-					err = downloadBookImage(imageURL, imgPath, time.Minute)
-					if err == nil {
-						book.ImageURL = path.Join("/", "bookmark", strID, "thumb")
-						break
-					}
-				}
-			}
-
-			// If needed, update offline archive as well.
-			// Make sure to delete the old one first.
-			if request.CreateArchive {
-				archivePath := fp.Join(h.DataDir, "archive", strID)
-				os.Remove(archivePath)
-
-				archivalRequest := warc.ArchivalRequest{
-					URL:         book.URL,
-					Reader:      archivalInput,
-					ContentType: contentType,
-				}
-
-				err = warc.NewArchive(archivalRequest, archivePath)
-				if err != nil {
-					chProblem <- book.ID
-					return
-				}
-
-				book.HasArchive = true
 			}
 
 			// Update list of bookmarks

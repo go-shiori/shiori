@@ -1,18 +1,10 @@
 package cmd
 
 import (
-	"bytes"
 	"fmt"
-	"io"
-	"net/http"
-	nurl "net/url"
-	fp "path/filepath"
 	"strings"
-	"time"
 
-	"github.com/go-shiori/shiori/pkg/warc"
-
-	"github.com/go-shiori/go-readability"
+	"github.com/go-shiori/shiori/internal/core"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/spf13/cobra"
 )
@@ -45,28 +37,16 @@ func addHandler(cmd *cobra.Command, args []string) {
 	noArchival, _ := cmd.Flags().GetBool("no-archival")
 	logArchival, _ := cmd.Flags().GetBool("log-archival")
 
-	// Clean up URL by removing its fragment and UTM parameters
-	tmp, err := nurl.Parse(url)
-	if err != nil || tmp.Scheme == "" || tmp.Hostname() == "" {
-		cError.Println("URL is not valid")
-		return
-	}
-
-	tmp.Fragment = ""
-	clearUTMParams(tmp)
-
 	// Create bookmark item
 	book := model.Bookmark{
-		URL:     tmp.String(),
-		Title:   normalizeSpace(title),
-		Excerpt: normalizeSpace(excerpt),
+		URL:           url,
+		Title:         normalizeSpace(title),
+		Excerpt:       normalizeSpace(excerpt),
+		CreateArchive: !noArchival,
 	}
 
-	// Create bookmark ID
-	book.ID, err = db.CreateNewID("bookmark")
-	if err != nil {
-		cError.Printf("Failed to create ID: %v\n", err)
-		return
+	if book.Title == "" {
+		book.Title = book.URL
 	}
 
 	// Set bookmark tags
@@ -75,101 +55,51 @@ func addHandler(cmd *cobra.Command, args []string) {
 		book.Tags[i].Name = strings.TrimSpace(tag)
 	}
 
-	// If it's not offline mode, fetch data from internet
-	var imageURLs []string
-
-	if !offline {
-		func() {
-			cInfo.Println("Downloading article...")
-
-			// Prepare download request
-			req, err := http.NewRequest("GET", url, nil)
-			if err != nil {
-				cError.Printf("Failed to download article: %v\n", err)
-				return
-			}
-
-			// Send download request
-			req.Header.Set("User-Agent", "Shiori/2.0.0 (+https://github.com/go-shiori/shiori)")
-			resp, err := httpClient.Do(req)
-			if err != nil {
-				cError.Printf("Failed to download article: %v\n", err)
-				return
-			}
-			defer resp.Body.Close()
-
-			// Split response body so it can be processed twice
-			archivalInput := bytes.NewBuffer(nil)
-			readabilityInput := bytes.NewBuffer(nil)
-			readabilityCheckInput := bytes.NewBuffer(nil)
-			multiWriter := io.MultiWriter(archivalInput, readabilityInput, readabilityCheckInput)
-
-			_, err = io.Copy(multiWriter, resp.Body)
-			if err != nil {
-				cError.Printf("Failed to process article: %v\n", err)
-				return
-			}
-
-			// If this is HTML, parse for readable content
-			contentType := resp.Header.Get("Content-Type")
-			if strings.Contains(contentType, "text/html") {
-				isReadable := readability.IsReadable(readabilityCheckInput)
-
-				article, err := readability.FromReader(readabilityInput, url)
-				if err != nil {
-					cError.Printf("Failed to parse article: %v\n", err)
-					return
-				}
-
-				book.Author = article.Byline
-				book.Content = article.TextContent
-				book.HTML = article.Content
-
-				// If title and excerpt doesnt have submitted value, use from article
-				if book.Title == "" {
-					book.Title = article.Title
-				}
-
-				if book.Excerpt == "" {
-					book.Excerpt = article.Excerpt
-				}
-
-				if !isReadable {
-					book.Content = ""
-				}
-
-				// Get image URL
-				if article.Image != "" {
-					imageURLs = append(imageURLs, article.Image)
-				}
-
-				if article.Favicon != "" {
-					imageURLs = append(imageURLs, article.Favicon)
-				}
-			}
-
-			// If needed, create offline archive as well
-			if !noArchival {
-				archivePath := fp.Join(dataDir, "archive", fmt.Sprintf("%d", book.ID))
-				archivalRequest := warc.ArchivalRequest{
-					URL:         url,
-					Reader:      archivalInput,
-					ContentType: contentType,
-					LogEnabled:  logArchival,
-				}
-
-				err = warc.NewArchive(archivalRequest, archivePath)
-				if err != nil {
-					cError.Printf("Failed to create archive: %v\n", err)
-					return
-				}
-			}
-		}()
+	// Create bookmark ID
+	var err error
+	book.ID, err = db.CreateNewID("bookmark")
+	if err != nil {
+		cError.Printf("Failed to create ID: %v\n", err)
+		return
 	}
 
-	// Make sure title is not empty
-	if book.Title == "" {
-		book.Title = book.URL
+	// Clean up bookmark URL
+	book.URL, err = core.RemoveUTMParams(book.URL)
+	if err != nil {
+		cError.Printf("Failed to clean URL: %v\n", err)
+		return
+	}
+
+	// If it's not offline mode, fetch data from internet.
+	if !offline {
+		cInfo.Println("Downloading article...")
+
+		var isFatalErr bool
+		content, contentType, err := core.DownloadBookmark(book.URL)
+		if err != nil {
+			cError.Printf("Failed to download: %v\n", err)
+		}
+
+		if err == nil && content != nil {
+			request := core.ProcessRequest{
+				DataDir:     dataDir,
+				Bookmark:    book,
+				Content:     content,
+				ContentType: contentType,
+				LogArchival: logArchival,
+			}
+
+			book, isFatalErr, err = core.ProcessBookmark(request)
+			content.Close()
+
+			if err != nil {
+				cError.Printf("Failed: %v\n", err)
+			}
+
+			if isFatalErr {
+				return
+			}
+		}
 	}
 
 	// Save bookmark to database
@@ -177,18 +107,6 @@ func addHandler(cmd *cobra.Command, args []string) {
 	if err != nil {
 		cError.Printf("Failed to save bookmark: %v\n", err)
 		return
-	}
-
-	// Save article image to local disk
-	imgPath := fp.Join(dataDir, "thumb", fmt.Sprintf("%d", book.ID))
-	for _, imageURL := range imageURLs {
-		err = downloadBookImage(imageURL, imgPath, time.Minute)
-		if err == nil {
-			break
-		} else {
-			cError.Printf("Failed to download image: %v\n", err)
-			continue
-		}
 	}
 
 	// Print added bookmark
