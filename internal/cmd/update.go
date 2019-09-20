@@ -16,7 +16,7 @@ func updateCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "update [indices]",
 		Short: "Update the saved bookmarks",
-		Long: "Update fields of an existing bookmark. " +
+		Long: "Update fields and archive of an existing bookmark. " +
 			"Accepts space-separated list of indices (e.g. 5 6 23 4 110 45), " +
 			"hyphenated range (e.g. 100-200) or both (e.g. 1-3 7 9). " +
 			"If no arguments, ALL bookmarks will be updated. Update works differently depending on the flags:\n" +
