@@ -14,8 +14,6 @@ import (
 	_ "github.com/shurcooL/vfsgen"
 )
 
-var dataDir = "dev-data"
-
 func main() {
 	err := cmd.ShioriCmd().Execute()
 	if err != nil {

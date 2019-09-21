@@ -1,12 +1,8 @@
 package cmd
 
 import (
-	"crypto/tls"
-	"net/http"
-	"net/http/cookiejar"
 	"os"
 	fp "path/filepath"
-	"time"
 
 	"github.com/go-shiori/shiori/internal/database"
 	apppaths "github.com/muesli/go-app-paths"
@@ -16,22 +12,8 @@ import (
 var (
 	db              database.DB
 	dataDir         string
-	httpClient      *http.Client
 	developmentMode bool
 )
-
-func init() {
-	jar, _ := cookiejar.New(nil)
-	httpClient = &http.Client{
-		Timeout: time.Minute,
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true,
-			},
-		},
-		Jar: jar,
-	}
-}
 
 // ShioriCmd returns the root command for shiori
 func ShioriCmd() *cobra.Command {

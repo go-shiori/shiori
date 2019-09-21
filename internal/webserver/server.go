@@ -12,8 +12,6 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var httpClient = &http.Client{Timeout: time.Minute}
-
 // ServeApp serves wb interface in specified port
 func ServeApp(DB database.DB, dataDir string, address string, port int) error {
 	// Create handler
