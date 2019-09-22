@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 	fp "path/filepath"
 
@@ -105,8 +106,10 @@ func openDatabase() (database.DB, error) {
 		user, _ := os.LookupEnv("SHIORI_MYSQL_USER")
 		password, _ := os.LookupEnv("SHIORI_MYSQL_PASS")
 		dbName, _ := os.LookupEnv("SHIORI_MYSQL_NAME")
+		dbAddress, _ := os.LookupEnv("SHIORI_MYSQL_ADDRESS")
 
-		return database.OpenMySQLDatabase(user, password, dbName)
+		connString := fmt.Sprintf("%s:%s@%s/%s", user, password, dbAddress, dbName)
+		return database.OpenMySQLDatabase(connString)
 	}
 
 	// If not, just uses SQLite

@@ -18,9 +18,8 @@ type MySQLDatabase struct {
 }
 
 // OpenMySQLDatabase creates and opens connection to a MySQL Database.
-func OpenMySQLDatabase(username, password, dbName string) (mysqlDB *MySQLDatabase, err error) {
+func OpenMySQLDatabase(connString string) (mysqlDB *MySQLDatabase, err error) {
 	// Open database and start transaction
-	connString := fmt.Sprintf("%s:%s@/%s", username, password, dbName)
 	db := sqlx.MustConnect("mysql", connString)
 	db.SetMaxOpenConns(100)
 	db.SetConnMaxLifetime(time.Second) // in case mysql client has longer timeout (driver issue #674)
