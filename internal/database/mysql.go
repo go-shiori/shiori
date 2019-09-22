@@ -60,7 +60,7 @@ func OpenMySQLDatabase(connString string) (mysqlDB *MySQLDatabase, err error) {
 		html     MEDIUMTEXT NOT NULL DEFAULT "",
 		modified TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 		PRIMARY KEY(id),
-		UNIQUE KEY bookmark_url_UNIQUE (url),
+		UNIQUE KEY bookmark_url_UNIQUE (url(255)),
 		FULLTEXT (title, excerpt, content))`)
 
 	tx.MustExec(`CREATE TABLE IF NOT EXISTS tag(
