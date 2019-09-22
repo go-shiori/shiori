@@ -38,7 +38,7 @@ func addHandler(cmd *cobra.Command, args []string) {
 	logArchival, _ := cmd.Flags().GetBool("log-archival")
 
 	// Normalize input
-	title = validateTitle(title, url)
+	title = validateTitle(title, "")
 	excerpt = normalizeSpace(excerpt)
 
 	// Create bookmark item
