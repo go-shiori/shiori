@@ -1,0 +1,512 @@
+{
+	"info": {
+		"_postman_id": "aeadb2db-90b7-40f3-87d2-de76f8e8972a",
+		"name": "shiori",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "/api/login",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"username\": \"shiori\",\n\t\"password\": \"gopher\",\n\t\"remember\": 1,\n\t\"owner\": true\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/login",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/api/logout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Session-Id",
+								"value": "{{sessionId}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/api/logout",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"logout"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Tags",
+			"item": [
+				{
+					"name": "/api/tags",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Session-Id",
+								"type": "text",
+								"value": "{{sessionId}}"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/api/tags",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"tags"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/api/tag",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "X-Session-Id",
+								"type": "text",
+								"value": "{{sessionId}}"
+							},
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"id\": 1,\n    \"name\": \"renamed_tag_7\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/tag",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"tag"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Bookmarks",
+			"item": [
+				{
+					"name": "/api/bookmarks",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Session-Id",
+								"value": "{{sessionId}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/api/bookmarks",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"bookmarks"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/api/bookmarks",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Session-Id",
+								"type": "text",
+								"value": "{{sessionId}}"
+							},
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"url\": \"https://hckrnews.com\",\n\t\"createArchive\": false,\n\t\"public\": 1,\n\t\"tags\": [],\n\t\"title\": \"\",\n\t\"excerpt\": \"\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/bookmarks",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"bookmarks"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/api/bookmarks",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "X-Session-Id",
+								"type": "text",
+								"value": "{{sessionId}}"
+							},
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": 3,\n    \"url\": \"https://hckrnews.com\",\n    \"title\": \"Hacker News sorted by time\",\n    \"excerpt\": \"An unofficial, alternative interface to Hacker News\",\n    \"author\": \"Wayne Larsen\",\n    \"public\": 1,\n    \"modified\": \"2019-09-22 06:05:54\",\n    \"imageURL\": \"/bookmark/3/thumb\",\n    \"hasContent\": false,\n    \"hasArchive\": false,\n    \"tags\": [],\n    \"createArchive\": false\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/bookmarks",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"bookmarks"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/api/bookmarks",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "X-Session-Id",
+								"type": "text",
+								"value": "{{sessionId}}"
+							},
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[1]"
+						},
+						"url": {
+							"raw": "{{host}}/api/bookmarks",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"bookmarks"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "BFF",
+			"item": [
+				{
+					"name": "/api/cache",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "X-Session-Id",
+								"type": "text",
+								"value": "{{sessionId}}"
+							},
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"ids\": [1, 2],\n\t\"keepMetadata\": false,\n\t\"createArchive\": false\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/cache",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"cache"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/api/bookmarks/tags",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "X-Session-Id",
+								"type": "text",
+								"value": "{{sessionId}}"
+							},
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"ids\": [\n        1\n    ],\n    \"tags\": [\n        {\n            \"id\": 1,\n            \"name\": \"new_tag\"\n        }\n    ]\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/bookmarks/tags",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"bookmarks",
+								"tags"
+							]
+						},
+						"description": "Performs bulk insertion of new tags into the specified bookmarks"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Accounts",
+			"item": [
+				{
+					"name": "/api/accounts",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Session-Id",
+								"value": "{{sessionId}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}/api/accounts",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"accounts"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/api/accounts",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "X-Session-Id",
+								"value": "{{sessionId}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"username\": \"shiori\",\n\t\"oldPassword\": \"gopher\",\n\t\"newPassword\": \"gopher\",\n\t\"owner\": true\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/accounts",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"accounts"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/api/accounts",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Session-Id",
+								"type": "text",
+								"value": "{{sessionId}}"
+							},
+							{
+								"key": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"username\": \"shiori3\",\n\t\"password\": \"gopher\",\n\t\"owner\": false\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/accounts",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"accounts"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/api/accounts",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "X-Session-Id",
+								"type": "text",
+								"value": "{{sessionId}}"
+							},
+							{
+								"key": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[\"shiori\"]"
+						},
+						"url": {
+							"raw": "{{host}}/api/accounts",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"accounts"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "d17b19de-37c1-472d-b919-d56e0f05f311",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "a14c27ed-a4aa-4171-b5eb-ade9dd6d9dfb",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"id": "822ed4ee-d050-46c7-b30e-eb16335e4de6",
+			"key": "host",
+			"value": "localhost:8080",
+			"type": "string"
+		},
+		{
+			"id": "89ec47f1-aae0-4872-86b1-4a721967c502",
+			"key": "sessionId",
+			"value": "a4cbd539-e54b-40a8-833a-58885f8397ba",
+			"type": "string"
+		}
+	]
+}
