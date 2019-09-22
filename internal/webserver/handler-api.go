@@ -460,11 +460,12 @@ func (h *handler) apiUpdateCache(w http.ResponseWriter, r *http.Request, ps http
 			}
 
 			request := core.ProcessRequest{
-				DataDir:      h.DataDir,
-				Bookmark:     book,
-				Content:      content,
-				ContentType:  contentType,
-				KeepMetadata: keepMetadata,
+				DataDir:     h.DataDir,
+				Bookmark:    book,
+				Content:     content,
+				ContentType: contentType,
+				KeepTitle:   keepMetadata,
+				KeepExcerpt: keepMetadata,
 			}
 
 			book, _, err = core.ProcessBookmark(request)

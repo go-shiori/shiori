@@ -26,12 +26,13 @@ import (
 
 // ProcessRequest is the request for processing bookmark.
 type ProcessRequest struct {
-	DataDir      string
-	Bookmark     model.Bookmark
-	Content      io.Reader
-	ContentType  string
-	KeepMetadata bool
-	LogArchival  bool
+	DataDir     string
+	Bookmark    model.Bookmark
+	Content     io.Reader
+	ContentType string
+	KeepTitle   bool
+	KeepExcerpt bool
+	LogArchival bool
 }
 
 // ProcessBookmark process the bookmark and archive it if needed.
@@ -77,11 +78,11 @@ func ProcessBookmark(req ProcessRequest) (model.Bookmark, bool, error) {
 		book.HTML = article.Content
 
 		// If title and excerpt doesnt have submitted value, use from article
-		if !req.KeepMetadata || book.Title == "" {
+		if !req.KeepTitle || book.Title == "" {
 			book.Title = article.Title
 		}
 
-		if !req.KeepMetadata || book.Excerpt == "" {
+		if !req.KeepExcerpt || book.Excerpt == "" {
 			book.Excerpt = article.Excerpt
 		}
 

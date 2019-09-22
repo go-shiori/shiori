@@ -37,11 +37,15 @@ func addHandler(cmd *cobra.Command, args []string) {
 	noArchival, _ := cmd.Flags().GetBool("no-archival")
 	logArchival, _ := cmd.Flags().GetBool("log-archival")
 
+	// Normalize input
+	title = validateTitle(title, url)
+	excerpt = normalizeSpace(excerpt)
+
 	// Create bookmark item
 	book := model.Bookmark{
 		URL:           url,
-		Title:         validateTitle(title, url),
-		Excerpt:       normalizeSpace(excerpt),
+		Title:         title,
+		Excerpt:       excerpt,
 		CreateArchive: !noArchival,
 	}
 
@@ -83,6 +87,8 @@ func addHandler(cmd *cobra.Command, args []string) {
 				Content:     content,
 				ContentType: contentType,
 				LogArchival: logArchival,
+				KeepTitle:   title != "",
+				KeepExcerpt: excerpt != "",
 			}
 
 			book, isFatalErr, err = core.ProcessBookmark(request)
