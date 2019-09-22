@@ -71,7 +71,7 @@ func updateHandler(cmd *cobra.Command, args []string) {
 	}
 
 	// Clean up new parameter from flags
-	title = normalizeSpace(title)
+	title = validateTitle(title, "")
 	excerpt = normalizeSpace(excerpt)
 
 	if cmd.Flags().Changed("url") {
@@ -245,10 +245,8 @@ func updateHandler(cmd *cobra.Command, args []string) {
 			book.Excerpt = excerpt
 		}
 
-		// Make sure title is not empty
-		if book.Title == "" {
-			book.Title = book.URL
-		}
+		// Make sure title is valid and not empty
+		book.Title = validateTitle(book.Title, book.URL)
 
 		// Generate new tags
 		tmpAddedTags := make(map[string]struct{})

@@ -134,20 +134,29 @@ func getTerminalWidth() int {
 	return width
 }
 
-func toValidUtf8(src, fallback string) string {
-	// Check if it's already valid
-	if valid := utf8.ValidString(src); valid {
-		return src
+func validateTitle(title, fallback string) string {
+	// Normalize spaces before we begin
+	title = normalizeSpace(title)
+	title = strings.TrimSpace(title)
+
+	// If at this point title already empty, just uses fallback
+	if title == "" {
+		return fallback
 	}
 
-	// Remove invalid runes
+	// Check if it's already valid UTF-8 string
+	if valid := utf8.ValidString(title); valid {
+		return title
+	}
+
+	// Remove invalid runes to get the valid UTF-8 title
 	fixUtf := func(r rune) rune {
 		if r == utf8.RuneError {
 			return -1
 		}
 		return r
 	}
-	validUtf := strings.Map(fixUtf, src)
+	validUtf := strings.Map(fixUtf, title)
 
 	// If it's empty use fallback string
 	validUtf = strings.TrimSpace(validUtf)

@@ -40,13 +40,9 @@ func addHandler(cmd *cobra.Command, args []string) {
 	// Create bookmark item
 	book := model.Bookmark{
 		URL:           url,
-		Title:         normalizeSpace(title),
+		Title:         validateTitle(title, url),
 		Excerpt:       normalizeSpace(excerpt),
 		CreateArchive: !noArchival,
-	}
-
-	if book.Title == "" {
-		book.Title = book.URL
 	}
 
 	// Set bookmark tags

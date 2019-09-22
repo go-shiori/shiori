@@ -82,7 +82,7 @@ func importHandler(cmd *cobra.Command, args []string) {
 		}
 
 		// Make sure title is valid Utf-8
-		title = toValidUtf8(title, url)
+		title = validateTitle(title, url)
 
 		// Check if the URL already exist before, both in bookmark
 		// file or in database
@@ -117,7 +117,7 @@ func importHandler(cmd *cobra.Command, args []string) {
 		bookmark := model.Bookmark{
 			ID:    bookID,
 			URL:   url,
-			Title: normalizeSpace(title),
+			Title: title,
 			Tags:  tags,
 		}
 
