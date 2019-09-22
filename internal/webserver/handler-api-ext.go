@@ -34,7 +34,6 @@ func (h *handler) apiInsertViaExtension(w http.ResponseWriter, r *http.Request, 
 
 	// Check if bookmark already exists.
 	book, exist := h.DB.GetBookmark(0, request.URL)
-	book.CreateArchive = true
 
 	// If it already exists, we need to set ID and tags.
 	if exist {
@@ -74,6 +73,7 @@ func (h *handler) apiInsertViaExtension(w http.ResponseWriter, r *http.Request, 
 	// At this point the web page already downloaded.
 	// Time to process it.
 	if contentBuffer != nil {
+		book.CreateArchive = true
 		request := core.ProcessRequest{
 			DataDir:     h.DataDir,
 			Bookmark:    book,
