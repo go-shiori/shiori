@@ -42,7 +42,7 @@ func OpenMySQLDatabase(connString string) (mysqlDB *MySQLDatabase, err error) {
 
 	// Create tables
 	tx.MustExec(`CREATE TABLE IF NOT EXISTS account(
-		id       INT(11)      NOT NULL,
+		id       INT(11)      NOT NULL AUTO_INCREMENT,
 		username VARCHAR(250) NOT NULL,
 		password BINARY(80)   NOT NULL,
 		owner    TINYINT(1)   NOT NULL DEFAULT '0',
@@ -50,17 +50,17 @@ func OpenMySQLDatabase(connString string) (mysqlDB *MySQLDatabase, err error) {
 		UNIQUE KEY account_username_UNIQUE (username))`)
 
 	tx.MustExec(`CREATE TABLE IF NOT EXISTS bookmark(
-		id       INT(11)    NOT NULL,
+		id       INT(11)    NOT NULL AUTO_INCREMENT,
 		url      TEXT       NOT NULL,
 		title    TEXT       NOT NULL,
-		excerpt  TEXT       NOT NULL DEFAULT "",
-		author   TEXT       NOT NULL DEFAULT "",
+		excerpt  TEXT       NOT NULL DEFAULT (''),
+		author   TEXT       NOT NULL DEFAULT (''),
 		public   BOOLEAN    NOT NULL DEFAULT 0,
-		content  MEDIUMTEXT NOT NULL DEFAULT "",
-		html     MEDIUMTEXT NOT NULL DEFAULT "",
+		content  MEDIUMTEXT NOT NULL DEFAULT (''),
+		html     MEDIUMTEXT NOT NULL DEFAULT (''),
 		modified TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 		PRIMARY KEY(id),
-		UNIQUE KEY bookmark_url_UNIQUE (url),
+		UNIQUE KEY bookmark_url_UNIQUE (url(255)),
 		FULLTEXT (title, excerpt, content))`)
 
 	tx.MustExec(`CREATE TABLE IF NOT EXISTS tag(
