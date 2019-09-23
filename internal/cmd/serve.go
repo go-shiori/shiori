@@ -10,13 +10,13 @@ func serveCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "serve",
 		Short: "Serve web interface for managing bookmarks",
-		Long: "Run a simple annd performant web server which " +
+		Long: "Run a simple and performant web server which " +
 			"serves the site for managing bookmarks. If --port " +
 			"flag is not used, it will use port 8080 by default.",
 		Run: serveHandler,
 	}
 
-	cmd.Flags().IntP("port", "p", 8080, "Port that used by server")
+	cmd.Flags().IntP("port", "p", 8080, "Port used by the server")
 	cmd.Flags().StringP("address", "a", "", "Address the server listens to")
 
 	return cmd
