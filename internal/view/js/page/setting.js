@@ -17,6 +17,10 @@ var template = `
                 Hide thumbnail image
             </label>
             <label>
+                <input type="checkbox" v-model="appOptions.hideExcerpt" @change="saveSetting">
+                Hide bookmark's excerpt
+            </label>
+            <label>
                 <input type="checkbox" v-model="appOptions.nightMode" @change="saveSetting">
                 Use dark theme
             </label>
@@ -83,6 +87,7 @@ export default {
                 showId: this.appOptions.showId,
                 listMode: this.appOptions.listMode,
                 hideThumbnail: this.appOptions.hideThumbnail,
+                hideExcerpt: this.appOptions.hideExcerpt,
                 nightMode: this.appOptions.nightMode,
                 keepMetadata: this.appOptions.keepMetadata,
                 useArchive: this.appOptions.useArchive,

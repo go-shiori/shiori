@@ -18,6 +18,7 @@ export default {
                     listMode: false,
                     nightMode: false,
                     hideThumbnail: false,
+                    hideExcerpt: false,
 
                     keepMetadata: false,
                     useArchive: false,

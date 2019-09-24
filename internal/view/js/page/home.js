@@ -54,6 +54,7 @@ var template = `
             :showId="appOptions.showId"
             :listMode="appOptions.listMode"
             :hideThumbnail="appOptions.hideThumbnail"
+            :hideExcerpt="appOptions.hideExcerpt"
             :selected="isSelected(book.id)"
             :menuVisible="activeAccount.owner"
             @select="toggleSelection"

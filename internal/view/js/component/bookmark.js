@@ -5,13 +5,13 @@ var template = `
         @click="selectBookmark">
     </a>
     <a class="bookmark-link" :href="mainURL" target="_blank" rel="noopener">
-        <span class="thumbnail" v-if="imageURL && !hideThumbnail" :style="thumbnailStyleURL"></span>
+        <span class="thumbnail" v-if="thumbnailVisible" :style="thumbnailStyleURL"></span>
         <p class="title">{{title}}
             <i v-if="hasContent" class="fas fa-file-alt"></i>
             <i v-if="hasArchive" class="fas fa-archive"></i>
             <i v-if="public" class="fas fa-eye"></i>
         </p>
-        <p class="excerpt" v-if="(!imageURL || hideThumbnail) && excerpt">{{excerpt}}</p>
+        <p class="excerpt" v-if="excerptVisible">{{excerpt}}</p>
         <p class="id" v-show="showId">{{id}}</p>
     </a>
     <div class="bookmark-tags" v-if="tags.length > 0">
@@ -52,6 +52,7 @@ export default {
         editMode: Boolean,
         listMode: Boolean,
         hideThumbnail: Boolean,
+        hideExcerpt: Boolean,
         selected: Boolean,
         menuVisible: Boolean,
         tags: {
@@ -70,6 +71,15 @@ export default {
         hostnameURL() {
             var url = new URL(this.url);
             return url.hostname.replace(/^www\./, "");
+        },
+        thumbnailVisible() {
+            return this.imageURL !== "" &&
+                !this.hideThumbnail;
+        },
+        excerptVisible() {
+            return this.excerpt !== "" &&
+                !this.thumbnailVisible &&
+                !this.hideExcerpt;
         },
         thumbnailStyleURL() {
             return {
