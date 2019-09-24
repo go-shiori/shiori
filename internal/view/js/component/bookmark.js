@@ -1,17 +1,17 @@
 var template = `
-<div class="bookmark" :class="{list: listMode, selected: selected}">
+<div class="bookmark" :class="{list: listMode, 'no-thumbnail': hideThumbnail, selected: selected}">
     <a class="bookmark-selector" 
         v-if="editMode" 
         @click="selectBookmark">
     </a>
     <a class="bookmark-link" :href="mainURL" target="_blank" rel="noopener">
-        <span class="thumbnail" v-if="imageURL" :style="thumbnailStyleURL"></span>
+        <span class="thumbnail" v-if="imageURL && !hideThumbnail" :style="thumbnailStyleURL"></span>
         <p class="title">{{title}}
             <i v-if="hasContent" class="fas fa-file-alt"></i>
             <i v-if="hasArchive" class="fas fa-archive"></i>
             <i v-if="public" class="fas fa-eye"></i>
         </p>
-        <p class="excerpt" v-if="!imageURL">{{excerpt}}</p>
+        <p class="excerpt" v-if="(!imageURL || hideThumbnail) && excerpt">{{excerpt}}</p>
         <p class="id" v-show="showId">{{id}}</p>
     </a>
     <div class="bookmark-tags" v-if="tags.length > 0">
@@ -51,11 +51,12 @@ export default {
         showId: Boolean,
         editMode: Boolean,
         listMode: Boolean,
+        hideThumbnail: Boolean,
         selected: Boolean,
         menuVisible: Boolean,
         tags: {
             type: Array,
-            default () {
+            default() {
                 return []
             }
         }

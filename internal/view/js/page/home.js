@@ -53,6 +53,7 @@ var template = `
             :editMode="editMode"
             :showId="appOptions.showId"
             :listMode="appOptions.listMode"
+            :hideThumbnail="appOptions.hideThumbnail"
             :selected="isSelected(book.id)"
             :menuVisible="activeAccount.owner"
             @select="toggleSelection"

@@ -13,6 +13,10 @@ var template = `
                 Display bookmarks as list
             </label>
             <label>
+                <input type="checkbox" v-model="appOptions.hideThumbnail" @change="saveSetting">
+                Hide thumbnail image
+            </label>
+            <label>
                 <input type="checkbox" v-model="appOptions.nightMode" @change="saveSetting">
                 Use dark theme
             </label>
@@ -78,6 +82,7 @@ export default {
             this.$emit("setting-changed", {
                 showId: this.appOptions.showId,
                 listMode: this.appOptions.listMode,
+                hideThumbnail: this.appOptions.hideThumbnail,
                 nightMode: this.appOptions.nightMode,
                 keepMetadata: this.appOptions.keepMetadata,
                 useArchive: this.appOptions.useArchive,
@@ -154,42 +159,39 @@ export default {
 
                     this.dialog.loading = true;
                     fetch("/api/accounts", {
-                            method: "post",
-                            body: JSON.stringify(request),
-                            headers: {
-                                "Content-Type": "application/json",
-                            },
-                        })
-                        .then(response => {
-                            if (!response.ok) throw response;
-                            return response;
-                        })
-                        .then(() => {
-                            this.dialog.loading = false;
-                            this.dialog.visible = false;
+                        method: "post",
+                        body: JSON.stringify(request),
+                        headers: {
+                            "Content-Type": "application/json",
+                        }
+                    }).then(response => {
+                        if (!response.ok) throw response;
+                        return response;
+                    }).then(() => {
+                        this.dialog.loading = false;
+                        this.dialog.visible = false;
 
-                            this.accounts.push({ username: data.username, owner: !data.visitor });
-                            this.accounts.sort((a, b) => {
-                                var nameA = a.username.toLowerCase(),
-                                    nameB = b.username.toLowerCase();
+                        this.accounts.push({ username: data.username, owner: !data.visitor });
+                        this.accounts.sort((a, b) => {
+                            var nameA = a.username.toLowerCase(),
+                                nameB = b.username.toLowerCase();
 
-                                if (nameA < nameB) {
-                                    return -1;
-                                }
+                            if (nameA < nameB) {
+                                return -1;
+                            }
 
-                                if (nameA > nameB) {
-                                    return 1;
-                                }
+                            if (nameA > nameB) {
+                                return 1;
+                            }
 
-                                return 0;
-                            });
-                        })
-                        .catch(err => {
-                            this.dialog.loading = false;
-                            this.getErrorMessage(err).then(msg => {
-                                this.showErrorDialog(msg);
-                            })
+                            return 0;
                         });
+                    }).catch(err => {
+                        this.dialog.loading = false;
+                        this.getErrorMessage(err).then(msg => {
+                            this.showErrorDialog(msg);
+                        })
+                    });
                 }
             });
         },
@@ -240,26 +242,23 @@ export default {
 
                     this.dialog.loading = true;
                     fetch("/api/accounts", {
-                            method: "put",
-                            body: JSON.stringify(request),
-                            headers: {
-                                "Content-Type": "application/json",
-                            },
+                        method: "put",
+                        body: JSON.stringify(request),
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                    }).then(response => {
+                        if (!response.ok) throw response;
+                        return response;
+                    }).then(() => {
+                        this.dialog.loading = false;
+                        this.dialog.visible = false;
+                    }).catch(err => {
+                        this.dialog.loading = false;
+                        this.getErrorMessage(err).then(msg => {
+                            this.showErrorDialog(msg);
                         })
-                        .then(response => {
-                            if (!response.ok) throw response;
-                            return response;
-                        })
-                        .then(() => {
-                            this.dialog.loading = false;
-                            this.dialog.visible = false;
-                        })
-                        .catch(err => {
-                            this.dialog.loading = false;
-                            this.getErrorMessage(err).then(msg => {
-                                this.showErrorDialog(msg);
-                            })
-                        });
+                    });
                 }
             });
         },
@@ -272,27 +271,24 @@ export default {
                 mainClick: () => {
                     this.dialog.loading = true;
                     fetch(`/api/accounts`, {
-                            method: "delete",
-                            body: JSON.stringify([account.username]),
-                            headers: {
-                                "Content-Type": "application/json",
-                            },
+                        method: "delete",
+                        body: JSON.stringify([account.username]),
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                    }).then(response => {
+                        if (!response.ok) throw response;
+                        return response;
+                    }).then(() => {
+                        this.dialog.loading = false;
+                        this.dialog.visible = false;
+                        this.accounts.splice(idx, 1);
+                    }).catch(err => {
+                        this.dialog.loading = false;
+                        this.getErrorMessage(err).then(msg => {
+                            this.showErrorDialog(msg);
                         })
-                        .then(response => {
-                            if (!response.ok) throw response;
-                            return response;
-                        })
-                        .then(() => {
-                            this.dialog.loading = false;
-                            this.dialog.visible = false;
-                            this.accounts.splice(idx, 1);
-                        })
-                        .catch(err => {
-                            this.dialog.loading = false;
-                            this.getErrorMessage(err).then(msg => {
-                                this.showErrorDialog(msg);
-                            })
-                        });
+                    });
                 }
             });
         },

@@ -17,6 +17,7 @@ export default {
                     showId: false,
                     listMode: false,
                     nightMode: false,
+                    hideThumbnail: false,
 
                     keepMetadata: false,
                     useArchive: false,
