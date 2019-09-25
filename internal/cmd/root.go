@@ -111,7 +111,17 @@ func openDatabase() (database.DB, error) {
 		connString := fmt.Sprintf("%s:%s@%s/%s", user, password, dbAddress, dbName)
 		return database.OpenMySQLDatabase(connString)
 	}
+	// Check if it uses PostgreSQL
+	if dbms, _ := os.LookupEnv("SHIORI_DBMS"); dbms == "postgresql" {
+		host, _ := os.LookupEnv("SHIORI_PG_HOST")
+		port, _ := os.LookupEnv("SHIORI_PG_PORT")
+		user, _ := os.LookupEnv("SHIORI_PG_USER")
+		password, _ := os.LookupEnv("SHIORI_PG_PASS")
+		dbName, _ := os.LookupEnv("SHIORI_PG_NAME")
 
+		connString := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbName)
+		return database.OpenPGDatabase(connString)
+	}
 	// If not, just uses SQLite
 	dbPath := fp.Join(dataDir, "shiori.db")
 	return database.OpenSQLiteDatabase(dbPath)
