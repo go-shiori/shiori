@@ -1,0 +1,11 @@
+{
+  "name": "Shiori",
+  "description": "Shiori is a simple bookmarks manager written in Go language. Intended as a simple clone of Pocket",
+  "keywords": [
+    "bookmark",
+    "go",
+    "pocket"
+  ],
+  "website": "http://github.com/go-shiori/shiori",
+  "repository": "http://github.com/go-shiori/shiori"
+}
