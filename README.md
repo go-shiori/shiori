@@ -23,6 +23,19 @@ Shiori is a simple bookmarks manager written in Go language. Intended as a simpl
 
 ![Comparison of reader mode and archive mode](https://raw.githubusercontent.com/go-shiori/shiori/master/docs/readme/comparison.png)
 
+## Deploying to Heroku
+
+```sh
+$ heroku create
+$ git push heroku master
+$ heroku open
+```
+
+or
+
+[![Deploy](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy)
+
+
 ## Documentation
 
 All documentation is available in [wiki](https://github.com/RadhiFadlillah/shiori/wiki). If you think there are incomplete or incorrect information, feels free to edit it.
