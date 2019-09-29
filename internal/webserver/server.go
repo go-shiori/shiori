@@ -1,6 +1,7 @@
 package webserver
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
@@ -62,7 +63,13 @@ func ServeApp(DB database.DB, dataDir string, address string, port int) error {
 
 	// Route for panic
 	router.PanicHandler = func(w http.ResponseWriter, r *http.Request, arg interface{}) {
-		http.Error(w, fmt.Sprint(arg), 500)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+
+		resp := map[string]interface{}{
+			"error": arg.(error).Error(),
+		}
+		_ = json.NewEncoder(w).Encode(&resp)
 	}
 
 	// Create server
