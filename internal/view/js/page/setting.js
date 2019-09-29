@@ -105,7 +105,7 @@ export default {
                 })
                 .then(json => {
                     this.loading = false;
-                    this.accounts = json;
+                    this.accounts = json.accounts;
                 })
                 .catch(err => {
                     this.loading = false;

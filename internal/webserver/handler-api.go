@@ -594,8 +594,12 @@ func (h *handler) apiGetAccounts(w http.ResponseWriter, r *http.Request, ps http
 	accounts, err := h.DB.GetAccounts(database.GetAccountsOptions{})
 	checkError(err)
 
+	resp := map[string]interface{}{
+		"accounts": accounts,
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(&accounts)
+	err = json.NewEncoder(w).Encode(&resp)
 	checkError(err)
 }
 
