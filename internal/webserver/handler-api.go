@@ -222,7 +222,7 @@ func (h *handler) apiGetTags(w http.ResponseWriter, r *http.Request, ps httprout
 	checkError(err)
 }
 
-// apiRenameTag is handler for PUT /api/tag
+// apiRenameTag is handler for PUT /api/tags
 func (h *handler) apiRenameTag(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	// Make sure session still valid
 	err := h.validateSession(r)
