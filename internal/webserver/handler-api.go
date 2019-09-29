@@ -213,8 +213,12 @@ func (h *handler) apiGetTags(w http.ResponseWriter, r *http.Request, ps httprout
 	tags, err := h.DB.GetTags()
 	checkError(err)
 
+	resp := map[string]interface{}{
+		"tags": tags,
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(&tags)
+	err = json.NewEncoder(w).Encode(&resp)
 	checkError(err)
 }
 
