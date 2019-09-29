@@ -666,7 +666,7 @@ func (h *handler) apiUpdateAccount(w http.ResponseWriter, r *http.Request, ps ht
 		h.UserCache.Delete(request.Username)
 	}
 
-	fmt.Fprint(w, 1)
+	w.WriteHeader(http.StatusNoContent)
 }
 
 // apiDeleteAccount is handler for DELETE /api/accounts
