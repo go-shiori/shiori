@@ -47,7 +47,8 @@ func OpenMySQLDatabase(connString string) (mysqlDB *MySQLDatabase, err error) {
 		password BINARY(80)   NOT NULL,
 		owner    TINYINT(1)   NOT NULL DEFAULT '0',
 		PRIMARY KEY (id),
-		UNIQUE KEY account_username_UNIQUE (username))`)
+		UNIQUE KEY account_username_UNIQUE (username))
+		CHARACTER SET utf8mb4`)
 
 	tx.MustExec(`CREATE TABLE IF NOT EXISTS bookmark(
 		id       INT(11)    NOT NULL AUTO_INCREMENT,
@@ -61,13 +62,15 @@ func OpenMySQLDatabase(connString string) (mysqlDB *MySQLDatabase, err error) {
 		modified TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 		PRIMARY KEY(id),
 		UNIQUE KEY bookmark_url_UNIQUE (url(255)),
-		FULLTEXT (title, excerpt, content))`)
+		FULLTEXT (title, excerpt, content))
+		CHARACTER SET utf8mb4`)
 
 	tx.MustExec(`CREATE TABLE IF NOT EXISTS tag(
 		id   INT(11)      NOT NULL AUTO_INCREMENT,
 		name VARCHAR(250) NOT NULL,
 		PRIMARY KEY (id),
-		UNIQUE KEY tag_name_UNIQUE (name))`)
+		UNIQUE KEY tag_name_UNIQUE (name))
+		CHARACTER SET utf8mb4`)
 
 	tx.MustExec(`CREATE TABLE IF NOT EXISTS bookmark_tag(
 		bookmark_id INT(11)      NOT NULL,
@@ -76,7 +79,8 @@ func OpenMySQLDatabase(connString string) (mysqlDB *MySQLDatabase, err error) {
 		KEY bookmark_tag_bookmark_id_FK (bookmark_id),
 		KEY bookmark_tag_tag_id_FK (tag_id),
 		CONSTRAINT bookmark_tag_bookmark_id_FK FOREIGN KEY (bookmark_id) REFERENCES bookmark (id),
-		CONSTRAINT bookmark_tag_tag_id_FK FOREIGN KEY (tag_id) REFERENCES tag (id))`)
+		CONSTRAINT bookmark_tag_tag_id_FK FOREIGN KEY (tag_id) REFERENCES tag (id))
+		CHARACTER SET utf8mb4`)
 
 	err = tx.Commit()
 	checkError(err)
