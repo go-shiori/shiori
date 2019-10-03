@@ -104,6 +104,11 @@ func addHandler(cmd *cobra.Command, args []string) {
 		}
 	}
 
+	// Make sure bookmark's title not empty
+	if book.Title == "" {
+		book.Title = book.URL
+	}
+
 	// Save bookmark to database
 	_, err = db.SaveBookmarks(book)
 	if err != nil {

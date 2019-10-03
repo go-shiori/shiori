@@ -278,6 +278,11 @@ func (h *handler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 		}
 	}
 
+	// Make sure bookmark's title not empty
+	if book.Title == "" {
+		book.Title = book.URL
+	}
+
 	// Save bookmark to database
 	results, err := h.DB.SaveBookmarks(book)
 	if err != nil || len(results) == 0 {
