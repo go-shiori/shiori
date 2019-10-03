@@ -498,7 +498,7 @@ func (db *MySQLDatabase) GetBookmark(id int, url string) (model.Bookmark, bool) 
 	args := []interface{}{id}
 	query := `SELECT
 		id, url, title, excerpt, author, public, 
-		content, html, modified, content <> "" has_content
+		content, html, modified, content <> '' has_content
 		FROM bookmark WHERE id = ?`
 
 	if url != "" {

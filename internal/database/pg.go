@@ -74,8 +74,8 @@ func OpenPGDatabase(connString string) (pgDB *PGDatabase, err error) {
 		CONSTRAINT bookmark_tag_bookmark_id_FK FOREIGN KEY (bookmark_id) REFERENCES bookmark (id),
 		CONSTRAINT bookmark_tag_tag_id_FK FOREIGN KEY (tag_id) REFERENCES tag (id))`)
 
+	// Create indices
 	tx.MustExec(`CREATE INDEX IF NOT EXISTS bookmark_tag_bookmark_id_FK ON bookmark_tag (bookmark_id)`)
-
 	tx.MustExec(`CREATE INDEX IF NOT EXISTS bookmark_tag_tag_id_FK ON bookmark_tag (tag_id)`)
 
 	err = tx.Commit()
@@ -241,7 +241,7 @@ func (db *PGDatabase) GetBookmarks(opts GetBookmarksOptions) ([]model.Bookmark, 
 			MATCH(title, excerpt, content) AGAINST (:kw IN BOOLEAN MODE)
 		)`
 
-		arg["lkw"] = "%"+opts.Keyword+"%"
+		arg["lkw"] = "%" + opts.Keyword + "%"
 		arg["kw"] = opts.Keyword
 	}
 
@@ -373,7 +373,7 @@ func (db *PGDatabase) GetBookmarksCount(opts GetBookmarksOptions) (int, error) {
 			MATCH(title, excerpt, content) AGAINST (:kw IN BOOLEAN MODE)
 		)`
 
-		arg["lurl"] = "%"+opts.Keyword+"%"
+		arg["lurl"] = "%" + opts.Keyword + "%"
 		arg["kw"] = opts.Keyword
 	}
 
@@ -500,7 +500,7 @@ func (db *PGDatabase) GetBookmark(id int, url string) (model.Bookmark, bool) {
 	args := []interface{}{id}
 	query := `SELECT
 		id, url, title, excerpt, author, public, 
-		content, html, modified, content <> "" has_content
+		content, html, modified, content <> '' has_content
 		FROM bookmark WHERE id = $1`
 
 	if url != "" {
@@ -564,13 +564,10 @@ func (db *PGDatabase) GetAccounts(opts GetAccountsOptions) ([]model.Account, err
 // Returns the account and boolean whether it's exist or not.
 func (db *PGDatabase) GetAccount(username string) (model.Account, bool) {
 	account := model.Account{}
-	err := db.Get(&account, `SELECT 
+	db.Get(&account, `SELECT 
 		id, username, password, owner FROM account WHERE username = $1`,
 		username)
-	if err != nil {
-		fmt.Errorf("failed to fetch account: %v", err)
-		return account, false
-	}
+
 	return account, account.ID != 0
 }
 
@@ -629,7 +626,7 @@ func (db *PGDatabase) RenameTag(id int, newName string) error {
 
 // CreateNewID creates new ID for specified table
 func (db *PGDatabase) CreateNewID(table string) (int, error) {
- 	var tableID int
+	var tableID int
 	query := fmt.Sprintf(`SELECT last_value from %s_id_seq;`, table)
 
 	err := db.Get(&tableID, query)
