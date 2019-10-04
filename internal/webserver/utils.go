@@ -45,6 +45,7 @@ func serveFile(w http.ResponseWriter, filePath string, cache bool) error {
 	mimeType := mime.TypeByExtension(ext)
 	if mimeType != "" {
 		w.Header().Set("Content-Type", mimeType)
+		w.Header().Set("X-Content-Type-Options", "nosniff")
 	}
 
 	// Serve file
