@@ -42,7 +42,7 @@ func (h *handler) apiLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 
 		// Save session ID to cache
 		strSessionID := sessionID.String()
-		h.SessionCache.Set(strSessionID, account.Owner, expTime)
+		h.SessionCache.Set(strSessionID, account, expTime)
 
 		// Save user's session IDs to cache as well
 		// useful for mass logout
@@ -183,7 +183,7 @@ func (h *handler) apiGetBookmarks(w http.ResponseWriter, r *http.Request, ps htt
 		archivePath := fp.Join(h.DataDir, "archive", strID)
 
 		if fileExists(imgPath) {
-			bookmarks[i].ImageURL = path.Join("/", "bookmark", strID, "thumb")
+			bookmarks[i].ImageURL = path.Join(h.RootPath, "bookmark", strID, "thumb")
 		}
 
 		if fileExists(archivePath) {

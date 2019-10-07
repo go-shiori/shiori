@@ -2,25 +2,26 @@
 <html lang="en">
 
 <head>
+	<base href="$$.$$">
 	<title>Shiori - Bookmarks Manager</title>
 
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-	<link rel="apple-touch-icon-precomposed" sizes="152x152" href="/res/apple-touch-icon-152x152.png">
-	<link rel="apple-touch-icon-precomposed" sizes="144x144" href="/res/apple-touch-icon-144x144.png">
-	<link rel="icon" type="image/png" href="/res/favicon-32x32.png" sizes="32x32">
-	<link rel="icon" type="image/png" href="/res/favicon-16x16.png" sizes="16x16">
-	<link rel="icon" type="image/x-icon" href="/res/favicon.ico">
+	<link rel="apple-touch-icon-precomposed" sizes="152x152" href="res/apple-touch-icon-152x152.png">
+	<link rel="apple-touch-icon-precomposed" sizes="144x144" href="res/apple-touch-icon-144x144.png">
+	<link rel="icon" type="image/png" href="res/favicon-32x32.png" sizes="32x32">
+	<link rel="icon" type="image/png" href="res/favicon-16x16.png" sizes="16x16">
+	<link rel="icon" type="image/x-icon" href="res/favicon.ico">
 
-	<link href="/css/source-sans-pro.min.css" rel="stylesheet">
-	<link href="/css/fontawesome.min.css" rel="stylesheet">
-	<link href="/css/stylesheet.css" rel="stylesheet">
-	<link href="/css/custom-dialog.css" rel="stylesheet">
-	<link href="/css/bookmark-item.css" rel="stylesheet">
+	<link href="css/source-sans-pro.min.css" rel="stylesheet">
+	<link href="css/fontawesome.min.css" rel="stylesheet">
+	<link href="css/stylesheet.css" rel="stylesheet">
+	<link href="css/custom-dialog.css" rel="stylesheet">
+	<link href="css/bookmark-item.css" rel="stylesheet">
 
-	<script src="/js/vue.min.js"></script>
-	<script src="/js/url.min.js"></script>
+	<script src="js/vue.min.js"></script>
+	<script src="js/url.min.js"></script>
 </head>
 
 <body class="night">
@@ -84,22 +85,21 @@
 						secondText: "No",
 						mainClick: () => {
 							this.dialog.loading = true;
-							fetch("/api/logout", { method: "post" })
-								.then(response => {
-									if (!response.ok) throw response;
-									return response;
+							fetch(new URL("api/logout", document.baseURI), {
+								method: "post"
+							}).then(response => {
+								if (!response.ok) throw response;
+								return response;
+							}).then(() => {
+								localStorage.removeItem("shiori-account");
+								document.cookie = "session-id=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+								location.href = new URL("login", document.baseURI);
+							}).catch(err => {
+								this.dialog.loading = false;
+								this.getErrorMessage(err).then(msg => {
+									this.showErrorDialog(msg);
 								})
-								.then(() => {
-									localStorage.removeItem("shiori-account");
-									document.cookie = "session-id=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
-									location.href = "/login";
-								})
-								.catch(err => {
-									this.dialog.loading = false;
-									this.getErrorMessage(err).then(msg => {
-										this.showErrorDialog(msg);
-									})
-								});
+							});
 						}
 					});
 				},

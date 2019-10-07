@@ -81,7 +81,7 @@ export default {
 			}
 		},
 		isSessionError(err) {
-			switch (err.replace(/\(\d+\)/g, "").trim().toLowerCase()) {
+			switch (err.toString().replace(/\(\d+\)/g, "").trim().toLowerCase()) {
 				case "session is not exist":
 				case "session has been expired":
 					return true
@@ -101,7 +101,7 @@ export default {
 				mainClick: () => {
 					this.dialog.visible = false;
 					if (sessionError) {
-						var loginUrl = new Url("/login");
+						var loginUrl = new Url("login", document.baseURI);
 						loginUrl.query.dst = window.location.href;
 
 						document.cookie = "session-id=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";

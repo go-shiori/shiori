@@ -2,23 +2,24 @@
 <html lang="en">
 
 <head>
+	<base href="$$.$$">
 	<title>Login - Shiori</title>
 
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-	<link rel="apple-touch-icon-precomposed" sizes="152x152" href="/res/apple-touch-icon-152x152.png">
-	<link rel="apple-touch-icon-precomposed" sizes="144x144" href="/res/apple-touch-icon-144x144.png">
-	<link rel="icon" type="image/png" href="/res/favicon-32x32.png" sizes="32x32">
-	<link rel="icon" type="image/png" href="/res/favicon-16x16.png" sizes="16x16">
-	<link rel="icon" type="image/x-icon" href="/res/favicon.ico">
+	<link rel="apple-touch-icon-precomposed" sizes="152x152" href="res/apple-touch-icon-152x152.png">
+	<link rel="apple-touch-icon-precomposed" sizes="144x144" href="res/apple-touch-icon-144x144.png">
+	<link rel="icon" type="image/png" href="res/favicon-32x32.png" sizes="32x32">
+	<link rel="icon" type="image/png" href="res/favicon-16x16.png" sizes="16x16">
+	<link rel="icon" type="image/x-icon" href="res/favicon.ico">
 
-	<link href="/css/source-sans-pro.min.css" rel="stylesheet">
-	<link href="/css/fontawesome.min.css" rel="stylesheet">
-	<link href="/css/stylesheet.css" rel="stylesheet">
+	<link href="css/source-sans-pro.min.css" rel="stylesheet">
+	<link href="css/fontawesome.min.css" rel="stylesheet">
+	<link href="css/stylesheet.css" rel="stylesheet">
 
-	<script src="/js/vue.min.js"></script>
-	<script src="/js/url.min.js"></script>
+	<script src="js/vue.min.js"></script>
+	<script src="js/url.min.js"></script>
 </head>
 
 <body>
@@ -82,7 +83,7 @@
 
 					// Send request
 					this.loading = true;
-					fetch("/api/login", {
+					fetch(new URL("api/login", document.baseURI), {
 						method: "post",
 						body: JSON.stringify({
 							username: this.username,
@@ -106,7 +107,7 @@
 							dstPage = "";
 						}
 
-						var newUrl = new Url(dstUrl || "/");
+						var newUrl = new Url(dstUrl || document.baseURI);
 						newUrl.hash = dstPage;
 						location.href = newUrl;
 					}).catch(err => {
