@@ -53,15 +53,7 @@ func (h *handler) apiLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 		}
 		h.UserCache.Set(request.Username, sessionIDs, -1)
 
-		// Return session ID to user in cookies
-		http.SetCookie(w, &http.Cookie{
-			Name:    "session-id",
-			Value:   strSessionID,
-			Path:    "/",
-			Expires: time.Now().Add(expTime),
-		})
-
-		// Send account data
+		// Send login result
 		account.Password = ""
 		loginResult := struct {
 			Session string        `json:"session"`
@@ -573,7 +565,7 @@ func (h *handler) apiUpdateBookmarkTags(w http.ResponseWriter, r *http.Request, 
 	for i := range bookmarks {
 		strID := strconv.Itoa(bookmarks[i].ID)
 		imgPath := fp.Join(h.DataDir, "thumb", strID)
-		imgURL := path.Join("/", "bookmark", strID, "thumb")
+		imgURL := path.Join(h.RootPath, "bookmark", strID, "thumb")
 
 		if fileExists(imgPath) {
 			bookmarks[i].ImageURL = imgURL

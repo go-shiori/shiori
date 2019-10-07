@@ -57,6 +57,10 @@ func (h *handler) serveIndexPage(w http.ResponseWriter, r *http.Request, ps http
 		return
 	}
 
+	if developmentMode {
+		h.prepareTemplates()
+	}
+
 	err = h.templates["index"].Execute(w, h.RootPath)
 	checkError(err)
 }
@@ -69,6 +73,10 @@ func (h *handler) serveLoginPage(w http.ResponseWriter, r *http.Request, ps http
 		redirectURL := path.Join(h.RootPath, "/")
 		redirectPage(w, r, redirectURL)
 		return
+	}
+
+	if developmentMode {
+		h.prepareTemplates()
 	}
 
 	err = h.templates["login"].Execute(w, h.RootPath)
@@ -168,6 +176,10 @@ func (h *handler) serveBookmarkContent(w http.ResponseWriter, r *http.Request, p
 	}
 
 	// Execute template
+	if developmentMode {
+		h.prepareTemplates()
+	}
+
 	tplData := struct {
 		RootPath string
 		Book     model.Bookmark
