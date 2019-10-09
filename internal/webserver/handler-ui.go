@@ -289,8 +289,10 @@ func (h *handler) serveBookmarkArchive(w http.ResponseWriter, r *http.Request, p
 		archiveCSSPath := path.Join(h.RootPath, "/css/archive.css")
 		sourceSansProCSSPath := path.Join(h.RootPath, "/css/source-sans-pro.min.css")
 
-		doc.Find("head").AppendHtml(`<link href="` + archiveCSSPath + `" rel="stylesheet">`)
-		doc.Find("head").AppendHtml(`<link href="` + sourceSansProCSSPath + `" rel="stylesheet">`)
+		docHead := doc.Find("head")
+		docHead.PrependHtml(`<meta charset="UTF-8">`)
+		docHead.AppendHtml(`<link href="` + archiveCSSPath + `" rel="stylesheet">`)
+		docHead.AppendHtml(`<link href="` + sourceSansProCSSPath + `" rel="stylesheet">`)
 		doc.Find("body").PrependHtml(tplOutput.String())
 
 		// Revert back to HTML
