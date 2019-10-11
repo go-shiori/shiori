@@ -104,7 +104,7 @@ export default {
 						var loginUrl = new Url("login", document.baseURI);
 						loginUrl.query.dst = window.location.href;
 
-						document.cookie = "session-id=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT;";
+						document.cookie = `session-id=; Path=${new URL(document.baseURI).pathname}; Expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
 						location.href = loginUrl.toString();
 					}
 				}
