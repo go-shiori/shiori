@@ -79,7 +79,7 @@
 					}
 
 					// Remove old cookie
-					document.cookie = `session-id=; Path=${document.baseURI}; Expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
+					document.cookie = `session-id=; Path=${new URL(document.baseURI).pathname}; Expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
 
 					// Send request
 					this.loading = true;
@@ -99,7 +99,7 @@
 					}).then(json => {
 						// Save session id
 						var expTime = new Date(Date.now() + sessionAge * 3600 * 1000).toUTCString();
-						document.cookie = `session-id=${json.session}; Path=${document.baseURI}; Expires=${expTime}`;
+						document.cookie = `session-id=${json.session}; Path=${new URL(document.baseURI).pathname}; Expires=${expTime}`;
 
 						// Save account data
 						localStorage.setItem("shiori-account", JSON.stringify(json.account));
