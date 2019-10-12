@@ -52,7 +52,10 @@
 			},
 			methods: {
 				localtime() {
-					var strTime = `${this.modified.replace(" ", "T")}+00:00`;
+					var strTime = this.modified.replace(" ", "T");
+					if (!strTime.endsWith("Z")) {
+						strTime += "Z";
+					}
 					return dayjs(strTime).format("D MMMM YYYY, HH:mm:ss");
 				},
 				loadSetting() {
