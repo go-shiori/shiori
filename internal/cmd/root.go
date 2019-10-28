@@ -59,6 +59,12 @@ func preRunRootHandler(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
+	err = os.Chown(dataDir, os.Getuid(), os.Getgid())
+	if err != nil {
+		cError.Printf("Failed to chown data dir: %v\n", err)
+		os.Exit(1)
+	}
+
 	// Open database
 	db, err = openDatabase()
 	if err != nil {

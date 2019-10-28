@@ -157,11 +157,17 @@ func downloadBookImage(url, dstPath string) error {
 		return fmt.Errorf("%s is not a supported image", url)
 	}
 
+	finalDir := fp.Dir(dstPath)
 	// At this point, the download has finished successfully.
 	// Prepare destination file.
-	err = os.MkdirAll(fp.Dir(dstPath), os.ModePerm)
+	err = os.MkdirAll(finalDir, os.ModePerm)
 	if err != nil {
 		return fmt.Errorf("failed to create image dir: %v", err)
+	}
+
+	err = os.Chown(finalDir, os.Getuid(), os.Getgid())
+	if err != nil {
+		return fmt.Errorf("failed to chown image dir: %v", err)
 	}
 
 	dstFile, err := os.Create(dstPath)
@@ -169,6 +175,11 @@ func downloadBookImage(url, dstPath string) error {
 		return fmt.Errorf("failed to create image file: %v", err)
 	}
 	defer dstFile.Close()
+
+	err = dstFile.Chown(os.Getuid(), os.Getgid())
+	if err != nil {
+		return fmt.Errorf("failed to chown image file: %v", err)
+	}
 
 	// Parse image and process it.
 	// If image is smaller than 600x400 or its ratio is less than 4:3, resize.
