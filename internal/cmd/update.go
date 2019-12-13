@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 	"sort"
 	"strings"
 	"sync"
@@ -67,7 +68,7 @@ func updateHandler(cmd *cobra.Command, args []string) {
 	ids, err := parseStrIndices(args)
 	if err != nil {
 		cError.Printf("Failed to parse args: %v\n", err)
-		return
+		os.Exit(1)
 	}
 
 	// Clean up new parameter from flags
@@ -84,7 +85,7 @@ func updateHandler(cmd *cobra.Command, args []string) {
 		// Since user uses custom URL, make sure there is only one ID to update
 		if len(ids) != 1 {
 			cError.Println("Update only accepts one index while using --url flag")
-			return
+			os.Exit(1)
 		}
 	}
 
@@ -96,12 +97,12 @@ func updateHandler(cmd *cobra.Command, args []string) {
 	bookmarks, err := db.GetBookmarks(filterOptions)
 	if err != nil {
 		cError.Printf("Failed to get bookmarks: %v\n", err)
-		return
+		os.Exit(1)
 	}
 
 	if len(bookmarks) == 0 {
 		cError.Println("No matching index found")
-		return
+		os.Exit(1)
 	}
 
 	// Check if user really want to batch update archive
@@ -282,14 +283,16 @@ func updateHandler(cmd *cobra.Command, args []string) {
 	bookmarks, err = db.SaveBookmarks(bookmarks...)
 	if err != nil {
 		cError.Printf("Failed to save bookmark: %v\n", err)
-		return
+		os.Exit(1)
 	}
 
 	// Print updated bookmarks
 	fmt.Println()
 	printBookmarks(bookmarks...)
 
+	var code int
 	if len(idWithProblems) > 0 {
+		code = 1
 		sort.Ints(idWithProblems)
 
 		cError.Println("Encountered error while downloading some bookmark(s):")
@@ -298,4 +301,5 @@ func updateHandler(cmd *cobra.Command, args []string) {
 		}
 		fmt.Println()
 	}
+	os.Exit(code)
 }

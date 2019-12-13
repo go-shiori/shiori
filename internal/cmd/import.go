@@ -41,14 +41,14 @@ func importHandler(cmd *cobra.Command, args []string) {
 	bookID, err := db.CreateNewID("bookmark")
 	if err != nil {
 		cError.Printf("Failed to create ID: %v\n", err)
-		return
+		os.Exit(1)
 	}
 
 	// Open bookmark's file
 	srcFile, err := os.Open(args[0])
 	if err != nil {
 		cError.Printf("Failed to open %s: %v\n", args[0], err)
-		return
+		os.Exit(1)
 	}
 	defer srcFile.Close()
 
@@ -59,7 +59,7 @@ func importHandler(cmd *cobra.Command, args []string) {
 	doc, err := goquery.NewDocumentFromReader(srcFile)
 	if err != nil {
 		cError.Printf("Failed to parse bookmark: %v\n", err)
-		return
+		os.Exit(1)
 	}
 
 	doc.Find("dt>a").Each(func(_ int, a *goquery.Selection) {
@@ -130,7 +130,7 @@ func importHandler(cmd *cobra.Command, args []string) {
 	bookmarks, err = db.SaveBookmarks(bookmarks...)
 	if err != nil {
 		cError.Printf("Failed to save bookmarks: %v\n", err)
-		return
+		os.Exit(1)
 	}
 
 	// Print imported bookmark

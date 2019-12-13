@@ -3,6 +3,7 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 
 	"github.com/go-shiori/shiori/internal/database"
 	"github.com/spf13/cobra"
@@ -83,7 +84,7 @@ func printHandler(cmd *cobra.Command, args []string) {
 		bt, err := json.MarshalIndent(&bookmarks, "", "    ")
 		if err != nil {
 			cError.Println(err)
-			return
+			os.Exit(1)
 		}
 
 		fmt.Println(string(bt))

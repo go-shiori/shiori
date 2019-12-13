@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"os"
 	fp "path/filepath"
 	"strconv"
 	"strings"
@@ -45,13 +46,13 @@ func openHandler(cmd *cobra.Command, args []string) {
 	ids, err := parseStrIndices(args)
 	if err != nil {
 		cError.Println(err)
-		return
+		os.Exit(1)
 	}
 
 	// If in archive mode, only one bookmark allowed
 	if len(ids) > 1 && archiveMode {
 		cError.Println("In archive mode, only one bookmark allowed")
-		return
+		os.Exit(1)
 	}
 
 	// If no arguments (i.e all bookmarks will be opened),
@@ -75,33 +76,38 @@ func openHandler(cmd *cobra.Command, args []string) {
 	bookmarks, err := db.GetBookmarks(getOptions)
 	if err != nil {
 		cError.Printf("Failed to get bookmarks: %v\n", err)
-		return
+		os.Exit(1)
 	}
 
 	if len(bookmarks) == 0 {
 		if len(ids) > 0 {
 			cError.Println("No matching index found")
+			os.Exit(1)
 		} else {
 			cError.Println("No bookmarks saved yet")
+			os.Exit(1)
 		}
 		return
 	}
 
 	// If not text cache mode nor archive mode, open bookmarks in browser
 	if !textCacheMode && !archiveMode {
+		var code int
 		for _, book := range bookmarks {
 			err = openBrowser(book.URL)
 			if err != nil {
 				cError.Printf("Failed to open %s: %v\n", book.URL, err)
+				code = 1
 			}
 		}
-		return
+		os.Exit(code)
 	}
 
 	// Show bookmarks content in terminal
 	if textCacheMode {
 		termWidth := getTerminalWidth()
 
+		var code int
 		for _, book := range bookmarks {
 			cIndex.Printf("%d. ", book.ID)
 			cTitle.Println(book.Title)
@@ -109,6 +115,7 @@ func openHandler(cmd *cobra.Command, args []string) {
 
 			if book.Content == "" {
 				cError.Println("This bookmark doesn't have any cached content")
+				code = 1
 			} else {
 				book.Content = strings.Join(strings.Fields(book.Content), " ")
 				fmt.Println(book.Content)
@@ -118,7 +125,7 @@ func openHandler(cmd *cobra.Command, args []string) {
 			cSymbol.Println(strings.Repeat("=", termWidth))
 			fmt.Println()
 		}
-		return
+		os.Exit(code)
 	}
 
 	// Open archive
@@ -128,7 +135,7 @@ func openHandler(cmd *cobra.Command, args []string) {
 	archive, err := warc.Open(archivePath)
 	if err != nil {
 		cError.Printf("Failed to open archive: %v\n", err)
-		return
+		os.Exit(1)
 	}
 	defer archive.Close()
 
@@ -162,7 +169,7 @@ func openHandler(cmd *cobra.Command, args []string) {
 	listener, err := net.Listen("tcp", listenerAddr)
 	if err != nil {
 		cError.Printf("Failed to serve archive: %v\n", err)
-		return
+		os.Exit(1)
 	}
 
 	portNumber := listener.Addr().(*net.TCPAddr).Port
@@ -176,6 +183,7 @@ func openHandler(cmd *cobra.Command, args []string) {
 		err := openBrowser(localhostAddr)
 		if err != nil {
 			cError.Printf("Failed to open browser: %v\n", err)
+			os.Exit(1)
 		}
 	}()
 
@@ -183,5 +191,6 @@ func openHandler(cmd *cobra.Command, args []string) {
 	err = http.Serve(listener, router)
 	if err != nil {
 		cError.Printf("Failed to serve archive: %v\n", err)
+		os.Exit(1)
 	}
 }

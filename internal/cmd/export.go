@@ -27,7 +27,7 @@ func exportHandler(cmd *cobra.Command, args []string) {
 	bookmarks, err := db.GetBookmarks(database.GetBookmarksOptions{})
 	if err != nil {
 		cError.Printf("Failed to get bookmarks: %v\n", err)
-		return
+		os.Exit(1)
 	}
 
 	if len(bookmarks) == 0 {
@@ -43,7 +43,7 @@ func exportHandler(cmd *cobra.Command, args []string) {
 	dstFile, err := os.Create(args[0])
 	if err != nil {
 		cError.Printf("Failed to create destination file: %v\n", err)
-		return
+		os.Exit(1)
 	}
 	defer dstFile.Close()
 
@@ -85,7 +85,7 @@ func exportHandler(cmd *cobra.Command, args []string) {
 	err = dstFile.Sync()
 	if err != nil {
 		cError.Printf("Failed to export the bookmarks: %v\n", err)
-		return
+		os.Exit(1)
 	}
 
 	fmt.Println("Export finished")
