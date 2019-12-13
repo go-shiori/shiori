@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/go-shiori/shiori/internal/core"
@@ -60,14 +61,14 @@ func addHandler(cmd *cobra.Command, args []string) {
 	book.ID, err = db.CreateNewID("bookmark")
 	if err != nil {
 		cError.Printf("Failed to create ID: %v\n", err)
-		return
+		os.Exit(1)
 	}
 
 	// Clean up bookmark URL
 	book.URL, err = core.RemoveUTMParams(book.URL)
 	if err != nil {
 		cError.Printf("Failed to clean URL: %v\n", err)
-		return
+		os.Exit(1)
 	}
 
 	// If it's not offline mode, fetch data from internet.
@@ -99,7 +100,7 @@ func addHandler(cmd *cobra.Command, args []string) {
 			}
 
 			if isFatalErr {
-				return
+				os.Exit(1)
 			}
 		}
 	}
@@ -113,7 +114,7 @@ func addHandler(cmd *cobra.Command, args []string) {
 	_, err = db.SaveBookmarks(book)
 	if err != nil {
 		cError.Printf("Failed to save bookmark: %v\n", err)
-		return
+		os.Exit(1)
 	}
 
 	// Print added bookmark

@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"sort"
 	"sync"
 	"time"
@@ -47,7 +48,7 @@ func checkHandler(cmd *cobra.Command, args []string) {
 	ids, err := parseStrIndices(args)
 	if err != nil {
 		cError.Printf("Failed to parse args: %v\n", err)
-		return
+		os.Exit(1)
 	}
 
 	// Fetch bookmarks from database
@@ -55,7 +56,7 @@ func checkHandler(cmd *cobra.Command, args []string) {
 	bookmarks, err := db.GetBookmarks(filterOptions)
 	if err != nil {
 		cError.Printf("Failed to get bookmarks: %v\n", err)
-		return
+		os.Exit(1)
 	}
 
 	// Create HTTP client
@@ -127,15 +128,17 @@ func checkHandler(cmd *cobra.Command, args []string) {
 	// Print the unreachable bookmarks
 	fmt.Println()
 
+	var code int
 	if len(unreachableIDs) == 0 {
-		cInfo.Println("All bookmarks is reachable.")
+		cInfo.Println("All bookmarks are reachable.")
 	} else {
 		sort.Ints(unreachableIDs)
-
+		code = 1
 		cError.Println("Encountered some unreachable bookmarks:")
 		for _, id := range unreachableIDs {
 			cError.Printf("%d ", id)
 		}
 		fmt.Println()
 	}
+	os.Exit(code)
 }
