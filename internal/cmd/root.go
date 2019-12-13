@@ -122,7 +122,7 @@ func openMySQLDatabase() (database.DB, error) {
 	dbName, _ := os.LookupEnv("SHIORI_MYSQL_NAME")
 	dbAddress, _ := os.LookupEnv("SHIORI_MYSQL_ADDRESS")
 
-	connString := fmt.Sprintf("%s:%s@%s/%s", user, password, dbAddress, dbName)
+	connString := fmt.Sprintf("%s:%s@%s/%s?charset=utf8mb4", user, password, dbAddress, dbName)
 	return database.OpenMySQLDatabase(connString)
 }
 
