@@ -1,0 +1,31 @@
+name: Create release of shiori
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  goreleaser:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v2
+      -
+        name: Unshallow
+        run: git fetch --prune --unshallow
+      -
+        name: Set up Go
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.14.x
+      -
+        name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v1
+        with:
+          version: latest
+          args: release --rm-dist
+          key: ${{ secrets.YOUR_PRIVATE_KEY }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}

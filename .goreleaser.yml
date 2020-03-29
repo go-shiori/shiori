@@ -1,0 +1,51 @@
+# This is an example goreleaser.yaml file with some sane defaults.
+# Make sure to check the documentation at http://goreleaser.com
+before:
+  hooks:
+    # You may remove this if you don't use go modules.
+    - go mod download
+    # you may remove this if you don't need go generate
+    # - go generate ./...
+builds:
+-
+  goos:
+    - linux
+    - darwin
+    - windows
+  goarch:
+    - 386
+    - amd64
+  ignore:
+    - goos: darwin
+      goarch: 386
+archives:
+  - name_template: '{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}'
+    replacements:
+      darwin: Darwin
+      linux: Linux
+      windows: Windows
+      386: i386
+      amd64: x86_64
+    format: zip
+release:
+  github:
+    owner: juev
+    name: shiori
+# dockers:
+#   - image_templates:
+#     - 'radhifadlillah/shiori:{{ .Tag }}'
+#     - 'radhifadlillah/shiori:v{{ .Major }}.{{ .Minor }}'
+#     - 'radhifadlillah/shiori:latest'
+#     dockerfile: Dockerfile
+#     binaries:
+#     - shiori
+checksum:
+  name_template: '{{ .ProjectName }}_checksums.txt'
+snapshot:
+  name_template: "{{ .Tag }}-next"
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
