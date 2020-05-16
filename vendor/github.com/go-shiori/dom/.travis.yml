@@ -1,0 +1,11 @@
+language: go
+sudo: true
+matrix:
+  include:
+    - go: 1.x
+      env: LATEST=true
+
+script:
+  - go get -v ./...
+  - go vet $(go list ./... | grep -v /vendor/)
+  - go test -v -race ./...

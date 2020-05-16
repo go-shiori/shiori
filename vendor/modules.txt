@@ -1,0 +1,113 @@
+# github.com/PuerkitoBio/goquery v1.5.1
+## explicit
+github.com/PuerkitoBio/goquery
+# github.com/andybalholm/cascadia v1.2.0
+## explicit
+github.com/andybalholm/cascadia
+# github.com/disintegration/imaging v1.6.2
+## explicit
+github.com/disintegration/imaging
+# github.com/fatih/color v1.9.0
+## explicit
+github.com/fatih/color
+# github.com/go-ldap/ldap v3.0.3+incompatible
+## explicit
+github.com/go-ldap/ldap
+# github.com/go-shiori/dom v0.0.0-20200325044552-dcb2bfb8d4d8
+github.com/go-shiori/dom
+# github.com/go-shiori/go-readability v0.0.0-20200413080041-05caea5f6592
+## explicit
+github.com/go-shiori/go-readability
+# github.com/go-shiori/warc v0.0.0-20191003110312-7b3c5582fd83
+## explicit
+github.com/go-shiori/warc
+github.com/go-shiori/warc/internal/archiver
+github.com/go-shiori/warc/internal/processor
+# github.com/go-sql-driver/mysql v1.5.0
+## explicit
+github.com/go-sql-driver/mysql
+# github.com/gofrs/uuid v3.3.0+incompatible
+## explicit
+github.com/gofrs/uuid
+# github.com/inconshreveable/mousetrap v1.0.0
+github.com/inconshreveable/mousetrap
+# github.com/jmoiron/sqlx v1.2.0
+## explicit
+github.com/jmoiron/sqlx
+github.com/jmoiron/sqlx/reflectx
+# github.com/julienschmidt/httprouter v1.3.0
+## explicit
+github.com/julienschmidt/httprouter
+# github.com/konsorten/go-windows-terminal-sequences v1.0.3
+github.com/konsorten/go-windows-terminal-sequences
+# github.com/lib/pq v1.5.2
+## explicit
+github.com/lib/pq
+github.com/lib/pq/oid
+github.com/lib/pq/scram
+# github.com/mattn/go-colorable v0.1.6
+## explicit
+github.com/mattn/go-colorable
+# github.com/mattn/go-isatty v0.0.12
+github.com/mattn/go-isatty
+# github.com/mattn/go-sqlite3 v2.0.3+incompatible
+## explicit
+github.com/mattn/go-sqlite3
+# github.com/mitchellh/go-homedir v1.1.0
+github.com/mitchellh/go-homedir
+# github.com/muesli/go-app-paths v0.2.1
+## explicit
+github.com/muesli/go-app-paths
+# github.com/patrickmn/go-cache v2.1.0+incompatible
+## explicit
+github.com/patrickmn/go-cache
+# github.com/shurcooL/httpfs v0.0.0-20190707220628-8d4bc4ba7749
+## explicit
+github.com/shurcooL/httpfs/vfsutil
+# github.com/shurcooL/vfsgen v0.0.0-20181202132449-6a9ea43bcacd
+## explicit
+github.com/shurcooL/vfsgen
+# github.com/sirupsen/logrus v1.6.0
+## explicit
+github.com/sirupsen/logrus
+# github.com/spf13/cobra v1.0.0
+## explicit
+github.com/spf13/cobra
+# github.com/spf13/pflag v1.0.5
+## explicit
+github.com/spf13/pflag
+# github.com/tdewolff/parse v2.3.4+incompatible
+github.com/tdewolff/parse
+github.com/tdewolff/parse/buffer
+github.com/tdewolff/parse/css
+github.com/tdewolff/parse/js
+# go.etcd.io/bbolt v1.3.4
+## explicit
+go.etcd.io/bbolt
+# golang.org/x/crypto v0.0.0-20200510223506-06a226fb4e37
+## explicit
+golang.org/x/crypto/bcrypt
+golang.org/x/crypto/blowfish
+golang.org/x/crypto/ssh/terminal
+# golang.org/x/image v0.0.0-20200430140353-33d19683fad8
+## explicit
+golang.org/x/image/bmp
+golang.org/x/image/ccitt
+golang.org/x/image/tiff
+golang.org/x/image/tiff/lzw
+# golang.org/x/net v0.0.0-20200513185701-a91f0712d120
+## explicit
+golang.org/x/net/html
+golang.org/x/net/html/atom
+# golang.org/x/sys v0.0.0-20200515095857-1151b9dac4a9
+## explicit
+golang.org/x/sys/internal/unsafeheader
+golang.org/x/sys/unix
+golang.org/x/sys/windows
+# golang.org/x/tools v0.0.0-20190809145639-6d4652c779c4
+## explicit
+# google.golang.org/appengine v1.6.6
+## explicit
+# gopkg.in/asn1-ber.v1 v1.0.0-20181015200546-f715ec2f112d
+## explicit
+gopkg.in/asn1-ber.v1

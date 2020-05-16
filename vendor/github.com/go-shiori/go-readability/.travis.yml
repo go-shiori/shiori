@@ -1,0 +1,16 @@
+language: go
+sudo: true
+matrix:
+  include:
+    - go: 1.x
+      env: LATEST=true
+    - go: "1.13"
+
+install:
+  - go get github.com/go-shiori/go-readability
+
+script:
+  - go get -t -v ./...
+  - diff -u <(echo -n) <(gofmt -d .)
+  - go vet $(go list ./... | grep -v /vendor/)
+  - go test -v -race ./...
