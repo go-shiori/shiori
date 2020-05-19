@@ -154,11 +154,29 @@ func (db *SQLiteDatabase) SaveBookmarks(bookmarks ...model.Bookmark) (result []m
 
 		// Save bookmark
 		stmtInsertBook.MustExec(book.ID,
-			book.URL, book.Title, book.Excerpt, book.Author, book.Public, book.Modified,
-			book.URL, book.Title, book.Excerpt, book.Author, book.Public, book.Modified)
+			sanitizeString(book.URL),
+			sanitizeString(book.Title),
+			sanitizeString(book.Excerpt),
+			sanitizeString(book.Author),
+			book.Public,
+			book.Modified,
+			sanitizeString(book.URL),
+			sanitizeString(book.Title),
+			sanitizeString(book.Excerpt),
+			sanitizeString(book.Author),
+			book.Public,
+			book.Modified)
 
-		stmtUpdateBookContent.MustExec(book.Title, book.Content, book.HTML, book.ID)
-		stmtInsertBookContent.MustExec(book.ID, book.Title, book.Content, book.HTML)
+		stmtUpdateBookContent.MustExec(
+			sanitizeString(book.Title),
+			sanitizeString(book.Content),
+			sanitizeString(book.HTML),
+			book.ID)
+		stmtInsertBookContent.MustExec(
+			book.ID,
+			sanitizeString(book.Title),
+			sanitizeString(book.Content),
+			sanitizeString(book.HTML))
 
 		// Save book tags
 		newTags := []model.Tag{}
@@ -170,7 +188,8 @@ func (db *SQLiteDatabase) SaveBookmarks(bookmarks ...model.Bookmark) (result []m
 			}
 
 			// Normalize tag name
-			tagName := strings.ToLower(tag.Name)
+			tagName := sanitizeString(tag.Name)
+			tagName = strings.ToLower(tagName)
 			tagName = strings.Join(strings.Fields(tagName), " ")
 
 			// If tag doesn't have any ID, fetch it from database

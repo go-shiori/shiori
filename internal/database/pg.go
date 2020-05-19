@@ -157,8 +157,14 @@ func (db *PGDatabase) SaveBookmarks(bookmarks ...model.Bookmark) (result []model
 
 		// Save bookmark
 		stmtInsertBook.Get(&(book.ID),
-			book.URL, book.Title, book.Excerpt, book.Author,
-			book.Public, book.Content, book.HTML, book.Modified)
+			sanitizeString(book.URL),
+			sanitizeString(book.Title),
+			sanitizeString(book.Excerpt),
+			sanitizeString(book.Author),
+			book.Public,
+			sanitizeString(book.Content),
+			sanitizeString(book.HTML),
+			book.Modified)
 
 		// Save book tags
 		newTags := []model.Tag{}
@@ -170,7 +176,8 @@ func (db *PGDatabase) SaveBookmarks(bookmarks ...model.Bookmark) (result []model
 			}
 
 			// Normalize tag name
-			tagName := strings.ToLower(tag.Name)
+			tagName := sanitizeString(tag.Name)
+			tagName = strings.ToLower(tagName)
 			tagName = strings.Join(strings.Fields(tagName), " ")
 
 			// If tag doesn't have any ID, fetch it from database
