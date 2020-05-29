@@ -90,7 +90,7 @@ func getDataDir(portableMode bool) (string, error) {
 	}
 
 	// Try to use platform specific app path
-	userScope := apppaths.NewScope(apppaths.User, "shiori", "shiori")
+	userScope := apppaths.NewVendorScope(apppaths.User, "shiori", "shiori")
 	dataDir, err := userScope.DataDir()
 	if err == nil {
 		return dataDir, nil
