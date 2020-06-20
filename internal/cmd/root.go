@@ -90,8 +90,11 @@ func getDataDir(portableMode bool) (string, error) {
 	}
 
 	// Try to use platform specific app path
-	userScope := apppaths.NewScope(apppaths.User, "shiori", "shiori")
-	dataDir, err := userScope.DataDir()
+	userScope := apppaths.NewScope(apppaths.User, "shiori")
+	shioriDataDirs, err := userScope.DataDirs()
+
+	// If multiple path obtained, use the first one.
+	dataDir = shioriDataDirs[0]
 	if err == nil {
 		return dataDir, nil
 	}
@@ -133,6 +136,7 @@ func openPostgreSQLDatabase() (database.DB, error) {
 	password, _ := os.LookupEnv("SHIORI_PG_PASS")
 	dbName, _ := os.LookupEnv("SHIORI_PG_NAME")
 
+	// sslmode disabled.
 	connString := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		host, port, user, password, dbName)
 	return database.OpenPGDatabase(connString)
