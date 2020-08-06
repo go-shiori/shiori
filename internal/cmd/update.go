@@ -247,6 +247,11 @@ func updateHandler(cmd *cobra.Command, args []string) {
 			book.Excerpt = excerpt
 		}
 
+		// If user submits url, use it
+		if url != "" {
+			book.URL = url
+		}
+
 		// Make sure title is valid and not empty
 		book.Title = validateTitle(book.Title, book.URL)
 
