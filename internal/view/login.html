@@ -26,25 +26,27 @@
 	<div id="login-scene" :class="{night: nightMode}">
 		<p class="error-message" v-if="error !== ''">{{error}}</p>
 		<div id="login-box">
-			<div id="logo-area">
-				<p id="logo">
-					<span>栞</span>shiori
-				</p>
-				<p id="tagline">simple bookmark manager</p>
-			</div>
-			<div id="input-area">
-				<label for="username">Username: </label>
-				<input type="text" name="username" v-model.trim="username" placeholder="Username" tabindex="1">
-				<label for="password">Password: </label>
-				<input type="password" name="password" v-model.trim="password" placeholder="Password" tabindex="2" @keyup.enter="login">
-				<label class="checkbox-field"><input type="checkbox" name="remember" v-model="remember" tabindex="3">Remember me</label>
-			</div>
-			<div id="button-area">
-				<a v-if="loading">
-					<i class="fas fa-fw fa-spinner fa-spin"></i>
-				</a>
-				<a v-else class="button" tabindex="4" @click="login" @keyup.enter="login">Log In</a>
-			</div>
+			<form @submit.prevent="login">
+				<div id="logo-area">
+					<p id="logo">
+						<span>栞</span>shiori
+					</p>
+					<p id="tagline">simple bookmark manager</p>
+				</div>
+				<div id="input-area">
+					<label for="username">Username: </label>
+					<input id="username" type="text" name="username" placeholder="Username" tabindex="1">
+					<label for="password">Password: </label>
+					<input id="password" type="password" name="password" placeholder="Password" tabindex="2" @keyup.enter="login">
+					<label class="checkbox-field"><input type="checkbox" name="remember" v-model="remember" tabindex="3">Remember me</label>
+				</div>
+				<div id="button-area">
+					<a v-if="loading">
+						<i class="fas fa-fw fa-spinner fa-spin"></i>
+					</a>
+					<a v-else class="button" tabindex="4" @click="login" @keyup.enter="login">Log In</a>
+				</div>
+			</form>
 		</div>
 	</div>
 
@@ -72,6 +74,10 @@
 					}
 				},
 				login() {
+                    // needed to work around autofill issue
+                    // https://github.com/facebook/react/issues/1159#issuecomment-506584346
+                    this.username = document.querySelector('#username').value;
+                    this.password = document.querySelector('#password').value;
 					// Validate input
 					if (this.username === "") {
 						this.error = "Username must not empty";
