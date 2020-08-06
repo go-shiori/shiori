@@ -64,9 +64,13 @@ export default {
 	},
 	computed: {
 		mainURL() {
-			if (this.hasContent) return `/bookmark/${this.id}/content`;
-			else if (this.hasArchive) return `/bookmark/${this.id}/archive`;
-			else return this.url;
+			if (this.hasContent) {
+				return new URL(`bookmark/${this.id}/content`, document.baseURI);
+			} else if (this.hasArchive) {
+				return new URL(`bookmark/${this.id}/archive`, document.baseURI);
+			} else {
+				return this.url;
+			}
 		},
 		hostnameURL() {
 			var url = new URL(this.url);

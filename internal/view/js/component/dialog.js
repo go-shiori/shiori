@@ -152,7 +152,7 @@ export default {
 				var value = field.value;
 				if (field.type === 'number') value = parseInt(value, 10) || 0;
 				else if (field.type === 'float') value = parseFloat(value) || 0.0;
-				else if (field.type === 'check') value = value !== '';
+				else if (field.type === 'check') value = Boolean(value);
 				data[field.name] = value;
 			})
 

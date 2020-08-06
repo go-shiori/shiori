@@ -16,7 +16,26 @@ import (
 	"syscall"
 )
 
-var rxRepeatedStrip = regexp.MustCompile(`(?i)-+`)
+var (
+	rxRepeatedStrip = regexp.MustCompile(`(?i)-+`)
+
+	presetMimeTypes = map[string]string{
+		".css":  "text/css; charset=utf-8",
+		".html": "text/html; charset=utf-8",
+		".js":   "application/javascript",
+		".png":  "image/png",
+	}
+)
+
+func guessTypeByExtension(ext string) string {
+	ext = strings.ToLower(ext)
+
+	if v, ok := presetMimeTypes[ext]; ok {
+		return v
+	}
+
+	return mime.TypeByExtension(ext)
+}
 
 func serveFile(w http.ResponseWriter, filePath string, cache bool) error {
 	// Open file
@@ -42,7 +61,7 @@ func serveFile(w http.ResponseWriter, filePath string, cache bool) error {
 
 	// Set content type
 	ext := fp.Ext(filePath)
-	mimeType := mime.TypeByExtension(ext)
+	mimeType := guessTypeByExtension(ext)
 	if mimeType != "" {
 		w.Header().Set("Content-Type", mimeType)
 		w.Header().Set("X-Content-Type-Options", "nosniff")

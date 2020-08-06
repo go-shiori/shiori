@@ -18,7 +18,7 @@ import (
 	"github.com/disintegration/imaging"
 	"github.com/go-shiori/go-readability"
 	"github.com/go-shiori/shiori/internal/model"
-	"github.com/go-shiori/shiori/pkg/warc"
+	"github.com/go-shiori/warc"
 
 	// Add support for png
 	_ "image/png"
@@ -128,6 +128,7 @@ func ProcessBookmark(req ProcessRequest) (model.Bookmark, bool, error) {
 			URL:         book.URL,
 			Reader:      archivalInput,
 			ContentType: contentType,
+			UserAgent:   userAgent,
 			LogEnabled:  req.LogArchival,
 		}
 

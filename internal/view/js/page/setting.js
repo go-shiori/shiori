@@ -98,7 +98,7 @@ export default {
 			if (this.loading) return;
 
 			this.loading = true;
-			fetch("/api/accounts")
+			fetch(new URL("api/accounts", document.baseURI))
 				.then(response => {
 					if (!response.ok) throw response;
 					return response.json();
@@ -163,7 +163,7 @@ export default {
 					}
 
 					this.dialog.loading = true;
-					fetch("/api/accounts", {
+					fetch(new URL("api/accounts", document.baseURI), {
 						method: "post",
 						body: JSON.stringify(request),
 						headers: {
@@ -246,7 +246,7 @@ export default {
 					}
 
 					this.dialog.loading = true;
-					fetch("/api/accounts", {
+					fetch(new URL("api/accounts", document.baseURI), {
 						method: "put",
 						body: JSON.stringify(request),
 						headers: {

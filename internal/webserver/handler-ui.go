@@ -4,10 +4,8 @@ import (
 	"bytes"
 	"compress/gzip"
 	"fmt"
-	"html/template"
 	"io"
 	"net/http"
-	nurl "net/url"
 	"os"
 	"path"
 	fp "path/filepath"
@@ -15,32 +13,36 @@ import (
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/go-shiori/shiori/pkg/warc"
+	"github.com/go-shiori/shiori/internal/model"
+	"github.com/go-shiori/warc"
 	"github.com/julienschmidt/httprouter"
 )
 
 // serveFile is handler for general file request
 func (h *handler) serveFile(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	err := serveFile(w, r.URL.Path, true)
+	rootPath := strings.Trim(h.RootPath, "/")
+	urlPath := strings.Trim(r.URL.Path, "/")
+	filePath := strings.TrimPrefix(urlPath, rootPath)
+
+	err := serveFile(w, filePath, true)
 	checkError(err)
 }
 
 // serveJsFile is handler for GET /js/*filepath
 func (h *handler) serveJsFile(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	filePath := r.URL.Path
-	fileName := path.Base(filePath)
-	fileDir := path.Dir(filePath)
+	jsFilePath := ps.ByName("filepath")
+	jsFilePath = path.Join("js", jsFilePath)
+	jsDir, jsName := path.Split(jsFilePath)
 
-	if developmentMode && fp.Ext(fileName) == ".js" && strings.HasSuffix(fileName, ".min.js") {
-		fileName = strings.TrimSuffix(fileName, ".min.js") + ".js"
-		filePath = path.Join(fileDir, fileName)
-		if assetExists(filePath) {
-			redirectPage(w, r, filePath)
-			return
+	if developmentMode && fp.Ext(jsName) == ".js" && strings.HasSuffix(jsName, ".min.js") {
+		jsName = strings.TrimSuffix(jsName, ".min.js") + ".js"
+		tmpPath := path.Join(jsDir, jsName)
+		if assetExists(tmpPath) {
+			jsFilePath = tmpPath
 		}
 	}
 
-	err := serveFile(w, r.URL.Path, true)
+	err := serveFile(w, jsFilePath, true)
 	checkError(err)
 }
 
@@ -49,12 +51,17 @@ func (h *handler) serveIndexPage(w http.ResponseWriter, r *http.Request, ps http
 	// Make sure session still valid
 	err := h.validateSession(r)
 	if err != nil {
-		redirectURL := createRedirectURL("/login", r.URL.String())
+		newPath := path.Join(h.RootPath, "/login")
+		redirectURL := createRedirectURL(newPath, r.URL.String())
 		redirectPage(w, r, redirectURL)
 		return
 	}
 
-	err = serveFile(w, "index.html", false)
+	if developmentMode {
+		h.prepareTemplates()
+	}
+
+	err = h.templates["index"].Execute(w, h.RootPath)
 	checkError(err)
 }
 
@@ -63,11 +70,16 @@ func (h *handler) serveLoginPage(w http.ResponseWriter, r *http.Request, ps http
 	// Make sure session is not valid
 	err := h.validateSession(r)
 	if err == nil {
-		redirectPage(w, r, "/")
+		redirectURL := path.Join(h.RootPath, "/")
+		redirectPage(w, r, redirectURL)
 		return
 	}
 
-	err = serveFile(w, "login.html", false)
+	if developmentMode {
+		h.prepareTemplates()
+	}
+
+	err = h.templates["login"].Execute(w, h.RootPath)
 	checkError(err)
 }
 
@@ -88,7 +100,8 @@ func (h *handler) serveBookmarkContent(w http.ResponseWriter, r *http.Request, p
 	if bookmark.Public != 1 {
 		err = h.validateSession(r)
 		if err != nil {
-			redirectURL := createRedirectURL("/login", r.URL.String())
+			newPath := path.Join(h.RootPath, "/login")
+			redirectURL := createRedirectURL(newPath, r.URL.String())
 			redirectPage(w, r, redirectURL)
 			return
 		}
@@ -116,7 +129,7 @@ func (h *handler) serveBookmarkContent(w http.ResponseWriter, r *http.Request, p
 		// Find all image and convert its source to use the archive URL.
 		createArchivalURL := func(archivalName string) string {
 			archivalURL := *r.URL
-			archivalURL.Path = path.Join("/", "bookmark", strID, "archive", archivalName)
+			archivalURL.Path = path.Join(h.RootPath, "bookmark", strID, "archive", archivalName)
 			return archivalURL.String()
 		}
 
@@ -162,18 +175,17 @@ func (h *handler) serveBookmarkContent(w http.ResponseWriter, r *http.Request, p
 		checkError(err)
 	}
 
-	// Create template
-	funcMap := template.FuncMap{
-		"html": func(s string) template.HTML {
-			return template.HTML(s)
-		},
+	// Execute template
+	if developmentMode {
+		h.prepareTemplates()
 	}
 
-	tplCache, err := createTemplate("content.html", funcMap)
-	checkError(err)
+	tplData := struct {
+		RootPath string
+		Book     model.Bookmark
+	}{h.RootPath, bookmark}
 
-	// Execute template
-	err = tplCache.Execute(w, &bookmark)
+	err = h.templates["content"].Execute(w, &tplData)
 	checkError(err)
 }
 
@@ -230,13 +242,9 @@ func (h *handler) serveBookmarkArchive(w http.ResponseWriter, r *http.Request, p
 	if bookmark.Public != 1 {
 		err = h.validateSession(r)
 		if err != nil {
-			urlQueries := nurl.Values{}
-			urlQueries.Set("dst", r.URL.Path)
-
-			redirectURL, _ := nurl.Parse("/login")
-			redirectURL.RawQuery = urlQueries.Encode()
-
-			redirectPage(w, r, redirectURL.String())
+			newPath := path.Join(h.RootPath, "/login")
+			redirectURL := createRedirectURL(newPath, r.URL.String())
+			redirectPage(w, r, redirectURL)
 			return
 		}
 	}
@@ -274,23 +282,17 @@ func (h *handler) serveBookmarkArchive(w http.ResponseWriter, r *http.Request, p
 		checkError(err)
 
 		// Add Shiori overlay
-		tpl, err := template.New("archive").Parse(
-			`<div id="shiori-archive-header">
-			<p id="shiori-logo"><span>栞</span>shiori</p>
-			<div class="spacer"></div>
-			<a href="{{.URL}}" target="_blank">View Original</a>
-			{{if .HasContent}}
-			<a href="/bookmark/{{.ID}}/content">View Readable</a>
-			{{end}}
-			</div>`)
-		checkError(err)
-
 		tplOutput := bytes.NewBuffer(nil)
-		err = tpl.Execute(tplOutput, &bookmark)
+		err = h.templates["archive"].Execute(tplOutput, &bookmark)
 		checkError(err)
 
-		doc.Find("head").AppendHtml(`<link href="/css/source-sans-pro.min.css" rel="stylesheet">`)
-		doc.Find("head").AppendHtml(`<link href="/css/archive.css" rel="stylesheet">`)
+		archiveCSSPath := path.Join(h.RootPath, "/css/archive.css")
+		sourceSansProCSSPath := path.Join(h.RootPath, "/css/source-sans-pro.min.css")
+
+		docHead := doc.Find("head")
+		docHead.PrependHtml(`<meta charset="UTF-8">`)
+		docHead.AppendHtml(`<link href="` + archiveCSSPath + `" rel="stylesheet">`)
+		docHead.AppendHtml(`<link href="` + sourceSansProCSSPath + `" rel="stylesheet">`)
 		doc.Find("body").PrependHtml(tplOutput.String())
 
 		// Revert back to HTML

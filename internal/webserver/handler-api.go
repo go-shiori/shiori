@@ -42,7 +42,7 @@ func (h *handler) apiLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 
 		// Save session ID to cache
 		strSessionID := sessionID.String()
-		h.SessionCache.Set(strSessionID, account.Owner, expTime)
+		h.SessionCache.Set(strSessionID, account, expTime)
 
 		// Save user's session IDs to cache as well
 		// useful for mass logout
@@ -53,15 +53,7 @@ func (h *handler) apiLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 		}
 		h.UserCache.Set(request.Username, sessionIDs, -1)
 
-		// Return session ID to user in cookies
-		http.SetCookie(w, &http.Cookie{
-			Name:    "session-id",
-			Value:   strSessionID,
-			Path:    "/",
-			Expires: time.Now().Add(expTime),
-		})
-
-		// Send account data
+		// Send login result
 		account.Password = ""
 		loginResult := struct {
 			Session string        `json:"session"`
@@ -183,7 +175,7 @@ func (h *handler) apiGetBookmarks(w http.ResponseWriter, r *http.Request, ps htt
 		archivePath := fp.Join(h.DataDir, "archive", strID)
 
 		if fileExists(imgPath) {
-			bookmarks[i].ImageURL = path.Join("/", "bookmark", strID, "thumb")
+			bookmarks[i].ImageURL = path.Join(h.RootPath, "bookmark", strID, "thumb")
 		}
 
 		if fileExists(archivePath) {
@@ -391,6 +383,7 @@ func (h *handler) apiUpdateBookmark(w http.ResponseWriter, r *http.Request, ps h
 	// Add thumbnail image to the saved bookmarks again
 	newBook := res[0]
 	newBook.ImageURL = request.ImageURL
+	newBook.HasArchive = request.HasArchive
 
 	// Return new saved result
 	w.Header().Set("Content-Type", "application/json")
@@ -573,7 +566,7 @@ func (h *handler) apiUpdateBookmarkTags(w http.ResponseWriter, r *http.Request, 
 	for i := range bookmarks {
 		strID := strconv.Itoa(bookmarks[i].ID)
 		imgPath := fp.Join(h.DataDir, "thumb", strID)
-		imgURL := path.Join("/", "bookmark", strID, "thumb")
+		imgURL := path.Join(h.RootPath, "bookmark", strID, "thumb")
 
 		if fileExists(imgPath) {
 			bookmarks[i].ImageURL = imgURL

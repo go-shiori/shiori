@@ -18,7 +18,7 @@ func DownloadBookmark(url string) (io.ReadCloser, string, error) {
 	}
 
 	// Send download request
-	req.Header.Set("User-Agent", "Shiori/2.0.0 (+https://github.com/go-shiori/shiori)")
+	req.Header.Set("User-Agent", userAgent)
 	resp, err := httpClient.Do(req)
 	if err != nil {
 		return nil, "", err
