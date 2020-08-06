@@ -1,5 +1,6 @@
 # Shiori
 
+[![CI](https://github.com/go-shiori/shiori/workflows/CI/badge.svg)](https://github.com/go-shiori/shiori/actions?query=workflow%3ACI)
 [![Go Report Card](https://goreportcard.com/badge/github.com/go-shiori/shiori)](https://goreportcard.com/report/github.com/go-shiori/shiori)
 [![Docker Image](https://img.shields.io/static/v1?label=image&message=Docker&color=1488C6&logo=docker)](https://hub.docker.com/r/radhifadlillah/shiori)
 [![Deploy Heroku](https://img.shields.io/static/v1?label=deploy&message=Heroku&color=430098&logo=heroku)](https://heroku.com/deploy)

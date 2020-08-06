@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.14.x
+
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Install golint
+        run: go get golang.org/x/lint/golint
+
+      - name: Lint Go source code
+        run: golint -set_exit_status ./...
+
+  test:
+    name: Unit tests
+    strategy:
+      matrix:
+        go-version: [1.12.x, 1.13.x, 1.14.x]
+        platform: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go-version }}
+
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Fetch dependencies
+        run: |
+          go get -v -t -d ./...
+
+      - name: Run unit tests
+        run: go test ./...
+
+      # - name: Codecov
+      #   if: ${{ matrix.go-version == '1.14.x' && matrix.platform == 'ubuntu-latest' }}
+      #   uses: codecov/codecov-action@v1
+      #   with:
+      #     file: coverage.out
