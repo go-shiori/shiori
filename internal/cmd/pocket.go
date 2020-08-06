@@ -36,7 +36,7 @@ func pocketHandler(cmd *cobra.Command, args []string) {
 	srcFile, err := os.Open(args[0])
 	if err != nil {
 		cError.Println(err)
-		return
+		os.Exit(1)
 	}
 	defer srcFile.Close()
 
@@ -47,7 +47,7 @@ func pocketHandler(cmd *cobra.Command, args []string) {
 	doc, err := goquery.NewDocumentFromReader(srcFile)
 	if err != nil {
 		cError.Println(err)
-		return
+		os.Exit(1)
 	}
 
 	doc.Find("a").Each(func(_ int, a *goquery.Selection) {
@@ -109,7 +109,7 @@ func pocketHandler(cmd *cobra.Command, args []string) {
 	bookmarks, err = db.SaveBookmarks(bookmarks...)
 	if err != nil {
 		cError.Printf("Failed to save bookmarks: %v\n", err)
-		return
+		os.Exit(1)
 	}
 
 	// Print imported bookmark

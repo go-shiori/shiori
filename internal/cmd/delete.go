@@ -48,14 +48,14 @@ func deleteHandler(cmd *cobra.Command, args []string) {
 	ids, err := parseStrIndices(args)
 	if err != nil {
 		cError.Printf("Failed to parse args: %v\n", err)
-		return
+		os.Exit(1)
 	}
 
 	// Delete bookmarks from database
 	err = db.DeleteBookmarks(ids...)
 	if err != nil {
 		cError.Printf("Failed to delete bookmarks: %v\n", err)
-		return
+		os.Exit(1)
 	}
 
 	// Delete thumbnail image and archives from local disk
