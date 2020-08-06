@@ -7,3 +7,6 @@
 
 # Exclude development data
 /dev-data
+
+# Coverage data
+/coverage.out
