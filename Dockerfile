@@ -1,17 +1,14 @@
-FROM golang:1.13-alpine as builder
+FROM golang:alpine AS builder
+RUN apk add --no-cache build-base
+WORKDIR /src
+COPY . .
+RUN go build
 
-RUN apk update && apk --no-cache add git build-base
-RUN go get -u -v github.com/go-shiori/shiori
-
-# ========== END OF BUILDER ========== #
-
-FROM alpine:latest
-
-RUN apk update && apk --no-cache add dumb-init ca-certificates
-COPY --from=builder /go/bin/shiori /usr/local/bin/shiori
-
+# server image
+FROM golang:alpine
+COPY --from=builder /src/shiori /usr/local/bin/
 ENV SHIORI_DIR /srv/shiori/
 EXPOSE 8080
-
-ENTRYPOINT ["/usr/bin/dumb-init", "--"]
+RUN adduser --disabled-password --shell /bin/ash --gecos "User" shiori && mkdir /srv/shiori && chown -R shiori:shiori /srv/shiori
+USER shiori
 CMD ["/usr/local/bin/shiori", "serve"]
