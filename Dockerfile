@@ -1,11 +1,14 @@
 FROM golang:alpine AS builder
-RUN apk add --no-cache build-base
+ENV LDFLAGS="-s -W"
+RUN apk add --no-cache build-base upx
 WORKDIR /src
 COPY . .
 RUN go build
-
+RUN upx --lzma /src/shiori
 # server image
-FROM golang:alpine
+FROM alpine:3.12
+# Keep us up-to-date and secure every build
+RUN apk update && apk upgrade
 COPY --from=builder /src/shiori /usr/local/bin/
 ENV SHIORI_DIR /srv/shiori/
 EXPOSE 8080
