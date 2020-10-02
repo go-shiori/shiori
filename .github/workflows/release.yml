@@ -1,56 +1,40 @@
-name: CI
+name: Release
 
 on:
   push:
-    branches: [ master ]
-  pull_request:
+    tags:
+      - '*'
 
 jobs:
-  lint:
-    name: Lint and Vet
+  createRelease:
     runs-on: ubuntu-latest
     steps:
-      - name: Install Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.x
-      - name: Check out code
-        uses: actions/checkout@v2
-      - name: Install golint
-        run: go get golang.org/x/lint/golint
-      - name: Lint Go source code
-        run: golint -set_exit_status ./...
-      - name: Vet Go source code
-        run: go vet ./...
-
-  test:
-    name: Unit tests
-    strategy:
-      matrix:
-        go-version: [1.12.x, 1.13.x, 1.14.x, 1.15.x]
-        platform: [ubuntu-latest, macos-latest, windows-latest]
-    runs-on: ${{ matrix.platform }}
-    steps:
-      - name: Install Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: ${{ matrix.go-version }}
-      - name: Check out code
-        uses: actions/checkout@v2
-      - name: Fetch dependencies
+      - name: Get the tag
+        id: get_tag
         run: |
-          go get -v -t -d ./...
-      - name: Run unit tests
-        run: go test ./...
-
-      # - name: Codecov
-      #   if: ${{ matrix.go-version == '1.14.x' && matrix.platform == 'ubuntu-latest' }}
-      #   uses: codecov/codecov-action@v1
-      #   with:
-      #     file: coverage.out
+          echo ::set-output name=TAG::${GITHUB_REF/refs\/tags\//}  
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.get_tag.outputs.TAG }}
+          release_name: Release ${{ steps.get_tag.outputs.TAG }}
+          draft: false
+          prerelease: false
+      - name: Create variable files
+        run: |
+          cat <<< ${{ steps.create_release.outputs.upload_url }} > releaseurl.txt
+          cat <<< ${{ steps.get_tag.outputs.TAG }} > tag.txt
+      - name: Upload variables
+        uses: actions/upload-artifact@v2
+        with:
+          name: vars
+          path: ./*.txt
 
   build:
-    needs: [test]
+    needs: [createRelease]
     strategy:
       matrix:
         include:
@@ -76,37 +60,63 @@ jobs:
             ext: .exe
           - descrip: osx-amd64
             os: macos-latest
-            
+
     runs-on: ${{ matrix.os }}
     steps:
       - name: Install cross compile chain
         if: matrix.os == 'ubuntu-latest'
-        run: sudo apt install ${{matrix.chain}}  
+        run: sudo apt install ${{matrix.chain}}
       - name: Install Go
         uses: actions/setup-go@v2
         with:
           go-version: 1.x
       - name: Check out code
         uses: actions/checkout@v2
+      - name: Get vars
+        uses: actions/download-artifact@v1
+        with:
+          name: vars
+      - shell: bash
+        id: var      
+        run: |
+          echo ::set-output name=TAG::`cat vars/tag.txt`
+          echo ::set-output name=RELEASEURL::`cat vars/releaseurl.txt`
       - name: Build
         run: |
           go generate ./...
-          ${{ matrix.envflags }} go build -o shiori-${{ matrix.descrip }}${{ matrix.ext }} -a ${{ matrix.goflags }} .
+          ${{ matrix.envflags }} go build -o shiori-${{ steps.var.outputs.TAG }}-${{ matrix.descrip }}${{ matrix.ext }} -a ${{ matrix.goflags }} .
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
         with:
           path: shiori-*
+      - name: Upload Release Asset
+        id: upload-release-asset 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.var.outputs.RELEASEURL }}
+          asset_path: ./shiori-${{ steps.var.outputs.TAG }}-${{ matrix.descrip }}${{ matrix.ext }}
+          asset_name: shiori-${{ steps.var.outputs.TAG }}-${{ matrix.descrip }}${{ matrix.ext }}
+          asset_content_type: application/octet-stream
 
   docker:
-    if: github.ref == 'refs/heads/master'
+    needs: [createRelease]
     runs-on: ubuntu-latest
-    needs: [test]
     steps:
+      - name: Get vars
+        uses: actions/download-artifact@v1
+        with:
+          name: vars
+      - shell: bash
+        id: var        
+        run: |
+          echo ::set-output name=TAG::`cat vars/tag.txt`
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Get SHA
-        id: vars
-        run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+      - name: Get the tag
+        id: get_tag
+        run: echo ::set-output name=TAG::${GITHUB_REF/refs\/tags\//}
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
       - name: Set up Docker Buildx
@@ -124,4 +134,5 @@ jobs:
           platforms: linux/amd64,linux/arm/v7,linux/arm64
           push: true
           tags: |
-            go-shiori/shiori:${{ steps.vars.outputs.sha_short }}
+            go-shiori/shiori:latest
+            go-shiori/shiori:${{ steps.var.outputs.TAG }}

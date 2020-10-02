@@ -1,0 +1,7 @@
+.git*
+docs
+*.md
+Dockerfile
+LICENSE
+modd.conf
+.dockerignore
