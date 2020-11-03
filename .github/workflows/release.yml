@@ -134,5 +134,5 @@ jobs:
           platforms: linux/amd64,linux/arm/v7,linux/arm64
           push: true
           tags: |
-            go-shiori/shiori:latest
-            go-shiori/shiori:${{ steps.var.outputs.TAG }}
+            deanishe/shiori:latest
+            deanishe/shiori:${{ steps.var.outputs.TAG }}
