@@ -240,11 +240,19 @@ func (db *SQLiteDatabase) GetBookmarks(opts GetBookmarksOptions) ([]model.Bookma
 		query += ` AND (b.url LIKE ? OR b.excerpt LIKE ? OR b.id IN (
 			SELECT docid id 
 			FROM bookmark_content 
-			WHERE title MATCH ? OR content MATCH ?))`
+			WHERE title MATCH ? OR content MATCH ?)) OR
+			b.id IN (
+			SELECT bt.bookmark_id
+			FROM bookmark_tag bt
+			LEFT JOIN tag t ON bt.tag_id = t.id
+			WHERE t.name IN(?)
+			GROUP BY bt.bookmark_id
+			HAVING COUNT(bt.bookmark_id) = 1)`
 
 		args = append(args,
 			"%"+opts.Keyword+"%",
 			"%"+opts.Keyword+"%",
+			opts.Keyword,
 			opts.Keyword,
 			opts.Keyword)
 	}
