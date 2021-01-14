@@ -74,7 +74,7 @@ func (h *handler) apiLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 	accounts, err := h.DB.GetAccounts(searchOptions)
 	checkError(err)
 
-	if len(accounts) == 0 && request.Username == "shiori" && request.Password == "gopher" {
+	if len(accounts) == 0 {
 		genSession(model.Account{
 			Username: "shiori",
 			Owner:    true,
