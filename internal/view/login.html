@@ -78,12 +78,6 @@
                     // https://github.com/facebook/react/issues/1159#issuecomment-506584346
                     this.username = document.querySelector('#username').value;
                     this.password = document.querySelector('#password').value;
-					// Validate input
-					if (this.username === "") {
-						this.error = "Username must not empty";
-						return;
-					}
-
 					// Remove old cookie
 					document.cookie = `session-id=; Path=${new URL(document.baseURI).pathname}; Expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
 
