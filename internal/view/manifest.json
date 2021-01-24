@@ -1,0 +1,26 @@
+{
+    "start_url": "/",
+    "short_name": "Shiori",
+    "background_color": "",
+    "url": "/",
+    "lang": "English",
+    "name": "Shiori",
+    "display": "standalone",
+    "orientation": "any",
+    "share_target": {
+        "action": "/share-target/",
+        "method": "GET",
+        "params": {
+          "title": "title",
+          "text": "text",
+          "url": "url"
+        }
+      },
+    "icons": [
+        {
+            "src": "/res/apple-touch-icon-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}

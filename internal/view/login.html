@@ -18,6 +18,8 @@
 	<link href="css/fontawesome.min.css" rel="stylesheet">
 	<link href="css/stylesheet.css" rel="stylesheet">
 
+	<link rel="manifest" href="manifest.json">
+
 	<script src="js/vue.min.js"></script>
 	<script src="js/url.min.js"></script>
 </head>
@@ -142,6 +144,13 @@
 				localStorage.removeItem("shiori-account");
 			}
 		})
+	</script>
+	<script type="module">
+		if ('serviceWorker' in navigator) {
+		window.addEventListener('load', function() {
+			navigator.serviceWorker.register('pwabuilder-sw.js');
+		});
+		}
 	</script>
 </body>
 
