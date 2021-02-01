@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	fp "path/filepath"
 	"strconv"
@@ -14,6 +15,35 @@ import (
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/julienschmidt/httprouter"
 )
+
+// apiGetViaExtension is handler for GET /api/bookmarks/ext
+func (h *handler) apiGetViaExtension(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	// Make sure session still valid
+	err := h.validateSession(r)
+	checkError(err)
+
+	// Get URL querie
+	value := r.URL.Query().Get("value")
+
+	decodedValue, err := url.QueryUnescape(value)
+	if err != nil {
+		panic(fmt.Errorf("failed to decode URL: %v", err))
+	}
+
+	// Clean up bookmark URL
+	decodedValue, err = core.RemoveUTMParams(decodedValue)
+	if err != nil {
+		panic(fmt.Errorf("failed to clean URL: %v", err))
+	}
+
+	// Check if bookmark already exists.
+	_, exist := h.DB.GetBookmark(0, decodedValue)
+
+	// Return bookmark state
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(exist)
+	checkError(err)
+}
 
 // apiInsertViaExtension is handler for POST /api/bookmarks/ext
 func (h *handler) apiInsertViaExtension(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
