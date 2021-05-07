@@ -74,9 +74,19 @@ func (h *handler) apiLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 	accounts, err := h.DB.GetAccounts(searchOptions)
 	checkError(err)
 
-	if len(accounts) == 0 && request.Username == "shiori" && request.Password == "gopher" {
+	defaultUser, _ := os.LookupEnv("SHIORI_DEFAULT_USER")
+	defaultPass, _ := os.LookupEnv("SHIORI_DEFAULT_PASS")
+
+	if(defaultUser == "") {
+		defaultUser = "shiori"
+	}
+	if(defaultPass == ""){
+		defaultPass = "gopher"
+	}
+
+	if len(accounts) == 0 && request.Username == defaultUser && request.Password == defaultPass {
 		genSession(model.Account{
-			Username: "shiori",
+			Username: defaultUser,
 			Owner:    true,
 		}, time.Hour)
 		return
