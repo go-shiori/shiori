@@ -260,6 +260,7 @@ func (h *handler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 			Bookmark:    book,
 			Content:     content,
 			ContentType: contentType,
+			KeepTitle:   book.Title != "",
 		}
 
 		book, isFatalErr, err = core.ProcessBookmark(request)
