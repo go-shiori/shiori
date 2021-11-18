@@ -1,0 +1,10 @@
+version: "3"
+services:
+  shiori:
+    image: radhifadlillah/shiori:latest                  
+    container_name: Shiori
+    ports:
+      - "8080:8080"
+    volumes: 
+      - ./container:/srv/shiori
+    restart: unless-stopped
