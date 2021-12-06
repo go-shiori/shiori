@@ -10,9 +10,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-shiori/shiori/internal/database"
 	"github.com/go-shiori/warc"
-	"github.com/julienschmidt/httprouter"
 	"github.com/spf13/cobra"
 )
 
@@ -140,9 +141,10 @@ func openHandler(cmd *cobra.Command, args []string) {
 	defer archive.Close()
 
 	// Create simple server
-	router := httprouter.New()
-	router.GET("/*filename", func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-		filename := ps.ByName("filename")
+	router := chi.NewRouter()
+	router.Use(middleware.Logger, middleware.Recoverer)
+	router.Get("/{fileName}", func(w http.ResponseWriter, r *http.Request) {
+		filename := chi.URLParam(r, "fileName")
 		resourceName := fp.Base(filename)
 		if resourceName == "/" {
 			resourceName = ""
@@ -159,10 +161,6 @@ func openHandler(cmd *cobra.Command, args []string) {
 			panic(err)
 		}
 	})
-
-	router.PanicHandler = func(w http.ResponseWriter, r *http.Request, arg interface{}) {
-		http.Error(w, fmt.Sprint(arg), 500)
-	}
 
 	// Choose random port
 	listenerAddr := fmt.Sprintf(":%d", archivePort)
