@@ -175,10 +175,16 @@
 	</script>
 	<script type="module">
 		if ('serviceWorker' in navigator) {
-		window.addEventListener('load', function() {
-			navigator.serviceWorker.register('pwabuilder-sw.js');
-		});
+			window.addEventListener('load', function() {
+				navigator.serviceWorker.register('pwabuilder-sw.js');
+			});
 		}
+	</script>
+	<script type="module">
+		import 'https://cdn.jsdelivr.net/npm/@pwabuilder/pwaupdate';
+
+		const el = document.createElement('pwa-update');
+		document.body.appendChild(el);
 	</script>
 </body>
 
