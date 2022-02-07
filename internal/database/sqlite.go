@@ -20,7 +20,7 @@ type SQLiteDatabase struct {
 // OpenSQLiteDatabase creates and open connection to new SQLite3 database.
 func OpenSQLiteDatabase(databasePath string) (sqliteDB *SQLiteDatabase, err error) {
 	// Open database and start transaction
-	db := sqlx.MustConnect("sqlite3", databasePath)
+	db := sqlx.MustConnect("sqlite", databasePath)
 
 	tx, err := db.Beginx()
 	if err != nil {
@@ -71,7 +71,7 @@ func OpenSQLiteDatabase(databasePath string) (sqliteDB *SQLiteDatabase, err erro
 		CONSTRAINT bookmark_id_FK FOREIGN KEY(bookmark_id) REFERENCES bookmark(id),
 		CONSTRAINT tag_id_FK FOREIGN KEY(tag_id) REFERENCES tag(id))`)
 
-	tx.MustExec(`CREATE VIRTUAL TABLE IF NOT EXISTS bookmark_content USING fts4(title, content, html)`)
+	tx.MustExec(`CREATE VIRTUAL TABLE IF NOT EXISTS bookmark_content USING fts5(title, content, html, docid)`)
 
 	// Alter table if needed
 	tx.Exec(`ALTER TABLE account ADD COLUMN owner INTEGER NOT NULL DEFAULT 0`)
@@ -215,7 +215,7 @@ func (db *SQLiteDatabase) GetBookmarks(opts GetBookmarksOptions) ([]model.Bookma
 		`b.author`,
 		`b.public`,
 		`b.modified`,
-		`bc.content <> "" has_content`}
+		`bc.content <> "" has_content`,}
 
 	if opts.WithContent {
 		columns = append(columns, `bc.content`, `bc.html`)
