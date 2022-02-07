@@ -1,0 +1,21 @@
+name: 'Push'
+
+on:
+  push:
+    branches: master
+    tags: v*
+
+concurrency:
+  group: ci-tests-${{ github.ref }}-1
+  cancel-in-progress: true
+
+jobs:
+  call-lint:
+    uses: ./.github/workflows/_golangci-lint.yml
+  call-test:
+    uses: ./.github/workflows/_test.yml
+  call-gorelease:
+    uses: ./.github/workflows/_gorelease.yml
+  call-buildx:
+    needs: call-gorelease
+    uses: ./.github/workflows/_buildx.yml
