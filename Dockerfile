@@ -1,12 +1,13 @@
 # build stage
-FROM golang:alpine AS builder
+FROM ghcr.io/ghcri/golang:1.17-alpine3.15 AS builder
 RUN apk add --no-cache build-base
 WORKDIR /src
 COPY . .
 RUN go build
 
 # server image
-FROM golang:alpine
+LABEL org.opencontainers.image.source https://github.com/go-shiori/shiori
+FROM ghcr.io/ghcri/alpine:3.15
 COPY --from=builder /src/shiori /usr/local/bin/
 ENV SHIORI_DIR /srv/shiori/
 EXPOSE 8080
