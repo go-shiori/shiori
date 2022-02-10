@@ -20,3 +20,9 @@ markComment: >
   Thank you for your contributions.
 # Comment to post when closing a stale issue. Set to `false` to disable
 closeComment: false
+
+pulls:
+  daysUntilStale: 10
+  daysUntilClose: 10
+  onlyLabels:
+    - tag:stalebot
