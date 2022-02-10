@@ -27,7 +27,7 @@ func (h *handler) apiLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 	request := struct {
 		Username string `json:"username"`
 		Password string `json:"password"`
-		Remember int    `json:"remember"`
+		Remember bool   `json:"remember"`
 		Owner    bool   `json:"owner"`
 	}{}
 
@@ -101,10 +101,10 @@ func (h *handler) apiLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 
 	// Calculate expiration time
 	expTime := time.Hour
-	if request.Remember > 0 {
-		expTime = time.Duration(request.Remember) * time.Hour
+	if request.Remember {
+		expTime = time.Hour * 24 * 30
 	} else {
-		expTime = -1
+		expTime = time.Second * 10
 	}
 
 	// Create session
