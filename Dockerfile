@@ -11,4 +11,5 @@ FROM ghcr.io/ghcri/alpine:3.15
 COPY --from=builder /src/shiori /usr/local/bin/
 ENV SHIORI_DIR /srv/shiori/
 EXPOSE 8080
-CMD ["/usr/local/bin/shiori", "serve"]
+ENTRYPOINT ["/usr/local/bin/shiori"]
+CMD ["serve"]
