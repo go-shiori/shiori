@@ -2,8 +2,10 @@
 
 [![CI](https://github.com/go-shiori/shiori/workflows/CI/badge.svg)](https://github.com/go-shiori/shiori/actions?query=workflow%3ACI)
 [![Go Report Card](https://goreportcard.com/badge/github.com/go-shiori/shiori)](https://goreportcard.com/report/github.com/go-shiori/shiori)
-[![Docker Image](https://img.shields.io/static/v1?label=image&message=Docker&color=1488C6&logo=docker)](https://hub.docker.com/r/radhifadlillah/shiori)
 [![#shiori@libera.chat](https://img.shields.io/badge/irc-%23shiori-orange)](https://web.libera.chat/#shiori)
+
+[![Docker Stable](https://img.shields.io/static/v1?label=Container&message=Stable&color=1488C6&logo=docker)](https://github.com/go-shiori/shiori/pkgs/container/shiori/14550516?tag=latest)
+[![Docker Edge](https://img.shields.io/static/v1?label=Container&message=Edge&color=1488C6&logo=docker)](https://github.com/go-shiori/shiori/pkgs/container/shiori/14866811?tag=edge)
 
 Shiori is a simple bookmarks manager written in the Go language. Intended as a simple clone of [Pocket][pocket]. You can use it as a command line application or as a web application. This application is distributed as a single binary, which means it can be installed and used easily.
 
