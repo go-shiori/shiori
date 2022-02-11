@@ -68,11 +68,9 @@ func OpenPGDatabase(connString string) (pgDB *PGDatabase, err error) {
 		CONSTRAINT tag_name_UNIQUE UNIQUE (name))`)
 
 	tx.MustExec(`CREATE TABLE IF NOT EXISTS bookmark_tag(
-		bookmark_id INT      NOT NULL,
-		tag_id      INT      NOT NULL,
-		PRIMARY KEY(bookmark_id, tag_id),
-		CONSTRAINT bookmark_tag_bookmark_id_FK FOREIGN KEY (bookmark_id) REFERENCES bookmark (id),
-		CONSTRAINT bookmark_tag_tag_id_FK FOREIGN KEY (tag_id) REFERENCES tag (id))`)
+		bookmark_id SERIAL REFERENCES bookmark(id) ON DELETE CASCADE,
+		tag_id      SERIAL REFERENCES tag(id) ON DELETE CASCADE,
+		PRIMARY KEY(bookmark_id, tag_id))`)
 
 	// Create indices
 	tx.MustExec(`CREATE INDEX IF NOT EXISTS bookmark_tag_bookmark_id_FK ON bookmark_tag (bookmark_id)`)
@@ -110,14 +108,15 @@ func (db *PGDatabase) SaveBookmarks(bookmarks ...model.Bookmark) (result []model
 		(url, title, excerpt, author, public, content, html, modified)
 		VALUES($1, $2, $3, $4, $5, $6, $7, $8)
 		ON CONFLICT(url) DO UPDATE SET
-		url      = $1,
-		title    = $2,
-		excerpt  = $3,
-		author   = $4,
-		public   = $5,
-		content  = $6,
-		html     = $7,
-		modified = $8`)
+		  url      = $1,
+		  title    = $2,
+		  excerpt  = $3,
+		  author   = $4,
+		  public   = $5,
+		  content  = $6,
+		  html     = $7,
+		  modified = $8
+		RETURNING id`)
 	checkError(err)
 
 	stmtGetTag, err := tx.Preparex(`SELECT id FROM tag WHERE name = $1`)
@@ -157,9 +156,15 @@ func (db *PGDatabase) SaveBookmarks(bookmarks ...model.Bookmark) (result []model
 		book.Modified = modifiedTime
 
 		// Save bookmark
-		stmtInsertBook.MustExec(
-			book.URL, book.Title, book.Excerpt, book.Author,
-			book.Public, book.Content, book.HTML, book.Modified)
+		stmtInsertBook.Get(&(book.ID),
+			sanitizeString(book.URL),
+			sanitizeString(book.Title),
+			sanitizeString(book.Excerpt),
+			sanitizeString(book.Author),
+			book.Public,
+			sanitizeString(book.Content),
+			sanitizeString(book.HTML),
+			book.Modified)
 
 		// Save book tags
 		newTags := []model.Tag{}
@@ -171,7 +176,8 @@ func (db *PGDatabase) SaveBookmarks(bookmarks ...model.Bookmark) (result []model
 			}
 
 			// Normalize tag name
-			tagName := strings.ToLower(tag.Name)
+			tagName := sanitizeString(tag.Name)
+			tagName = strings.ToLower(tagName)
 			tagName = strings.Join(strings.Fields(tagName), " ")
 
 			// If tag doesn't have any ID, fetch it from database
@@ -316,6 +322,9 @@ func (db *PGDatabase) GetBookmarks(opts GetBookmarksOptions) ([]model.Bookmark, 
 
 	// Expand query, because some of the args might be an array
 	query, args, err := sqlx.Named(query, arg)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create named query: %v", err)
+	}
 	query, args, err = sqlx.In(query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to expand query: %v", err)
@@ -432,6 +441,9 @@ func (db *PGDatabase) GetBookmarksCount(opts GetBookmarksOptions) (int, error) {
 
 	// Expand query, because some of the args might be an array
 	query, args, err := sqlx.Named(query, arg)
+	if err != nil {
+		return 0, fmt.Errorf("failed to create named query: %v", err)
+	}
 	query, args, err = sqlx.In(query, args...)
 	if err != nil {
 		return 0, fmt.Errorf("failed to expand query: %v", err)
@@ -468,21 +480,16 @@ func (db *PGDatabase) DeleteBookmarks(ids ...int) (err error) {
 
 	// Prepare queries
 	delBookmark := `DELETE FROM bookmark`
-	delBookmarkTag := `DELETE FROM bookmark_tag`
 
 	// Delete bookmark(s)
 	if len(ids) == 0 {
-		tx.MustExec(delBookmarkTag)
 		tx.MustExec(delBookmark)
 	} else {
 		delBookmark += ` WHERE id = $1`
-		delBookmarkTag += ` WHERE bookmark_id = $1`
 
 		stmtDelBookmark, _ := tx.Preparex(delBookmark)
-		stmtDelBookmarkTag, _ := tx.Preparex(delBookmarkTag)
 
 		for _, id := range ids {
-			stmtDelBookmarkTag.MustExec(id)
 			stmtDelBookmark.MustExec(id)
 		}
 	}
@@ -626,13 +633,6 @@ func (db *PGDatabase) RenameTag(id int, newName string) error {
 
 // CreateNewID creates new ID for specified table
 func (db *PGDatabase) CreateNewID(table string) (int, error) {
-	var tableID int
-	query := fmt.Sprintf(`SELECT last_value from %s_id_seq;`, table)
-
-	err := db.Get(&tableID, query)
-	if err != nil && err != sql.ErrNoRows {
-		return -1, err
-	}
-
-	return tableID, nil
+	// dummy id as not used on postgresql with autoincrement serial
+	return 1, nil
 }
