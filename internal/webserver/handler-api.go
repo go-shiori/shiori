@@ -104,7 +104,7 @@ func (h *handler) apiLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 	if request.Remember {
 		expTime = time.Hour * 24 * 30
 	} else {
-		expTime = time.Second * 10
+		expTime = time.Hour
 	}
 
 	// Create session
