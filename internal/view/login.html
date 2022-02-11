@@ -89,14 +89,13 @@
 
 					// Send request
 					this.loading = true;
-					var sessionAge = this.remember ? 12 : 1;
 
 					fetch(new URL("api/login", document.baseURI), {
 						method: "post",
 						body: JSON.stringify({
 							username: this.username,
 							password: this.password,
-							remember: sessionAge,
+							remember: this.remember == 1 ? true : false,
 						}),
 						headers: { "Content-Type": "application/json" },
 					}).then(response => {
@@ -104,7 +103,8 @@
 						return response.json();
 					}).then(json => {
 						// Save session id
-						var expTime = new Date(Date.now() + sessionAge * 3600 * 1000).toUTCString();
+						var sessionAge = this.remember == 1 ? 60 * 60 * 24 * 30 : 10
+						var expTime = new Date(Date.now() + sessionAge * 1000).toUTCString();
 						document.cookie = `session-id=${json.session}; Path=${new URL(document.baseURI).pathname}; Expires=${expTime}`;
 
 						// Save account data
