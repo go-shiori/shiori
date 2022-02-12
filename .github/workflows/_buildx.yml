@@ -25,7 +25,8 @@ jobs:
           cp -r ../shiori_linux_* .
           mv shiori_linux_arm_7 shiori_linux_arm
           gzip -d -S .gz__  -r .
-          ls -R
+          chmod 755 shiori_linux_*/shiori
+          ls -lRh
       - name: Buildx
         run: |
           echo ${{ secrets.GITHUB_TOKEN }} | docker login -u go-shiori --password-stdin ghcr.io
@@ -39,7 +40,7 @@ jobs:
           fi
           docker buildx create --use --name builder
           docker buildx ls
-          printf "FROM ghcr.io/ghcri/alpine:3.15\nARG TARGETARCH\nCOPY etc /etc\nUSER shiori\nCOPY binaries/shiori_linux_\$TARGETARCH/shiori /usr/bin/shiori" > Containerfile
-          printf "\nLABEL org.opencontainers.image.source https://github.com/go-shiori/shiori\nWORKDIR /shiori\nEXPOSE 8080\nENTRYPOINT /usr/bin/shiori\nCMD serve" >> Containerfile
-          cat Containerfile
+          printf 'FROM ghcr.io/ghcri/alpine:3.15\nARG TARGETARCH\nCOPY etc /etc\nCOPY binaries/shiori_linux_$TARGETARCH/shiori /usr/bin/shiori' > Containerfile
+          printf '\nLABEL org.opencontainers.image.source https://github.com/n8225/shiori\nUSER shiori\nWORKDIR /shiori\nEXPOSE 8080\nENV SHIORI_DIR=/shiori\nENTRYPOINT ["
+/usr/bin/shiori"]\nCMD ["serve"]' >> Containerfile
           docker buildx build -f Containerfile --platform=linux/amd64,arm64,linux/arm/v7 --push --output=type=registry --tag $REPO:$TAG --tag $REPO:$TAG2 .
