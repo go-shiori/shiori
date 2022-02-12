@@ -41,6 +41,5 @@ jobs:
           docker buildx create --use --name builder
           docker buildx ls
           printf 'FROM ghcr.io/ghcri/alpine:3.15\nARG TARGETARCH\nCOPY etc /etc\nCOPY binaries/shiori_linux_$TARGETARCH/shiori /usr/bin/shiori' > Containerfile
-          printf '\nLABEL org.opencontainers.image.source https://github.com/n8225/shiori\nUSER shiori\nWORKDIR /shiori\nEXPOSE 8080\nENV SHIORI_DIR=/shiori\nENTRYPOINT ["
-/usr/bin/shiori"]\nCMD ["serve"]' >> Containerfile
+          printf '\nLABEL org.opencontainers.image.source https://github.com/n8225/shiori\nUSER shiori\nWORKDIR /shiori\nEXPOSE 8080\nENV SHIORI_DIR=/shiori\nENTRYPOINT ["/usr/bin/shiori"]\nCMD ["serve"]' >> Containerfile
           docker buildx build -f Containerfile --platform=linux/amd64,arm64,linux/arm/v7 --push --output=type=registry --tag $REPO:$TAG --tag $REPO:$TAG2 .
