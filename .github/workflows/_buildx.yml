@@ -28,8 +28,8 @@ jobs:
           ls -R
       - name: Buildx
         run: |
-          echo ${{ secrets.GITHUB_TOKEN }} | docker login -u n8225 --password-stdin ghcr.io
-          REPO=ghcr.io/n8225/shiori
+          echo ${{ secrets.GITHUB_TOKEN }} | docker login -u go-shiori --password-stdin ghcr.io
+          REPO=ghcr.io/go-shiori/shiori
           TAG=$(git describe --tags)
           if [ -z "$(git tag --points-at HEAD)" ]
           then
@@ -40,7 +40,7 @@ jobs:
           docker buildx create --use --name builder
           docker buildx ls
           printf "FROM ghcr.io/ghcri/alpine:3.15\nARG TARGETARCH\nCOPY etc /etc\nCOPY binaries/shiori_linux_\$TARGETARCH/shiori /usr/bin/shiori" > Containerfile
-          printf "\nLABEL org.opencontainers.image.source https://github.com/n8225/shiori\nUSER shiori\nWORKDIR /shiori" >> Containerfile
+          printf "\nLABEL org.opencontainers.image.source https://github.com/go-shiori/shiori\nUSER shiori\nWORKDIR /shiori" >> Containerfile
           printf "\nEXPOSE 8080\nENTRYPOINT /usr/bin/shiori\nCMD serve" >> Containerfile
           cat Containerfile
           docker buildx build -f Containerfile --platform=linux/amd64,arm64,linux/arm/v7 --push --output=type=registry --tag $REPO:$TAG --tag $REPO:$TAG2 .
