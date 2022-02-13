@@ -3,6 +3,7 @@ package webserver
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"math"
 	"net/http"
 	"os"
@@ -226,6 +227,22 @@ func (h *handler) apiRenameTag(w http.ResponseWriter, r *http.Request, ps httpro
 	fmt.Fprint(w, 1)
 }
 
+// Bookmark is the record for an URL.
+type apiInsertBookmarkPayload struct {
+	URL           string `json:"url"`
+	CreateArchive bool   `json:"createArchive"`
+	Async         bool   `json:"async"`
+}
+
+// newApiInsertBookmarkPayload
+// Returns the payload struct with its defaults
+func newAPIInsertBookmarkPayload() *apiInsertBookmarkPayload {
+	return &apiInsertBookmarkPayload{
+		CreateArchive: false,
+		Async:         true,
+	}
+}
+
 // apiInsertBookmark is handler for POST /api/bookmark
 func (h *handler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	// Make sure session still valid
@@ -233,9 +250,14 @@ func (h *handler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 	checkError(err)
 
 	// Decode request
-	book := model.Bookmark{}
-	err = json.NewDecoder(r.Body).Decode(&book)
+	payload := newAPIInsertBookmarkPayload()
+	err = json.NewDecoder(r.Body).Decode(&payload)
 	checkError(err)
+
+	book := model.Bookmark{
+		URL:           payload.URL,
+		CreateArchive: payload.CreateArchive,
+	}
 
 	// Create bookmark ID
 	book.ID, err = h.DB.CreateNewID("bookmark")
@@ -249,25 +271,6 @@ func (h *handler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 		panic(fmt.Errorf("failed to clean URL: %v", err))
 	}
 
-	// Fetch data from internet
-	var isFatalErr bool
-	content, contentType, err := core.DownloadBookmark(book.URL)
-	if err == nil && content != nil {
-		request := core.ProcessRequest{
-			DataDir:     h.DataDir,
-			Bookmark:    book,
-			Content:     content,
-			ContentType: contentType,
-		}
-
-		book, isFatalErr, err = core.ProcessBookmark(request)
-		content.Close()
-
-		if err != nil && isFatalErr {
-			panic(fmt.Errorf("failed to process bookmark: %v", err))
-		}
-	}
-
 	// Make sure bookmark's title not empty
 	if book.Title == "" {
 		book.Title = book.URL
@@ -279,6 +282,31 @@ func (h *handler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 		panic(fmt.Errorf("failed to save bookmark: %v", err))
 	}
 	book = results[0]
+
+	go func() {
+		// Fetch bookmark data asynchronously
+		var isFatalErr bool
+		content, contentType, err := core.DownloadBookmark(book.URL)
+		if err == nil && content != nil {
+			request := core.ProcessRequest{
+				DataDir:     h.DataDir,
+				Bookmark:    book,
+				Content:     content,
+				ContentType: contentType,
+			}
+
+			book, isFatalErr, err = core.ProcessBookmark(request)
+			content.Close()
+
+			if err != nil && isFatalErr {
+				panic(fmt.Errorf("failed to process bookmark: %v", err))
+			}
+
+			if _, err := h.DB.SaveBookmarks(book); err != nil {
+				log.Printf("Error saving bookmark after content extraction %s", err)
+			}
+		}
+	}()
 
 	// Return the new bookmark
 	w.Header().Set("Content-Type", "application/json")
