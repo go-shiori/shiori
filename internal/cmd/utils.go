@@ -13,21 +13,19 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/go-shiori/shiori/internal/model"
-	"golang.org/x/crypto/ssh/terminal"
+	"golang.org/x/term"
 )
 
 var (
-	cIndex    = color.New(color.FgHiCyan)
-	cSymbol   = color.New(color.FgHiMagenta)
-	cTitle    = color.New(color.FgHiGreen).Add(color.Bold)
-	cReadTime = color.New(color.FgHiMagenta)
-	cURL      = color.New(color.FgHiYellow)
-	cExcerpt  = color.New(color.FgHiWhite)
-	cTag      = color.New(color.FgHiBlue)
+	cIndex   = color.New(color.FgHiCyan)
+	cSymbol  = color.New(color.FgHiMagenta)
+	cTitle   = color.New(color.FgHiGreen).Add(color.Bold)
+	cURL     = color.New(color.FgHiYellow)
+	cExcerpt = color.New(color.FgHiWhite)
+	cTag     = color.New(color.FgHiBlue)
 
-	cInfo    = color.New(color.FgHiCyan)
-	cError   = color.New(color.FgHiRed)
-	cWarning = color.New(color.FgHiYellow)
+	cInfo  = color.New(color.FgHiCyan)
+	cError = color.New(color.FgHiRed)
 
 	errInvalidIndex = errors.New("Index is not valid")
 )
@@ -130,7 +128,7 @@ func openBrowser(url string) error {
 }
 
 func getTerminalWidth() int {
-	width, _, _ := terminal.GetSize(int(os.Stdin.Fd()))
+	width, _, _ := term.GetSize(int(os.Stdin.Fd()))
 	return width
 }
 

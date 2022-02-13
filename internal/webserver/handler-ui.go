@@ -5,6 +5,7 @@ import (
 	"compress/gzip"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"path"
@@ -58,7 +59,9 @@ func (h *handler) serveIndexPage(w http.ResponseWriter, r *http.Request, ps http
 	}
 
 	if developmentMode {
-		h.prepareTemplates()
+		if err := h.prepareTemplates(); err != nil {
+			log.Printf("error during template preparation: %s", err)
+		}
 	}
 
 	err = h.templates["index"].Execute(w, h.RootPath)
@@ -76,7 +79,9 @@ func (h *handler) serveLoginPage(w http.ResponseWriter, r *http.Request, ps http
 	}
 
 	if developmentMode {
-		h.prepareTemplates()
+		if err := h.prepareTemplates(); err != nil {
+			log.Printf("error during template preparation: %s", err)
+		}
 	}
 
 	err = h.templates["login"].Execute(w, h.RootPath)
@@ -177,7 +182,9 @@ func (h *handler) serveBookmarkContent(w http.ResponseWriter, r *http.Request, p
 
 	// Execute template
 	if developmentMode {
-		h.prepareTemplates()
+		if err := h.prepareTemplates(); err != nil {
+			log.Printf("error during template preparation: %s", err)
+		}
 	}
 
 	tplData := struct {
@@ -217,7 +224,9 @@ func (h *handler) serveThumbnailImage(w http.ResponseWriter, r *http.Request, ps
 	w.Header().Set("Cache-Control", "max-age=86400")
 
 	// Serve image
-	img.Seek(0, 0)
+	if _, err := img.Seek(0, 0); err != nil {
+		log.Printf("error during image seek: %s", err)
+	}
 	_, err = io.Copy(w, img)
 	checkError(err)
 }
@@ -301,11 +310,15 @@ func (h *handler) serveBookmarkArchive(w http.ResponseWriter, r *http.Request, p
 
 		// Gzip it again and send to response writer
 		gzipWriter := gzip.NewWriter(w)
-		gzipWriter.Write([]byte(outerHTML))
+		if _, err := gzipWriter.Write([]byte(outerHTML)); err != nil {
+			log.Printf("error writting gzip file: %s", err)
+		}
 		gzipWriter.Flush()
 		return
 	}
 
 	// Serve content
-	w.Write(content)
+	if _, err := w.Write(content); err != nil {
+		log.Printf("error writting response: %s", err)
+	}
 }

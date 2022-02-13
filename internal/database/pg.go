@@ -3,6 +3,7 @@ package database
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
@@ -32,8 +33,9 @@ func OpenPGDatabase(connString string) (pgDB *PGDatabase, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			panicErr, _ := r.(error)
-			tx.Rollback()
-
+			if err := tx.Rollback(); err != nil {
+				log.Printf("error during rollback: %s", err)
+			}
 			pgDB = nil
 			err = panicErr
 		}
@@ -98,7 +100,9 @@ func (db *PGDatabase) SaveBookmarks(bookmarks ...model.Bookmark) (result []model
 	defer func() {
 		if r := recover(); r != nil {
 			panicErr, _ := r.(error)
-			tx.Rollback()
+			if err := tx.Rollback(); err != nil {
+				log.Printf("error during rollback: %s", err)
+			}
 
 			result = []model.Bookmark{}
 			err = panicErr
@@ -188,7 +192,9 @@ func (db *PGDatabase) SaveBookmarks(bookmarks ...model.Bookmark) (result []model
 					tag.ID = int(tagID64)
 				}
 
-				stmtInsertBookTag.Exec(tag.ID, book.ID)
+				if _, err := stmtInsertBookTag.Exec(tag.ID, book.ID); err != nil {
+					log.Printf("error during insert: %s", err)
+				}
 			}
 
 			newTags = append(newTags, tag)
@@ -237,7 +243,7 @@ func (db *PGDatabase) GetBookmarks(opts GetBookmarksOptions) ([]model.Bookmark, 
 	// Add where clause for search keyword
 	if opts.Keyword != "" {
 		query += ` AND (
-			url LIKE :lkw OR 
+			url LIKE :lkw OR
 			MATCH(title, excerpt, content) AGAINST (:kw IN BOOLEAN MODE)
 		)`
 
@@ -315,7 +321,8 @@ func (db *PGDatabase) GetBookmarks(opts GetBookmarksOptions) ([]model.Bookmark, 
 	}
 
 	// Expand query, because some of the args might be an array
-	query, args, err := sqlx.Named(query, arg)
+	var err error
+	query, args, _ := sqlx.Named(query, arg)
 	query, args, err = sqlx.In(query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to expand query: %v", err)
@@ -330,10 +337,10 @@ func (db *PGDatabase) GetBookmarks(opts GetBookmarksOptions) ([]model.Bookmark, 
 	}
 
 	// Fetch tags for each bookmarks
-	stmtGetTags, err := db.Preparex(`SELECT t.id, t.name 
-		FROM bookmark_tag bt 
+	stmtGetTags, err := db.Preparex(`SELECT t.id, t.name
+		FROM bookmark_tag bt
 		LEFT JOIN tag t ON bt.tag_id = t.id
-		WHERE bt.bookmark_id = $1 
+		WHERE bt.bookmark_id = $1
 		ORDER BY t.name`)
 	if err != nil {
 		return nil, fmt.Errorf("failed to prepare tag query: %v", err)
@@ -369,7 +376,7 @@ func (db *PGDatabase) GetBookmarksCount(opts GetBookmarksOptions) (int, error) {
 	// Add where clause for search keyword
 	if opts.Keyword != "" {
 		query += ` AND (
-			url LIKE :lurl OR 
+			url LIKE :lurl OR
 			MATCH(title, excerpt, content) AGAINST (:kw IN BOOLEAN MODE)
 		)`
 
@@ -431,7 +438,8 @@ func (db *PGDatabase) GetBookmarksCount(opts GetBookmarksOptions) (int, error) {
 	}
 
 	// Expand query, because some of the args might be an array
-	query, args, err := sqlx.Named(query, arg)
+	var err error
+	query, args, _ := sqlx.Named(query, arg)
 	query, args, err = sqlx.In(query, args...)
 	if err != nil {
 		return 0, fmt.Errorf("failed to expand query: %v", err)
@@ -460,8 +468,9 @@ func (db *PGDatabase) DeleteBookmarks(ids ...int) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			panicErr, _ := r.(error)
-			tx.Rollback()
-
+			if err := tx.Rollback(); err != nil {
+				log.Printf("error during rollback: %s", err)
+			}
 			err = panicErr
 		}
 	}()
@@ -499,7 +508,7 @@ func (db *PGDatabase) DeleteBookmarks(ids ...int) (err error) {
 func (db *PGDatabase) GetBookmark(id int, url string) (model.Bookmark, bool) {
 	args := []interface{}{id}
 	query := `SELECT
-		id, url, title, excerpt, author, public, 
+		id, url, title, excerpt, author, public,
 		content, html, modified, content <> '' has_content
 		FROM bookmark WHERE id = $1`
 
@@ -509,7 +518,9 @@ func (db *PGDatabase) GetBookmark(id int, url string) (model.Bookmark, bool) {
 	}
 
 	book := model.Bookmark{}
-	db.Get(&book, query, args...)
+	if err := db.Get(&book, query, args...); err != nil {
+		log.Printf("error during db.get: %s", err)
+	}
 
 	return book, book.ID != 0
 }
@@ -564,9 +575,12 @@ func (db *PGDatabase) GetAccounts(opts GetAccountsOptions) ([]model.Account, err
 // Returns the account and boolean whether it's exist or not.
 func (db *PGDatabase) GetAccount(username string) (model.Account, bool) {
 	account := model.Account{}
-	db.Get(&account, `SELECT 
+	if err := db.Get(&account, `SELECT
 		id, username, password, owner FROM account WHERE username = $1`,
-		username)
+		username,
+	); err != nil {
+		log.Printf("error during db.get: %s", err)
+	}
 
 	return account, account.ID != 0
 }
@@ -583,8 +597,9 @@ func (db *PGDatabase) DeleteAccounts(usernames ...string) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			panicErr, _ := r.(error)
-			tx.Rollback()
-
+			if err := tx.Rollback(); err != nil {
+				log.Printf("error during rollback: %s", err)
+			}
 			err = panicErr
 		}
 	}()
@@ -605,8 +620,8 @@ func (db *PGDatabase) DeleteAccounts(usernames ...string) (err error) {
 // GetTags fetch list of tags and their frequency.
 func (db *PGDatabase) GetTags() ([]model.Tag, error) {
 	tags := []model.Tag{}
-	query := `SELECT bt.tag_id id, t.name, COUNT(bt.tag_id) n_bookmarks 
-		FROM bookmark_tag bt 
+	query := `SELECT bt.tag_id id, t.name, COUNT(bt.tag_id) n_bookmarks
+		FROM bookmark_tag bt
 		LEFT JOIN tag t ON bt.tag_id = t.id
 		GROUP BY bt.tag_id, t.name ORDER BY t.name`
 

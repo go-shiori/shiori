@@ -3,6 +3,7 @@ package database
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
@@ -33,7 +34,9 @@ func OpenMySQLDatabase(connString string) (mysqlDB *MySQLDatabase, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			panicErr, _ := r.(error)
-			tx.Rollback()
+			if err := tx.Rollback(); err != nil {
+				log.Printf("error during rollback: %s", err)
+			}
 
 			mysqlDB = nil
 			err = panicErr
@@ -102,7 +105,9 @@ func (db *MySQLDatabase) SaveBookmarks(bookmarks ...model.Bookmark) (result []mo
 	defer func() {
 		if r := recover(); r != nil {
 			panicErr, _ := r.(error)
-			tx.Rollback()
+			if err := tx.Rollback(); err != nil {
+				log.Printf("error during rollback: %s", err)
+			}
 
 			result = []model.Bookmark{}
 			err = panicErr
@@ -192,7 +197,9 @@ func (db *MySQLDatabase) SaveBookmarks(bookmarks ...model.Bookmark) (result []mo
 					tag.ID = int(tagID64)
 				}
 
-				stmtInsertBookTag.Exec(tag.ID, book.ID)
+				if _, err := stmtInsertBookTag.Exec(tag.ID, book.ID); err != nil {
+					log.Printf("error during insert: %s", err)
+				}
 			}
 
 			newTags = append(newTags, tag)
@@ -458,7 +465,9 @@ func (db *MySQLDatabase) DeleteBookmarks(ids ...int) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			panicErr, _ := r.(error)
-			tx.Rollback()
+			if err := tx.Rollback(); err != nil {
+				log.Printf("error during rollback: %s", err)
+			}
 
 			err = panicErr
 		}
@@ -507,7 +516,9 @@ func (db *MySQLDatabase) GetBookmark(id int, url string) (model.Bookmark, bool) 
 	}
 
 	book := model.Bookmark{}
-	db.Get(&book, query, args...)
+	if err := db.Get(&book, query, args...); err != nil {
+		log.Printf("error during db.get: %s", err)
+	}
 
 	return book, book.ID != 0
 }
@@ -562,9 +573,12 @@ func (db *MySQLDatabase) GetAccounts(opts GetAccountsOptions) ([]model.Account, 
 // Returns the account and boolean whether it's exist or not.
 func (db *MySQLDatabase) GetAccount(username string) (model.Account, bool) {
 	account := model.Account{}
-	db.Get(&account, `SELECT
+	if err := db.Get(&account, `SELECT
 		id, username, password, owner FROM account WHERE username = ?`,
-		username)
+		username,
+	); err != nil {
+		log.Printf("error during db.get: %s", err)
+	}
 
 	return account, account.ID != 0
 }
@@ -581,7 +595,9 @@ func (db *MySQLDatabase) DeleteAccounts(usernames ...string) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			panicErr, _ := r.(error)
-			tx.Rollback()
+			if err := tx.Rollback(); err != nil {
+				log.Printf("error during rollback: %s", err)
+			}
 
 			err = panicErr
 		}
