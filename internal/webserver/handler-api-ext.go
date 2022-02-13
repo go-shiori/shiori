@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	fp "path/filepath"
@@ -91,6 +92,9 @@ func (h *handler) apiInsertViaExtension(w http.ResponseWriter, r *http.Request, 
 		if err != nil && isFatalErr {
 			panic(fmt.Errorf("failed to process bookmark: %v", err))
 		}
+	}
+	if _, err := h.DB.SaveBookmarks(book); err != nil {
+		log.Printf("error saving bookmark after downloading content: %s", err)
 	}
 
 	// Save bookmark to database

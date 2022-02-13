@@ -37,9 +37,9 @@ type ProcessRequest struct {
 }
 
 // ProcessBookmark process the bookmark and archive it if needed.
-// Return three values, the bookmark itself, is error fatal, and error value.
-func ProcessBookmark(req ProcessRequest) (model.Bookmark, bool, error) {
-	book := req.Bookmark
+// Return three values, is error fatal, and error value.
+func ProcessBookmark(req ProcessRequest) (book model.Bookmark, isFatalErr bool, err error) {
+	book = req.Bookmark
 	contentType := req.ContentType
 
 	// Make sure bookmark ID is defined
@@ -59,7 +59,7 @@ func ProcessBookmark(req ProcessRequest) (model.Bookmark, bool, error) {
 		multiWriter = io.MultiWriter(archivalInput, readabilityInput, readabilityCheckInput)
 	}
 
-	_, err := io.Copy(multiWriter, req.Content)
+	_, err = io.Copy(multiWriter, req.Content)
 	if err != nil {
 		return book, false, fmt.Errorf("failed to process article: %v", err)
 	}
