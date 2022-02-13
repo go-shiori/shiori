@@ -14,20 +14,16 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: dist
-      - name: Prep image files
-        run: |
-          mkdir -p {etc,binaries}
-          printf "root:x:0:0::/root:/bin/ash\nshiori:x:1000:1000::/shiori:/bin/ash" > etc/passwd
-          printf "root:x:0:root\nshiori:x:1000:shiori" > etc/group
       - name: Prep binaries
-        working-directory: binaries
+        working-directory: .github/workflows/docker
         run: |
-          cp -r ../shiori_linux_* .
-          mv shiori_linux_arm_7 shiori_linux_arm
-          gzip -d -S .gz__  -r .
-          chmod 755 shiori_linux_*/shiori
-          ls -lRh
+          mkdir binaries
+          cp -r ../../../shiori_linux_* binaries/
+          mv binaries/shiori_linux_arm_7 binaries/shiori_linux_arm
+          gzip -d -S binaries/.gz__  -r .
+          chmod 755 binaries/shiori_linux_*/shiori
       - name: Buildx
+        working-directory: .github/workflows/docker
         run: |
           echo ${{ secrets.GITHUB_TOKEN }} | docker login -u go-shiori --password-stdin ghcr.io
           REPO=ghcr.io/go-shiori/shiori
@@ -39,7 +35,4 @@ jobs:
             TAG2="latest"
           fi
           docker buildx create --use --name builder
-          docker buildx ls
-          printf 'FROM ghcr.io/ghcri/alpine:3.15\nARG TARGETARCH\nCOPY etc /etc\nCOPY binaries/shiori_linux_$TARGETARCH/shiori /usr/bin/shiori' > Containerfile
-          printf '\nLABEL org.opencontainers.image.source https://github.com/n8225/shiori\nUSER shiori\nWORKDIR /shiori\nEXPOSE 8080\nENV SHIORI_DIR=/shiori\nENTRYPOINT ["/usr/bin/shiori"]\nCMD ["serve"]' >> Containerfile
-          docker buildx build -f Containerfile --platform=linux/amd64,arm64,linux/arm/v7 --push --output=type=registry --tag $REPO:$TAG --tag $REPO:$TAG2 .
+          docker buildx build -f Dockerfile.ci --platform=linux/amd64,arm64,linux/arm/v7 --push --output=type=registry --tag $REPO:$TAG --tag $REPO:$TAG2 .

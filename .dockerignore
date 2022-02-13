@@ -1,0 +1,6 @@
+docs
+Dockerfile
+*.md
+.githooks
+.github
+.goreleaser.yaml
