@@ -73,7 +73,8 @@ func OpenSQLiteDatabase(databasePath string) (sqliteDB *SQLiteDatabase, err erro
 		CONSTRAINT bookmark_id_FK FOREIGN KEY(bookmark_id) REFERENCES bookmark(id),
 		CONSTRAINT tag_id_FK FOREIGN KEY(tag_id) REFERENCES tag(id))`)
 
-	tx.MustExec(`CREATE VIRTUAL TABLE IF NOT EXISTS bookmark_content USING fts5(title, content, html, docid)`)
+	tx.MustExec(`CREATE VIRTUAL TABLE IF NOT EXISTS bookmark_content
+		USING fts5(title, content, html, docid)`)
 
 	// Alter table if needed
 	if _, err := tx.Exec(`ALTER TABLE account ADD COLUMN owner INTEGER NOT NULL DEFAULT 0`); err != nil {
@@ -119,9 +120,9 @@ func (db *SQLiteDatabase) SaveBookmarks(bookmarks ...model.Bookmark) (result []m
 		url = ?, title = ?,	excerpt = ?, author = ?,
 		public = ?, modified = ?`)
 
-	// stmtInsertBookContent, _ := tx.Preparex(`INSERT OR IGNORE INTO bookmark_content
-	// 	(docid, title, content, html)
-	// 	VALUES (?, ?, ?, ?)`)
+	stmtInsertBookContent, _ := tx.Preparex(`INSERT OR REPLACE INTO bookmark_content
+		(docid, title, content, html)
+		VALUES (?, ?, ?, ?)`)
 
 	stmtUpdateBookContent, _ := tx.Preparex(`UPDATE bookmark_content SET
 		title = ?, content = ?, html = ?
@@ -164,8 +165,13 @@ func (db *SQLiteDatabase) SaveBookmarks(bookmarks ...model.Bookmark) (result []m
 			book.URL, book.Title, book.Excerpt, book.Author, book.Public, book.Modified,
 			book.URL, book.Title, book.Excerpt, book.Author, book.Public, book.Modified)
 
-		stmtUpdateBookContent.MustExec(book.Title, book.Content, book.HTML, book.ID)
-		//stmtInsertBookContent.MustExec(book.ID, book.Title, book.Content, book.HTML)
+		// Try to update it first to check for existence, we can't do an UPSERT here because
+		// bookmant_content is a virtual table
+		res := stmtUpdateBookContent.MustExec(book.Title, book.Content, book.HTML, book.ID)
+		rows, _ := res.RowsAffected()
+		if rows == 0 {
+			stmtInsertBookContent.MustExec(book.ID, book.Title, book.Content, book.HTML)
+		}
 
 		// Save book tags
 		newTags := []model.Tag{}
