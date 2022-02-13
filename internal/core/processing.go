@@ -71,7 +71,7 @@ func ProcessBookmark(req ProcessRequest) (model.Bookmark, bool, error) {
 
 		nurl, err := url.Parse(book.URL)
 		if err != nil {
-			fmt.Errorf("Failed to parse url: %v", err)
+			return book, true, fmt.Errorf("Failed to parse url: %v", err)
 		}
 
 		article, err := readability.FromReader(readabilityInput, nurl)

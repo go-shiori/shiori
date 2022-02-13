@@ -109,15 +109,15 @@ func (db *SQLiteDatabase) SaveBookmarks(bookmarks ...model.Bookmark) (result []m
 		(id, url, title, excerpt, author, public, modified)
 		VALUES(?, ?, ?, ?, ?, ?, ?)
 		ON CONFLICT(id) DO UPDATE SET
-		url = ?, title = ?,	excerpt = ?, author = ?, 
+		url = ?, title = ?,	excerpt = ?, author = ?,
 		public = ?, modified = ?`)
 
-	stmtInsertBookContent, _ := tx.Preparex(`INSERT OR IGNORE INTO bookmark_content
-		(docid, title, content, html) 
-		VALUES (?, ?, ?, ?)`)
+	// stmtInsertBookContent, _ := tx.Preparex(`INSERT OR IGNORE INTO bookmark_content
+	// 	(docid, title, content, html)
+	// 	VALUES (?, ?, ?, ?)`)
 
 	stmtUpdateBookContent, _ := tx.Preparex(`UPDATE bookmark_content SET
-		title = ?, content = ?, html = ? 
+		title = ?, content = ?, html = ?
 		WHERE docid = ?`)
 
 	stmtGetTag, _ := tx.Preparex(`SELECT id FROM tag WHERE name = ?`)
@@ -158,7 +158,7 @@ func (db *SQLiteDatabase) SaveBookmarks(bookmarks ...model.Bookmark) (result []m
 			book.URL, book.Title, book.Excerpt, book.Author, book.Public, book.Modified)
 
 		stmtUpdateBookContent.MustExec(book.Title, book.Content, book.HTML, book.ID)
-		stmtInsertBookContent.MustExec(book.ID, book.Title, book.Content, book.HTML)
+		//stmtInsertBookContent.MustExec(book.ID, book.Title, book.Content, book.HTML)
 
 		// Save book tags
 		newTags := []model.Tag{}
@@ -215,7 +215,7 @@ func (db *SQLiteDatabase) GetBookmarks(opts GetBookmarksOptions) ([]model.Bookma
 		`b.author`,
 		`b.public`,
 		`b.modified`,
-		`bc.content <> "" has_content`,}
+		`bc.content <> "" has_content`}
 
 	if opts.WithContent {
 		columns = append(columns, `bc.content`, `bc.html`)
@@ -238,8 +238,8 @@ func (db *SQLiteDatabase) GetBookmarks(opts GetBookmarksOptions) ([]model.Bookma
 	// Add where clause for search keyword
 	if opts.Keyword != "" {
 		query += ` AND (b.url LIKE ? OR b.excerpt LIKE ? OR b.id IN (
-			SELECT docid id 
-			FROM bookmark_content 
+			SELECT docid id
+			FROM bookmark_content
 			WHERE title MATCH ? OR content MATCH ?))`
 
 		args = append(args,
@@ -330,10 +330,10 @@ func (db *SQLiteDatabase) GetBookmarks(opts GetBookmarksOptions) ([]model.Bookma
 	}
 
 	// Fetch tags for each bookmarks
-	stmtGetTags, err := db.Preparex(`SELECT t.id, t.name 
-		FROM bookmark_tag bt 
+	stmtGetTags, err := db.Preparex(`SELECT t.id, t.name
+		FROM bookmark_tag bt
 		LEFT JOIN tag t ON bt.tag_id = t.id
-		WHERE bt.bookmark_id = ? 
+		WHERE bt.bookmark_id = ?
 		ORDER BY t.name`)
 	if err != nil {
 		return nil, fmt.Errorf("failed to prepare tag query: %v", err)
@@ -373,8 +373,8 @@ func (db *SQLiteDatabase) GetBookmarksCount(opts GetBookmarksOptions) (int, erro
 	// Add where clause for search keyword
 	if opts.Keyword != "" {
 		query += ` AND (b.url LIKE ? OR b.excerpt LIKE ? OR b.id IN (
-			SELECT docid id 
-			FROM bookmark_content 
+			SELECT docid id
+			FROM bookmark_content
 			WHERE title MATCH ? OR content MATCH ?))`
 
 		args = append(args,
@@ -575,7 +575,7 @@ func (db *SQLiteDatabase) GetAccounts(opts GetAccountsOptions) ([]model.Account,
 // Returns the account and boolean whether it's exist or not.
 func (db *SQLiteDatabase) GetAccount(username string) (model.Account, bool) {
 	account := model.Account{}
-	db.Get(&account, `SELECT 
+	db.Get(&account, `SELECT
 		id, username, password, owner FROM account WHERE username = ?`,
 		username)
 
@@ -616,8 +616,8 @@ func (db *SQLiteDatabase) DeleteAccounts(usernames ...string) (err error) {
 // GetTags fetch list of tags and their frequency.
 func (db *SQLiteDatabase) GetTags() ([]model.Tag, error) {
 	tags := []model.Tag{}
-	query := `SELECT bt.tag_id id, t.name, COUNT(bt.tag_id) n_bookmarks 
-		FROM bookmark_tag bt 
+	query := `SELECT bt.tag_id id, t.name, COUNT(bt.tag_id) n_bookmarks
+		FROM bookmark_tag bt
 		LEFT JOIN tag t ON bt.tag_id = t.id
 		GROUP BY bt.tag_id ORDER BY t.name`
 

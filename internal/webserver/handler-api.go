@@ -103,8 +103,6 @@ func (h *handler) apiLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 	expTime := time.Hour
 	if request.Remember {
 		expTime = time.Hour * 24 * 30
-	} else {
-		expTime = time.Hour
 	}
 
 	// Create session
@@ -675,7 +673,7 @@ func (h *handler) apiDeleteAccount(w http.ResponseWriter, r *http.Request, ps ht
 	checkError(err)
 
 	// Delete user's sessions
-	userSessions := []string{}
+	var userSessions []string
 	for _, username := range usernames {
 		if val, found := h.UserCache.Get(username); found {
 			userSessions = val.([]string)
