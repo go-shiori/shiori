@@ -1,0 +1,28 @@
+name: 'Unit Tests'
+
+on: workflow_call
+
+jobs:
+  test:
+    runs-on: ubuntu-latest    
+    strategy:
+      matrix:
+        go: [1.17]
+    name: Go ${{ matrix.go }} unit tests
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go }}
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg
+          key: golangci-lint.cache-{platform-arch}-{interval_number}-{go.mod_hash}
+          restore-keys: |
+            golangci-lint.cache-{interval_number}-
+            golangci-lint.cache-
+      - run: go test ./...
+      - run: CGO_ENABLED=0 go build -tags osusergo,netgo -ldflags="-s -w -X main.version=$(git describe --tags) -X main.date=$(date --iso-8601=seconds)"

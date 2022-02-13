@@ -1,0 +1,11 @@
+FROM ghcr.io/ghcri/alpine:3.15
+ARG TARGETARCH
+LABEL org.opencontainers.image.source https://github.com/go-shiori/shiori
+COPY etc /etc
+COPY binaries/shiori_linux_$TARGETARCH/shiori /usr/bin/shiori
+USER shiori
+WORKDIR /shiori
+EXPOSE 8080
+ENV SHIORI_DIR=/shiori
+ENTRYPOINT ["/usr/bin/shiori"]
+CMD ["serve"]

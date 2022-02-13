@@ -10,3 +10,5 @@
 
 # Coverage data
 /coverage.out
+
+dist/

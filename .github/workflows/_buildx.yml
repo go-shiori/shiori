@@ -1,0 +1,38 @@
+name: 'Build Docker'
+
+on: workflow_call
+jobs:
+  buildx:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    name: Build Docker
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: actions/download-artifact@v2
+        with:
+          name: dist
+      - name: Prep binaries
+        working-directory: .github/workflows/docker
+        run: |
+          mkdir binaries
+          cp -r ../../../shiori_linux_* binaries/
+          mv binaries/shiori_linux_arm_7 binaries/shiori_linux_arm
+          gzip -d -S binaries/.gz__  -r .
+          chmod 755 binaries/shiori_linux_*/shiori
+      - name: Buildx
+        working-directory: .github/workflows/docker
+        run: |
+          echo ${{ secrets.GITHUB_TOKEN }} | docker login -u go-shiori --password-stdin ghcr.io
+          REPO=ghcr.io/go-shiori/shiori
+          TAG=$(git describe --tags)
+          if [ -z "$(git tag --points-at HEAD)" ]
+          then
+            TAG2="dev"
+          else
+            TAG2="latest"
+          fi
+          docker buildx create --use --name builder
+          docker buildx build -f Dockerfile.ci --platform=linux/amd64,arm64,linux/arm/v7 --push --output=type=registry --tag $REPO:$TAG --tag $REPO:$TAG2 .
