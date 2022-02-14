@@ -76,14 +76,6 @@ func OpenSQLiteDatabase(databasePath string) (sqliteDB *SQLiteDatabase, err erro
 	tx.MustExec(`CREATE VIRTUAL TABLE IF NOT EXISTS bookmark_content
 		USING fts5(title, content, html, docid)`)
 
-	// Alter table if needed
-	if _, err := tx.Exec(`ALTER TABLE account ADD COLUMN owner INTEGER NOT NULL DEFAULT 0`); err != nil {
-		log.Printf("error during database alert: %s", err)
-	}
-	if _, err := tx.Exec(`ALTER TABLE bookmark ADD COLUMN public INTEGER NOT NULL DEFAULT 0`); err != nil {
-		log.Printf("error during database alert: %s", err)
-	}
-
 	err = tx.Commit()
 	checkError(err)
 
