@@ -54,7 +54,7 @@ func ServeApp(cfg Config) error {
 	router.GET(jp("/css/*filepath"), hdl.serveFile)
 	router.GET(jp("/fonts/*filepath"), hdl.serveFile)
 
-	router.GET(jp("/"), hdl.serveIndexPage)
+	router.GET(jp(cfg.RootPath), hdl.serveIndexPage)
 	router.GET(jp("/login"), hdl.serveLoginPage)
 	router.GET(jp("/bookmark/:id/thumb"), hdl.serveThumbnailImage)
 	router.GET(jp("/bookmark/:id/content"), hdl.serveBookmarkContent)
