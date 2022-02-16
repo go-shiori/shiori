@@ -93,6 +93,6 @@ func ServeApp(cfg Config) error {
 	}
 
 	// Serve app
-	logrus.Infoln("Serve shiori in", url)
+	logrus.Infoln("Serve shiori in", url, cfg.RootPath)
 	return svr.ListenAndServe()
 }
