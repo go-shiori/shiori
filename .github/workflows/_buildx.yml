@@ -25,8 +25,8 @@ jobs:
       - name: Buildx
         working-directory: .github/workflows/docker
         run: |
-          echo ${{ secrets.GITHUB_TOKEN }} | docker login -u go-shiori --password-stdin ghcr.io
-          REPO=ghcr.io/go-shiori/shiori
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login -u "${{ github.repository_owner }}" --password-stdin ghcr.io
+          REPO=ghcr.io/${{ github.repository }}
           TAG=$(git describe --tags)
           if [ -z "$(git tag --points-at HEAD)" ]
           then

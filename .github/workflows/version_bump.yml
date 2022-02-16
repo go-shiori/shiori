@@ -21,8 +21,8 @@ jobs:
           ref: master
       - name: Tag release
         run: |
-          git config user.email "go-shiori@users.noreply.github.com"
-          git config user.name "shiori"
+          git config user.email "${{github.repository_owner}}@users.noreply.github.com"
+          git config user.name "${{github.repository_owner}}"
           git tag -a ${{ github.event.inputs.version }} -m "tag release ${{ github.event.inputs.version }}"
           git push --follow-tags
   call-gorelease:
