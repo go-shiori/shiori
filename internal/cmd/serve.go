@@ -21,6 +21,7 @@ func serveCmd() *cobra.Command {
 	cmd.Flags().IntP("port", "p", 8080, "Port used by the server")
 	cmd.Flags().StringP("address", "a", "", "Address the server listens to")
 	cmd.Flags().StringP("webroot", "r", "/", "Root path that used by server")
+	cmd.Flags().Bool("log", true, "Print out a non-standard access log")
 
 	return cmd
 }
@@ -30,6 +31,7 @@ func serveHandler(cmd *cobra.Command, args []string) {
 	port, _ := cmd.Flags().GetInt("port")
 	address, _ := cmd.Flags().GetString("address")
 	rootPath, _ := cmd.Flags().GetString("webroot")
+	log, _ := cmd.Flags().GetBool("log")
 
 	// Validate root path
 	if rootPath == "" {
@@ -51,6 +53,7 @@ func serveHandler(cmd *cobra.Command, args []string) {
 		ServerAddress: address,
 		ServerPort:    port,
 		RootPath:      rootPath,
+		Log:  				 log,
 	}
 
 	err := webserver.ServeApp(serverConfig)

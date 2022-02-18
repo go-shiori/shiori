@@ -21,8 +21,6 @@ import (
 
 // serveFile is handler for general file request
 func (h *handler) serveFile(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	h.logger(r)
-
 	rootPath := strings.Trim(h.RootPath, "/")
 	urlPath := strings.Trim(r.URL.Path, "/")
 	filePath := strings.TrimPrefix(urlPath, rootPath)
@@ -33,8 +31,6 @@ func (h *handler) serveFile(w http.ResponseWriter, r *http.Request, ps httproute
 
 // serveJsFile is handler for GET /js/*filepath
 func (h *handler) serveJsFile(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	h.logger(r)
-
 	jsFilePath := ps.ByName("filepath")
 	jsFilePath = path.Join("js", jsFilePath)
 	jsDir, jsName := path.Split(jsFilePath)
@@ -53,8 +49,6 @@ func (h *handler) serveJsFile(w http.ResponseWriter, r *http.Request, ps httprou
 
 // serveIndexPage is handler for GET /
 func (h *handler) serveIndexPage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	h.logger(r)
-
 	// Make sure session still valid
 	err := h.validateSession(r)
 	if err != nil {
@@ -76,8 +70,6 @@ func (h *handler) serveIndexPage(w http.ResponseWriter, r *http.Request, ps http
 
 // serveLoginPage is handler for GET /login
 func (h *handler) serveLoginPage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	h.logger(r)
-
 	// Make sure session is not valid
 	err := h.validateSession(r)
 	if err == nil {
@@ -98,8 +90,6 @@ func (h *handler) serveLoginPage(w http.ResponseWriter, r *http.Request, ps http
 
 // serveBookmarkContent is handler for GET /bookmark/:id/content
 func (h *handler) serveBookmarkContent(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	h.logger(r)
-
 	// Get bookmark ID from URL
 	strID := ps.ByName("id")
 	id, err := strconv.Atoi(strID)
@@ -208,8 +198,6 @@ func (h *handler) serveBookmarkContent(w http.ResponseWriter, r *http.Request, p
 
 // serveThumbnailImage is handler for GET /bookmark/:id/thumb
 func (h *handler) serveThumbnailImage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	h.logger(r)
-
 	// Get bookmark ID from URL
 	id := ps.ByName("id")
 
@@ -245,8 +233,6 @@ func (h *handler) serveThumbnailImage(w http.ResponseWriter, r *http.Request, ps
 
 // serveBookmarkArchive is handler for GET /bookmark/:id/archive/*filepath
 func (h *handler) serveBookmarkArchive(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	h.logger(r)
-
 	// Get parameter from URL
 	strID := ps.ByName("id")
 	resourcePath := ps.ByName("filepath")

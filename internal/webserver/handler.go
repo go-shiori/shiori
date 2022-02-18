@@ -9,7 +9,6 @@ import (
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/go-shiori/warc"
 	cch "github.com/patrickmn/go-cache"
-	"github.com/sirupsen/logrus"
 )
 
 var developmentMode = false
@@ -22,17 +21,9 @@ type handler struct {
 	UserCache    *cch.Cache
 	SessionCache *cch.Cache
 	ArchiveCache *cch.Cache
+	Log					 bool
 
 	templates map[string]*template.Template
-}
-
-func (h *handler) logger(r *http.Request) {
-	logrus.WithFields(logrus.Fields{
-		"uri":      r.RequestURI,
-		"method":   r.Method,
-		"remote":   r.RemoteAddr,
-		"host":     r.Host,
-	}).Info("Request")
 }
 
 func (h *handler) prepareSessionCache() {
