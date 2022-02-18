@@ -19,7 +19,7 @@ type Config struct {
 	ServerAddress string
 	ServerPort    int
 	RootPath      string
-	Log						bool
+	Log           bool
 }
 
 // ErrorResponse defines a single HTTP error response.
@@ -28,7 +28,7 @@ type ErrorResponse struct {
 	Body        string
 	contentType string
 	errorText   string
-	Log					bool
+	Log         bool
 }
 
 func (e *ErrorResponse) Error() string {
@@ -45,17 +45,17 @@ func (e *ErrorResponse) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	written := 0
 	if len(body) > 0 {
-		 written, _ = w.Write([]byte(body))
+		written, _ = w.Write([]byte(body))
 	}
-	if (e.Log) {
+	if e.Log {
 		Logger(r, e.Code, written)
 	}
 }
 
 // responseData will hold response details that we are interested in for logging
 type responseData struct {
-	status	int
-	size		int
+	status int
+	size   int
 }
 
 // Wrapper around http.ResponseWriter to be able to catch calls to Write*()
@@ -71,7 +71,7 @@ func (r *loggingResponseWriter) Write(b []byte) (int, error) {
 	size, err := r.ResponseWriter.Write(b) // write response using original http.ResponseWriter
 	r.responseData.size += size            // capture size
 	// Documented implicit WriteHeader(http.StatusOK) with first call to Write
-	if (r.responseData.status == 0) {
+	if r.responseData.status == 0 {
 		r.responseData.status = http.StatusOK
 	}
 	return size, err
@@ -85,21 +85,21 @@ func (r *loggingResponseWriter) WriteHeader(statusCode int) {
 
 // Log through logrus, 200 will log as info, anything else as an error.
 func Logger(r *http.Request, statusCode int, size int) {
-	if (statusCode == http.StatusOK) {
+	if statusCode == http.StatusOK {
 		logrus.WithFields(logrus.Fields{
-			"proto":		r.Proto,
-			"remote":   r.RemoteAddr,
-			"reqlen": 	r.ContentLength,
-			"size":			size,
-			"status":		statusCode,
+			"proto":  r.Proto,
+			"remote": r.RemoteAddr,
+			"reqlen": r.ContentLength,
+			"size":   size,
+			"status": statusCode,
 		}).Info(r.Method, " ", r.RequestURI)
 	} else {
 		logrus.WithFields(logrus.Fields{
-			"proto":		r.Proto,
-			"remote":   r.RemoteAddr,
-			"reqlen": 	r.ContentLength,
-			"size":			size,
-			"status":		statusCode,
+			"proto":  r.Proto,
+			"remote": r.RemoteAddr,
+			"reqlen": r.ContentLength,
+			"size":   size,
+			"status": statusCode,
 		}).Warn(r.Method, " ", r.RequestURI)
 	}
 }
@@ -114,7 +114,7 @@ func ServeApp(cfg Config) error {
 		SessionCache: cch.New(time.Hour, 10*time.Minute),
 		ArchiveCache: cch.New(time.Minute, 5*time.Minute),
 		RootPath:     cfg.RootPath,
-		Log:					cfg.Log,
+		Log:          cfg.Log,
 	}
 
 	hdl.prepareSessionCache()
@@ -152,15 +152,15 @@ func ServeApp(cfg Config) error {
 	// to collect details about the answer, i.e. the status code and the size of
 	// data in the response. Once done, these are passed further for logging, if
 	// relevant.
-	withLogging := func(req func(http.ResponseWriter, *http.Request, httprouter.Params)) (func(http.ResponseWriter, *http.Request, httprouter.Params)) {
+	withLogging := func(req func(http.ResponseWriter, *http.Request, httprouter.Params)) func(http.ResponseWriter, *http.Request, httprouter.Params) {
 		return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 			d := &responseData{
 				status: 0,
-				size:		0,
+				size:   0,
 			}
 			lrw := loggingResponseWriter{
 				ResponseWriter: w,
-				responseData:		d,
+				responseData:   d,
 			}
 			req(&lrw, r, ps)
 			if hdl.Log {
@@ -207,11 +207,11 @@ func ServeApp(cfg Config) error {
 	router.PanicHandler = func(w http.ResponseWriter, r *http.Request, arg interface{}) {
 		d := &responseData{
 			status: 0,
-			size:		0,
+			size:   0,
 		}
 		lrw := loggingResponseWriter{
 			ResponseWriter: w,
-			responseData:		d,
+			responseData:   d,
 		}
 		http.Error(&lrw, fmt.Sprint(arg), 500)
 		if hdl.Log {

@@ -53,7 +53,7 @@ func serveHandler(cmd *cobra.Command, args []string) {
 		ServerAddress: address,
 		ServerPort:    port,
 		RootPath:      rootPath,
-		Log:  				 log,
+		Log:           log,
 	}
 
 	err := webserver.ServeApp(serverConfig)
