@@ -43,11 +43,12 @@ func (e *ErrorResponse) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if e.Code != 0 {
 		w.WriteHeader(e.Code)
 	}
+	written := 0
 	if len(body) > 0 {
-		w.Write([]byte(body))
+		 written, _ = w.Write([]byte(body))
 	}
 	if (e.Log) {
-		Logger(r, e.Code, len(body))
+		Logger(r, e.Code, written)
 	}
 }
 
