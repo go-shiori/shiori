@@ -21,6 +21,7 @@ type handler struct {
 	UserCache    *cch.Cache
 	SessionCache *cch.Cache
 	ArchiveCache *cch.Cache
+	Log          bool
 
 	templates map[string]*template.Template
 }
