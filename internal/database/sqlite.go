@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/jmoiron/sqlx"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -16,6 +17,61 @@ import (
 // for connecting to SQLite3 database.
 type SQLiteDatabase struct {
 	sqlx.DB
+}
+
+// migrateBookmarkContents (0001) migrate bookmark_contents from fts4 to fts5
+func migrateBookmarkContents(db *sqlx.DB) error {
+
+	logrus.SetLevel(logrus.DebugLevel)
+
+	row := db.QueryRow(`SELECT sql
+		FROM sqlite_master
+		WHERE type = 'table' AND name = 'bookmark_content' AND sql LIKE '%USING fts4%'`)
+	if row.Err() != nil {
+		return fmt.Errorf("[migration 0001] error during query: %s", row.Err())
+	}
+
+	var stmt string
+	if err := row.Scan(&stmt); err != nil {
+		return fmt.Errorf("[migration 0001] error retrieving fts4 table")
+	}
+
+	// backup database file?
+
+	tx, err := db.Beginx()
+	if err != nil {
+		return err
+	}
+
+	logrus.Infoln("Found bookmark_content table with fts4 format.")
+	logrus.Infoln("This table requires migration to fts5, I'm going to do so now")
+	logrus.Infoln("This is a single time operation, and will only be performed once")
+	logrus.Infoln("The time it will take depends on the bookmarks number")
+
+	// Create new table
+	logrus.Debugln("bookmark_content_fts5 (fts5)")
+	tx.MustExec(`CREATE VIRTUAL TABLE bookmark_content_fts5
+	USING fts5(title, content, html, rowid)`)
+
+	// Migrate all data from the fts4 to the fts5 table
+	tx.MustExec(`INSERT INTO bookmark_content_fts5
+		(title, content, html, rowid)
+		SELECT c0title, c1content, c2html, docid FROM bookmark_content_content`)
+
+	// Remove fts4 table
+	logrus.Debugln("DROP TABLE bookmark_content")
+	tx.MustExec(`DROP TABLE bookmark_content`)
+
+	// Rename old table to keep the data
+	logrus.Debugln("bookmark_content_fts5 -> bookmark_content")
+	tx.MustExec(`ALTER TABLE bookmark_content_fts5 RENAME TO bookmark_content`)
+
+	// Commit
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("error commiting migration 0001: %s", err)
+	}
+
+	return nil
 }
 
 // OpenSQLiteDatabase creates and open connection to new SQLite3 database.
@@ -73,8 +129,12 @@ func OpenSQLiteDatabase(databasePath string) (sqliteDB *SQLiteDatabase, err erro
 		CONSTRAINT bookmark_id_FK FOREIGN KEY(bookmark_id) REFERENCES bookmark(id),
 		CONSTRAINT tag_id_FK FOREIGN KEY(tag_id) REFERENCES tag(id))`)
 
+	if err := migrateBookmarkContents(db); err != nil {
+		checkError(err)
+	}
+
 	tx.MustExec(`CREATE VIRTUAL TABLE IF NOT EXISTS bookmark_content
-		USING fts5(title, content, html, docid)`)
+		USING fts5(title, content, html, rowid)`)
 
 	err = tx.Commit()
 	checkError(err)
