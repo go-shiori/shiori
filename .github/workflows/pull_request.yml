@@ -14,4 +14,4 @@ jobs:
   call-test:
     uses: ./.github/workflows/_test.yml
   call-goreleaser-build:
-    uses: ./.github/workflows/_goreleaser-build.yml
+    uses: ./.github/workflows/_gorelease-build.yml
