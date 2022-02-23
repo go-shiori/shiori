@@ -3,7 +3,7 @@ FROM ghcr.io/ghcri/golang:1.17-alpine3.15 AS builder
 WORKDIR /src
 COPY . .
 RUN apk add --no-cache build-base && \
-    go build -ldflags '-s -w'
+    go build -ldflags '-s -w' --tags "fts5"
 
 # server image
 
