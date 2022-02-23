@@ -21,7 +21,7 @@ type SQLiteDatabase struct {
 // OpenSQLiteDatabase creates and open connection to new SQLite3 database.
 func OpenSQLiteDatabase(databasePath string) (sqliteDB *SQLiteDatabase, err error) {
 	// Open database and start transaction
-	db := sqlx.MustConnect("sqlite", databasePath)
+	db := sqlx.MustConnect("sqlite3", databasePath)
 
 	tx, err := db.Beginx()
 	if err != nil {
