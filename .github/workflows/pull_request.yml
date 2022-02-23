@@ -13,3 +13,5 @@ jobs:
     uses: ./.github/workflows/_golangci-lint.yml
   call-test:
     uses: ./.github/workflows/_test.yml
+  call-goreleaser-build:
+    uses: ./.github/workflows/_goreleaser-build.yml
