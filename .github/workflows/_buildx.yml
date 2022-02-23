@@ -19,7 +19,6 @@ jobs:
         run: |
           mkdir binaries
           cp -r ../../../shiori_linux_* binaries/
-          mv binaries/shiori_linux_arm_7 binaries/shiori_linux_arm
           gzip -d -S binaries/.gz__  -r .
           chmod 755 binaries/shiori_linux_*/shiori
       - name: Buildx
@@ -35,4 +34,4 @@ jobs:
             TAG2="latest"
           fi
           docker buildx create --use --name builder
-          docker buildx build -f Dockerfile.ci --platform=linux/amd64,arm64,linux/arm/v7 --push --output=type=registry --tag $REPO:$TAG --tag $REPO:$TAG2 .
+          docker buildx build -f Dockerfile.ci --platform=linux/amd64 --push --output=type=registry --tag $REPO:$TAG --tag $REPO:$TAG2 .

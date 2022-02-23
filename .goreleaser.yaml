@@ -2,7 +2,8 @@ before:
   hooks:
     - go mod tidy
 builds:
-  - binary: shiori
+  - id: linux-amd64
+    binary: shiori
     env:
       - CGO_ENABLED=1
     tags:
@@ -11,21 +12,12 @@ builds:
       - fts5
     goos:
       - linux
-      - windows
-      - darwin
     goarch:
       - amd64
-      - arm
-      - arm64
-    goarm:
-      - 7
     ignore:
       - goos: darwin
-        goarch: arm
       - goos: windows
-        goarch: arm
-      - goos: windows
-        goarch: arm64
+
 archives:
   - replacements:
       darwin: Darwin
