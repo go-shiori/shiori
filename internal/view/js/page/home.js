@@ -770,9 +770,6 @@ export default {
 						method: "PUT",
 						body: JSON.stringify(newData),
 						headers: { "Content-Type": "application/json" },
-					}).then(response => {
-						if (!response.ok) throw response;
-						return response.json();
 					}).then(() => {
 						tag.name = data.newName;
 
