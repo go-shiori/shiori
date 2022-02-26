@@ -139,7 +139,7 @@ func (h *handler) apiLogout(w http.ResponseWriter, r *http.Request, ps httproute
 		h.SessionCache.Delete(sessionID)
 	}
 
-	fmt.Fprint(w, 1)
+	w.WriteHeader(http.StatusNoContent)
 }
 
 // apiGetBookmarks is handler for GET /api/bookmarks
@@ -249,7 +249,7 @@ func (h *handler) apiRenameTag(w http.ResponseWriter, r *http.Request, ps httpro
 	err = h.DB.RenameTag(tag.ID, tag.Name)
 	checkError(err)
 
-	fmt.Fprint(w, 1)
+	w.WriteHeader(http.StatusNoContent)
 }
 
 // Bookmark is the record for an URL.
@@ -360,7 +360,7 @@ func (h *handler) apiDeleteBookmark(w http.ResponseWriter, r *http.Request, ps h
 		os.Remove(archivePath)
 	}
 
-	fmt.Fprint(w, 1)
+	w.WriteHeader(http.StatusNoContent)
 }
 
 // apiUpdateBookmark is handler for PUT /api/bookmarks
@@ -659,7 +659,7 @@ func (h *handler) apiInsertAccount(w http.ResponseWriter, r *http.Request, ps ht
 	err = h.DB.SaveAccount(account)
 	checkError(err)
 
-	fmt.Fprint(w, 1)
+	w.WriteHeader(http.StatusNoContent)
 }
 
 // apiUpdateAccount is handler for PUT /api/accounts
@@ -707,7 +707,7 @@ func (h *handler) apiUpdateAccount(w http.ResponseWriter, r *http.Request, ps ht
 		h.UserCache.Delete(request.Username)
 	}
 
-	fmt.Fprint(w, 1)
+	w.WriteHeader(http.StatusNoContent)
 }
 
 // apiDeleteAccount is handler for DELETE /api/accounts
@@ -738,5 +738,5 @@ func (h *handler) apiDeleteAccount(w http.ResponseWriter, r *http.Request, ps ht
 		}
 	}
 
-	fmt.Fprint(w, 1)
+	w.WriteHeader(http.StatusNoContent)
 }
