@@ -213,8 +213,6 @@ func (db *SQLiteDatabase) SaveBookmarks(bookmarks ...model.Bookmark) (result []m
 
 // GetBookmarks fetch list of bookmarks based on submitted options.
 func (db *SQLiteDatabase) GetBookmarks(opts GetBookmarksOptions) ([]model.Bookmark, error) {
-	log.Printf("Start GetBookmarks...")
-
 	// Create initial query
 	columns := []string{
 		`b.id`,
@@ -225,13 +223,17 @@ func (db *SQLiteDatabase) GetBookmarks(opts GetBookmarksOptions) ([]model.Bookma
 		`b.public`,
 		`b.modified`}
 
+	joinClause := ""
+
 	if opts.WithContent {
-		columns = append(columns)
+		columns = append(columns, `bc.content <> "" has_content`, `bc.content`, `bc.html`)
+		joinClause = `LEFT JOIN bookmark_content bc ON bc.docid = b.id`
 	}
 
 	query := `SELECT ` + strings.Join(columns, ",") + `
-		FROM bookmark b
-		WHERE 1`
+		FROM bookmark b ` +
+		joinClause +
+		` WHERE 1`
 
 	// Add where clause
 	args := []interface{}{}
@@ -357,15 +359,11 @@ func (db *SQLiteDatabase) GetBookmarks(opts GetBookmarksOptions) ([]model.Bookma
 		bookmarks[i] = book
 	}
 
-	log.Printf("End GetBookmarks")
-
 	return bookmarks, nil
 }
 
 // GetBookmarksCount fetch count of bookmarks based on submitted options.
 func (db *SQLiteDatabase) GetBookmarksCount(opts GetBookmarksOptions) (int, error) {
-	log.Printf("Start GetBookmarksCount...")
-
 	// Create initial query
 	query := `SELECT COUNT(b.id)
 		FROM bookmark b
@@ -458,8 +456,6 @@ func (db *SQLiteDatabase) GetBookmarksCount(opts GetBookmarksOptions) (int, erro
 	if err != nil && err != sql.ErrNoRows {
 		return 0, fmt.Errorf("failed to fetch count: %v", err)
 	}
-
-	log.Printf("End GetBookmarksCount")
 
 	return nBookmarks, nil
 }
