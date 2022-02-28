@@ -2,6 +2,8 @@ module github.com/go-shiori/shiori
 
 go 1.17
 
+// +heroku goVersion go1.17
+
 require (
 	github.com/PuerkitoBio/goquery v1.8.0
 	github.com/disintegration/imaging v1.6.2
