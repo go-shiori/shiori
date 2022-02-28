@@ -1,0 +1,6 @@
+[metadata.heroku]
+  root-package = "github.com/My6UoT9/shiori"
+  go-version = "go1.14.1"
+  install = [ "." ]
+  ensure = "reuw"
+  additional-tools = ["github.com/golang-migrate/migrate"]
