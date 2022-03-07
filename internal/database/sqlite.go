@@ -221,19 +221,17 @@ func (db *SQLiteDatabase) GetBookmarks(opts GetBookmarksOptions) ([]model.Bookma
 		`b.excerpt`,
 		`b.author`,
 		`b.public`,
-		`b.modified`}
-
-	joinClause := ""
+		`b.modified`,
+		`bc.content <> "" has_content`}
 
 	if opts.WithContent {
-		columns = append(columns, `bc.content <> "" has_content`, `bc.content`, `bc.html`)
-		joinClause = `LEFT JOIN bookmark_content bc ON bc.docid = b.id`
+		columns = append(columns, `bc.content`, `bc.html`)
 	}
 
 	query := `SELECT ` + strings.Join(columns, ",") + `
-		FROM bookmark b ` +
-		joinClause +
-		` WHERE 1`
+		FROM bookmark b
+		LEFT JOIN bookmark_content bc ON bc.docid = b.id
+		WHERE 1`
 
 	// Add where clause
 	args := []interface{}{}
