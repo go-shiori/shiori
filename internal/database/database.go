@@ -2,6 +2,8 @@ package database
 
 import (
 	"database/sql"
+	"strings"
+	"unicode/utf8"
 
 	"github.com/go-shiori/shiori/internal/model"
 )
@@ -79,4 +81,14 @@ func checkError(err error) {
 	if err != nil && err != sql.ErrNoRows {
 		panic(err)
 	}
+}
+
+func sanitizeString(str string) string {
+	fixUtf := func(r rune) rune {
+		if r == utf8.RuneError {
+			return -1
+		}
+		return r
+	}
+	return strings.Map(fixUtf, str)
 }

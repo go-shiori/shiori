@@ -154,15 +154,33 @@ func (db *SQLiteDatabase) SaveBookmarks(bookmarks ...model.Bookmark) (result []m
 
 		// Save bookmark
 		stmtInsertBook.MustExec(book.ID,
-			book.URL, book.Title, book.Excerpt, book.Author, book.Public, book.Modified,
-			book.URL, book.Title, book.Excerpt, book.Author, book.Public, book.Modified)
+			sanitizeString(book.URL),
+			sanitizeString(book.Title),
+			sanitizeString(book.Excerpt),
+			sanitizeString(book.Author),
+			book.Public,
+			book.Modified,
+			sanitizeString(book.URL),
+			sanitizeString(book.Title),
+			sanitizeString(book.Excerpt),
+			sanitizeString(book.Author),
+			book.Public,
+			book.Modified)
 
 		// Try to update it first to check for existence, we can't do an UPSERT here because
-		// bookmant_content is a virtual table
-		res := stmtUpdateBookContent.MustExec(book.Title, book.Content, book.HTML, book.ID)
+		// bookmark_content is a virtual table
+		res := stmtUpdateBookContent.MustExec(
+			sanitizeString(book.Title),
+			sanitizeString(book.Content),
+			sanitizeString(book.HTML),
+			book.ID)
+
 		rows, _ := res.RowsAffected()
 		if rows == 0 {
-			stmtInsertBookContent.MustExec(book.ID, book.Title, book.Content, book.HTML)
+			stmtInsertBookContent.MustExec(book.ID,
+				sanitizeString(book.Title),
+				sanitizeString(book.Content),
+				sanitizeString(book.HTML))
 		}
 
 		// Save book tags
@@ -175,7 +193,8 @@ func (db *SQLiteDatabase) SaveBookmarks(bookmarks ...model.Bookmark) (result []m
 			}
 
 			// Normalize tag name
-			tagName := strings.ToLower(tag.Name)
+			tagName := sanitizeString(tag.Name)
+			tagName = strings.ToLower(tagName)
 			tagName = strings.Join(strings.Fields(tagName), " ")
 
 			// If tag doesn't have any ID, fetch it from database
