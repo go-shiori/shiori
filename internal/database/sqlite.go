@@ -365,7 +365,6 @@ func (db *SQLiteDatabase) GetBookmarksCount(opts GetBookmarksOptions) (int, erro
 	// Create initial query
 	query := `SELECT COUNT(b.id)
 		FROM bookmark b
-		LEFT JOIN bookmark_content bc ON bc.docid = b.id
 		WHERE 1`
 
 	// Add where clause
