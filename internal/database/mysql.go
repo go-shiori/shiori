@@ -92,6 +92,11 @@ func OpenMySQLDatabase(connString string) (mysqlDB *MySQLDatabase, err error) {
 	return mysqlDB, err
 }
 
+// Migrate runs migrations for this database engine
+func (db *MySQLDatabase) Migrate() error {
+	return fmt.Errorf("not implemented")
+}
+
 // SaveBookmarks saves new or updated bookmarks to database.
 // Returns the saved ID and error message if any happened.
 func (db *MySQLDatabase) SaveBookmarks(bookmarks ...model.Bookmark) (result []model.Bookmark, err error) {
