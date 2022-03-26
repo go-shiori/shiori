@@ -2,15 +2,22 @@ package database
 
 import (
 	"database/sql"
+	"embed"
 	"fmt"
 	"log"
 	"strings"
 	"time"
 
 	"github.com/go-shiori/shiori/internal/model"
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/sqlite"
+	"github.com/golang-migrate/migrate/v4/source/iofs"
 	"github.com/jmoiron/sqlx"
 	"golang.org/x/crypto/bcrypt"
 )
+
+//go:embed migrations/sqlite/*
+var migrations embed.FS
 
 // SQLiteDatabase is implementation of Database interface
 // for connecting to SQLite3 database.
@@ -20,67 +27,30 @@ type SQLiteDatabase struct {
 
 // OpenSQLiteDatabase creates and open connection to new SQLite3 database.
 func OpenSQLiteDatabase(databasePath string) (sqliteDB *SQLiteDatabase, err error) {
-	// Open database and start transaction
+	// Open database
 	db := sqlx.MustConnect("sqlite", databasePath)
-
-	tx, err := db.Beginx()
-	if err != nil {
-		return nil, err
-	}
-
-	// Make sure to rollback if panic ever happened
-	defer func() {
-		if r := recover(); r != nil {
-			panicErr, _ := r.(error)
-			if err := tx.Rollback(); err != nil {
-				log.Printf("error during rollback: %s", err)
-			}
-			sqliteDB = nil
-			err = panicErr
-		}
-	}()
-
-	// Create tables
-	tx.MustExec(`CREATE TABLE IF NOT EXISTS account(
-		id       INTEGER NOT NULL,
-		username TEXT    NOT NULL,
-		password TEXT    NOT NULL,
-		owner    INTEGER NOT NULL DEFAULT 0,
-		CONSTRAINT account_PK PRIMARY KEY(id),
-		CONSTRAINT account_username_UNIQUE UNIQUE(username))`)
-
-	tx.MustExec(`CREATE TABLE IF NOT EXISTS bookmark(
-		id       INTEGER NOT NULL,
-		url      TEXT    NOT NULL,
-		title    TEXT    NOT NULL,
-		excerpt  TEXT    NOT NULL DEFAULT "",
-		author   TEXT    NOT NULL DEFAULT "",
-		public   INTEGER NOT NULL DEFAULT 0,
-		modified TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-		CONSTRAINT bookmark_PK PRIMARY KEY(id),
-		CONSTRAINT bookmark_url_UNIQUE UNIQUE(url))`)
-
-	tx.MustExec(`CREATE TABLE IF NOT EXISTS tag(
-		id   INTEGER NOT NULL,
-		name TEXT    NOT NULL,
-		CONSTRAINT tag_PK PRIMARY KEY(id),
-		CONSTRAINT tag_name_UNIQUE UNIQUE(name))`)
-
-	tx.MustExec(`CREATE TABLE IF NOT EXISTS bookmark_tag(
-		bookmark_id INTEGER NOT NULL,
-		tag_id      INTEGER NOT NULL,
-		CONSTRAINT bookmark_tag_PK PRIMARY KEY(bookmark_id, tag_id),
-		CONSTRAINT bookmark_id_FK FOREIGN KEY(bookmark_id) REFERENCES bookmark(id),
-		CONSTRAINT tag_id_FK FOREIGN KEY(tag_id) REFERENCES tag(id))`)
-
-	tx.MustExec(`CREATE VIRTUAL TABLE IF NOT EXISTS bookmark_content
-		USING fts5(title, content, html, docid)`)
-
-	err = tx.Commit()
-	checkError(err)
-
 	sqliteDB = &SQLiteDatabase{*db}
 	return sqliteDB, err
+}
+
+// Migrate runs migrations for this database engine
+func (db *SQLiteDatabase) Migrate() error {
+	sourceDriver, err := iofs.New(migrations, "migrations/sqlite")
+	checkError(err)
+
+	dbDriver, err := sqlite.WithInstance(db.DB.DB, &sqlite.Config{})
+	checkError(err)
+
+	migration, err := migrate.NewWithInstance(
+		"iofs",
+		sourceDriver,
+		"sqlite",
+		dbDriver,
+	)
+
+	checkError(err)
+
+	return migration.Up()
 }
 
 // SaveBookmarks saves new or updated bookmarks to database.

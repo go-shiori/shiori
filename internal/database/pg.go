@@ -87,6 +87,11 @@ func OpenPGDatabase(connString string) (pgDB *PGDatabase, err error) {
 	return pgDB, err
 }
 
+// Migrate runs migrations for this database engine
+func (db *PGDatabase) Migrate() error {
+	return fmt.Errorf("not implemented")
+}
+
 // SaveBookmarks saves new or updated bookmarks to database.
 // Returns the saved ID and error message if any happened.
 func (db *PGDatabase) SaveBookmarks(bookmarks ...model.Bookmark) (result []model.Bookmark, err error) {
