@@ -22,25 +22,27 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func downloadBookmarkContent(book *model.Bookmark, dataDir string, request *http.Request) {
+func downloadBookmarkContent(book *model.Bookmark, dataDir string, request *http.Request) (*model.Bookmark, error) {
 	content, contentType, err := core.DownloadBookmark(book.URL)
-	if err == nil && content != nil {
-		request := core.ProcessRequest{
-			DataDir:     dataDir,
-			Bookmark:    *book,
-			Content:     content,
-			ContentType: contentType,
-		}
-
-		result, isFatalErr, err := core.ProcessBookmark(request)
-		content.Close()
-
-		if err != nil && isFatalErr {
-			panic(fmt.Errorf("failed to process bookmark: %v", err))
-		}
-
-		book = &result
+	if err != nil {
+		return nil, fmt.Errorf("error downloading bookmark: %s", err)
 	}
+
+	processRequest := core.ProcessRequest{
+		DataDir:     dataDir,
+		Bookmark:    *book,
+		Content:     content,
+		ContentType: contentType,
+	}
+
+	result, isFatalErr, err := core.ProcessBookmark(processRequest)
+	content.Close()
+
+	if err != nil && isFatalErr {
+		panic(fmt.Errorf("failed to process bookmark: %v", err))
+	}
+
+	return &result, err
 }
 
 // apiLogin is handler for POST /api/login
@@ -279,7 +281,7 @@ func (h *handler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 	err = json.NewDecoder(r.Body).Decode(&payload)
 	checkError(err)
 
-	book := model.Bookmark{
+	book := &model.Bookmark{
 		URL:           payload.URL,
 		Title:         payload.Title,
 		Excerpt:       payload.Excerpt,
@@ -306,20 +308,25 @@ func (h *handler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 	}
 
 	if !payload.Async {
-		downloadBookmarkContent(&book, h.DataDir, r)
+		book, err = downloadBookmarkContent(book, h.DataDir, r)
+		if err != nil {
+			log.Printf("error downloading boorkmark: %s", err)
+		}
 	}
 
 	// Save bookmark to database
-	results, err := h.DB.SaveBookmarks(book)
+	results, err := h.DB.SaveBookmarks(*book)
 	if err != nil || len(results) == 0 {
 		panic(fmt.Errorf("failed to save bookmark: %v", err))
 	}
-	book = results[0]
 
 	if payload.Async {
 		go func() {
-			downloadBookmarkContent(&book, h.DataDir, r)
-			if _, err := h.DB.SaveBookmarks(book); err != nil {
+			bookmark, err := downloadBookmarkContent(book, h.DataDir, r)
+			if err != nil {
+				log.Printf("error downloading boorkmark: %s", err)
+			}
+			if _, err := h.DB.SaveBookmarks(*bookmark); err != nil {
 				log.Printf("failed to save bookmark: %s", err)
 			}
 		}()
@@ -327,7 +334,7 @@ func (h *handler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 
 	// Return the new bookmark
 	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(&book)
+	err = json.NewEncoder(w).Encode(results[0])
 	checkError(err)
 }
 
