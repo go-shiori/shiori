@@ -307,7 +307,7 @@ func (h *handler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 		book.Title = book.URL
 	}
 
-	if !payload.Async {
+	if payload.CreateArchive {
 		book, err = downloadBookmarkContent(book, h.DataDir, r)
 		if err != nil {
 			log.Printf("error downloading boorkmark: %s", err)
