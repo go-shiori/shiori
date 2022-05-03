@@ -2,9 +2,13 @@ package database
 
 import (
 	"database/sql"
+	"embed"
 
 	"github.com/go-shiori/shiori/internal/model"
 )
+
+//go:embed migrations/*
+var migrations embed.FS
 
 // OrderMethod is the order method for getting bookmarks
 type OrderMethod int

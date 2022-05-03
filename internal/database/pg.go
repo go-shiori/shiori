@@ -8,6 +8,9 @@ import (
 	"time"
 
 	"github.com/go-shiori/shiori/internal/model"
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/postgres"
+	"github.com/golang-migrate/migrate/v4/source/iofs"
 	"github.com/jmoiron/sqlx"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -23,65 +26,7 @@ func OpenPGDatabase(connString string) (pgDB *PGDatabase, err error) {
 	// Open database and start transaction
 	db := sqlx.MustConnect("postgres", connString)
 	db.SetMaxOpenConns(100)
-
-	tx, err := db.Beginx()
-	if err != nil {
-		return nil, err
-	}
-
-	// Make sure to rollback if panic ever happened
-	defer func() {
-		if r := recover(); r != nil {
-			panicErr, _ := r.(error)
-			if err := tx.Rollback(); err != nil {
-				log.Printf("error during rollback: %s", err)
-			}
-			pgDB = nil
-			err = panicErr
-		}
-	}()
-
-	// Create tables
-	tx.MustExec(`CREATE TABLE IF NOT EXISTS account(
-		id       SERIAL,
-		username VARCHAR(250) NOT NULL,
-		password BYTEA    NOT NULL,
-		owner    BOOLEAN  NOT NULL DEFAULT FALSE,
-		PRIMARY KEY (id),
-		CONSTRAINT account_username_UNIQUE UNIQUE (username))`)
-
-	tx.MustExec(`CREATE TABLE IF NOT EXISTS bookmark(
-		id       SERIAL,
-		url      TEXT       NOT NULL,
-		title    TEXT       NOT NULL,
-		excerpt  TEXT       NOT NULL DEFAULT '',
-		author   TEXT       NOT NULL DEFAULT '',
-		public   SMALLINT   NOT NULL DEFAULT 0,
-		content  TEXT       NOT NULL DEFAULT '',
-		html     TEXT       NOT NULL DEFAULT '',
-		modified TIMESTAMP(0) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-		PRIMARY KEY(id),
-		CONSTRAINT bookmark_url_UNIQUE UNIQUE (url))`)
-
-	tx.MustExec(`CREATE TABLE IF NOT EXISTS tag(
-		id   SERIAL,
-		name VARCHAR(250) NOT NULL,
-		PRIMARY KEY (id),
-		CONSTRAINT tag_name_UNIQUE UNIQUE (name))`)
-
-	tx.MustExec(`CREATE TABLE IF NOT EXISTS bookmark_tag(
-		bookmark_id INT      NOT NULL,
-		tag_id      INT      NOT NULL,
-		PRIMARY KEY(bookmark_id, tag_id),
-		CONSTRAINT bookmark_tag_bookmark_id_FK FOREIGN KEY (bookmark_id) REFERENCES bookmark (id),
-		CONSTRAINT bookmark_tag_tag_id_FK FOREIGN KEY (tag_id) REFERENCES tag (id))`)
-
-	// Create indices
-	tx.MustExec(`CREATE INDEX IF NOT EXISTS bookmark_tag_bookmark_id_FK ON bookmark_tag (bookmark_id)`)
-	tx.MustExec(`CREATE INDEX IF NOT EXISTS bookmark_tag_tag_id_FK ON bookmark_tag (tag_id)`)
-
-	err = tx.Commit()
-	checkError(err)
+	db.SetConnMaxLifetime(time.Second)
 
 	pgDB = &PGDatabase{*db}
 	return pgDB, err
@@ -89,7 +34,22 @@ func OpenPGDatabase(connString string) (pgDB *PGDatabase, err error) {
 
 // Migrate runs migrations for this database engine
 func (db *PGDatabase) Migrate() error {
-	return fmt.Errorf("not implemented")
+	sourceDriver, err := iofs.New(migrations, "migrations/postgres")
+	checkError(err)
+
+	dbDriver, err := postgres.WithInstance(db.DB.DB, &postgres.Config{})
+	checkError(err)
+
+	migration, err := migrate.NewWithInstance(
+		"iofs",
+		sourceDriver,
+		"postgres",
+		dbDriver,
+	)
+
+	checkError(err)
+
+	return migration.Up()
 }
 
 // SaveBookmarks saves new or updated bookmarks to database.

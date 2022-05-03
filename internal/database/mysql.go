@@ -8,6 +8,9 @@ import (
 	"time"
 
 	"github.com/go-shiori/shiori/internal/model"
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/mysql"
+	"github.com/golang-migrate/migrate/v4/source/iofs"
 	"github.com/jmoiron/sqlx"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -25,76 +28,28 @@ func OpenMySQLDatabase(connString string) (mysqlDB *MySQLDatabase, err error) {
 	db.SetMaxOpenConns(100)
 	db.SetConnMaxLifetime(time.Second) // in case mysql client has longer timeout (driver issue #674)
 
-	tx, err := db.Beginx()
-	if err != nil {
-		return nil, err
-	}
-
-	// Make sure to rollback if panic ever happened
-	defer func() {
-		if r := recover(); r != nil {
-			panicErr, _ := r.(error)
-			if err := tx.Rollback(); err != nil {
-				log.Printf("error during rollback: %s", err)
-			}
-
-			mysqlDB = nil
-			err = panicErr
-		}
-	}()
-
-	// Create tables
-	tx.MustExec(`CREATE TABLE IF NOT EXISTS account(
-		id       INT(11)      NOT NULL AUTO_INCREMENT,
-		username VARCHAR(250) NOT NULL,
-		password BINARY(80)   NOT NULL,
-		owner    TINYINT(1)   NOT NULL DEFAULT '0',
-		PRIMARY KEY (id),
-		UNIQUE KEY account_username_UNIQUE (username))
-		CHARACTER SET utf8mb4`)
-
-	tx.MustExec(`CREATE TABLE IF NOT EXISTS bookmark(
-		id       INT(11)    NOT NULL AUTO_INCREMENT,
-		url      TEXT       NOT NULL,
-		title    TEXT       NOT NULL,
-		excerpt  TEXT       NOT NULL DEFAULT (''),
-		author   TEXT       NOT NULL DEFAULT (''),
-		public   BOOLEAN    NOT NULL DEFAULT 0,
-		content  MEDIUMTEXT NOT NULL DEFAULT (''),
-		html     MEDIUMTEXT NOT NULL DEFAULT (''),
-		modified TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-		PRIMARY KEY(id),
-		UNIQUE KEY bookmark_url_UNIQUE (url(255)),
-		FULLTEXT (title, excerpt, content))
-		CHARACTER SET utf8mb4`)
-
-	tx.MustExec(`CREATE TABLE IF NOT EXISTS tag(
-		id   INT(11)      NOT NULL AUTO_INCREMENT,
-		name VARCHAR(250) NOT NULL,
-		PRIMARY KEY (id),
-		UNIQUE KEY tag_name_UNIQUE (name))
-		CHARACTER SET utf8mb4`)
-
-	tx.MustExec(`CREATE TABLE IF NOT EXISTS bookmark_tag(
-		bookmark_id INT(11)      NOT NULL,
-		tag_id      INT(11)      NOT NULL,
-		PRIMARY KEY(bookmark_id, tag_id),
-		KEY bookmark_tag_bookmark_id_FK (bookmark_id),
-		KEY bookmark_tag_tag_id_FK (tag_id),
-		CONSTRAINT bookmark_tag_bookmark_id_FK FOREIGN KEY (bookmark_id) REFERENCES bookmark (id),
-		CONSTRAINT bookmark_tag_tag_id_FK FOREIGN KEY (tag_id) REFERENCES tag (id))
-		CHARACTER SET utf8mb4`)
-
-	err = tx.Commit()
-	checkError(err)
-
 	mysqlDB = &MySQLDatabase{*db}
 	return mysqlDB, err
 }
 
 // Migrate runs migrations for this database engine
 func (db *MySQLDatabase) Migrate() error {
-	return fmt.Errorf("not implemented")
+	sourceDriver, err := iofs.New(migrations, "migrations/mysql")
+	checkError(err)
+
+	dbDriver, err := mysql.WithInstance(db.DB.DB, &mysql.Config{})
+	checkError(err)
+
+	migration, err := migrate.NewWithInstance(
+		"iofs",
+		sourceDriver,
+		"mysql",
+		dbDriver,
+	)
+
+	checkError(err)
+
+	return migration.Up()
 }
 
 // SaveBookmarks saves new or updated bookmarks to database.
