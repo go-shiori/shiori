@@ -2,7 +2,6 @@ package database
 
 import (
 	"database/sql"
-	"embed"
 	"fmt"
 	"log"
 	"strings"
@@ -15,9 +14,6 @@ import (
 	"github.com/jmoiron/sqlx"
 	"golang.org/x/crypto/bcrypt"
 )
-
-//go:embed migrations/sqlite/*
-var migrations embed.FS
 
 // SQLiteDatabase is implementation of Database interface
 // for connecting to SQLite3 database.
