@@ -91,7 +91,7 @@
 					"response": []
 				},
 				{
-					"name": "/api/tag",
+					"name": "/api/tags",
 					"request": {
 						"method": "PUT",
 						"header": [
@@ -112,13 +112,13 @@
 							"raw": "{\n\t\"id\": 1,\n    \"name\": \"renamed_tag_7\"\n}"
 						},
 						"url": {
-							"raw": "{{host}}/api/tag",
+							"raw": "{{host}}/api/tags",
 							"host": [
 								"{{host}}"
 							],
 							"path": [
 								"api",
-								"tag"
+								"tags"
 							]
 						}
 					},
