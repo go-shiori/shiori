@@ -312,14 +312,13 @@ func (db *SQLiteDatabase) GetBookmarks(opts GetBookmarksOptions) ([]model.Bookma
 		for _, book := range bookmarks {
 			bookmarkIds = append(bookmarkIds, book.ID)
 		}
-
-		query, args, err := sqlx.In(`SELECT docid, content, html FROM bookmark_content WHERE docid IN (?)`, bookmarkIds)
-		query = db.Rebind(query)
+		contentQuery, args, err := sqlx.In(`SELECT docid, content, html FROM bookmark_content WHERE docid IN (?)`, bookmarkIds)
+		contentQuery = db.Rebind(contentQuery)
 		if err != nil {
 			return nil, fmt.Errorf("failed to expand query: %v", err)
 		}
 
-		err = db.Select(&contents, query, args...)
+		err = db.Select(&contents, contentQuery, args...)
 		if err != nil && err != sql.ErrNoRows {
 			return nil, fmt.Errorf("failed to fetch content for bookmarks (%v): %v", bookmarkIds, err)
 		}
