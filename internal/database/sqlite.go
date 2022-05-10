@@ -21,6 +21,12 @@ type SQLiteDatabase struct {
 	sqlx.DB
 }
 
+type BookmarkContent struct {
+	ID      int    `db:"docid"`
+	Content string `db:"content"`
+	HTML    string `db:"html"`
+}
+
 // OpenSQLiteDatabase creates and open connection to new SQLite3 database.
 func OpenSQLiteDatabase(databasePath string) (sqliteDB *SQLiteDatabase, err error) {
 	// Open database
@@ -180,23 +186,16 @@ func (db *SQLiteDatabase) SaveBookmarks(bookmarks ...model.Bookmark) (result []m
 // GetBookmarks fetch list of bookmarks based on submitted options.
 func (db *SQLiteDatabase) GetBookmarks(opts GetBookmarksOptions) ([]model.Bookmark, error) {
 	// Create initial query
-	columns := []string{
-		`b.id`,
-		`b.url`,
-		`b.title`,
-		`b.excerpt`,
-		`b.author`,
-		`b.public`,
-		`b.modified`,
-		`bc.content <> "" has_content`}
-
-	if opts.WithContent {
-		columns = append(columns, `bc.content`, `bc.html`)
-	}
-
-	query := `SELECT ` + strings.Join(columns, ",") + `
+	query := `SELECT 
+		b.id,
+		b.url,
+		b.title,
+		b.excerpt,
+		b.author,
+		b.public,
+		b.modified,
+		b.has_content
 		FROM bookmark b
-		LEFT JOIN bookmark_content bc ON bc.docid = b.id
 		WHERE 1`
 
 	// Add where clause
@@ -300,6 +299,41 @@ func (db *SQLiteDatabase) GetBookmarks(opts GetBookmarksOptions) ([]model.Bookma
 	err = db.Select(&bookmarks, query, args...)
 	if err != nil && err != sql.ErrNoRows {
 		return nil, fmt.Errorf("failed to fetch data: %v", err)
+	}
+
+	// If content needed, fetch it separately
+	// It's faster than join with virtual table
+	if opts.WithContent {
+		var bookmarkIds []int
+		contents := make([]BookmarkContent, 0, len(bookmarks))
+		contentMap := make(map[int]BookmarkContent, len(bookmarks))
+
+		for _, book := range bookmarks {
+			bookmarkIds = append(bookmarkIds, book.ID)
+		}
+
+		query, args, err := sqlx.In(`SELECT docid, content, html FROM bookmark_content WHERE docid IN (?)`, bookmarkIds)
+		query = db.Rebind(query)
+		if err != nil {
+			return nil, fmt.Errorf("failed to expand query: %v", err)
+		}
+
+		err = db.Select(&contents, query, args...)
+		if err != nil && err != sql.ErrNoRows {
+			return nil, fmt.Errorf("failed to fetch content for bookmarks (%v): %v", bookmarkIds, err)
+		}
+		for _, content := range contents {
+			contentMap[content.ID] = content
+		}
+		for _, book := range bookmarks {
+			if bookmarkContent, found := contentMap[book.ID]; found {
+				book.Content = bookmarkContent.Content
+				book.HTML = bookmarkContent.HTML
+			} else {
+				log.Printf("not found content for bookmark %d, but it should be; check DB consistency", book.ID)
+			}
+		}
+
 	}
 
 	// Fetch tags for each bookmarks
@@ -482,7 +516,7 @@ func (db *SQLiteDatabase) GetBookmark(id int, url string) (model.Bookmark, bool)
 	args := []interface{}{id}
 	query := `SELECT
 		b.id, b.url, b.title, b.excerpt, b.author, b.public, b.modified,
-		bc.content, bc.html, bc.content <> "" has_content
+		bc.content, bc.html, b.has_content
 		FROM bookmark b
 		LEFT JOIN bookmark_content bc ON bc.docid = b.id
 		WHERE b.id = ?`
