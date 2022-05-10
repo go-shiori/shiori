@@ -27,6 +27,11 @@ type BookmarkContent struct {
 	HTML    string `db:"html"`
 }
 
+type TagContent struct {
+	ID int `db:"bookmark_id"`
+	model.Tag
+}
+
 // OpenSQLiteDatabase creates and open connection to new SQLite3 database.
 func OpenSQLiteDatabase(databasePath string) (sqliteDB *SQLiteDatabase, err error) {
 	// Open database
@@ -302,16 +307,18 @@ func (db *SQLiteDatabase) GetBookmarks(opts GetBookmarksOptions) ([]model.Bookma
 		return nil, fmt.Errorf("failed to fetch data: %v", err)
 	}
 
+	// store bookmark IDs for further enrichment
+	var bookmarkIds = make([]int, 0, len(bookmarks))
+	for _, book := range bookmarks {
+		bookmarkIds = append(bookmarkIds, book.ID)
+	}
+
 	// If content needed, fetch it separately
 	// It's faster than join with virtual table
 	if opts.WithContent {
-		var bookmarkIds []int
 		contents := make([]BookmarkContent, 0, len(bookmarks))
 		contentMap := make(map[int]BookmarkContent, len(bookmarks))
 
-		for _, book := range bookmarks {
-			bookmarkIds = append(bookmarkIds, book.ID)
-		}
 		contentQuery, args, err := sqlx.In(`SELECT docid, content, html FROM bookmark_content WHERE docid IN (?)`, bookmarkIds)
 		contentQuery = db.Rebind(contentQuery)
 		if err != nil {
@@ -337,25 +344,38 @@ func (db *SQLiteDatabase) GetBookmarks(opts GetBookmarksOptions) ([]model.Bookma
 
 	}
 
-	// Fetch tags for each bookmarks
-	stmtGetTags, err := db.Preparex(`SELECT t.id, t.name
+	// Fetch tags for each bookmark
+	tags := make([]TagContent, 0, len(bookmarks))
+	tagsMap := make(map[int][]model.Tag, len(bookmarks))
+
+	tagsQuery, tagArgs, err := sqlx.In(`SELECT bt.bookmark_id, t.id, t.name
 		FROM bookmark_tag bt
 		LEFT JOIN tag t ON bt.tag_id = t.id
-		WHERE bt.bookmark_id = ?
-		ORDER BY t.name`)
+		WHERE bt.bookmark_id IN (?)
+		ORDER BY t.name`, bookmarkIds)
+	tagsQuery = db.Rebind(tagsQuery)
 	if err != nil {
-		return nil, fmt.Errorf("failed to prepare tag query: %v", err)
+		return nil, fmt.Errorf("failed to expand query: %v", err)
 	}
-	defer stmtGetTags.Close()
 
-	for i, book := range bookmarks {
-		book.Tags = []model.Tag{}
-		err = stmtGetTags.Select(&book.Tags, book.ID)
-		if err != nil && err != sql.ErrNoRows {
-			return nil, fmt.Errorf("failed to fetch tags: %v", err)
+	err = db.Select(&tags, tagsQuery, tagArgs...)
+	if err != nil && err != sql.ErrNoRows {
+		return nil, fmt.Errorf("failed to fetch tags for bookmarks (%v): %v", bookmarkIds, err)
+	}
+	for _, fetchedTag := range tags {
+		if tags, found := tagsMap[fetchedTag.ID]; found {
+			tagsMap[fetchedTag.ID] = append(tags, fetchedTag.Tag)
+		} else {
+			tagsMap[fetchedTag.ID] = []model.Tag{fetchedTag.Tag}
 		}
-
-		bookmarks[i] = book
+	}
+	for i := range bookmarks[:] {
+		book := &bookmarks[i]
+		if tags, found := tagsMap[book.ID]; found {
+			book.Tags = tags
+		} else {
+			book.Tags = []model.Tag{}
+		}
 	}
 
 	return bookmarks, nil
