@@ -124,7 +124,7 @@ func (db *SQLiteDatabase) SaveBookmarks(bookmarks ...model.Bookmark) (result []m
 			book.URL, book.Title, book.Excerpt, book.Author, book.Public, book.Modified)
 
 		// Try to update it first to check for existence, we can't do an UPSERT here because
-		// bookmant_content is a virtual table
+		// bookmark_content is a virtual table
 		res := stmtUpdateBookContent.MustExec(book.Title, book.Content, book.HTML, book.ID)
 		rows, _ := res.RowsAffected()
 		if rows == 0 {
@@ -476,7 +476,7 @@ func (db *SQLiteDatabase) DeleteBookmarks(ids ...int) (err error) {
 	return err
 }
 
-// GetBookmark fetchs bookmark based on its ID or URL.
+// GetBookmark fetches bookmark based on its ID or URL.
 // Returns the bookmark and boolean whether it's exist or not.
 func (db *SQLiteDatabase) GetBookmark(id int, url string) (model.Bookmark, bool) {
 	args := []interface{}{id}

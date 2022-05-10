@@ -57,7 +57,7 @@ type DB interface {
 	// DeleteBookmarks removes all record with matching ids from database.
 	DeleteBookmarks(ids ...int) error
 
-	// GetBookmark fetchs bookmark based on its ID or URL.
+	// GetBookmark fetches bookmark based on its ID or URL.
 	GetBookmark(id int, url string) (model.Bookmark, bool)
 
 	// SaveAccount saves new account in database
