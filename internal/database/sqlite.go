@@ -325,7 +325,8 @@ func (db *SQLiteDatabase) GetBookmarks(opts GetBookmarksOptions) ([]model.Bookma
 		for _, content := range contents {
 			contentMap[content.ID] = content
 		}
-		for _, book := range bookmarks {
+		for i := range bookmarks[:] {
+			book := &bookmarks[i]
 			if bookmarkContent, found := contentMap[book.ID]; found {
 				book.Content = bookmarkContent.Content
 				book.HTML = bookmarkContent.HTML
