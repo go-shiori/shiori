@@ -78,11 +78,11 @@ func (db *SQLiteDatabase) SaveBookmarks(bookmarks ...model.Bookmark) (result []m
 
 	// Prepare statement
 	stmtInsertBook, _ := tx.Preparex(`INSERT INTO bookmark
-		(id, url, title, excerpt, author, public, modified)
-		VALUES(?, ?, ?, ?, ?, ?, ?)
+		(id, url, title, excerpt, author, public, modified, has_content)
+		VALUES(?, ?, ?, ?, ?, ?, ?, ?)
 		ON CONFLICT(id) DO UPDATE SET
 		url = ?, title = ?,	excerpt = ?, author = ?,
-		public = ?, modified = ?`)
+		public = ?, modified = ?, has_content = ?`)
 
 	stmtInsertBookContent, _ := tx.Preparex(`INSERT OR REPLACE INTO bookmark_content
 		(docid, title, content, html)
@@ -125,9 +125,10 @@ func (db *SQLiteDatabase) SaveBookmarks(bookmarks ...model.Bookmark) (result []m
 		book.Modified = modifiedTime
 
 		// Save bookmark
+		hasContent := book.Content != ""
 		stmtInsertBook.MustExec(book.ID,
-			book.URL, book.Title, book.Excerpt, book.Author, book.Public, book.Modified,
-			book.URL, book.Title, book.Excerpt, book.Author, book.Public, book.Modified)
+			book.URL, book.Title, book.Excerpt, book.Author, book.Public, book.Modified, hasContent,
+			book.URL, book.Title, book.Excerpt, book.Author, book.Public, book.Modified, hasContent)
 
 		// Try to update it first to check for existence, we can't do an UPSERT here because
 		// bookmark_content is a virtual table
