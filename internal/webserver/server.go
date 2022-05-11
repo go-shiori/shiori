@@ -2,14 +2,15 @@ package webserver
 
 import (
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"net/http"
 	"path"
 	"time"
 
 	"github.com/go-shiori/shiori/internal/database"
 	"github.com/julienschmidt/httprouter"
+	"github.com/labstack/echo/v4"
 	cch "github.com/patrickmn/go-cache"
-	"github.com/sirupsen/logrus"
 )
 
 // Config is parameter that used for starting web server
@@ -218,17 +219,12 @@ func ServeApp(cfg Config) error {
 			Logger(r, d.status, d.size)
 		}
 	}
-
 	// Create server
 	url := fmt.Sprintf("%s:%d", cfg.ServerAddress, cfg.ServerPort)
-	svr := &http.Server{
-		Addr:         url,
-		Handler:      router,
-		ReadTimeout:  10 * time.Second,
-		WriteTimeout: time.Minute,
-	}
-
 	// Serve app
 	logrus.Infoln("Serve shiori in", url, cfg.RootPath)
-	return svr.ListenAndServe()
+	e := echo.New()
+	e.HideBanner = true
+	e.Any("/*", echo.WrapHandler(router))
+	return e.Start(url)
 }
