@@ -21,13 +21,13 @@ type SQLiteDatabase struct {
 	sqlx.DB
 }
 
-type BookmarkContent struct {
+type bookmarkContent struct {
 	ID      int    `db:"docid"`
 	Content string `db:"content"`
 	HTML    string `db:"html"`
 }
 
-type TagContent struct {
+type tagContent struct {
 	ID int `db:"bookmark_id"`
 	model.Tag
 }
@@ -316,8 +316,8 @@ func (db *SQLiteDatabase) GetBookmarks(opts GetBookmarksOptions) ([]model.Bookma
 	// If content needed, fetch it separately
 	// It's faster than join with virtual table
 	if opts.WithContent {
-		contents := make([]BookmarkContent, 0, len(bookmarks))
-		contentMap := make(map[int]BookmarkContent, len(bookmarks))
+		contents := make([]bookmarkContent, 0, len(bookmarks))
+		contentMap := make(map[int]bookmarkContent, len(bookmarks))
 
 		contentQuery, args, err := sqlx.In(`SELECT docid, content, html FROM bookmark_content WHERE docid IN (?)`, bookmarkIds)
 		contentQuery = db.Rebind(contentQuery)
@@ -345,7 +345,7 @@ func (db *SQLiteDatabase) GetBookmarks(opts GetBookmarksOptions) ([]model.Bookma
 	}
 
 	// Fetch tags for each bookmark
-	tags := make([]TagContent, 0, len(bookmarks))
+	tags := make([]tagContent, 0, len(bookmarks))
 	tagsMap := make(map[int][]model.Tag, len(bookmarks))
 
 	tagsQuery, tagArgs, err := sqlx.In(`SELECT bt.bookmark_id, t.id, t.name
