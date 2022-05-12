@@ -1,0 +1,1057 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: Shiori API
+  description: API to interact with Shiori service
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Local server
+paths:
+  ###
+  # Authentication
+  ###
+
+  /auth/login:
+    post:
+      summary: Authenticates user
+      description: Authenticates user with given credentials
+      tags:
+        - Authentication
+      operationId: login
+      requestBody:
+        description: Credentials
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Credentials'
+      responses:
+        200:
+          description: Successful login
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Token'
+        401:
+          description: Wrong username, password or no such user at all
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/logout:
+    post:
+      summary: Logs out user
+      description: Invalidate authentication token
+      tags:
+        - Authentication
+      operationId: logout
+      requestBody:
+        description: Authentication token
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Token'
+      responses:
+        204:
+          description: Log out user
+        401:
+          description: Wrong token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  ###
+  # Tags
+  ###
+
+  /tags:
+    get:
+      summary: Get all tags
+      description: Get all tags (unfiltered)
+      tags:
+        - Tags
+      operationId: getTags
+      responses:
+        200:
+          description: Found tags
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Tag'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      summary: Create new tag
+      description: Create new tag without attaching it to any bookmark
+      tags:
+        - Tags
+      operationId: createTag
+      requestBody:
+        description: Content to create in given tag
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TagContent'
+      responses:
+        201:
+          description: New tag
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tag'
+        409:
+          description: Such tag already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /tags/{tagId}:
+    get:
+      summary: Get single tag
+      description: Get single tag by ID
+      tags:
+        - Tags
+      operationId: getTag
+      parameters:
+        - name: tagId
+          in: path
+          description: ID of tag
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        200:
+          description: Found tag
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tag'
+        404:
+          description: No such tag
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      summary: Modify tag
+      description: Modify content of tag, for example, name or color
+      tags:
+        - Tags
+      operationId: editTag
+      parameters:
+        - name: tagId
+          in: path
+          description: ID of tag
+          required: true
+          schema:
+            type: integer
+            format: int32
+      requestBody:
+        description: Content to edit in given tag
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TagContent'
+      responses:
+        200:
+          description: Modified tag
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tag'
+        409:
+          description: Such tag already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        404:
+          description: No such tag
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      summary: Delete tag
+      description: Remove tag from all bookmarks and tag itself
+      tags:
+        - Tags
+      operationId: deleteTag
+      parameters:
+        - name: tagId
+          in: path
+          description: ID of tag
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        204:
+          description: Tag deleted
+        404:
+          description: No such tag
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  ###
+  # Bookmarks
+  ###
+
+  /bookmarks:
+    get:
+      summary: Get bookmarks
+      description: Get bookmarks, filtered by keyword, tags or all of them
+      tags:
+        - Bookmarks
+      operationId: getBookmarks
+      parameters:
+        - name: tags
+          in: query
+          description: Tags that should be present in bookmark
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: false
+          examples:
+            oneId:
+              summary: Example of a single tag
+              value: [ programming ]
+            multipleIds:
+              summary: Example of multiple tags
+              value: [ scala, programming, fp ]
+        - name: exclude
+          in: query
+          description: Tags that must be absent in bookmark
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: false
+          examples:
+            oneId:
+              summary: Example of a single tag
+              value: [ architecture ]
+            multipleIds:
+              summary: Example of multiple tags
+              value: [ design, architecture, construction ]
+        - name: page
+          in: query
+          description: Page number to query
+          required: false
+          schema:
+            type: integer
+            format: int32
+          example: 3
+        - name: keyword
+          in: query
+          description: Keyword(s) to search
+          required: false
+          schema:
+            type: string
+          example: Key-value databases
+      responses:
+        200:
+          description: Found bookmarks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Bookmark'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      summary: Create bookmark
+      description: |-
+        Create bookmark from URL, and, if specified, parse page into readable 
+        article.
+      tags:
+        - Bookmarks
+      operationId: createBookmark
+      requestBody:
+        description: Payload to create bookmark from URL
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookmarkSubmission'
+      responses:
+        201:
+          description: New bookmark
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bookmark'
+        409:
+          description: Bookmark from this URL already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /bookmarks/exists:
+    get:
+      summary: Probe for bookmark existence
+      description: |-
+        This method used primarily in web extensions and kept only for legacy reasons.
+        
+        It will be replaced with websockets in future.
+      tags:
+        - Bookmarks
+      operationId: probeBookmark
+      parameters:
+        - name: url
+          in: query
+          description: Page URL to probe
+          required: true
+          schema:
+            type: string
+          example: https://docs.scala-lang.org/overviews/core/futures.html
+
+      responses:
+        200:
+          description: Found bookmark
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookmarkShort'
+        404:
+          description: |-
+            This URL has not yet been saved.
+            
+            Note that even response body is omitted for sake of performance.
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /bookmarks/{bookmarkId}:
+    get:
+      summary: Get single bookmark
+      description: Get single bookmark by ID
+      tags:
+        - Bookmarks
+      operationId: getBookmark
+      parameters:
+        - name: bookmarkId
+          in: path
+          description: ID of bookmark
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        200:
+          description: Found bookmark
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bookmark'
+        404:
+          description: No such bookmark
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      summary: Modify bookmark
+      description: |-
+        Modify metadata for bookmark
+        
+        Note that changing URL will cause re-fetching all relevant data,
+        such as parsed readable data and archived snapshot.
+        
+        Consider refresh operation for such case.
+      tags:
+        - Bookmarks
+      operationId: editBookmark
+      parameters:
+        - name: bookmarkId
+          in: path
+          description: ID of bookmark
+          required: true
+          schema:
+            type: integer
+            format: int32
+      requestBody:
+        description: New metadata for bookmark
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookmarkCorrection'
+      responses:
+        200:
+          description: Modified bookmark
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bookmark'
+        409:
+          description: Attempt to add duplicate by URL of already existing bookmark
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        404:
+          description: No such bookmark
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      summary: Delete bookmark
+      description: |-
+        Remove bookmark and relevant resources, like thumbnails or archives.
+
+        Note that public links will return `410 Gone` afterwards.
+      tags:
+        - Bookmarks
+      operationId: deleteBookmark
+      parameters:
+        - name: bookmarkId
+          in: path
+          description: ID of bookmark
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        204:
+          description: Bookmark deleted
+        404:
+          description: No such bookmark
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /bookmarks/{bookmarkId}/refresh:
+    post:
+      summary: Refresh bookmark
+      description: |-
+        Fetch new data for saved bookmark, replacing it's content and metadata, if specified.
+        
+        This process is asynchronous and there is no guarantee that new content will be available after the response.
+      tags:
+        - Bookmarks
+      operationId: refreshBookmark
+      parameters:
+        - name: bookmarkId
+          in: path
+          description: ID of bookmark
+          required: true
+          schema:
+            type: integer
+            format: int32
+      requestBody:
+        description: New metadata for bookmark
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookmarkRefresh'
+      responses:
+        202:
+          description: Successfully accepted request to refresh bookmark's content
+        409:
+          description: There is already a request to update the bookmark, but it has not yet been processed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        404:
+          description: No such bookmark
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  ###
+  # Accounts
+  ###
+
+  /accounts:
+    get:
+      summary: Get all accounts
+      description: Get all accounts in system
+      tags:
+        - Accounts
+      operationId: getAccounts
+      responses:
+        200:
+          description: Found accounts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Account'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      summary: Create new account
+      description: Create new account in system
+      tags:
+        - Accounts
+      operationId: createAccount
+      requestBody:
+        description: Content to create new account
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountSubmission'
+      responses:
+        201:
+          description: New account
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+        400:
+          description: Unacceptable username, password and vice versa
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        409:
+          description: Account with such username already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /accounts/{accountId}:
+    get:
+      summary: Get single account
+      description: Get single user account by ID
+      tags:
+        - Accounts
+      operationId: getAccount
+      parameters:
+        - name: accountId
+          in: path
+          description: ID of account
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        200:
+          description: Found account
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+        404:
+          description: No such account
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      summary: Change account details
+      description: Used to change personal details, e.g. username
+      tags:
+        - Accounts
+      operationId: editAccount
+      parameters:
+        - name: accountId
+          in: path
+          description: ID of account
+          required: true
+          schema:
+            type: integer
+            format: int32
+      requestBody:
+        description: Content to edit in given account
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountDetails'
+      responses:
+        200:
+          description: Modified account
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+        404:
+          description: No such account
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      summary: Delete account
+      description: Remove account from system
+      tags:
+        - Accounts
+      operationId: deleteAccount
+      parameters:
+        - name: accountId
+          in: path
+          description: ID of account
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        204:
+          description: Account deleted
+        404:
+          description: No such account
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /accounts/{accountId}/changePassword:
+    post:
+      summary: Change password for account
+      description: Used to change password
+      tags:
+        - Accounts
+      operationId: changePassword
+      parameters:
+        - name: accountId
+          in: path
+          description: ID of account
+          required: true
+          schema:
+            type: integer
+            format: int32
+      requestBody:
+        description: Password pair, old and new one
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordsPair'
+      responses:
+        200:
+          description: Modified account
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+        400:
+          description: Something wrong with passwords
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        404:
+          description: No such account
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      additionalProperties: false
+      properties:
+        code:
+          type: integer
+          format: int32
+          description: Error code
+        message:
+          type: string
+          description: Error message
+
+    Credentials:
+      type: object
+      required:
+        - username
+        - password
+      additionalProperties: false
+      properties:
+        username:
+          type: string
+          description: User's login
+          example: shiori
+        password:
+          type: string
+          description: Password for given user
+          example: gopher
+
+    Token:
+      type: object
+      required:
+        - id
+        - token
+      additionalProperties: false
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: Internal user's ID
+          example: 1
+        token:
+          type: string
+          format: uuid
+          description: Auth token
+          example: b1d050f1-1583-4c3b-b79b-525ee886c40e
+
+    TagContent:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Human-readable name for tag
+          example: programming
+
+    Tag:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/TagContent'
+        - required:
+            - id
+          additionalProperties: false
+          properties:
+            id:
+              type: integer
+              format: int32
+              description: Internal tag's ID
+              example: 2
+
+    BookmarkCorrection:
+      type: object
+      description: Payload to edit bookmark
+      required:
+        - url
+      properties:
+        url:
+          type: string
+          description: Bookmarked URL
+          example: https://docs.scala-lang.org/overviews/core/futures.html
+        title:
+          type: string
+          description: Title of bookmarked article or page
+          example: Futures and Promises
+        excerpt:
+          type: string
+          description: Short excerpt
+          example: >-
+            Futures provide a way to reason about performing many operations in parallel – in an efficient
+            and non-blocking way. A Future is a placeholder object for a value that may not yet exist.
+            
+            Generally, the value of the Future is supplied concurrently and can subsequently be used.
+            Composing concurrent tasks in this way tends to result in faster, asynchronous, non-blocking parallel code.
+        tags:
+          type: array
+          description: Raw tags that should be assigned to article
+          items:
+            type: string
+          example: [ scala, programming, fp ]
+          default: [ ]
+
+    BookmarkSubmission:
+      type: object
+      description: Payload to create new bookmark
+      allOf:
+        - $ref: '#/components/schemas/BookmarkCorrection'
+        - required:
+            - makePublic
+            - createArchive
+          properties:
+            makePublic:
+              type: boolean
+              description: Make bookmark publicly accessible by direct link
+              example: false
+              default: false
+            createArchive:
+              type: boolean
+              description: Create webarchive-style snapshot for bookmarked page
+              example: true
+              default: true
+
+    BookmarkRefresh:
+      type: object
+      description: Query to refresh bookmark
+      required:
+        - keepMetadata
+        - createArchive
+      additionalProperties: false
+      properties:
+        keepMetadata:
+          type: boolean
+          description: Keep existing metadata for bookmark, e.g. title and excerpt
+          example: true
+          default: true
+        createArchive:
+          type: boolean
+          description: Fetch new or replace existing webarchive-style snapshot for bookmarked page
+          example: true
+          default: true
+
+    BookmarkShort:
+      type: object
+      description: |-
+        Represents bookmark, used in probe requests
+        
+        Note to future implementers: try to keep this object as small as possible
+      required:
+        - id
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: Internal bookmark's ID
+          example: 123
+
+    Bookmark:
+      type: object
+      description: Bookmark, represents stored article from URL
+      allOf:
+        - $ref: '#/components/schemas/BookmarkCorrection'
+        - $ref: '#/components/schemas/BookmarkShort'
+        - required:
+            - author
+            - public
+            - modified
+            - hasContent
+            - hasArchive
+          properties:
+            author:
+              type: string
+              description: Author of article
+              example: Philipp Haller
+            public:
+              type: boolean
+              description: Whether bookmark is accessible by direct link
+              example: false
+            modified:
+              type: string
+              format: date-time
+              description: Last time when bookmark was modified
+              example: 2022-05-11T21:01:48.035Z
+            imageURL:
+              type: string
+              description: Relative URL for cover image
+              example: /bookmark/123/thumb
+            hasContent:
+              type: boolean
+              description: Whether readable content stored for this bookmark
+              example: true
+            hasArchive:
+              type: boolean
+              description: Whether full page snapshot stored for this bookmark
+              example: true
+            tags:
+              type: array
+              description: Tags that has been assigned to article
+              items:
+                $ref: '#/components/schemas/Tag'
+              example:
+                - id: 1
+                  name: scala
+                - id: 2
+                  name: programming
+                - id: 3
+                  name: fp
+              default: [ ]
+
+    AccountDetails:
+      type: object
+      description: User-defined properties for given account that the user can change themselves
+      required:
+        - username
+      properties:
+        username:
+          type: string
+          description: Human-readable nickname
+          example: shiori
+
+    PasswordsPair:
+      type: object
+      description: Passwords pair
+      required:
+        - oldPassword
+        - newPassword
+      properties:
+        oldPassword:
+          type: string
+          description: Old password
+          example: gopher
+        newPassword:
+          type: string
+          description: New password (strong!)
+          example: yLhUzsdnEA8AyG529DFzDVdT
+
+    AccountSubmission:
+      type: object
+      description: Necessary data to create new account
+      allOf:
+        - $ref: '#/components/schemas/AccountDetails'
+        - required:
+            - owner
+            - password
+          properties:
+            owner:
+              type: boolean
+              description: Whether account have superadmin permissions
+              example: true
+              default: false
+            password:
+              type: string
+              description: Password for account
+              example: yLhUzsdnEA8AyG529DFzDVdT
+
+    Account:
+      type: object
+      description: Account is person that allowed to access system
+      allOf:
+        - $ref: '#/components/schemas/AccountDetails'
+        - required:
+            - id
+            - owner
+          properties:
+            id:
+              type: integer
+              format: int32
+              description: Internal user's ID
+              example: 1
+            owner:
+              type: boolean
+              description: Whether account have admin permissions
+              example: true
+              default: false
