@@ -2,14 +2,19 @@ package webserver
 
 import (
 	"fmt"
+	"github.com/go-shiori/shiori/internal/api"
 	"github.com/sirupsen/logrus"
 	"net/http"
+	"os"
 	"path"
+	"strings"
 	"time"
 
+	oapiMiddleware "github.com/deepmap/oapi-codegen/pkg/middleware"
 	"github.com/go-shiori/shiori/internal/database"
 	"github.com/julienschmidt/httprouter"
 	"github.com/labstack/echo/v4"
+	echoMiddleware "github.com/labstack/echo/v4/middleware"
 	cch "github.com/patrickmn/go-cache"
 )
 
@@ -219,12 +224,41 @@ func ServeApp(cfg Config) error {
 			Logger(r, d.status, d.size)
 		}
 	}
-	// Create server
 	url := fmt.Sprintf("%s:%d", cfg.ServerAddress, cfg.ServerPort)
-	// Serve app
-	logrus.Infoln("Serve shiori in", url, cfg.RootPath)
+
+	// Create Echo router
 	e := echo.New()
 	e.HideBanner = true
+
+	// Log all requests
+	e.Use(echoMiddleware.Logger())
+
+	// Get swagger spec
+	swagger, err := api.GetSwagger()
+	if err != nil {
+		_, _ = fmt.Fprintf(os.Stderr, "Error loading swagger spec\n: %s", err)
+		os.Exit(1)
+	}
+	swagger.Servers = nil
+
+	// Create server
+	shioriServer := api.NewShioriServer()
+
+	// Leave all legacy API as-is
 	e.Any("/*", echo.WrapHandler(router))
+
+	// Register API under separate path to not conflict with existing API
+	apiBasePath := "/api/v1"
+	api.RegisterHandlersWithBaseURL(e, shioriServer, apiBasePath)
+
+	// Validate all requests to API against the OpenAPI schema
+	openAPIOptions := oapiMiddleware.Options{
+		Skipper: func(c echo.Context) bool {
+			return !strings.HasPrefix(c.Request().URL.Path, apiBasePath)
+		},
+	}
+	e.Use(oapiMiddleware.OapiRequestValidatorWithOptions(swagger, &openAPIOptions))
+
+	// Serve app
 	return e.Start(url)
 }

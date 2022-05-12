@@ -137,7 +137,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /tags/{tagId}:
+  /tags/{tagID}:
     get:
       summary: Get single tag
       description: Get single tag by ID
@@ -145,7 +145,7 @@ paths:
         - Tags
       operationId: getTag
       parameters:
-        - name: tagId
+        - name: tagID
           in: path
           description: ID of tag
           required: true
@@ -178,7 +178,7 @@ paths:
         - Tags
       operationId: editTag
       parameters:
-        - name: tagId
+        - name: tagID
           in: path
           description: ID of tag
           required: true
@@ -224,7 +224,7 @@ paths:
         - Tags
       operationId: deleteTag
       parameters:
-        - name: tagId
+        - name: tagID
           in: path
           description: ID of tag
           required: true
@@ -396,7 +396,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /bookmarks/{bookmarkId}:
+  /bookmarks/{bookmarkID}:
     get:
       summary: Get single bookmark
       description: Get single bookmark by ID
@@ -404,7 +404,7 @@ paths:
         - Bookmarks
       operationId: getBookmark
       parameters:
-        - name: bookmarkId
+        - name: bookmarkID
           in: path
           description: ID of bookmark
           required: true
@@ -443,7 +443,7 @@ paths:
         - Bookmarks
       operationId: editBookmark
       parameters:
-        - name: bookmarkId
+        - name: bookmarkID
           in: path
           description: ID of bookmark
           required: true
@@ -492,7 +492,7 @@ paths:
         - Bookmarks
       operationId: deleteBookmark
       parameters:
-        - name: bookmarkId
+        - name: bookmarkID
           in: path
           description: ID of bookmark
           required: true
@@ -515,7 +515,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /bookmarks/{bookmarkId}/refresh:
+  /bookmarks/{bookmarkID}/refresh:
     post:
       summary: Refresh bookmark
       description: |-
@@ -526,7 +526,7 @@ paths:
         - Bookmarks
       operationId: refreshBookmark
       parameters:
-        - name: bookmarkId
+        - name: bookmarkID
           in: path
           description: ID of bookmark
           required: true
@@ -627,7 +627,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /accounts/{accountId}:
+  /accounts/{accountID}:
     get:
       summary: Get single account
       description: Get single user account by ID
@@ -635,7 +635,7 @@ paths:
         - Accounts
       operationId: getAccount
       parameters:
-        - name: accountId
+        - name: accountID
           in: path
           description: ID of account
           required: true
@@ -668,7 +668,7 @@ paths:
         - Accounts
       operationId: editAccount
       parameters:
-        - name: accountId
+        - name: accountID
           in: path
           description: ID of account
           required: true
@@ -708,7 +708,7 @@ paths:
         - Accounts
       operationId: deleteAccount
       parameters:
-        - name: accountId
+        - name: accountID
           in: path
           description: ID of account
           required: true
@@ -731,7 +731,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /accounts/{accountId}/changePassword:
+  /accounts/{accountID}/changePassword:
     post:
       summary: Change password for account
       description: Used to change password
@@ -739,7 +739,7 @@ paths:
         - Accounts
       operationId: changePassword
       parameters:
-        - name: accountId
+        - name: accountID
           in: path
           description: ID of account
           required: true
