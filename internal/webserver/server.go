@@ -242,7 +242,9 @@ func ServeApp(cfg Config) error {
 	swagger.Servers = nil
 
 	// Create server
-	shioriServer := api.NewShioriServer()
+	shioriServer := api.NewShioriServer(
+		cfg.DB,
+	)
 
 	// Leave all legacy API as-is
 	e.Any("/*", echo.WrapHandler(router))
