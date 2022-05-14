@@ -840,6 +840,7 @@ components:
         - $ref: '#/components/schemas/TagContent'
         - required:
             - id
+            - bookmarksCount
           additionalProperties: false
           properties:
             id:
@@ -847,6 +848,12 @@ components:
               format: uint32
               description: Internal tag's ID
               example: 2
+            bookmarksCount:
+              type: integer
+              format: uint32
+              description: Count of all bookmarks with this tag
+              example: 17
+              default: 0
 
     BookmarkCorrection:
       type: object
