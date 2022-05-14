@@ -239,7 +239,6 @@ func ServeApp(cfg Config) error {
 		_, _ = fmt.Fprintf(os.Stderr, "Error loading swagger spec\n: %s", err)
 		os.Exit(1)
 	}
-	swagger.Servers = nil
 
 	// Create server
 	shioriServer := api.NewShioriServer(
