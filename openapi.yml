@@ -783,14 +783,9 @@ components:
     Error:
       type: object
       required:
-        - code
         - message
       additionalProperties: false
       properties:
-        code:
-          type: integer
-          format: int32
-          description: Error code
         message:
           type: string
           description: Error message
