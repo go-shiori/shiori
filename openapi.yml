@@ -151,7 +151,7 @@ paths:
           required: true
           schema:
             type: integer
-            format: int32
+            format: uint32
       responses:
         200:
           description: Found tag
@@ -184,7 +184,7 @@ paths:
           required: true
           schema:
             type: integer
-            format: int32
+            format: uint32
       requestBody:
         description: Content to edit in given tag
         required: true
@@ -230,7 +230,7 @@ paths:
           required: true
           schema:
             type: integer
-            format: int32
+            format: uint32
       responses:
         204:
           description: Tag deleted
@@ -299,7 +299,7 @@ paths:
           required: false
           schema:
             type: integer
-            format: int32
+            format: uint32
           example: 3
         - name: keyword
           in: query
@@ -410,7 +410,7 @@ paths:
           required: true
           schema:
             type: integer
-            format: int32
+            format: uint32
       responses:
         200:
           description: Found bookmark
@@ -449,7 +449,7 @@ paths:
           required: true
           schema:
             type: integer
-            format: int32
+            format: uint32
       requestBody:
         description: New metadata for bookmark
         required: true
@@ -498,7 +498,7 @@ paths:
           required: true
           schema:
             type: integer
-            format: int32
+            format: uint32
       responses:
         204:
           description: Bookmark deleted
@@ -532,7 +532,7 @@ paths:
           required: true
           schema:
             type: integer
-            format: int32
+            format: uint32
       requestBody:
         description: New metadata for bookmark
         required: true
@@ -641,7 +641,7 @@ paths:
           required: true
           schema:
             type: integer
-            format: int32
+            format: uint32
       responses:
         200:
           description: Found account
@@ -674,7 +674,7 @@ paths:
           required: true
           schema:
             type: integer
-            format: int32
+            format: uint32
       requestBody:
         description: Content to edit in given account
         required: true
@@ -714,7 +714,7 @@ paths:
           required: true
           schema:
             type: integer
-            format: int32
+            format: uint32
       responses:
         204:
           description: Account deleted
@@ -745,7 +745,7 @@ paths:
           required: true
           schema:
             type: integer
-            format: int32
+            format: uint32
       requestBody:
         description: Password pair, old and new one
         required: true
@@ -815,7 +815,7 @@ components:
       properties:
         id:
           type: integer
-          format: int32
+          format: uint32
           description: Internal user's ID
           example: 1
         token:
@@ -844,7 +844,7 @@ components:
           properties:
             id:
               type: integer
-              format: int32
+              format: uint32
               description: Internal tag's ID
               example: 2
 
@@ -929,7 +929,7 @@ components:
       properties:
         id:
           type: integer
-          format: int32
+          format: uint32
           description: Internal bookmark's ID
           example: 123
 
@@ -1042,7 +1042,7 @@ components:
           properties:
             id:
               type: integer
-              format: int32
+              format: uint32
               description: Internal user's ID
               example: 1
             owner:

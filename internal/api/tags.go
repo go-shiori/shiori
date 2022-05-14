@@ -16,16 +16,16 @@ func (s ShioriServer) CreateTag(ctx echo.Context) error {
 }
 
 // DeleteTag Delete tag
-func (s ShioriServer) DeleteTag(ctx echo.Context, tagID int32) error {
+func (s ShioriServer) DeleteTag(ctx echo.Context, tagID uint32) error {
 	return ctx.NoContent(http.StatusNotImplemented)
 }
 
 // GetTag Get single tag
-func (s ShioriServer) GetTag(ctx echo.Context, tagID int32) error {
+func (s ShioriServer) GetTag(ctx echo.Context, tagID uint32) error {
 	return ctx.NoContent(http.StatusNotImplemented)
 }
 
 // EditTag Modify tag
-func (s ShioriServer) EditTag(ctx echo.Context, tagID int32) error {
+func (s ShioriServer) EditTag(ctx echo.Context, tagID uint32) error {
 	return ctx.NoContent(http.StatusNotImplemented)
 }

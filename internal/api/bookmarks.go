@@ -21,21 +21,21 @@ func (s ShioriServer) ProbeBookmark(ctx echo.Context, params ProbeBookmarkParams
 }
 
 // DeleteBookmark Delete bookmark
-func (s ShioriServer) DeleteBookmark(ctx echo.Context, bookmarkID int32) error {
+func (s ShioriServer) DeleteBookmark(ctx echo.Context, bookmarkID uint32) error {
 	return ctx.NoContent(http.StatusNotImplemented)
 }
 
 // GetBookmark Get single bookmark
-func (s ShioriServer) GetBookmark(ctx echo.Context, bookmarkID int32) error {
+func (s ShioriServer) GetBookmark(ctx echo.Context, bookmarkID uint32) error {
 	return ctx.NoContent(http.StatusNotImplemented)
 }
 
 // EditBookmark Modify bookmark
-func (s ShioriServer) EditBookmark(ctx echo.Context, bookmarkID int32) error {
+func (s ShioriServer) EditBookmark(ctx echo.Context, bookmarkID uint32) error {
 	return ctx.NoContent(http.StatusNotImplemented)
 }
 
 // RefreshBookmark Refresh bookmark
-func (s ShioriServer) RefreshBookmark(ctx echo.Context, bookmarkID int32) error {
+func (s ShioriServer) RefreshBookmark(ctx echo.Context, bookmarkID uint32) error {
 	return ctx.NoContent(http.StatusNotImplemented)
 }

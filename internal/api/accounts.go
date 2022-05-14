@@ -16,21 +16,21 @@ func (s ShioriServer) CreateAccount(ctx echo.Context) error {
 }
 
 // DeleteAccount Delete account
-func (s ShioriServer) DeleteAccount(ctx echo.Context, accountID int32) error {
+func (s ShioriServer) DeleteAccount(ctx echo.Context, accountID uint32) error {
 	return ctx.NoContent(http.StatusNotImplemented)
 }
 
 // GetAccount Get single account
-func (s ShioriServer) GetAccount(ctx echo.Context, accountID int32) error {
+func (s ShioriServer) GetAccount(ctx echo.Context, accountID uint32) error {
 	return ctx.NoContent(http.StatusNotImplemented)
 }
 
 // EditAccount Change account details
-func (s ShioriServer) EditAccount(ctx echo.Context, accountID int32) error {
+func (s ShioriServer) EditAccount(ctx echo.Context, accountID uint32) error {
 	return ctx.NoContent(http.StatusNotImplemented)
 }
 
 // ChangePassword Change password for account
-func (s ShioriServer) ChangePassword(ctx echo.Context, accountID int32) error {
+func (s ShioriServer) ChangePassword(ctx echo.Context, accountID uint32) error {
 	return ctx.NoContent(http.StatusNotImplemented)
 }
