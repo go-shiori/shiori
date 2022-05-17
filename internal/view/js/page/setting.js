@@ -3,62 +3,62 @@ var template = `
     <h1 class="page-header">Settings</h1>
     <div class="setting-container">
         <details open class="setting-group" id="setting-display">
-            <summary>Display</summary>
+            <summary>显示</summary>
             <label>
                 <input type="checkbox" v-model="appOptions.showId" @change="saveSetting">
-                Show bookmark's ID
+                显示书签ID
             </label>
             <label>
                 <input type="checkbox" v-model="appOptions.listMode" @change="saveSetting">
-                Display bookmarks as list
+                将书签显示为列表
             </label>
             <label>
                 <input type="checkbox" v-model="appOptions.hideThumbnail" @change="saveSetting">
-                Hide thumbnail image
+                隐藏缩略图
             </label>
             <label>
                 <input type="checkbox" v-model="appOptions.hideExcerpt" @change="saveSetting">
-                Hide bookmark's excerpt
+                隐藏书签的节选
             </label>
             <label>
                 <input type="checkbox" v-model="appOptions.nightMode" @change="saveSetting">
-                Use dark theme
+                使用深色主题
             </label>
         </details>
         <details v-if="activeAccount.owner" open class="setting-group" id="setting-bookmarks">
-            <summary>Bookmarks</summary>
+            <summary>书签</summary>
             <label>
                 <input type="checkbox" v-model="appOptions.keepMetadata" @change="saveSetting">
-                Keep bookmark's metadata when updating
+                更新时保持书签的元数据
             </label>
             <label>
                 <input type="checkbox" v-model="appOptions.useArchive" @change="saveSetting">
-                Create archive by default
+                创建默认存档
             </label>
             <label>
                 <input type="checkbox" v-model="appOptions.makePublic" @change="saveSetting">
-                Make archive publicly available by default
+                默认情况下设置存档为公开
             </label>
         </details>
         <details v-if="activeAccount.owner" open class="setting-group" id="setting-accounts">
-            <summary>Accounts</summary>
+            <summary>账户</summary>
             <ul>
                 <li v-if="accounts.length === 0">No accounts registered</li>
                 <li v-for="(account, idx) in accounts">
                     <p>{{account.username}}
                         <span v-if="account.owner" class="account-level">(owner)</span>
                     </p>
-                    <a title="Change password" @click="showDialogChangePassword(account)">
+                    <a title="更改密码" @click="showDialogChangePassword(account)">
                         <i class="fa fas fa-fw fa-key"></i>
                     </a>
-                    <a title="Delete account" @click="showDialogDeleteAccount(account, idx)">
+                    <a title="删除用户" @click="showDialogDeleteAccount(account, idx)">
                         <i class="fa fas fa-fw fa-trash-alt"></i>
                     </a>
                 </li>
             </ul>
             <div class="setting-group-footer">
-                <a @click="loadAccounts">Refresh accounts</a>
-                <a v-if="activeAccount.owner" @click="showDialogNewAccount">Add new account</a>
+                <a @click="loadAccounts">刷新账户列表</a>
+                <a v-if="activeAccount.owner" @click="showDialogNewAccount">添加新用户</a>
             </div>
         </details>
     </div>
