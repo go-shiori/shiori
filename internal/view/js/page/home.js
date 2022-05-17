@@ -1,11 +1,11 @@
 var template = `
 <div id="page-home">
     <div class="page-header">
-        <input type="text" placeholder="Search url, keyword or tags" v-model.trim="search" @focus="$event.target.select()" @keyup.enter="searchBookmarks"/>
-        <a title="Refresh storage" @click="reloadData">
+        <input type="text" placeholder="搜索网址，关键字或标签" v-model.trim="search" @focus="$event.target.select()" @keyup.enter="searchBookmarks"/>
+        <a title="刷新" @click="reloadData">
             <i class="fas fa-fw fa-sync-alt" :class="loading && 'fa-spin'"></i>
         </a>
-        <a v-if="activeAccount.owner" title="Add new bookmark" @click="showDialogAdd">
+        <a v-if="activeAccount.owner" title="添加新书签" @click="showDialogAdd">
             <i class="fas fa-fw fa-plus-circle"></i>
         </a>
         <a v-if="tags.length > 0" title="Show tags" @click="showDialogTags">
@@ -17,10 +17,10 @@ var template = `
     </div>
     <div class="page-header" id="edit-box" v-if="editMode">
         <p>{{selection.length}} items selected</p>
-        <a title="Delete bookmark" @click="showDialogDelete(selection)">
+        <a title="删除书签" @click="showDialogDelete(selection)">
             <i class="fas fa-fw fa-trash-alt"></i>
         </a>
-        <a title="Add tags" @click="showDialogAddTags(selection)">
+        <a title="添加标签" @click="showDialogAddTags(selection)">
             <i class="fas fa-fw fa-tags"></i>
         </a>
         <a title="Update archives" @click="showDialogUpdateCache(selection)">
@@ -30,10 +30,10 @@ var template = `
             <i class="fas fa-fw fa-times"></i>
         </a>
     </div>
-    <p class="empty-message" v-if="!loading && listIsEmpty">No saved bookmarks yet :(</p>
+    <p class="empty-message" v-if="!loading && listIsEmpty">没有保存的书签 :(</p>
     <div id="bookmarks-grid" ref="bookmarksGrid" :class="{list: appOptions.listMode}">
         <pagination-box v-if="maxPage > 1" 
-            :page="page" 
+            :page="页面" 
             :maxPage="maxPage" 
             :editMode="editMode"
             @change="changePage">
