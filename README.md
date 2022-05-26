@@ -9,7 +9,6 @@
 
 Shiori is a simple bookmarks manager written in the Go language. Intended as a simple clone of [Pocket][pocket]. You can use it as a command line application or as a web application. This application is distributed as a single binary, which means it can be installed and used easily.
 
-
 ![Screenshot][screenshot]
 
 ## Features
@@ -28,13 +27,13 @@ Shiori is a simple bookmarks manager written in the Go language. Intended as a s
 
 ## Documentation
 
-All documentation is available in the [wiki][wiki]. If you think there is incomplete or incorrect information, feel free to edit it.
+All documentation is available in the [docs folder][documentation]. If you think there is incomplete or incorrect information, feel free to edit it by submitting a pull request.
 
 ## License
 
 Shiori is distributed under the terms of the [MIT license][mit], which means you can use it and modify it however you want. However, if you make an enhancement for it, if possible, please send a pull request.
 
-[wiki]: https://github.com/go-shiori/shiori/wiki
+[documentation]: https://github.com/go-shiori/shiori/blob/master/docs/index.md
 [mit]: https://choosealicense.com/licenses/mit/
 [web-extension]: https://github.com/go-shiori/shiori-web-ext
 [screenshot]: https://raw.githubusercontent.com/go-shiori/shiori/master/docs/readme/cover.png
