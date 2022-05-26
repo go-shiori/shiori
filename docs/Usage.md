@@ -19,14 +19,14 @@ Before using `shiori`, make sure it has been installed on your system. By defaul
 After building or pulling the image, you will be able to start a container from it. To preserve the data, you need to bind the directory for storing database, thumbnails and archive. In this example we're binding the data directory to our current working directory :
 
 ```
-docker run -d --rm --name shiori -p 8080:8080 -v $(pwd):/srv/shiori ghcr.io/go-shiori/shiori
+docker run -d --rm --name shiori -p 8080:8080 -v $(pwd):/shiori ghcr.io/go-shiori/shiori
 ```
 
 The above command will :
 
 - Creates a new container from image `ghcr.io/go-shiori/shiori`.
 - Set the container name to `shiori` (option `--name`).
-- Bind the host current working directory to `/srv/shiori` inside container (option `-v`).
+- Bind the host current working directory to `/shiori` inside container (option `-v`).
 - Expose port `8080` in container to port `8080` in host machine (option `-p`).
 - Run the container in background (option `-d`).
 - Automatically remove the container when it stopped (option `--rm`).

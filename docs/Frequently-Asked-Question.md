@@ -136,7 +136,7 @@ There are several methods to run `shiori` on start up, however the most recommen
       --rm \
       --name shiori-1 \
       -p 8080:8080 \
-      -v /srv/machines/shiori:/srv/shiori \
+      -v /srv/machines/shiori:/shiori \
        ghcr.io/go-shiori/shiori
     ExecStop=/usr/bin/docker stop -t 2 shiori-1
 
