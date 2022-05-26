@@ -5,13 +5,12 @@ Before using `shiori`, make sure it has been installed on your system. By defaul
 - [Running Docker Container](#running-docker-container)
 - [Using Command Line Interface](#using-command-line-interface)
     - [Search syntax](#search-syntax)
+- [Running migrations](#running-migrations)
 - [Using Web Interface](#using-web-interface)
 - [Improved import from Pocket](#improved-import-from-pocket)
 - [Import from Wallabag](#import-from-wallabag)
 
 <!-- /TOC -->
-
-## Running migrations
 
 ## Running Docker Container
 
@@ -43,6 +42,15 @@ Now you can use `shiori` like normal. If you've finished, you can stop and remov
 ```
 docker stop shiori
 ```
+
+## Running migrations
+
+If this is a fresh install or you're upgrading versions, you'll need to migrate the database to apply any required
+changes for Shiori to work properly:
+
+- If you're using the binary version: `shiori migrate`
+- If you're running the containerized version: `docker run containername shiori migrate` (you can also start a shell on the running container and perform the migration there).
+  - Remember to change `containername` with the name you gave to your container.
 
 ## Using Command Line Interface
 
