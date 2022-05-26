@@ -121,7 +121,7 @@ To import your bookmarks from [Pocket](https://getpocket.com/) with the text and
 
 1. Export your entries from Pocket by visiting https://getpocket.com/export
 
-2. Download [this shell script](https://gist.githubusercontent.com/dchakro/fa43b0e89f884826d3bd60f51e48b078/raw/pocket2shiori.sh). [*You need to download this in your docker container or on the device that you are hosting shiori*]. Name it for instance `pocket2shiori.sh`.
+2. Download [this shell script](https://gist.github.com/fmartingr/88a258bfad47fb00a3ef9d6c38e5699e). [*You need to download this in your docker container or on the device that you are hosting shiori*]. Name it for instance `pocket2shiori.sh`.
 
    > Tip: checkout the documentation for [opening a console in the docker container](https://github.com/go-shiori/shiori/blob/master/docs/Usage.md#running-docker-container).
 
@@ -129,7 +129,7 @@ To import your bookmarks from [Pocket](https://getpocket.com/) with the text and
 
 Here are the commands you need to run:
    ```sh
-   wget 'https://gist.githubusercontent.com/dchakro/fa43b0e89f884826d3bd60f51e48b078/raw/pocket2shiori.sh'
+   wget 'https://gist.githubusercontent.com/fmartingr/88a258bfad47fb00a3ef9d6c38e5699e/raw/a21afb20b56d5383b8b975410e0eb538de02b422/pocket2shiori.sh'
    chmod +x pocket2shiori.sh
    pocket2shiori.sh 'path_to_your/pocket_export.html'
    ```
