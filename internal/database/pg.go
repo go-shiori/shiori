@@ -614,5 +614,8 @@ func (db *PGDatabase) CreateNewID(table string) (int, error) {
 		return -1, err
 	}
 
+	if tableID != 1 {
+		tableID += 1
+	}
 	return tableID, nil
 }
