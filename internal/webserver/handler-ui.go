@@ -47,6 +47,11 @@ func (h *handler) serveJsFile(w http.ResponseWriter, r *http.Request, ps httprou
 	checkError(err)
 }
 
+type IndexParam struct {
+	RootPath    string
+	DisableAuth bool
+}
+
 // serveIndexPage is handler for GET /
 func (h *handler) serveIndexPage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	// Make sure session still valid
@@ -64,7 +69,8 @@ func (h *handler) serveIndexPage(w http.ResponseWriter, r *http.Request, ps http
 		}
 	}
 
-	err = h.templates["index"].Execute(w, h.RootPath)
+	p := IndexParam{RootPath: h.RootPath, DisableAuth: h.DisableAuth}
+	err = h.templates["index"].Execute(w, p)
 	checkError(err)
 }
 

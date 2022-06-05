@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-	<base href="$$.$$">
+	<base href="$$.RootPath$$">
 	<title>Shiori - Bookmarks Manager</title>
 
 	<meta charset="UTF-8">
@@ -136,7 +136,7 @@
 					var account = JSON.parse(localStorage.getItem("shiori-account")) || {},
 						id = (typeof account.id === "number") ? account.id : 0,
 						username = (typeof account.username === "string") ? account.username : "",
-						owner = (typeof account.owner === "boolean") ? account.owner : false;
+						owner = (typeof account.owner === "boolean") ? account.owner : $$.DisableAuth$$;
 
 					this.activeAccount = {
 						id: id,

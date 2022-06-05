@@ -4,9 +4,8 @@
 package webserver
 
 import (
-	"io/fs"
-
 	"github.com/go-shiori/shiori/internal"
+	"io/fs"
 )
 
 var assets fs.FS

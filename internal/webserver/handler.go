@@ -23,7 +23,8 @@ type handler struct {
 	ArchiveCache *cch.Cache
 	Log          bool
 
-	templates map[string]*template.Template
+	templates   map[string]*template.Template
+	DisableAuth bool
 }
 
 func (h *handler) prepareSessionCache() {
@@ -113,6 +114,9 @@ func (h *handler) getSessionID(r *http.Request) string {
 
 // validateSession checks whether user session is still valid or not
 func (h *handler) validateSession(r *http.Request) error {
+	if h.DisableAuth {
+		return nil
+	}
 	sessionID := h.getSessionID(r)
 	if sessionID == "" {
 		return fmt.Errorf("session is not exist")
