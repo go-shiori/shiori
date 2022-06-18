@@ -75,6 +75,9 @@ func (db *PGDatabase) SaveBookmarks(bookmarks ...model.Bookmark) (result []model
 	}()
 
 	// Prepare statement
+	stmtGetBookmarkId, err := tx.Preparex(`SELECT id FROM bookmark WHERE url = $1`)
+	checkError(err)
+
 	stmtInsertBook, err := tx.Preparex(`INSERT INTO bookmark
 		(url, title, excerpt, author, public, content, html, modified)
 		VALUES($1, $2, $3, $4, $5, $6, $7, $8)
@@ -129,7 +132,9 @@ func (db *PGDatabase) SaveBookmarks(bookmarks ...model.Bookmark) (result []model
 		stmtInsertBook.MustExec(
 			book.URL, book.Title, book.Excerpt, book.Author,
 			book.Public, book.Content, book.HTML, book.Modified)
-
+		// get bookmark id
+		err = stmtGetBookmarkId.Get(&book.ID, book.URL)
+		checkError(err)
 		// Save book tags
 		newTags := []model.Tag{}
 		for _, tag := range book.Tags {
@@ -614,8 +619,5 @@ func (db *PGDatabase) CreateNewID(table string) (int, error) {
 		return -1, err
 	}
 
-	if tableID != 1 {
-		tableID += 1
-	}
 	return tableID, nil
 }
