@@ -104,8 +104,6 @@
 						if (!response.ok) throw response;
 						return response.json();
 					}).then(json => {
-						console.log(json)
-
 						// Save session id
 						document.cookie = `session-id=${json.session}; Path=${new URL(document.baseURI).pathname}; Expires=${json.expires}`;
 
