@@ -160,5 +160,5 @@ inside the container.
     curl -sSOL
     https://gist.githubusercontent.com/Aerex/01499c66f6b36a5d997f97ca1b0ab5b1/raw/bf793515540278fc675c7769be74a77ca8a41e62/wallabag2shiori'
     chmod +x wallabag2shiori
-    ./wallbag2shiori 'path/to/to/wallabag_export_json_file'
+    ./wallabag2shiori 'path/to/to/wallabag_export_json_file'
   ```
