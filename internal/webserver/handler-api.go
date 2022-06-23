@@ -82,7 +82,8 @@ func (h *handler) apiLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 		loginResult := struct {
 			Session string        `json:"session"`
 			Account model.Account `json:"account"`
-		}{strSessionID, account}
+			Expires string        `json:"expires"`
+		}{strSessionID, account, time.Now().Add(expTime).Format(time.RFC1123)}
 
 		w.Header().Set("Content-Type", "application/json")
 		err = json.NewEncoder(w).Encode(&loginResult)
