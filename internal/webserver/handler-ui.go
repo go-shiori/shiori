@@ -14,9 +14,10 @@ import (
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/go-shiori/shiori/internal/model"
 	"github.com/go-shiori/warc"
 	"github.com/julienschmidt/httprouter"
+
+	"github.com/go-shiori/shiori/internal/model"
 )
 
 // serveFile is handler for general file request
@@ -24,6 +25,7 @@ func (h *handler) serveFile(w http.ResponseWriter, r *http.Request, ps httproute
 	rootPath := strings.Trim(h.RootPath, "/")
 	urlPath := strings.Trim(r.URL.Path, "/")
 	filePath := strings.TrimPrefix(urlPath, rootPath)
+	filePath = strings.Trim(filePath, "/")
 
 	err := serveFile(w, filePath, true)
 	checkError(err)
