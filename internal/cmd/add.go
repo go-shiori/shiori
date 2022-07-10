@@ -58,7 +58,7 @@ func addHandler(cmd *cobra.Command, args []string) {
 
 	// Create bookmark ID
 	var err error
-	book.ID, err = db.CreateNewID("bookmark")
+	book.ID, err = db.CreateNewID(cmd.Context(), "bookmark")
 	if err != nil {
 		cError.Printf("Failed to create ID: %v\n", err)
 		os.Exit(1)
@@ -111,7 +111,7 @@ func addHandler(cmd *cobra.Command, args []string) {
 	}
 
 	// Save bookmark to database
-	_, err = db.SaveBookmarks(book)
+	_, err = db.SaveBookmarks(cmd.Context(), book)
 	if err != nil {
 		cError.Printf("Failed to save bookmark: %v\n", err)
 		os.Exit(1)

@@ -53,7 +53,7 @@ func checkHandler(cmd *cobra.Command, args []string) {
 
 	// Fetch bookmarks from database
 	filterOptions := database.GetBookmarksOptions{IDs: ids}
-	bookmarks, err := db.GetBookmarks(filterOptions)
+	bookmarks, err := db.GetBookmarks(cmd.Context(), filterOptions)
 	if err != nil {
 		cError.Printf("Failed to get bookmarks: %v\n", err)
 		os.Exit(1)
@@ -88,7 +88,7 @@ func checkHandler(cmd *cobra.Command, args []string) {
 			_, err := httpClient.Get(book.URL)
 			if err != nil {
 				chProblem <- book.ID
-				chMessage <- fmt.Errorf("Failed to reach %s: %v", book.URL, err)
+				chMessage <- fmt.Errorf("failed to reach %s: %v", book.URL, err)
 				return
 			}
 

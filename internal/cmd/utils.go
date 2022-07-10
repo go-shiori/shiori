@@ -27,7 +27,7 @@ var (
 	cInfo  = color.New(color.FgHiCyan)
 	cError = color.New(color.FgHiRed)
 
-	errInvalidIndex = errors.New("Index is not valid")
+	errInvalidIndex = errors.New("index is not valid")
 )
 
 func normalizeSpace(str string) string {
