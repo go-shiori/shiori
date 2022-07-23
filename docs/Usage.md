@@ -49,8 +49,7 @@ If this is a fresh install or you're upgrading versions, you'll need to migrate 
 changes for Shiori to work properly:
 
 - If you're using the binary version: `shiori migrate`
-- If you're running the containerized version: `docker run containername shiori migrate` (you can also start a shell on the running container and perform the migration there).
-  - Remember to change `containername` with the name you gave to your container.
+- If you're running the containerized version: `docker run --rm -v $(pwd):/shiori ghcr.io/go-shiori/shiori migrate` (you can also start a shell on the running container and perform the migration there).
 
 ## Using Command Line Interface
 
