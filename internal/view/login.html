@@ -105,9 +105,7 @@
 						return response.json();
 					}).then(json => {
 						// Save session id
-						var sessionAge = this.remember == 1 ? 60 * 60 * 24 * 30 : 60 * 60
-						var expTime = new Date(Date.now() + sessionAge * 1000).toUTCString();
-						document.cookie = `session-id=${json.session}; Path=${new URL(document.baseURI).pathname}; Expires=${expTime}`;
+						document.cookie = `session-id=${json.session}; Path=${new URL(document.baseURI).pathname}; Expires=${json.expires}`;
 
 						// Save account data
 						localStorage.setItem("shiori-account", JSON.stringify(json.account));
