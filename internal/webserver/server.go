@@ -83,7 +83,7 @@ func (r *loggingResponseWriter) WriteHeader(statusCode int) {
 	r.responseData.status = statusCode       // capture status code
 }
 
-// Log through logrus, 200 will log as info, anything else as an error.
+// Logger Log through logrus, 200 will log as info, anything else as an error.
 func Logger(r *http.Request, statusCode int, size int) {
 	if statusCode == http.StatusOK {
 		logrus.WithFields(logrus.Fields{

@@ -21,6 +21,17 @@ type SQLiteDatabase struct {
 	sqlx.DB
 }
 
+type bookmarkContent struct {
+	ID      int    `db:"docid"`
+	Content string `db:"content"`
+	HTML    string `db:"html"`
+}
+
+type tagContent struct {
+	ID int `db:"bookmark_id"`
+	model.Tag
+}
+
 // OpenSQLiteDatabase creates and open connection to new SQLite3 database.
 func OpenSQLiteDatabase(databasePath string) (sqliteDB *SQLiteDatabase, err error) {
 	// Open database
@@ -72,11 +83,11 @@ func (db *SQLiteDatabase) SaveBookmarks(bookmarks ...model.Bookmark) (result []m
 
 	// Prepare statement
 	stmtInsertBook, _ := tx.Preparex(`INSERT INTO bookmark
-		(id, url, title, excerpt, author, public, modified)
-		VALUES(?, ?, ?, ?, ?, ?, ?)
+		(id, url, title, excerpt, author, public, modified, has_content)
+		VALUES(?, ?, ?, ?, ?, ?, ?, ?)
 		ON CONFLICT(id) DO UPDATE SET
 		url = ?, title = ?,	excerpt = ?, author = ?,
-		public = ?, modified = ?`)
+		public = ?, modified = ?, has_content = ?`)
 
 	stmtInsertBookContent, _ := tx.Preparex(`INSERT OR REPLACE INTO bookmark_content
 		(docid, title, content, html)
@@ -119,12 +130,13 @@ func (db *SQLiteDatabase) SaveBookmarks(bookmarks ...model.Bookmark) (result []m
 		book.Modified = modifiedTime
 
 		// Save bookmark
+		hasContent := book.Content != ""
 		stmtInsertBook.MustExec(book.ID,
-			book.URL, book.Title, book.Excerpt, book.Author, book.Public, book.Modified,
-			book.URL, book.Title, book.Excerpt, book.Author, book.Public, book.Modified)
+			book.URL, book.Title, book.Excerpt, book.Author, book.Public, book.Modified, hasContent,
+			book.URL, book.Title, book.Excerpt, book.Author, book.Public, book.Modified, hasContent)
 
 		// Try to update it first to check for existence, we can't do an UPSERT here because
-		// bookmant_content is a virtual table
+		// bookmark_content is a virtual table
 		res := stmtUpdateBookContent.MustExec(book.Title, book.Content, book.HTML, book.ID)
 		rows, _ := res.RowsAffected()
 		if rows == 0 {
@@ -180,23 +192,16 @@ func (db *SQLiteDatabase) SaveBookmarks(bookmarks ...model.Bookmark) (result []m
 // GetBookmarks fetch list of bookmarks based on submitted options.
 func (db *SQLiteDatabase) GetBookmarks(opts GetBookmarksOptions) ([]model.Bookmark, error) {
 	// Create initial query
-	columns := []string{
-		`b.id`,
-		`b.url`,
-		`b.title`,
-		`b.excerpt`,
-		`b.author`,
-		`b.public`,
-		`b.modified`,
-		`bc.content <> "" has_content`}
-
-	if opts.WithContent {
-		columns = append(columns, `bc.content`, `bc.html`)
-	}
-
-	query := `SELECT ` + strings.Join(columns, ",") + `
+	query := `SELECT 
+		b.id,
+		b.url,
+		b.title,
+		b.excerpt,
+		b.author,
+		b.public,
+		b.modified,
+		b.has_content
 		FROM bookmark b
-		LEFT JOIN bookmark_content bc ON bc.docid = b.id
 		WHERE 1`
 
 	// Add where clause
@@ -302,25 +307,75 @@ func (db *SQLiteDatabase) GetBookmarks(opts GetBookmarksOptions) ([]model.Bookma
 		return nil, fmt.Errorf("failed to fetch data: %v", err)
 	}
 
-	// Fetch tags for each bookmarks
-	stmtGetTags, err := db.Preparex(`SELECT t.id, t.name
-		FROM bookmark_tag bt
-		LEFT JOIN tag t ON bt.tag_id = t.id
-		WHERE bt.bookmark_id = ?
-		ORDER BY t.name`)
-	if err != nil {
-		return nil, fmt.Errorf("failed to prepare tag query: %v", err)
+	// store bookmark IDs for further enrichment
+	var bookmarkIds = make([]int, 0, len(bookmarks))
+	for _, book := range bookmarks {
+		bookmarkIds = append(bookmarkIds, book.ID)
 	}
-	defer stmtGetTags.Close()
 
-	for i, book := range bookmarks {
-		book.Tags = []model.Tag{}
-		err = stmtGetTags.Select(&book.Tags, book.ID)
-		if err != nil && err != sql.ErrNoRows {
-			return nil, fmt.Errorf("failed to fetch tags: %v", err)
+	// If content needed, fetch it separately
+	// It's faster than join with virtual table
+	if opts.WithContent {
+		contents := make([]bookmarkContent, 0, len(bookmarks))
+		contentMap := make(map[int]bookmarkContent, len(bookmarks))
+
+		contentQuery, args, err := sqlx.In(`SELECT docid, content, html FROM bookmark_content WHERE docid IN (?)`, bookmarkIds)
+		contentQuery = db.Rebind(contentQuery)
+		if err != nil {
+			return nil, fmt.Errorf("failed to expand bookmark_content query: %v", err)
 		}
 
-		bookmarks[i] = book
+		err = db.Select(&contents, contentQuery, args...)
+		if err != nil && err != sql.ErrNoRows {
+			return nil, fmt.Errorf("failed to fetch content for bookmarks (%v): %v", bookmarkIds, err)
+		}
+		for _, content := range contents {
+			contentMap[content.ID] = content
+		}
+		for i := range bookmarks[:] {
+			book := &bookmarks[i]
+			if bookmarkContent, found := contentMap[book.ID]; found {
+				book.Content = bookmarkContent.Content
+				book.HTML = bookmarkContent.HTML
+			} else {
+				log.Printf("not found content for bookmark %d, but it should be; check DB consistency", book.ID)
+			}
+		}
+
+	}
+
+	// Fetch tags for each bookmark
+	tags := make([]tagContent, 0, len(bookmarks))
+	tagsMap := make(map[int][]model.Tag, len(bookmarks))
+
+	tagsQuery, tagArgs, err := sqlx.In(`SELECT bt.bookmark_id, t.id, t.name
+		FROM bookmark_tag bt
+		LEFT JOIN tag t ON bt.tag_id = t.id
+		WHERE bt.bookmark_id IN (?)
+		ORDER BY t.name`, bookmarkIds)
+	tagsQuery = db.Rebind(tagsQuery)
+	if err != nil {
+		return nil, fmt.Errorf("failed to expand bookmark_tag query: %v", err)
+	}
+
+	err = db.Select(&tags, tagsQuery, tagArgs...)
+	if err != nil && err != sql.ErrNoRows {
+		return nil, fmt.Errorf("failed to fetch tags for bookmarks (%v): %v", bookmarkIds, err)
+	}
+	for _, fetchedTag := range tags {
+		if tags, found := tagsMap[fetchedTag.ID]; found {
+			tagsMap[fetchedTag.ID] = append(tags, fetchedTag.Tag)
+		} else {
+			tagsMap[fetchedTag.ID] = []model.Tag{fetchedTag.Tag}
+		}
+	}
+	for i := range bookmarks[:] {
+		book := &bookmarks[i]
+		if tags, found := tagsMap[book.ID]; found {
+			book.Tags = tags
+		} else {
+			book.Tags = []model.Tag{}
+		}
 	}
 
 	return bookmarks, nil
@@ -476,13 +531,13 @@ func (db *SQLiteDatabase) DeleteBookmarks(ids ...int) (err error) {
 	return err
 }
 
-// GetBookmark fetchs bookmark based on its ID or URL.
+// GetBookmark fetches bookmark based on its ID or URL.
 // Returns the bookmark and boolean whether it's exist or not.
 func (db *SQLiteDatabase) GetBookmark(id int, url string) (model.Bookmark, bool) {
 	args := []interface{}{id}
 	query := `SELECT
 		b.id, b.url, b.title, b.excerpt, b.author, b.public, b.modified,
-		bc.content, bc.html, bc.content <> "" has_content
+		bc.content, bc.html, b.has_content
 		FROM bookmark b
 		LEFT JOIN bookmark_content bc ON bc.docid = b.id
 		WHERE b.id = ?`
