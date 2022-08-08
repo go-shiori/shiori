@@ -80,10 +80,6 @@ func getDataDir(portableMode bool) (string, error) {
 		return fp.Join(exeDir, "shiori-data"), nil
 	}
 
-	if developmentMode {
-		return "dev-data", nil
-	}
-
 	// Try to look at environment variables
 	dataDir, found := os.LookupEnv("SHIORI_DIR")
 	if found {
