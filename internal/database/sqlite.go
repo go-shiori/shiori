@@ -322,7 +322,7 @@ func (db *SQLiteDatabase) GetBookmarks(opts GetBookmarksOptions) ([]model.Bookma
 		contentQuery, args, err := sqlx.In(`SELECT docid, content, html FROM bookmark_content WHERE docid IN (?)`, bookmarkIds)
 		contentQuery = db.Rebind(contentQuery)
 		if err != nil {
-			return nil, fmt.Errorf("failed to expand query: %v", err)
+			return nil, fmt.Errorf("failed to expand bookmark_content query: %v", err)
 		}
 
 		err = db.Select(&contents, contentQuery, args...)
@@ -355,7 +355,7 @@ func (db *SQLiteDatabase) GetBookmarks(opts GetBookmarksOptions) ([]model.Bookma
 		ORDER BY t.name`, bookmarkIds)
 	tagsQuery = db.Rebind(tagsQuery)
 	if err != nil {
-		return nil, fmt.Errorf("failed to expand query: %v", err)
+		return nil, fmt.Errorf("failed to expand bookmark_tag query: %v", err)
 	}
 
 	err = db.Select(&tags, tagsQuery, tagArgs...)
