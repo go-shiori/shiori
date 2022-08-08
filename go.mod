@@ -1,10 +1,9 @@
 module github.com/go-shiori/shiori
 
-// +heroku goVersion go1.17
-go 1.17
+// +heroku goVersion go1.19
+go 1.19
 
 require (
-	github.com/labstack/echo/v4 v4.7.2
 	github.com/PuerkitoBio/goquery v1.8.0
 	github.com/deepmap/oapi-codegen v1.10.1
 	github.com/disintegration/imaging v1.6.2
@@ -17,6 +16,7 @@ require (
 	github.com/golang-migrate/migrate/v4 v4.15.2
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/julienschmidt/httprouter v1.3.0
+	github.com/labstack/echo/v4 v4.7.2
 	github.com/lib/pq v1.10.5
 	github.com/muesli/go-app-paths v0.2.2
 	github.com/patrickmn/go-cache v2.1.0+incompatible
@@ -25,7 +25,7 @@ require (
 	github.com/spf13/cobra v1.4.0
 	golang.org/x/crypto v0.0.0-20220427172511-eb4f295cb31f
 	golang.org/x/term v0.0.0-20220411215600-e5f449aeb171
-	modernc.org/sqlite v1.17.1
+	modernc.org/sqlite v1.18.0
 )
 
 require (
@@ -68,7 +68,7 @@ require (
 	lukechampine.com/uint128 v1.2.0 // indirect
 	modernc.org/cc/v3 v3.36.0 // indirect
 	modernc.org/ccgo/v3 v3.16.6 // indirect
-	modernc.org/libc v1.16.2 // indirect
+	modernc.org/libc v1.16.7 // indirect
 	modernc.org/mathutil v1.4.1 // indirect
 	modernc.org/memory v1.1.1 // indirect
 	modernc.org/opt v0.1.3 // indirect
