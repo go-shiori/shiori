@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/go-shiori/shiori/internal/database"
+	"github.com/go-shiori/shiori/internal/domain"
 	"github.com/julienschmidt/httprouter"
 	cch "github.com/patrickmn/go-cache"
 	"github.com/sirupsen/logrus"
@@ -115,6 +116,8 @@ func ServeApp(cfg Config) error {
 		ArchiveCache: cch.New(time.Minute, 5*time.Minute),
 		RootPath:     cfg.RootPath,
 		Log:          cfg.Log,
+
+		tags: domain.NewTagsDomain(cfg.DB),
 	}
 
 	hdl.prepareSessionCache()

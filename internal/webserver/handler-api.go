@@ -225,7 +225,7 @@ func (h *handler) apiGetTags(w http.ResponseWriter, r *http.Request, ps httprout
 	checkError(err)
 
 	// Fetch all tags
-	tags, err := h.DB.GetTags()
+	tags, err := h.tags.GetTags()
 	checkError(err)
 
 	w.Header().Set("Content-Type", "application/json")

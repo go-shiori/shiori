@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/go-shiori/shiori/internal/database"
+	"github.com/go-shiori/shiori/internal/domain"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/go-shiori/warc"
 	cch "github.com/patrickmn/go-cache"
@@ -22,6 +23,8 @@ type handler struct {
 	SessionCache *cch.Cache
 	ArchiveCache *cch.Cache
 	Log          bool
+
+	tags domain.TagsDomain
 
 	templates map[string]*template.Template
 }
