@@ -1,3 +1,1 @@
-BEGIN TRANSACTION;
 ALTER TABLE bookmark DROP COLUMN has_content;
-COMMIT;
