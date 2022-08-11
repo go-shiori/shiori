@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"html/template"
 	"io"
-	"io/ioutil"
 	"mime"
 	"net"
 	"net/http"
@@ -110,7 +109,7 @@ func createTemplate(filename string, funcMap template.FuncMap) (*template.Templa
 	defer src.Close()
 
 	// Read file content
-	srcContent, err := ioutil.ReadAll(src)
+	srcContent, err := io.ReadAll(src)
 	if err != nil {
 		return nil, err
 	}
