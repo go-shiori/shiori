@@ -1,13 +1,13 @@
-name: 'Unit Tests'
+name: "Unit Tests"
 
 on: workflow_call
 
 jobs:
   test:
-    runs-on: ubuntu-latest    
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        go: [1.17]
+        go: [1.19]
     name: Go ${{ matrix.go }} unit tests
     steps:
       - uses: actions/checkout@v2
