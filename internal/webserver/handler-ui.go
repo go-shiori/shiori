@@ -92,15 +92,19 @@ func (h *handler) serveLoginPage(w http.ResponseWriter, r *http.Request, ps http
 
 // serveBookmarkContent is handler for GET /bookmark/:id/content
 func (h *handler) serveBookmarkContent(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	ctx := r.Context()
+
 	// Get bookmark ID from URL
 	strID := ps.ByName("id")
 	id, err := strconv.Atoi(strID)
 	checkError(err)
 
 	// Get bookmark in database
-	bookmark, exist := h.DB.GetBookmark(id, "")
+	bookmark, exist, err := h.DB.GetBookmark(ctx, id, "")
+	checkError(err)
+
 	if !exist {
-		panic(fmt.Errorf("Bookmark not found"))
+		panic(fmt.Errorf("bookmark not found"))
 	}
 
 	// If it's not public, make sure session still valid
@@ -235,6 +239,8 @@ func (h *handler) serveThumbnailImage(w http.ResponseWriter, r *http.Request, ps
 
 // serveBookmarkArchive is handler for GET /bookmark/:id/archive/*filepath
 func (h *handler) serveBookmarkArchive(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	ctx := r.Context()
+
 	// Get parameter from URL
 	strID := ps.ByName("id")
 	resourcePath := ps.ByName("filepath")
@@ -244,9 +250,11 @@ func (h *handler) serveBookmarkArchive(w http.ResponseWriter, r *http.Request, p
 	id, err := strconv.Atoi(strID)
 	checkError(err)
 
-	bookmark, exist := h.DB.GetBookmark(id, "")
+	bookmark, exist, err := h.DB.GetBookmark(ctx, id, "")
+	checkError(err)
+
 	if !exist {
-		panic(fmt.Errorf("Bookmark not found"))
+		panic(fmt.Errorf("bookmark not found"))
 	}
 
 	// If it's not public, make sure session still valid

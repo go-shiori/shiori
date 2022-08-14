@@ -18,6 +18,8 @@ import (
 
 // apiInsertViaExtension is handler for POST /api/bookmarks/ext
 func (h *handler) apiInsertViaExtension(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	ctx := r.Context()
+
 	// Make sure session still valid
 	err := h.validateSession(r)
 	checkError(err)
@@ -34,7 +36,10 @@ func (h *handler) apiInsertViaExtension(w http.ResponseWriter, r *http.Request, 
 	}
 
 	// Check if bookmark already exists.
-	book, exist := h.DB.GetBookmark(0, request.URL)
+	book, exist, err := h.DB.GetBookmark(ctx, 0, request.URL)
+	if err != nil {
+		panic(fmt.Errorf("failed to get bookmark, URL: %v", err))
+	}
 
 	// If it already exists, we need to set ID and tags.
 	if exist {
@@ -52,7 +57,7 @@ func (h *handler) apiInsertViaExtension(w http.ResponseWriter, r *http.Request, 
 		}
 	} else {
 		book = request
-		book.ID, err = h.DB.CreateNewID("bookmark")
+		book.ID, err = h.DB.CreateNewID(ctx, "bookmark")
 		if err != nil {
 			panic(fmt.Errorf("failed to create ID: %v", err))
 		}
@@ -93,12 +98,12 @@ func (h *handler) apiInsertViaExtension(w http.ResponseWriter, r *http.Request, 
 			panic(fmt.Errorf("failed to process bookmark: %v", err))
 		}
 	}
-	if _, err := h.DB.SaveBookmarks(book); err != nil {
+	if _, err := h.DB.SaveBookmarks(ctx, book); err != nil {
 		log.Printf("error saving bookmark after downloading content: %s", err)
 	}
 
 	// Save bookmark to database
-	results, err := h.DB.SaveBookmarks(book)
+	results, err := h.DB.SaveBookmarks(ctx, book)
 	if err != nil || len(results) == 0 {
 		panic(fmt.Errorf("failed to save bookmark: %v", err))
 	}
@@ -112,6 +117,8 @@ func (h *handler) apiInsertViaExtension(w http.ResponseWriter, r *http.Request, 
 
 // apiDeleteViaExtension is handler for DELETE /api/bookmark/ext
 func (h *handler) apiDeleteViaExtension(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	ctx := r.Context()
+
 	// Make sure session still valid
 	err := h.validateSession(r)
 	checkError(err)
@@ -122,10 +129,12 @@ func (h *handler) apiDeleteViaExtension(w http.ResponseWriter, r *http.Request, 
 	checkError(err)
 
 	// Check if bookmark already exists.
-	book, exist := h.DB.GetBookmark(0, request.URL)
+	book, exist, err := h.DB.GetBookmark(ctx, 0, request.URL)
+	checkError(err)
+
 	if exist {
 		// Delete bookmarks
-		err = h.DB.DeleteBookmarks(book.ID)
+		err = h.DB.DeleteBookmarks(ctx, book.ID)
 		checkError(err)
 
 		// Delete thumbnail image and archives from local disk

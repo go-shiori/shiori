@@ -26,7 +26,7 @@ func pocketCmd() *cobra.Command {
 
 func pocketHandler(cmd *cobra.Command, args []string) {
 	// Prepare bookmark's ID
-	bookID, err := db.CreateNewID("bookmark")
+	bookID, err := db.CreateNewID(cmd.Context(), "bookmark")
 	if err != nil {
 		cError.Printf("Failed to create ID: %v\n", err)
 		return
@@ -77,7 +77,13 @@ func pocketHandler(cmd *cobra.Command, args []string) {
 			return
 		}
 
-		if _, exist := db.GetBookmark(0, url); exist {
+		_, exist, err := db.GetBookmark(cmd.Context(), 0, url)
+		if err != nil {
+			cError.Printf("Skip %s: Get Bookmark fail, %v", url, err)
+			return
+		}
+
+		if exist {
 			cError.Printf("Skip %s: URL already exists\n", url)
 			mapURL[url] = struct{}{}
 			return
@@ -106,7 +112,7 @@ func pocketHandler(cmd *cobra.Command, args []string) {
 	})
 
 	// Save bookmark to database
-	bookmarks, err = db.SaveBookmarks(bookmarks...)
+	bookmarks, err = db.SaveBookmarks(cmd.Context(), bookmarks...)
 	if err != nil {
 		cError.Printf("Failed to save bookmarks: %v\n", err)
 		os.Exit(1)

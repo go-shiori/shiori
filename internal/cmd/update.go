@@ -94,7 +94,7 @@ func updateHandler(cmd *cobra.Command, args []string) {
 		IDs: ids,
 	}
 
-	bookmarks, err := db.GetBookmarks(filterOptions)
+	bookmarks, err := db.GetBookmarks(cmd.Context(), filterOptions)
 	if err != nil {
 		cError.Printf("Failed to get bookmarks: %v\n", err)
 		os.Exit(1)
@@ -159,7 +159,7 @@ func updateHandler(cmd *cobra.Command, args []string) {
 				content, contentType, err := core.DownloadBookmark(book.URL)
 				if err != nil {
 					chProblem <- book.ID
-					chMessage <- fmt.Errorf("Failed to download %s: %v", book.URL, err)
+					chMessage <- fmt.Errorf("failed to download %s: %v", book.URL, err)
 					return
 				}
 
@@ -178,7 +178,7 @@ func updateHandler(cmd *cobra.Command, args []string) {
 
 				if err != nil {
 					chProblem <- book.ID
-					chMessage <- fmt.Errorf("Failed to process %s: %v", book.URL, err)
+					chMessage <- fmt.Errorf("failed to process %s: %v", book.URL, err)
 					return
 				}
 
@@ -285,7 +285,7 @@ func updateHandler(cmd *cobra.Command, args []string) {
 	}
 
 	// Save bookmarks to database
-	bookmarks, err = db.SaveBookmarks(bookmarks...)
+	bookmarks, err = db.SaveBookmarks(cmd.Context(), bookmarks...)
 	if err != nil {
 		cError.Printf("Failed to save bookmark: %v\n", err)
 		os.Exit(1)
