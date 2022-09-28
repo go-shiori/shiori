@@ -607,7 +607,7 @@ func (db *PGDatabase) RenameTag(id int, newName string) error {
 // CreateNewID creates new ID for specified table
 func (db *PGDatabase) CreateNewID(table string) (int, error) {
 	var tableID int
-	query := fmt.Sprintf(`SELECT last_value from %s_id_seq;`, table)
+	query := fmt.Sprintf(`SELECT last_value + 1 from %s_id_seq;`, table)
 
 	err := db.Get(&tableID, query)
 	if err != nil && err != sql.ErrNoRows {
