@@ -2,6 +2,8 @@ package core
 
 import (
 	"bytes"
+	"compress/gzip"
+	"context"
 	"fmt"
 	"image"
 	"image/color"
@@ -18,8 +20,8 @@ import (
 
 	"github.com/disintegration/imaging"
 	"github.com/go-shiori/go-readability"
+	"github.com/go-shiori/obelisk"
 	"github.com/go-shiori/shiori/internal/model"
-	"github.com/go-shiori/warc"
 
 	// Add support for png
 	_ "image/png"
@@ -130,17 +132,32 @@ func ProcessBookmark(req ProcessRequest) (book model.Bookmark, isFatalErr bool, 
 		archivePath := fp.Join(req.DataDir, "archive", fmt.Sprintf("%d", book.ID))
 		os.Remove(archivePath)
 
-		archivalRequest := warc.ArchivalRequest{
-			URL:         book.URL,
-			Reader:      archivalInput,
-			ContentType: contentType,
-			UserAgent:   userAgent,
-			LogEnabled:  req.LogArchival,
+		req := obelisk.Request{
+			URL: book.URL,
 		}
 
-		err = warc.NewArchive(archivalRequest, archivePath)
+		arc := obelisk.Archiver{
+			UserAgent: userAgent,
+		}
+		arc.Validate()
+
+		result, _, err := arc.Archive(context.Background(), req)
 		if err != nil {
-			return book, false, fmt.Errorf("failed to create archive: %v", err)
+			return book, false, fmt.Errorf("failed to archive: %s", err)
+		}
+
+		// Destination
+		f, err := os.Create(archivePath)
+		if err != nil {
+			return book, false, fmt.Errorf("failed to create archive file: %s", err)
+		}
+		defer f.Close()
+
+		// Compress
+		gz := gzip.NewWriter(f)
+		defer gz.Close()
+		if _, err := gz.Write(result); err != nil {
+			return book, false, fmt.Errorf("failed to write archive file: %s", err)
 		}
 
 		book.HasArchive = true
