@@ -35,7 +35,7 @@ Body:
 {
 	"username": "shiori",
 	"password": "gopher",
-	"remember": 1,
+	"remember": true,
 	"owner": true
 }
 ```

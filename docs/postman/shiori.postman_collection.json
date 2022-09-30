@@ -22,7 +22,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"username\": \"shiori\",\n\t\"password\": \"gopher\",\n\t\"remember\": 1,\n\t\"owner\": true\n}"
+							"raw": "{\n\t\"username\": \"shiori\",\n\t\"password\": \"gopher\",\n\t\"remember\": true,\n\t\"owner\": true\n}"
 						},
 						"url": {
 							"raw": "{{host}}/api/login",
