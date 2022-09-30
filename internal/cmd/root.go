@@ -108,9 +108,15 @@ func openDatabase(ctx context.Context) (database.DB, error) {
 		return openMySQLDatabase(ctx)
 	case "postgresql":
 		return openPostgreSQLDatabase(ctx)
+	case "gorm":
+		return openGormDatabase(ctx)
 	default:
 		return openSQLiteDatabase(ctx)
 	}
+}
+
+func openGormDatabase(ctx context.Context) (database.DB, error) {
+	return database.OpenGORMDatabase(ctx, fp.Join(dataDir, "shiori.db"))
 }
 
 func openSQLiteDatabase(ctx context.Context) (database.DB, error) {
