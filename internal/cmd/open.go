@@ -73,7 +73,7 @@ func openHandler(cmd *cobra.Command, args []string) {
 		WithContent: true,
 	}
 
-	bookmarks, err := db.GetBookmarks(getOptions)
+	bookmarks, err := db.GetBookmarks(cmd.Context(), getOptions)
 	if err != nil {
 		cError.Printf("Failed to get bookmarks: %v\n", err)
 		os.Exit(1)

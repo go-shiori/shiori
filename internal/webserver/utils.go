@@ -84,7 +84,7 @@ func redirectPage(w http.ResponseWriter, r *http.Request, url string) {
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	w.Header().Set("Pragma", "no-cache")
 	w.Header().Set("Expires", "0")
-	http.Redirect(w, r, url, 301)
+	http.Redirect(w, r, url, http.StatusMovedPermanently)
 }
 
 func assetExists(filePath string) bool {

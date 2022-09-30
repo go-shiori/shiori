@@ -24,7 +24,7 @@ func exportCmd() *cobra.Command {
 
 func exportHandler(cmd *cobra.Command, args []string) {
 	// Fetch bookmarks from database
-	bookmarks, err := db.GetBookmarks(database.GetBookmarksOptions{})
+	bookmarks, err := db.GetBookmarks(cmd.Context(), database.GetBookmarksOptions{})
 	if err != nil {
 		cError.Printf("Failed to get bookmarks: %v\n", err)
 		os.Exit(1)
