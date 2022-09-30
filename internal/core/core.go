@@ -1,3 +1,3 @@
 package core
 
-const userAgent = "Shiori/2.0.0 (+https://github.com/go-shiori/shiori)"
+const userAgent = "Shiori (+https://github.com/go-shiori/shiori)"
