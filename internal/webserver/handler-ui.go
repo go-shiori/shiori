@@ -14,7 +14,6 @@ import (
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/go-shiori/warc"
 	"github.com/julienschmidt/httprouter"
 
 	"github.com/go-shiori/shiori/internal/model"
@@ -115,72 +114,72 @@ func (h *handler) serveBookmarkContent(w http.ResponseWriter, r *http.Request, p
 	}
 
 	// Check if it has archive.
-	archivePath := fp.Join(h.DataDir, "archive", strID)
-	if fileExists(archivePath) {
-		bookmark.HasArchive = true
+	// archivePath := fp.Join(h.DataDir, "archive", strID)
+	// if fileExists(archivePath) {
+	// 	bookmark.HasArchive = true
 
-		// Open archive, look in cache first
-		var archive *warc.Archive
-		cacheData, found := h.ArchiveCache.Get(strID)
+	// 	// Open archive, look in cache first
+	// 	var archive *warc.Archive
+	// 	cacheData, found := h.ArchiveCache.Get(strID)
 
-		if found {
-			archive = cacheData.(*warc.Archive)
-		} else {
-			archivePath := fp.Join(h.DataDir, "archive", strID)
-			archive, err = warc.Open(archivePath)
-			checkError(err)
+	// 	if found {
+	// 		archive = cacheData.(*warc.Archive)
+	// 	} else {
+	// 		archivePath := fp.Join(h.DataDir, "archive", strID)
+	// 		archive, err = warc.Open(archivePath)
+	// 		checkError(err)
 
-			h.ArchiveCache.Set(strID, archive, 0)
-		}
+	// 		h.ArchiveCache.Set(strID, archive, 0)
+	// 	}
 
-		// Find all image and convert its source to use the archive URL.
-		createArchivalURL := func(archivalName string) string {
-			archivalURL := *r.URL
-			archivalURL.Path = path.Join(h.RootPath, "bookmark", strID, "archive", archivalName)
-			return archivalURL.String()
-		}
+	// 	// Find all image and convert its source to use the archive URL.
+	// 	createArchivalURL := func(archivalName string) string {
+	// 		archivalURL := *r.URL
+	// 		archivalURL.Path = path.Join(h.RootPath, "bookmark", strID, "archive", archivalName)
+	// 		return archivalURL.String()
+	// 	}
 
-		buffer := strings.NewReader(bookmark.HTML)
-		doc, err := goquery.NewDocumentFromReader(buffer)
-		checkError(err)
+	// 	buffer := strings.NewReader(bookmark.HTML)
+	// 	doc, err := goquery.NewDocumentFromReader(buffer)
+	// 	checkError(err)
 
-		doc.Find("img, picture, figure, source").Each(func(_ int, node *goquery.Selection) {
-			// Get the needed attributes
-			src, _ := node.Attr("src")
-			strSrcSets, _ := node.Attr("srcset")
+	// 	doc.Find("img, picture, figure, source").Each(func(_ int, node *goquery.Selection) {
+	// 		// Get the needed attributes
+	// 		src, _ := node.Attr("src")
+	// 		strSrcSets, _ := node.Attr("srcset")
 
-			// Convert `src` attributes
-			if src != "" {
-				archivalName := getArchivalName(src)
-				if archivalName != "" && archive.HasResource(archivalName) {
-					node.SetAttr("src", createArchivalURL(archivalName))
-				}
-			}
+	// 		// Convert `src` attributes
+	// 		if src != "" {
+	// 			archivalName := getArchivalName(src)
+	// 			if archivalName != "" && archive.HasResource(archivalName) {
+	// 				node.SetAttr("src", createArchivalURL(archivalName))
+	// 			}
+	// 		}
 
-			// Split srcset by comma, then process it like any URLs
-			srcSets := strings.Split(strSrcSets, ",")
-			for i, srcSet := range srcSets {
-				srcSet = strings.TrimSpace(srcSet)
-				parts := strings.SplitN(srcSet, " ", 2)
-				if parts[0] == "" {
-					continue
-				}
+	// 		// Split srcset by comma, then process it like any URLs
+	// 		srcSets := strings.Split(strSrcSets, ",")
+	// 		for i, srcSet := range srcSets {
+	// 			srcSet = strings.TrimSpace(srcSet)
+	// 			parts := strings.SplitN(srcSet, " ", 2)
+	// 			if parts[0] == "" {
+	// 				continue
+	// 			}
 
-				archivalName := getArchivalName(parts[0])
-				if archivalName != "" && archive.HasResource(archivalName) {
-					archivalURL := createArchivalURL(archivalName)
-					srcSets[i] = strings.Replace(srcSets[i], parts[0], archivalURL, 1)
-				}
-			}
+	// 			archivalName := getArchivalName(parts[0])
+	// 			if archivalName != "" && archive.HasResource(archivalName) {
+	// 				archivalURL := createArchivalURL(archivalName)
+	// 				srcSets[i] = strings.Replace(srcSets[i], parts[0], archivalURL, 1)
+	// 			}
+	// 		}
 
-			if len(srcSets) > 0 {
-				node.SetAttr("srcset", strings.Join(srcSets, ","))
-			}
-		})
+	// 		if len(srcSets) > 0 {
+	// 			node.SetAttr("srcset", strings.Join(srcSets, ","))
+	// 		}
+	// 	})
 
-		bookmark.HTML, err = goquery.OuterHtml(doc.Selection)
-		checkError(err)
-	}
+	// 	bookmark.HTML, err = goquery.OuterHtml(doc.Selection)
+	// 	checkError(err)
+	// }
 
 	// Execute template
 	if developmentMode {
