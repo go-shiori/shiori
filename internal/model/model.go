@@ -1,35 +1,52 @@
 package model
 
+import "gorm.io/gorm"
+
 // Tag is the tag for a bookmark.
 type Tag struct {
-	ID         int    `db:"id"          json:"id"`
-	Name       string `db:"name"        json:"name"`
-	NBookmarks int    `db:"n_bookmarks" json:"nBookmarks,omitempty"`
-	Deleted    bool   `json:"-"`
+	gorm.Model
+	ID         int    `gorm:"id,primaryKey,index"          json:"id"`
+	Name       string `gorm:"name"        json:"name"`
+	NBookmarks int    `gorm:"n_bookmarks" json:"nBookmarks,omitempty"`
+	Deleted    bool   `gorm:"-" json:"-"`
+}
+
+func (Tag) TableName() string {
+	return "tag"
 }
 
 // Bookmark is the record for an URL.
 type Bookmark struct {
-	ID            int    `db:"id"            json:"id"`
-	URL           string `db:"url"           json:"url"`
-	Title         string `db:"title"         json:"title"`
-	Excerpt       string `db:"excerpt"       json:"excerpt"`
-	Author        string `db:"author"        json:"author"`
-	Public        int    `db:"public"        json:"public"`
-	Modified      string `db:"modified"      json:"modified"`
-	Content       string `db:"content"       json:"-"`
-	HTML          string `db:"html"          json:"html,omitempty"`
-	ImageURL      string `db:"image_url"     json:"imageURL"`
-	HasContent    bool   `db:"has_content"   json:"hasContent"`
-	HasArchive    bool   `json:"hasArchive"`
-	Tags          []Tag  `json:"tags"`
-	CreateArchive bool   `json:"createArchive"`
+	gorm.Model
+	ID            int    `gorm:"id,primaryKey,index"            json:"id"`
+	URL           string `gorm:"url"           json:"url"`
+	Title         string `gorm:"title"         json:"title"`
+	Excerpt       string `gorm:"excerpt"       json:"excerpt"`
+	Author        string `gorm:"author"        json:"author"`
+	Public        int    `gorm:"public"        json:"public"`
+	Modified      string `gorm:"modified"      json:"modified"`
+	Content       string `gorm:"content"       json:"-"`
+	HTML          string `gorm:"html"          json:"html,omitempty"`
+	ImageURL      string `gorm:"image_url"     json:"imageURL"`
+	HasContent    bool   `gorm:"has_content"   json:"hasContent"`
+	HasArchive    bool   `gorm:"-" json:"hasArchive"`
+	Tags          []Tag  `gorm:"many2many:bookmark_tag;" json:"tags"`
+	CreateArchive bool   `gorm:"-" json:"createArchive"`
+}
+
+func (Bookmark) TableName() string {
+	return "bookmark"
 }
 
 // Account is person that allowed to access web interface.
 type Account struct {
-	ID       int    `db:"id"       json:"id"`
-	Username string `db:"username" json:"username"`
-	Password string `db:"password" json:"password,omitempty"`
-	Owner    bool   `db:"owner"    json:"owner"`
+	gorm.Model
+	ID       int    `gorm:"id,primaryKey,index" json:"id"`
+	Username string `gorm:"username" json:"username"`
+	Password string `gorm:"password" json:"password,omitempty"`
+	Owner    bool   `gorm:"owner"    json:"owner"`
+}
+
+func (Account) TableName() string {
+	return "account"
 }
