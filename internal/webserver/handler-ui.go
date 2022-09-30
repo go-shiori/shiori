@@ -237,8 +237,6 @@ func (h *handler) serveThumbnailImage(w http.ResponseWriter, r *http.Request, ps
 func (h *handler) serveBookmarkArchive(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	// Get parameter from URL
 	strID := ps.ByName("id")
-	resourcePath := ps.ByName("filepath")
-	resourcePath = strings.TrimPrefix(resourcePath, "/")
 
 	// Get bookmark from database
 	id, err := strconv.Atoi(strID)
@@ -260,29 +258,27 @@ func (h *handler) serveBookmarkArchive(w http.ResponseWriter, r *http.Request, p
 		}
 	}
 
-	// Open archive, look in cache first
-	var archive *warc.Archive
-	cacheData, found := h.ArchiveCache.Get(strID)
+	resourcePath := fp.Join(h.DataDir, "archive", strID)
 
-	if found {
-		archive = cacheData.(*warc.Archive)
-	} else {
-		archivePath := fp.Join(h.DataDir, "archive", strID)
-		archive, err = warc.Open(archivePath)
-		checkError(err)
-
-		h.ArchiveCache.Set(strID, archive, 0)
-	}
-
-	content, contentType, err := archive.Read(resourcePath)
+	archive, err := os.Open(resourcePath)
 	checkError(err)
+
+	// reader, err := gzip.NewReader(archive)
+	// checkError(err)
+
+	content, err := io.ReadAll(archive)
+	checkError(err)
+
+	// TODO: cache layer
+
+	contentType := "text/html"
 
 	// Set response header
 	w.Header().Set("Content-Encoding", "gzip")
 	w.Header().Set("Content-Type", contentType)
 
 	// If this is HTML and root, inject shiori header
-	if strings.Contains(strings.ToLower(contentType), "text/html") && resourcePath == "" {
+	if strings.Contains(strings.ToLower(contentType), "text/html") {
 		// Extract gzip
 		buffer := bytes.NewBuffer(content)
 		gzipReader, err := gzip.NewReader(buffer)
