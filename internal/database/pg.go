@@ -126,7 +126,7 @@ func (db *PGDatabase) SaveBookmarks(ctx context.Context, bookmarks ...model.Book
 			book.Modified = modifiedTime
 
 			// Save bookmark
-			err := stmtInsertBook.QueryRow(ctx,
+			err := stmtInsertBook.QueryRowContext(ctx,
 				book.URL, book.Title, book.Excerpt, book.Author,
 				book.Public, book.Content, book.HTML, book.Modified).Scan(&book.ID)
 			if err != nil {
