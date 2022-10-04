@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"database/sql"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -92,7 +94,7 @@ func importHandler(cmd *cobra.Command, args []string) {
 		}
 
 		_, exist, err := db.GetBookmark(cmd.Context(), 0, url)
-		if err != nil {
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
 			cError.Printf("Skip %s: Get Bookmark fail, %v", url, err)
 			return
 		}
