@@ -2,11 +2,13 @@ package database
 
 import (
 	"context"
+	"errors"
 	"log"
 	"os"
 	"testing"
 
 	"github.com/go-shiori/shiori/internal/model"
+	"github.com/golang-migrate/migrate/v4"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -24,12 +26,12 @@ func TestPsqlSaveBookmarkWithTag(t *testing.T) {
 		t.Error(err)
 	}
 
-	if err := pgDB.Migrate(); err != nil {
+	if err := pgDB.Migrate(); err != nil && !errors.Is(migrate.ErrNoChange, err) {
 		t.Error(err)
 	}
 
 	book := model.Bookmark{
-		URL:   "https://github.com/go-shiori/shiori",
+		URL:   "https://github.com/go-shiori/obelisk",
 		Title: "shiori",
 		Tags: []model.Tag{
 			{
