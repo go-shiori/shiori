@@ -303,12 +303,6 @@ func (h *handler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 		CreateArchive: payload.CreateArchive,
 	}
 
-	// Create bookmark ID
-	book.ID, err = h.DB.CreateNewID(ctx, "bookmark")
-	if err != nil {
-		panic(fmt.Errorf("failed to create ID: %v", err))
-	}
-
 	// Clean up bookmark URL
 	book.URL, err = core.RemoveUTMParams(book.URL)
 	if err != nil {
@@ -320,13 +314,6 @@ func (h *handler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 		book.Title = book.URL
 	}
 
-	if !payload.Async {
-		book, err = downloadBookmarkContent(book, h.DataDir, r)
-		if err != nil {
-			log.Printf("error downloading boorkmark: %s", err)
-		}
-	}
-
 	// Save bookmark to database
 	results, err := h.DB.SaveBookmarks(ctx, *book)
 	if err != nil || len(results) == 0 {
@@ -335,7 +322,7 @@ func (h *handler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 
 	if payload.Async {
 		go func() {
-			bookmark, err := downloadBookmarkContent(book, h.DataDir, r)
+			bookmark, err := downloadBookmarkContent(&results[0], h.DataDir, r)
 			if err != nil {
 				log.Printf("error downloading boorkmark: %s", err)
 			}
@@ -343,6 +330,16 @@ func (h *handler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 				log.Printf("failed to save bookmark: %s", err)
 			}
 		}()
+	} else {
+		// Workaround. Download content after saving the bookmark so we have the proper database
+		// id already set in the object regardless of the database engine.
+		book, err = downloadBookmarkContent(book, h.DataDir, r)
+		if err != nil {
+			log.Printf("error downloading boorkmark: %s", err)
+		}
+		if _, err := h.DB.SaveBookmarks(ctx, *book); err != nil {
+			log.Printf("failed to save bookmark: %s", err)
+		}
 	}
 
 	// Return the new bookmark
