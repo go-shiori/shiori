@@ -24,6 +24,10 @@ func TestPsqlSaveBookmarkWithTag(t *testing.T) {
 		t.Error(err)
 	}
 
+	if err := pgDB.Migrate(); err != nil {
+		t.Error(err)
+	}
+
 	book := model.Bookmark{
 		URL:   "https://github.com/go-shiori/shiori",
 		Title: "shiori",
