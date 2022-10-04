@@ -79,7 +79,8 @@ func (db *PGDatabase) SaveBookmarks(ctx context.Context, bookmarks ...model.Book
 			public   = $5,
 			content  = $6,
 			html     = $7,
-			modified = $8`)
+			modified = $8
+		RETURNING id`)
 		if err != nil {
 			return errors.WithStack(err)
 		}
@@ -112,11 +113,7 @@ func (db *PGDatabase) SaveBookmarks(ctx context.Context, bookmarks ...model.Book
 		// Execute statements
 		result = []model.Bookmark{}
 		for _, book := range bookmarks {
-			// Check ID, URL and title
-			if book.ID == 0 {
-				return errors.New("ID must not be empty")
-			}
-
+			// URL and title
 			if book.URL == "" {
 				return errors.New("URL must not be empty")
 			}
@@ -129,9 +126,9 @@ func (db *PGDatabase) SaveBookmarks(ctx context.Context, bookmarks ...model.Book
 			book.Modified = modifiedTime
 
 			// Save bookmark
-			_, err := stmtInsertBook.ExecContext(ctx,
+			err := stmtInsertBook.QueryRow(ctx,
 				book.URL, book.Title, book.Excerpt, book.Author,
-				book.Public, book.Content, book.HTML, book.Modified)
+				book.Public, book.Content, book.HTML, book.Modified).Scan(&book.ID)
 			if err != nil {
 				return errors.WithStack(err)
 			}
