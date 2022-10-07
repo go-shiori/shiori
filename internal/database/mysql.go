@@ -127,7 +127,9 @@ func (db *MySQLDatabase) SaveBookmarks(ctx context.Context, bookmarks ...model.B
 			}
 
 			// Set modified time
-			book.Modified = modifiedTime
+			if book.Modified == "" {
+				book.Modified = modifiedTime
+			}
 
 			// Save bookmark
 			_, err := stmtInsertBook.ExecContext(ctx, book.ID,
