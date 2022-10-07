@@ -5,7 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/go-shiori/shiori/internal/core"
@@ -75,8 +77,24 @@ func importHandler(cmd *cobra.Command, args []string) {
 		url, _ := a.Attr("href")
 		strTags, _ := a.Attr("tags")
 
+		dateStr, fieldExists := a.Attr("last_modified")
+		if !fieldExists {
+			dateStr, _ = a.Attr("add_date")
+		}
+
+		// Using now as default date in case no last_modified nor add_date are present
+		modifiedDate := time.Now()
+		if dateStr != "" {
+			modifiedTsInt, err := strconv.Atoi(dateStr)
+			if err != nil {
+				cError.Printf("Skip %s: date field is not valid: %s", url, err)
+				return
+			}
+
+			modifiedDate = time.Unix(int64(modifiedTsInt), 0)
+		}
+
 		// Clean up URL
-		var err error
 		url, err = core.RemoveUTMParams(url)
 		if err != nil {
 			cError.Printf("Skip %s: URL is not valid\n", url)
@@ -123,10 +141,11 @@ func importHandler(cmd *cobra.Command, args []string) {
 
 		// Add item to list
 		bookmark := model.Bookmark{
-			ID:    bookID,
-			URL:   url,
-			Title: title,
-			Tags:  tags,
+			ID:       bookID,
+			URL:      url,
+			Title:    title,
+			Tags:     tags,
+			Modified: modifiedDate.Format(model.DatabaseDateFormat),
 		}
 
 		bookID++
