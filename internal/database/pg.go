@@ -107,7 +107,7 @@ func (db *PGDatabase) SaveBookmarks(ctx context.Context, bookmarks ...model.Book
 		}
 
 		// Prepare modified time
-		modifiedTime := time.Now().UTC().Format("2006-01-02 15:04:05")
+		modifiedTime := time.Now().UTC().Format(model.DatabaseDateFormat)
 
 		// Execute statements
 		result = []model.Bookmark{}
