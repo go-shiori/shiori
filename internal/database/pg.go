@@ -223,7 +223,9 @@ func (db *PGDatabase) GetBookmarks(ctx context.Context, opts GetBookmarksOptions
 	if opts.Keyword != "" {
 		query += ` AND (
 			url LIKE :lkw OR
-			MATCH(title, excerpt, content) AGAINST (:kw IN BOOLEAN MODE)
+			title LIKE :kw OR
+			excerpt LIKE :kw OR
+			content LIKE :kw
 		)`
 
 		arg["lkw"] = "%" + opts.Keyword + "%"
@@ -356,7 +358,9 @@ func (db *PGDatabase) GetBookmarksCount(ctx context.Context, opts GetBookmarksOp
 	if opts.Keyword != "" {
 		query += ` AND (
 			url LIKE :lurl OR
-			MATCH(title, excerpt, content) AGAINST (:kw IN BOOLEAN MODE)
+			title LIKE :kw OR
+			excerpt LIKE :kw OR
+			content LIKE :kw
 		)`
 
 		arg["lurl"] = "%" + opts.Keyword + "%"
