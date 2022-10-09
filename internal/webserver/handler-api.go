@@ -323,7 +323,7 @@ func (h *handler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 	if !payload.Async {
 		book, err = downloadBookmarkContent(book, h.DataDir, r)
 		if err != nil {
-			log.Printf("error downloading boorkmark: %s", err)
+			panic(fmt.Errorf("failed to save bookmark: %v", err))
 		}
 	}
 
@@ -338,6 +338,7 @@ func (h *handler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 			bookmark, err := downloadBookmarkContent(book, h.DataDir, r)
 			if err != nil {
 				log.Printf("error downloading boorkmark: %s", err)
+				return
 			}
 			if _, err := h.DB.SaveBookmarks(ctx, *bookmark); err != nil {
 				log.Printf("failed to save bookmark: %s", err)
