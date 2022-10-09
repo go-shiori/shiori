@@ -9,6 +9,7 @@ import (
 	"github.com/go-shiori/shiori/internal/model"
 	apppaths "github.com/muesli/go-app-paths"
 	"github.com/spf13/cobra"
+	"go.uber.org/zap"
 	"golang.org/x/net/context"
 )
 
@@ -20,6 +21,11 @@ var (
 
 // ShioriCmd returns the root command for shiori
 func ShioriCmd() *cobra.Command {
+	logger, err := zap.NewDevelopment()
+	if err != nil {
+		panic(err)
+	}
+
 	rootCmd := &cobra.Command{
 		Use:   "shiori",
 		Short: "Simple command-line bookmark manager built with Go",
@@ -39,6 +45,7 @@ func ShioriCmd() *cobra.Command {
 		serveCmd(),
 		checkCmd(),
 		migrateCmd(),
+		serverCommand(logger),
 	)
 
 	return rootCmd
