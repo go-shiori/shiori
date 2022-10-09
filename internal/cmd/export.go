@@ -38,7 +38,7 @@ func exportHandler(cmd *cobra.Command, args []string) {
 
 	// Make sure destination directory exist
 	dstDir := fp.Dir(args[0])
-	if err := os.MkdirAll(dstDir, os.ModePerm); err != nil {
+	if err := os.MkdirAll(dstDir, model.DataDirPerm); err != nil {
 		cError.Printf("Error crating destination directory: %s", err)
 	}
 
