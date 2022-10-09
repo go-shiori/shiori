@@ -125,7 +125,7 @@ func (db *SQLiteDatabase) SaveBookmarks(ctx context.Context, bookmarks ...model.
 		}
 
 		// Prepare modified time
-		modifiedTime := time.Now().UTC().Format("2006-01-02 15:04:05")
+		modifiedTime := time.Now().UTC().Format(model.DatabaseDateFormat)
 
 		// Execute statements
 
@@ -144,7 +144,9 @@ func (db *SQLiteDatabase) SaveBookmarks(ctx context.Context, bookmarks ...model.
 			}
 
 			// Set modified time
-			book.Modified = modifiedTime
+			if book.Modified == "" {
+				book.Modified = modifiedTime
+			}
 
 			// Save bookmark
 			hasContent := book.Content != ""
@@ -234,7 +236,7 @@ func (db *SQLiteDatabase) SaveBookmarks(ctx context.Context, bookmarks ...model.
 // GetBookmarks fetch list of bookmarks based on submitted options.
 func (db *SQLiteDatabase) GetBookmarks(ctx context.Context, opts GetBookmarksOptions) ([]model.Bookmark, error) {
 	// Create initial query
-	query := `SELECT 
+	query := `SELECT
 		b.id,
 		b.url,
 		b.title,
@@ -353,6 +355,10 @@ func (db *SQLiteDatabase) GetBookmarks(ctx context.Context, opts GetBookmarksOpt
 	var bookmarkIds = make([]int, 0, len(bookmarks))
 	for _, book := range bookmarks {
 		bookmarkIds = append(bookmarkIds, book.ID)
+	}
+
+	if len(bookmarkIds) == 0 {
+		return bookmarks, nil
 	}
 
 	// If content needed, fetch it separately

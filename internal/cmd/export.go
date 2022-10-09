@@ -60,7 +60,7 @@ func exportHandler(cmd *cobra.Command, args []string) {
 
 	for _, book := range bookmarks {
 		// Create Unix timestamp for bookmark
-		modifiedTime, err := time.Parse("2006-01-02 15:04:05", book.Modified)
+		modifiedTime, err := time.Parse(model.DatabaseDateFormat, book.Modified)
 		if err != nil {
 			modifiedTime = time.Now()
 		}

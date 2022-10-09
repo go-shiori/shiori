@@ -8,6 +8,19 @@ jobs:
     strategy:
       matrix:
         go: [1.19]
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_PASSWORD: shiori
+          POSTGRES_USER: shiori
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
     name: Go ${{ matrix.go }} unit tests
     steps:
       - uses: actions/checkout@v2
@@ -25,4 +38,6 @@ jobs:
             golangci-lint.cache-{interval_number}-
             golangci-lint.cache-
       - run: go test ./...
+        env:
+          SHIORI_TEST_PG_URL: "postgres://shiori:shiori@localhost:5432/shiori?sslmode=disable"
       - run: CGO_ENABLED=0 go build -tags osusergo,netgo -ldflags="-s -w -X main.version=$(git describe --tags) -X main.date=$(date --iso-8601=seconds)"
