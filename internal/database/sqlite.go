@@ -355,6 +355,10 @@ func (db *SQLiteDatabase) GetBookmarks(ctx context.Context, opts GetBookmarksOpt
 		bookmarkIds = append(bookmarkIds, book.ID)
 	}
 
+	if len(bookmarkIds) == 0 {
+		return bookmarks, nil
+	}
+
 	// If content needed, fetch it separately
 	// It's faster than join with virtual table
 	if opts.WithContent {
