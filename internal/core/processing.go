@@ -165,7 +165,7 @@ func downloadBookImage(url, dstPath string) error {
 
 	// At this point, the download has finished successfully.
 	// Prepare destination file.
-	err = os.MkdirAll(fp.Dir(dstPath), os.ModePerm)
+	err = os.MkdirAll(fp.Dir(dstPath), model.DataDirPerm)
 	if err != nil {
 		return fmt.Errorf("failed to create image dir: %v", err)
 	}

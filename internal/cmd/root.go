@@ -6,6 +6,7 @@ import (
 	fp "path/filepath"
 
 	"github.com/go-shiori/shiori/internal/database"
+	"github.com/go-shiori/shiori/internal/model"
 	apppaths "github.com/muesli/go-app-paths"
 	"github.com/spf13/cobra"
 	"golang.org/x/net/context"
@@ -55,7 +56,7 @@ func preRunRootHandler(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	err = os.MkdirAll(dataDir, os.ModePerm)
+	err = os.MkdirAll(dataDir, model.DataDirPerm)
 	if err != nil {
 		cError.Printf("Failed to create data dir: %v\n", err)
 		os.Exit(1)
