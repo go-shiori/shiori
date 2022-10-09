@@ -102,7 +102,7 @@ func pocketHandler(cmd *cobra.Command, args []string) {
 			ID:       bookID,
 			URL:      url,
 			Title:    title,
-			Modified: modified.Format("2006-01-02 15:04:05"),
+			Modified: modified.Format(model.DatabaseDateFormat),
 			Tags:     tags,
 		}
 
