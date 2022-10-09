@@ -79,7 +79,8 @@ func (db *PGDatabase) SaveBookmarks(ctx context.Context, bookmarks ...model.Book
 			public   = $5,
 			content  = $6,
 			html     = $7,
-			modified = $8`)
+			modified = $8
+		RETURNING id`)
 		if err != nil {
 			return errors.WithStack(err)
 		}
@@ -112,11 +113,7 @@ func (db *PGDatabase) SaveBookmarks(ctx context.Context, bookmarks ...model.Book
 		// Execute statements
 		result = []model.Bookmark{}
 		for _, book := range bookmarks {
-			// Check ID, URL and title
-			if book.ID == 0 {
-				return errors.New("ID must not be empty")
-			}
-
+			// URL and title
 			if book.URL == "" {
 				return errors.New("URL must not be empty")
 			}
@@ -129,9 +126,9 @@ func (db *PGDatabase) SaveBookmarks(ctx context.Context, bookmarks ...model.Book
 			book.Modified = modifiedTime
 
 			// Save bookmark
-			_, err := stmtInsertBook.ExecContext(ctx,
+			err := stmtInsertBook.QueryRowContext(ctx,
 				book.URL, book.Title, book.Excerpt, book.Author,
-				book.Public, book.Content, book.HTML, book.Modified)
+				book.Public, book.Content, book.HTML, book.Modified).Scan(&book.ID)
 			if err != nil {
 				return errors.WithStack(err)
 			}
@@ -154,15 +151,15 @@ func (db *PGDatabase) SaveBookmarks(ctx context.Context, bookmarks ...model.Book
 
 				// If tag doesn't have any ID, fetch it from database
 				if tag.ID == 0 {
-					err = stmtGetTag.Get(&tag.ID, tagName)
-					if err != nil {
+					err = stmtGetTag.GetContext(ctx, &tag.ID, tagName)
+					if err != nil && !errors.Is(err, sql.ErrNoRows) {
 						return errors.WithStack(err)
 					}
 
 					// If tag doesn't exist in database, save it
 					if tag.ID == 0 {
 						var tagID64 int64
-						err = stmtInsertTag.Get(&tagID64, tagName)
+						err = stmtInsertTag.GetContext(ctx, &tagID64, tagName)
 						if err != nil {
 							return errors.WithStack(err)
 						}
@@ -170,7 +167,7 @@ func (db *PGDatabase) SaveBookmarks(ctx context.Context, bookmarks ...model.Book
 						tag.ID = int(tagID64)
 					}
 
-					if _, err := stmtInsertBookTag.Exec(tag.ID, book.ID); err != nil {
+					if _, err := stmtInsertBookTag.ExecContext(ctx, tag.ID, book.ID); err != nil {
 						return errors.WithStack(err)
 					}
 				}
