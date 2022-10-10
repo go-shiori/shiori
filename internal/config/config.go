@@ -46,6 +46,7 @@ type HttpConfig struct {
 	Address   string `env:"HTTP_ADDRESS,default=:"`
 	RootPath  string `env:"HTTP_ROOT_PATH,default=/"`
 	AccessLog bool   `env:"HTTP_ACCESS_LOG,default=True"`
+	SecretKey string `env:"HTTP_SECRET_KEY"`
 	// Fiber Specific
 	BodyLimit                    int           `env:"HTTP_BODY_LIMIT,default=1024"`
 	ReadTimeout                  time.Duration `env:"HTTP_READ_TIMEOUT,default=10s"`
