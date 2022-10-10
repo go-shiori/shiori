@@ -25,13 +25,17 @@ func (r *AuthAPIRoutes) Router() *fiber.App {
 	return r.router
 }
 
-type loginPayload struct {
+type loginRequestPayload struct {
 	Username   string `json:"username"`
 	Password   string `json:"password"`
 	RememberMe bool   `json:"remember_me"`
 }
 
-func (p *loginPayload) IsValid() error {
+type loginResponseMessage struct {
+	Token string `json:"token"`
+}
+
+func (p *loginRequestPayload) IsValid() error {
 	if p.Username == "" {
 		return fmt.Errorf("username should not be empty")
 	}
@@ -44,21 +48,30 @@ func (p *loginPayload) IsValid() error {
 func (r *AuthAPIRoutes) loginHandler(c *fiber.Ctx) error {
 	ctx := context.Background()
 
-	var payload loginPayload
+	var payload loginRequestPayload
 	if err := c.BodyParser(&payload); err != nil {
-		return response.SendError(c, 500, err)
+		return response.SendInternalServerError(c)
 	}
 
 	if err := payload.IsValid(); err != nil {
 		return response.SendError(c, 400, err.Error())
 	}
 
-	account, err := r.deps.Domains.Auth.Login(ctx, payload.Username, payload.Password)
+	account, err := r.deps.Domains.Auth.GetAccountFromCredentials(ctx, payload.Username, payload.Password)
 	if err != nil {
 		return response.SendError(c, 400, err.Error())
 	}
 
-	return response.Send(c, 200, account)
+	token, err := r.deps.Domains.Auth.CreateTokenForAccount(account)
+	if err != nil {
+		return response.SendInternalServerError(c)
+	}
+
+	responseMessage := loginResponseMessage{
+		Token: token,
+	}
+
+	return response.Send(c, 200, responseMessage)
 }
 
 func NewAuthAPIRoutes(logger *zap.Logger, deps *config.Dependencies) *AuthAPIRoutes {

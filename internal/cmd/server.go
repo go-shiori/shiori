@@ -36,10 +36,10 @@ func serverHandler(logger *zap.Logger) func(cmd *cobra.Command, args []string) {
 			logger.Fatal("error opening database", zap.Error(err))
 		}
 
-		dependencies := config.NewDependencies(logger, database)
-		dependencies.Domains.Auth = domains.NewAuthDomain(logger, database)
+		cfg := config.ParseServerConfiguration(ctx, logger)
 
-		config := config.ParseServerConfiguration(ctx, logger)
+		dependencies := config.NewDependencies(logger, database)
+		dependencies.Domains.Auth = domains.NewAuthDomain(logger, cfg.Http.SecretKey, database)
 
 		// Get flags value
 		port, _ := cmd.Flags().GetInt("port")
@@ -61,12 +61,12 @@ func serverHandler(logger *zap.Logger) func(cmd *cobra.Command, args []string) {
 		}
 
 		// Override configuration from flags
-		config.Http.Port = port
-		config.Http.Address = address + ":"
-		config.Http.RootPath = rootPath
-		config.Http.AccessLog = accessLog
+		cfg.Http.Port = port
+		cfg.Http.Address = address + ":"
+		cfg.Http.RootPath = rootPath
+		cfg.Http.AccessLog = accessLog
 
-		server := http.NewHttpServer(logger, config.Http, dependencies)
+		server := http.NewHttpServer(logger, cfg.Http, dependencies)
 
 		if err := server.Start(ctx); err != nil {
 			logger.Fatal("error starting server", zap.Error(err))
