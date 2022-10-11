@@ -171,8 +171,7 @@ func (db *MySQLDatabase) SaveBookmarks(ctx context.Context, create bool, bookmar
 
 				// If tag doesn't have any ID, fetch it from database
 				if tag.ID == 0 {
-					err = stmtGetTag.Get(&tag.ID, tagName)
-					if err != nil {
+					if err := stmtGetTag.GetContext(ctx, &tag.ID, tagName); err != nil && err != sql.ErrNoRows {
 						return errors.WithStack(err)
 					}
 
