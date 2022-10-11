@@ -12,8 +12,8 @@ import (
 )
 
 func init() {
-	testPsqlURL := os.Getenv("SHIORI_TEST_MYSQL_URL")
-	if testPsqlURL == "" {
+	connString := os.Getenv("SHIORI_TEST_MYSQL_URL")
+	if connString == "" {
 		log.Fatal("mysql tests can't run without a MysQL database, set SHIORI_TEST_MYSQL_URL environment variable")
 	}
 }

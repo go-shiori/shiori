@@ -11,8 +11,8 @@ import (
 )
 
 func init() {
-	testPsqlURL := os.Getenv("SHIORI_TEST_PG_URL")
-	if testPsqlURL == "" {
+	connString := os.Getenv("SHIORI_TEST_PG_URL")
+	if connString == "" {
 		log.Fatal("psql tests can't run without a PSQL database, set SHIORI_TEST_PG_URL environment variable")
 	}
 }
