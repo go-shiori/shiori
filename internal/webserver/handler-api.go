@@ -321,9 +321,11 @@ func (h *handler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 		panic(fmt.Errorf("failed to save bookmark: %v", err))
 	}
 
+	book = &results[0]
+
 	if payload.Async {
 		go func() {
-			bookmark, err := downloadBookmarkContent(&results[0], h.DataDir, r)
+			bookmark, err := downloadBookmarkContent(book, h.DataDir, r)
 			if err != nil {
 				log.Printf("error downloading boorkmark: %s", err)
 			}
