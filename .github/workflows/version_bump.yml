@@ -1,10 +1,10 @@
-name: 'Tag release'
+name: "Tag release"
 
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version to bump to, example: v1.5.2'
+        description: "Version to bump to, example: v1.5.2"
         required: true
 
 jobs:
@@ -15,7 +15,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
           ref: master
