@@ -47,7 +47,7 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/tdewolff/parse v2.3.4+incompatible // indirect
 	go.etcd.io/bbolt v1.3.6 // indirect
-	go.uber.org/atomic v1.9.0 // indirect
+	go.uber.org/atomic v1.10.0 // indirect
 	golang.org/x/image v0.0.0-20220413100746-70e8d0d3baa9 // indirect
 	golang.org/x/mod v0.6.0-dev.0.20220106191415-9b9b3d81d5e3 // indirect
 	golang.org/x/sys v0.0.0-20220715151400-c0bba94af5f8 // indirect

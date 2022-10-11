@@ -64,14 +64,19 @@ func (db *PGDatabase) Migrate() error {
 
 // SaveBookmarks saves new or updated bookmarks to database.
 // Returns the saved ID and error message if any happened.
-func (db *PGDatabase) SaveBookmarks(ctx context.Context, bookmarks ...model.Bookmark) (result []model.Bookmark, err error) {
+func (db *PGDatabase) SaveBookmarks(ctx context.Context, create bool, bookmarks ...model.Bookmark) (result []model.Bookmark, err error) {
 	result = []model.Bookmark{}
 	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
 		// Prepare statement
 		stmtInsertBook, err := tx.Preparex(`INSERT INTO bookmark
 			(url, title, excerpt, author, public, content, html, modified)
 			VALUES($1, $2, $3, $4, $5, $6, $7, $8)
-			ON CONFLICT(url) DO UPDATE SET
+		RETURNING id`)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+
+		stmtUpdateBook, err := tx.Preparex(`UPDATE bookmark SET
 			url      = $1,
 			title    = $2,
 			excerpt  = $3,
@@ -79,8 +84,7 @@ func (db *PGDatabase) SaveBookmarks(ctx context.Context, bookmarks ...model.Book
 			public   = $5,
 			content  = $6,
 			html     = $7,
-			modified = $8
-		RETURNING id`)
+			modified = $8`)
 		if err != nil {
 			return errors.WithStack(err)
 		}
@@ -128,9 +132,16 @@ func (db *PGDatabase) SaveBookmarks(ctx context.Context, bookmarks ...model.Book
 			}
 
 			// Save bookmark
-			err := stmtInsertBook.QueryRowContext(ctx,
-				book.URL, book.Title, book.Excerpt, book.Author,
-				book.Public, book.Content, book.HTML, book.Modified).Scan(&book.ID)
+			var err error
+			if create {
+				err = stmtInsertBook.QueryRowContext(ctx,
+					book.URL, book.Title, book.Excerpt, book.Author,
+					book.Public, book.Content, book.HTML, book.Modified).Scan(&book.ID)
+			} else {
+				_, err = stmtUpdateBook.ExecContext(ctx,
+					book.URL, book.Title, book.Excerpt, book.Author,
+					book.Public, book.Content, book.HTML, book.Modified)
+			}
 			if err != nil {
 				return errors.WithStack(err)
 			}

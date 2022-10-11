@@ -285,7 +285,7 @@ func updateHandler(cmd *cobra.Command, args []string) {
 	}
 
 	// Save bookmarks to database
-	bookmarks, err = db.SaveBookmarks(cmd.Context(), bookmarks...)
+	bookmarks, err = db.SaveBookmarks(cmd.Context(), false, bookmarks...)
 	if err != nil {
 		cError.Printf("Failed to save bookmark: %v\n", err)
 		os.Exit(1)

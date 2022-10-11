@@ -21,6 +21,21 @@ jobs:
           --health-retries 5
         ports:
           - 5432:5432
+      mariadb:
+        image: mariadb
+        env:
+          MYSQL_USER: shiori
+          MYSQL_PASSWORD: shiori
+          MYSQL_DATABASE: shiori
+          MYSQL_ROOT_PASSWORD: shiori
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=5s
+          --health-timeout=2s
+          --health-retries=3
+        ports:
+          - 3306:3306
+
     name: Go ${{ matrix.go }} unit tests
     steps:
       - uses: actions/checkout@v2
@@ -40,4 +55,5 @@ jobs:
       - run: go test ./...
         env:
           SHIORI_TEST_PG_URL: "postgres://shiori:shiori@localhost:5432/shiori?sslmode=disable"
+          SHIORI_TEST_MYSQL_URL: "shiori:shiori@(localhost:3306)/shiori"
       - run: CGO_ENABLED=0 go build -tags osusergo,netgo -ldflags="-s -w -X main.version=$(git describe --tags) -X main.date=$(date --iso-8601=seconds)"

@@ -316,18 +316,20 @@ func (h *handler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 	}
 
 	// Save bookmark to database
-	results, err := h.DB.SaveBookmarks(ctx, *book)
+	results, err := h.DB.SaveBookmarks(ctx, true, *book)
 	if err != nil || len(results) == 0 {
 		panic(fmt.Errorf("failed to save bookmark: %v", err))
 	}
 
+	book = &results[0]
+
 	if payload.Async {
 		go func() {
-			bookmark, err := downloadBookmarkContent(&results[0], h.DataDir, r)
+			bookmark, err := downloadBookmarkContent(book, h.DataDir, r)
 			if err != nil {
 				log.Printf("error downloading boorkmark: %s", err)
 			}
-			if _, err := h.DB.SaveBookmarks(context.Background(), *bookmark); err != nil {
+			if _, err := h.DB.SaveBookmarks(context.Background(), false, *bookmark); err != nil {
 				log.Printf("failed to save bookmark: %s", err)
 			}
 		}()
@@ -338,7 +340,7 @@ func (h *handler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 		if err != nil {
 			log.Printf("error downloading boorkmark: %s", err)
 		}
-		if _, err := h.DB.SaveBookmarks(ctx, *book); err != nil {
+		if _, err := h.DB.SaveBookmarks(ctx, false, *book); err != nil {
 			log.Printf("failed to save bookmark: %s", err)
 		}
 	}
@@ -442,7 +444,7 @@ func (h *handler) apiUpdateBookmark(w http.ResponseWriter, r *http.Request, ps h
 	}
 
 	// Update database
-	res, err := h.DB.SaveBookmarks(ctx, book)
+	res, err := h.DB.SaveBookmarks(ctx, false, book)
 	checkError(err)
 
 	// Add thumbnail image to the saved bookmarks again
@@ -566,7 +568,7 @@ func (h *handler) apiUpdateCache(w http.ResponseWriter, r *http.Request, ps http
 	close(chDone)
 
 	// Update database
-	_, err = h.DB.SaveBookmarks(ctx, bookmarks...)
+	_, err = h.DB.SaveBookmarks(ctx, false, bookmarks...)
 	checkError(err)
 
 	// Return new saved result
@@ -628,7 +630,7 @@ func (h *handler) apiUpdateBookmarkTags(w http.ResponseWriter, r *http.Request, 
 	}
 
 	// Update database
-	bookmarks, err = h.DB.SaveBookmarks(ctx, bookmarks...)
+	bookmarks, err = h.DB.SaveBookmarks(ctx, false, bookmarks...)
 	checkError(err)
 
 	// Get image URL for each bookmark

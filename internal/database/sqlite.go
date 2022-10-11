@@ -73,15 +73,20 @@ func (db *SQLiteDatabase) Migrate() error {
 
 // SaveBookmarks saves new or updated bookmarks to database.
 // Returns the saved ID and error message if any happened.
-func (db *SQLiteDatabase) SaveBookmarks(ctx context.Context, bookmarks ...model.Bookmark) ([]model.Bookmark, error) {
+func (db *SQLiteDatabase) SaveBookmarks(ctx context.Context, create bool, bookmarks ...model.Bookmark) ([]model.Bookmark, error) {
 	var result []model.Bookmark
 
 	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
 		// Prepare statement
+
 		stmtInsertBook, err := tx.PreparexContext(ctx, `INSERT INTO bookmark
-			(id, url, title, excerpt, author, public, modified, has_content)
-			VALUES(?, ?, ?, ?, ?, ?, ?, ?)
-			ON CONFLICT(id) DO UPDATE SET
+			(url, title, excerpt, author, public, modified, has_content)
+			VALUES(?, ?, ?, ?, ?, ?, ?) RETURNING id`)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+
+		stmtUpdateBook, err := tx.PreparexContext(ctx, `UPDATE bookmark SET
 			url = ?, title = ?,	excerpt = ?, author = ?,
 			public = ?, modified = ?, has_content = ?`)
 		if err != nil {
@@ -130,11 +135,7 @@ func (db *SQLiteDatabase) SaveBookmarks(ctx context.Context, bookmarks ...model.
 		// Execute statements
 
 		for _, book := range bookmarks {
-			// Check ID, URL and title
-			if book.ID == 0 {
-				return errors.New("ID must not be empty")
-			}
-
+			// Check URL and title
 			if book.URL == "" {
 				return errors.New("URL must not be empty")
 			}
@@ -148,11 +149,18 @@ func (db *SQLiteDatabase) SaveBookmarks(ctx context.Context, bookmarks ...model.
 				book.Modified = modifiedTime
 			}
 
-			// Save bookmark
 			hasContent := book.Content != ""
-			_, err = stmtInsertBook.ExecContext(ctx, book.ID,
-				book.URL, book.Title, book.Excerpt, book.Author, book.Public, book.Modified, hasContent,
-				book.URL, book.Title, book.Excerpt, book.Author, book.Public, book.Modified, hasContent)
+
+			// Create or update bookmark
+			var err error
+			if create {
+				err = stmtInsertBook.QueryRowContext(ctx,
+					book.URL, book.Title, book.Excerpt, book.Author, book.Public, book.Modified, hasContent).Scan(&book.ID)
+			} else {
+				_, err = stmtUpdateBook.ExecContext(ctx,
+					book.URL, book.Title, book.Excerpt, book.Author, book.Public, book.Modified, hasContent)
+
+			}
 			if err != nil {
 				return errors.WithStack(err)
 			}
@@ -168,6 +176,13 @@ func (db *SQLiteDatabase) SaveBookmarks(ctx context.Context, bookmarks ...model.
 			if err != nil {
 				return errors.WithStack(err)
 			}
+
+			bookID, err := res.LastInsertId()
+			if err != nil {
+				return errors.WithStack(err)
+			}
+
+			book.ID = int(bookID)
 
 			if rows == 0 {
 				_, err = stmtInsertBookContent.ExecContext(ctx, book.ID, book.Title, book.Content, book.HTML)
