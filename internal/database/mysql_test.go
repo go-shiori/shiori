@@ -25,11 +25,8 @@ func mysqlTestDatabaseFactory(ctx context.Context) (DB, error) {
 		return nil, err
 	}
 
-	// parts := strings.Split(connString, "/")
-	// dbname := parts[len(parts)-1]
-
+	var dbname string
 	err = db.withTx(ctx, func(tx *sqlx.Tx) error {
-		var dbname string
 		err := tx.QueryRow("SELECT DATABASE()").Scan(&dbname)
 		if err != nil {
 			return err
@@ -46,6 +43,11 @@ func mysqlTestDatabaseFactory(ctx context.Context) (DB, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	if _, err := db.Exec("USE " + dbname); err != nil {
+		return nil, err
+	}
+
 	if err = db.Migrate(); err != nil && !errors.Is(migrate.ErrNoChange, err) {
 		return nil, err
 	}
