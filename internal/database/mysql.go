@@ -138,6 +138,9 @@ func (db *MySQLDatabase) SaveBookmarks(ctx context.Context, create bool, bookmar
 				res, err = stmtInsertBook.ExecContext(ctx,
 					book.URL, book.Title, book.Excerpt, book.Author,
 					book.Public, book.Content, book.HTML, book.Modified)
+				if err != nil {
+					return errors.WithStack(err)
+				}
 				bookID, err := res.LastInsertId()
 				if err != nil {
 					return errors.WithStack(err)
