@@ -13,14 +13,19 @@ services:
       - ".:/src/shiori"
     restart: unless-stopped
     links:
-      - "db"
+      - "postgres"
+      - "mariadb"
     environment:
-      SHIORI_DBMS: postgresql
+      SHIORI_DBMS: mysql
       SHIORI_PG_USER: shiori
       SHIORI_PG_PASS: shiori
       SHIORI_PG_NAME: shiori
       SHIORI_PG_HOST: postgres
       SHIORI_PG_PORT: 5432
+      SHIORI_MYSQL_USER: shiori
+      SHIORI_MYSQL_PASS: shiori
+      SHIORI_MYSQL_NAME: shiori
+      SHIORI_MYSQL_ADDRESS: (mariadb)
 
   postgres:
     image: postgres:13
