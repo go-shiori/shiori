@@ -1,6 +1,7 @@
 package webserver
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -326,7 +327,7 @@ func (h *handler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 			if err != nil {
 				log.Printf("error downloading boorkmark: %s", err)
 			}
-			if _, err := h.DB.SaveBookmarks(ctx, *bookmark); err != nil {
+			if _, err := h.DB.SaveBookmarks(context.Background(), *bookmark); err != nil {
 				log.Printf("failed to save bookmark: %s", err)
 			}
 		}()
