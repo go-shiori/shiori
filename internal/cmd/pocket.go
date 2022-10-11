@@ -112,7 +112,7 @@ func pocketHandler(cmd *cobra.Command, args []string) {
 	})
 
 	// Save bookmark to database
-	bookmarks, err = db.SaveBookmarks(cmd.Context(), bookmarks...)
+	bookmarks, err = db.SaveBookmarks(cmd.Context(), true, bookmarks...)
 	if err != nil {
 		cError.Printf("Failed to save bookmarks: %v\n", err)
 		os.Exit(1)

@@ -98,12 +98,12 @@ func (h *handler) apiInsertViaExtension(w http.ResponseWriter, r *http.Request, 
 			panic(fmt.Errorf("failed to process bookmark: %v", err))
 		}
 	}
-	if _, err := h.DB.SaveBookmarks(ctx, book); err != nil {
+	if _, err := h.DB.SaveBookmarks(ctx, true, book); err != nil {
 		log.Printf("error saving bookmark after downloading content: %s", err)
 	}
 
 	// Save bookmark to database
-	results, err := h.DB.SaveBookmarks(ctx, book)
+	results, err := h.DB.SaveBookmarks(ctx, false, book)
 	if err != nil || len(results) == 0 {
 		panic(fmt.Errorf("failed to save bookmark: %v", err))
 	}
