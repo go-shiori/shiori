@@ -34,7 +34,7 @@ jobs:
           --health-timeout=2s
           --health-retries=3
         ports:
-          - 3306
+          - 3306:3306
 
     name: Go ${{ matrix.go }} unit tests
     steps:
