@@ -13,10 +13,10 @@ type testDatabaseFactory func(ctx context.Context) (DB, error)
 
 func testDatabase(t *testing.T, dbFactory testDatabaseFactory) {
 	tests := map[string]databaseTestCase{
-		"testCreateBookmark": testCreateBookmark,
-		// "testCreateBookmarkTwice":   testCreateBookmarkTwice,
-		// "testCreateBookmarkWithTag": testCreateBookmarkWithTag,
-		// "testUpdateBookmark":        testUpdateBookmark,
+		"testCreateBookmark":        testCreateBookmark,
+		"testCreateBookmarkTwice":   testCreateBookmarkTwice,
+		"testCreateBookmarkWithTag": testCreateBookmarkWithTag,
+		"testUpdateBookmark":        testUpdateBookmark,
 	}
 
 	for testName, testCase := range tests {
