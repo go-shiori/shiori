@@ -3,10 +3,18 @@ package response
 import "github.com/gofiber/fiber/v2"
 
 type Response struct {
-	Ok          bool              `json:"ok"`
-	Message     interface{}       `json:"message"`
+	// Response payload
+	// Ok if the response was successful or not
+	Ok bool `json:"ok"`
+
+	// Message the payload of the response, depending on the endpoint/response status
+	Message interface{} `json:"message"`
+
+	// ErrorParams parameters defined if the response is not successful to help client's debugging
 	ErrorParams map[string]string `json:"error_params,omitempty"`
-	statusCode  int
+
+	// statusCode used for the http response status code
+	statusCode int
 }
 
 func (m *Response) IsError() bool {
