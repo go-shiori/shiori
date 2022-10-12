@@ -1,12 +1,14 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	fp "path/filepath"
 
 	"github.com/go-shiori/shiori/internal/database"
 	"github.com/go-shiori/shiori/internal/model"
+	"github.com/golang-migrate/migrate/v4"
 	apppaths "github.com/muesli/go-app-paths"
 	"github.com/spf13/cobra"
 	"golang.org/x/net/context"
@@ -27,6 +29,7 @@ func ShioriCmd() *cobra.Command {
 
 	rootCmd.PersistentPreRun = preRunRootHandler
 	rootCmd.PersistentFlags().Bool("portable", false, "run shiori in portable mode")
+	rootCmd.PersistentFlags().Bool("migrate", false, "run migrations")
 	rootCmd.AddCommand(
 		addCmd(),
 		printCmd(),
@@ -48,6 +51,7 @@ func preRunRootHandler(cmd *cobra.Command, args []string) {
 	// Read flag
 	var err error
 	portableMode, _ := cmd.Flags().GetBool("portable")
+	runMigrations, _ := cmd.Flags().GetBool("migrate")
 
 	// Get and create data dir
 	dataDir, err = getDataDir(portableMode)
@@ -67,6 +71,14 @@ func preRunRootHandler(cmd *cobra.Command, args []string) {
 	if err != nil {
 		cError.Printf("Failed to open database: %v\n", err)
 		os.Exit(1)
+	}
+
+	// Run migrations if the flag is provided
+	if runMigrations {
+		if err := db.Migrate(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
+			cError.Printf("Migration failed: %s\n", err)
+			os.Exit(1)
+		}
 	}
 }
 
