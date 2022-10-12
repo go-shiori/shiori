@@ -2,7 +2,6 @@ package database
 
 import (
 	"context"
-	"log"
 	"testing"
 
 	"github.com/go-shiori/shiori/internal/model"
@@ -14,12 +13,12 @@ type testDatabaseFactory func(ctx context.Context) (DB, error)
 
 func testDatabase(t *testing.T, dbFactory testDatabaseFactory) {
 	tests := map[string]databaseTestCase{
-		"testCreateBookmark":                     testCreateBookmark,
-		"testCreateBookmarkTwice":                testCreateBookmarkTwice,
-		"testCreateBookmarkWithTag":              testCreateBookmarkWithTag,
-		"testUpdateBookmark":                     testUpdateBookmark,
-		"testGetBookmarksWithDashInKeyword":      testGetBookmarksWithDashInKeyword,
-		"testGetBookmarksCountWithDashInKeyword": testGetBookmarksCountWithDashInKeyword,
+		"testCreateBookmark":        testCreateBookmark,
+		"testCreateBookmarkTwice":   testCreateBookmarkTwice,
+		"testCreateBookmarkWithTag": testCreateBookmarkWithTag,
+		"testUpdateBookmark":        testUpdateBookmark,
+		"testGetBookmarks":          testGetBookmarks,
+		"testGetBookmarksCount":     testGetBookmarksCount,
 	}
 
 	for testName, testCase := range tests {
@@ -105,7 +104,7 @@ func testUpdateBookmark(t *testing.T, db DB) {
 	assert.Equal(t, savedBookmark.ID, result[0].ID)
 }
 
-func testGetBookmarksWithDashInKeyword(t *testing.T, db DB) {
+func testGetBookmarks(t *testing.T, db DB) {
 	ctx := context.TODO()
 
 	book := model.Bookmark{
@@ -113,20 +112,21 @@ func testGetBookmarksWithDashInKeyword(t *testing.T, db DB) {
 		Title: "shiori",
 	}
 
-	result, err := db.SaveBookmarks(ctx, true, book)
+	bookmarks, err := db.SaveBookmarks(ctx, true, book)
 	assert.NoError(t, err, "Save bookmarks must not fail")
 
-	savedBookmark := result[0]
+	savedBookmark := bookmarks[0]
 
 	results, err := db.GetBookmarks(ctx, GetBookmarksOptions{
 		Keyword: "go-shiori",
 	})
+
 	assert.NoError(t, err, "Get bookmarks should not fail")
 	assert.Len(t, results, 1, "results should contain one item")
 	assert.Equal(t, savedBookmark.ID, results[0].ID, "bookmark should be the one saved")
 }
 
-func testGetBookmarksCountWithDashInKeyword(t *testing.T, db DB) {
+func testGetBookmarksCount(t *testing.T, db DB) {
 	ctx := context.TODO()
 
 	expectedCount := 1
@@ -141,7 +141,6 @@ func testGetBookmarksCountWithDashInKeyword(t *testing.T, db DB) {
 	count, err := db.GetBookmarksCount(ctx, GetBookmarksOptions{
 		Keyword: "go-shiori",
 	})
-	log.Printf("------------- %s", err)
-	assert.NoError(t, err, "Get bookmarks should not fail")
+	assert.NoError(t, err, "Get bookmarks count should not fail")
 	assert.Equal(t, count, expectedCount, "count should be %d", expectedCount)
 }
