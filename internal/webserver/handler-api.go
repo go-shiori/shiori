@@ -26,7 +26,7 @@ import (
 func downloadBookmarkContent(book *model.Bookmark, dataDir string, request *http.Request) (*model.Bookmark, error) {
 	content, contentType, err := core.DownloadBookmark(book.URL)
 	if err != nil {
-		return nil, fmt.Errorf("error downloading bookmark: %s", err)
+		return nil, fmt.Errorf("error downloading url: %s", err)
 	}
 
 	processRequest := core.ProcessRequest{
@@ -40,7 +40,7 @@ func downloadBookmarkContent(book *model.Bookmark, dataDir string, request *http
 	content.Close()
 
 	if err != nil && isFatalErr {
-		panic(fmt.Errorf("failed to process bookmark: %v", err))
+		return nil, fmt.Errorf("failed to process: %v", err)
 	}
 
 	return &result, err
@@ -328,6 +328,7 @@ func (h *handler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 			bookmark, err := downloadBookmarkContent(book, h.DataDir, r)
 			if err != nil {
 				log.Printf("error downloading boorkmark: %s", err)
+				return
 			}
 			if _, err := h.DB.SaveBookmarks(context.Background(), false, *bookmark); err != nil {
 				log.Printf("failed to save bookmark: %s", err)
@@ -339,8 +340,7 @@ func (h *handler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 		book, err = downloadBookmarkContent(book, h.DataDir, r)
 		if err != nil {
 			log.Printf("error downloading boorkmark: %s", err)
-		}
-		if _, err := h.DB.SaveBookmarks(ctx, false, *book); err != nil {
+		} else if _, err := h.DB.SaveBookmarks(ctx, false, *book); err != nil {
 			log.Printf("failed to save bookmark: %s", err)
 		}
 	}
