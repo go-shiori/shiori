@@ -3,9 +3,9 @@ Before using `shiori`, make sure it has been installed on your system. By defaul
 <!-- TOC -->
 
 - [Running Docker Container](#running-docker-container)
-- [Using Command Line Interface](#using-command-line-interface)
-    - [Search syntax](#search-syntax)
 - [Running migrations](#running-migrations)
+- [Using Command Line Interface](#using-command-line-interface)
+  - [Search syntax](#search-syntax)
 - [Using Web Interface](#using-web-interface)
 - [Improved import from Pocket](#improved-import-from-pocket)
 - [Import from Wallabag](#import-from-wallabag)
@@ -64,10 +64,12 @@ Usage:
 Available Commands:
   add         Bookmark the specified URL
   check       Find bookmarked sites that no longer exists on the internet
+  completion  Generate the autocompletion script for the specified shell
   delete      Delete the saved bookmarks
   export      Export bookmarks into HTML file in Netscape Bookmark format
   help        Help about any command
   import      Import bookmarks from HTML file in Netscape Bookmark format
+  migrate     Migrates the database to the latest version
   open        Open the saved bookmarks
   pocket      Import bookmarks from Pocket's exported HTML file
   print       Print the saved bookmarks
@@ -76,6 +78,7 @@ Available Commands:
 
 Flags:
   -h, --help       help for shiori
+      --migrate    run migrations
       --portable   run shiori in portable mode
 
 Use "shiori [command] --help" for more information about a command.
@@ -84,8 +87,6 @@ Use "shiori [command] --help" for more information about a command.
 ### Search syntax
 With the `print` command line interface, you can use `-s` flag to submit keywords that will be searched either in url, title, excerpts or cached content.
 You may also use `-t` flag to include tags and `-e` flag to exclude tags.
-
-
 
 ## Using Web Interface
 
