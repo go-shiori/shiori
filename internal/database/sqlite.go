@@ -88,7 +88,8 @@ func (db *SQLiteDatabase) SaveBookmarks(ctx context.Context, create bool, bookma
 
 		stmtUpdateBook, err := tx.PreparexContext(ctx, `UPDATE bookmark SET
 			url = ?, title = ?,	excerpt = ?, author = ?,
-			public = ?, modified = ?, has_content = ?`)
+			public = ?, modified = ?, has_content = ?
+			WHERE id = ?`)
 		if err != nil {
 			return errors.WithStack(err)
 		}
@@ -158,8 +159,7 @@ func (db *SQLiteDatabase) SaveBookmarks(ctx context.Context, create bool, bookma
 					book.URL, book.Title, book.Excerpt, book.Author, book.Public, book.Modified, hasContent).Scan(&book.ID)
 			} else {
 				_, err = stmtUpdateBook.ExecContext(ctx,
-					book.URL, book.Title, book.Excerpt, book.Author, book.Public, book.Modified, hasContent)
-
+					book.URL, book.Title, book.Excerpt, book.Author, book.Public, book.Modified, hasContent, book.ID)
 			}
 			if err != nil {
 				return errors.WithStack(err)

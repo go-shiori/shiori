@@ -84,7 +84,8 @@ func (db *MySQLDatabase) SaveBookmarks(ctx context.Context, create bool, bookmar
 			public   = ?,
 			content  = ?,
 			html     = ?,
-			modified = ?`)
+			modified = ?
+		WHERE id = ?`)
 		if err != nil {
 			return errors.WithStack(err)
 		}
@@ -149,7 +150,7 @@ func (db *MySQLDatabase) SaveBookmarks(ctx context.Context, create bool, bookmar
 			} else {
 				_, err = stmtUpdateBook.ExecContext(ctx,
 					book.URL, book.Title, book.Excerpt, book.Author,
-					book.Public, book.Content, book.HTML, book.Modified)
+					book.Public, book.Content, book.HTML, book.Modified, book.ID)
 			}
 			if err != nil {
 				return errors.WithStack(err)

@@ -84,7 +84,8 @@ func (db *PGDatabase) SaveBookmarks(ctx context.Context, create bool, bookmarks 
 			public   = $5,
 			content  = $6,
 			html     = $7,
-			modified = $8`)
+			modified = $8
+			WHERE id = $9`)
 		if err != nil {
 			return errors.WithStack(err)
 		}
@@ -140,7 +141,7 @@ func (db *PGDatabase) SaveBookmarks(ctx context.Context, create bool, bookmarks 
 			} else {
 				_, err = stmtUpdateBook.ExecContext(ctx,
 					book.URL, book.Title, book.Excerpt, book.Author,
-					book.Public, book.Content, book.HTML, book.Modified)
+					book.Public, book.Content, book.HTML, book.Modified, book.ID)
 			}
 			if err != nil {
 				return errors.WithStack(err)
