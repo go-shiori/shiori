@@ -13,10 +13,11 @@ type testDatabaseFactory func(ctx context.Context) (DB, error)
 
 func testDatabase(t *testing.T, dbFactory testDatabaseFactory) {
 	tests := map[string]databaseTestCase{
-		"testCreateBookmark":        testCreateBookmark,
-		"testCreateBookmarkTwice":   testCreateBookmarkTwice,
-		"testCreateBookmarkWithTag": testCreateBookmarkWithTag,
-		"testUpdateBookmark":        testUpdateBookmark,
+		"testCreateBookmark":              testCreateBookmark,
+		"testCreateBookmarkTwice":         testCreateBookmarkTwice,
+		"testCreateBookmarkWithTag":       testCreateBookmarkWithTag,
+		"testCreateTwoDifferentBookmarks": testCreateTwoDifferentBookmarks,
+		"testUpdateBookmark":              testUpdateBookmark,
 	}
 
 	for testName, testCase := range tests {
@@ -79,6 +80,25 @@ func testCreateBookmarkTwice(t *testing.T, db DB) {
 
 	_, err = db.SaveBookmarks(ctx, true, savedBookmark)
 	assert.Error(t, err, "Save bookmarks must fail")
+}
+
+func testCreateTwoDifferentBookmarks(t *testing.T, db DB) {
+	ctx := context.TODO()
+
+	book := model.Bookmark{
+		URL:   "https://github.com/go-shiori/shiori",
+		Title: "shiori",
+	}
+
+	_, err := db.SaveBookmarks(ctx, true, book)
+	assert.NoError(t, err, "Save first bookmark must not fail")
+
+	book = model.Bookmark{
+		URL:   "https://github.com/go-shiori/go-readability",
+		Title: "go-readability",
+	}
+	_, err = db.SaveBookmarks(ctx, true, book)
+	assert.NoError(t, err, "Save second bookmark must not fail")
 }
 
 func testUpdateBookmark(t *testing.T, db DB) {
