@@ -512,7 +512,7 @@ func (db *MySQLDatabase) GetBookmark(ctx context.Context, id int, url string) (m
 	}
 
 	book := model.Bookmark{}
-	if err := db.GetContext(ctx, &book, query, args...); err != nil {
+	if err := db.GetContext(ctx, &book, query, args...); err != nil && err != sql.ErrNoRows {
 		return book, false, errors.WithStack(err)
 	}
 

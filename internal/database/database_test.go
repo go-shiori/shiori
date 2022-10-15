@@ -16,10 +16,12 @@ func testDatabase(t *testing.T, dbFactory testDatabaseFactory) {
 		"testCreateBookmark":              testCreateBookmark,
 		"testCreateBookmarkTwice":         testCreateBookmarkTwice,
 		"testCreateBookmarkWithTag":       testCreateBookmarkWithTag,
+		"testCreateTwoDifferentBookmarks": testCreateTwoDifferentBookmarks,
 		"testUpdateBookmark":              testUpdateBookmark,
+		"testGetBookmark":                 testGetBookmark,
+		"testGetBookmarkNotExistant":      testGetBookmarkNotExistant,
 		"testGetBookmarks":                testGetBookmarks,
 		"testGetBookmarksCount":           testGetBookmarksCount,
-    "testCreateTwoDifferentBookmarks": testCreateTwoDifferentBookmarks,
 	}
 
 	for testName, testCase := range tests {
@@ -122,6 +124,33 @@ func testUpdateBookmark(t *testing.T, db DB) {
 
 	assert.Equal(t, "modified", result[0].Title)
 	assert.Equal(t, savedBookmark.ID, result[0].ID)
+}
+
+func testGetBookmark(t *testing.T, db DB) {
+	ctx := context.TODO()
+
+	book := model.Bookmark{
+		URL:   "https://github.com/go-shiori/shiori",
+		Title: "shiori",
+	}
+
+	result, err := db.SaveBookmarks(ctx, true, book)
+	assert.NoError(t, err, "Save bookmarks must not fail")
+
+	savedBookmark, exists, err := db.GetBookmark(ctx, result[0].ID, "")
+	assert.True(t, exists, "Bookmark should exist")
+	assert.NoError(t, err, "Get bookmark should not fail")
+	assert.Equal(t, result[0].ID, savedBookmark.ID, "Retrieved bookmark should be the same")
+	assert.Equal(t, book.URL, savedBookmark.URL, "Retrieved bookmark should be the same")
+}
+
+func testGetBookmarkNotExistant(t *testing.T, db DB) {
+	ctx := context.TODO()
+
+	savedBookmark, exists, err := db.GetBookmark(ctx, 1, "")
+	assert.NoError(t, err, "Get bookmark should not fail")
+	assert.False(t, exists, "Bookmark should not exist")
+	assert.Equal(t, model.Bookmark{}, savedBookmark)
 }
 
 func testGetBookmarks(t *testing.T, db DB) {
