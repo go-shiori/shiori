@@ -16,8 +16,10 @@ func testDatabase(t *testing.T, dbFactory testDatabaseFactory) {
 		"testCreateBookmark":              testCreateBookmark,
 		"testCreateBookmarkTwice":         testCreateBookmarkTwice,
 		"testCreateBookmarkWithTag":       testCreateBookmarkWithTag,
-		"testCreateTwoDifferentBookmarks": testCreateTwoDifferentBookmarks,
 		"testUpdateBookmark":              testUpdateBookmark,
+		"testGetBookmarks":                testGetBookmarks,
+		"testGetBookmarksCount":           testGetBookmarksCount,
+    "testCreateTwoDifferentBookmarks": testCreateTwoDifferentBookmarks,
 	}
 
 	for testName, testCase := range tests {
@@ -120,4 +122,45 @@ func testUpdateBookmark(t *testing.T, db DB) {
 
 	assert.Equal(t, "modified", result[0].Title)
 	assert.Equal(t, savedBookmark.ID, result[0].ID)
+}
+
+func testGetBookmarks(t *testing.T, db DB) {
+	ctx := context.TODO()
+
+	book := model.Bookmark{
+		URL:   "https://github.com/go-shiori/shiori",
+		Title: "shiori",
+	}
+
+	bookmarks, err := db.SaveBookmarks(ctx, true, book)
+	assert.NoError(t, err, "Save bookmarks must not fail")
+
+	savedBookmark := bookmarks[0]
+
+	results, err := db.GetBookmarks(ctx, GetBookmarksOptions{
+		Keyword: "go-shiori",
+	})
+
+	assert.NoError(t, err, "Get bookmarks should not fail")
+	assert.Len(t, results, 1, "results should contain one item")
+	assert.Equal(t, savedBookmark.ID, results[0].ID, "bookmark should be the one saved")
+}
+
+func testGetBookmarksCount(t *testing.T, db DB) {
+	ctx := context.TODO()
+
+	expectedCount := 1
+	book := model.Bookmark{
+		URL:   "https://github.com/go-shiori/shiori",
+		Title: "shiori",
+	}
+
+	_, err := db.SaveBookmarks(ctx, true, book)
+	assert.NoError(t, err, "Save bookmarks must not fail")
+
+	count, err := db.GetBookmarksCount(ctx, GetBookmarksOptions{
+		Keyword: "go-shiori",
+	})
+	assert.NoError(t, err, "Get bookmarks count should not fail")
+	assert.Equal(t, count, expectedCount, "count should be %d", expectedCount)
 }

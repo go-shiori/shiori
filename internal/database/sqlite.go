@@ -281,9 +281,12 @@ func (db *SQLiteDatabase) GetBookmarks(ctx context.Context, opts GetBookmarksOpt
 
 		args = append(args,
 			"%"+opts.Keyword+"%",
-			"%"+opts.Keyword+"%",
-			opts.Keyword,
-			opts.Keyword)
+			"%"+opts.Keyword+"%")
+
+		// Replace dash with spaces since FTS5 uses `-name` as column identifier
+		opts.Keyword = strings.Replace(opts.Keyword, "-", " ", -1)
+		args = append(args, opts.Keyword, opts.Keyword)
+
 	}
 
 	// Add where clause for tags.
@@ -470,8 +473,11 @@ func (db *SQLiteDatabase) GetBookmarksCount(ctx context.Context, opts GetBookmar
 		args = append(args,
 			"%"+opts.Keyword+"%",
 			"%"+opts.Keyword+"%",
-			opts.Keyword,
-			opts.Keyword)
+		)
+
+		// Replace dash with spaces since FTS5 uses `-name` as column identifier
+		opts.Keyword = strings.Replace(opts.Keyword, "-", " ", -1)
+		args = append(args, opts.Keyword, opts.Keyword)
 	}
 
 	// Add where clause for tags.
