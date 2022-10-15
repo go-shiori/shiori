@@ -18,6 +18,8 @@ func testDatabase(t *testing.T, dbFactory testDatabaseFactory) {
 		"testCreateBookmarkWithTag":       testCreateBookmarkWithTag,
 		"testCreateTwoDifferentBookmarks": testCreateTwoDifferentBookmarks,
 		"testUpdateBookmark":              testUpdateBookmark,
+		"testUpdateBookmarkAddTag":        testUpdateBookmarkAddTag,
+		"testUpdateBookmarkRemoveTag":     testUpdateBookmarkRemoveTag,
 		"testGetBookmark":                 testGetBookmark,
 		"testGetBookmarkNotExistant":      testGetBookmarkNotExistant,
 		"testGetBookmarks":                testGetBookmarks,
@@ -122,8 +124,55 @@ func testUpdateBookmark(t *testing.T, db DB) {
 	result, err = db.SaveBookmarks(ctx, false, savedBookmark)
 	assert.NoError(t, err, "Save bookmarks must not fail")
 
-	assert.Equal(t, "modified", result[0].Title)
+	assert.Equal(t, savedBookmark.Title, result[0].Title)
 	assert.Equal(t, savedBookmark.ID, result[0].ID)
+}
+
+func testUpdateBookmarkAddTag(t *testing.T, db DB) {
+	ctx := context.TODO()
+
+	book := model.Bookmark{
+		URL:   "https://github.com/go-shiori/shiori",
+		Title: "shiori",
+	}
+
+	result, err := db.SaveBookmarks(ctx, true, book)
+	assert.NoError(t, err, "Save bookmarks must not fail")
+
+	savedBookmark := result[0]
+	savedBookmark.Tags = append(savedBookmark.Tags, model.Tag{Name: "MyTag"})
+
+	result, err = db.SaveBookmarks(ctx, false, savedBookmark)
+	assert.NoError(t, err, "Save bookmarks must not fail")
+
+	assert.Equal(t, savedBookmark.ID, result[0].ID)
+	assert.Len(t, result[0].Tags, len(savedBookmark.Tags), "Bookmark should contain %d tags", len(savedBookmark.Tags))
+}
+
+func testUpdateBookmarkRemoveTag(t *testing.T, db DB) {
+	ctx := context.TODO()
+
+	book := model.Bookmark{
+		URL:   "https://github.com/go-shiori/shiori",
+		Title: "shiori",
+		Tags: []model.Tag{
+			{
+				Name: "MyTag",
+			},
+		},
+	}
+
+	result, err := db.SaveBookmarks(ctx, true, book)
+	assert.NoError(t, err, "Save bookmarks must not fail")
+
+	savedBookmark := result[0]
+	savedBookmark.Tags = []model.Tag{}
+
+	result, err = db.SaveBookmarks(ctx, false, savedBookmark)
+	assert.NoError(t, err, "Save bookmarks must not fail")
+
+	assert.Equal(t, savedBookmark.ID, result[0].ID)
+	assert.Len(t, result[0].Tags, len(savedBookmark.Tags), "Bookmark should contain %d tags", len(savedBookmark.Tags))
 }
 
 func testGetBookmark(t *testing.T, db DB) {
