@@ -634,16 +634,3 @@ func (db *PGDatabase) RenameTag(ctx context.Context, id int, newName string) err
 
 	return nil
 }
-
-// CreateNewID creates new ID for specified table
-func (db *PGDatabase) CreateNewID(ctx context.Context, table string) (int, error) {
-	var tableID int
-	query := fmt.Sprintf(`SELECT last_value from %s_id_seq;`, table)
-
-	err := db.GetContext(ctx, &tableID, query)
-	if err != nil && err != sql.ErrNoRows {
-		return -1, err
-	}
-
-	return tableID, nil
-}

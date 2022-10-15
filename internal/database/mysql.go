@@ -3,7 +3,6 @@ package database
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"strings"
 	"time"
 
@@ -623,17 +622,4 @@ func (db *MySQLDatabase) RenameTag(ctx context.Context, id int, newName string) 
 	})
 
 	return errors.WithStack(err)
-}
-
-// CreateNewID creates new ID for specified table
-func (db *MySQLDatabase) CreateNewID(ctx context.Context, table string) (int, error) {
-	var tableID int
-	query := fmt.Sprintf(`SELECT IFNULL(MAX(id) + 1, 1) FROM %s`, table)
-
-	err := db.GetContext(ctx, &tableID, query)
-	if err != nil && err != sql.ErrNoRows {
-		return -1, errors.WithStack(err)
-	}
-
-	return tableID, nil
 }
