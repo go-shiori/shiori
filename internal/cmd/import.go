@@ -41,13 +41,6 @@ func importHandler(cmd *cobra.Command, args []string) {
 		generateTag = submit == "y"
 	}
 
-	// Prepare bookmark's ID
-	bookID, err := db.CreateNewID(cmd.Context(), "bookmark")
-	if err != nil {
-		cError.Printf("Failed to create ID: %v\n", err)
-		os.Exit(1)
-	}
-
 	// Open bookmark's file
 	srcFile, err := os.Open(args[0])
 	if err != nil {
@@ -141,14 +134,12 @@ func importHandler(cmd *cobra.Command, args []string) {
 
 		// Add item to list
 		bookmark := model.Bookmark{
-			ID:       bookID,
 			URL:      url,
 			Title:    title,
 			Tags:     tags,
 			Modified: modifiedDate.Format(model.DatabaseDateFormat),
 		}
 
-		bookID++
 		mapURL[url] = struct{}{}
 		bookmarks = append(bookmarks, bookmark)
 	})
