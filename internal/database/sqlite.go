@@ -3,7 +3,6 @@ package database
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"log"
 	"strings"
 	"time"
@@ -176,13 +175,6 @@ func (db *SQLiteDatabase) SaveBookmarks(ctx context.Context, create bool, bookma
 			if err != nil {
 				return errors.WithStack(err)
 			}
-
-			bookID, err := res.LastInsertId()
-			if err != nil {
-				return errors.WithStack(err)
-			}
-
-			book.ID = int(bookID)
 
 			if rows == 0 {
 				_, err = stmtInsertBookContent.ExecContext(ctx, book.ID, book.Title, book.Content, book.HTML)
@@ -757,17 +749,4 @@ func (db *SQLiteDatabase) RenameTag(ctx context.Context, id int, newName string)
 	}
 
 	return nil
-}
-
-// CreateNewID creates new ID for specified table
-func (db *SQLiteDatabase) CreateNewID(ctx context.Context, table string) (int, error) {
-	var tableID int
-	query := fmt.Sprintf(`SELECT IFNULL(MAX(id) + 1, 1) FROM %s`, table)
-
-	err := db.GetContext(ctx, &tableID, query)
-	if err != nil && err != sql.ErrNoRows {
-		return -1, errors.WithStack(err)
-	}
-
-	return tableID, nil
 }

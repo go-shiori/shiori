@@ -13,11 +13,14 @@ type testDatabaseFactory func(ctx context.Context) (DB, error)
 
 func testDatabase(t *testing.T, dbFactory testDatabaseFactory) {
 	tests := map[string]databaseTestCase{
+		"testBookmarkAutoIncrement":       testBookmarkAutoIncrement,
 		"testCreateBookmark":              testCreateBookmark,
+		"testCreateBookmarkWithContent":   testCreateBookmarkWithContent,
 		"testCreateBookmarkTwice":         testCreateBookmarkTwice,
 		"testCreateBookmarkWithTag":       testCreateBookmarkWithTag,
 		"testCreateTwoDifferentBookmarks": testCreateTwoDifferentBookmarks,
 		"testUpdateBookmark":              testUpdateBookmark,
+		"testUpdateBookmarkWithContent":   testUpdateBookmarkWithContent,
 		"testGetBookmark":                 testGetBookmark,
 		"testGetBookmarkNotExistant":      testGetBookmarkNotExistant,
 		"testGetBookmarks":                testGetBookmarks,
@@ -34,6 +37,28 @@ func testDatabase(t *testing.T, dbFactory testDatabaseFactory) {
 	}
 }
 
+func testBookmarkAutoIncrement(t *testing.T, db DB) {
+	ctx := context.TODO()
+
+	book := model.Bookmark{
+		URL:   "https://github.com/go-shiori/shiori",
+		Title: "shiori",
+	}
+
+	result, err := db.SaveBookmarks(ctx, true, book)
+	assert.NoError(t, err, "Save bookmarks must not fail")
+	assert.Equal(t, 1, result[0].ID, "Saved bookmark must have ID %d", 1)
+
+	book = model.Bookmark{
+		URL:   "https://github.com/go-shiori/obelisk",
+		Title: "obelisk",
+	}
+
+	result, err = db.SaveBookmarks(ctx, true, book)
+	assert.NoError(t, err, "Save bookmarks must not fail")
+	assert.Equal(t, 2, result[0].ID, "Saved bookmark must have ID %d", 2)
+}
+
 func testCreateBookmark(t *testing.T, db DB) {
 	ctx := context.TODO()
 
@@ -46,6 +71,31 @@ func testCreateBookmark(t *testing.T, db DB) {
 
 	assert.NoError(t, err, "Save bookmarks must not fail")
 	assert.Equal(t, 1, result[0].ID, "Saved bookmark must have an ID set")
+}
+
+func testCreateBookmarkWithContent(t *testing.T, db DB) {
+	ctx := context.TODO()
+
+	book := model.Bookmark{
+		URL:     "https://github.com/go-shiori/obelisk",
+		Title:   "shiori",
+		Content: "Some content",
+		HTML:    "Some HTML content",
+	}
+
+	result, err := db.SaveBookmarks(ctx, true, book)
+	assert.NoError(t, err, "Save bookmarks must not fail")
+
+	books, err := db.GetBookmarks(ctx, GetBookmarksOptions{
+		IDs:         []int{result[0].ID},
+		WithContent: true,
+	})
+	assert.NoError(t, err, "Get bookmarks must not fail")
+	assert.Len(t, books, 1)
+
+	assert.Equal(t, 1, books[0].ID, "Saved bookmark must have an ID set")
+	assert.Equal(t, book.Content, books[0].Content, "Saved bookmark must have content")
+	assert.Equal(t, book.HTML, books[0].HTML, "Saved bookmark must have HTML")
 }
 
 func testCreateBookmarkWithTag(t *testing.T, db DB) {
@@ -124,6 +174,38 @@ func testUpdateBookmark(t *testing.T, db DB) {
 
 	assert.Equal(t, "modified", result[0].Title)
 	assert.Equal(t, savedBookmark.ID, result[0].ID)
+}
+
+func testUpdateBookmarkWithContent(t *testing.T, db DB) {
+	ctx := context.TODO()
+
+	book := model.Bookmark{
+		URL:     "https://github.com/go-shiori/obelisk",
+		Title:   "shiori",
+		Content: "Some content",
+		HTML:    "Some HTML content",
+	}
+
+	result, err := db.SaveBookmarks(ctx, true, book)
+	assert.NoError(t, err, "Save bookmarks must not fail")
+
+	updatedBook := result[0]
+	updatedBook.Content = "Some updated content"
+	updatedBook.HTML = "Some updated HTML content"
+
+	_, err = db.SaveBookmarks(ctx, false, updatedBook)
+	assert.NoError(t, err, "Save bookmarks must not fail")
+
+	books, err := db.GetBookmarks(ctx, GetBookmarksOptions{
+		IDs:         []int{result[0].ID},
+		WithContent: true,
+	})
+	assert.NoError(t, err, "Get bookmarks must not fail")
+	assert.Len(t, books, 1)
+
+	assert.Equal(t, 1, books[0].ID, "Saved bookmark must have an ID set")
+	assert.Equal(t, updatedBook.Content, books[0].Content, "Saved bookmark must have updated content")
+	assert.Equal(t, updatedBook.HTML, books[0].HTML, "Saved bookmark must have updated HTML")
 }
 
 func testGetBookmark(t *testing.T, db DB) {

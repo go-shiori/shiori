@@ -80,9 +80,6 @@ type DB interface {
 
 	// RenameTag change the name of a tag.
 	RenameTag(ctx context.Context, id int, newName string) error
-
-	// CreateNewID creates new id for specified table.
-	CreateNewID(ctx context.Context, table string) (int, error)
 }
 
 type dbbase struct {
