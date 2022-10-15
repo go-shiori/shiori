@@ -17,6 +17,7 @@ services:
       - "mariadb"
     environment:
       SHIORI_DBMS: mysql
+      SHIORI_DIR: /srv/shiori
       SHIORI_PG_USER: shiori
       SHIORI_PG_PASS: shiori
       SHIORI_PG_NAME: shiori
