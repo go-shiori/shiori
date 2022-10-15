@@ -425,21 +425,20 @@ func (h *handler) apiUpdateBookmark(w http.ResponseWriter, r *http.Request, ps h
 	}
 
 	// Set new tags
+	bookTags := make(map[string]*model.Tag, len(book.Tags))
 	for i := range book.Tags {
 		book.Tags[i].Deleted = true
+		bookTags[book.Tags[i].Name] = &book.Tags[i]
 	}
 
-	for _, newTag := range request.Tags {
-		for i, oldTag := range book.Tags {
-			if newTag.Name == oldTag.Name {
-				newTag.ID = oldTag.ID
-				book.Tags[i].Deleted = false
-				break
-			}
+	for _, requestTag := range request.Tags {
+		if tag, exists := bookTags[requestTag.Name]; exists {
+			requestTag.ID = tag.ID
+			bookTags[tag.Name].Deleted = false
 		}
 
-		if newTag.ID == 0 {
-			book.Tags = append(book.Tags, newTag)
+		if requestTag.ID == 0 {
+			book.Tags = append(book.Tags, requestTag)
 		}
 	}
 
