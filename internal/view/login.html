@@ -35,7 +35,7 @@
 				</div>
 				<div id="input-area">
 					<label for="username">Username: </label>
-					<input id="username" type="text" name="username" placeholder="Username" tabindex="1">
+					<input id="username" type="text" name="username" placeholder="Username" tabindex="1" autofocus />
 					<label for="password">Password: </label>
 					<input id="password" type="password" name="password" placeholder="Password" tabindex="2"
 						@keyup.enter="login">
@@ -140,6 +140,9 @@
 				// Load setting
 				this.loadSetting();
 				localStorage.removeItem("shiori-account");
+
+				// <input autofocus> wasn't working all the time, so I'm putting this here as a fallback
+				document.querySelector('#username').focus()
 			}
 		})
 	</script>
