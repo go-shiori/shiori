@@ -25,7 +25,7 @@ require (
 	golang.org/x/crypto v0.0.0-20221010152910-d6f0a8c073c2
 	golang.org/x/net v0.0.0-20221004154528-8021a29435af
 	golang.org/x/term v0.0.0-20220919170432-7a66f970e087
-	modernc.org/sqlite v1.19.1
+	modernc.org/sqlite v1.19.2
 )
 
 require (
@@ -56,7 +56,7 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	lukechampine.com/uint128 v1.2.0 // indirect
 	modernc.org/cc/v3 v3.40.0 // indirect
-	modernc.org/ccgo/v3 v3.16.9 // indirect
+	modernc.org/ccgo/v3 v3.16.12 // indirect
 	modernc.org/libc v1.20.3 // indirect
 	modernc.org/mathutil v1.5.0 // indirect
 	modernc.org/memory v1.4.0 // indirect
