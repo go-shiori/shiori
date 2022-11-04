@@ -59,7 +59,11 @@ func (db *PGDatabase) Migrate() error {
 		return errors.WithStack(err)
 	}
 
-	return migration.Up()
+	if err := migration.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
+		return err
+	}
+
+	return nil
 }
 
 // SaveBookmarks saves new or updated bookmarks to database.
