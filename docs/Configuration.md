@@ -45,11 +45,12 @@ Shiori uses an SQLite3 database stored in the above data directory by default. I
 
 ### PostgreSQL
 
-| Variable            | Description                                |
-|---------------------|--------------------------------------------|
-| `SHIORI_DBMS`       | Must be set to `postgresql`                |
-| `SHIORI_PG_USER`    | Name of PostgreSQL user                    |
-| `SHIORI_PG_PASS`    | Password for the above user                |
-| `SHIORI_PG_NAME`    | Name of database to use                    |
-| `SHIORI_PG_HOST`    | Address of PostgreSQL server               |
-| `SHIORI_PG_PORT`    | Port number used by PostgreSQL server      |
+| Variable            | Description                                         |
+|---------------------|-----------------------------------------------------|
+| `SHIORI_DBMS`       | Must be set to `postgresql`                         |
+| `SHIORI_PG_USER`    | Name of PostgreSQL user                             |
+| `SHIORI_PG_PASS`    | Password for the above user                         |
+| `SHIORI_PG_NAME`    | Name of database to use                             |
+| `SHIORI_PG_HOST`    | Address of PostgreSQL server                        |
+| `SHIORI_PG_PORT`    | Port number used by PostgreSQL server               |
+| `SHIORI_PG_SSLMODE` | PostgreSQL connection SSL mode (default: `disable`) |
