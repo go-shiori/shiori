@@ -38,7 +38,6 @@ func ShioriCmd() *cobra.Command {
 		pocketCmd(),
 		serveCmd(),
 		checkCmd(),
-		migrateCmd(),
 	)
 
 	return rootCmd
@@ -66,6 +65,12 @@ func preRunRootHandler(cmd *cobra.Command, args []string) {
 	db, err = openDatabase(cmd.Context())
 	if err != nil {
 		cError.Printf("Failed to open database: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Migrate
+	if err := db.Migrate(); err != nil {
+		cError.Printf("Error running migration: %s\n", err)
 		os.Exit(1)
 	}
 }
