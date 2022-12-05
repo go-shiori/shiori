@@ -25,7 +25,7 @@ require (
 	golang.org/x/crypto v0.0.0-20221010152910-d6f0a8c073c2
 	golang.org/x/net v0.0.0-20221004154528-8021a29435af
 	golang.org/x/term v0.0.0-20220919170432-7a66f970e087
-	modernc.org/sqlite v1.19.5
+	modernc.org/sqlite v1.20.0
 )
 
 require (
