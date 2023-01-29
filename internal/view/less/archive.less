@@ -10,11 +10,16 @@
 	}
 }
 
+@header-height: 60px;
+@screen-sm-max: 600px;
+@screen-sm-header-hight: 50px;
+
 #shiori-archive-header {
 	top             : 0;
 	left            : 0;
 	right           : 0;
-	height          : 60px;
+	height          : @header-height;
+	box-sizing      : border-box;
 	position        : fixed;
 	padding         : 0 16px;
 	display         : flex;
@@ -62,12 +67,20 @@
 		}
 	}
 
-	@media (max-width: 600px) {
+	@media (max-width: @screen-sm-max) {
 		font-size: 14px;
-		height   : 50px;
+		height   : @screen-sm-header-hight;
 
 		#shiori-logo {
 			font-size: 1.5em;
 		}
+	}
+}
+
+body {
+	margin-top: @header-height !important;
+
+	@media (max-width: @screen-sm-max) {
+		margin-top: @screen-sm-header-hight !important;
 	}
 }
