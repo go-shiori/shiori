@@ -19,11 +19,18 @@
 	<link href="css/custom-dialog.css" rel="stylesheet">
 	<link href="css/bookmark-item.css" rel="stylesheet">
 
+	<script>
+		(() => {
+			var opts = JSON.parse(localStorage.getItem("shiori-setting")) || {};
+			var nightMode = (typeof opts.nightMode === "boolean") ? opts.nightMode : false;
+			document.documentElement.className = nightMode ? 'night' : ''
+		})();
+	</script>
 	<script src="js/dayjs.min.js"></script>
 	<script src="js/vue.min.js"></script>
 </head>
 
-<body class="night">
+<body>
 	<div id="content-scene" :class="{night: appOptions.nightMode}">
 		<div id="header">
 			<p id="metadata" v-cloak>Added {{localtime()}}</p>
@@ -71,8 +78,6 @@
 						nightMode: nightMode,
 						useArchive: useArchive,
 					};
-
-					document.body.className = nightMode ? "night" : "";
 				}
 			},
 			mounted() {
