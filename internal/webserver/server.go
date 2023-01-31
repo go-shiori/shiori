@@ -2,6 +2,7 @@ package webserver
 
 import (
 	"fmt"
+	"net"
 	"net/http"
 	"path"
 	"time"
@@ -14,12 +15,14 @@ import (
 
 // Config is parameter that used for starting web server
 type Config struct {
-	DB            database.DB
-	DataDir       string
-	ServerAddress string
-	ServerPort    int
-	RootPath      string
-	Log           bool
+	DB                   database.DB
+	DataDir              string
+	ServerAddress        string
+	ServerPort           int
+	RootPath             string
+	Log                  bool
+	TrustedProxies       []string
+	ReverseProxyAuthUser string
 }
 
 // ErrorResponse defines a single HTTP error response.
@@ -29,6 +32,17 @@ type ErrorResponse struct {
 	contentType string
 	errorText   string
 	Log         bool
+}
+
+type handlerMixin func(handle httprouter.Handle) httprouter.Handle
+
+func mixinHandler(handle httprouter.Handle, mixins ...handlerMixin) httprouter.Handle {
+	h := handle
+	for _, mixin := range mixins {
+		h = mixin(h)
+	}
+
+	return h
 }
 
 func (e *ErrorResponse) Error() string {
@@ -125,6 +139,11 @@ func ServeApp(cfg Config) error {
 		return fmt.Errorf("failed to prepare templates: %v", err)
 	}
 
+	cidrs, err := newCIDRs(cfg.TrustedProxies)
+	if err != nil {
+		return fmt.Errorf("failed to create CIDRs %w", err)
+	}
+
 	// Prepare errors
 	var (
 		ErrorNotAllowed = &ErrorResponse{
@@ -152,7 +171,7 @@ func ServeApp(cfg Config) error {
 	// to collect details about the answer, i.e. the status code and the size of
 	// data in the response. Once done, these are passed further for logging, if
 	// relevant.
-	withLogging := func(req func(http.ResponseWriter, *http.Request, httprouter.Params)) func(http.ResponseWriter, *http.Request, httprouter.Params) {
+	withLogging := func(req httprouter.Handle) httprouter.Handle {
 		return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 			d := &responseData{
 				status: 0,
@@ -169,39 +188,74 @@ func ServeApp(cfg Config) error {
 		}
 	}
 
+	withAuth := func(req httprouter.Handle) httprouter.Handle {
+		if cfg.ReverseProxyAuthUser == "" {
+			return req
+		}
+
+		return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+			authUser := r.Header.Get(cfg.ReverseProxyAuthUser)
+			host, _, err := net.SplitHostPort(r.RemoteAddr)
+			checkError(err)
+			if authUser != "" && cidrs.ContainStringIP(host) {
+				if err := hdl.validateSession(r); err != nil {
+					account, exist, err := cfg.DB.GetAccount(r.Context(), authUser)
+					if err == nil && exist {
+						sessionId, err := hdl.createSession(account, time.Hour*24*365)
+						if err != nil {
+							logrus.Errorf("auth proxy: create session error: %v", err)
+						} else {
+							logrus.Debugf("auth proxy: write session %v", sessionId)
+							cookie := &http.Cookie{Name: "session-id", Value: sessionId}
+							http.SetCookie(w, cookie)
+							r.AddCookie(cookie)
+						}
+					} else {
+						logrus.Warnf("auth proxy: no such user(%s) or error(%v)", authUser, err)
+					}
+				}
+			} else if authUser != "" {
+				logrus.Warnf("invalid auth request from %s", r.RemoteAddr)
+			}
+
+			req(w, r, ps)
+		}
+	}
+
 	// jp here means "join path", as in "join route with root path"
 	jp := func(route string) string {
 		return path.Join(cfg.RootPath, route)
 	}
 
-	router.GET(jp("/js/*filepath"), withLogging(hdl.serveJsFile))
-	router.GET(jp("/res/*filepath"), withLogging(hdl.serveFile))
-	router.GET(jp("/css/*filepath"), withLogging(hdl.serveFile))
-	router.GET(jp("/fonts/*filepath"), withLogging(hdl.serveFile))
+	router.GET(jp("/js/*filepath"), mixinHandler(hdl.serveJsFile, withLogging))
+	router.GET(jp("/res/*filepath"), mixinHandler(hdl.serveFile, withLogging))
+	router.GET(jp("/css/*filepath"), mixinHandler(hdl.serveFile, withLogging))
+	router.GET(jp("/fonts/*filepath"), mixinHandler(hdl.serveFile, withLogging))
 
-	router.GET(cfg.RootPath, withLogging(hdl.serveIndexPage))
-	router.GET(jp("/login"), withLogging(hdl.serveLoginPage))
-	router.GET(jp("/bookmark/:id/thumb"), withLogging(hdl.serveThumbnailImage))
-	router.GET(jp("/bookmark/:id/content"), withLogging(hdl.serveBookmarkContent))
-	router.GET(jp("/bookmark/:id/archive/*filepath"), withLogging(hdl.serveBookmarkArchive))
+	router.GET(cfg.RootPath, mixinHandler(hdl.serveIndexPage, withLogging, withAuth))
+	router.GET(jp("/login"), mixinHandler(hdl.serveLoginPage, withLogging, withAuth))
+	router.GET(jp("/bookmark/:id/thumb"), mixinHandler(hdl.serveThumbnailImage, withLogging, withAuth))
+	router.GET(jp("/bookmark/:id/content"), mixinHandler(hdl.serveBookmarkContent, withLogging, withAuth))
+	router.GET(jp("/bookmark/:id/archive/*filepath"), mixinHandler(hdl.serveBookmarkArchive, withLogging, withAuth))
 
-	router.POST(jp("/api/login"), withLogging(hdl.apiLogin))
-	router.POST(jp("/api/logout"), withLogging(hdl.apiLogout))
-	router.GET(jp("/api/bookmarks"), withLogging(hdl.apiGetBookmarks))
-	router.GET(jp("/api/tags"), withLogging(hdl.apiGetTags))
-	router.PUT(jp("/api/tag"), withLogging(hdl.apiRenameTag))
-	router.POST(jp("/api/bookmarks"), withLogging(hdl.apiInsertBookmark))
-	router.DELETE(jp("/api/bookmarks"), withLogging(hdl.apiDeleteBookmark))
-	router.PUT(jp("/api/bookmarks"), withLogging(hdl.apiUpdateBookmark))
-	router.PUT(jp("/api/cache"), withLogging(hdl.apiUpdateCache))
-	router.PUT(jp("/api/bookmarks/tags"), withLogging(hdl.apiUpdateBookmarkTags))
-	router.POST(jp("/api/bookmarks/ext"), withLogging(hdl.apiInsertViaExtension))
-	router.DELETE(jp("/api/bookmarks/ext"), withLogging(hdl.apiDeleteViaExtension))
+	router.POST(jp("/api/login"), mixinHandler(hdl.apiLogin, withLogging))
+	router.POST(jp("/api/logout"), mixinHandler(hdl.apiLogout, withLogging))
+	router.GET(jp("/api/bookmarks"), mixinHandler(hdl.apiGetBookmarks, withLogging, withAuth))
+	router.GET(jp("/api/tags"), mixinHandler(hdl.apiGetTags, withLogging, withAuth))
+	router.PUT(jp("/api/tag"), mixinHandler(hdl.apiRenameTag, withLogging, withAuth))
+	router.POST(jp("/api/bookmarks"), mixinHandler(hdl.apiInsertBookmark, withLogging, withAuth))
+	router.DELETE(jp("/api/bookmarks"), mixinHandler(hdl.apiDeleteBookmark, withLogging, withAuth))
+	router.PUT(jp("/api/bookmarks"), mixinHandler(hdl.apiUpdateBookmark, withLogging, withAuth))
+	router.PUT(jp("/api/cache"), mixinHandler(hdl.apiUpdateCache, withLogging, withAuth))
+	router.PUT(jp("/api/bookmarks/tags"), mixinHandler(hdl.apiUpdateBookmarkTags, withLogging, withAuth))
+	router.POST(jp("/api/bookmarks/ext"), mixinHandler(hdl.apiInsertViaExtension, withLogging, withAuth))
+	router.DELETE(jp("/api/bookmarks/ext"), mixinHandler(hdl.apiDeleteViaExtension, withLogging, withAuth))
 
-	router.GET(jp("/api/accounts"), withLogging(hdl.apiGetAccounts))
-	router.PUT(jp("/api/accounts"), withLogging(hdl.apiUpdateAccount))
-	router.POST(jp("/api/accounts"), withLogging(hdl.apiInsertAccount))
-	router.DELETE(jp("/api/accounts"), withLogging(hdl.apiDeleteAccount))
+	router.GET(jp("/api/session"), mixinHandler(hdl.apiGetSession, withLogging, withAuth))
+	router.GET(jp("/api/accounts"), mixinHandler(hdl.apiGetAccounts, withLogging, withAuth))
+	router.PUT(jp("/api/accounts"), mixinHandler(hdl.apiUpdateAccount, withLogging, withAuth))
+	router.POST(jp("/api/accounts"), mixinHandler(hdl.apiInsertAccount, withLogging, withAuth))
+	router.DELETE(jp("/api/accounts"), mixinHandler(hdl.apiDeleteAccount, withLogging, withAuth))
 
 	// Route for panic, keep logging anyhow
 	router.PanicHandler = func(w http.ResponseWriter, r *http.Request, arg interface{}) {

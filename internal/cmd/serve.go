@@ -22,6 +22,8 @@ func serveCmd() *cobra.Command {
 	cmd.Flags().StringP("address", "a", "", "Address the server listens to")
 	cmd.Flags().StringP("webroot", "r", "/", "Root path that used by server")
 	cmd.Flags().Bool("log", true, "Print out a non-standard access log")
+	cmd.Flags().StringSlice("trusted-proxies", []string{}, "list of trusted proxy IPs, empty means no proxy allowed")
+	cmd.Flags().String("reverse-proxy-auth-user", "", "http header name of proxy auth")
 
 	return cmd
 }
@@ -32,6 +34,8 @@ func serveHandler(cmd *cobra.Command, args []string) {
 	address, _ := cmd.Flags().GetString("address")
 	rootPath, _ := cmd.Flags().GetString("webroot")
 	log, _ := cmd.Flags().GetBool("log")
+	trustedProxies, _ := cmd.Flags().GetStringSlice("trusted-proxies")
+	reverseProxyAuthUser, _ := cmd.Flags().GetString("reverse-proxy-auth-user")
 
 	// Validate root path
 	if rootPath == "" {
@@ -48,12 +52,14 @@ func serveHandler(cmd *cobra.Command, args []string) {
 
 	// Start server
 	serverConfig := webserver.Config{
-		DB:            db,
-		DataDir:       dataDir,
-		ServerAddress: address,
-		ServerPort:    port,
-		RootPath:      rootPath,
-		Log:           log,
+		DB:                   db,
+		DataDir:              dataDir,
+		ServerAddress:        address,
+		ServerPort:           port,
+		RootPath:             rootPath,
+		Log:                  log,
+		TrustedProxies:       trustedProxies,
+		ReverseProxyAuthUser: reverseProxyAuthUser,
 	}
 
 	err := webserver.ServeApp(serverConfig)

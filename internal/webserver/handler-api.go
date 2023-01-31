@@ -18,7 +18,6 @@ import (
 	"github.com/go-shiori/shiori/internal/core"
 	"github.com/go-shiori/shiori/internal/database"
 	"github.com/go-shiori/shiori/internal/model"
-	"github.com/gofrs/uuid"
 	"github.com/julienschmidt/httprouter"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -64,21 +63,8 @@ func (h *handler) apiLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 	// Prepare function to generate session
 	genSession := func(account model.Account, expTime time.Duration) {
 		// Create session ID
-		sessionID, err := uuid.NewV4()
+		strSessionID, err := h.createSession(account, expTime)
 		checkError(err)
-
-		// Save session ID to cache
-		strSessionID := sessionID.String()
-		h.SessionCache.Set(strSessionID, account, expTime)
-
-		// Save user's session IDs to cache as well
-		// useful for mass logout
-		sessionIDs := []string{strSessionID}
-		if val, found := h.UserCache.Get(request.Username); found {
-			sessionIDs = val.([]string)
-			sessionIDs = append(sessionIDs, strSessionID)
-		}
-		h.UserCache.Set(request.Username, sessionIDs, -1)
 
 		// Send login result
 		account.Password = ""
@@ -646,6 +632,21 @@ func (h *handler) apiUpdateBookmarkTags(w http.ResponseWriter, r *http.Request, 
 
 	// Return new saved result
 	err = json.NewEncoder(w).Encode(&bookmarks)
+	checkError(err)
+}
+
+// apiGetSession is handler for GET /api/session
+func (h *handler) apiGetSession(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	// Make sure session still valid
+	account, err := h.getSessionAccount(r)
+	checkError(err)
+
+	account.Password = ""
+	w.Header().Set("Content-Type", "application/json")
+	result := struct {
+		Account model.Account `json:"account"`
+	}{*account}
+	err = json.NewEncoder(w).Encode(result)
 	checkError(err)
 }
 

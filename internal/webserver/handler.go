@@ -2,8 +2,10 @@ package webserver
 
 import (
 	"fmt"
+	"github.com/gofrs/uuid"
 	"html/template"
 	"net/http"
+	"time"
 
 	"github.com/go-shiori/shiori/internal/database"
 	"github.com/go-shiori/shiori/internal/model"
@@ -108,24 +110,58 @@ func (h *handler) getSessionID(r *http.Request) string {
 }
 
 // validateSession checks whether user session is still valid or not
-func (h *handler) validateSession(r *http.Request) error {
+func (h *handler) getSessionAccount(r *http.Request) (*model.Account, error) {
 	sessionID := h.getSessionID(r)
 	if sessionID == "" {
-		return fmt.Errorf("session is not exist")
+		return nil, fmt.Errorf("session is not exist")
 	}
 
 	// Make sure session is not expired yet
 	val, found := h.SessionCache.Get(sessionID)
 	if !found {
-		return fmt.Errorf("session has been expired")
+		return nil, fmt.Errorf("session has been expired")
+	}
+
+	account := val.(model.Account)
+	return &account, nil
+}
+
+// validateSession checks whether user session is still valid or not
+func (h *handler) validateSession(r *http.Request) error {
+	account, err := h.getSessionAccount(r)
+	if err != nil {
+		return err
 	}
 
 	// If this is not get request, make sure it's owner
 	if r.Method != "" && r.Method != "GET" {
-		if account := val.(model.Account); !account.Owner {
+		if !account.Owner {
 			return fmt.Errorf("account level is not sufficient")
 		}
 	}
 
 	return nil
+}
+
+func (h *handler) createSession(account model.Account, expTime time.Duration) (string, error) {
+	// Create session ID
+	sessionID, err := uuid.NewV4()
+	if err != nil {
+		return "", err
+	}
+
+	// Save session ID to cache
+	strSessionID := sessionID.String()
+	h.SessionCache.Set(strSessionID, account, expTime)
+
+	// Save user's session IDs to cache as well
+	// useful for mass logout
+	sessionIDs := []string{strSessionID}
+	if val, found := h.UserCache.Get(account.Username); found {
+		sessionIDs = val.([]string)
+		sessionIDs = append(sessionIDs, strSessionID)
+	}
+	h.UserCache.Set(account.Username, sessionIDs, -1)
+
+	return strSessionID, nil
 }
