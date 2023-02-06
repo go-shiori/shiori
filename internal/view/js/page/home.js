@@ -305,6 +305,7 @@ export default {
 
 			if (tagName === "*") {
 				this.search = excludeMode ? "-tag:*" : "tag:*";
+				this.page = 1;
 				this.loadData();
 				return;
 			}
@@ -344,6 +345,7 @@ export default {
 				}
 			}
 
+			this.page = 1;
 			this.loadData();
 		},
 		showDialogAdd() {

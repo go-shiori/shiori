@@ -7,42 +7,34 @@ import (
 	"os"
 	"testing"
 
-	"github.com/go-shiori/shiori/internal/model"
 	"github.com/golang-migrate/migrate/v4"
-	"github.com/stretchr/testify/assert"
 )
 
 func init() {
-	testPsqlURL := os.Getenv("SHIORI_TEST_PG_URL")
-	if testPsqlURL == "" {
-		log.Fatal("psql tests can't run without a PSQL database")
+	connString := os.Getenv("SHIORI_TEST_PG_URL")
+	if connString == "" {
+		log.Fatal("psql tests can't run without a PSQL database, set SHIORI_TEST_PG_URL environment variable")
 	}
 }
 
-func TestPsqlSaveBookmarkWithTag(t *testing.T) {
-	ctx := context.TODO()
-	pgDB, err := OpenPGDatabase(ctx, os.Getenv("SHIORI_TEST_PG_URL"))
+func postgresqlTestDatabaseFactory(ctx context.Context) (DB, error) {
+	db, err := OpenPGDatabase(ctx, os.Getenv("SHIORI_TEST_PG_URL"))
 	if err != nil {
-		t.Error(err)
+		return nil, err
 	}
 
-	if err := pgDB.Migrate(); err != nil && !errors.Is(migrate.ErrNoChange, err) {
-		t.Error(err)
+	_, err = db.Exec("DROP SCHEMA public CASCADE; CREATE SCHEMA public;")
+	if err != nil {
+		return nil, err
 	}
 
-	book := model.Bookmark{
-		URL:   "https://github.com/go-shiori/obelisk",
-		Title: "shiori",
-		Tags: []model.Tag{
-			{
-				Name: "test-tag",
-			},
-		},
+	if err := db.Migrate(); err != nil && !errors.Is(migrate.ErrNoChange, err) {
+		return nil, err
 	}
 
-	result, err := pgDB.SaveBookmarks(ctx, book)
+	return db, nil
+}
 
-	assert.NoError(t, err, "Save bookmarks must not fail")
-	assert.Equal(t, book.URL, result[0].URL)
-	assert.Equal(t, book.Tags[0].Name, result[0].Tags[0].Name)
+func TestPostgresDatabase(t *testing.T) {
+	testDatabase(t, postgresqlTestDatabaseFactory)
 }

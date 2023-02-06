@@ -25,13 +25,6 @@ func pocketCmd() *cobra.Command {
 }
 
 func pocketHandler(cmd *cobra.Command, args []string) {
-	// Prepare bookmark's ID
-	bookID, err := db.CreateNewID(cmd.Context(), "bookmark")
-	if err != nil {
-		cError.Printf("Failed to create ID: %v\n", err)
-		return
-	}
-
 	// Open pocket's file
 	srcFile, err := os.Open(args[0])
 	if err != nil {
@@ -99,20 +92,18 @@ func pocketHandler(cmd *cobra.Command, args []string) {
 
 		// Add item to list
 		bookmark := model.Bookmark{
-			ID:       bookID,
 			URL:      url,
 			Title:    title,
 			Modified: modified.Format(model.DatabaseDateFormat),
 			Tags:     tags,
 		}
 
-		bookID++
 		mapURL[url] = struct{}{}
 		bookmarks = append(bookmarks, bookmark)
 	})
 
 	// Save bookmark to database
-	bookmarks, err = db.SaveBookmarks(cmd.Context(), bookmarks...)
+	bookmarks, err = db.SaveBookmarks(cmd.Context(), true, bookmarks...)
 	if err != nil {
 		cError.Printf("Failed to save bookmarks: %v\n", err)
 		os.Exit(1)

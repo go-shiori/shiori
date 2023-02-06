@@ -1,0 +1,6 @@
+FROM docker.io/golang:1.19-alpine3.16
+
+WORKDIR /src/shiori
+
+ENTRYPOINT ["go", "run", "main.go"]
+CMD ["serve"]

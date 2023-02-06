@@ -1,0 +1,47 @@
+# Docker compose for development purposes only
+version: "3"
+services:
+  shiori:
+    build:
+      context: .
+      dockerfile: Dockerfile.compose
+    container_name: shiori
+    ports:
+      - "8080:8080"
+    volumes:
+      - "./dev-data:/srv/shiori"
+      - ".:/src/shiori"
+    restart: unless-stopped
+    links:
+      - "postgres"
+      - "mariadb"
+    environment:
+      SHIORI_DBMS: mysql
+      SHIORI_DIR: /srv/shiori
+      SHIORI_PG_USER: shiori
+      SHIORI_PG_PASS: shiori
+      SHIORI_PG_NAME: shiori
+      SHIORI_PG_HOST: postgres
+      SHIORI_PG_PORT: 5432
+      SHIORI_MYSQL_USER: shiori
+      SHIORI_MYSQL_PASS: shiori
+      SHIORI_MYSQL_NAME: shiori
+      SHIORI_MYSQL_ADDRESS: (mariadb)
+
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_PASSWORD: shiori
+      POSTGRES_USER: shiori
+    ports:
+      - "5432:5432"
+
+  mariadb:
+    image: mariadb:10.9
+    environment:
+      MYSQL_ROOT_PASSWORD: toor
+      MYSQL_DATABASE: shiori
+      MYSQL_USER: shiori
+      MYSQL_PASSWORD: shiori
+    ports:
+      - "3306:3306"

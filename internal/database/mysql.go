@@ -3,7 +3,6 @@ package database
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"strings"
 	"time"
 
@@ -59,28 +58,37 @@ func (db *MySQLDatabase) Migrate() error {
 		return errors.WithStack(err)
 	}
 
-	return migration.Up()
+	if err := migration.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
+		return err
+	}
+
+	return nil
 }
 
 // SaveBookmarks saves new or updated bookmarks to database.
 // Returns the saved ID and error message if any happened.
-func (db *MySQLDatabase) SaveBookmarks(ctx context.Context, bookmarks ...model.Bookmark) ([]model.Bookmark, error) {
+func (db *MySQLDatabase) SaveBookmarks(ctx context.Context, create bool, bookmarks ...model.Bookmark) ([]model.Bookmark, error) {
 	var result []model.Bookmark
 
 	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
 		// Prepare statement
 		stmtInsertBook, err := tx.Preparex(`INSERT INTO bookmark
-			(id, url, title, excerpt, author, public, content, html, modified)
-			VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)
-			ON DUPLICATE KEY UPDATE
-			url      = VALUES(url),
-			title    = VALUES(title),
-			excerpt  = VALUES(excerpt),
-			author   = VALUES(author),
-			public   = VALUES(public),
-			content  = VALUES(content),
-			html     = VALUES(html),
-			modified = VALUES(modified)`)
+			(url, title, excerpt, author, public, content, html, modified)
+			VALUES(?, ?, ?, ?, ?, ?, ?, ?)`)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+
+		stmtUpdateBook, err := tx.Preparex(`UPDATE bookmark
+		SET url      = ?,
+			title    = ?,
+			excerpt  = ?,
+			author   = ?,
+			public   = ?,
+			content  = ?,
+			html     = ?,
+			modified = ?
+		WHERE id = ?`)
 		if err != nil {
 			return errors.WithStack(err)
 		}
@@ -113,11 +121,7 @@ func (db *MySQLDatabase) SaveBookmarks(ctx context.Context, bookmarks ...model.B
 		// Execute statements
 
 		for _, book := range bookmarks {
-			// Check ID, URL and title
-			if book.ID == 0 {
-				return errors.New("ID must not be empty")
-			}
-
+			// Check URL and title
 			if book.URL == "" {
 				return errors.New("URL must not be empty")
 			}
@@ -132,9 +136,25 @@ func (db *MySQLDatabase) SaveBookmarks(ctx context.Context, bookmarks ...model.B
 			}
 
 			// Save bookmark
-			_, err := stmtInsertBook.ExecContext(ctx, book.ID,
-				book.URL, book.Title, book.Excerpt, book.Author,
-				book.Public, book.Content, book.HTML, book.Modified)
+			var err error
+			if create {
+				var res sql.Result
+				res, err = stmtInsertBook.ExecContext(ctx,
+					book.URL, book.Title, book.Excerpt, book.Author,
+					book.Public, book.Content, book.HTML, book.Modified)
+				if err != nil {
+					return errors.WithStack(err)
+				}
+				bookID, err := res.LastInsertId()
+				if err != nil {
+					return errors.WithStack(err)
+				}
+				book.ID = int(bookID)
+			} else {
+				_, err = stmtUpdateBook.ExecContext(ctx,
+					book.URL, book.Title, book.Excerpt, book.Author,
+					book.Public, book.Content, book.HTML, book.Modified, book.ID)
+			}
 			if err != nil {
 				return errors.WithStack(err)
 			}
@@ -158,8 +178,7 @@ func (db *MySQLDatabase) SaveBookmarks(ctx context.Context, bookmarks ...model.B
 
 				// If tag doesn't have any ID, fetch it from database
 				if tag.ID == 0 {
-					err = stmtGetTag.Get(&tag.ID, tagName)
-					if err != nil {
+					if err := stmtGetTag.GetContext(ctx, &tag.ID, tagName); err != nil && err != sql.ErrNoRows {
 						return errors.WithStack(err)
 					}
 
@@ -496,7 +515,7 @@ func (db *MySQLDatabase) GetBookmark(ctx context.Context, id int, url string) (m
 	}
 
 	book := model.Bookmark{}
-	if err := db.GetContext(ctx, &book, query, args...); err != nil {
+	if err := db.GetContext(ctx, &book, query, args...); err != nil && err != sql.ErrNoRows {
 		return book, false, errors.WithStack(err)
 	}
 
@@ -607,17 +626,4 @@ func (db *MySQLDatabase) RenameTag(ctx context.Context, id int, newName string) 
 	})
 
 	return errors.WithStack(err)
-}
-
-// CreateNewID creates new ID for specified table
-func (db *MySQLDatabase) CreateNewID(ctx context.Context, table string) (int, error) {
-	var tableID int
-	query := fmt.Sprintf(`SELECT IFNULL(MAX(id) + 1, 1) FROM %s`, table)
-
-	err := db.GetContext(ctx, &tableID, query)
-	if err != nil && err != sql.ErrNoRows {
-		return -1, errors.WithStack(err)
-	}
-
-	return tableID, nil
 }

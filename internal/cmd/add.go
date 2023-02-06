@@ -56,20 +56,27 @@ func addHandler(cmd *cobra.Command, args []string) {
 		book.Tags[i].Name = strings.TrimSpace(tag)
 	}
 
-	// Create bookmark ID
-	var err error
-	book.ID, err = db.CreateNewID(cmd.Context(), "bookmark")
-	if err != nil {
-		cError.Printf("Failed to create ID: %v\n", err)
-		os.Exit(1)
-	}
-
 	// Clean up bookmark URL
+	var err error
 	book.URL, err = core.RemoveUTMParams(book.URL)
 	if err != nil {
 		cError.Printf("Failed to clean URL: %v\n", err)
 		os.Exit(1)
 	}
+
+	// Make sure bookmark's title not empty
+	if book.Title == "" {
+		book.Title = book.URL
+	}
+
+	// Save bookmark to database
+	books, err := db.SaveBookmarks(cmd.Context(), true, book)
+	if err != nil {
+		cError.Printf("Failed to save bookmark: %v\n", err)
+		os.Exit(1)
+	}
+
+	book = books[0]
 
 	// If it's not offline mode, fetch data from internet.
 	if !offline {
@@ -103,18 +110,13 @@ func addHandler(cmd *cobra.Command, args []string) {
 				os.Exit(1)
 			}
 		}
-	}
 
-	// Make sure bookmark's title not empty
-	if book.Title == "" {
-		book.Title = book.URL
-	}
-
-	// Save bookmark to database
-	_, err = db.SaveBookmarks(cmd.Context(), book)
-	if err != nil {
-		cError.Printf("Failed to save bookmark: %v\n", err)
-		os.Exit(1)
+		// Save bookmark to database
+		_, err = db.SaveBookmarks(cmd.Context(), false, book)
+		if err != nil {
+			cError.Printf("Failed to save bookmark with content: %v\n", err)
+			os.Exit(1)
+		}
 	}
 
 	// Print added bookmark

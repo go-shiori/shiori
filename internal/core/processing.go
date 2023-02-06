@@ -159,7 +159,11 @@ func downloadBookImage(url, dstPath string) error {
 
 	// Make sure it's JPG or PNG image
 	cp := resp.Header.Get("Content-Type")
-	if !strings.Contains(cp, "image/jpeg") && !strings.Contains(cp, "image/png") {
+	if !strings.Contains(cp, "image/jpeg") &&
+		!strings.Contains(cp, "image/pjpeg") &&
+		!strings.Contains(cp, "image/jpg") &&
+		!strings.Contains(cp, "image/png") {
+
 		return fmt.Errorf("%s is not a supported image", url)
 	}
 

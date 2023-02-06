@@ -3,7 +3,6 @@ package database
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"log"
 	"strings"
 	"time"
@@ -68,22 +67,32 @@ func (db *SQLiteDatabase) Migrate() error {
 		return errors.WithStack(err)
 	}
 
-	return migration.Up()
+	if err := migration.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
+		return err
+	}
+
+	return nil
 }
 
 // SaveBookmarks saves new or updated bookmarks to database.
 // Returns the saved ID and error message if any happened.
-func (db *SQLiteDatabase) SaveBookmarks(ctx context.Context, bookmarks ...model.Bookmark) ([]model.Bookmark, error) {
+func (db *SQLiteDatabase) SaveBookmarks(ctx context.Context, create bool, bookmarks ...model.Bookmark) ([]model.Bookmark, error) {
 	var result []model.Bookmark
 
 	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
 		// Prepare statement
+
 		stmtInsertBook, err := tx.PreparexContext(ctx, `INSERT INTO bookmark
-			(id, url, title, excerpt, author, public, modified, has_content)
-			VALUES(?, ?, ?, ?, ?, ?, ?, ?)
-			ON CONFLICT(id) DO UPDATE SET
+			(url, title, excerpt, author, public, modified, has_content)
+			VALUES(?, ?, ?, ?, ?, ?, ?) RETURNING id`)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+
+		stmtUpdateBook, err := tx.PreparexContext(ctx, `UPDATE bookmark SET
 			url = ?, title = ?,	excerpt = ?, author = ?,
-			public = ?, modified = ?, has_content = ?`)
+			public = ?, modified = ?, has_content = ?
+			WHERE id = ?`)
 		if err != nil {
 			return errors.WithStack(err)
 		}
@@ -130,11 +139,7 @@ func (db *SQLiteDatabase) SaveBookmarks(ctx context.Context, bookmarks ...model.
 		// Execute statements
 
 		for _, book := range bookmarks {
-			// Check ID, URL and title
-			if book.ID == 0 {
-				return errors.New("ID must not be empty")
-			}
-
+			// Check URL and title
 			if book.URL == "" {
 				return errors.New("URL must not be empty")
 			}
@@ -148,11 +153,17 @@ func (db *SQLiteDatabase) SaveBookmarks(ctx context.Context, bookmarks ...model.
 				book.Modified = modifiedTime
 			}
 
-			// Save bookmark
 			hasContent := book.Content != ""
-			_, err = stmtInsertBook.ExecContext(ctx, book.ID,
-				book.URL, book.Title, book.Excerpt, book.Author, book.Public, book.Modified, hasContent,
-				book.URL, book.Title, book.Excerpt, book.Author, book.Public, book.Modified, hasContent)
+
+			// Create or update bookmark
+			var err error
+			if create {
+				err = stmtInsertBook.QueryRowContext(ctx,
+					book.URL, book.Title, book.Excerpt, book.Author, book.Public, book.Modified, hasContent).Scan(&book.ID)
+			} else {
+				_, err = stmtUpdateBook.ExecContext(ctx,
+					book.URL, book.Title, book.Excerpt, book.Author, book.Public, book.Modified, hasContent, book.ID)
+			}
 			if err != nil {
 				return errors.WithStack(err)
 			}
@@ -266,9 +277,12 @@ func (db *SQLiteDatabase) GetBookmarks(ctx context.Context, opts GetBookmarksOpt
 
 		args = append(args,
 			"%"+opts.Keyword+"%",
-			"%"+opts.Keyword+"%",
-			opts.Keyword,
-			opts.Keyword)
+			"%"+opts.Keyword+"%")
+
+		// Replace dash with spaces since FTS5 uses `-name` as column identifier
+		opts.Keyword = strings.Replace(opts.Keyword, "-", " ", -1)
+		args = append(args, opts.Keyword, opts.Keyword)
+
 	}
 
 	// Add where clause for tags.
@@ -455,8 +469,11 @@ func (db *SQLiteDatabase) GetBookmarksCount(ctx context.Context, opts GetBookmar
 		args = append(args,
 			"%"+opts.Keyword+"%",
 			"%"+opts.Keyword+"%",
-			opts.Keyword,
-			opts.Keyword)
+		)
+
+		// Replace dash with spaces since FTS5 uses `-name` as column identifier
+		opts.Keyword = strings.Replace(opts.Keyword, "-", " ", -1)
+		args = append(args, opts.Keyword, opts.Keyword)
 	}
 
 	// Add where clause for tags.
@@ -614,7 +631,7 @@ func (db *SQLiteDatabase) GetBookmark(ctx context.Context, id int, url string) (
 	}
 
 	book := model.Bookmark{}
-	if err := db.GetContext(ctx, &book, query, args...); err != nil {
+	if err := db.GetContext(ctx, &book, query, args...); err != nil && err != sql.ErrNoRows {
 		return book, false, errors.WithStack(err)
 	}
 
@@ -736,17 +753,4 @@ func (db *SQLiteDatabase) RenameTag(ctx context.Context, id int, newName string)
 	}
 
 	return nil
-}
-
-// CreateNewID creates new ID for specified table
-func (db *SQLiteDatabase) CreateNewID(ctx context.Context, table string) (int, error) {
-	var tableID int
-	query := fmt.Sprintf(`SELECT IFNULL(MAX(id) + 1, 1) FROM %s`, table)
-
-	err := db.GetContext(ctx, &tableID, query)
-	if err != nil && err != sql.ErrNoRows {
-		return -1, errors.WithStack(err)
-	}
-
-	return tableID, nil
 }

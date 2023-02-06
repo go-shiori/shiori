@@ -91,21 +91,17 @@ func (h *handler) prepareTemplates() error {
 }
 
 func (h *handler) getSessionID(r *http.Request) string {
-	// Get session-id from header and cookie
-	headerSessionID := r.Header.Get("X-Session-Id")
-	cookieSessionID := func() string {
+	// Try to get session ID from the header
+	sessionID := r.Header.Get("X-Session-Id")
+
+	// If not, try it from the cookie
+	if sessionID == "" {
 		cookie, err := r.Cookie("session-id")
 		if err != nil {
 			return ""
 		}
 
-		return cookie.Value
-	}()
-
-	// Session ID in cookie is more priority than in header
-	sessionID := headerSessionID
-	if cookieSessionID != "" {
-		sessionID = cookieSessionID
+		sessionID = cookie.Value
 	}
 
 	return sessionID

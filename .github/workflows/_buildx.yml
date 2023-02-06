@@ -1,4 +1,4 @@
-name: 'Build Docker'
+name: "Build Docker"
 
 on: workflow_call
 jobs:
@@ -8,10 +8,10 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     name: Build Docker
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: dist
       - name: Prep binaries

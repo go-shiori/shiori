@@ -49,7 +49,7 @@ type DB interface {
 	Migrate() error
 
 	// SaveBookmarks saves bookmarks data to database.
-	SaveBookmarks(ctx context.Context, bookmarks ...model.Bookmark) ([]model.Bookmark, error)
+	SaveBookmarks(ctx context.Context, create bool, bookmarks ...model.Bookmark) ([]model.Bookmark, error)
 
 	// GetBookmarks fetch list of bookmarks based on submitted options.
 	GetBookmarks(ctx context.Context, opts GetBookmarksOptions) ([]model.Bookmark, error)
@@ -80,9 +80,6 @@ type DB interface {
 
 	// RenameTag change the name of a tag.
 	RenameTag(ctx context.Context, id int, newName string) error
-
-	// CreateNewID creates new id for specified table.
-	CreateNewID(ctx context.Context, table string) (int, error)
 }
 
 type dbbase struct {
