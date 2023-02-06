@@ -11,12 +11,12 @@ import (
 	"go.uber.org/zap"
 )
 
-func serverCommand(logger *zap.Logger) *cobra.Command {
+func newServerCommand(logger *zap.Logger) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "server",
 		Short: "Run the Shiori webserver [alpha]",
 		Long:  "Runs the new Shiori webserver with new API definitions. [alpha]",
-		Run:   serverHandler(logger),
+		Run:   newServerCommandHandler(logger),
 	}
 
 	cmd.Flags().IntP("port", "p", 8080, "Port used by the server")
@@ -27,7 +27,7 @@ func serverCommand(logger *zap.Logger) *cobra.Command {
 	return cmd
 }
 
-func serverHandler(logger *zap.Logger) func(cmd *cobra.Command, args []string) {
+func newServerCommandHandler(logger *zap.Logger) func(cmd *cobra.Command, args []string) {
 	return func(cmd *cobra.Command, args []string) {
 		ctx := context.Background()
 

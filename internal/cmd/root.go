@@ -44,7 +44,7 @@ func ShioriCmd() *cobra.Command {
 		pocketCmd(),
 		serveCmd(),
 		checkCmd(),
-		serverCommand(logger),
+		newServerCommand(logger),
 	)
 
 	return rootCmd
