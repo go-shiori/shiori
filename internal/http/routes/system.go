@@ -26,10 +26,8 @@ func (r *SystemRoutes) livenessHandler(c *fiber.Ctx) error {
 }
 
 func NewSystemRoutes(logger *zap.Logger, _ config.HttpConfig) *SystemRoutes {
-	routes := SystemRoutes{
+	return &SystemRoutes{
 		logger: logger,
 		router: fiber.New(),
 	}
-	routes.Setup()
-	return &routes
 }

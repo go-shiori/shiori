@@ -35,11 +35,9 @@ func (r *FrontendRoutes) Router() *fiber.App {
 }
 
 func NewFrontendRoutes(logger *zap.Logger, cfg config.HttpConfig) *FrontendRoutes {
-	routes := FrontendRoutes{
+	return &FrontendRoutes{
 		logger: logger,
 		router: fiber.New(),
 		maxAge: cfg.Routes.Frontend.MaxAge,
 	}
-	routes.Setup()
-	return &routes
 }

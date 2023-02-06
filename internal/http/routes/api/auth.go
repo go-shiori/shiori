@@ -75,11 +75,9 @@ func (r *AuthAPIRoutes) loginHandler(c *fiber.Ctx) error {
 }
 
 func NewAuthAPIRoutes(logger *zap.Logger, deps *config.Dependencies) *AuthAPIRoutes {
-	routes := AuthAPIRoutes{
+	return &AuthAPIRoutes{
 		logger: logger,
 		router: fiber.New(),
 		deps:   deps,
 	}
-	routes.Setup()
-	return &routes
 }

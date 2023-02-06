@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"github.com/go-shiori/shiori/internal/http/response"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/gofiber/fiber/v2"
 	jwtware "github.com/gofiber/jwt/v3"
@@ -26,7 +25,9 @@ func AuthMiddleware(secretKey string) fiber.Handler {
 			return c.Next()
 		},
 		ErrorHandler: func(c *fiber.Ctx, err error) error {
-			return response.SendError(c, fiber.StatusUnauthorized, err.Error())
+			// Ignore all errors, use a separate middleware to enforce authenticated users.
+			// return response.SendError(c, fiber.StatusUnauthorized, err.Error())
+			return c.Next()
 		},
 	})
 }

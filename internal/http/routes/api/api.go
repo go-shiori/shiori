@@ -21,6 +21,7 @@ func (r *APIRoutes) Setup() *APIRoutes {
 		Use(middleware.JSONMiddleware()).
 		Mount("/auth", NewAuthAPIRoutes(r.logger, r.deps).Router()).
 		Use(middleware.AuthMiddleware(r.secret)).
+		Mount("/auth", NewAuthAPIRoutes(r.logger, r.deps).Setup().Router()).
 		Get("/private", func(c *fiber.Ctx) error {
 			return response.Send(c, 200, c.Locals("account").(model.Account))
 		})
@@ -32,12 +33,10 @@ func (r *APIRoutes) Router() *fiber.App {
 }
 
 func NewAPIRoutes(logger *zap.Logger, cfg config.HttpConfig, deps *config.Dependencies) *APIRoutes {
-	routes := APIRoutes{
+	return &APIRoutes{
 		logger: logger,
 		router: fiber.New(),
 		deps:   deps,
 		secret: cfg.SecretKey,
 	}
-	routes.Setup()
-	return &routes
 }
