@@ -32,13 +32,13 @@ var template = `
     </div>
     <p class="empty-message" v-if="!loading && listIsEmpty">No saved bookmarks yet :(</p>
     <div id="bookmarks-grid" ref="bookmarksGrid" :class="{list: appOptions.listMode}">
-        <pagination-box v-if="maxPage > 1" 
-            :page="page" 
-            :maxPage="maxPage" 
+        <pagination-box v-if="maxPage > 1"
+            :page="page"
+            :maxPage="maxPage"
             :editMode="editMode"
             @change="changePage">
         </pagination-box>
-        <bookmark-item v-for="(book, index) in bookmarks" 
+        <bookmark-item v-for="(book, index) in bookmarks"
             :id="book.id"
             :url="book.url"
             :title="book.title"
@@ -49,7 +49,7 @@ var template = `
             :hasArchive="book.hasArchive"
             :tags="book.tags"
             :index="index"
-            :key="book.id" 
+            :key="book.id"
             :editMode="editMode"
             :showId="appOptions.showId"
             :listMode="appOptions.listMode"
@@ -63,9 +63,9 @@ var template = `
             @delete="showDialogDelete"
             @update="showDialogUpdateCache">
         </bookmark-item>
-        <pagination-box v-if="maxPage > 1" 
-            :page="page" 
-            :maxPage="maxPage" 
+        <pagination-box v-if="maxPage > 1"
+            :page="page"
+            :maxPage="maxPage"
             :editMode="editMode"
             @change="changePage">
         </pagination-box>
@@ -197,7 +197,7 @@ export default {
 			keyword = keyword.trim().replace(/\s+/g, " ");
 
 			// Prepare URL for API
-			var url = new URL("api/bookmarks", document.baseURI);
+			var url = new URL("api/v1/bookmarks", document.baseURI);
 			url.search = new URLSearchParams({
 				keyword: keyword,
 				tags: tags.join(","),
@@ -209,7 +209,7 @@ export default {
 			var skipFetchTags = Error("skip fetching tags");
 
 			this.loading = true;
-			fetch(url)
+			fetch(url, {headers: {'Content-Type': 'application/json'}})
 				.then(response => {
 					if (!response.ok) throw response;
 					return response.json();
@@ -239,7 +239,7 @@ export default {
 
 					// Fetch tags if requested
 					if (fetchTags) {
-						return fetch(new URL("api/tags", document.baseURI));
+						return fetch(new URL("api/v1/tags", document.baseURI), {headers: {'Content-Type': 'application/json'}});
 					} else {
 						this.loading = false;
 						throw skipFetchTags;
@@ -410,7 +410,7 @@ export default {
 					};
 
 					this.dialog.loading = true;
-					fetch(new URL("api/bookmarks", document.baseURI), {
+					fetch(new URL("api/v1/bookmarks", document.baseURI), {
 						method: "post",
 						body: JSON.stringify(data),
 						headers: { "Content-Type": "application/json" }
@@ -499,7 +499,7 @@ export default {
 
 					// Send data
 					this.dialog.loading = true;
-					fetch(new URL("api/bookmarks", document.baseURI), {
+					fetch(new URL("api/v1/bookmarks", document.baseURI), {
 						method: "put",
 						body: JSON.stringify(book),
 						headers: { "Content-Type": "application/json" }
@@ -554,7 +554,7 @@ export default {
 				secondText: "No",
 				mainClick: () => {
 					this.dialog.loading = true;
-					fetch(new URL("api/bookmarks", document.baseURI), {
+					fetch(new URL("api/v1/bookmarks", document.baseURI), {
 						method: "delete",
 						body: JSON.stringify(ids),
 						headers: { "Content-Type": "application/json" },
@@ -624,7 +624,7 @@ export default {
 					};
 
 					this.dialog.loading = true;
-					fetch(new URL("api/cache", document.baseURI), {
+					fetch(new URL("api/v1/cache", document.baseURI), {
 						method: "put",
 						body: JSON.stringify(data),
 						headers: { "Content-Type": "application/json" },
@@ -702,7 +702,7 @@ export default {
 					}
 
 					this.dialog.loading = true;
-					fetch(new URL("api/bookmarks/tags", document.baseURI), {
+					fetch(new URL("api/v1/bookmarks/tags", document.baseURI), {
 						method: "put",
 						body: JSON.stringify(request),
 						headers: { "Content-Type": "application/json" },

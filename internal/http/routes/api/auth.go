@@ -5,7 +5,9 @@ import (
 	"fmt"
 
 	"github.com/go-shiori/shiori/internal/config"
+	"github.com/go-shiori/shiori/internal/http/request"
 	"github.com/go-shiori/shiori/internal/http/response"
+	"github.com/go-shiori/shiori/internal/model"
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
 )
@@ -18,6 +20,7 @@ type AuthAPIRoutes struct {
 
 func (r *AuthAPIRoutes) Setup() *AuthAPIRoutes {
 	r.router.Post("/login", r.loginHandler)
+	r.router.Post("/refresh", r.refreshHandler)
 	return r
 }
 
@@ -31,10 +34,6 @@ type loginRequestPayload struct {
 	RememberMe bool   `json:"remember_me"`
 }
 
-type loginResponseMessage struct {
-	Token string `json:"token"`
-}
-
 func (p *loginRequestPayload) IsValid() error {
 	if p.Username == "" {
 		return fmt.Errorf("username should not be empty")
@@ -43,6 +42,10 @@ func (p *loginRequestPayload) IsValid() error {
 		return fmt.Errorf("password should not be empty")
 	}
 	return nil
+}
+
+type loginResponseMessage struct {
+	Token string `json:"token"`
 }
 
 func (r *AuthAPIRoutes) loginHandler(c *fiber.Ctx) error {
@@ -72,6 +75,24 @@ func (r *AuthAPIRoutes) loginHandler(c *fiber.Ctx) error {
 	}
 
 	return response.Send(c, 200, responseMessage)
+}
+
+func (r *AuthAPIRoutes) refreshHandler(c *fiber.Ctx) error {
+	if !request.IsLogged(c) {
+		return response.SendError(c, 403, nil)
+	}
+
+	account := c.Locals("account").(*model.Account)
+	token, err := r.deps.Domains.Auth.CreateTokenForAccount(account)
+	if err != nil {
+		return response.SendInternalServerError(c)
+	}
+
+	responseMessage := loginResponseMessage{
+		Token: token,
+	}
+
+	return response.Send(c, 202, responseMessage)
 }
 
 func NewAuthAPIRoutes(logger *zap.Logger, deps *config.Dependencies) *AuthAPIRoutes {

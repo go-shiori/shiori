@@ -98,7 +98,7 @@ export default {
 			if (this.loading) return;
 
 			this.loading = true;
-			fetch(new URL("api/accounts", document.baseURI))
+			fetch(new URL("api/v1/accounts", document.baseURI), {headers: {'Content-Type': 'application/json'}})
 				.then(response => {
 					if (!response.ok) throw response;
 					return response.json();
@@ -163,7 +163,7 @@ export default {
 					}
 
 					this.dialog.loading = true;
-					fetch(new URL("api/accounts", document.baseURI), {
+					fetch(new URL("api/v1/accounts", document.baseURI), {
 						method: "post",
 						body: JSON.stringify(request),
 						headers: {
@@ -246,7 +246,7 @@ export default {
 					}
 
 					this.dialog.loading = true;
-					fetch(new URL("api/accounts", document.baseURI), {
+					fetch(new URL("api/v1/accounts", document.baseURI), {
 						method: "put",
 						body: JSON.stringify(request),
 						headers: {
@@ -275,7 +275,7 @@ export default {
 				secondText: "No",
 				mainClick: () => {
 					this.dialog.loading = true;
-					fetch(`/api/accounts`, {
+					fetch(`/api/v1/accounts`, {
 						method: "delete",
 						body: JSON.stringify([account.username]),
 						headers: {

@@ -19,12 +19,13 @@ type APIRoutes struct {
 func (r *APIRoutes) Setup() *APIRoutes {
 	r.router.
 		Use(middleware.JSONMiddleware()).
-		Mount("/auth", NewAuthAPIRoutes(r.logger, r.deps).Router()).
 		Use(middleware.AuthMiddleware(r.secret)).
 		Mount("/auth", NewAuthAPIRoutes(r.logger, r.deps).Setup().Router()).
+		Mount("/bookmarks", NewBookmarksPIRoutes(r.logger, r.deps).Setup().Router()).
 		Get("/private", func(c *fiber.Ctx) error {
 			return response.Send(c, 200, c.Locals("account").(model.Account))
 		})
+
 	return r
 }
 

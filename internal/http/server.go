@@ -8,9 +8,10 @@ import (
 	"syscall"
 
 	"github.com/go-shiori/shiori/internal/config"
-	"github.com/go-shiori/shiori/internal/http/middleware"
+	"github.com/go-shiori/shiori/internal/http/response"
 	"github.com/go-shiori/shiori/internal/http/routes"
 	"github.com/go-shiori/shiori/internal/http/routes/api"
+	"github.com/gofiber/contrib/fiberzap"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
@@ -24,23 +25,21 @@ type HttpServer struct {
 	logger *zap.Logger
 }
 
-func (s *HttpServer) Setup(cfg config.HttpConfig, deps *config.Dependencies) {
+func (s *HttpServer) Setup(cfg config.HttpConfig, deps *config.Dependencies) *HttpServer {
+	fiberzapConfig := fiberzap.ConfigDefault
+	fiberzapConfig.Logger = s.logger
+
 	s.http.
 		Use(requestid.New(requestid.Config{
 			Generator: utils.UUIDv4,
 		})).
-		Use(middleware.NewZapMiddleware(middleware.ZapMiddlewareConfig{
-			Logger:      s.logger,
-			CacheHeader: "X-Cache",
-		})).
-		Use(func(c *fiber.Ctx) error {
-			return c.Next()
-		}).
+		Use(fiberzap.New(fiberzapConfig)).
 		Use(recover.New()).
 		Mount(cfg.Routes.System.Path, routes.NewSystemRoutes(s.logger, cfg).Setup().Router()).
 		Mount(cfg.Routes.API.Path, api.NewAPIRoutes(s.logger, cfg, deps).Setup().Router()).
-		Mount(cfg.Routes.Frontend.Path, routes.NewFrontendRoutes(s.logger, cfg).Setup().Router()).
-		Use(s.notFound)
+		Mount(cfg.Routes.Frontend.Path, routes.NewFrontendRoutes(s.logger, cfg).Setup().Router())
+
+	return s
 }
 
 func (s *HttpServer) Start(_ context.Context) error {
@@ -70,7 +69,7 @@ func (s *HttpServer) notFound(c *fiber.Ctx) error {
 }
 
 func NewHttpServer(logger *zap.Logger, cfg config.HttpConfig, dependencies *config.Dependencies) *HttpServer {
-	server := HttpServer{
+	return &HttpServer{
 		logger: logger,
 		addr:   fmt.Sprintf("%s%d", cfg.Address, cfg.Port),
 		http: fiber.New(fiber.Config{
@@ -89,11 +88,11 @@ func NewHttpServer(logger *zap.Logger, cfg config.HttpConfig, dependencies *conf
 					zap.String("path", c.Path()),
 					zap.Error(err),
 				)
-				return c.SendStatus(500)
+				return response.SendError(c, 404, nil)
 			},
 		}),
 	}
-	server.Setup(cfg, dependencies)
+	// server.Setup(cfg, dependencies)
 
-	return &server
+	// return &server
 }

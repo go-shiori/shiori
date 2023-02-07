@@ -66,7 +66,7 @@ func newServerCommandHandler(logger *zap.Logger) func(cmd *cobra.Command, args [
 		cfg.Http.RootPath = rootPath
 		cfg.Http.AccessLog = accessLog
 
-		server := http.NewHttpServer(logger, cfg.Http, dependencies)
+		server := http.NewHttpServer(logger, cfg.Http, dependencies).Setup(cfg.Http, dependencies)
 
 		if err := server.Start(ctx); err != nil {
 			logger.Fatal("error starting server", zap.Error(err))
