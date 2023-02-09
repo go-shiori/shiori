@@ -2,6 +2,7 @@ package http
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"os/signal"
@@ -64,10 +65,6 @@ func (s *HttpServer) WaitStop(ctx context.Context) {
 	}
 }
 
-func (s *HttpServer) notFound(c *fiber.Ctx) error {
-	return c.SendStatus(404)
-}
-
 func NewHttpServer(logger *zap.Logger, cfg config.HttpConfig, dependencies *config.Dependencies) *HttpServer {
 	return &HttpServer{
 		logger: logger,
@@ -82,17 +79,14 @@ func NewHttpServer(logger *zap.Logger, cfg config.HttpConfig, dependencies *conf
 			DisableKeepalive:             cfg.DisableKeepAlive,
 			DisablePreParseMultipartForm: cfg.DisablePreParseMultipartForm,
 			ErrorHandler: func(c *fiber.Ctx, err error) error {
-				logger.Error(
-					"handler error",
-					zap.String("method", c.Method()),
-					zap.String("path", c.Path()),
-					zap.Error(err),
-				)
-				return response.SendError(c, 404, nil)
+				// Broken: https://github.com/gofiber/fiber/issues/2233
+				code := fiber.StatusInternalServerError
+				var e *fiber.Error
+				if errors.As(err, &e) {
+					code = e.Code
+				}
+				return response.SendError(c, code, "")
 			},
 		}),
 	}
-	// server.Setup(cfg, dependencies)
-
-	// return &server
 }
