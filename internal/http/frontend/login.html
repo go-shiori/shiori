@@ -81,34 +81,33 @@
 					this.username = document.querySelector('#username').value;
 					this.password = document.querySelector('#password').value;
 					// Validate input
-					if (this.username === "") {
-						this.error = "Username must not empty";
+					if (this.username === "" || this.password === "") {
+						this.error = "Username and password must not be empty";
 						return;
 					}
-
-					// Remove old cookie
-					document.cookie = `session-id=; Path=${new URL(document.baseURI).pathname}; Expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
 
 					// Send request
 					this.loading = true;
 
-					fetch(new URL("api/login", document.baseURI), {
+					fetch(new URL("api/v1/account/login", document.baseURI), {
 						method: "post",
 						body: JSON.stringify({
 							username: this.username,
 							password: this.password,
-							remember: this.remember == 1 ? true : false,
+							remember_me: this.remember == 1 ? true : false,
 						}),
 						headers: { "Content-Type": "application/json" },
 					}).then(response => {
-						if (!response.ok) throw response;
 						return response.json();
 					}).then(json => {
-						// Save session id
-						document.cookie = `session-id=${json.session}; Path=${new URL(document.baseURI).pathname}; Expires=${json.expires}`;
+
+						if (!json.ok) {
+							this.error = json.message
+							return
+						}
 
 						// Save account data
-						localStorage.setItem("shiori-account", JSON.stringify(json.account));
+						localStorage.setItem("shiori-token", json.message.token);
 
 						// Go to destination page
 						var currentUrl = new Url,
@@ -139,7 +138,7 @@
 			mounted() {
 				// Load setting
 				this.loadSetting();
-				localStorage.removeItem("shiori-account");
+				localStorage.removeItem("shiori-token");
 
 				// <input autofocus> wasn't working all the time, so I'm putting this here as a fallback
 				document.querySelector('#username').focus()

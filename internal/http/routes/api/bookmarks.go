@@ -2,8 +2,10 @@ package api
 
 import (
 	"github.com/go-shiori/shiori/internal/config"
+	"github.com/go-shiori/shiori/internal/database"
 	"github.com/go-shiori/shiori/internal/http/response"
 	"github.com/gofiber/fiber/v2"
+	"github.com/pkg/errors"
 	"go.uber.org/zap"
 )
 
@@ -23,7 +25,12 @@ func (r *BookmarksAPIRoutes) Router() *fiber.App {
 }
 
 func (r *BookmarksAPIRoutes) listHandler(c *fiber.Ctx) error {
-	return response.Send(c, 200, []string{})
+	ctx := c.Context()
+	bookmarks, err := r.deps.Database.GetBookmarks(ctx, database.GetBookmarksOptions{})
+	if err != nil {
+		return errors.Wrap(err, "error getting bookmakrs")
+	}
+	return response.Send(c, 200, bookmarks)
 }
 
 func NewBookmarksPIRoutes(logger *zap.Logger, deps *config.Dependencies) *BookmarksAPIRoutes {

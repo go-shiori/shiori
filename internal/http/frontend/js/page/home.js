@@ -218,7 +218,7 @@ export default {
 					// Set data
 					this.page = json.page;
 					this.maxPage = json.maxPage;
-					this.bookmarks = json.bookmarks;
+					this.bookmarks = json.message;
 
 					// Save state and change URL if needed
 					if (saveState) {

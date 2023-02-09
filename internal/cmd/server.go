@@ -39,7 +39,7 @@ func newServerCommandHandler(logger *zap.Logger) func(cmd *cobra.Command, args [
 		cfg := config.ParseServerConfiguration(ctx, logger)
 
 		dependencies := config.NewDependencies(logger, database)
-		dependencies.Domains.Auth = domains.NewAuthDomain(logger, cfg.Http.SecretKey, database)
+		dependencies.Domains.Auth = domains.NewAccountsDomain(logger, cfg.Http.SecretKey, database)
 
 		// Get flags value
 		port, _ := cmd.Flags().GetInt("port")

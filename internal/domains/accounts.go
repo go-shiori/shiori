@@ -12,26 +12,26 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type AuthDomain struct {
+type AccountsDomain struct {
 	logger *zap.Logger
 	db     database.DB
 	secret []byte
 }
 
-func (d *AuthDomain) GetAccountFromCredentials(ctx context.Context, username, password string) (*model.Account, error) {
+func (d *AccountsDomain) GetAccountFromCredentials(ctx context.Context, username, password string) (*model.Account, error) {
 	account, _, err := d.db.GetAccount(ctx, username)
 	if err != nil {
-		return nil, fmt.Errorf("account not found")
+		return nil, fmt.Errorf("username and password do not match")
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(account.Password), []byte(password)); err != nil {
-		return nil, fmt.Errorf("password do not match")
+		return nil, fmt.Errorf("username and password do not match")
 	}
 
 	return &account, nil
 }
 
-func (d *AuthDomain) CreateTokenForAccount(account *model.Account) (string, error) {
+func (d *AccountsDomain) CreateTokenForAccount(account *model.Account) (string, error) {
 	claims := jwt.MapClaims{
 		"account": account,
 		"exp":     time.Now().Add(time.Hour * 72).Unix(),
@@ -47,8 +47,8 @@ func (d *AuthDomain) CreateTokenForAccount(account *model.Account) (string, erro
 	return t, err
 }
 
-func NewAuthDomain(logger *zap.Logger, secretKey string, db database.DB) AuthDomain {
-	return AuthDomain{
+func NewAccountsDomain(logger *zap.Logger, secretKey string, db database.DB) AccountsDomain {
+	return AccountsDomain{
 		logger: logger,
 		db:     db,
 		secret: []byte(secretKey),

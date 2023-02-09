@@ -91,8 +91,7 @@
 								if (!response.ok) throw response;
 								return response;
 							}).then(() => {
-								localStorage.removeItem("shiori-account");
-								document.cookie = `session-id=; Path=${new URL(document.baseURI).pathname}; Expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
+								localStorage.removeItem("shiori-token");
 								location.href = new URL("login", document.baseURI);
 							}).catch(err => {
 								this.dialog.loading = false;
@@ -133,16 +132,32 @@
 					document.body.className = nightMode ? "night" : "";
 				},
 				loadAccount() {
-					var account = JSON.parse(localStorage.getItem("shiori-account")) || {},
-						id = (typeof account.id === "number") ? account.id : 0,
-						username = (typeof account.username === "string") ? account.username : "",
-						owner = (typeof account.owner === "boolean") ? account.owner : false;
+					this.token = localStorage.getItem("shiori-token");
 
-					this.activeAccount = {
-						id: id,
-						username: username,
-						owner: owner,
-					};
+					if (this.token == null || this.token.length == 0) {
+						location.href = new URL("login.html", document.baseURI);
+						return
+					}
+
+					fetch(new URL("api/v1/account/me", document.baseURI), {
+						headers: {
+							"Content-Type": "application/json",
+							"Authorization": `Bearer ${this.token}`,
+						},
+					}).then(response => {
+						return response.json();
+					}).then(json => {
+						if (!json.ok) {
+							localStorage.removeItem("shiori-token");
+							this.error = json.message
+							return
+						}
+
+						this.activeAccount = json.message;
+					}).catch(err => {
+						localStorage.removeItem("shiori-token");
+						location.href = new URL("login.html", document.baseURI);
+					});
 				}
 			},
 			mounted() {

@@ -12,19 +12,20 @@ import (
 	"go.uber.org/zap"
 )
 
-type AuthAPIRoutes struct {
+type AccountAPIRoutes struct {
 	logger *zap.Logger
 	router *fiber.App
 	deps   *config.Dependencies
 }
 
-func (r *AuthAPIRoutes) Setup() *AuthAPIRoutes {
+func (r *AccountAPIRoutes) Setup() *AccountAPIRoutes {
+	r.router.Get("/me", r.meHandler)
 	r.router.Post("/login", r.loginHandler)
 	r.router.Post("/refresh", r.refreshHandler)
 	return r
 }
 
-func (r *AuthAPIRoutes) Router() *fiber.App {
+func (r *AccountAPIRoutes) Router() *fiber.App {
 	return r.router
 }
 
@@ -48,7 +49,7 @@ type loginResponseMessage struct {
 	Token string `json:"token"`
 }
 
-func (r *AuthAPIRoutes) loginHandler(c *fiber.Ctx) error {
+func (r *AccountAPIRoutes) loginHandler(c *fiber.Ctx) error {
 	ctx := context.Background()
 
 	var payload loginRequestPayload
@@ -77,13 +78,13 @@ func (r *AuthAPIRoutes) loginHandler(c *fiber.Ctx) error {
 	return response.Send(c, 200, responseMessage)
 }
 
-func (r *AuthAPIRoutes) refreshHandler(c *fiber.Ctx) error {
+func (r *AccountAPIRoutes) refreshHandler(c *fiber.Ctx) error {
 	if !request.IsLogged(c) {
 		return response.SendError(c, 403, nil)
 	}
 
-	account := c.Locals("account").(*model.Account)
-	token, err := r.deps.Domains.Auth.CreateTokenForAccount(account)
+	account := c.Locals("account").(model.Account)
+	token, err := r.deps.Domains.Auth.CreateTokenForAccount(&account)
 	if err != nil {
 		return response.SendInternalServerError(c)
 	}
@@ -95,8 +96,17 @@ func (r *AuthAPIRoutes) refreshHandler(c *fiber.Ctx) error {
 	return response.Send(c, 202, responseMessage)
 }
 
-func NewAuthAPIRoutes(logger *zap.Logger, deps *config.Dependencies) *AuthAPIRoutes {
-	return &AuthAPIRoutes{
+func (r *AccountAPIRoutes) meHandler(c *fiber.Ctx) error {
+	if !request.IsLogged(c) {
+		return response.SendError(c, 403, nil)
+	}
+
+	account := c.Locals("account").(model.Account)
+	return response.Send(c, 200, account)
+}
+
+func NewAccountAPIRoutes(logger *zap.Logger, deps *config.Dependencies) *AccountAPIRoutes {
+	return &AccountAPIRoutes{
 		logger: logger,
 		router: fiber.New(),
 		deps:   deps,
