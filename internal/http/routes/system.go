@@ -2,6 +2,7 @@ package routes
 
 import (
 	"github.com/go-shiori/shiori/internal/config"
+	"github.com/go-shiori/shiori/internal/http/response"
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
 )
@@ -22,7 +23,7 @@ func (r *SystemRoutes) Router() *fiber.App {
 }
 
 func (r *SystemRoutes) livenessHandler(c *fiber.Ctx) error {
-	return c.SendStatus(200)
+	return response.Send(c, 200, "ok")
 }
 
 func NewSystemRoutes(logger *zap.Logger, _ config.HttpConfig) *SystemRoutes {
