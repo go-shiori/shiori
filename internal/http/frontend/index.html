@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<base href="$$.$$">
+	<title>Shiori - Bookmarks Manager</title>
+
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	<link rel="apple-touch-icon-precomposed" sizes="152x152" href="res/apple-touch-icon-152x152.png">
+	<link rel="apple-touch-icon-precomposed" sizes="144x144" href="res/apple-touch-icon-144x144.png">
+	<link rel="icon" type="image/png" href="res/favicon-32x32.png" sizes="32x32">
+	<link rel="icon" type="image/png" href="res/favicon-16x16.png" sizes="16x16">
+	<link rel="icon" type="image/x-icon" href="res/favicon.ico">
+
+	<link href="css/source-sans-pro.min.css" rel="stylesheet">
+	<link href="css/fontawesome.min.css" rel="stylesheet">
+	<link href="css/stylesheet.css" rel="stylesheet">
+	<link href="css/custom-dialog.css" rel="stylesheet">
+	<link href="css/bookmark-item.css" rel="stylesheet">
+
+	<script src="js/vue.min.js"></script>
+	<script src="js/url.min.js"></script>
+</head>
+
+<body class="night">
+	<div id="main-scene" :class="{night: appOptions.nightMode}">
+		<div id="main-sidebar">
+			<a v-for="item in sidebarItems" :title="item.title" :class="{active: activePage === item.page}" @click="switchPage(item.page)">
+				<i class="fas fa-fw" :class="item.icon"></i>
+			</a>
+			<div class="spacer"></div>
+			<a title="Logout" @click="logout">
+				<i class="fas fa-fw fa-sign-out-alt"></i>
+			</a>
+		</div>
+		<keep-alive>
+			<component :is="activePage" :active-account="activeAccount" :app-options="appOptions" @setting-changed="saveSetting"></component>
+		</keep-alive>
+		<custom-dialog v-bind="dialog" />
+	</div>
+
+	<script type="module">
+		import basePage from "./js/page/base.js";
+		import pageHome from "./js/page/home.js";
+		import pageSetting from "./js/page/setting.js";
+		import customDialog from "./js/component/dialog.js";
+
+		var app = new Vue({
+			el: '#main-scene',
+			mixins: [basePage],
+			components: {
+				pageHome,
+				pageSetting,
+				customDialog
+			},
+			data: {
+				activePage: "page-home",
+				sidebarItems: [{
+					title: "Home",
+					icon: "fa-home",
+					page: "page-home",
+				}, {
+					title: "Setting",
+					icon: "fa-cog",
+					page: "page-setting",
+				}],
+			},
+			methods: {
+				switchPage(page) {
+					var pageName = page.replace("page-", ""),
+						state = { activePage: page },
+						url = new Url;
+
+					url.hash = pageName;
+					this.activePage = page;
+					history.pushState(state, page, url);
+				},
+				logout() {
+					this.showDialog({
+						title: "Log Out",
+						content: "Are you sure you want to log out ?",
+						mainText: "Yes",
+						secondText: "No",
+						mainClick: () => {
+							this.dialog.loading = true;
+							fetch(new URL("api/logout", document.baseURI), {
+								method: "post"
+							}).then(response => {
+								if (!response.ok) throw response;
+								return response;
+							}).then(() => {
+								localStorage.removeItem("shiori-account");
+								document.cookie = `session-id=; Path=${new URL(document.baseURI).pathname}; Expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
+								location.href = new URL("login", document.baseURI);
+							}).catch(err => {
+								this.dialog.loading = false;
+								this.getErrorMessage(err).then(msg => {
+									this.showErrorDialog(msg);
+								})
+							});
+						}
+					});
+				},
+				saveSetting(opts) {
+					localStorage.setItem("shiori-setting", JSON.stringify(opts));
+					this.appOptions = opts;
+					document.body.className = opts.nightMode ? "night" : "";
+				},
+				loadSetting() {
+					var opts = JSON.parse(localStorage.getItem("shiori-setting")) || {},
+						showId = (typeof opts.showId === "boolean") ? opts.showId : false,
+						listMode = (typeof opts.listMode === "boolean") ? opts.listMode : false,
+						hideThumbnail = (typeof opts.hideThumbnail === "boolean") ? opts.hideThumbnail : false,
+						hideExcerpt = (typeof opts.hideExcerpt === "boolean") ? opts.hideExcerpt : false,
+						nightMode = (typeof opts.nightMode === "boolean") ? opts.nightMode : false,
+						keepMetadata = (typeof opts.keepMetadata === "boolean") ? opts.keepMetadata : false,
+						useArchive = (typeof opts.useArchive === "boolean") ? opts.useArchive : false,
+						makePublic = (typeof opts.makePublic === "boolean") ? opts.makePublic : false;
+
+					this.appOptions = {
+						showId: showId,
+						listMode: listMode,
+						hideThumbnail: hideThumbnail,
+						hideExcerpt: hideExcerpt,
+						nightMode: nightMode,
+						keepMetadata: keepMetadata,
+						useArchive: useArchive,
+						makePublic: makePublic,
+					};
+
+					document.body.className = nightMode ? "night" : "";
+				},
+				loadAccount() {
+					var account = JSON.parse(localStorage.getItem("shiori-account")) || {},
+						id = (typeof account.id === "number") ? account.id : 0,
+						username = (typeof account.username === "string") ? account.username : "",
+						owner = (typeof account.owner === "boolean") ? account.owner : false;
+
+					this.activeAccount = {
+						id: id,
+						username: username,
+						owner: owner,
+					};
+				}
+			},
+			mounted() {
+				// Load setting
+				this.loadSetting();
+				this.loadAccount();
+
+				// Prepare history state watcher
+				var stateWatcher = (e) => {
+					var state = e.state || {};
+					this.activePage = state.activePage || "page-home";
+				}
+
+				window.addEventListener('popstate', stateWatcher);
+				this.$once('hook:beforeDestroy', function () {
+					window.removeEventListener('popstate', stateWatcher);
+				})
+
+				// Set initial active page
+				var initialPage = (new Url).hash || "home";
+				if (initialPage === "home" || initialPage === "setting") {
+					this.activePage = `page-${initialPage}`;
+				} else {
+					history.replaceState(null, "page-home", "/#home");
+				}
+			}
+		})
+	</script>
+</body>
+
+</html>

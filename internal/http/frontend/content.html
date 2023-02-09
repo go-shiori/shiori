@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<base href="$$.RootPath$$">
+	<title>$$.Book.Title$$ - Shiori - Bookmarks Manager</title>
+
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	<link rel="apple-touch-icon-precomposed" sizes="152x152" href="res/apple-touch-icon-152x152.png">
+	<link rel="apple-touch-icon-precomposed" sizes="144x144" href="res/apple-touch-icon-144x144.png">
+	<link rel="icon" type="image/png" href="res/favicon-32x32.png" sizes="32x32">
+	<link rel="icon" type="image/png" href="res/favicon-16x16.png" sizes="16x16">
+	<link rel="icon" type="image/x-icon" href="res/favicon.ico">
+
+	<link href="css/source-sans-pro.min.css" rel="stylesheet">
+	<link href="css/stylesheet.css" rel="stylesheet">
+	<link href="css/custom-dialog.css" rel="stylesheet">
+	<link href="css/bookmark-item.css" rel="stylesheet">
+
+	<script src="js/dayjs.min.js"></script>
+	<script src="js/vue.min.js"></script>
+</head>
+
+<body class="night">
+	<div id="content-scene" :class="{night: appOptions.nightMode}">
+		<div id="header">
+			<p id="metadata" v-cloak>Added {{localtime()}}</p>
+			<p id="title">$$.Book.Title$$</p>
+			<div id="links">
+				<a href="$$.Book.URL$$" target="_blank" rel="noopener">View Original</a>
+				$$if .Book.HasArchive$$
+				<a href="bookmark/$$.Book.ID$$/archive">View Archive</a>
+				$$end$$
+			</div>
+		</div>
+		<div id="content" v-pre>
+			$$html .Book.HTML$$
+		</div>
+	</div>
+
+	<script type="module">
+		// Create initial variable
+		import basePage from "./js/page/base.js";
+
+		new Vue({
+			el: '#content-scene',
+			mixins: [basePage],
+			data: {
+				modified: "$$.Book.Modified$$"
+			},
+			methods: {
+				localtime() {
+					var strTime = this.modified.replace(" ", "T");
+					if (!strTime.endsWith("Z")) {
+						strTime += "Z";
+					}
+					return dayjs(strTime).format("D MMMM YYYY, HH:mm:ss");
+				},
+				loadSetting() {
+					var opts = JSON.parse(localStorage.getItem("shiori-setting")) || {},
+						showId = (typeof opts.showId === "boolean") ? opts.showId : false,
+						listMode = (typeof opts.listMode === "boolean") ? opts.listMode : false,
+						nightMode = (typeof opts.nightMode === "boolean") ? opts.nightMode : false,
+						useArchive = (typeof opts.useArchive === "boolean") ? opts.useArchive : false;
+
+					this.appOptions = {
+						showId: showId,
+						listMode: listMode,
+						nightMode: nightMode,
+						useArchive: useArchive,
+					};
+
+					document.body.className = nightMode ? "night" : "";
+				}
+			},
+			mounted() {
+				this.loadSetting();
+
+				document.querySelectorAll("#content a").forEach(elem => {
+					elem.setAttribute("target", "_blank");
+					elem.setAttribute("rel", "noopener");
+				});
+			}
+		});
+	</script>
+</body>
+
+</html>

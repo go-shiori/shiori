@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/go-shiori/shiori/internal/config"
-	views "github.com/go-shiori/shiori/internal/view"
+	"github.com/go-shiori/shiori/internal/http/frontend"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/compress"
 	"github.com/gofiber/fiber/v2/middleware/filesystem"
@@ -24,7 +24,7 @@ func (r *FrontendRoutes) Setup() *FrontendRoutes {
 		Use("/", filesystem.New(filesystem.Config{
 			Browse:       false,
 			MaxAge:       int(r.maxAge.Seconds()),
-			Root:         http.FS(views.Assets),
+			Root:         http.FS(frontend.Assets),
 			NotFoundFile: "404.html",
 		}))
 	return r

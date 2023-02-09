@@ -1,0 +1,73 @@
+:root {
+	--main           : #F44336;
+	--border         : #E5E5E5;
+	--colorLink      : #999;
+	--archiveHeaderBg: rgba(255, 255, 255, 0.95);
+
+	@media (prefers-color-scheme: dark) {
+		--border         : #191919;
+		--archiveHeaderBg: rgba(41, 41, 41, 0.95);
+	}
+}
+
+#shiori-archive-header {
+	top             : 0;
+	left            : 0;
+	right           : 0;
+	height          : 60px;
+	position        : fixed;
+	padding         : 0 16px;
+	display         : flex;
+	flex-flow       : row wrap;
+	align-items     : center;
+	font-size       : 16px;
+	border-bottom   : 1px solid var(--border);
+	background-color: var(--archiveHeaderBg);
+	z-index         : 9999999999;
+
+	* {
+		border-width: 0;
+		box-sizing  : border-box;
+		font-family : "Source Sans Pro", sans-serif;
+		margin      : 0;
+		padding     : 0;
+	}
+
+	>*:not(:last-child) {
+		margin-right: 8px;
+	}
+
+	>.spacer {
+		flex: 1;
+	}
+
+	#shiori-logo {
+		font-size  : 2em;
+		font-weight: 100;
+		color      : var(--main);
+
+		span {
+			margin-right: 8px;
+		}
+	}
+
+	a {
+		display        : block;
+		color          : var(--colorLink);
+		text-decoration: underline;
+
+		&:hover,
+		&:focus {
+			color: var(--main);
+		}
+	}
+
+	@media (max-width: 600px) {
+		font-size: 14px;
+		height   : 50px;
+
+		#shiori-logo {
+			font-size: 1.5em;
+		}
+	}
+}
