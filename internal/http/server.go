@@ -2,14 +2,12 @@ package http
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
 
 	"github.com/go-shiori/shiori/internal/config"
-	"github.com/go-shiori/shiori/internal/http/response"
 	"github.com/go-shiori/shiori/internal/http/routes"
 	"github.com/go-shiori/shiori/internal/http/routes/api"
 	"github.com/gofiber/contrib/fiberzap"
@@ -34,8 +32,13 @@ func (s *HttpServer) Setup(cfg config.HttpConfig, deps *config.Dependencies) *Ht
 		Use(requestid.New(requestid.Config{
 			Generator: utils.UUIDv4,
 		})).
+		Use(recover.New(recover.Config{
+			EnableStackTrace: true,
+			StackTraceHandler: func(c *fiber.Ctx, e interface{}) {
+				s.logger.With(zap.Any("error", e)).Error("server error")
+			},
+		})).
 		Use(fiberzap.New(fiberzapConfig)).
-		Use(recover.New()).
 		Mount(cfg.Routes.System.Path, routes.NewSystemRoutes(s.logger, cfg).Setup().Router()).
 		Mount(cfg.Routes.API.Path, api.NewAPIRoutes(s.logger, cfg, deps).Setup().Router()).
 		Mount(cfg.Routes.Frontend.Path, routes.NewFrontendRoutes(s.logger, cfg).Setup().Router())
@@ -78,15 +81,6 @@ func NewHttpServer(logger *zap.Logger, cfg config.HttpConfig, dependencies *conf
 			IdleTimeout:                  cfg.IDLETimeout,
 			DisableKeepalive:             cfg.DisableKeepAlive,
 			DisablePreParseMultipartForm: cfg.DisablePreParseMultipartForm,
-			ErrorHandler: func(c *fiber.Ctx, err error) error {
-				// Broken: https://github.com/gofiber/fiber/issues/2233
-				code := fiber.StatusInternalServerError
-				var e *fiber.Error
-				if errors.As(err, &e) {
-					code = e.Code
-				}
-				return response.SendError(c, code, "")
-			},
 		}),
 	}
 }
