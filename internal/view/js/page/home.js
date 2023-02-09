@@ -197,7 +197,7 @@ export default {
 			keyword = keyword.trim().replace(/\s+/g, " ");
 
 			// Prepare URL for API
-			var url = new URL("api/v1/bookmarks", document.baseURI);
+			var url = new URL("api/bookmarks", document.baseURI);
 			url.search = new URLSearchParams({
 				keyword: keyword,
 				tags: tags.join(","),
@@ -239,7 +239,7 @@ export default {
 
 					// Fetch tags if requested
 					if (fetchTags) {
-						return fetch(new URL("api/v1/tags", document.baseURI), {headers: {'Content-Type': 'application/json'}});
+						return fetch(new URL("api/tags", document.baseURI), {headers: {'Content-Type': 'application/json'}});
 					} else {
 						this.loading = false;
 						throw skipFetchTags;
@@ -410,7 +410,7 @@ export default {
 					};
 
 					this.dialog.loading = true;
-					fetch(new URL("api/v1/bookmarks", document.baseURI), {
+					fetch(new URL("api/bookmarks", document.baseURI), {
 						method: "post",
 						body: JSON.stringify(data),
 						headers: { "Content-Type": "application/json" }
@@ -499,7 +499,7 @@ export default {
 
 					// Send data
 					this.dialog.loading = true;
-					fetch(new URL("api/v1/bookmarks", document.baseURI), {
+					fetch(new URL("api/bookmarks", document.baseURI), {
 						method: "put",
 						body: JSON.stringify(book),
 						headers: { "Content-Type": "application/json" }
@@ -554,7 +554,7 @@ export default {
 				secondText: "No",
 				mainClick: () => {
 					this.dialog.loading = true;
-					fetch(new URL("api/v1/bookmarks", document.baseURI), {
+					fetch(new URL("api/bookmarks", document.baseURI), {
 						method: "delete",
 						body: JSON.stringify(ids),
 						headers: { "Content-Type": "application/json" },
@@ -624,7 +624,7 @@ export default {
 					};
 
 					this.dialog.loading = true;
-					fetch(new URL("api/v1/cache", document.baseURI), {
+					fetch(new URL("api/cache", document.baseURI), {
 						method: "put",
 						body: JSON.stringify(data),
 						headers: { "Content-Type": "application/json" },
@@ -702,7 +702,7 @@ export default {
 					}
 
 					this.dialog.loading = true;
-					fetch(new URL("api/v1/bookmarks/tags", document.baseURI), {
+					fetch(new URL("api/bookmarks/tags", document.baseURI), {
 						method: "put",
 						body: JSON.stringify(request),
 						headers: { "Content-Type": "application/json" },
