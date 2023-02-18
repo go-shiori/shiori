@@ -66,6 +66,9 @@ type HttpConfig struct {
 			Path string `env:"ROUTE_API_PATH,default=/api/v1"`
 		}
 	}
+	Storage struct {
+		DataDir string `env:"DATA_DIR"`
+	}
 }
 
 type Config struct {

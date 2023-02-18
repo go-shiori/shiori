@@ -10,7 +10,8 @@ type Dependencies struct {
 	Log      *zap.Logger
 	Database database.DB
 	Domains  struct {
-		Auth domains.AccountsDomain
+		Auth     domains.AccountsDomain
+		Archiver domains.ArchiverDomain
 	}
 }
 
