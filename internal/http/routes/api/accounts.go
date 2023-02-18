@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/go-shiori/shiori/internal/config"
 	"github.com/go-shiori/shiori/internal/http/request"
@@ -66,7 +67,12 @@ func (r *AccountAPIRoutes) loginHandler(c *fiber.Ctx) error {
 		return response.SendError(c, 400, err.Error())
 	}
 
-	token, err := r.deps.Domains.Auth.CreateTokenForAccount(account)
+	expiration := time.Now().Add(time.Hour)
+	if payload.RememberMe {
+		expiration = time.Now().Add(time.Hour * 24 * 30)
+	}
+
+	token, err := r.deps.Domains.Auth.CreateTokenForAccount(account, expiration)
 	if err != nil {
 		return response.SendInternalServerError(c)
 	}
@@ -84,7 +90,7 @@ func (r *AccountAPIRoutes) refreshHandler(c *fiber.Ctx) error {
 	}
 
 	account := c.Locals("account").(model.Account)
-	token, err := r.deps.Domains.Auth.CreateTokenForAccount(&account)
+	token, err := r.deps.Domains.Auth.CreateTokenForAccount(&account, time.Now().Add(time.Hour*72))
 	if err != nil {
 		return response.SendInternalServerError(c)
 	}

@@ -109,18 +109,7 @@
 						// Save account data
 						localStorage.setItem("shiori-token", json.message.token);
 
-						// Go to destination page
-						var currentUrl = new Url,
-							dstUrl = currentUrl.query.dst,
-							dstPage = currentUrl.hash || "home";
-
-						if (dstPage !== "home" && dstPage !== "setting") {
-							dstPage = "";
-						}
-
-						var newUrl = new Url(dstUrl || document.baseURI);
-						newUrl.hash = dstPage;
-						location.href = newUrl;
+						location.href = "/";
 					}).catch(err => {
 						this.loading = false;
 						this.getErrorMessage(err).then(msg => {
