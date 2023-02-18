@@ -41,6 +41,7 @@ func (s *HttpServer) Setup(cfg config.HttpConfig, deps *config.Dependencies) *Ht
 		Use(fiberzap.New(fiberzapConfig)).
 		Mount(cfg.Routes.System.Path, routes.NewSystemRoutes(s.logger, cfg).Setup().Router()).
 		Mount(cfg.Routes.API.Path, api.NewAPIRoutes(s.logger, cfg, deps).Setup().Router()).
+		Mount(cfg.Routes.Bookmark.Path, routes.NewBookmarkRoutes(s.logger, deps).Setup().Router()).
 		Mount(cfg.Routes.Frontend.Path, routes.NewFrontendRoutes(s.logger, cfg).Setup().Router())
 
 	return s

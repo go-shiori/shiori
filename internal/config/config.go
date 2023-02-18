@@ -55,6 +55,9 @@ type HttpConfig struct {
 	DisableKeepAlive             bool          `env:"HTTP_DISABLE_KEEP_ALIVE,default=true"`
 	DisablePreParseMultipartForm bool          `env:"HTTP_DISABLE_PARSE_MULTIPART_FORM,default=true"`
 	Routes                       struct {
+		Bookmark struct {
+			Path string `env:"ROUTES_BOOKMARK_PATH,default=/bookmark"`
+		}
 		Frontend struct {
 			Path   string        `env:"ROUTES_STATIC_PATH,default=/"`
 			MaxAge time.Duration `env:"ROUTES_STATIC_MAX_AGE,default=720h"`
