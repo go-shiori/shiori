@@ -250,7 +250,7 @@ export default {
 					return response.json();
 				})
 				.then(json => {
-					this.tags = json;
+					this.tags = json.message;
 					this.loading = false;
 				})
 				.catch(err => {
