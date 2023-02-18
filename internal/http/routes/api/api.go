@@ -23,7 +23,8 @@ func (r *APIRoutes) Setup() *APIRoutes {
 		Use(middleware.AuthMiddleware(r.secret)).
 		Mount("/account", NewAccountAPIRoutes(r.logger, r.deps).Setup().Router()).
 		Mount("/bookmarks", NewBookmarksPIRoutes(r.logger, r.deps).Setup().Router()).
-		Mount("/tags", NewTagsPIRoutes(r.logger, r.deps).Setup().Router())
+		Mount("/tags", NewTagsPIRoutes(r.logger, r.deps).Setup().Router()).
+		Mount("/debug", NewDebugPIRoutes(r.logger, r.deps).Setup().Router())
 
 	return r
 }
