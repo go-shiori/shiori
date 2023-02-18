@@ -1,7 +1,7 @@
 var template = `
 <div class="bookmark" :class="{list: listMode, 'no-thumbnail': hideThumbnail, selected: selected}">
-	<a class="bookmark-selector" 
-		v-if="editMode" 
+	<a class="bookmark-selector"
+		v-if="editMode"
 		@click="selectBookmark">
 	</a>
 	<a class="bookmark-link" :href="mainURL" target="_blank" rel="noopener">
