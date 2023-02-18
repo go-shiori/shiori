@@ -554,9 +554,8 @@ export default {
 				secondText: "No",
 				mainClick: () => {
 					this.dialog.loading = true;
-					fetch(new URL("api/v1/bookmarks", document.baseURI), {
+					fetch(new URL("api/v1/bookmarks/" + ids, document.baseURI), {
 						method: "delete",
-						body: JSON.stringify(ids),
 						headers: { "Content-Type": "application/json" },
 					}).then(response => {
 						if (!response.ok) throw response;
