@@ -31,10 +31,10 @@ func (d *AccountsDomain) GetAccountFromCredentials(ctx context.Context, username
 	return &account, nil
 }
 
-func (d *AccountsDomain) CreateTokenForAccount(account *model.Account) (string, error) {
+func (d *AccountsDomain) CreateTokenForAccount(account *model.Account, expiration time.Time) (string, error) {
 	claims := jwt.MapClaims{
 		"account": account,
-		"exp":     time.Now().Add(time.Hour * 72).Unix(),
+		"exp":     expiration.UTC().Unix(),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
