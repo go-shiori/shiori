@@ -7,6 +7,7 @@ import (
 	"github.com/go-shiori/shiori/internal/config"
 	"github.com/go-shiori/shiori/internal/http/frontend"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cache"
 	"github.com/gofiber/fiber/v2/middleware/compress"
 	"github.com/gofiber/fiber/v2/middleware/filesystem"
 	"github.com/sirupsen/logrus"
@@ -19,8 +20,11 @@ type FrontendRoutes struct {
 }
 
 func (r *FrontendRoutes) Setup() *FrontendRoutes {
+	cacheConfig := cache.ConfigDefault
+	cacheConfig.Expiration = 24 * time.Hour
 	r.router.
 		Use(compress.New()).
+		Use(cache.New(cacheConfig)).
 		Use("/", filesystem.New(filesystem.Config{
 			Browse:       false,
 			MaxAge:       int(r.maxAge.Seconds()),
