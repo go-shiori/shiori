@@ -85,14 +85,18 @@
 						secondText: "No",
 						mainClick: () => {
 							this.dialog.loading = true;
-							fetch(new URL("api/logout", document.baseURI), {
-								method: "post"
+							fetch(new URL("api/v1/account/logout", document.baseURI), {
+								method: "post",
+								headers: {
+									"Content-Type": "application/json",
+									"Authorization": `Bearer ${this.token}`,
+								},
 							}).then(response => {
 								if (!response.ok) throw response;
 								return response;
 							}).then(() => {
 								localStorage.removeItem("shiori-token");
-								location.href = new URL("login", document.baseURI);
+								location.href = new URL("login.html", document.baseURI);
 							}).catch(err => {
 								this.dialog.loading = false;
 								this.getErrorMessage(err).then(msg => {

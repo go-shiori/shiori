@@ -23,7 +23,18 @@ func (r *AccountAPIRoutes) Setup() *AccountAPIRoutes {
 	r.router.Get("/me", r.meHandler)
 	r.router.Post("/login", r.loginHandler)
 	r.router.Post("/refresh", r.refreshHandler)
+	r.router.Post("/logout", r.logoutHandler)
 	return r
+}
+
+func (r *AccountAPIRoutes) setCookie(c *fiber.Ctx, token string, expiration time.Time) {
+	c.Cookie(&fiber.Cookie{
+		Name:    "auth",
+		Value:   token,
+		Path:    "/",
+		Secure:  !r.deps.Config.Development,
+		Expires: expiration,
+	})
 }
 
 func (r *AccountAPIRoutes) Router() *fiber.App {
@@ -81,6 +92,8 @@ func (r *AccountAPIRoutes) loginHandler(c *fiber.Ctx) error {
 		Token: token,
 	}
 
+	r.setCookie(c, token, expiration)
+
 	return response.Send(c, 200, responseMessage)
 }
 
@@ -89,8 +102,9 @@ func (r *AccountAPIRoutes) refreshHandler(c *fiber.Ctx) error {
 		return response.SendError(c, 403, nil)
 	}
 
+	expiration := time.Now().Add(time.Hour * 72)
 	account := c.Locals("account").(model.Account)
-	token, err := r.deps.Domains.Auth.CreateTokenForAccount(&account, time.Now().Add(time.Hour*72))
+	token, err := r.deps.Domains.Auth.CreateTokenForAccount(&account, expiration)
 	if err != nil {
 		return response.SendInternalServerError(c)
 	}
@@ -98,6 +112,8 @@ func (r *AccountAPIRoutes) refreshHandler(c *fiber.Ctx) error {
 	responseMessage := loginResponseMessage{
 		Token: token,
 	}
+
+	r.setCookie(c, token, expiration)
 
 	return response.Send(c, 202, responseMessage)
 }
@@ -109,6 +125,17 @@ func (r *AccountAPIRoutes) meHandler(c *fiber.Ctx) error {
 
 	account := c.Locals("account").(model.Account)
 	return response.Send(c, 200, account)
+}
+
+func (r *AccountAPIRoutes) logoutHandler(c *fiber.Ctx) error {
+	if !request.IsLogged(c) {
+		return response.SendError(c, 403, nil)
+	}
+
+	c.ClearCookie("auth")
+
+	// no-op server side, at least for now
+	return response.Send(c, 200, "logged out")
 }
 
 func NewAccountAPIRoutes(logger *logrus.Logger, deps *config.Dependencies) *AccountAPIRoutes {
