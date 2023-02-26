@@ -7,11 +7,11 @@ import (
 	"github.com/go-shiori/shiori/internal/config"
 	"github.com/go-shiori/shiori/internal/domains"
 	"github.com/go-shiori/shiori/internal/http"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"go.uber.org/zap"
 )
 
-func newServerCommand(logger *zap.Logger) *cobra.Command {
+func newServerCommand(logger *logrus.Logger) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "server",
 		Short: "Run the Shiori webserver [alpha]",
@@ -27,18 +27,22 @@ func newServerCommand(logger *zap.Logger) *cobra.Command {
 	return cmd
 }
 
-func newServerCommandHandler(logger *zap.Logger) func(cmd *cobra.Command, args []string) {
+func newServerCommandHandler(logger *logrus.Logger) func(cmd *cobra.Command, args []string) {
 	return func(cmd *cobra.Command, args []string) {
 		ctx := context.Background()
 
 		database, err := openDatabase(ctx)
 		if err != nil {
-			logger.Fatal("error opening database", zap.Error(err))
+			logger.WithError(err).Fatal("error opening database")
 		}
 
 		cfg := config.ParseServerConfiguration(ctx, logger)
 
-		dependencies := config.NewDependencies(logger, database)
+		if cfg.Development {
+			logger.Warn("Development mode is ENABLED, this will enable some helpers for local development, unsuitable for production environments")
+		}
+
+		dependencies := config.NewDependencies(logger, database, cfg)
 		dependencies.Domains.Auth = domains.NewAccountsDomain(logger, cfg.Http.SecretKey, database)
 		dependencies.Domains.Archiver = domains.NewArchiverDomain(logger, cfg.Http.Storage.DataDir)
 
@@ -70,7 +74,7 @@ func newServerCommandHandler(logger *zap.Logger) func(cmd *cobra.Command, args [
 		server := http.NewHttpServer(logger, cfg.Http, dependencies).Setup(cfg.Http, dependencies)
 
 		if err := server.Start(ctx); err != nil {
-			logger.Fatal("error starting server", zap.Error(err))
+			logger.WithError(err).Fatal("error starting server")
 		}
 
 		server.WaitStop(ctx)

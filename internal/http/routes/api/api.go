@@ -7,11 +7,11 @@ import (
 	"github.com/go-shiori/shiori/internal/http/middleware"
 	"github.com/go-shiori/shiori/internal/http/response"
 	"github.com/gofiber/fiber/v2"
-	"go.uber.org/zap"
+	"github.com/sirupsen/logrus"
 )
 
 type APIRoutes struct {
-	logger *zap.Logger
+	logger *logrus.Logger
 	router *fiber.App
 	deps   *config.Dependencies
 	secret string
@@ -23,8 +23,11 @@ func (r *APIRoutes) Setup() *APIRoutes {
 		Use(middleware.AuthMiddleware(r.secret)).
 		Mount("/account", NewAccountAPIRoutes(r.logger, r.deps).Setup().Router()).
 		Mount("/bookmarks", NewBookmarksPIRoutes(r.logger, r.deps).Setup().Router()).
-		Mount("/tags", NewTagsPIRoutes(r.logger, r.deps).Setup().Router()).
-		Mount("/debug", NewDebugPIRoutes(r.logger, r.deps).Setup().Router())
+		Mount("/tags", NewTagsPIRoutes(r.logger, r.deps).Setup().Router())
+
+	if r.deps.Config.Development {
+		r.router.Mount("/debug", NewDebugPIRoutes(r.logger, r.deps).Setup().Router())
+	}
 
 	return r
 }
@@ -33,7 +36,7 @@ func (r *APIRoutes) Router() *fiber.App {
 	return r.router
 }
 
-func NewAPIRoutes(logger *zap.Logger, cfg config.HttpConfig, deps *config.Dependencies) *APIRoutes {
+func NewAPIRoutes(logger *logrus.Logger, cfg config.HttpConfig, deps *config.Dependencies) *APIRoutes {
 	return &APIRoutes{
 		logger: logger,
 		router: fiber.New(fiber.Config{

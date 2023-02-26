@@ -10,7 +10,6 @@ require (
 	github.com/go-shiori/go-readability v0.0.0-20220215145315-dd6828d2f09b
 	github.com/go-shiori/warc v0.0.0-20200621032813-359908319d1d
 	github.com/go-sql-driver/mysql v1.7.0
-	github.com/gofiber/contrib/fiberzap v0.0.0-20230206103251-7efcdb27c2cf
 	github.com/gofiber/fiber/v2 v2.42.0
 	github.com/gofiber/jwt/v3 v3.3.6
 	github.com/gofrs/uuid v4.4.0+incompatible
@@ -27,7 +26,6 @@ require (
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.6.1
 	github.com/stretchr/testify v1.8.1
-	go.uber.org/zap v1.24.0
 	golang.org/x/crypto v0.5.0
 	golang.org/x/net v0.5.0
 	golang.org/x/term v0.4.0
@@ -66,7 +64,6 @@ require (
 	github.com/valyala/tcplisten v1.0.0 // indirect
 	go.etcd.io/bbolt v1.3.7 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
-	go.uber.org/multierr v1.9.0 // indirect
 	golang.org/x/image v0.3.0 // indirect
 	golang.org/x/mod v0.7.0 // indirect
 	golang.org/x/sys v0.4.0 // indirect

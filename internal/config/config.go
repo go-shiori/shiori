@@ -8,11 +8,11 @@ import (
 	"time"
 
 	"github.com/sethvargo/go-envconfig"
-	"go.uber.org/zap"
+	"github.com/sirupsen/logrus"
 )
 
 // readDotEnv reads the configuration from variables in a .env file (only for contributing)
-func readDotEnv(logger *zap.Logger) map[string]string {
+func readDotEnv(logger *logrus.Logger) map[string]string {
 	file, err := os.Open(".env")
 	if err != nil {
 		return nil
@@ -34,7 +34,7 @@ func readDotEnv(logger *zap.Logger) map[string]string {
 	}
 
 	if err := scanner.Err(); err != nil {
-		logger.Fatal("error reading dotenv", zap.Error(err))
+		logger.WithError(err).Fatal("error reading dotenv")
 	}
 
 	return result
@@ -75,12 +75,13 @@ type HttpConfig struct {
 }
 
 type Config struct {
-	Hostname string `env:"HOSTNAME,required"`
+	Hostname    string `env:"HOSTNAME,required"`
+	Development bool   `env:"DEVELOPMENT,default=false"`
 	// LogLevel string `env:"LOG_LEVEL,default=info"`
 	Http HttpConfig
 }
 
-func ParseServerConfiguration(ctx context.Context, logger *zap.Logger) *Config {
+func ParseServerConfiguration(ctx context.Context, logger *logrus.Logger) *Config {
 	var cfg Config
 
 	lookuper := envconfig.MultiLookuper(
@@ -90,7 +91,7 @@ func ParseServerConfiguration(ctx context.Context, logger *zap.Logger) *Config {
 		envconfig.OsLookuper(),
 	)
 	if err := envconfig.ProcessWith(ctx, &cfg, lookuper); err != nil {
-		logger.Fatal("Error parsing configuration: %s", zap.Error(err))
+		logger.WithError(err).Fatal("Error parsing configuration")
 	}
 
 	return &cfg

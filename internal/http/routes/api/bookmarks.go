@@ -11,11 +11,11 @@ import (
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/gofiber/fiber/v2"
 	"github.com/pkg/errors"
-	"go.uber.org/zap"
+	"github.com/sirupsen/logrus"
 )
 
 type BookmarksAPIRoutes struct {
-	logger *zap.Logger
+	logger *logrus.Logger
 	router *fiber.App
 	deps   *config.Dependencies
 }
@@ -88,19 +88,19 @@ func (r *BookmarksAPIRoutes) createHandler(c *fiber.Ctx) error {
 
 	payload := newAPICreateBookmarkPayload()
 	if err := json.Unmarshal(c.Body(), &payload); err != nil {
-		// r.logger.Error("Error parsing payload", zap.Error(err))
+		r.logger.WithError(err).Error("Error parsing payload")
 		return response.SendError(c, 400, "Couldn't understand request")
 	}
 
 	bookmark, err := payload.ToBookmark()
 	if err != nil {
-		r.logger.Error("Error creating bookmark from request", zap.Error(err))
+		r.logger.WithError(err).Error("Error creating bookmark from request")
 		return response.SendError(c, 400, "Couldn't understand request parameters")
 	}
 
 	results, err := r.deps.Database.SaveBookmarks(ctx, true, *bookmark)
 	if err != nil || len(results) == 0 {
-		r.logger.Error("Error creating bookmark", zap.Error(err), zap.Any("payload", payload))
+		r.logger.WithError(err).WithField("payload", payload).Error("Error creating bookmark")
 		return response.SendInternalServerError(c)
 	}
 
@@ -110,11 +110,11 @@ func (r *BookmarksAPIRoutes) createHandler(c *fiber.Ctx) error {
 		go func() {
 			bookmark, err := r.deps.Domains.Archiver.DownloadBookmarkArchive(book)
 			if err != nil {
-				r.logger.Error("Error downloading bookmark", zap.Error(err))
+				r.logger.WithError(err).Error("Error downloading bookmark")
 				return
 			}
 			if _, err := r.deps.Database.SaveBookmarks(ctx, false, *bookmark); err != nil {
-				r.logger.Error("Error saving bookmark", zap.Error(err))
+				r.logger.WithError(err).Error("Error saving bookmark")
 			}
 		}()
 	} else {
@@ -122,9 +122,9 @@ func (r *BookmarksAPIRoutes) createHandler(c *fiber.Ctx) error {
 		// id already set in the object regardless of the database engine.
 		book, err := r.deps.Domains.Archiver.DownloadBookmarkArchive(book)
 		if err != nil {
-			r.logger.Error("Error downloading bookmark", zap.Error(err))
+			r.logger.WithError(err).Error("Error downloading bookmark")
 		} else if _, err := r.deps.Database.SaveBookmarks(ctx, false, *book); err != nil {
-			r.logger.Error("Error saving bookmark", zap.Error(err))
+			r.logger.WithError(err).Error("Error saving bookmark")
 		}
 	}
 
@@ -148,14 +148,14 @@ func (r *BookmarksAPIRoutes) deleteHandler(c *fiber.Ctx) error {
 	}
 
 	if err := r.deps.Database.DeleteBookmarks(ctx, bookmarkID); err != nil {
-		r.logger.Error("Error deleting bookmark", zap.Error(err))
+		r.logger.WithError(err).Error("Error deleting bookmark")
 		return response.SendInternalServerError(c)
 	}
 
 	return response.Send(c, 200, "Bookmark deleted")
 }
 
-func NewBookmarksPIRoutes(logger *zap.Logger, deps *config.Dependencies) *BookmarksAPIRoutes {
+func NewBookmarksPIRoutes(logger *logrus.Logger, deps *config.Dependencies) *BookmarksAPIRoutes {
 	return &BookmarksAPIRoutes{
 		logger: logger,
 		router: fiber.New(),

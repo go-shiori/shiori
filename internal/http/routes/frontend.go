@@ -9,11 +9,11 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/compress"
 	"github.com/gofiber/fiber/v2/middleware/filesystem"
-	"go.uber.org/zap"
+	"github.com/sirupsen/logrus"
 )
 
 type FrontendRoutes struct {
-	logger *zap.Logger
+	logger *logrus.Logger
 	router *fiber.App
 	maxAge time.Duration
 }
@@ -34,7 +34,7 @@ func (r *FrontendRoutes) Router() *fiber.App {
 	return r.router
 }
 
-func NewFrontendRoutes(logger *zap.Logger, cfg config.HttpConfig) *FrontendRoutes {
+func NewFrontendRoutes(logger *logrus.Logger, cfg config.HttpConfig) *FrontendRoutes {
 	return &FrontendRoutes{
 		logger: logger,
 		router: fiber.New(),

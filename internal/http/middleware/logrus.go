@@ -9,25 +9,25 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"go.uber.org/zap"
+	"github.com/sirupsen/logrus"
 )
 
-// ZapMiddlewareConfig defines the config for middleware
-type ZapMiddlewareConfig struct {
+// LogrusMiddlewareConfig defines the config for middleware
+type LogrusMiddlewareConfig struct {
 	// Next defines a function to skip this middleware when returned true.
 	//
 	// Optional. Default: nil
 	Next func(c *fiber.Ctx) bool
 
-	// Logger defines zap logger instance
-	Logger *zap.Logger
+	// Logger defines logrus logger instance
+	Logger *logrus.Logger
 
 	// CacheHeader defines the header name to get cache status from
 	CacheHeader string
 }
 
 // New creates a new middleware handler
-func NewZapMiddleware(config ZapMiddlewareConfig) fiber.Handler {
+func NewLogrusMiddleware(config LogrusMiddlewareConfig) fiber.Handler {
 	var (
 		errPadding  = 15
 		start, stop time.Time
@@ -64,27 +64,27 @@ func NewZapMiddleware(config ZapMiddlewareConfig) fiber.Handler {
 
 		stop = time.Now()
 
-		fields := []zap.Field{
-			zap.Namespace("context"),
-			zap.String("method", c.Method()),
-			zap.String("path", c.Path()),
-			zap.Int("status_code", c.Response().StatusCode()),
-			zap.String("pid", strconv.Itoa(os.Getpid())),
-			zap.String("time", stop.Sub(start).String()),
-			zap.String("cache", string(c.Response().Header.Peek(config.CacheHeader))),
-			zap.String("request-id", c.Locals("requestid").(string)),
+		fields := logrus.Fields{
+			"method":      c.Method(),
+			"path":        c.Path(),
+			"status_code": c.Response().StatusCode(),
+			"pid":         strconv.Itoa(os.Getpid()),
+			"duration":    stop.Sub(start).String(),
+			"cache":       string(c.Response().Header.Peek(config.CacheHeader)),
+			"request-id":  c.Locals("requestid").(string),
 		}
+		l := config.Logger.WithFields(fields)
 
-		formatErr := ""
 		if chainErr != nil {
-			formatErr = chainErr.Error()
-			fields = append(fields, zap.String("error", formatErr))
-			config.Logger.With(fields...).Error(formatErr)
-
-			return nil
+			l = l.WithError(chainErr)
 		}
 
-		config.Logger.With(fields...).Info("request handled")
+		msg := c.Method() + " " + string(c.Context().RequestURI())
+		if c.Response().StatusCode() == fiber.StatusOK {
+			l.Info(msg)
+		} else {
+			l.Warn(msg)
+		}
 
 		return nil
 	}

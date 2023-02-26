@@ -8,12 +8,12 @@ import (
 	"github.com/go-shiori/shiori/internal/database"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/golang-jwt/jwt/v4"
-	"go.uber.org/zap"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type AccountsDomain struct {
-	logger *zap.Logger
+	logger *logrus.Logger
 	db     database.DB
 	secret []byte
 }
@@ -41,13 +41,13 @@ func (d *AccountsDomain) CreateTokenForAccount(account *model.Account, expiratio
 
 	t, err := token.SignedString(d.secret)
 	if err != nil {
-		d.logger.Error("error signing token", zap.Error(err))
+		d.logger.WithError(err).Error("error signing token")
 	}
 
 	return t, err
 }
 
-func NewAccountsDomain(logger *zap.Logger, secretKey string, db database.DB) AccountsDomain {
+func NewAccountsDomain(logger *logrus.Logger, secretKey string, db database.DB) AccountsDomain {
 	return AccountsDomain{
 		logger: logger,
 		db:     db,

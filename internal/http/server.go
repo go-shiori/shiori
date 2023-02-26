@@ -8,26 +8,24 @@ import (
 	"syscall"
 
 	"github.com/go-shiori/shiori/internal/config"
+	"github.com/go-shiori/shiori/internal/http/middleware"
 	"github.com/go-shiori/shiori/internal/http/routes"
 	"github.com/go-shiori/shiori/internal/http/routes/api"
-	"github.com/gofiber/contrib/fiberzap"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cache"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 	"github.com/gofiber/fiber/v2/utils"
-	"go.uber.org/zap"
+	"github.com/sirupsen/logrus"
 )
 
 type HttpServer struct {
 	http   *fiber.App
 	addr   string
-	logger *zap.Logger
+	logger *logrus.Logger
 }
 
 func (s *HttpServer) Setup(cfg config.HttpConfig, deps *config.Dependencies) *HttpServer {
-	fiberzapConfig := fiberzap.ConfigDefault
-	fiberzapConfig.Logger = s.logger
-
 	s.http.
 		Use(requestid.New(requestid.Config{
 			Generator: utils.UUIDv4,
@@ -35,10 +33,13 @@ func (s *HttpServer) Setup(cfg config.HttpConfig, deps *config.Dependencies) *Ht
 		Use(recover.New(recover.Config{
 			EnableStackTrace: true,
 			StackTraceHandler: func(c *fiber.Ctx, e interface{}) {
-				s.logger.With(zap.Any("error", e)).Error("server error")
+				s.logger.WithError(e.(error)).Error("server error")
 			},
 		})).
-		Use(fiberzap.New(fiberzapConfig)).
+		Use(middleware.NewLogrusMiddleware(middleware.LogrusMiddlewareConfig{
+			Logger:      s.logger,
+			CacheHeader: cache.ConfigDefault.CacheHeader,
+		})).
 		Mount(cfg.Routes.System.Path, routes.NewSystemRoutes(s.logger, cfg).Setup().Router()).
 		Mount(cfg.Routes.API.Path, api.NewAPIRoutes(s.logger, cfg, deps).Setup().Router()).
 		Mount(cfg.Routes.Bookmark.Path, routes.NewBookmarkRoutes(s.logger, deps).Setup().Router()).
@@ -48,12 +49,12 @@ func (s *HttpServer) Setup(cfg config.HttpConfig, deps *config.Dependencies) *Ht
 }
 
 func (s *HttpServer) Start(_ context.Context) error {
-	s.logger.Info("starting http server", zap.String("addr", s.addr))
+	s.logger.WithField("addr", s.addr).Info("starting http server")
 	return s.http.Listen(s.addr)
 }
 
 func (s *HttpServer) Stop(ctx context.Context) error {
-	s.logger.Info("stoppping http server", zap.String("address", s.addr))
+	s.logger.WithField("addr", s.addr).Info("stoppping http server")
 	return s.http.Shutdown()
 }
 
@@ -62,14 +63,14 @@ func (s *HttpServer) WaitStop(ctx context.Context) {
 	signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM)
 
 	sig := <-signals
-	s.logger.Info("signal received, shutting down", zap.String("signal", sig.String()))
+	s.logger.WithField("signal", sig.String()).Info("signal received, shutting down")
 
 	if err := s.Stop(ctx); err != nil {
-		s.logger.Error("error stopping server", zap.Error(err))
+		s.logger.WithError(err).Error("error stopping server")
 	}
 }
 
-func NewHttpServer(logger *zap.Logger, cfg config.HttpConfig, dependencies *config.Dependencies) *HttpServer {
+func NewHttpServer(logger *logrus.Logger, cfg config.HttpConfig, dependencies *config.Dependencies) *HttpServer {
 	return &HttpServer{
 		logger: logger,
 		addr:   fmt.Sprintf("%s%d", cfg.Address, cfg.Port),

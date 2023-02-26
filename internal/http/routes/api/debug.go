@@ -5,11 +5,11 @@ import (
 	"github.com/go-shiori/shiori/internal/http/response"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/gofiber/fiber/v2"
-	"go.uber.org/zap"
+	"github.com/sirupsen/logrus"
 )
 
 type DebugAPIRoutes struct {
-	logger *zap.Logger
+	logger *logrus.Logger
 	router *fiber.App
 	deps   *config.Dependencies
 }
@@ -38,7 +38,7 @@ func (r *DebugAPIRoutes) createUserHandler(c *fiber.Ctx) error {
 	return response.Send(c, 201, account)
 }
 
-func NewDebugPIRoutes(logger *zap.Logger, deps *config.Dependencies) *DebugAPIRoutes {
+func NewDebugPIRoutes(logger *logrus.Logger, deps *config.Dependencies) *DebugAPIRoutes {
 	return &DebugAPIRoutes{
 		logger: logger,
 		router: fiber.New(),

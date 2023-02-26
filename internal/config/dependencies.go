@@ -3,21 +3,23 @@ package config
 import (
 	"github.com/go-shiori/shiori/internal/database"
 	"github.com/go-shiori/shiori/internal/domains"
-	"go.uber.org/zap"
+	"github.com/sirupsen/logrus"
 )
 
 type Dependencies struct {
-	Log      *zap.Logger
+	Log      *logrus.Logger
 	Database database.DB
+	Config   *Config
 	Domains  struct {
 		Auth     domains.AccountsDomain
 		Archiver domains.ArchiverDomain
 	}
 }
 
-func NewDependencies(log *zap.Logger, db database.DB) *Dependencies {
+func NewDependencies(log *logrus.Logger, db database.DB, cfg *Config) *Dependencies {
 	return &Dependencies{
 		Log:      log,
+		Config:   cfg,
 		Database: db,
 	}
 }

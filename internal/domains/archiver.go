@@ -8,12 +8,12 @@ import (
 
 	"github.com/go-shiori/shiori/internal/core"
 	"github.com/go-shiori/shiori/internal/model"
-	"go.uber.org/zap"
+	"github.com/sirupsen/logrus"
 )
 
 type ArchiverDomain struct {
 	dataDir string
-	logger  *zap.Logger
+	logger  *logrus.Logger
 }
 
 func (d *ArchiverDomain) DownloadBookmarkArchive(book model.Bookmark) (*model.Bookmark, error) {
@@ -50,7 +50,7 @@ func (d *ArchiverDomain) GetBookmarkArchive(book model.Bookmark) error {
 	return nil
 }
 
-func NewArchiverDomain(logger *zap.Logger, dataDir string) ArchiverDomain {
+func NewArchiverDomain(logger *logrus.Logger, dataDir string) ArchiverDomain {
 	return ArchiverDomain{
 		dataDir: dataDir,
 		logger:  logger,

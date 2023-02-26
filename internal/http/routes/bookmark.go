@@ -4,11 +4,11 @@ import (
 	"github.com/go-shiori/shiori/internal/config"
 	"github.com/go-shiori/shiori/internal/http/response"
 	"github.com/gofiber/fiber/v2"
-	"go.uber.org/zap"
+	"github.com/sirupsen/logrus"
 )
 
 type BookmarkRoutes struct {
-	logger *zap.Logger
+	logger *logrus.Logger
 	router *fiber.App
 	deps   *config.Dependencies
 }
@@ -38,7 +38,7 @@ func (r *BookmarkRoutes) bookmarkArchiveHandler(c *fiber.Ctx) error {
 	return response.Send(c, 200, bookmark)
 }
 
-func NewBookmarkRoutes(logger *zap.Logger, deps *config.Dependencies) *BookmarkRoutes {
+func NewBookmarkRoutes(logger *logrus.Logger, deps *config.Dependencies) *BookmarkRoutes {
 	return &BookmarkRoutes{
 		logger: logger,
 		router: fiber.New(),

@@ -8,8 +8,8 @@ import (
 	"github.com/go-shiori/shiori/internal/database"
 	"github.com/go-shiori/shiori/internal/model"
 	apppaths "github.com/muesli/go-app-paths"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"go.uber.org/zap"
 	"golang.org/x/net/context"
 )
 
@@ -21,10 +21,7 @@ var (
 
 // ShioriCmd returns the root command for shiori
 func ShioriCmd() *cobra.Command {
-	logger, err := zap.NewProduction()
-	if err != nil {
-		panic(err)
-	}
+	logger := logrus.New()
 
 	rootCmd := &cobra.Command{
 		Use:   "shiori",
