@@ -1,6 +1,8 @@
 package webserver
 
 import (
+	"fmt"
+	"math/rand"
 	"net"
 	"testing"
 
@@ -52,4 +54,20 @@ func TestIsIpValidAndPublic(t *testing.T) {
 	assert.False(t, isIpValidAndPublic("10.1.123.52"))
 	assert.False(t, isIpValidAndPublic("192.168.123.24"))
 	assert.False(t, isIpValidAndPublic("172.17.0.1"))
+}
+
+func BenchmarkIsPrivateIPv4(b *testing.B) {
+	// range: 2-254
+	n1 := 2 + rand.Intn(252)
+	n2 := 2 + rand.Intn(252)
+	for i := 0; i < b.N; i++ {
+		IsPrivateIP(net.ParseIP(fmt.Sprintf("192.168.%d.%d", n1, n2)))
+	}
+}
+
+func BenchmarkIsPrivateIPv6(b *testing.B) {
+	n1 := 2 + rand.Intn(252)
+	for i := 0; i < b.N; i++ {
+		IsPrivateIP(net.ParseIP(fmt.Sprintf("2002::%d", n1)))
+	}
 }
