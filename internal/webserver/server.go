@@ -121,13 +121,20 @@ func isIpValidAndPublic(ipAddr string) bool {
 
 func getUserRealIP(r *http.Request) string {
 	fallbackAddr := r.RemoteAddr
-	if isIpValidAndPublic(fallbackAddr) {
+	connectAddr, _, err := net.SplitHostPort(r.RemoteAddr)
+	if err != nil {
 		return fallbackAddr
+	}
+	if isIpValidAndPublic(connectAddr) {
+		return connectAddr
 	}
 	// in case that remote address is private(container or internal)
 	srcHeaders := []string{"X-Real-Ip", "X-Forwarded-For"}
 	for _, hd := range srcHeaders {
 		ipAddr := r.Header.Get(hd)
+		if idxFirstIP := strings.Index(strings.Trim(ipAddr, ","), ","); idxFirstIP >= 0 {
+			ipAddr = ipAddr[:idxFirstIP]
+		}
 		if isIpValidAndPublic(ipAddr) {
 			return ipAddr
 		}
