@@ -129,10 +129,14 @@ func getUserRealIP(r *http.Request) string {
 		return connectAddr
 	}
 	// in case that remote address is private(container or internal)
-	srcHeaders := []string{"X-Real-Ip", "X-Forwarded-For"}
-	for _, hd := range srcHeaders {
-		ipAddr := r.Header.Get(hd)
-		if idxFirstIP := strings.Index(strings.Trim(ipAddr, ","), ","); idxFirstIP >= 0 {
+	for _, hd := range []string{"X-Real-Ip", "X-Forwarded-For"} {
+		val := r.Header.Get(hd)
+		if val == "" {
+			continue
+		}
+		// remove leading or tailing comma
+		ipAddr := strings.Trim(val, ",")
+		if idxFirstIP := strings.Index(ipAddr, ","); idxFirstIP >= 0 {
 			ipAddr = ipAddr[:idxFirstIP]
 		}
 		if isIpValidAndPublic(ipAddr) {
