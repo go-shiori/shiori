@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 	"net"
+	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
@@ -14,6 +15,24 @@ import (
 var (
 	srcIpHeaders = []string{"X-Real-Ip", "X-Forwarded-For"}
 )
+
+func TestParseCidr(t *testing.T) {
+	res := parseCidr("192.168.0.0/16", "internal 192.168.x.x")
+	assert.Equal(t, res.IP, net.IP([]byte{192, 168, 0, 0}))
+	assert.Equal(t, res.Mask, net.IPMask([]byte{255, 255, 0, 0}))
+}
+
+func TestParseCidrInvalidAddr(t *testing.T) {
+	defer func() {
+		switch e := recover(); e := e.(type) {
+		case nil:
+			t.Error("must raise panic")
+		default:
+			t.Log(e)
+		}
+	}()
+	parseCidr("192.168.0.0/34", "internal 192.168.x.x")
+}
 
 func TestIsPrivateIP(t *testing.T) {
 	assert.True(t, IsPrivateIP(net.ParseIP("127.0.0.1")), "should be private")
@@ -79,12 +98,17 @@ func BenchmarkIsPrivateIPv6(b *testing.B) {
 }
 
 func testHttpRequestHelper(t *testing.T, wantIP string, headers map[string]string, isPublic bool) {
+	testHttpRequestHelperWrapped(t, nil, wantIP, headers, isPublic)
+}
+
+func testHttpRequestHelperWrapped(t *testing.T, r *http.Request, wantIP string, headers map[string]string, isPublic bool) {
 	var (
 		err    error
 		userIP string
 	)
-
-	r := httptest.NewRequest("GET", "/", nil)
+	if r == nil {
+		r = httptest.NewRequest("GET", "/", nil)
+	}
 	for k, v := range headers {
 		r.Header.Set(k, v)
 	}
@@ -107,6 +131,27 @@ func testHttpRequestHelper(t *testing.T, wantIP string, headers map[string]strin
 		assert.Equal(t, origVal, r.RemoteAddr)
 		assert.False(t, IsIpValidAndPublic(userIP))
 	}
+}
+
+func TestGetUserRealIPWithSetRemoteAddr(t *testing.T) {
+	// Test Public RemoteAddr
+	testHttpRequestHelper(t, "", nil, false)
+
+	r := httptest.NewRequest("GET", "/", nil)
+	wantIP := "34.23.123.122"
+	r.RemoteAddr = fmt.Sprintf("%s:1234", wantIP)
+	testHttpRequestHelperWrapped(t, r, wantIP, nil, true)
+}
+
+func TestGetUserRealIPWithInvalidRemoteAddr(t *testing.T) {
+	// Test Public RemoteAddr
+	testHttpRequestHelper(t, "", nil, false)
+
+	r := httptest.NewRequest("GET", "/", nil)
+	wantIP := "34.23.123.122"
+	// without port
+	r.RemoteAddr = wantIP
+	testHttpRequestHelperWrapped(t, r, wantIP, nil, true)
 }
 
 func TestGetUserRealIPWithEmptyHeader(t *testing.T) {
