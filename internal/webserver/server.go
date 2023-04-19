@@ -2,10 +2,8 @@ package webserver
 
 import (
 	"fmt"
-	"net"
 	"net/http"
 	"path"
-	"strings"
 	"time"
 
 	"github.com/go-shiori/shiori/internal/database"
@@ -90,7 +88,7 @@ func Logger(r *http.Request, statusCode int, size int) {
 	if statusCode == http.StatusOK {
 		logrus.WithFields(logrus.Fields{
 			"proto":  r.Proto,
-			"remote": getUserRealIP(r),
+			"remote": GetUserRealIP(r),
 			"reqlen": r.ContentLength,
 			"size":   size,
 			"status": statusCode,
@@ -98,52 +96,12 @@ func Logger(r *http.Request, statusCode int, size int) {
 	} else {
 		logrus.WithFields(logrus.Fields{
 			"proto":  r.Proto,
-			"remote": getUserRealIP(r),
+			"remote": GetUserRealIP(r),
 			"reqlen": r.ContentLength,
 			"size":   size,
 			"status": statusCode,
 		}).Warn(r.Method, " ", r.RequestURI)
 	}
-}
-
-func isIpValidAndPublic(ipAddr string) bool {
-	if ipAddr == "" {
-		return false
-	}
-	ipAddr = strings.TrimSpace(ipAddr)
-	ip := net.ParseIP(ipAddr)
-	// remote address within public address range
-	if ip != nil && !IsPrivateIP(ip) {
-		return true
-	}
-	return false
-}
-
-func getUserRealIP(r *http.Request) string {
-	fallbackAddr := r.RemoteAddr
-	connectAddr, _, err := net.SplitHostPort(r.RemoteAddr)
-	if err != nil {
-		return fallbackAddr
-	}
-	if isIpValidAndPublic(connectAddr) {
-		return connectAddr
-	}
-	// in case that remote address is private(container or internal)
-	for _, hd := range []string{"X-Real-Ip", "X-Forwarded-For"} {
-		val := r.Header.Get(hd)
-		if val == "" {
-			continue
-		}
-		// remove leading or tailing comma
-		ipAddr := strings.Trim(val, ",")
-		if idxFirstIP := strings.Index(ipAddr, ","); idxFirstIP >= 0 {
-			ipAddr = ipAddr[:idxFirstIP]
-		}
-		if isIpValidAndPublic(ipAddr) {
-			return ipAddr
-		}
-	}
-	return fallbackAddr
 }
 
 // ServeApp serves web interface in specified port

@@ -3,6 +3,8 @@ package webserver
 import (
 	"fmt"
 	"net"
+	"net/http"
+	"strings"
 )
 
 const IPv6len = 16
@@ -157,4 +159,44 @@ func IsPrivateIP(ip net.IP) bool {
 		return isPrivateV4(ip4)
 	}
 	return len(ip) == IPv6len && isPrivateV6(ip)
+}
+
+func IsIpValidAndPublic(ipAddr string) bool {
+	if ipAddr == "" {
+		return false
+	}
+	ipAddr = strings.TrimSpace(ipAddr)
+	ip := net.ParseIP(ipAddr)
+	// remote address within public address range
+	if ip != nil && !IsPrivateIP(ip) {
+		return true
+	}
+	return false
+}
+
+func GetUserRealIP(r *http.Request) string {
+	fallbackAddr := r.RemoteAddr
+	connectAddr, _, err := net.SplitHostPort(r.RemoteAddr)
+	if err != nil {
+		return fallbackAddr
+	}
+	if IsIpValidAndPublic(connectAddr) {
+		return connectAddr
+	}
+	// in case that remote address is private(container or internal)
+	for _, hd := range []string{"X-Real-Ip", "X-Forwarded-For"} {
+		val := r.Header.Get(hd)
+		if val == "" {
+			continue
+		}
+		// remove leading or tailing comma
+		ipAddr := strings.Trim(val, ",\t ")
+		if idxFirstIP := strings.Index(ipAddr, ","); idxFirstIP >= 0 {
+			ipAddr = ipAddr[:idxFirstIP]
+		}
+		if IsIpValidAndPublic(ipAddr) {
+			return ipAddr
+		}
+	}
+	return fallbackAddr
 }
