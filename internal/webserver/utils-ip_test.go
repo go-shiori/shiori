@@ -23,15 +23,7 @@ func TestParseCidr(t *testing.T) {
 }
 
 func TestParseCidrInvalidAddr(t *testing.T) {
-	defer func() {
-		switch e := recover(); e := e.(type) {
-		case nil:
-			t.Error("must raise panic")
-		default:
-			t.Log(e)
-		}
-	}()
-	parseCidr("192.168.0.0/34", "internal 192.168.x.x")
+	assert.Panics(t, func() { parseCidr("192.168.0.0/34", "internal 192.168.x.x") })
 }
 
 func TestIsPrivateIP(t *testing.T) {
