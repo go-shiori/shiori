@@ -7,11 +7,11 @@ import (
 	"strings"
 )
 
-const IPv6len = 16
-
-var userRealIpHeaderCandidates = [...]string{"X-Real-Ip", "X-Forwarded-For"}
+// IPv6Len 128-bits address
+const IPv6Len = 16
 
 var (
+	userRealIpHeaderCandidates = [...]string{"X-Real-Ip", "X-Forwarded-For"}
 	// From: https://github.com/letsencrypt/boulder/blob/main/bdns/dns.go#L30-L146
 	// Private CIDRs to ignore
 	privateNetworks = []net.IPNet{
@@ -130,6 +130,7 @@ var (
 	}
 )
 
+// parseCidr parses the predefined CIDR to `net.IPNet` that consisting of IP and IPMask.
 func parseCidr(network string, comment string) net.IPNet {
 	_, subNet, err := net.ParseCIDR(network)
 	if err != nil {
@@ -138,6 +139,7 @@ func parseCidr(network string, comment string) net.IPNet {
 	return *subNet
 }
 
+// isPrivateV4 checks whether an `ip` is private based on whether the IP is in the private CIDR range.
 func isPrivateV4(ip net.IP) bool {
 	for _, subNet := range privateNetworks {
 		if subNet.Contains(ip) {
@@ -147,6 +149,7 @@ func isPrivateV4(ip net.IP) bool {
 	return false
 }
 
+// isPrivateV6 checks whether an `ip` is private based on whether the IP is in the private CIDR range.
 func isPrivateV6(ip net.IP) bool {
 	for _, subNet := range privateV6Networks {
 		if subNet.Contains(ip) {
@@ -156,13 +159,15 @@ func isPrivateV6(ip net.IP) bool {
 	return false
 }
 
+// IsPrivateIP check IPv4 or IPv6 address according to the length of byte array
 func IsPrivateIP(ip net.IP) bool {
 	if ip4 := ip.To4(); ip4 != nil {
 		return isPrivateV4(ip4)
 	}
-	return len(ip) == IPv6len && isPrivateV6(ip)
+	return len(ip) == IPv6Len && isPrivateV6(ip)
 }
 
+// IsIpValidAndPublic is a helper function check if an IP address is valid and public.
 func IsIpValidAndPublic(ipAddr string) bool {
 	if ipAddr == "" {
 		return false
@@ -176,6 +181,16 @@ func IsIpValidAndPublic(ipAddr string) bool {
 	return false
 }
 
+// GetUserRealIP Get User Real IP from headers of request `r`
+//  1. First, determine whether the remote addr of request is a private address.
+//     If it is a public network address, return it directly;
+//  2. Otherwise, get and check the real IP from X-REAL-IP and X-Forwarded-For headers in turn.
+//     if the header value contains multiple IP addresses separated by commas, that is,
+//     the request may pass through multiple reverse proxies, we just keep the first one,
+//     which imply it is the user connecting IP.
+//     then we check the value is a valid public IP address using the `IsIpValidAndPublic` function.
+//     If it is, the function returns the value as the client's real IP address.
+//  3. Finally, If the above headers do not exist or are invalid, the remote addr is returned as is.
 func GetUserRealIP(r *http.Request) string {
 	fallbackAddr := r.RemoteAddr
 	connectAddr, _, err := net.SplitHostPort(r.RemoteAddr)
