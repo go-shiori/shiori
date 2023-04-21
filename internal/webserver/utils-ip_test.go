@@ -85,11 +85,15 @@ func BenchmarkIsPrivateIPv6(b *testing.B) {
 	}
 }
 
-func testHttpRequestHelper(t *testing.T, wantIP string, headers map[string]string, isPublic bool) {
-	testHttpRequestHelperWrapped(t, nil, wantIP, headers, isPublic)
+func testIsPublicHttpRequestAddressHelper(
+	t *testing.T, wantIP string, headers map[string]string, isPublic bool,
+) {
+	testIsPublicHttpRequestAddressHelperWrapped(t, nil, wantIP, headers, isPublic)
 }
 
-func testHttpRequestHelperWrapped(t *testing.T, r *http.Request, wantIP string, headers map[string]string, isPublic bool) {
+func testIsPublicHttpRequestAddressHelperWrapped(
+	t *testing.T, r *http.Request, wantIP string, headers map[string]string, isPublic bool,
+) {
 	var (
 		err    error
 		userIP string
@@ -123,28 +127,28 @@ func testHttpRequestHelperWrapped(t *testing.T, r *http.Request, wantIP string, 
 
 func TestGetUserRealIPWithSetRemoteAddr(t *testing.T) {
 	// Test Public RemoteAddr
-	testHttpRequestHelper(t, "", nil, false)
+	testIsPublicHttpRequestAddressHelper(t, "", nil, false)
 
 	r := httptest.NewRequest("GET", "/", nil)
 	wantIP := "34.23.123.122"
 	r.RemoteAddr = fmt.Sprintf("%s:1234", wantIP)
-	testHttpRequestHelperWrapped(t, r, wantIP, nil, true)
+	testIsPublicHttpRequestAddressHelperWrapped(t, r, wantIP, nil, true)
 }
 
 func TestGetUserRealIPWithInvalidRemoteAddr(t *testing.T) {
 	// Test Public RemoteAddr
-	testHttpRequestHelper(t, "", nil, false)
+	testIsPublicHttpRequestAddressHelper(t, "", nil, false)
 
 	r := httptest.NewRequest("GET", "/", nil)
 	wantIP := "34.23.123.122"
 	// without port
 	r.RemoteAddr = wantIP
-	testHttpRequestHelperWrapped(t, r, wantIP, nil, true)
+	testIsPublicHttpRequestAddressHelperWrapped(t, r, wantIP, nil, true)
 }
 
 func TestGetUserRealIPWithEmptyHeader(t *testing.T) {
 	// Test Empty X-Real-IP
-	testHttpRequestHelper(t, "", nil, false)
+	testIsPublicHttpRequestAddressHelper(t, "", nil, false)
 }
 
 func TestGetUserRealIPWithInvalidHeaderValue(t *testing.T) {
@@ -153,7 +157,7 @@ func TestGetUserRealIPWithInvalidHeaderValue(t *testing.T) {
 		m := map[string]string{
 			name: "31.41.24a.12",
 		}
-		testHttpRequestHelper(t, "", m, false)
+		testIsPublicHttpRequestAddressHelper(t, "", m, false)
 	}
 }
 
@@ -164,7 +168,7 @@ func TestGetUserRealIPWithXRealIpHeader(t *testing.T) {
 		m := map[string]string{
 			name: wantIP,
 		}
-		testHttpRequestHelper(t, wantIP, m, true)
+		testIsPublicHttpRequestAddressHelper(t, wantIP, m, true)
 	}
 }
 
@@ -175,7 +179,7 @@ func TestGetUserRealIPWithPrivateXRealIpHeader(t *testing.T) {
 		m := map[string]string{
 			name: wantIP,
 		}
-		testHttpRequestHelper(t, wantIP, m, false)
+		testIsPublicHttpRequestAddressHelper(t, wantIP, m, false)
 	}
 }
 
@@ -189,7 +193,7 @@ func TestGetUserRealIPWithXRealIpListHeader(t *testing.T) {
 		m := map[string]string{
 			name: strings.Join(ipList, ", "),
 		}
-		testHttpRequestHelper(t, wantIP, m, true)
+		testIsPublicHttpRequestAddressHelper(t, wantIP, m, true)
 	}
 }
 
@@ -203,7 +207,7 @@ func TestGetUserRealIPWithXRealIpHeaderIgnoreComma(t *testing.T) {
 	for _, variant := range ipVariants {
 		for _, name := range userRealIpHeaderCandidates {
 			m := map[string]string{name: variant}
-			testHttpRequestHelper(t, wantIP, m, true)
+			testIsPublicHttpRequestAddressHelper(t, wantIP, m, true)
 		}
 	}
 }
@@ -216,10 +220,10 @@ func TestGetUserRealIPWithDifferentHeaderOrder(t *testing.T) {
 		"X-Forwarded-For": wantIP,
 	}
 
-	testHttpRequestHelper(t, wantIP, m, true)
+	testIsPublicHttpRequestAddressHelper(t, wantIP, m, true)
 	m = map[string]string{
 		"X-Real-Ip":       wantIP,
 		"X-Forwarded-For": "192.168.123.122",
 	}
-	testHttpRequestHelper(t, wantIP, m, true)
+	testIsPublicHttpRequestAddressHelper(t, wantIP, m, true)
 }
