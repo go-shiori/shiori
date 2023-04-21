@@ -9,6 +9,8 @@ import (
 
 const IPv6len = 16
 
+var userRealIpHeaderCandidates = [...]string{"X-Real-Ip", "X-Forwarded-For"}
+
 var (
 	// From: https://github.com/letsencrypt/boulder/blob/main/bdns/dns.go#L30-L146
 	// Private CIDRs to ignore
@@ -184,12 +186,12 @@ func GetUserRealIP(r *http.Request) string {
 		return connectAddr
 	}
 	// in case that remote address is private(container or internal)
-	for _, hd := range []string{"X-Real-Ip", "X-Forwarded-For"} {
+	for _, hd := range userRealIpHeaderCandidates {
 		val := r.Header.Get(hd)
 		if val == "" {
 			continue
 		}
-		// remove leading or tailing comma
+		// remove leading or tailing comma, tab, space
 		ipAddr := strings.Trim(val, ",\t ")
 		if idxFirstIP := strings.Index(ipAddr, ","); idxFirstIP >= 0 {
 			ipAddr = ipAddr[:idxFirstIP]

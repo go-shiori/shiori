@@ -12,10 +12,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var (
-	srcIpHeaders = []string{"X-Real-Ip", "X-Forwarded-For"}
-)
-
 func TestParseCidr(t *testing.T) {
 	res := parseCidr("192.168.0.0/16", "internal 192.168.x.x")
 	assert.Equal(t, res.IP, net.IP([]byte{192, 168, 0, 0}))
@@ -152,7 +148,7 @@ func TestGetUserRealIPWithEmptyHeader(t *testing.T) {
 }
 
 func TestGetUserRealIPWithInvalidHeaderValue(t *testing.T) {
-	for _, name := range srcIpHeaders {
+	for _, name := range userRealIpHeaderCandidates {
 		// invalid ip
 		m := map[string]string{
 			name: "31.41.24a.12",
@@ -163,7 +159,7 @@ func TestGetUserRealIPWithInvalidHeaderValue(t *testing.T) {
 
 func TestGetUserRealIPWithXRealIpHeader(t *testing.T) {
 	// Test public Real IP
-	for _, name := range srcIpHeaders {
+	for _, name := range userRealIpHeaderCandidates {
 		wantIP := "31.41.242.12"
 		m := map[string]string{
 			name: wantIP,
@@ -173,7 +169,7 @@ func TestGetUserRealIPWithXRealIpHeader(t *testing.T) {
 }
 
 func TestGetUserRealIPWithPrivateXRealIpHeader(t *testing.T) {
-	for _, name := range srcIpHeaders {
+	for _, name := range userRealIpHeaderCandidates {
 		wantIP := "192.168.123.123"
 		// test private ip in header
 		m := map[string]string{
@@ -185,7 +181,7 @@ func TestGetUserRealIPWithPrivateXRealIpHeader(t *testing.T) {
 
 func TestGetUserRealIPWithXRealIpListHeader(t *testing.T) {
 	// Test Real IP List
-	for _, name := range srcIpHeaders {
+	for _, name := range userRealIpHeaderCandidates {
 		ipList := []string{"34.23.123.122", "34.23.123.123"}
 		// should equal first ip in list
 		wantIP := ipList[0]
@@ -205,7 +201,7 @@ func TestGetUserRealIPWithXRealIpHeaderIgnoreComma(t *testing.T) {
 		",34.23.123.124,", " ,34.23.123.124, ", "\t,34.23.123.124,\t",
 		"34.23.123.124,", "34.23.123.124, ", "34.23.123.124,\t"}
 	for _, variant := range ipVariants {
-		for _, name := range srcIpHeaders {
+		for _, name := range userRealIpHeaderCandidates {
 			m := map[string]string{name: variant}
 			testHttpRequestHelper(t, wantIP, m, true)
 		}
