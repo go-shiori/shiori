@@ -7,9 +7,6 @@ import (
 	"strings"
 )
 
-// IPv6Len 128-bits address
-const IPv6Len = 16
-
 var (
 	userRealIpHeaderCandidates = [...]string{"X-Real-Ip", "X-Forwarded-For"}
 	// From: https://github.com/letsencrypt/boulder/blob/main/bdns/dns.go#L30-L146
@@ -164,7 +161,7 @@ func IsPrivateIP(ip net.IP) bool {
 	if ip4 := ip.To4(); ip4 != nil {
 		return isPrivateV4(ip4)
 	}
-	return len(ip) == IPv6Len && isPrivateV6(ip)
+	return ip.To16() != nil && isPrivateV6(ip)
 }
 
 // IsIPValidAndPublic is a helper function check if an IP address is valid and public.

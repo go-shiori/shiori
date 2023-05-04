@@ -106,7 +106,7 @@ func testIsPublicHttpRequestAddressHelperWrapped(
 	}
 
 	origVal := GetUserRealIP(r)
-	if strings.Index(origVal, ":") >= 0 {
+	if strings.Contains(origVal, ":") {
 		userIP, _, err = net.SplitHostPort(origVal)
 		if err != nil {
 			t.Error(err)
