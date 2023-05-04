@@ -13,13 +13,13 @@ import (
 )
 
 func TestParseCidr(t *testing.T) {
-	res := parseCidr("192.168.0.0/16", "internal 192.168.x.x")
+	res := parseCIDR("192.168.0.0/16", "internal 192.168.x.x")
 	assert.Equal(t, res.IP, net.IP([]byte{192, 168, 0, 0}))
 	assert.Equal(t, res.Mask, net.IPMask([]byte{255, 255, 0, 0}))
 }
 
 func TestParseCidrInvalidAddr(t *testing.T) {
-	assert.Panics(t, func() { parseCidr("192.168.0.0/34", "internal 192.168.x.x") })
+	assert.Panics(t, func() { parseCIDR("192.168.0.0/34", "internal 192.168.x.x") })
 }
 
 func TestIsPrivateIP(t *testing.T) {
@@ -55,18 +55,18 @@ func TestIsPrivateIP(t *testing.T) {
 
 func TestIsIpValidAndPublic(t *testing.T) {
 	// test empty address
-	assert.False(t, IsIpValidAndPublic(""))
+	assert.False(t, IsIPValidAndPublic(""))
 	// test public address
-	assert.True(t, IsIpValidAndPublic("31.41.244.124"))
-	assert.True(t, IsIpValidAndPublic("62.233.50.248"))
+	assert.True(t, IsIPValidAndPublic("31.41.244.124"))
+	assert.True(t, IsIPValidAndPublic("62.233.50.248"))
 	// trim head or tail space
-	assert.True(t, IsIpValidAndPublic(" 62.233.50.249"))
-	assert.True(t, IsIpValidAndPublic(" 62.233.50.250 "))
-	assert.True(t, IsIpValidAndPublic("62.233.50.251 "))
+	assert.True(t, IsIPValidAndPublic(" 62.233.50.249"))
+	assert.True(t, IsIPValidAndPublic(" 62.233.50.250 "))
+	assert.True(t, IsIPValidAndPublic("62.233.50.251 "))
 	// test private address
-	assert.False(t, IsIpValidAndPublic("10.1.123.52"))
-	assert.False(t, IsIpValidAndPublic("192.168.123.24"))
-	assert.False(t, IsIpValidAndPublic("172.17.0.1"))
+	assert.False(t, IsIPValidAndPublic("10.1.123.52"))
+	assert.False(t, IsIPValidAndPublic("192.168.123.24"))
+	assert.False(t, IsIPValidAndPublic("172.17.0.1"))
 }
 
 func BenchmarkIsPrivateIPv4(b *testing.B) {
@@ -118,10 +118,10 @@ func testIsPublicHttpRequestAddressHelperWrapped(
 	if isPublic {
 		// should equal first ip in list
 		assert.Equal(t, wantIP, userIP)
-		assert.True(t, IsIpValidAndPublic(userIP))
+		assert.True(t, IsIPValidAndPublic(userIP))
 	} else {
 		assert.Equal(t, origVal, r.RemoteAddr)
-		assert.False(t, IsIpValidAndPublic(userIP))
+		assert.False(t, IsIPValidAndPublic(userIP))
 	}
 }
 

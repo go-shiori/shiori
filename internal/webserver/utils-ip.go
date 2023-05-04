@@ -111,27 +111,27 @@ var (
 	// Sourced from https://www.iana.org/assignments/iana-ipv6-special-registry/iana-ipv6-special-registry.xhtml
 	// where Global, Source, or Destination is False
 	privateV6Networks = []net.IPNet{
-		parseCidr("::/128", "RFC 4291: Unspecified Address"),
-		parseCidr("::1/128", "RFC 4291: Loopback Address"),
-		parseCidr("::ffff:0:0/96", "RFC 4291: IPv4-mapped Address"),
-		parseCidr("100::/64", "RFC 6666: Discard Address Block"),
-		parseCidr("2001::/23", "RFC 2928: IETF Protocol Assignments"),
-		parseCidr("2001:2::/48", "RFC 5180: Benchmarking"),
-		parseCidr("2001:db8::/32", "RFC 3849: Documentation"),
-		parseCidr("2001::/32", "RFC 4380: TEREDO"),
-		parseCidr("fc00::/7", "RFC 4193: Unique-Local"),
-		parseCidr("fe80::/10", "RFC 4291: Section 2.5.6 Link-Scoped Unicast"),
-		parseCidr("ff00::/8", "RFC 4291: Section 2.7"),
+		parseCIDR("::/128", "RFC 4291: Unspecified Address"),
+		parseCIDR("::1/128", "RFC 4291: Loopback Address"),
+		parseCIDR("::ffff:0:0/96", "RFC 4291: IPv4-mapped Address"),
+		parseCIDR("100::/64", "RFC 6666: Discard Address Block"),
+		parseCIDR("2001::/23", "RFC 2928: IETF Protocol Assignments"),
+		parseCIDR("2001:2::/48", "RFC 5180: Benchmarking"),
+		parseCIDR("2001:db8::/32", "RFC 3849: Documentation"),
+		parseCIDR("2001::/32", "RFC 4380: TEREDO"),
+		parseCIDR("fc00::/7", "RFC 4193: Unique-Local"),
+		parseCIDR("fe80::/10", "RFC 4291: Section 2.5.6 Link-Scoped Unicast"),
+		parseCIDR("ff00::/8", "RFC 4291: Section 2.7"),
 		// We disable validations to IPs under the 6to4 anycase prefix because
 		// there's too much risk of a malicious actor advertising the prefix and
 		// answering validations for a 6to4 host they do not control.
 		// https://community.letsencrypt.org/t/problems-validating-ipv6-against-host-running-6to4/18312/9
-		parseCidr("2002::/16", "RFC 7526: 6to4 anycast prefix deprecated"),
+		parseCIDR("2002::/16", "RFC 7526: 6to4 anycast prefix deprecated"),
 	}
 )
 
-// parseCidr parses the predefined CIDR to `net.IPNet` that consisting of IP and IPMask.
-func parseCidr(network string, comment string) net.IPNet {
+// parseCIDR parses the predefined CIDR to `net.IPNet` that consisting of IP and IPMask.
+func parseCIDR(network string, comment string) net.IPNet {
 	_, subNet, err := net.ParseCIDR(network)
 	if err != nil {
 		panic(fmt.Sprintf("error parsing %s (%s): %s", network, comment, err))
@@ -167,8 +167,8 @@ func IsPrivateIP(ip net.IP) bool {
 	return len(ip) == IPv6Len && isPrivateV6(ip)
 }
 
-// IsIpValidAndPublic is a helper function check if an IP address is valid and public.
-func IsIpValidAndPublic(ipAddr string) bool {
+// IsIPValidAndPublic is a helper function check if an IP address is valid and public.
+func IsIPValidAndPublic(ipAddr string) bool {
 	if ipAddr == "" {
 		return false
 	}
@@ -188,7 +188,7 @@ func IsIpValidAndPublic(ipAddr string) bool {
 //     if the header value contains multiple IP addresses separated by commas, that is,
 //     the request may pass through multiple reverse proxies, we just keep the first one,
 //     which imply it is the user connecting IP.
-//     then we check the value is a valid public IP address using the `IsIpValidAndPublic` function.
+//     then we check the value is a valid public IP address using the `IsIPValidAndPublic` function.
 //     If it is, the function returns the value as the client's real IP address.
 //  3. Finally, If the above headers do not exist or are invalid, the remote addr is returned as is.
 func GetUserRealIP(r *http.Request) string {
@@ -197,7 +197,7 @@ func GetUserRealIP(r *http.Request) string {
 	if err != nil {
 		return fallbackAddr
 	}
-	if IsIpValidAndPublic(connectAddr) {
+	if IsIPValidAndPublic(connectAddr) {
 		return connectAddr
 	}
 	// in case that remote address is private(container or internal)
@@ -211,7 +211,7 @@ func GetUserRealIP(r *http.Request) string {
 		if idxFirstIP := strings.Index(ipAddr, ","); idxFirstIP >= 0 {
 			ipAddr = ipAddr[:idxFirstIP]
 		}
-		if IsIpValidAndPublic(ipAddr) {
+		if IsIPValidAndPublic(ipAddr) {
 			return ipAddr
 		}
 	}
