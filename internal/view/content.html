@@ -27,7 +27,7 @@
 	<div id="content-scene" :class="{night: appOptions.nightMode}">
 		<div id="header">
 			<p id="metadata" v-cloak>Added {{localtime()}}</p>
-			<p id="title">$$.Book.Title$$</p>
+			<p id="title" dir="auto">$$.Book.Title$$</p>
 			<div id="links">
 				<a href="$$.Book.URL$$" target="_blank" rel="noopener">View Original</a>
 				$$if .Book.HasArchive$$
@@ -35,7 +35,7 @@
 				$$end$$
 			</div>
 		</div>
-		<div id="content" v-pre>
+		<div id="content" dir="auto" v-pre>
 			$$html .Book.HTML$$
 		</div>
 	</div>
