@@ -6,7 +6,7 @@ var template = `
 	</a>
 	<a class="bookmark-link" :href="mainURL" target="_blank" rel="noopener">
 		<span class="thumbnail" v-if="thumbnailVisible" :style="thumbnailStyleURL"></span>
-		<p class="title">{{title}}
+		<p class="title" dir="auto">{{title}}
 			<i v-if="hasContent" class="fas fa-file-alt"></i>
 			<i v-if="hasArchive" class="fas fa-archive"></i>
 			<i v-if="public" class="fas fa-eye"></i>
