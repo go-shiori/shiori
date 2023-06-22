@@ -183,6 +183,7 @@ func ServeApp(cfg Config) error {
 	router.GET(jp("/login"), withLogging(hdl.serveLoginPage))
 	router.GET(jp("/bookmark/:id/thumb"), withLogging(hdl.serveThumbnailImage))
 	router.GET(jp("/bookmark/:id/content"), withLogging(hdl.serveBookmarkContent))
+	router.GET(jp("/bookmark/:id/ebook"), withLogging(hdl.serveBookmarkEbook))
 	router.GET(jp("/bookmark/:id/archive/*filepath"), withLogging(hdl.serveBookmarkArchive))
 
 	router.POST(jp("/api/login"), withLogging(hdl.apiLogin))
