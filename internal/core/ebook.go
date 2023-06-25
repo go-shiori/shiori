@@ -128,15 +128,20 @@ func EbookGenerate(req ProcessRequest) (isFatalErr bool, err error) {
 </container>`))
 
 	// get list of images tag in html
-	// TODO: if image present in html twice it will download twice too.
 	imageList, _ := getImages(book.HTML)
 	imgRegex := regexp.MustCompile(`<img.*?src="([^"]*)".*?>`)
+
+	// Create a set to store unique image URLs
+	imageSet := make(map[string]bool)
 
 	// Download image in html file and generate new html
 	html = book.HTML
 	for _, match := range imgRegex.FindAllStringSubmatch(book.HTML, -1) {
 		imageURL := match[1]
-		if _, ok := imageList[imageURL]; ok {
+		if _, ok := imageList[imageURL]; ok && !imageSet[imageURL] {
+			// Add the image URL to the set
+			imageSet[imageURL] = true
+
 			// Download the image
 			resp, err := http.Get(imageURL)
 			if err != nil {
