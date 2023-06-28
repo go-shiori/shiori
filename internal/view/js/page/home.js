@@ -26,7 +26,7 @@ var template = `
         <a title="Update archives" @click="showDialogUpdateCache(selection)">
             <i class="fas fa-fw fa-cloud-download-alt"></i>
         </a>
-        <a title="Update archives" @click="ebookDownload(selection)">
+        <a title="Download ebooks" @click="ebookDownload(selection)">
             <i class="fas fa-fw fa-book "></i>
         </a>
         <a title="Cancel" @click="toggleEditMode">
