@@ -35,7 +35,7 @@ func EbookGenerate(req ProcessRequest) (isFatalErr bool, err error) {
 	}
 	ebookPath := fp.Join(req.DataDir, "ebook", strID+".epub")
 
-	// TODO: can cheak with bookmark.hasEbook
+	// TODO: can cheak with bookmark.hasEbook for now cheak epub exist
 	// if epub exist finish prosess else continue
 	if _, err := os.Stat(ebookPath); err == nil {
 		return false, nil

@@ -22,6 +22,7 @@ type Bookmark struct {
 	ImageURL      string `db:"image_url"     json:"imageURL"`
 	HasContent    bool   `db:"has_content"   json:"hasContent"`
 	HasArchive    bool   `json:"hasArchive"`
+	HasEbook      bool   `json:"hasEbook"`
 	Tags          []Tag  `json:"tags"`
 	CreateArchive bool   `json:"createArchive"`
 }

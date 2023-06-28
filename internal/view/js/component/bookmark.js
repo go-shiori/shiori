@@ -32,6 +32,12 @@ var template = `
 			<a title="Update archive" @click="updateBookmark">
 				<i class="fas fa-fw fa-cloud-download-alt"></i>
 			</a>
+            <a v-if="hasEbook" title="Download book" :href="ebookURL" target="_blank" rel="noopener">
+                <i class="fas fa-fw fa-book"></i>
+            </a>
+            <a v-if="!hasEbook" title="Download book" @click="downloadEbook">
+                <i class="fas fa-fw fa-book"></i>
+            </a>
 		</template>
 	</div>
 </div>`;
@@ -47,6 +53,7 @@ export default {
 		imageURL: String,
 		hasContent: Boolean,
 		hasArchive: Boolean,
+		hasEbook: Boolean,
 		index: Number,
 		showId: Boolean,
 		editMode: Boolean,
@@ -71,6 +78,13 @@ export default {
 			} else {
 				return this.url;
 			}
+		},
+		ebookURL() {
+			if (this.hasEbook) {
+				return new URL(`bookmark/${this.id}/ebook`, document.baseURI);
+			} else  {
+                return null;
+            }
 		},
 		hostnameURL() {
 			var url = new URL(this.url);
@@ -112,6 +126,9 @@ export default {
 		},
 		updateBookmark() {
 			this.$emit("update", this.eventItem);
+		},
+		downloadEbook() {
+			this.$emit("download-book", this.eventItem);
 		}
 	}
 }
