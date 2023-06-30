@@ -86,12 +86,31 @@ func EbookGenerate(req ProcessRequest) (isFatalErr bool, err error) {
   <manifest>
     <item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml"/>
     <item id="content" href="content.html" media-type="application/xhtml+xml"/>
+	<item id="id" href="../style.css" media-type="text/css"/>
   </manifest>
   <spine toc="ncx">
     <itemref idref="content"/>
   </spine>
 </package>`))
 
+	// Create the style.css file
+	styleWriter, err := epubWriter.Create("style.css")
+	if err != nil {
+		return true, fmt.Errorf("can't create content.xml")
+	}
+	styleWriter.Write([]byte(`content {
+	display: block;
+	font-size: 1em;
+	line-height: 1.2;
+	padding-left: 0;
+	padding-right: 0;
+	text-align: justify;
+	margin: 0 5pt
+}
+img {
+  	margin: auto;
+  	display: block;
+}`))
 	// Create the toc.ncx file
 	tocNcxWriter, err := epubWriter.Create("OEBPS/toc.ncx")
 	if err != nil {
@@ -176,7 +195,7 @@ func EbookGenerate(req ProcessRequest) (isFatalErr bool, err error) {
 	if err != nil {
 		return true, fmt.Errorf("can't create content.xml")
 	}
-	contentHtmlWriter.Write([]byte("<?xml version='1.0' encoding='utf-8'?>\n<html xmlns=\"http://www.w3.org/1999/xhtml\"><head><title>" + book.Title + "</title></head><body><h1 dir=\"auto\">" + book.Title + "</h1>" + "<content dir=\"auto\">" + html + "</content>" + "</body></html>"))
+	contentHtmlWriter.Write([]byte("<?xml version='1.0' encoding='utf-8'?>\n<html xmlns=\"http://www.w3.org/1999/xhtml\">\n<head>\n\t<title>" + book.Title + "</title>\n\t<link href=\"../style.css\" rel=\"stylesheet\" type=\"text/css\"/>\n</head>\n<body>\n\t<h1 dir=\"auto\">" + book.Title + "</h1>" + "\n<content dir=\"auto\">\n" + html + "\n</content>" + "\n</body></html>"))
 	return false, nil
 }
 
