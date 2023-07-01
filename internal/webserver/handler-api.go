@@ -203,6 +203,7 @@ func (h *handler) apiGetBookmarks(w http.ResponseWriter, r *http.Request, ps htt
 		strID := strconv.Itoa(bookmarks[i].ID)
 		imgPath := fp.Join(h.DataDir, "thumb", strID)
 		archivePath := fp.Join(h.DataDir, "archive", strID)
+		ebookPath := fp.Join(h.DataDir, "ebook", strID+".epub")
 
 		if fileExists(imgPath) {
 			bookmarks[i].ImageURL = path.Join(h.RootPath, "bookmark", strID, "thumb")
@@ -210,6 +211,9 @@ func (h *handler) apiGetBookmarks(w http.ResponseWriter, r *http.Request, ps htt
 
 		if fileExists(archivePath) {
 			bookmarks[i].HasArchive = true
+		}
+		if fileExists(ebookPath) {
+			bookmarks[i].HasEbook = true
 		}
 	}
 
