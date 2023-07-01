@@ -32,10 +32,10 @@ var template = `
 			<a title="Update archive" @click="updateBookmark">
 				<i class="fas fa-fw fa-cloud-download-alt"></i>
 			</a>
-            <a v-if="hasEbook" title="Download book" :href="ebookURL" target="_blank" rel="noopener">
+            <a v-if="hasEbook" title="Download book" @click="downloadebook">
                 <i class="fas fa-fw fa-book"></i>
             </a>
-            <a v-if="!hasEbook" title="Download book" @click="downloadEbook">
+            <a v-if="!hasEbook" title="Generate book" @click="generateEbook">
                 <i class="fas fa-fw fa-book"></i>
             </a>
 		</template>
@@ -127,8 +127,16 @@ export default {
 		updateBookmark() {
 			this.$emit("update", this.eventItem);
 		},
-		downloadEbook() {
-			this.$emit("download-book", this.eventItem);
+		downloadebook() {
+            const id = this.id;
+            const ebook_url = new URL(`bookmark/${id}/ebook`, document.baseURI);
+            const downloadLink = document.createElement("a");
+            downloadLink.href = ebook_url.toString();
+            downloadLink.download = `${this.title}.epub`;
+            downloadLink.click();
+		},
+		generateEbook() {
+			this.$emit("generate-ebook", this.eventItem);
 		}
 	}
 }

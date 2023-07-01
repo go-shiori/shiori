@@ -26,7 +26,7 @@ var template = `
         <a title="Update archives" @click="showDialogUpdateCache(selection)">
             <i class="fas fa-fw fa-cloud-download-alt"></i>
         </a>
-        <a title="Download ebooks" @click="ebookDownload(selection)">
+        <a title="Download ebooks" @click="ebookGenerate(selection)">
             <i class="fas fa-fw fa-book "></i>
         </a>
         <a title="Cancel" @click="toggleEditMode">
@@ -65,7 +65,7 @@ var template = `
             @tag-clicked="bookmarkTagClicked"
             @edit="showDialogEdit"
             @delete="showDialogDelete"
-            @download-book="ebookDownload"
+            @generate-ebook="ebookGenerate"
             @update="showDialogUpdateCache">
         </bookmark-item>
         <pagination-box v-if="maxPage > 1" 
@@ -588,7 +588,7 @@ export default {
 				}
 			});
 		},
-        ebookDownload(items) {
+        ebookGenerate(items) {
             // Check and filter items
             if (typeof items !== "object") return;
             if (!Array.isArray(items)) items = [items];
@@ -624,7 +624,7 @@ export default {
                     const ebook_url = new URL(`bookmark/${id}/ebook`, document.baseURI);
                     const downloadLink = document.createElement("a");
                     downloadLink.href = ebook_url.toString();
-                    downloadLink.download = `${id}-${book.title}.epub`;
+                    downloadLink.download = `${book.title}.epub`;
                     downloadLink.click();
 
                     var item = items.find(el => el.id === book.id);
