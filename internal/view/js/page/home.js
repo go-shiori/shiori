@@ -628,6 +628,7 @@ export default {
                     downloadLink.click();
 
                     var item = items.find(el => el.id === book.id);
+					this.bookmarks.splice(item.index, 1, book);
                 });
             }).catch(err => {
                 this.selection = [];

@@ -506,7 +506,7 @@ func (h *handler) apiDownloadEbook(w http.ResponseWriter, r *http.Request, ps ht
 	for i, book := range bookmarks {
 		wg.Add(1)
 
-		go func(i int, book model.Bookmark, keepMetadata bool) {
+		go func(i int, book model.Bookmark) {
 			// Make sure to finish the WG
 			defer wg.Done()
 
@@ -528,11 +528,9 @@ func (h *handler) apiDownloadEbook(w http.ResponseWriter, r *http.Request, ps ht
 				Bookmark:    book,
 				Content:     content,
 				ContentType: contentType,
-				KeepTitle:   keepMetadata,
-				KeepExcerpt: keepMetadata,
 			}
 
-			_, err = core.EbookGenerate(request)
+			book, _, err = core.EbookGenerate(request)
 			content.Close()
 
 			if err != nil {
@@ -544,8 +542,7 @@ func (h *handler) apiDownloadEbook(w http.ResponseWriter, r *http.Request, ps ht
 			mx.Lock()
 			bookmarks[i] = book
 			mx.Unlock()
-			//TODO: fix this
-		}(i, book, true)
+		}(i, book)
 	}
 	// Receive all problematic bookmarks
 	idWithProblems := []int{}

@@ -15,36 +15,49 @@ import (
 	"github.com/go-shiori/shiori/internal/model"
 )
 
-func EbookGenerate(req ProcessRequest) (isFatalErr bool, err error) {
+func EbookGenerate(req ProcessRequest) (book model.Bookmark, isFatalErr bool, err error) {
 	// variable for store generated html code
 	var html string
 
-	book := req.Bookmark
+	book = req.Bookmark
 
 	// Make sure bookmark ID is defined
 	if book.ID == 0 {
-		return true, fmt.Errorf("bookmark ID is not valid")
+		return book, true, fmt.Errorf("bookmark ID is not valid")
 	}
 
+	// cheak archive and thumb
 	strID := strconv.Itoa(book.ID)
-	ebookDir := fp.Join(req.DataDir, "ebook")
 
+	imagePath := fp.Join(req.DataDir, "thumb", fmt.Sprintf("%d", book.ID))
+	archivePath := fp.Join(req.DataDir, "archive", fmt.Sprintf("%d", book.ID))
+
+	if _, err := os.Stat(imagePath); err == nil {
+		book.ImageURL = fp.Join("/", "bookmark", strID, "thumb")
+	}
+
+	if _, err := os.Stat(archivePath); err == nil {
+		book.HasArchive = true
+	}
+
+	if _, err := os.Stat(archivePath); err == nil {
+		book.HasArchive = true
+	}
+	ebookPath := fp.Join(req.DataDir, "ebook", fmt.Sprintf("%d.epub", book.ID))
+	// if epub exist finish prosess else continue
+	if _, err := os.Stat(ebookPath); err == nil {
+		return book, false, nil
+	}
+
+	ebookDir := fp.Join(req.DataDir, "ebook")
 	// check if directory not exsist create that
 	if _, err := os.Stat(ebookDir); os.IsNotExist(err) {
 		os.MkdirAll(ebookDir, model.DataDirPerm)
 	}
-	ebookPath := fp.Join(req.DataDir, "ebook", strID+".epub")
-
-	// TODO: can cheak with bookmark.hasEbook for now cheak epub exist
-	// if epub exist finish prosess else continue
-	if _, err := os.Stat(ebookPath); err == nil {
-		return false, nil
-	}
-
 	// create epub file
 	epubFile, err := os.Create(ebookPath)
 	if err != nil {
-		return true, fmt.Errorf("can't create ebook")
+		return book, true, fmt.Errorf("can't create ebook")
 	}
 	defer epubFile.Close()
 
@@ -55,14 +68,14 @@ func EbookGenerate(req ProcessRequest) (isFatalErr bool, err error) {
 	// Create the mimetype file
 	mimetypeWriter, err := epubWriter.Create("mimetype")
 	if err != nil {
-		return true, fmt.Errorf("can't create mimetype")
+		return book, true, fmt.Errorf("can't create mimetype")
 	}
 	mimetypeWriter.Write([]byte("application/epub+zip"))
 
 	// Create the container.xml file
 	containerWriter, err := epubWriter.Create("META-INF/container.xml")
 	if err != nil {
-		return true, fmt.Errorf("can't create container.xml")
+		return book, true, fmt.Errorf("can't create container.xml")
 	}
 
 	containerWriter.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
@@ -74,7 +87,7 @@ func EbookGenerate(req ProcessRequest) (isFatalErr bool, err error) {
 
 	contentOpfWriter, err := epubWriter.Create("OEBPS/content.opf")
 	if err != nil {
-		return true, fmt.Errorf("can't create content.opf")
+		return book, true, fmt.Errorf("can't create content.opf")
 	}
 	contentOpfWriter.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
 <package xmlns="http://www.idpf.org/2007/opf" version="2.0" unique-identifier="BookId">
@@ -96,7 +109,7 @@ func EbookGenerate(req ProcessRequest) (isFatalErr bool, err error) {
 	// Create the style.css file
 	styleWriter, err := epubWriter.Create("style.css")
 	if err != nil {
-		return true, fmt.Errorf("can't create content.xml")
+		return book, true, fmt.Errorf("can't create content.xml")
 	}
 	styleWriter.Write([]byte(`content {
 	display: block;
@@ -114,7 +127,7 @@ img {
 	// Create the toc.ncx file
 	tocNcxWriter, err := epubWriter.Create("OEBPS/toc.ncx")
 	if err != nil {
-		return true, fmt.Errorf("can't create toc.ncx")
+		return book, true, fmt.Errorf("can't create toc.ncx")
 	}
 	tocNcxWriter.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE ncx PUBLIC "-//NISO//DTD ncx 2005-1//EN"
@@ -171,7 +184,7 @@ img {
 			// Get the image data
 			imageData, err := ioutil.ReadAll(resp.Body)
 			if err != nil {
-				return true, fmt.Errorf("can't get image from the internet")
+				return book, true, fmt.Errorf("can't get image from the internet")
 			}
 
 			fileName := fp.Base(imageURL)
@@ -184,7 +197,7 @@ img {
 			// Write the image to the file
 			_, err = imageWriter.Write(imageData)
 			if err != nil {
-				return true, fmt.Errorf("can't create image file")
+				return book, true, fmt.Errorf("can't create image file")
 			}
 			// Replace the image tag with the new downloaded image
 			html = strings.ReplaceAll(html, match[0], fmt.Sprintf(`<img src="../%s"/>`, filePath))
@@ -193,11 +206,11 @@ img {
 	// Create the content.html file
 	contentHtmlWriter, err := epubWriter.Create("OEBPS/content.html")
 	if err != nil {
-		return true, fmt.Errorf("can't create content.xml")
+		return book, true, fmt.Errorf("can't create content.xml")
 	}
 	contentHtmlWriter.Write([]byte("<?xml version='1.0' encoding='utf-8'?>\n<html xmlns=\"http://www.w3.org/1999/xhtml\">\n<head>\n\t<title>" + book.Title + "</title>\n\t<link href=\"../style.css\" rel=\"stylesheet\" type=\"text/css\"/>\n</head>\n<body>\n\t<h1 dir=\"auto\">" + book.Title + "</h1>" + "\n<content dir=\"auto\">\n" + html + "\n</content>" + "\n</body></html>"))
 	book.HasEbook = true
-	return false, nil
+	return book, false, nil
 }
 
 // function get html and return list of image url inside html file
