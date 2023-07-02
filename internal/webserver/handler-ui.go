@@ -205,10 +205,34 @@ func (h *handler) serveBookmarkContent(w http.ResponseWriter, r *http.Request, p
 // serveThumbnailImage is handler for GET /bookmark/:id/thumb
 func (h *handler) serveThumbnailImage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	// Get bookmark ID from URL
-	id := ps.ByName("id")
+	ctx := r.Context()
 
+	// Get bookmark ID from URL
+	strID := ps.ByName("id")
+
+	// Get bookmark from database
+	id, err := strconv.Atoi(strID)
+	checkError(err)
+	bookmark, exist, err := h.DB.GetBookmark(ctx, id, "")
+	checkError(err)
+
+	if !exist {
+		log.Println("error: bookmark not found")
+		return
+	}
+
+	// If it's not public, make sure session still valid
+	if bookmark.Public != 1 {
+		err = h.validateSession(r)
+		if err != nil {
+			newPath := path.Join(h.RootPath, "/login")
+			redirectURL := createRedirectURL(newPath, r.URL.String())
+			redirectPage(w, r, redirectURL)
+			return
+		}
+	}
 	// Open image
-	imgPath := fp.Join(h.DataDir, "thumb", id)
+	imgPath := fp.Join(h.DataDir, "thumb", strID)
 	img, err := os.Open(imgPath)
 	checkError(err)
 	defer img.Close()
