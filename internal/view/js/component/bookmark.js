@@ -35,9 +35,6 @@ var template = `
             <a v-if="hasEbook" title="Download book" @click="downloadebook">
                 <i class="fas fa-fw fa-book"></i>
             </a>
-            <a v-if="!hasEbook" title="Generate book" @click="generateEbook">
-                <i class="fas fa-fw fa-book"></i>
-            </a>
 		</template>
 	</div>
 </div>`;
@@ -135,8 +132,5 @@ export default {
             downloadLink.download = `${this.title}.epub`;
             downloadLink.click();
 		},
-		generateEbook() {
-			this.$emit("generate-ebook", this.eventItem);
-		}
 	}
 }

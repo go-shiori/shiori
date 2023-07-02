@@ -25,6 +25,7 @@ type Bookmark struct {
 	HasEbook      bool   `json:"hasEbook"`
 	Tags          []Tag  `json:"tags"`
 	CreateArchive bool   `json:"createArchive"`
+	CreateEbook   bool   `json:"createEbook"`
 }
 
 // Account is person that allowed to access web interface.

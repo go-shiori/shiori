@@ -579,6 +579,7 @@ func (h *handler) apiUpdateCache(w http.ResponseWriter, r *http.Request, ps http
 		IDs           []int `json:"ids"`
 		KeepMetadata  bool  `json:"keepMetadata"`
 		CreateArchive bool  `json:"createArchive"`
+		CreateEbook   bool  `json:"createEbook"`
 	}{}
 
 	err = json.NewDecoder(r.Body).Decode(&request)
@@ -614,8 +615,9 @@ func (h *handler) apiUpdateCache(w http.ResponseWriter, r *http.Request, ps http
 	for i, book := range bookmarks {
 		wg.Add(1)
 
-		// Mark whether book will be archived
+		// Mark whether book will be archived or ebook generate request
 		book.CreateArchive = request.CreateArchive
+		book.CreateEbook = request.CreateEbook
 
 		go func(i int, book model.Bookmark, keepMetadata bool) {
 			// Make sure to finish the WG

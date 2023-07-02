@@ -22,6 +22,7 @@ export default {
 
 					keepMetadata: false,
 					useArchive: false,
+					createEbook: false,
 					makePublic: false,
 				};
 			}

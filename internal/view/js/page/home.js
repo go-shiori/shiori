@@ -671,7 +671,12 @@ export default {
 					label: "Update archive as well",
 					type: "check",
 					value: this.appOptions.useArchive,
-				}],
+				}, {
+					name: "createEbook",
+					label: "Update Ebook as well",
+					type: "check",
+					value: this.appOptions.createEbook,
+                }],
 				mainText: "Yes",
 				secondText: "No",
 				mainClick: (data) => {
@@ -679,6 +684,7 @@ export default {
 						ids: ids,
 						createArchive: data.createArchive,
 						keepMetadata: data.keepMetadata,
+                        createEbook: data.createEbook,
 					};
 
 					this.dialog.loading = true;
