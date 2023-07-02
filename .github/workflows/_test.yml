@@ -32,12 +32,12 @@ jobs:
 
     name: Go ${{ matrix.go }} unit tests
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@24cb9080177205b6e8c946b17badbe402adc938f # v3.4.0
     - name: Setup go
-      uses: actions/setup-go@v3
+      uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v3.5.0
       with:
         go-version: ${{ matrix.go }}
-    - uses: actions/cache@v3
+    - uses: actions/cache@ 88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 # 3.3.1
       with:
         path: |
           ~/.cache/go-build
