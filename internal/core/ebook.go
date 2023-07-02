@@ -57,7 +57,7 @@ func EbookGenerate(req ProcessRequest) (book model.Bookmark, isFatalErr bool, er
 	// create epub file
 	epubFile, err := os.Create(ebookPath)
 	if err != nil {
-		return book, true, fmt.Errorf("can't create ebook")
+		return book, true, errors.Wrap(err, "can't create ebook")
 	}
 	defer epubFile.Close()
 
@@ -68,14 +68,14 @@ func EbookGenerate(req ProcessRequest) (book model.Bookmark, isFatalErr bool, er
 	// Create the mimetype file
 	mimetypeWriter, err := epubWriter.Create("mimetype")
 	if err != nil {
-		return book, true, fmt.Errorf("can't create mimetype")
+		return book, true, errors.Wrap(err, "can't create mimetype")
 	}
 	mimetypeWriter.Write([]byte("application/epub+zip"))
 
 	// Create the container.xml file
 	containerWriter, err := epubWriter.Create("META-INF/container.xml")
 	if err != nil {
-		return book, true, fmt.Errorf("can't create container.xml")
+		return book, true, errors.Wrap("can't create container.xml")
 	}
 
 	containerWriter.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
@@ -87,7 +87,7 @@ func EbookGenerate(req ProcessRequest) (book model.Bookmark, isFatalErr bool, er
 
 	contentOpfWriter, err := epubWriter.Create("OEBPS/content.opf")
 	if err != nil {
-		return book, true, fmt.Errorf("can't create content.opf")
+		return book, true, errors.Wrap(err, "can't create content.opf")
 	}
 	contentOpfWriter.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
 <package xmlns="http://www.idpf.org/2007/opf" version="2.0" unique-identifier="BookId">
@@ -109,7 +109,7 @@ func EbookGenerate(req ProcessRequest) (book model.Bookmark, isFatalErr bool, er
 	// Create the style.css file
 	styleWriter, err := epubWriter.Create("style.css")
 	if err != nil {
-		return book, true, fmt.Errorf("can't create content.xml")
+		return book, true, errors.Wrap(err, "can't create content.xml")
 	}
 	styleWriter.Write([]byte(`content {
 	display: block;
