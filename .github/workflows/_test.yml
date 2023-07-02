@@ -37,7 +37,7 @@ jobs:
       uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v3.5.0
       with:
         go-version: ${{ matrix.go }}
-    - uses: actions/cache@ 88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 # 3.3.1
+    - uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 # 3.3.1
       with:
         path: |
           ~/.cache/go-build
