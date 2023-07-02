@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/go-shiori/shiori/internal/model"
+	"github.com/pkg/errors"
 )
 
 func EbookGenerate(req ProcessRequest) (book model.Bookmark, isFatalErr bool, err error) {
@@ -75,7 +76,7 @@ func EbookGenerate(req ProcessRequest) (book model.Bookmark, isFatalErr bool, er
 	// Create the container.xml file
 	containerWriter, err := epubWriter.Create("META-INF/container.xml")
 	if err != nil {
-		return book, true, errors.Wrap("can't create container.xml")
+		return book, true, errors.Wrap(err, "can't create container.xml")
 	}
 
 	containerWriter.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
