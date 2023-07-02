@@ -217,7 +217,8 @@ func (h *handler) serveThumbnailImage(w http.ResponseWriter, r *http.Request, ps
 	checkError(err)
 
 	if !exist {
-		panic(fmt.Errorf("bookmark not found"))
+		log.Println("error: bookmark not found")
+		return
 	}
 
 	// If it's not public, make sure session still valid
