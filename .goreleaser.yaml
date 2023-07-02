@@ -17,7 +17,7 @@ builds:
       - arm
       - arm64
     goarm:
-      - 7
+      - "7"
     ignore:
       - goos: darwin
         goarch: arm
@@ -26,12 +26,11 @@ builds:
       - goos: windows
         goarch: arm64
 archives:
-  - replacements:
-      darwin: Darwin
-      linux: Linux
-      windows: Windows
-      amd64: x86_64
-      arm64: aarch64
+  - id: shiori
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- if eq .Os "darwin" }}Darwin{{- else if eq .Os "linux" }}Linux{{- else if eq .Os "windows" }}Windows{{- else }}{{ .Os }}{{ end }}_
+      {{- if eq .Arch "amd64" }}x86_64{{- else if eq .Arch "arm64" }}aarch64{{- else }}{{ .Arch }}{{ end }}
 
 checksum:
   name_template: 'checksums.txt'
