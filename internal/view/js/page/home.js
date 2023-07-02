@@ -27,7 +27,7 @@ var template = `
             <i class="fas fa-fw fa-cloud-download-alt"></i>
         </a>
         <a title="Download ebooks" @click="ebookGenerate(selection)">
-            <i class="fas fa-fw fa-book "></i>
+            <i class="fas fa-fw fa-book"></i>
         </a>
         <a title="Cancel" @click="toggleEditMode">
             <i class="fas fa-fw fa-times"></i>
