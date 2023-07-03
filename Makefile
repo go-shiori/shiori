@@ -7,3 +7,6 @@ run-server: ### Run server
 .PHONY: swag
 swag: ### Generate swagger docs
 	swag init
+
+lint: ### Run linter
+	golangci-lint run

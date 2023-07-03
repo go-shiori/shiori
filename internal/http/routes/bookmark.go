@@ -14,7 +14,6 @@ import (
 
 type BookmarkRoutes struct {
 	logger *logrus.Logger
-	group  *gin.RouterGroup
 	deps   *config.Dependencies
 }
 
@@ -59,9 +58,7 @@ func (r *BookmarkRoutes) bookmarkContentHandler(c *gin.Context) {
 	response.Send(c, 200, bookmark.Content)
 }
 
-func (r *BookmarkRoutes) bookmarkArchiveHandler(c *gin.Context) {
-	return
-}
+func (r *BookmarkRoutes) bookmarkArchiveHandler(c *gin.Context) {}
 
 func NewBookmarkRoutes(logger *logrus.Logger, deps *config.Dependencies) *BookmarkRoutes {
 	return &BookmarkRoutes{

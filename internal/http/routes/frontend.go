@@ -19,10 +19,7 @@ type frontendFS struct {
 
 func (fs frontendFS) Exists(prefix string, path string) bool {
 	_, err := fs.Open(path)
-	if err != nil {
-		return false
-	}
-	return true
+	return err == nil
 }
 
 func NewFrontendFS(fs embed.FS) static.ServeFileSystem {
