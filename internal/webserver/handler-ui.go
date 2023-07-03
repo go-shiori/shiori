@@ -346,7 +346,8 @@ func (h *handler) serveBookmarkEbook(w http.ResponseWriter, r *http.Request, ps 
 	checkError(err)
 
 	if !exist {
-		panic(fmt.Errorf("bookmark not found"))
+		http.Error(w, "bookmark not found", http.StatusNotFound)
+		return
 	}
 
 	// If it's not public, make sure session still valid
@@ -363,7 +364,8 @@ func (h *handler) serveBookmarkEbook(w http.ResponseWriter, r *http.Request, ps 
 	// Check if it has ebook.
 	ebookPath := fp.Join(h.DataDir, "ebook", strID+".epub")
 	if !fileExists(ebookPath) {
-		panic(fmt.Errorf("ebook not found"))
+		http.Error(w, "ebook not found", http.StatusNotFound)
+		return
 	}
 
 	epub, err := os.Open(ebookPath)
