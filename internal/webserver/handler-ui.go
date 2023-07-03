@@ -119,6 +119,10 @@ func (h *handler) serveBookmarkContent(w http.ResponseWriter, r *http.Request, p
 	}
 
 	// Check if it has archive.
+	ebookPath := fp.Join(h.DataDir, "ebook", strID+".epub")
+	if fileExists(ebookPath) {
+		bookmark.HasEbook = true
+	}
 	archivePath := fp.Join(h.DataDir, "archive", strID)
 	if fileExists(archivePath) {
 		bookmark.HasArchive = true

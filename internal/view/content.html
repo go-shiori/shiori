@@ -33,6 +33,9 @@
 				$$if .Book.HasArchive$$
 				<a href="bookmark/$$.Book.ID$$/archive">View Archive</a>
 				$$end$$
+				$$if .Book.HasEbook$$
+				<a href="bookmark/$$.Book.ID$$/ebook" download="$$.Book.Title$$.epub">Download Ebook</a>
+				$$end$$
 			</div>
 		</div>
 		<div id="content" dir="auto" v-pre>
