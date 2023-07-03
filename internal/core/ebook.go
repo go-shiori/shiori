@@ -3,7 +3,7 @@ package core
 import (
 	"archive/zip"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -183,7 +183,7 @@ img {
 			defer resp.Body.Close()
 
 			// Get the image data
-			imageData, err := ioutil.ReadAll(resp.Body)
+			imageData, err := io.ReadAll(resp.Body)
 			if err != nil {
 				return book, true, fmt.Errorf("can't get image from the internet")
 			}
