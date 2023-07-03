@@ -53,7 +53,10 @@ func EbookGenerate(req ProcessRequest) (book model.Bookmark, isFatalErr bool, er
 	ebookDir := fp.Join(req.DataDir, "ebook")
 	// check if directory not exsist create that
 	if _, err := os.Stat(ebookDir); os.IsNotExist(err) {
-		os.MkdirAll(ebookDir, model.DataDirPerm)
+		err := os.MkdirAll(ebookDir, model.DataDirPerm)
+		if err != nil {
+			return book, true, errors.Wrap(err, "can't create ebook directory")
+		}
 	}
 	// create epub file
 	epubFile, err := os.Create(ebookPath)
@@ -71,7 +74,10 @@ func EbookGenerate(req ProcessRequest) (book model.Bookmark, isFatalErr bool, er
 	if err != nil {
 		return book, true, errors.Wrap(err, "can't create mimetype")
 	}
-	mimetypeWriter.Write([]byte("application/epub+zip"))
+	_, err = mimetypeWriter.Write([]byte("application/epub+zip"))
+	if err != nil {
+		return book, true, errors.Wrap(err, "can't write into mimetype file")
+	}
 
 	// Create the container.xml file
 	containerWriter, err := epubWriter.Create("META-INF/container.xml")
@@ -79,18 +85,21 @@ func EbookGenerate(req ProcessRequest) (book model.Bookmark, isFatalErr bool, er
 		return book, true, errors.Wrap(err, "can't create container.xml")
 	}
 
-	containerWriter.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
+	_, err = containerWriter.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
 <container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
   <rootfiles>
 	<rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/>
   </rootfiles>
 </container>`))
+	if err != nil {
+		return book, true, errors.Wrap(err, "can't write into container.xml file")
+	}
 
 	contentOpfWriter, err := epubWriter.Create("OEBPS/content.opf")
 	if err != nil {
 		return book, true, errors.Wrap(err, "can't create content.opf")
 	}
-	contentOpfWriter.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
+	_, err = contentOpfWriter.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
 <package xmlns="http://www.idpf.org/2007/opf" version="2.0" unique-identifier="BookId">
   <metadata>
     <dc:title>` + book.Title + `</dc:title>
@@ -106,13 +115,16 @@ func EbookGenerate(req ProcessRequest) (book model.Bookmark, isFatalErr bool, er
     <itemref idref="content"/>
   </spine>
 </package>`))
+	if err != nil {
+		return book, true, errors.Wrap(err, "can't write into container.opf file")
+	}
 
 	// Create the style.css file
 	styleWriter, err := epubWriter.Create("style.css")
 	if err != nil {
 		return book, true, errors.Wrap(err, "can't create content.xml")
 	}
-	styleWriter.Write([]byte(`content {
+	_, err = styleWriter.Write([]byte(`content {
 	display: block;
 	font-size: 1em;
 	line-height: 1.2;
@@ -125,12 +137,15 @@ img {
   	margin: auto;
   	display: block;
 }`))
+	if err != nil {
+		return book, true, errors.Wrap(err, "can't write into style.css file")
+	}
 	// Create the toc.ncx file
 	tocNcxWriter, err := epubWriter.Create("OEBPS/toc.ncx")
 	if err != nil {
 		return book, true, fmt.Errorf("can't create toc.ncx")
 	}
-	tocNcxWriter.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
+	_, err = tocNcxWriter.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE ncx PUBLIC "-//NISO//DTD ncx 2005-1//EN"
   "http://www.daisy.org/z3986/2005/ncx-2005-1.dtd">
 <ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1">
@@ -152,13 +167,9 @@ img {
     </navPoint>
   </navMap>
 </ncx>`))
-
-	containerWriter.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
-<container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
-  <rootfiles>
-    <rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/>
-  </rootfiles>
-</container>`))
+	if err != nil {
+		return book, true, fmt.Errorf("can't write into toc.ncx file")
+	}
 
 	// get list of images tag in html
 	imageList, _ := getImages(book.HTML)
@@ -209,7 +220,10 @@ img {
 	if err != nil {
 		return book, true, fmt.Errorf("can't create content.xml")
 	}
-	contentHtmlWriter.Write([]byte("<?xml version='1.0' encoding='utf-8'?>\n<html xmlns=\"http://www.w3.org/1999/xhtml\">\n<head>\n\t<title>" + book.Title + "</title>\n\t<link href=\"../style.css\" rel=\"stylesheet\" type=\"text/css\"/>\n</head>\n<body>\n\t<h1 dir=\"auto\">" + book.Title + "</h1>" + "\n<content dir=\"auto\">\n" + html + "\n</content>" + "\n</body></html>"))
+	_, err = contentHtmlWriter.Write([]byte("<?xml version='1.0' encoding='utf-8'?>\n<html xmlns=\"http://www.w3.org/1999/xhtml\">\n<head>\n\t<title>" + book.Title + "</title>\n\t<link href=\"../style.css\" rel=\"stylesheet\" type=\"text/css\"/>\n</head>\n<body>\n\t<h1 dir=\"auto\">" + book.Title + "</h1>" + "\n<content dir=\"auto\">\n" + html + "\n</content>" + "\n</body></html>"))
+	if err != nil {
+		return book, true, fmt.Errorf("can't write into content.html")
+	}
 	book.HasEbook = true
 	return book, false, nil
 }
