@@ -103,8 +103,6 @@ func EbookGenerate(req ProcessRequest) (book model.Bookmark, isFatalErr bool, er
 <package xmlns="http://www.idpf.org/2007/opf" version="2.0" unique-identifier="BookId">
   <metadata>
     <dc:title>` + book.Title + `</dc:title>
-    <dc:language>en</dc:language>
-    <dc:identifier id="BookId">urn:uuid:12345678-1234-5678-1234-567812345678</dc:identifier>
   </metadata>
   <manifest>
     <item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml"/>
