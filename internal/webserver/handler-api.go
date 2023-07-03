@@ -377,9 +377,11 @@ func (h *handler) apiDeleteBookmark(w http.ResponseWriter, r *http.Request, ps h
 		strID := strconv.Itoa(id)
 		imgPath := fp.Join(h.DataDir, "thumb", strID)
 		archivePath := fp.Join(h.DataDir, "archive", strID)
+		ebookPath := fp.Join(h.DataDir, "ebook", strID+".epub")
 
 		os.Remove(imgPath)
 		os.Remove(archivePath)
+		os.Remove(ebookPath)
 	}
 
 	fmt.Fprint(w, 1)
