@@ -7,7 +7,8 @@ import (
 
 	"github.com/go-shiori/shiori/internal/database"
 	"github.com/go-shiori/shiori/internal/model"
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -16,6 +17,35 @@ type AccountsDomain struct {
 	logger *logrus.Logger
 	db     database.DB
 	secret []byte
+}
+
+type JWTClaim struct {
+	jwt.RegisteredClaims
+
+	Account *model.Account
+}
+
+func (d *AccountsDomain) CheckToken(ctx context.Context, userJWT string) (*model.Account, error) {
+	token, err := jwt.ParseWithClaims(userJWT, &JWTClaim{}, func(token *jwt.Token) (interface{}, error) {
+		// Validate algorithm
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+		}
+
+		return d.secret, nil
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, "error parsing token")
+	}
+
+	if claims, ok := token.Claims.(*JWTClaim); ok && token.Valid {
+		if claims.Account.ID > 0 {
+			return claims.Account, nil
+		}
+		return nil, fmt.Errorf("invalid token")
+	}
+
+	return nil, fmt.Errorf("error obtaining user from JWT claims")
 }
 
 func (d *AccountsDomain) GetAccountFromCredentials(ctx context.Context, username, password string) (*model.Account, error) {

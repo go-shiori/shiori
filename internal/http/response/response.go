@@ -1,6 +1,6 @@
 package response
 
-import "github.com/gofiber/fiber/v2"
+import "github.com/gin-gonic/gin"
 
 type Response struct {
 	// Response payload
@@ -21,8 +21,9 @@ func (m *Response) IsError() bool {
 	return m.Ok
 }
 
-func (m *Response) Send(c *fiber.Ctx) error {
-	return c.Status(m.statusCode).JSON(m)
+func (m *Response) Send(c *gin.Context) {
+	c.Status(m.statusCode)
+	c.JSON(m.statusCode, m)
 }
 
 func NewResponse(ok bool, message interface{}, errorParams map[string]string, statusCode int) *Response {

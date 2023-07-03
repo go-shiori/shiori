@@ -1,47 +1,49 @@
 package routes
 
 import (
+	"embed"
 	"net/http"
 	"time"
 
+	"github.com/gin-contrib/gzip"
+	"github.com/gin-contrib/static"
+	"github.com/gin-gonic/gin"
 	"github.com/go-shiori/shiori/internal/config"
 	"github.com/go-shiori/shiori/internal/http/frontend"
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cache"
-	"github.com/gofiber/fiber/v2/middleware/compress"
-	"github.com/gofiber/fiber/v2/middleware/filesystem"
 	"github.com/sirupsen/logrus"
 )
 
+type frontendFS struct {
+	http.FileSystem
+}
+
+func (fs frontendFS) Exists(prefix string, path string) bool {
+	_, err := fs.Open(path)
+	if err != nil {
+		return false
+	}
+	return true
+}
+
+func NewFrontendFS(fs embed.FS) static.ServeFileSystem {
+	return frontendFS{
+		FileSystem: http.FS(fs),
+	}
+}
+
 type FrontendRoutes struct {
 	logger *logrus.Logger
-	router *fiber.App
 	maxAge time.Duration
 }
 
-func (r *FrontendRoutes) Setup() *FrontendRoutes {
-	cacheConfig := cache.ConfigDefault
-	cacheConfig.Expiration = 24 * time.Hour
-	r.router.
-		Use(compress.New()).
-		Use(cache.New(cacheConfig)).
-		Use("/", filesystem.New(filesystem.Config{
-			Browse:       false,
-			MaxAge:       int(r.maxAge.Seconds()),
-			Root:         http.FS(frontend.Assets),
-			NotFoundFile: "404.html",
-		}))
-	return r
-}
-
-func (r *FrontendRoutes) Router() *fiber.App {
-	return r.router
+func (r *FrontendRoutes) Setup(e *gin.Engine) {
+	e.Use(gzip.Gzip(gzip.DefaultCompression))
+	e.Use(static.Serve("/", NewFrontendFS(frontend.Assets)))
 }
 
 func NewFrontendRoutes(logger *logrus.Logger, cfg config.HttpConfig) *FrontendRoutes {
 	return &FrontendRoutes{
 		logger: logger,
-		router: fiber.New(),
 		maxAge: cfg.Routes.Frontend.MaxAge,
 	}
 }

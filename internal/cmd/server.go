@@ -76,6 +76,7 @@ func newServerCommandHandler(logger *logrus.Logger) func(cmd *cobra.Command, arg
 		if err := server.Start(ctx); err != nil {
 			logger.WithError(err).Fatal("error starting server")
 		}
+		logger.WithField("addr", address).Debug("started http server")
 
 		server.WaitStop(ctx)
 	}

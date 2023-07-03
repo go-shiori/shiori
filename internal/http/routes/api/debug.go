@@ -1,47 +1,41 @@
 package api
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/go-shiori/shiori/internal/config"
 	"github.com/go-shiori/shiori/internal/http/response"
 	"github.com/go-shiori/shiori/internal/model"
-	"github.com/gofiber/fiber/v2"
 	"github.com/sirupsen/logrus"
 )
 
 type DebugAPIRoutes struct {
 	logger *logrus.Logger
-	router *fiber.App
 	deps   *config.Dependencies
 }
 
-func (r *DebugAPIRoutes) Setup() *DebugAPIRoutes {
-	r.router.Get("/create_user", r.createUserHandler)
+func (r *DebugAPIRoutes) Setup(group *gin.RouterGroup) model.Routes {
+	group.GET("/create_user", r.createUserHandler)
 	return r
 }
 
-func (r *DebugAPIRoutes) Router() *fiber.App {
-	return r.router
-}
-
-func (r *DebugAPIRoutes) createUserHandler(c *fiber.Ctx) error {
-	ctx := c.Context()
-
+func (r *DebugAPIRoutes) createUserHandler(c *gin.Context) {
 	account := model.Account{
 		Username: "shiori",
 		Password: "gopher",
 		Owner:    true,
 	}
 
-	if err := r.deps.Database.SaveAccount(ctx, account); err != nil {
-		return response.SendError(c, 500, err.Error())
+	if err := r.deps.Database.SaveAccount(c, account); err != nil {
+		response.SendError(c, 500, err.Error())
+		return
 	}
-	return response.Send(c, 201, account)
+
+	response.Send(c, 201, account)
 }
 
 func NewDebugPIRoutes(logger *logrus.Logger, deps *config.Dependencies) *DebugAPIRoutes {
 	return &DebugAPIRoutes{
 		logger: logger,
-		router: fiber.New(),
 		deps:   deps,
 	}
 }

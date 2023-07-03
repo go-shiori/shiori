@@ -1,33 +1,51 @@
 package middleware
 
 import (
-	"github.com/go-shiori/shiori/internal/model"
-	"github.com/gofiber/fiber/v2"
-	jwtware "github.com/gofiber/jwt/v3"
-	"github.com/golang-jwt/jwt/v4"
+	"log"
+	"net/http"
+	"strings"
+
+	"github.com/gin-gonic/gin"
+	"github.com/go-shiori/shiori/internal/config"
+	"github.com/go-shiori/shiori/internal/http/context"
+	"github.com/go-shiori/shiori/internal/http/response"
 )
 
 // AuthMiddleware provides basic authentication capabilities to all routes underneath
 // its usage, only allowing authenticated users access and set a custom local context
 // `account` with the account model for the logged in user.
-func AuthMiddleware(secretKey string) fiber.Handler {
-	return jwtware.New(jwtware.Config{
-		SigningKey: []byte(secretKey),
-		SuccessHandler: func(c *fiber.Ctx) error {
-			user := c.Locals("user").(*jwt.Token)
-			claims := user.Claims.(jwt.MapClaims)
-			account := claims["account"].(map[string]interface{})
-			c.Locals("account", model.Account{
-				Username: account["username"].(string),
-				ID:       int(account["id"].(float64)),
-				Owner:    account["owner"].(bool),
-			})
-			return c.Next()
-		},
-		ErrorHandler: func(c *fiber.Ctx, err error) error {
-			// Ignore all errors, use a separate middleware to enforce authenticated users.
-			// return response.SendError(c, fiber.StatusUnauthorized, err.Error())
-			return c.Next()
-		},
-	})
+func AuthMiddleware(deps *config.Dependencies) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		authorization := c.GetHeader("Authorization")
+		if authorization == "" {
+			log.Println("no header")
+			return
+		}
+
+		authParts := strings.SplitN(authorization, " ", 2)
+		if len(authParts) != 2 && authParts[0] != "Bearer" {
+			log.Println("no correct header")
+			return
+		}
+
+		account, err := deps.Domains.Auth.CheckToken(c, authParts[1])
+		if err != nil {
+			log.Println("no correct token: ", err.Error())
+			return
+		}
+
+		c.Set("account", account)
+	}
+}
+
+// AuthenticationRequired provides a middleware that checks if the user is logged in, returning
+// a 401 error if not.
+func AuthenticationRequired() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := context.NewContextFromGin(c)
+		if !ctx.UserIsLogged() {
+			response.SendError(c, http.StatusUnauthorized, nil)
+			return
+		}
+	}
 }

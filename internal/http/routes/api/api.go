@@ -1,56 +1,42 @@
 package api
 
 import (
-	"errors"
-
+	"github.com/gin-gonic/gin"
 	"github.com/go-shiori/shiori/internal/config"
 	"github.com/go-shiori/shiori/internal/http/middleware"
-	"github.com/go-shiori/shiori/internal/http/response"
-	"github.com/gofiber/fiber/v2"
+	"github.com/go-shiori/shiori/internal/model"
 	"github.com/sirupsen/logrus"
 )
 
 type APIRoutes struct {
 	logger *logrus.Logger
-	router *fiber.App
 	deps   *config.Dependencies
-	secret string
 }
 
-func (r *APIRoutes) Setup() *APIRoutes {
-	r.router.
-		Use(middleware.JSONMiddleware()).
-		Use(middleware.AuthMiddleware(r.secret)).
-		Mount("/account", NewAccountAPIRoutes(r.logger, r.deps).Setup().Router()).
-		Mount("/bookmarks", NewBookmarksPIRoutes(r.logger, r.deps).Setup().Router()).
-		Mount("/tags", NewTagsPIRoutes(r.logger, r.deps).Setup().Router())
-
+func (r *APIRoutes) Setup(g *gin.RouterGroup) model.Routes {
 	if r.deps.Config.Development {
-		r.router.Mount("/debug", NewDebugPIRoutes(r.logger, r.deps).Setup().Router())
+		r.handle(g, "/debug", NewDebugPIRoutes(r.logger, r.deps))
 	}
+
+	// Account API handles authentication in each route
+	r.handle(g, "/account", NewAccountAPIRoutes(r.logger, r.deps))
+
+	// From here on, all routes require authentication
+	g.Use(middleware.AuthenticationRequired())
+	r.handle(g, "/bookmarks", NewBookmarksPIRoutes(r.logger, r.deps))
+	r.handle(g, "/tags", NewTagsPIRoutes(r.logger, r.deps))
 
 	return r
 }
 
-func (r *APIRoutes) Router() *fiber.App {
-	return r.router
+func (s *APIRoutes) handle(g *gin.RouterGroup, path string, routes model.Routes) {
+	group := g.Group(path)
+	routes.Setup(group)
 }
 
-func NewAPIRoutes(logger *logrus.Logger, cfg config.HttpConfig, deps *config.Dependencies) *APIRoutes {
+func NewAPIRoutes(logger *logrus.Logger, deps *config.Dependencies) *APIRoutes {
 	return &APIRoutes{
 		logger: logger,
-		router: fiber.New(fiber.Config{
-			ErrorHandler: func(c *fiber.Ctx, err error) error {
-				// Broken: https://github.com/gofiber/fiber/issues/2233
-				code := fiber.StatusInternalServerError
-				var e *fiber.Error
-				if errors.As(err, &e) {
-					code = e.Code
-				}
-				return response.SendError(c, code, "")
-			},
-		}),
 		deps:   deps,
-		secret: cfg.SecretKey,
 	}
 }

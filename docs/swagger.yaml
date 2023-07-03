@@ -1,0 +1,33 @@
+definitions:
+  api.loginRequestPayload:
+    properties:
+      password:
+        type: string
+      remember_me:
+        type: boolean
+      username:
+        type: string
+    required:
+    - password
+    - username
+    type: object
+info:
+  contact: {}
+paths:
+  /api/v1/account/login:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Login data
+        in: body
+        name: payload
+        schema:
+          $ref: '#/definitions/api.loginRequestPayload'
+      produces:
+      - application/json
+      responses: {}
+      summary: Login to an account
+      tags:
+      - accounts
+swagger: "2.0"
