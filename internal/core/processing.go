@@ -125,9 +125,11 @@ func ProcessBookmark(req ProcessRequest) (book model.Bookmark, isFatalErr bool, 
 		}
 	}
 
-	// If needed, create offline archive as well
-	// TODO: it is not generate book if it exist yet
+	// If needed, create ebook as well
 	if book.CreateEbook {
+		ebookPath := fp.Join(req.DataDir, "ebook", fmt.Sprintf("%d.epub", book.ID))
+		os.Remove(ebookPath)
+
 		_, _, err = EbookGenerate(req)
 		if err != nil {
 			return book, false, fmt.Errorf("failed to create ebook: %v", err)
