@@ -1,6 +1,8 @@
 package response
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/gin-gonic/gin"
+)
 
 type Response struct {
 	// Response payload

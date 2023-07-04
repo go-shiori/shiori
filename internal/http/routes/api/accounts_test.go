@@ -3,6 +3,7 @@ package api
 import (
 	"bytes"
 	"context"
+	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
@@ -18,6 +19,19 @@ import (
 func TestAccountsRoute(t *testing.T) {
 	logger := logrus.New()
 	ctx := context.TODO()
+
+	t.Run("login invalid", func(t *testing.T) {
+		g := gin.New()
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+		router := NewAccountAPIRoutes(logger, deps)
+		router.Setup(g.Group("/"))
+		w := httptest.NewRecorder()
+		body := []byte(`{"username": "gopher"}`)
+		req := httptest.NewRequest("POST", "/login", bytes.NewBuffer(body))
+		g.ServeHTTP(w, req)
+
+		require.Equal(t, 400, w.Code)
+	})
 
 	t.Run("login incorrect", func(t *testing.T) {
 		g := gin.New()
@@ -96,5 +110,77 @@ func TestAccountsRoute(t *testing.T) {
 		g.ServeHTTP(w, req)
 
 		require.Equal(t, 403, w.Code)
+	})
+}
+
+func TestLoginRequestPayload(t *testing.T) {
+	// Test empty payload
+	t.Run("test empty payload", func(t *testing.T) {
+		payload := loginRequestPayload{}
+		err := payload.IsValid()
+		require.Error(t, err)
+	})
+
+	// Test empty username
+	t.Run("test empty username", func(t *testing.T) {
+		payload := loginRequestPayload{
+			Password: "gopher",
+		}
+		err := payload.IsValid()
+		require.Error(t, err)
+	})
+
+	// Test empty password
+	t.Run("test empty password", func(t *testing.T) {
+		payload := loginRequestPayload{
+			Username: "shiori",
+		}
+		err := payload.IsValid()
+		require.Error(t, err)
+	})
+
+	// Test valid payload
+	t.Run("test valid payload", func(t *testing.T) {
+		payload := loginRequestPayload{
+			Username: "shiori",
+			Password: "gopher",
+		}
+		err := payload.IsValid()
+		require.NoError(t, err)
+	})
+}
+
+func TestRefreshHandler(t *testing.T) {
+	logger := logrus.New()
+	ctx := context.TODO()
+	g := gin.New()
+
+	_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+	router := NewAccountAPIRoutes(logger, deps)
+	g.Use(middleware.AuthMiddleware(deps)) // Requires AuthMiddleware to manipulate context
+	router.Setup(g.Group("/"))
+
+	t.Run("empty headers", func(t *testing.T) {
+		w := testutil.PerformRequest(g, "POST", "/refresh")
+		require.Equal(t, http.StatusForbidden, w.Code)
+	})
+
+	t.Run("token invalid", func(t *testing.T) {
+		w := testutil.PerformRequest(g, "POST", "/refresh")
+		require.Equal(t, http.StatusForbidden, w.Code)
+	})
+
+	t.Run("token valid", func(t *testing.T) {
+		token, err := deps.Domains.Auth.CreateTokenForAccount(&model.Account{
+			Username: "shiori",
+		}, time.Now().Add(time.Minute))
+		require.NoError(t, err)
+
+		w := testutil.PerformRequest(g, "POST", "/refresh", testutil.Header{
+			Name:  model.AuthorizationHeader,
+			Value: model.AuthorizationTokenType + " " + token,
+		})
+
+		require.Equal(t, http.StatusAccepted, w.Code)
 	})
 }

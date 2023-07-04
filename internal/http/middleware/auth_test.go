@@ -61,7 +61,7 @@ func TestAuthMiddleware(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 		c.Request, _ = http.NewRequest("GET", "/", nil)
-		c.Request.Header.Set(AuthorizationHeader, TokenType+" "+token)
+		c.Request.Header.Set(model.AuthorizationHeader, model.AuthorizationTokenType+" "+token)
 		middleware(c)
 		_, exists := c.Get(model.ContextAccountKey)
 		require.True(t, exists)

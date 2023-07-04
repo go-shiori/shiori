@@ -11,23 +11,18 @@ import (
 	"github.com/go-shiori/shiori/internal/model"
 )
 
-const (
-	AuthorizationHeader = "Authorization"
-	TokenType           = "Bearer"
-)
-
 // AuthMiddleware provides basic authentication capabilities to all routes underneath
 // its usage, only allowing authenticated users access and set a custom local context
 // `account` with the account model for the logged in user.
 func AuthMiddleware(deps *config.Dependencies) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		authorization := c.GetHeader(AuthorizationHeader)
+		authorization := c.GetHeader(model.AuthorizationHeader)
 		if authorization == "" {
 			return
 		}
 
 		authParts := strings.SplitN(authorization, " ", 2)
-		if len(authParts) != 2 && authParts[0] != TokenType {
+		if len(authParts) != 2 && authParts[0] != model.AuthorizationTokenType {
 			return
 		}
 

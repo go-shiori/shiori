@@ -19,7 +19,13 @@ func (r *TagsAPIRoutes) Setup(g *gin.RouterGroup) model.Routes {
 }
 
 func (r *TagsAPIRoutes) listHandler(c *gin.Context) {
-	response.Send(c, 200, []string{})
+	tags, err := r.deps.Database.GetTags(c)
+	if err != nil {
+		response.SendInternalServerError(c)
+		return
+	}
+
+	response.Send(c, 200, tags)
 }
 
 func NewTagsPIRoutes(logger *logrus.Logger, deps *config.Dependencies) *TagsAPIRoutes {
