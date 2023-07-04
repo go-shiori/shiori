@@ -51,11 +51,13 @@ type loginResponseMessage struct {
 }
 
 // loginHandler godoc
-// @Summary      Login to an account
+// @Summary      Login to an account using username and password
 // @Tags         accounts
 // @Accept       json
 // @Produce      json
 // @Param        payload   body    loginRequestPayload    false  "Login data"
+// @Success      200  {object}  loginResponseMessage  "Login successful"
+// @Failure      400  {object}  nil                   "Invalid login data"
 // @Router       /api/v1/account/login [post]
 func (r *AccountAPIRoutes) loginHandler(c *gin.Context) {
 	var payload loginRequestPayload
@@ -90,14 +92,23 @@ func (r *AccountAPIRoutes) loginHandler(c *gin.Context) {
 		Token: token,
 	}
 
+	// TODO: move cookie logic to frontend routes
 	r.setCookie(c, token, expiration)
 
 	response.Send(c, http.StatusOK, responseMessage)
 }
 
+// refreshHandler godoc
+// @Summary      Refresh a token for an account
+// @Tags         accounts
+// @securityDefinitions.apikey ApiKeyAuth
+// @Produce      json
+// @Success      200  {object}  loginResponseMessage  "Refresh successful"
+// @Failure      403  {object}  nil                   "Token not provided/invalid"
+// @Router       /api/v1/account/refresh [post]
 func (r *AccountAPIRoutes) refreshHandler(c *gin.Context) {
 	ctx := context.NewContextFromGin(c)
-	if ctx.UserIsLogged() {
+	if !ctx.UserIsLogged() {
 		response.SendError(c, http.StatusForbidden, nil)
 		return
 	}
@@ -119,20 +130,29 @@ func (r *AccountAPIRoutes) refreshHandler(c *gin.Context) {
 	response.Send(c, http.StatusAccepted, responseMessage)
 }
 
+// meHandler godoc
+// @Summary      Get information for the current logged in user
+// @Tags         accounts
+// @securityDefinitions.apikey ApiKeyAuth
+// @Produce      json
+// @Success      200  {object}  model.Account
+// @Failure      403  {object}  nil                   "Token not provided/invalid"
+// @Router       /api/v1/account/me [get]
 func (r *AccountAPIRoutes) meHandler(c *gin.Context) {
 	ctx := context.NewContextFromGin(c)
-	if ctx.UserIsLogged() {
-		response.SendError(c, http.StatusUnauthorized, nil)
+	if !ctx.UserIsLogged() {
+		response.SendError(c, http.StatusForbidden, nil)
+		return
 	}
 
-	account, _ := c.Get("account")
-	response.Send(c, http.StatusOK, account.(*model.Account))
+	response.Send(c, http.StatusOK, ctx.GetAccount())
 }
 
+// TODO: move this handler to frontend routes
 func (r *AccountAPIRoutes) logoutHandler(c *gin.Context) {
 	ctx := context.NewContextFromGin(c)
-	if ctx.UserIsLogged() {
-		response.SendError(c, http.StatusUnauthorized, nil)
+	if !ctx.UserIsLogged() {
+		response.SendError(c, http.StatusForbidden, nil)
 		return
 	}
 

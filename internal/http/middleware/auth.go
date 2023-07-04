@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"log"
 	"net/http"
 	"strings"
 
@@ -9,6 +8,12 @@ import (
 	"github.com/go-shiori/shiori/internal/config"
 	"github.com/go-shiori/shiori/internal/http/context"
 	"github.com/go-shiori/shiori/internal/http/response"
+	"github.com/go-shiori/shiori/internal/model"
+)
+
+const (
+	AuthorizationHeader = "Authorization"
+	TokenType           = "Bearer"
 )
 
 // AuthMiddleware provides basic authentication capabilities to all routes underneath
@@ -16,25 +21,22 @@ import (
 // `account` with the account model for the logged in user.
 func AuthMiddleware(deps *config.Dependencies) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		authorization := c.GetHeader("Authorization")
+		authorization := c.GetHeader(AuthorizationHeader)
 		if authorization == "" {
-			log.Println("no header")
 			return
 		}
 
 		authParts := strings.SplitN(authorization, " ", 2)
-		if len(authParts) != 2 && authParts[0] != "Bearer" {
-			log.Println("no correct header")
+		if len(authParts) != 2 && authParts[0] != TokenType {
 			return
 		}
 
 		account, err := deps.Domains.Auth.CheckToken(c, authParts[1])
 		if err != nil {
-			log.Println("no correct token: ", err.Error())
 			return
 		}
 
-		c.Set("account", account)
+		c.Set(model.ContextAccountKey, account)
 	}
 }
 

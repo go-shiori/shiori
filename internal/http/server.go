@@ -37,10 +37,10 @@ func (s *HttpServer) Setup(cfg config.HttpConfig, deps *config.Dependencies) *Ht
 		gin.SetMode(gin.ReleaseMode)
 	}
 
-	s.handle("/system", routes.NewSystemRoutes(s.logger, cfg))
+	s.handle("/system", routes.NewSystemRoutes(s.logger))
 	s.handle("/bookmark", routes.NewBookmarkRoutes(s.logger, deps))
 	s.handle("/api/v1", api.NewAPIRoutes(s.logger, deps))
-	s.handle("/swagger", routes.NewSwaggerAPIRoutes(s.logger, deps))
+	s.handle("/swagger", routes.NewSwaggerAPIRoutes(s.logger))
 	routes.NewFrontendRoutes(s.logger, cfg).Setup(s.engine)
 
 	s.http.Handler = s.engine

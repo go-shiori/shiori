@@ -5,6 +5,7 @@ builds:
   - binary: shiori
     env:
       - CGO_ENABLED=0
+      - GIN_MODE=release
     tags:
       - netgo
       - osusergo

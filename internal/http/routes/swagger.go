@@ -2,7 +2,6 @@ package routes
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/go-shiori/shiori/internal/config"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/sirupsen/logrus"
 	swaggerfiles "github.com/swaggo/files"
@@ -13,17 +12,21 @@ import (
 
 type SwaggerAPIRoutes struct {
 	logger *logrus.Logger
-	deps   *config.Dependencies
 }
 
 func (r *SwaggerAPIRoutes) Setup(g *gin.RouterGroup) model.Routes {
+	g.Use(func(c *gin.Context) {
+		if c.Request.URL.Path == "/swagger" || c.Request.URL.Path == "/swagger/" {
+			c.Redirect(302, "/swagger/index.html")
+			return
+		}
+	})
 	g.GET("/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 	return r
 }
 
-func NewSwaggerAPIRoutes(logger *logrus.Logger, deps *config.Dependencies) *SwaggerAPIRoutes {
+func NewSwaggerAPIRoutes(logger *logrus.Logger) *SwaggerAPIRoutes {
 	return &SwaggerAPIRoutes{
 		logger: logger,
-		deps:   deps,
 	}
 }

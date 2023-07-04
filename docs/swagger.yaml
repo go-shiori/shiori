@@ -11,6 +11,22 @@ definitions:
     - password
     - username
     type: object
+  api.loginResponseMessage:
+    properties:
+      token:
+        type: string
+    type: object
+  model.Account:
+    properties:
+      id:
+        type: integer
+      owner:
+        type: boolean
+      password:
+        type: string
+      username:
+        type: string
+    type: object
 info:
   contact: {}
 paths:
@@ -26,8 +42,42 @@ paths:
           $ref: '#/definitions/api.loginRequestPayload'
       produces:
       - application/json
-      responses: {}
-      summary: Login to an account
+      responses:
+        "200":
+          description: Login successful
+          schema:
+            $ref: '#/definitions/api.loginResponseMessage'
+        "400":
+          description: Invalid login data
+      summary: Login to an account using username and password
+      tags:
+      - accounts
+  /api/v1/account/me:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Account'
+        "403":
+          description: Token not provided/invalid
+      summary: Get information for the current logged in user
+      tags:
+      - accounts
+  /api/v1/account/refresh:
+    post:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Refresh successful
+          schema:
+            $ref: '#/definitions/api.loginResponseMessage'
+        "403":
+          description: Token not provided/invalid
+      summary: Refresh a token for an account
       tags:
       - accounts
 swagger: "2.0"

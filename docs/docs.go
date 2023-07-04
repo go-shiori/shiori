@@ -27,7 +27,7 @@ const docTemplate = `{
                 "tags": [
                     "accounts"
                 ],
-                "summary": "Login to an account",
+                "summary": "Login to an account using username and password",
                 "parameters": [
                     {
                         "description": "Login data",
@@ -38,7 +38,61 @@ const docTemplate = `{
                         }
                     }
                 ],
-                "responses": {}
+                "responses": {
+                    "200": {
+                        "description": "Login successful",
+                        "schema": {
+                            "$ref": "#/definitions/api.loginResponseMessage"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid login data"
+                    }
+                }
+            }
+        },
+        "/api/v1/account/me": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "accounts"
+                ],
+                "summary": "Get information for the current logged in user",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.Account"
+                        }
+                    },
+                    "403": {
+                        "description": "Token not provided/invalid"
+                    }
+                }
+            }
+        },
+        "/api/v1/account/refresh": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "accounts"
+                ],
+                "summary": "Refresh a token for an account",
+                "responses": {
+                    "200": {
+                        "description": "Refresh successful",
+                        "schema": {
+                            "$ref": "#/definitions/api.loginResponseMessage"
+                        }
+                    },
+                    "403": {
+                        "description": "Token not provided/invalid"
+                    }
+                }
             }
         }
     },
@@ -55,6 +109,31 @@ const docTemplate = `{
                 },
                 "remember_me": {
                     "type": "boolean"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "api.loginResponseMessage": {
+            "type": "object",
+            "properties": {
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.Account": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "owner": {
+                    "type": "boolean"
+                },
+                "password": {
+                    "type": "string"
                 },
                 "username": {
                     "type": "string"
