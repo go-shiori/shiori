@@ -40,14 +40,15 @@ func EbookGenerate(req ProcessRequest) (book model.Bookmark, isFatalErr bool, er
 	if _, err := os.Stat(archivePath); err == nil {
 		book.HasArchive = true
 	}
-
-	if _, err := os.Stat(archivePath); err == nil {
-		book.HasArchive = true
-	}
 	ebookPath := fp.Join(req.DataDir, "ebook", fmt.Sprintf("%d.epub", book.ID))
 	// if epub exist finish prosess else continue
 	if _, err := os.Stat(ebookPath); err == nil {
+		book.HasEbook = true
 		return book, false, nil
+	}
+	contentType := req.ContentType
+	if strings.Contains(contentType, "application/pdf") {
+		return book, true, errors.Wrap(err, "can't create ebook for pdf")
 	}
 
 	ebookDir := fp.Join(req.DataDir, "ebook")

@@ -621,11 +621,13 @@ export default {
                 json.forEach(book => {
                     // download ebooks
                     const id = book.id;
+                    if (book.hasEbook){
                     const ebook_url = new URL(`bookmark/${id}/ebook`, document.baseURI);
                     const downloadLink = document.createElement("a");
                     downloadLink.href = ebook_url.toString();
                     downloadLink.download = `${book.title}.epub`;
                     downloadLink.click();
+                    }
 
                     var item = items.find(el => el.id === book.id);
 					this.bookmarks.splice(item.index, 1, book);
