@@ -15,9 +15,26 @@ func TestTagList(t *testing.T) {
 	logger := logrus.New()
 	ctx := context.TODO()
 
-	t.Run("login invalid", func(t *testing.T) {
+	t.Run("empty tag list", func(t *testing.T) {
 		g := gin.New()
 		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+		router := NewTagsPIRoutes(logger, deps)
+		router.Setup(g.Group("/"))
+		w := testutil.PerformRequest(g, "GET", "/")
+		require.Equal(t, http.StatusOK, w.Code)
+
+		response, err := testutil.NewTestResponseFromReader(w.Body)
+		require.NoError(t, err)
+
+		response.AssertMessageIsEmptyList(t)
+	})
+
+	t.Run("return tags", func(t *testing.T) {
+		ctx := context.TODO()
+
+		g := gin.New()
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+
 		router := NewTagsPIRoutes(logger, deps)
 		router.Setup(g.Group("/"))
 		w := testutil.PerformRequest(g, "GET", "/")

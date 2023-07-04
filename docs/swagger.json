@@ -103,6 +103,29 @@
                         "description": "Token not provided/invalid"
                     }
                 }
+            },
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tags"
+                ],
+                "summary": "Create tag",
+                "responses": {
+                    "200": {
+                        "description": "Created tag",
+                        "schema": {
+                            "$ref": "#/definitions/model.Tag"
+                        }
+                    },
+                    "400": {
+                        "description": "Token not provided/invalid"
+                    },
+                    "403": {
+                        "description": "Token not provided/invalid"
+                    }
+                }
             }
         }
     },
