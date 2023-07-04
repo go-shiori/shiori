@@ -22,7 +22,6 @@ func (r *AccountAPIRoutes) Setup(group *gin.RouterGroup) model.Routes {
 	group.GET("/me", r.meHandler)
 	group.POST("/login", r.loginHandler)
 	group.POST("/refresh", r.refreshHandler)
-	group.POST("/logout", r.logoutHandler)
 	return r
 }
 
@@ -146,20 +145,6 @@ func (r *AccountAPIRoutes) meHandler(c *gin.Context) {
 	}
 
 	response.Send(c, http.StatusOK, ctx.GetAccount())
-}
-
-// TODO: move this handler to frontend routes
-func (r *AccountAPIRoutes) logoutHandler(c *gin.Context) {
-	ctx := context.NewContextFromGin(c)
-	if !ctx.UserIsLogged() {
-		response.SendError(c, http.StatusForbidden, nil)
-		return
-	}
-
-	c.SetCookie("auth", "", 0, "/", "", !r.deps.Config.Development, false)
-
-	// no-op server side, at least for now
-	response.Send(c, http.StatusOK, "logged out")
 }
 
 func NewAccountAPIRoutes(logger *logrus.Logger, deps *config.Dependencies) *AccountAPIRoutes {
