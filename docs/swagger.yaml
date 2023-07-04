@@ -27,10 +27,19 @@ definitions:
       username:
         type: string
     type: object
+  model.Tag:
+    properties:
+      id:
+        type: integer
+      nBookmarks:
+        type: integer
+      name:
+        type: string
+    type: object
 info:
   contact: {}
 paths:
-  /api/v1/account/login:
+  /api/v1/auth/login:
     post:
       consumes:
       - application/json
@@ -51,8 +60,8 @@ paths:
           description: Invalid login data
       summary: Login to an account using username and password
       tags:
-      - accounts
-  /api/v1/account/me:
+      - Auth
+  /api/v1/auth/me:
     get:
       produces:
       - application/json
@@ -65,8 +74,8 @@ paths:
           description: Token not provided/invalid
       summary: Get information for the current logged in user
       tags:
-      - accounts
-  /api/v1/account/refresh:
+      - Auth
+  /api/v1/auth/refresh:
     post:
       produces:
       - application/json
@@ -79,5 +88,19 @@ paths:
           description: Token not provided/invalid
       summary: Refresh a token for an account
       tags:
-      - accounts
+      - Auth
+  /api/v1/tags:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of tags
+          schema:
+            $ref: '#/definitions/model.Tag'
+        "403":
+          description: Token not provided/invalid
+      summary: List tags
+      tags:
+      - Tags
 swagger: "2.0"

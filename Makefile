@@ -35,8 +35,8 @@ run-server:
 	GIN_MODE=$(GIN_MODE) SHIORI_DEVELOPMENT=$(SHIORI_DEVELOPMENT) SHIORI_DIR=$(SHIORI_DIR) go run main.go server
 
 ## Generate swagger docs
-.PHONY: swag
-swagger-gen:
+.PHONY: swagger
+swagger:
 	swag init
 
 ## Run linter

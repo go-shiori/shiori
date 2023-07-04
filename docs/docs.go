@@ -16,7 +16,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/v1/account/login": {
+        "/api/v1/auth/login": {
             "post": {
                 "consumes": [
                     "application/json"
@@ -25,7 +25,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "accounts"
+                    "Auth"
                 ],
                 "summary": "Login to an account using username and password",
                 "parameters": [
@@ -51,13 +51,13 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/account/me": {
+        "/api/v1/auth/me": {
             "get": {
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "accounts"
+                    "Auth"
                 ],
                 "summary": "Get information for the current logged in user",
                 "responses": {
@@ -73,13 +73,13 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/account/refresh": {
+        "/api/v1/auth/refresh": {
             "post": {
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "accounts"
+                    "Auth"
                 ],
                 "summary": "Refresh a token for an account",
                 "responses": {
@@ -87,6 +87,28 @@ const docTemplate = `{
                         "description": "Refresh successful",
                         "schema": {
                             "$ref": "#/definitions/api.loginResponseMessage"
+                        }
+                    },
+                    "403": {
+                        "description": "Token not provided/invalid"
+                    }
+                }
+            }
+        },
+        "/api/v1/tags": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tags"
+                ],
+                "summary": "List tags",
+                "responses": {
+                    "200": {
+                        "description": "List of tags",
+                        "schema": {
+                            "$ref": "#/definitions/model.Tag"
                         }
                     },
                     "403": {
@@ -136,6 +158,20 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.Tag": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "nBookmarks": {
+                    "type": "integer"
+                },
+                "name": {
                     "type": "string"
                 }
             }

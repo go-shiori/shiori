@@ -19,7 +19,7 @@ func (r *APIRoutes) Setup(g *gin.RouterGroup) model.Routes {
 	}
 
 	// Account API handles authentication in each route
-	r.handle(g, "/account", NewAccountAPIRoutes(r.logger, r.deps))
+	r.handle(g, "/auth", NewAuthAPIRoutes(r.logger, r.deps))
 
 	// From here on, all routes require authentication
 	g.Use(middleware.AuthenticationRequired())

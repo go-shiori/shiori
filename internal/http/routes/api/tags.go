@@ -18,6 +18,13 @@ func (r *TagsAPIRoutes) Setup(g *gin.RouterGroup) model.Routes {
 	return r
 }
 
+// @Summary      List tags
+// @Tags         Tags
+// @securityDefinitions.apikey ApiKeyAuth
+// @Produce      json
+// @Success      200  {object}  model.Tag  "List of tags"
+// @Failure      403  {object}  nil        "Token not provided/invalid"
+// @Router       /api/v1/tags [get]
 func (r *TagsAPIRoutes) listHandler(c *gin.Context) {
 	tags, err := r.deps.Database.GetTags(c)
 	if err != nil {

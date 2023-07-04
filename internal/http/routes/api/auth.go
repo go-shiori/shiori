@@ -13,19 +13,19 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type AccountAPIRoutes struct {
+type AuthAPIRoutes struct {
 	logger *logrus.Logger
 	deps   *config.Dependencies
 }
 
-func (r *AccountAPIRoutes) Setup(group *gin.RouterGroup) model.Routes {
+func (r *AuthAPIRoutes) Setup(group *gin.RouterGroup) model.Routes {
 	group.GET("/me", r.meHandler)
 	group.POST("/login", r.loginHandler)
 	group.POST("/refresh", r.refreshHandler)
 	return r
 }
 
-func (r *AccountAPIRoutes) setCookie(c *gin.Context, token string, expiration time.Time) {
+func (r *AuthAPIRoutes) setCookie(c *gin.Context, token string, expiration time.Time) {
 	c.SetCookie("auth", token, int(expiration.Unix()), "/", "", !r.deps.Config.Development, false)
 }
 
@@ -51,14 +51,14 @@ type loginResponseMessage struct {
 
 // loginHandler godoc
 // @Summary      Login to an account using username and password
-// @Tags         accounts
+// @Tags         Auth
 // @Accept       json
 // @Produce      json
 // @Param        payload   body    loginRequestPayload    false  "Login data"
 // @Success      200  {object}  loginResponseMessage  "Login successful"
 // @Failure      400  {object}  nil                   "Invalid login data"
-// @Router       /api/v1/account/login [post]
-func (r *AccountAPIRoutes) loginHandler(c *gin.Context) {
+// @Router       /api/v1/auth/login [post]
+func (r *AuthAPIRoutes) loginHandler(c *gin.Context) {
 	var payload loginRequestPayload
 	if err := c.ShouldBindJSON(&payload); err != nil {
 		response.SendInternalServerError(c)
@@ -99,13 +99,13 @@ func (r *AccountAPIRoutes) loginHandler(c *gin.Context) {
 
 // refreshHandler godoc
 // @Summary      Refresh a token for an account
-// @Tags         accounts
+// @Tags         Auth
 // @securityDefinitions.apikey ApiKeyAuth
 // @Produce      json
 // @Success      200  {object}  loginResponseMessage  "Refresh successful"
 // @Failure      403  {object}  nil                   "Token not provided/invalid"
-// @Router       /api/v1/account/refresh [post]
-func (r *AccountAPIRoutes) refreshHandler(c *gin.Context) {
+// @Router       /api/v1/auth/refresh [post]
+func (r *AuthAPIRoutes) refreshHandler(c *gin.Context) {
 	ctx := context.NewContextFromGin(c)
 	if !ctx.UserIsLogged() {
 		response.SendError(c, http.StatusForbidden, nil)
@@ -113,7 +113,7 @@ func (r *AccountAPIRoutes) refreshHandler(c *gin.Context) {
 	}
 
 	expiration := time.Now().Add(time.Hour * 72)
-	account, _ := c.Get("account")
+	account, _ := c.Get(model.ContextAccountKey)
 	token, err := r.deps.Domains.Auth.CreateTokenForAccount(account.(*model.Account), expiration)
 	if err != nil {
 		response.SendInternalServerError(c)
@@ -131,13 +131,13 @@ func (r *AccountAPIRoutes) refreshHandler(c *gin.Context) {
 
 // meHandler godoc
 // @Summary      Get information for the current logged in user
-// @Tags         accounts
+// @Tags         Auth
 // @securityDefinitions.apikey ApiKeyAuth
 // @Produce      json
 // @Success      200  {object}  model.Account
 // @Failure      403  {object}  nil                   "Token not provided/invalid"
-// @Router       /api/v1/account/me [get]
-func (r *AccountAPIRoutes) meHandler(c *gin.Context) {
+// @Router       /api/v1/auth/me [get]
+func (r *AuthAPIRoutes) meHandler(c *gin.Context) {
 	ctx := context.NewContextFromGin(c)
 	if !ctx.UserIsLogged() {
 		response.SendError(c, http.StatusForbidden, nil)
@@ -147,8 +147,8 @@ func (r *AccountAPIRoutes) meHandler(c *gin.Context) {
 	response.Send(c, http.StatusOK, ctx.GetAccount())
 }
 
-func NewAccountAPIRoutes(logger *logrus.Logger, deps *config.Dependencies) *AccountAPIRoutes {
-	return &AccountAPIRoutes{
+func NewAuthAPIRoutes(logger *logrus.Logger, deps *config.Dependencies) *AuthAPIRoutes {
+	return &AuthAPIRoutes{
 		logger: logger,
 		deps:   deps,
 	}
