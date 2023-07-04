@@ -123,19 +123,179 @@ func EbookGenerate(req ProcessRequest) (book model.Bookmark, isFatalErr bool, er
 	if err != nil {
 		return book, true, errors.Wrap(err, "can't create content.xml")
 	}
-	_, err = styleWriter.Write([]byte(`content {
-	display: block;
-	font-size: 1em;
-	line-height: 1.2;
-	padding-left: 0;
-	padding-right: 0;
-	text-align: justify;
-	margin: 0 5pt
+	_, err = styleWriter.Write([]byte(`body {
+    text-indent: 0;
+    margin: 0;
+    text-align: justify;
 }
+
+head, form, script {
+    display: none;
+}
+
+/* EPUB container of each individual HTML file */
+DocFragment {
+    page-break-before: always;
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+    margin-top: 0.7em;
+    margin-bottom: 0.5em;
+    font-weight: bold;
+    text-align: center;
+    text-indent: 0;
+    hyphenate: none;
+    adobe-hyphenate: none;
+}
+h1, h2, h3 {
+    page-break-before: always;
+    page-break-inside: avoid;
+    page-break-after: avoid;
+}
+h4, h5, h6 {
+    page-break-inside: avoid;
+    page-break-after: avoid;
+}
+h1 { font-size: 150%; }
+h2 { font-size: 140%; }
+h3 { font-size: 130%; }
+h4 { font-size: 120%; }
+h5 { font-size: 110%; }
+
+/* Block elements */
+div {
+    margin: 1px;
+}
+p {
+    text-align: justify;
+    text-indent: 1.2em;
+    margin-top: 0;
+    margin-bottom: 0;
+}
+hr {
+    height: 2px;
+    background-color: #808080;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+}
+
+/* Lists */
+ul {
+    list-style-type: disc;
+    margin-left: 1em;
+}
+ol {
+    list-style-type: decimal;
+    margin-left: 1em;
+}
+li {
+    display: list-item;
+    text-indent: 0;
+}
+
+/* Definitions */
+dl {
+    margin-left: 0;
+}
+dt {
+    margin-left: 0;
+    margin-top: 0.3em;
+    font-weight: bold;
+}
+dd {
+    margin-left: 1.3em;
+}
+
+/* Tables */
+table {
+    font-size: 80%;
+    margin: 3px;
+}
+td, th {
+    text-indent: 0;
+    padding: 3px;
+}
+th {
+    font-weight: bold;
+    text-align: center;
+    background-color: #DDD;
+}
+table caption {
+    text-indent: 0;
+    padding: 4px;
+    background-color: #EEE;
+}
+
+/* Monospace block and inline elements */
+pre {
+    white-space: pre;
+    font-family: "Droid Sans Mono", "Liberation Mono", "DeJaVu Sans Mono", monospace;
+    text-align: left;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+    /* background-color: #BFBFBF; */
+}
+code {
+    white-space: pre;
+    font-family: "Droid Sans Mono", "Liberation Mono", "DeJaVu Sans Mono", monospace;
+}
+
+/* Inline elements (all unknown elements default now to display: inline) */
+sup                     { font-size: 70%; vertical-align: super; }
+sub                     { font-size: 70%; vertical-align: sub; }
+small                   { font-size: 80%; }
+big                     { font-size: 130%; }
+b, strong               { font-weight: bold; }
+i, em, dfn, var, cite   { font-style: italic; }
+u                       { text-decoration: underline; }
+del, s, strike          { text-decoration: line-through; }
+a                       { text-decoration: underline; color: gray; }
+
+nobr {
+    display: inline;
+    hyphenate: none;
+    white-space: nowrap;
+}
+
+
+
+/* Old element or className based selectors involving display: that
+ * we need to support for older gDOMVersionRequested
+ * DO NOT MODIFY BELOW to not break past highlights */
+
+/* Images are now inline by default, and no more block with exceptions.
+ * Note that when 'block', lvrend.cpp displays the title="" content
+ * under the image */
 img {
+    -cr-ignore-if-dom-version-greater-or-equal: 20180528;
+    text-align: center;
+    text-indent: 0;
   	margin: auto;
-  	display: block;
-}`))
+    display: block;
+}
+sup img { -cr-ignore-if-dom-version-greater-or-equal: 20180528; display: inline; }
+sub img { -cr-ignore-if-dom-version-greater-or-equal: 20180528; display: inline; }
+a img   { -cr-ignore-if-dom-version-greater-or-equal: 20180528; display: inline; }
+p img   { -cr-ignore-if-dom-version-greater-or-equal: 20180528; display: inline; }
+p image { -cr-ignore-if-dom-version-greater-or-equal: 20180528; display: inline; } /* non html */
+
+/* With dom_version < 20180528, unknown elements defaulted to 'display: inherit'
+ * These ones here were explicitely set to inline (and some others not
+ * specified here were also set to inline in fb2def.h */
+b, strong, i, em, dfn, var, q, u, del, s, strike, small, big, sub, sup, acronym, tt, sa mp, kbd, code {
+    -cr-ignore-if-dom-version-greater-or-equal: 20180528;
+    display: inline;
+}
+
+.title, .title1, .title2, .title3, .title4, .title5, .subtitle {
+    -cr-ignore-if-dom-version-greater-or-equal: 20180528;
+    display: block;
+}
+.fb2_info { -cr-ignore-if-dom-version-greater-or-equal: 20180528; display: block; }
+.code     { -cr-ignore-if-dom-version-greater-or-equal: 20180528; display: block; }
+
+`))
 	if err != nil {
 		return book, true, errors.Wrap(err, "can't write into style.css file")
 	}
