@@ -489,7 +489,6 @@ func (h *handler) apiDownloadEbook(w http.ResponseWriter, r *http.Request, ps ht
 	bookmarks, err := h.DB.GetBookmarks(ctx, filter)
 	checkError(err)
 	if len(bookmarks) == 0 {
-		panic(fmt.Errorf("no bookmark with matching ids"))
 		panic(errors.Wrap(err, "no bookmark with matching ids"))
 	}
 
