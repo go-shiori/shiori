@@ -490,13 +490,6 @@ func (h *handler) apiDownloadEbook(w http.ResponseWriter, r *http.Request, ps ht
 	if len(bookmarks) == 0 {
 		panic(fmt.Errorf("no bookmark with matching ids"))
 	}
-	// For web interface, let's limit to max 20 IDs to update, and 5 for archival.
-	// This is done to prevent the REST request from client took too long to finish.
-	if len(bookmarks) > 20 {
-		panic(fmt.Errorf("max 20 bookmarks to update"))
-	} else if len(bookmarks) > 5 {
-		panic(fmt.Errorf("max 5 bookmarks to update with archival"))
-	}
 
 	// Fetch data from internet
 	mx := sync.RWMutex{}
