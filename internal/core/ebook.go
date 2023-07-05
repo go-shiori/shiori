@@ -24,7 +24,7 @@ func EbookGenerate(req ProcessRequest) (book model.Bookmark, isFatalErr bool, er
 
 	// Make sure bookmark ID is defined
 	if book.ID == 0 {
-		return book, true, fmt.Errorf("bookmark ID is not valid")
+		return book, true, errors.Wrap(err, "bookmark ID is not valid")
 	}
 
 	// cheak archive and thumb
@@ -142,7 +142,7 @@ img {
 	// Create the toc.ncx file
 	tocNcxWriter, err := epubWriter.Create("OEBPS/toc.ncx")
 	if err != nil {
-		return book, true, fmt.Errorf("can't create toc.ncx")
+		return book, true, errors.Wrap(err, "can't create toc.ncx")
 	}
 	_, err = tocNcxWriter.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE ncx PUBLIC "-//NISO//DTD ncx 2005-1//EN"
@@ -167,7 +167,7 @@ img {
   </navMap>
 </ncx>`))
 	if err != nil {
-		return book, true, fmt.Errorf("can't write into toc.ncx file")
+		return book, true, errors.Wrap(err, "can't write into toc.ncx file")
 	}
 
 	// get list of images tag in html
@@ -195,7 +195,7 @@ img {
 			// Get the image data
 			imageData, err := io.ReadAll(resp.Body)
 			if err != nil {
-				return book, true, fmt.Errorf("can't get image from the internet")
+				return book, true, errors.Wrap(err, "can't get image from the internet")
 			}
 
 			fileName := fp.Base(imageURL)
@@ -208,7 +208,7 @@ img {
 			// Write the image to the file
 			_, err = imageWriter.Write(imageData)
 			if err != nil {
-				return book, true, fmt.Errorf("can't create image file")
+				return book, true, errors.Wrap(err, "can't create image file")
 			}
 			// Replace the image tag with the new downloaded image
 			html = strings.ReplaceAll(html, match[0], fmt.Sprintf(`<img src="../%s"/>`, filePath))
@@ -217,11 +217,11 @@ img {
 	// Create the content.html file
 	contentHtmlWriter, err := epubWriter.Create("OEBPS/content.html")
 	if err != nil {
-		return book, true, fmt.Errorf("can't create content.xml")
+		return book, true, errors.Wrap(err, "can't create content.xml")
 	}
 	_, err = contentHtmlWriter.Write([]byte("<?xml version='1.0' encoding='utf-8'?>\n<html xmlns=\"http://www.w3.org/1999/xhtml\">\n<head>\n\t<title>" + book.Title + "</title>\n\t<link href=\"../style.css\" rel=\"stylesheet\" type=\"text/css\"/>\n</head>\n<body>\n\t<h1 dir=\"auto\">" + book.Title + "</h1>" + "\n<content dir=\"auto\">\n" + html + "\n</content>" + "\n</body></html>"))
 	if err != nil {
-		return book, true, fmt.Errorf("can't write into content.html")
+		return book, true, errors.Wrap(err, "can't write into content.html")
 	}
 	book.HasEbook = true
 	return book, false, nil
