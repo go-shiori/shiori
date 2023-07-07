@@ -16,7 +16,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func EbookGenerate(req ProcessRequest) (book model.Bookmark, isFatalErr bool, err error) {
+func GenerateEbook(req ProcessRequest) (book model.Bookmark, isFatalErr bool, err error) {
 	// variable for store generated html code
 	var html string
 

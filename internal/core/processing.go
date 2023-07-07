@@ -134,7 +134,7 @@ func ProcessBookmark(req ProcessRequest) (book model.Bookmark, isFatalErr bool, 
 		if strings.Contains(contentType, "application/pdf") {
 			return book, false, errors.Wrap(err, "can't create ebook from pdf")
 		} else {
-			_, _, err = EbookGenerate(req)
+			_, _, err = GenerateEbook(req)
 			if err != nil {
 				return book, false, errors.Wrap(err, "failed to create ebook")
 			}

@@ -526,7 +526,7 @@ func (h *handler) apiDownloadEbook(w http.ResponseWriter, r *http.Request, ps ht
 				ContentType: contentType,
 			}
 
-			book, _, err = core.EbookGenerate(request)
+			book, _, err = core.GenerateEbook(request)
 			content.Close()
 
 			if err != nil {
