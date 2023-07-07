@@ -16,7 +16,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func GenerateEbook(req ProcessRequest) (book model.Bookmark, isFatalErr bool, err error) {
+func GenerateEbook(req ProcessRequest) (book model.Bookmark, err error) {
 	// variable for store generated html code
 	var html string
 
@@ -24,7 +24,7 @@ func GenerateEbook(req ProcessRequest) (book model.Bookmark, isFatalErr bool, er
 
 	// Make sure bookmark ID is defined
 	if book.ID == 0 {
-		return book, true, errors.Wrap(err, "bookmark ID is not valid")
+		return book, errors.Wrap(err, "bookmark ID is not valid")
 	}
 
 	// cheak archive and thumb
@@ -44,11 +44,11 @@ func GenerateEbook(req ProcessRequest) (book model.Bookmark, isFatalErr bool, er
 	// if epub exist finish prosess else continue
 	if _, err := os.Stat(ebookPath); err == nil {
 		book.HasEbook = true
-		return book, false, nil
+		return book, nil
 	}
 	contentType := req.ContentType
 	if strings.Contains(contentType, "application/pdf") {
-		return book, true, errors.Wrap(err, "can't create ebook for pdf")
+		return book, errors.Wrap(err, "can't create ebook for pdf")
 	}
 
 	ebookDir := fp.Join(req.DataDir, "ebook")
@@ -56,13 +56,13 @@ func GenerateEbook(req ProcessRequest) (book model.Bookmark, isFatalErr bool, er
 	if _, err := os.Stat(ebookDir); os.IsNotExist(err) {
 		err := os.MkdirAll(ebookDir, model.DataDirPerm)
 		if err != nil {
-			return book, true, errors.Wrap(err, "can't create ebook directory")
+			return book, errors.Wrap(err, "can't create ebook directory")
 		}
 	}
 	// create epub file
 	epubFile, err := os.Create(ebookPath)
 	if err != nil {
-		return book, true, errors.Wrap(err, "can't create ebook")
+		return book, errors.Wrap(err, "can't create ebook")
 	}
 	defer epubFile.Close()
 
@@ -73,17 +73,17 @@ func GenerateEbook(req ProcessRequest) (book model.Bookmark, isFatalErr bool, er
 	// Create the mimetype file
 	mimetypeWriter, err := epubWriter.Create("mimetype")
 	if err != nil {
-		return book, true, errors.Wrap(err, "can't create mimetype")
+		return book, errors.Wrap(err, "can't create mimetype")
 	}
 	_, err = mimetypeWriter.Write([]byte("application/epub+zip"))
 	if err != nil {
-		return book, true, errors.Wrap(err, "can't write into mimetype file")
+		return book, errors.Wrap(err, "can't write into mimetype file")
 	}
 
 	// Create the container.xml file
 	containerWriter, err := epubWriter.Create("META-INF/container.xml")
 	if err != nil {
-		return book, true, errors.Wrap(err, "can't create container.xml")
+		return book, errors.Wrap(err, "can't create container.xml")
 	}
 
 	_, err = containerWriter.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
@@ -93,12 +93,12 @@ func GenerateEbook(req ProcessRequest) (book model.Bookmark, isFatalErr bool, er
   </rootfiles>
 </container>`))
 	if err != nil {
-		return book, true, errors.Wrap(err, "can't write into container.xml file")
+		return book, errors.Wrap(err, "can't write into container.xml file")
 	}
 
 	contentOpfWriter, err := epubWriter.Create("OEBPS/content.opf")
 	if err != nil {
-		return book, true, errors.Wrap(err, "can't create content.opf")
+		return book, errors.Wrap(err, "can't create content.opf")
 	}
 	_, err = contentOpfWriter.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
 <package xmlns="http://www.idpf.org/2007/opf" version="2.0" unique-identifier="BookId">
@@ -115,13 +115,13 @@ func GenerateEbook(req ProcessRequest) (book model.Bookmark, isFatalErr bool, er
   </spine>
 </package>`))
 	if err != nil {
-		return book, true, errors.Wrap(err, "can't write into container.opf file")
+		return book, errors.Wrap(err, "can't write into container.opf file")
 	}
 
 	// Create the style.css file
 	styleWriter, err := epubWriter.Create("style.css")
 	if err != nil {
-		return book, true, errors.Wrap(err, "can't create content.xml")
+		return book, errors.Wrap(err, "can't create content.xml")
 	}
 	_, err = styleWriter.Write([]byte(`content {
 	display: block;
@@ -137,12 +137,12 @@ img {
   	display: block;
 }`))
 	if err != nil {
-		return book, true, errors.Wrap(err, "can't write into style.css file")
+		return book, errors.Wrap(err, "can't write into style.css file")
 	}
 	// Create the toc.ncx file
 	tocNcxWriter, err := epubWriter.Create("OEBPS/toc.ncx")
 	if err != nil {
-		return book, true, errors.Wrap(err, "can't create toc.ncx")
+		return book, errors.Wrap(err, "can't create toc.ncx")
 	}
 	_, err = tocNcxWriter.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE ncx PUBLIC "-//NISO//DTD ncx 2005-1//EN"
@@ -167,7 +167,7 @@ img {
   </navMap>
 </ncx>`))
 	if err != nil {
-		return book, true, errors.Wrap(err, "can't write into toc.ncx file")
+		return book, errors.Wrap(err, "can't write into toc.ncx file")
 	}
 
 	// get list of images tag in html
@@ -195,7 +195,7 @@ img {
 			// Get the image data
 			imageData, err := io.ReadAll(resp.Body)
 			if err != nil {
-				return book, true, errors.Wrap(err, "can't get image from the internet")
+				return book, errors.Wrap(err, "can't get image from the internet")
 			}
 
 			fileName := fp.Base(imageURL)
@@ -208,7 +208,7 @@ img {
 			// Write the image to the file
 			_, err = imageWriter.Write(imageData)
 			if err != nil {
-				return book, true, errors.Wrap(err, "can't create image file")
+				return book, errors.Wrap(err, "can't create image file")
 			}
 			// Replace the image tag with the new downloaded image
 			html = strings.ReplaceAll(html, match[0], fmt.Sprintf(`<img src="../%s"/>`, filePath))
@@ -217,14 +217,14 @@ img {
 	// Create the content.html file
 	contentHtmlWriter, err := epubWriter.Create("OEBPS/content.html")
 	if err != nil {
-		return book, true, errors.Wrap(err, "can't create content.xml")
+		return book, errors.Wrap(err, "can't create content.xml")
 	}
 	_, err = contentHtmlWriter.Write([]byte("<?xml version='1.0' encoding='utf-8'?>\n<html xmlns=\"http://www.w3.org/1999/xhtml\">\n<head>\n\t<title>" + book.Title + "</title>\n\t<link href=\"../style.css\" rel=\"stylesheet\" type=\"text/css\"/>\n</head>\n<body>\n\t<h1 dir=\"auto\">" + book.Title + "</h1>" + "\n<content dir=\"auto\">\n" + html + "\n</content>" + "\n</body></html>"))
 	if err != nil {
-		return book, true, errors.Wrap(err, "can't write into content.html")
+		return book, errors.Wrap(err, "can't write into content.html")
 	}
 	book.HasEbook = true
-	return book, false, nil
+	return book, nil
 }
 
 // function get html and return list of image url inside html file
