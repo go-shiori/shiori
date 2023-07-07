@@ -613,6 +613,11 @@ export default {
 					label: "Update archive as well",
 					type: "check",
 					value: this.appOptions.useArchive,
+				}, {
+					name: "forceCaching",
+					label: "Force bookmark caching",
+					type: "check",
+					visible: items.length > 1 ? true : !this.bookmarks[items[0].index].hasContent,
 				}],
 				mainText: "Yes",
 				secondText: "No",
@@ -621,6 +626,7 @@ export default {
 						ids: ids,
 						createArchive: data.createArchive,
 						keepMetadata: data.keepMetadata,
+						forceCaching: data.forceCaching,
 					};
 
 					this.dialog.loading = true;

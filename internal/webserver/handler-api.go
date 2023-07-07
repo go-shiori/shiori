@@ -271,6 +271,7 @@ type apiInsertBookmarkPayload struct {
 	CreateArchive bool        `json:"createArchive"`
 	MakePublic    int         `json:"public"`
 	Async         bool        `json:"async"`
+	ForceCaching  bool        `json:"forceCaching"`
 }
 
 // newApiInsertBookmarkPayload
@@ -471,6 +472,7 @@ func (h *handler) apiUpdateCache(w http.ResponseWriter, r *http.Request, ps http
 		IDs           []int `json:"ids"`
 		KeepMetadata  bool  `json:"keepMetadata"`
 		CreateArchive bool  `json:"createArchive"`
+		ForceCaching  bool  `json:"forceCaching"`
 	}{}
 
 	err = json.NewDecoder(r.Body).Decode(&request)
@@ -508,6 +510,7 @@ func (h *handler) apiUpdateCache(w http.ResponseWriter, r *http.Request, ps http
 
 		// Mark whether book will be archived
 		book.CreateArchive = request.CreateArchive
+		book.ForceCaching = request.ForceCaching
 
 		go func(i int, book model.Bookmark, keepMetadata bool) {
 			// Make sure to finish the WG

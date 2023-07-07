@@ -109,8 +109,8 @@ export default {
 		fields: {
 			immediate: true,
 			handler() {
-				this.formFields = this.fields.map(field => {
-					if (typeof field === 'string') return {
+				this.formFields = this.fields.reduce((fields, field) => {
+					if (typeof field === 'string') fields.push({
 						name: field,
 						label: field,
 						value: '',
@@ -118,18 +118,22 @@ export default {
 						dictionary: [],
 						separator: ' ',
 						suggestion: undefined
-					}
+					})
 
-					if (typeof field === 'object') return {
-						name: field.name || '',
-						label: field.label || '',
-						value: field.value || '',
-						type: field.type || 'text',
-						dictionary: field.dictionary instanceof Array ? field.dictionary : [],
-						separator: field.separator || ' ',
-						suggestion: undefined
+					if (typeof field === 'object') {
+						if (field.visible === false) return fields;
+						fields.push({
+							name: field.name || '',
+							label: field.label || '',
+							value: field.value || '',
+							type: field.type || 'text',
+							dictionary: field.dictionary instanceof Array ? field.dictionary : [],
+							separator: field.separator || ' ',
+							suggestion: undefined
+						})
 					}
-				});
+					return fields;
+				}, []);
 			}
 		},
 		'fields.length'() {

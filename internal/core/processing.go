@@ -8,6 +8,7 @@ import (
 	"image/draw"
 	"image/jpeg"
 	"io"
+	"log"
 	"math"
 	"net/url"
 	"os"
@@ -67,11 +68,17 @@ func ProcessBookmark(req ProcessRequest) (book model.Bookmark, isFatalErr bool, 
 	// If this is HTML, parse for readable content
 	var imageURLs []string
 	if strings.Contains(contentType, "text/html") {
-		isReadable := readability.Check(readabilityCheckInput)
+		isReadable := true
+		if !book.ForceCaching && !book.HasContent {
+			isReadable = readability.Check(readabilityCheckInput)
+			if !isReadable {
+				log.Printf("%s is not readable", book.URL)
+			}
+		}
 
 		nurl, err := url.Parse(book.URL)
 		if err != nil {
-			return book, true, fmt.Errorf("Failed to parse url: %v", err)
+			return book, true, fmt.Errorf("failed to parse url: %v", err)
 		}
 
 		article, err := readability.FromReader(readabilityInput, nurl)
