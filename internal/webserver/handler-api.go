@@ -20,7 +20,6 @@ import (
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/gofrs/uuid"
 	"github.com/julienschmidt/httprouter"
-	"github.com/pkg/errors"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -489,7 +488,8 @@ func (h *handler) apiDownloadEbook(w http.ResponseWriter, r *http.Request, ps ht
 	bookmarks, err := h.DB.GetBookmarks(ctx, filter)
 	checkError(err)
 	if len(bookmarks) == 0 {
-		panic(errors.Wrap(err, "no bookmark with matching ids"))
+		http.NotFound(w, r)
+		return
 	}
 
 	// Fetch data from internet
