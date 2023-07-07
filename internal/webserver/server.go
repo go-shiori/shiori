@@ -88,7 +88,7 @@ func Logger(r *http.Request, statusCode int, size int) {
 	if statusCode == http.StatusOK {
 		logrus.WithFields(logrus.Fields{
 			"proto":  r.Proto,
-			"remote": r.RemoteAddr,
+			"remote": GetUserRealIP(r),
 			"reqlen": r.ContentLength,
 			"size":   size,
 			"status": statusCode,
@@ -96,7 +96,7 @@ func Logger(r *http.Request, statusCode int, size int) {
 	} else {
 		logrus.WithFields(logrus.Fields{
 			"proto":  r.Proto,
-			"remote": r.RemoteAddr,
+			"remote": GetUserRealIP(r),
 			"reqlen": r.ContentLength,
 			"size":   size,
 			"status": statusCode,
