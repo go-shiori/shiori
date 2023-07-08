@@ -24,7 +24,7 @@ func GenerateEbook(req ProcessRequest) (book model.Bookmark, err error) {
 
 	// Make sure bookmark ID is defined
 	if book.ID == 0 {
-		return book, errors.Wrap(err, "bookmark ID is not valid")
+		return book, errors.New("bookmark ID is not valid")
 	}
 
 	// cheak archive and thumb
@@ -40,15 +40,15 @@ func GenerateEbook(req ProcessRequest) (book model.Bookmark, err error) {
 	if _, err := os.Stat(archivePath); err == nil {
 		book.HasArchive = true
 	}
-	ebookPath := fp.Join(req.DataDir, "ebook", fmt.Sprintf("%d.epub", book.ID))
+	ebookfile := fp.Join(req.DataDir, "ebook", fmt.Sprintf("%d.epub", book.ID))
 	// if epub exist finish prosess else continue
-	if _, err := os.Stat(ebookPath); err == nil {
+	if _, err := os.Stat(ebookfile); err == nil {
 		book.HasEbook = true
 		return book, nil
 	}
 	contentType := req.ContentType
 	if strings.Contains(contentType, "application/pdf") {
-		return book, errors.Wrap(err, "can't create ebook for pdf")
+		return book, errors.New("can't create ebook for pdf")
 	}
 
 	ebookDir := fp.Join(req.DataDir, "ebook")
@@ -60,7 +60,7 @@ func GenerateEbook(req ProcessRequest) (book model.Bookmark, err error) {
 		}
 	}
 	// create epub file
-	epubFile, err := os.Create(ebookPath)
+	epubFile, err := os.Create(ebookfile)
 	if err != nil {
 		return book, errors.Wrap(err, "can't create ebook")
 	}
@@ -171,7 +171,7 @@ img {
 	}
 
 	// get list of images tag in html
-	imageList, _ := getImages(book.HTML)
+	imageList, _ := GetImages(book.HTML)
 	imgRegex := regexp.MustCompile(`<img.*?src="([^"]*)".*?>`)
 
 	// Create a set to store unique image URLs
@@ -228,7 +228,7 @@ img {
 }
 
 // function get html and return list of image url inside html file
-func getImages(html string) (map[string]string, error) {
+func GetImages(html string) (map[string]string, error) {
 	// Regular expression to match image tags and their URLs
 	imageTagRegex := regexp.MustCompile(`<img.*?src="(.*?)".*?>`)
 
