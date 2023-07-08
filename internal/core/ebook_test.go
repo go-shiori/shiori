@@ -39,22 +39,8 @@ func TestGenerateEbook_InvalidBookmarkID_ReturnsError(t *testing.T) {
 	defer os.RemoveAll(tempDir)
 	mockRequest := core.ProcessRequest{
 		Bookmark: model.Bookmark{
-			ID:            0,
-			URL:           "",
-			Title:         "Example Bookmark",
-			Excerpt:       "",
-			Author:        "",
-			Public:        0,
-			Modified:      "",
-			Content:       "",
-			HTML:          "<html><body>Example HTML</body></html>",
-			ImageURL:      "",
-			HasContent:    false,
-			HasArchive:    false,
-			HasEbook:      false,
-			Tags:          []model.Tag(nil),
-			CreateArchive: false,
-			CreateEbook:   false,
+			ID:       0,
+			HasEbook: false,
 		},
 		DataDir:     tempDir,
 		ContentType: "text/html",
@@ -63,22 +49,8 @@ func TestGenerateEbook_InvalidBookmarkID_ReturnsError(t *testing.T) {
 	bookmark, err := core.GenerateEbook(mockRequest)
 
 	assert.Equal(t, model.Bookmark{
-		ID:            0,
-		URL:           "",
-		Title:         "Example Bookmark",
-		Excerpt:       "",
-		Author:        "",
-		Public:        0,
-		Modified:      "",
-		Content:       "",
-		HTML:          "<html><body>Example HTML</body></html>",
-		ImageURL:      "",
-		HasContent:    false,
-		HasArchive:    false,
-		HasEbook:      false,
-		Tags:          []model.Tag(nil),
-		CreateArchive: false,
-		CreateEbook:   false,
+		ID:       0,
+		HasEbook: false,
 	}, bookmark)
 	assert.Error(t, err)
 }
@@ -90,8 +62,6 @@ func TestGenerateEbook_ValidBookmarkID_EbookExist_EbookExist_ReturnWithHasEbookT
 	mockRequest := core.ProcessRequest{
 		Bookmark: model.Bookmark{
 			ID:       1,
-			Title:    "Example Bookmark",
-			HTML:     "<html><body>Example HTML</body></html>",
 			HasEbook: false,
 		},
 		DataDir:     tempDir,
@@ -124,10 +94,7 @@ func TestGenerateEbook_ValidBookmarkID_EbookExist_ImagePathExist_ReturnWithHasEb
 	mockRequest := core.ProcessRequest{
 		Bookmark: model.Bookmark{
 			ID:       1,
-			Title:    "Example Bookmark",
-			HTML:     "<html><body>Example HTML</body></html>",
 			HasEbook: false,
-			ImageURL: "",
 		},
 		DataDir:     tempDir,
 		ContentType: "text/html",
@@ -162,10 +129,7 @@ func TestGenerateEbook_ValidBookmarkID_EbookExist_ReturnWithHasArchiveTrue(t *te
 	mockRequest := core.ProcessRequest{
 		Bookmark: model.Bookmark{
 			ID:       1,
-			Title:    "Example Bookmark",
-			HTML:     "<html><body>Example HTML</body></html>",
 			HasEbook: false,
-			ImageURL: "",
 		},
 		DataDir:     tempDir,
 		ContentType: "text/html",
@@ -196,8 +160,6 @@ func TestGenerateEbook_ValidBookmarkID_RetuenError_PDF(t *testing.T) {
 	mockRequest := core.ProcessRequest{
 		Bookmark: model.Bookmark{
 			ID:       1,
-			Title:    "Example Bookmark",
-			HTML:     "<html><body>Example HTML</body></html>",
 			HasEbook: false,
 		},
 		DataDir:     tempDir,
@@ -225,8 +187,6 @@ func TestGenerateEbook_CreateEbookDirectoryNotWritable(t *testing.T) {
 	mockRequest := core.ProcessRequest{
 		Bookmark: model.Bookmark{
 			ID:       1,
-			Title:    "Example Bookmark",
-			HTML:     "<html><body>Example HTML</body></html>",
 			HasEbook: false,
 		},
 		DataDir:     ebookDir,
