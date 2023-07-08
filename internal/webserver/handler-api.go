@@ -23,7 +23,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func downloadBookmarkContent(book *model.Bookmark, dataDir string, request *http.Request) (*model.Bookmark, error) {
+func downloadBookmarkContent(book *model.Bookmark, dataDir string, request *http.Request, keepTitle, keepExcerpt bool) (*model.Bookmark, error) {
 	content, contentType, err := core.DownloadBookmark(book.URL)
 	if err != nil {
 		return nil, fmt.Errorf("error downloading url: %s", err)
@@ -34,6 +34,8 @@ func downloadBookmarkContent(book *model.Bookmark, dataDir string, request *http
 		Bookmark:    *book,
 		Content:     content,
 		ContentType: contentType,
+		KeepTitle:   keepTitle,
+		KeepExcerpt: keepExcerpt,
 	}
 
 	result, isFatalErr, err := core.ProcessBookmark(processRequest)
@@ -325,7 +327,7 @@ func (h *handler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 
 	if payload.Async {
 		go func() {
-			bookmark, err := downloadBookmarkContent(book, h.DataDir, r)
+			bookmark, err := downloadBookmarkContent(book, h.DataDir, r, book.Title != "", book.Excerpt != "")
 			if err != nil {
 				log.Printf("error downloading boorkmark: %s", err)
 				return
@@ -337,7 +339,7 @@ func (h *handler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 	} else {
 		// Workaround. Download content after saving the bookmark so we have the proper database
 		// id already set in the object regardless of the database engine.
-		book, err = downloadBookmarkContent(book, h.DataDir, r)
+		book, err = downloadBookmarkContent(book, h.DataDir, r, book.Title != "", book.Excerpt != "")
 		if err != nil {
 			log.Printf("error downloading boorkmark: %s", err)
 		} else if _, err := h.DB.SaveBookmarks(ctx, false, *book); err != nil {
