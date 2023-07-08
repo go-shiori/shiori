@@ -8,7 +8,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"github.com/go-shiori/shiori/internal/http/middleware"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/go-shiori/shiori/internal/testutil"
@@ -21,7 +20,7 @@ func TestAccountsRoute(t *testing.T) {
 	ctx := context.TODO()
 
 	t.Run("login invalid", func(t *testing.T) {
-		g := gin.New()
+		g := testutil.NewGin()
 		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
 		router := NewAuthAPIRoutes(logger, deps)
 		router.Setup(g.Group("/"))
@@ -34,7 +33,7 @@ func TestAccountsRoute(t *testing.T) {
 	})
 
 	t.Run("login incorrect", func(t *testing.T) {
-		g := gin.New()
+		g := testutil.NewGin()
 		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
 		router := NewAuthAPIRoutes(logger, deps)
 		router.Setup(g.Group("/"))
@@ -47,7 +46,7 @@ func TestAccountsRoute(t *testing.T) {
 	})
 
 	t.Run("login correct", func(t *testing.T) {
-		g := gin.New()
+		g := testutil.NewGin()
 		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
 		router := NewAuthAPIRoutes(logger, deps)
 		router.Setup(g.Group("/"))
@@ -71,7 +70,7 @@ func TestAccountsRoute(t *testing.T) {
 	t.Run("check /me (correct token)", func(t *testing.T) {
 		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
 
-		g := gin.New()
+		g := testutil.NewGin()
 		g.Use(middleware.AuthMiddleware(deps))
 
 		router := NewAuthAPIRoutes(logger, deps)
@@ -99,7 +98,7 @@ func TestAccountsRoute(t *testing.T) {
 	t.Run("check /me (incorrect token)", func(t *testing.T) {
 		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
 
-		g := gin.New()
+		g := testutil.NewGin()
 		g.Use(middleware.AuthMiddleware(deps))
 
 		router := NewAuthAPIRoutes(logger, deps)
@@ -153,7 +152,7 @@ func TestLoginRequestPayload(t *testing.T) {
 func TestRefreshHandler(t *testing.T) {
 	logger := logrus.New()
 	ctx := context.TODO()
-	g := gin.New()
+	g := testutil.NewGin()
 
 	_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
 	router := NewAuthAPIRoutes(logger, deps)
@@ -176,10 +175,7 @@ func TestRefreshHandler(t *testing.T) {
 		}, time.Now().Add(time.Minute))
 		require.NoError(t, err)
 
-		w := testutil.PerformRequest(g, "POST", "/refresh", testutil.Header{
-			Name:  model.AuthorizationHeader,
-			Value: model.AuthorizationTokenType + " " + token,
-		})
+		w := testutil.PerformRequest(g, "POST", "/refresh", testutil.WithHeader(model.AuthorizationHeader, model.AuthorizationTokenType+" "+token))
 
 		require.Equal(t, http.StatusAccepted, w.Code)
 	})

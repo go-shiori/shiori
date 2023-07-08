@@ -1,25 +1,48 @@
 package testutil
 
 import (
+	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
+
+	"github.com/gin-gonic/gin"
 )
 
-type Header struct {
-	Name  string
-	Value string
+// NewGin returns a new gin engine with test mode enabled.
+func NewGin() *gin.Engine {
+	engine := gin.New()
+	gin.SetMode(gin.TestMode)
+	return engine
 }
 
-func PerformRequest(r http.Handler, method, path string, headers ...Header) *httptest.ResponseRecorder {
-	w := httptest.NewRecorder()
-	return PerformRequestWithRecorder(w, r, method, path, headers...)
-}
+type Option = func(*http.Request)
 
-func PerformRequestWithRecorder(rec *httptest.ResponseRecorder, r http.Handler, method, path string, headers ...Header) *httptest.ResponseRecorder {
-	req := httptest.NewRequest(method, path, nil)
-	for _, h := range headers {
-		req.Header.Add(h.Name, h.Value)
+func WithBody(body string) Option {
+	return func(request *http.Request) {
+		request.Body = io.NopCloser(strings.NewReader(body))
 	}
-	r.ServeHTTP(rec, req)
-	return rec
+}
+
+func WithHeader(name, value string) Option {
+	return func(request *http.Request) {
+		request.Header.Add(name, value)
+	}
+}
+
+func PerformRequest(handler http.Handler, method, path string, options ...Option) *httptest.ResponseRecorder {
+	recorder := httptest.NewRecorder()
+	return PerformRequestWithRecorder(recorder, handler, method, path, options...)
+}
+
+func PerformRequestWithRecorder(recorder *httptest.ResponseRecorder, r http.Handler, method, path string, options ...Option) *httptest.ResponseRecorder {
+	request, err := http.NewRequest(method, path, nil)
+	if err != nil {
+		panic(err)
+	}
+	for _, opt := range options {
+		opt(request)
+	}
+	r.ServeHTTP(recorder, request)
+	return recorder
 }

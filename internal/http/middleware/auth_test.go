@@ -16,23 +16,23 @@ import (
 
 func TestAuthenticationRequiredMiddleware(t *testing.T) {
 	t.Run("test unauthorized", func(t *testing.T) {
-		router := gin.New()
-		router.Use(AuthenticationRequired())
-		w := testutil.PerformRequest(router, "GET", "/")
+		g := testutil.NewGin()
+		g.Use(AuthenticationRequired())
+		w := testutil.PerformRequest(g, "GET", "/")
 		require.Equal(t, http.StatusUnauthorized, w.Code)
 	})
 
 	t.Run("test authorized", func(t *testing.T) {
-		router := gin.New()
+		g := testutil.NewGin()
 		// Fake a logged in user in the context, which is the way the AuthMiddleware works.
-		router.Use(func(ctx *gin.Context) {
+		g.Use(func(ctx *gin.Context) {
 			ctx.Set(model.ContextAccountKey, "test")
 		})
-		router.Use(AuthenticationRequired())
-		router.GET("/", func(c *gin.Context) {
+		g.Use(AuthenticationRequired())
+		g.GET("/", func(c *gin.Context) {
 			c.Status(http.StatusOK)
 		})
-		w := testutil.PerformRequest(router, "GET", "/")
+		w := testutil.PerformRequest(g, "GET", "/")
 		require.Equal(t, http.StatusOK, w.Code)
 	})
 }
