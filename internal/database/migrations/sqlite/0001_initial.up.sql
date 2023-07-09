@@ -3,6 +3,14 @@ CREATE TABLE IF NOT EXISTS account(
     username TEXT NOT NULL,
     password TEXT NOT NULL,
     owner INTEGER NOT NULL DEFAULT 0,
+    showid INTEGER NOT NULL DEFAULT 0,
+    listmode INTEGER NOT NULL DEFAULT 0,
+    hidethumbnail INTEGER NOT NULL DEFAULT 0,
+    hideexcerpt INTEGER NOT NULL DEFAULT 0,
+    nightmode INTEGER NOT NULL DEFAULT 0,
+    keepmetadata INTEGER NOT NULL DEFAULT 0,
+    usearchive INTEGER NOT NULL DEFAULT 0,
+    makepublic INTEGER NOT NULL DEFAULT 0,
     CONSTRAINT account_PK PRIMARY KEY(id),
     CONSTRAINT account_username_UNIQUE UNIQUE(username)
 );
