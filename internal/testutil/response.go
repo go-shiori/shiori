@@ -22,6 +22,10 @@ func (r *testResponse) AssertNilMessage(t *testing.T) {
 	require.Equal(t, nil, r.Response.Message)
 }
 
+func (r testResponse) AssertMessageEquals(t *testing.T, expected interface{}) {
+	require.Equal(t, expected, r.Response.Message)
+}
+
 func (r *testResponse) AssertOk(t *testing.T) {
 	require.True(t, r.Response.Ok)
 }
