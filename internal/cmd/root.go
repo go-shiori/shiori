@@ -135,8 +135,8 @@ func openPostgreSQLDatabase(ctx context.Context) (database.DB, error) {
 	user, _ := os.LookupEnv("SHIORI_PG_USER")
 	password, _ := os.LookupEnv("SHIORI_PG_PASS")
 	dbName, _ := os.LookupEnv("SHIORI_PG_NAME")
-	sslmode, ok := os.LookupEnv("SHIORI_PG_SSLMODE")
-	if !ok {
+	sslmode, _ := os.LookupEnv("SHIORI_PG_SSLMODE")
+	if sslmode == "" {
 		sslmode = "disable"
 	}
 
