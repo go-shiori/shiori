@@ -23,6 +23,7 @@ services:
       SHIORI_PG_NAME: shiori
       SHIORI_PG_HOST: postgres
       SHIORI_PG_PORT: 5432
+      SHIORI_PG_SSLMODE: disable
       SHIORI_MYSQL_USER: shiori
       SHIORI_MYSQL_PASS: shiori
       SHIORI_MYSQL_NAME: shiori

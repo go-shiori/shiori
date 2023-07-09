@@ -20,6 +20,7 @@ import (
 	"github.com/go-shiori/go-readability"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/go-shiori/warc"
+	"github.com/pkg/errors"
 
 	// Add support for png
 	_ "image/png"
@@ -122,6 +123,22 @@ func ProcessBookmark(req ProcessRequest) (book model.Bookmark, isFatalErr bool, 
 		if err == nil {
 			book.ImageURL = path.Join("/", "bookmark", strID, "thumb")
 			break
+		}
+	}
+
+	// If needed, create ebook as well
+	if book.CreateEbook {
+		ebookPath := fp.Join(req.DataDir, "ebook", fmt.Sprintf("%d.epub", book.ID))
+		os.Remove(ebookPath)
+
+		if strings.Contains(contentType, "application/pdf") {
+			return book, false, errors.Wrap(err, "can't create ebook from pdf")
+		} else {
+			_, err = GenerateEbook(req)
+			if err != nil {
+				return book, true, errors.Wrap(err, "failed to create ebook")
+			}
+			book.HasEbook = true
 		}
 	}
 
