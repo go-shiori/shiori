@@ -6,7 +6,7 @@ var template = `
 	</a>
 	<a class="bookmark-link" :href="mainURL" target="_blank" rel="noopener">
 		<span class="thumbnail" v-if="thumbnailVisible" :style="thumbnailStyleURL"></span>
-		<p class="title">{{title}}
+		<p class="title" dir="auto">{{title}}
 			<i v-if="hasContent" class="fas fa-file-alt"></i>
 			<i v-if="hasArchive" class="fas fa-archive"></i>
 			<i v-if="public" class="fas fa-eye"></i>
@@ -32,6 +32,9 @@ var template = `
 			<a title="Update archive" @click="updateBookmark">
 				<i class="fas fa-fw fa-cloud-download-alt"></i>
 			</a>
+            <a v-if="hasEbook" title="Download book" @click="downloadebook">
+                <i class="fas fa-fw fa-book"></i>
+            </a>
 		</template>
 	</div>
 </div>`;
@@ -47,6 +50,7 @@ export default {
 		imageURL: String,
 		hasContent: Boolean,
 		hasArchive: Boolean,
+		hasEbook: Boolean,
 		index: Number,
 		showId: Boolean,
 		editMode: Boolean,
@@ -71,6 +75,13 @@ export default {
 			} else {
 				return this.url;
 			}
+		},
+		ebookURL() {
+			if (this.hasEbook) {
+				return new URL(`bookmark/${this.id}/ebook`, document.baseURI);
+			} else  {
+                return null;
+            }
 		},
 		hostnameURL() {
 			var url = new URL(this.url);
@@ -112,6 +123,14 @@ export default {
 		},
 		updateBookmark() {
 			this.$emit("update", this.eventItem);
-		}
+		},
+		downloadebook() {
+            const id = this.id;
+            const ebook_url = new URL(`bookmark/${id}/ebook`, document.baseURI);
+            const downloadLink = document.createElement("a");
+            downloadLink.href = ebook_url.toString();
+            downloadLink.download = `${this.title}.epub`;
+            downloadLink.click();
+		},
 	}
 }

@@ -119,6 +119,10 @@ func (h *handler) serveBookmarkContent(w http.ResponseWriter, r *http.Request, p
 	}
 
 	// Check if it has archive.
+	ebookPath := fp.Join(h.DataDir, "ebook", strID+".epub")
+	if fileExists(ebookPath) {
+		bookmark.HasEbook = true
+	}
 	archivePath := fp.Join(h.DataDir, "archive", strID)
 	if fileExists(archivePath) {
 		bookmark.HasArchive = true
@@ -205,10 +209,34 @@ func (h *handler) serveBookmarkContent(w http.ResponseWriter, r *http.Request, p
 // serveThumbnailImage is handler for GET /bookmark/:id/thumb
 func (h *handler) serveThumbnailImage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	// Get bookmark ID from URL
-	id := ps.ByName("id")
+	ctx := r.Context()
 
+	// Get bookmark ID from URL
+	strID := ps.ByName("id")
+
+	// Get bookmark from database
+	id, err := strconv.Atoi(strID)
+	checkError(err)
+	bookmark, exist, err := h.DB.GetBookmark(ctx, id, "")
+	checkError(err)
+
+	if !exist {
+		log.Println("error: bookmark not found")
+		return
+	}
+
+	// If it's not public, make sure session still valid
+	if bookmark.Public != 1 {
+		err = h.validateSession(r)
+		if err != nil {
+			newPath := path.Join(h.RootPath, "/login")
+			redirectURL := createRedirectURL(newPath, r.URL.String())
+			redirectPage(w, r, redirectURL)
+			return
+		}
+	}
 	// Open image
-	imgPath := fp.Join(h.DataDir, "thumb", id)
+	imgPath := fp.Join(h.DataDir, "thumb", strID)
 	img, err := os.Open(imgPath)
 	checkError(err)
 	defer img.Close()
@@ -330,5 +358,69 @@ func (h *handler) serveBookmarkArchive(w http.ResponseWriter, r *http.Request, p
 	// Serve content
 	if _, err := w.Write(content); err != nil {
 		log.Printf("error writting response: %s", err)
+	}
+}
+
+// serveEbook is handler for GET /bookmark/:id/ebook
+func (h *handler) serveBookmarkEbook(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	ctx := r.Context()
+
+	// Get bookmark ID from URL
+	strID := ps.ByName("id")
+	id, err := strconv.Atoi(strID)
+	checkError(err)
+	// Get bookmark in database
+	bookmark, exist, err := h.DB.GetBookmark(ctx, id, "")
+	checkError(err)
+
+	if !exist {
+		http.Error(w, "bookmark not found", http.StatusNotFound)
+		return
+	}
+
+	// If it's not public, make sure session still valid
+	if bookmark.Public != 1 {
+		err = h.validateSession(r)
+		if err != nil {
+			newPath := path.Join(h.RootPath, "/login")
+			redirectURL := createRedirectURL(newPath, r.URL.String())
+			redirectPage(w, r, redirectURL)
+			return
+		}
+	}
+
+	// Check if it has ebook.
+	ebookPath := fp.Join(h.DataDir, "ebook", strID+".epub")
+	if !fileExists(ebookPath) {
+		http.Error(w, "ebook not found", http.StatusNotFound)
+		return
+	}
+
+	epub, err := os.Open(ebookPath)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusNotFound)
+		return
+	}
+	defer epub.Close()
+	// Set content type
+	w.Header().Set("Content-Type", "application/epub+zip")
+	// Set cache value
+	info, err := epub.Stat()
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	etag := fmt.Sprintf(`W/"%x-%x"`, info.ModTime().Unix(), info.Size())
+	w.Header().Set("ETag", etag)
+	w.Header().Set("Cache-Control", "max-age=86400")
+
+	// Serve epub file
+	if _, err := epub.Seek(0, 0); err != nil {
+		log.Printf("error during epub seek: %s", err)
+	}
+	_, err = io.Copy(w, epub)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
 	}
 }

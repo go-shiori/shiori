@@ -88,7 +88,7 @@ func Logger(r *http.Request, statusCode int, size int) {
 	if statusCode == http.StatusOK {
 		logrus.WithFields(logrus.Fields{
 			"proto":  r.Proto,
-			"remote": r.RemoteAddr,
+			"remote": GetUserRealIP(r),
 			"reqlen": r.ContentLength,
 			"size":   size,
 			"status": statusCode,
@@ -96,7 +96,7 @@ func Logger(r *http.Request, statusCode int, size int) {
 	} else {
 		logrus.WithFields(logrus.Fields{
 			"proto":  r.Proto,
-			"remote": r.RemoteAddr,
+			"remote": GetUserRealIP(r),
 			"reqlen": r.ContentLength,
 			"size":   size,
 			"status": statusCode,
@@ -183,6 +183,7 @@ func ServeApp(cfg Config) error {
 	router.GET(jp("/login"), withLogging(hdl.serveLoginPage))
 	router.GET(jp("/bookmark/:id/thumb"), withLogging(hdl.serveThumbnailImage))
 	router.GET(jp("/bookmark/:id/content"), withLogging(hdl.serveBookmarkContent))
+	router.GET(jp("/bookmark/:id/ebook"), withLogging(hdl.serveBookmarkEbook))
 	router.GET(jp("/bookmark/:id/archive/*filepath"), withLogging(hdl.serveBookmarkArchive))
 
 	router.POST(jp("/api/login"), withLogging(hdl.apiLogin))
@@ -194,6 +195,7 @@ func ServeApp(cfg Config) error {
 	router.DELETE(jp("/api/bookmarks"), withLogging(hdl.apiDeleteBookmark))
 	router.PUT(jp("/api/bookmarks"), withLogging(hdl.apiUpdateBookmark))
 	router.PUT(jp("/api/cache"), withLogging(hdl.apiUpdateCache))
+	router.PUT(jp("/api/ebook"), withLogging(hdl.apiDownloadEbook))
 	router.PUT(jp("/api/bookmarks/tags"), withLogging(hdl.apiUpdateBookmarkTags))
 	router.POST(jp("/api/bookmarks/ext"), withLogging(hdl.apiInsertViaExtension))
 	router.DELETE(jp("/api/bookmarks/ext"), withLogging(hdl.apiDeleteViaExtension))

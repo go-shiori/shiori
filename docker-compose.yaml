@@ -30,7 +30,7 @@ services:
       SHIORI_MYSQL_ADDRESS: (mariadb)
 
   postgres:
-    image: postgres:13
+    image: postgres:15
     environment:
       POSTGRES_PASSWORD: shiori
       POSTGRES_USER: shiori
@@ -38,7 +38,7 @@ services:
       - "5432:5432"
 
   mariadb:
-    image: mariadb:10.9
+    image: mariadb:11
     environment:
       MYSQL_ROOT_PASSWORD: toor
       MYSQL_DATABASE: shiori

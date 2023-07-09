@@ -20,6 +20,7 @@ import (
 	"github.com/go-shiori/go-readability"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/go-shiori/warc"
+	"github.com/pkg/errors"
 
 	// Add support for png
 	_ "image/png"
@@ -125,6 +126,22 @@ func ProcessBookmark(req ProcessRequest) (book model.Bookmark, isFatalErr bool, 
 		}
 	}
 
+	// If needed, create ebook as well
+	if book.CreateEbook {
+		ebookPath := fp.Join(req.DataDir, "ebook", fmt.Sprintf("%d.epub", book.ID))
+		os.Remove(ebookPath)
+
+		if strings.Contains(contentType, "application/pdf") {
+			return book, false, errors.Wrap(err, "can't create ebook from pdf")
+		} else {
+			_, err = GenerateEbook(req)
+			if err != nil {
+				return book, true, errors.Wrap(err, "failed to create ebook")
+			}
+			book.HasEbook = true
+		}
+	}
+
 	// If needed, create offline archive as well
 	if book.CreateArchive {
 		archivePath := fp.Join(req.DataDir, "archive", fmt.Sprintf("%d", book.ID))
@@ -159,7 +176,11 @@ func downloadBookImage(url, dstPath string) error {
 
 	// Make sure it's JPG or PNG image
 	cp := resp.Header.Get("Content-Type")
-	if !strings.Contains(cp, "image/jpeg") && !strings.Contains(cp, "image/png") {
+	if !strings.Contains(cp, "image/jpeg") &&
+		!strings.Contains(cp, "image/pjpeg") &&
+		!strings.Contains(cp, "image/jpg") &&
+		!strings.Contains(cp, "image/png") {
+
 		return fmt.Errorf("%s is not a supported image", url)
 	}
 
