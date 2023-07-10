@@ -30,8 +30,16 @@ type Bookmark struct {
 
 // Account is person that allowed to access web interface.
 type Account struct {
-	ID       int    `db:"id"       json:"id"`
-	Username string `db:"username" json:"username"`
-	Password string `db:"password" json:"password,omitempty"`
-	Owner    bool   `db:"owner"    json:"owner"`
+	ID            int    `db:"id"                   json:"id"`
+	Username      string `db:"username"             json:"username"`
+	Password      string `db:"password"             json:"password,omitempty"`
+	Owner         bool   `db:"owner"                json:"owner"`
+	Showid        bool   `db:"showid"               json:"showid"`
+	Listmode      bool   `db:"listmode"             json:"listmode"`
+	Hidethumbnail bool   `db:"hidethumbnail"        json:"hidethumbnail"`
+	Hideexcerpt   bool   `db:"hideexcerpt"          json:"hideexcerpt"`
+	Nightmode     bool   `db:"nightmode"            json:"nightmode"`
+	Keepmetadata  bool   `db:"keepmetadata"         json:"keepmetadata"`
+	Usearchive    bool   `db:"usearchive"           json:"usearchive"`
+	Makepublic    bool   `db:"makepublic"           json:"makepublic"`
 }
