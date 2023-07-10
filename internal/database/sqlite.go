@@ -666,7 +666,7 @@ func (db *SQLiteDatabase) SaveAccount(ctx context.Context, account model.Account
 func (db *SQLiteDatabase) GetAccounts(ctx context.Context, opts GetAccountsOptions) ([]model.Account, error) {
 	// Create query
 	args := []interface{}{}
-	query := `SELECT id, username, owner FROM account WHERE 1`
+	query := `SELECT id, username, owner, showid, listmode, hidethumbnail, hideexcerpt, nightmode, keepmetadata, usearchive, makepublic FROM account WHERE 1`
 
 	if opts.Keyword != "" {
 		query += " AND username LIKE ?"
@@ -694,7 +694,7 @@ func (db *SQLiteDatabase) GetAccounts(ctx context.Context, opts GetAccountsOptio
 func (db *SQLiteDatabase) GetAccount(ctx context.Context, username string) (model.Account, bool, error) {
 	account := model.Account{}
 	if err := db.GetContext(ctx, &account, `SELECT
-		id, username, password, owner FROM account WHERE username = ?`,
+		id, username, password, owner, showid, listmode, hidethumbnail, hideexcerpt, nightmode, keepmetadata, usearchive, makepublic FROM account WHERE username = ?`,
 		username,
 	); err != nil {
 		return account, false, errors.WithStack(err)
