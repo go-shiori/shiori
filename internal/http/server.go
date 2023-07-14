@@ -13,7 +13,7 @@ import (
 	"github.com/go-shiori/shiori/internal/config"
 	"github.com/go-shiori/shiori/internal/http/middleware"
 	"github.com/go-shiori/shiori/internal/http/routes"
-	"github.com/go-shiori/shiori/internal/http/routes/api"
+	api_v1 "github.com/go-shiori/shiori/internal/http/routes/api/v1"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/sirupsen/logrus"
 	ginlogrus "github.com/toorop/gin-logrus"
@@ -39,7 +39,7 @@ func (s *HttpServer) Setup(cfg config.HttpConfig, deps *config.Dependencies) *Ht
 
 	s.handle("/system", routes.NewSystemRoutes(s.logger))
 	s.handle("/bookmark", routes.NewBookmarkRoutes(s.logger, deps))
-	s.handle("/api/v1", api.NewAPIRoutes(s.logger, deps))
+	s.handle("/api/v1", api_v1.NewAPIRoutes(s.logger, deps))
 	s.handle("/swagger", routes.NewSwaggerAPIRoutes(s.logger))
 	routes.NewFrontendRoutes(s.logger, cfg).Setup(s.engine)
 
