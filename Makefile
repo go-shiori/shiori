@@ -29,6 +29,11 @@ help:
 clean:
 	rm -rf dist
 
+## Runs the legacy http API for local development
+.PHONY: serve
+serve:
+	SHIORI_DEVELOPMENT=$(SHIORI_DEVELOPMENT) SHIORI_DIR=$(SHIORI_DIR) go run main.go serve
+
 ## Runs server for local development
 .PHONY: run-server
 run-server:
