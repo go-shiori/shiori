@@ -1,5 +1,10 @@
 # Contribute
 
+1. [Running the server locally](#running-the-server-locally)
+2. [Updating the API documentation](#updating-the-api-documentation)
+3. [Lint the code](#lint-the-code)
+4. [Running tests](#running-tests)
+
 ## Running the server locally
 
 To run the current development server with the defaults you can run the following command:
