@@ -65,6 +65,7 @@ Available Commands:
   serve       Serve web interface for managing bookmarks
   server      Run the Shiori webserver [alpha]
   update      Update the saved bookmarks
+  version     Output the shiori version
 
 Flags:
   -h, --help       help for shiori
