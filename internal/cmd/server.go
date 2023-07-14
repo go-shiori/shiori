@@ -29,6 +29,8 @@ func newServerCommand(logger *logrus.Logger) *cobra.Command {
 
 func newServerCommandHandler(logger *logrus.Logger) func(cmd *cobra.Command, args []string) {
 	return func(cmd *cobra.Command, args []string) {
+		logger.Warn("This server is still in alpha, use it at your own risk. For more information check https://github.com/go-shiori/shiori/issues/640")
+
 		ctx := context.Background()
 
 		database, err := openDatabase(ctx)
