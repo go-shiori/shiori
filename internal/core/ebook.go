@@ -245,7 +245,9 @@ func GetImages(html string) (map[string]string, error) {
 	// Loop through all the matches and add them to the dictionary
 	for _, match := range imageTagMatches {
 		imageURL := match[1]
-		images[imageURL] = match[0]
+		if !strings.HasPrefix(imageURL, "data:image/") {
+			images[imageURL] = match[0]
+		}
 	}
 
 	return images, nil
