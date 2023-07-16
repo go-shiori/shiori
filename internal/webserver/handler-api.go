@@ -106,8 +106,9 @@ func (h *handler) apiLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 
 	if len(accounts) == 0 && request.Username == "shiori" && request.Password == "gopher" {
 		genSession(model.Account{
-			Username: "shiori",
-			Owner:    true,
+			Username:   "shiori",
+			Owner:      true,
+			Configures: "{\"showId\":false,\"listMode\":false,\"hideThumbnail\":false,\"hideExcerpt\":false,\"nightMode\":false,\"keepMetadata\":false,\"useArchive\":false,\"makePublic\":false}",
 		}, time.Hour)
 		return
 	}

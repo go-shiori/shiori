@@ -109,6 +109,8 @@
 
 						// Save account data
 						localStorage.setItem("shiori-account", JSON.stringify(json.account));
+                        const configures = JSON.parse(json.account.configures);
+                        localStorage.setItem("shiori-setting", JSON.stringify(configures));
 
 						// Go to destination page
 						var currentUrl = new Url,
