@@ -20,11 +20,19 @@
 	<link href="css/custom-dialog.css" rel="stylesheet">
 	<link href="css/bookmark-item.css" rel="stylesheet">
 
+	<script>
+		(() => {
+			var opts = JSON.parse(localStorage.getItem("shiori-setting")) || {};
+			var nightMode = (typeof opts.nightMode === "boolean") ? opts.nightMode : false;
+			document.documentElement.className = nightMode ? 'night' : ''
+		})();
+	</script>
+
 	<script src="js/vue.min.js"></script>
 	<script src="js/url.min.js"></script>
 </head>
 
-<body class="night">
+<body>
 	<div id="main-scene" :class="{night: appOptions.nightMode}">
 		<div id="main-sidebar">
 			<a v-for="item in sidebarItems" :title="item.title" :class="{active: activePage === item.page}" @click="switchPage(item.page)">
@@ -106,7 +114,7 @@
 				saveSetting(opts) {
 					localStorage.setItem("shiori-setting", JSON.stringify(opts));
 					this.appOptions = opts;
-					document.body.className = opts.nightMode ? "night" : "";
+					document.documentElement.className = opts.nightMode ? 'night' : ''
 				},
 				loadSetting() {
 					var opts = JSON.parse(localStorage.getItem("shiori-setting")) || {},
@@ -129,8 +137,6 @@
 						useArchive: useArchive,
 						makePublic: makePublic,
 					};
-
-					document.body.className = nightMode ? "night" : "";
 				},
 				loadAccount() {
 					var account = JSON.parse(localStorage.getItem("shiori-account")) || {},
