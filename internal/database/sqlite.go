@@ -662,6 +662,23 @@ func (db *SQLiteDatabase) SaveAccount(ctx context.Context, account model.Account
 	return nil
 }
 
+// SaveSettings update settings for specific account  in database. Returns error if any happened.
+func (db *SQLiteDatabase) SaveSettings(ctx context.Context, account model.Account) error {
+	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
+		// TODO: be sure configures format is correct before change that in database
+		// Update account configures in database for specific user
+		_, err := tx.Exec(`UPDATE account
+	   SET configures = ?
+	   WHERE username = ?`,
+			account.Configures, account.Username)
+		return errors.WithStack(err)
+	}); err != nil {
+		return errors.WithStack(err)
+	}
+
+	return nil
+}
+
 // GetAccounts fetch list of account (without its password) based on submitted options.
 func (db *SQLiteDatabase) GetAccounts(ctx context.Context, opts GetAccountsOptions) ([]model.Account, error) {
 	// Create query

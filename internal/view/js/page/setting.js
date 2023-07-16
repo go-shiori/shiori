@@ -85,16 +85,40 @@ export default {
 		saveSetting() {
 			this.$emit("setting-changed", {
 				showId: this.appOptions.showId,
-				listMode: this.appOptions.listMode,
-				hideThumbnail: this.appOptions.hideThumbnail,
-				hideExcerpt: this.appOptions.hideExcerpt,
-				nightMode: this.appOptions.nightMode,
-				keepMetadata: this.appOptions.keepMetadata,
-				useArchive: this.appOptions.useArchive,
-				makePublic: this.appOptions.makePublic,
-			});
-		},
-		loadAccounts() {
+                listMode: this.appOptions.listMode,
+                hideThumbnail: this.appOptions.hideThumbnail,
+                hideExcerpt: this.appOptions.hideExcerpt,
+                nightMode: this.appOptions.nightMode,
+                keepMetadata: this.appOptions.keepMetadata,
+                useArchive: this.appOptions.useArchive,
+                makePublic: this.appOptions.makePublic,
+            });
+            const request = {
+                username: this.activeAccount.username,
+                configures: JSON.stringify(this.appOptions)
+            };
+            // TODO: DO i need loading page? if no remove this.dialog.loading = false
+            fetch(new URL("api/accountssettings", document.baseURI), {
+                method: "put",
+                body: JSON.stringify(request),
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            }).then(response => {
+                if (!response.ok) throw response;
+                return response;
+            }).then(() => {
+                this.dialog.loading = false;
+                this.dialog.visible = false;
+            }).catch(err => {
+                this.dialog.loading = false;
+                this.getErrorMessage(err).then(msg => {
+                    this.showErrorDialog(msg);
+                })
+            });
+
+        },
+        loadAccounts() {
 			if (this.loading) return;
 
 			this.loading = true;

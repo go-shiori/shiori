@@ -202,6 +202,7 @@ func ServeApp(cfg Config) error {
 
 	router.GET(jp("/api/accounts"), withLogging(hdl.apiGetAccounts))
 	router.PUT(jp("/api/accounts"), withLogging(hdl.apiUpdateAccount))
+	router.PUT(jp("/api/accountssettings"), withLogging(hdl.apiUpdateSettings))
 	router.POST(jp("/api/accounts"), withLogging(hdl.apiInsertAccount))
 	router.DELETE(jp("/api/accounts"), withLogging(hdl.apiDeleteAccount))
 
