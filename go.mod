@@ -1,6 +1,6 @@
 module github.com/go-shiori/shiori
 
-// +heroku goVersion go1.18
+// +heroku goVersion go1.20
 go 1.20
 
 require (
@@ -24,7 +24,7 @@ require (
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1
 	github.com/sethvargo/go-envconfig v0.9.0
-	github.com/shurcooL/vfsgen v0.0.0-20200824052919-0d455de96546
+	github.com/shurcooL/vfsgen v0.0.0-20230704071429-0000e147ea92
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.7.0
 	github.com/stretchr/testify v1.8.4
@@ -32,10 +32,10 @@ require (
 	github.com/swaggo/gin-swagger v1.6.0
 	github.com/swaggo/swag v1.16.1
 	github.com/toorop/gin-logrus v0.0.0-20210225092905-2c785434f26f
-	golang.org/x/crypto v0.10.0
-	golang.org/x/net v0.11.0
-	golang.org/x/term v0.9.0
-	modernc.org/sqlite v1.23.1
+	golang.org/x/crypto v0.11.0
+	golang.org/x/net v0.12.0
+	golang.org/x/term v0.10.0
+	modernc.org/sqlite v1.24.0
 )
 
 require (
@@ -87,8 +87,8 @@ require (
 	golang.org/x/arch v0.3.0 // indirect
 	golang.org/x/image v0.8.0 // indirect
 	golang.org/x/mod v0.11.0 // indirect
-	golang.org/x/sys v0.9.0 // indirect
-	golang.org/x/text v0.10.0 // indirect
+	golang.org/x/sys v0.10.0 // indirect
+	golang.org/x/text v0.11.0 // indirect
 	golang.org/x/tools v0.10.0 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
