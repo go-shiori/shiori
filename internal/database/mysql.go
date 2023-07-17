@@ -541,7 +541,7 @@ func (db *MySQLDatabase) SaveAccount(ctx context.Context, account model.Account)
 	return errors.WithStack(err)
 }
 
-// SaveAccount saves new account to database. Returns error if any happened.
+// SaveSettings update settings for specific account  in database. Returns error if any happened
 func (db *MySQLDatabase) SaveSettings(ctx context.Context, account model.Account) (err error) {
 	err = IsJson(account.Configures)
 	if err != nil {

@@ -542,11 +542,27 @@ func (db *PGDatabase) SaveAccount(ctx context.Context, account model.Account) (e
 
 	// Insert account to database
 	_, err = db.ExecContext(ctx, `INSERT INTO account
-		(username, password, owner) VALUES ($1, $2, $3)
+		(username, password, owner, configures) VALUES ($1, $2, $3, $4)
 		ON CONFLICT(username) DO UPDATE SET
 		password = $2,
 		owner = $3`,
-		account.Username, hashedPassword, account.Owner)
+		account.Username, hashedPassword, account.Owner, account.Configures)
+
+	return errors.WithStack(err)
+}
+
+// SaveSettings update settings for specific account  in database. Returns error if any happened
+func (db *PGDatabase) SaveSettings(ctx context.Context, account model.Account) (err error) {
+	err = IsJson(account.Configures)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	// Insert account to database
+	_, err = db.ExecContext(ctx, `UPDATE account
+   		SET configures = $1
+   		WHERE username = $2`,
+		account.Configures, account.Username)
 
 	return errors.WithStack(err)
 }
@@ -555,7 +571,7 @@ func (db *PGDatabase) SaveAccount(ctx context.Context, account model.Account) (e
 func (db *PGDatabase) GetAccounts(ctx context.Context, opts GetAccountsOptions) ([]model.Account, error) {
 	// Create query
 	args := []interface{}{}
-	query := `SELECT id, username, owner FROM account WHERE TRUE`
+	query := `SELECT id, username, owner, configures FROM account WHERE TRUE`
 
 	if opts.Keyword != "" {
 		query += " AND username LIKE $1"
@@ -583,7 +599,7 @@ func (db *PGDatabase) GetAccounts(ctx context.Context, opts GetAccountsOptions) 
 func (db *PGDatabase) GetAccount(ctx context.Context, username string) (model.Account, bool, error) {
 	account := model.Account{}
 	if err := db.GetContext(ctx, &account, `SELECT
-		id, username, password, owner FROM account WHERE username = $1`,
+		id, username, password, owner, configures FROM account WHERE username = $1`,
 		username,
 	); err != nil {
 		return account, false, errors.WithStack(err)
