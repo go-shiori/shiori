@@ -543,11 +543,6 @@ func (db *MySQLDatabase) SaveAccount(ctx context.Context, account model.Account)
 
 // SaveAccount saves new account to database. Returns error if any happened.
 func (db *MySQLDatabase) SaveSettings(ctx context.Context, account model.Account) (err error) {
-	// Hash password with bcrypt
-	//	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(account.Password), 10)
-	//	if err != nil {
-	//		return errors.WithStack(err)
-	//	}
 	err = IsJson(account.Configures)
 	if err != nil {
 		return errors.WithStack(err)
