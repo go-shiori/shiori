@@ -2,15 +2,16 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	fp "path/filepath"
+	"time"
+
 	"github.com/go-shiori/shiori/internal/database"
 	"github.com/go-shiori/shiori/internal/model"
 	apppaths "github.com/muesli/go-app-paths"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"golang.org/x/net/context"
-	"os"
-	fp "path/filepath"
-	"time"
 )
 
 var (
@@ -23,6 +24,8 @@ var (
 
 // ShioriCmd returns the root command for shiori
 func ShioriCmd() *cobra.Command {
+	logger := logrus.New()
+
 	rootCmd := &cobra.Command{
 		Use:   "shiori",
 		Short: "Simple command-line bookmark manager built with Go",
@@ -43,6 +46,8 @@ func ShioriCmd() *cobra.Command {
 		pocketCmd(),
 		serveCmd(),
 		checkCmd(),
+		newVersionCommand(logger),
+		newServerCommand(logger),
 	)
 
 	return rootCmd

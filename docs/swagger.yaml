@@ -1,0 +1,121 @@
+definitions:
+  api.loginRequestPayload:
+    properties:
+      password:
+        type: string
+      remember_me:
+        type: boolean
+      username:
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  api.loginResponseMessage:
+    properties:
+      token:
+        type: string
+    type: object
+  model.Account:
+    properties:
+      id:
+        type: integer
+      owner:
+        type: boolean
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  model.Tag:
+    properties:
+      id:
+        type: integer
+      nBookmarks:
+        type: integer
+      name:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /api/v1/auth/login:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Login data
+        in: body
+        name: payload
+        schema:
+          $ref: '#/definitions/api.loginRequestPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Login successful
+          schema:
+            $ref: '#/definitions/api.loginResponseMessage'
+        "400":
+          description: Invalid login data
+      summary: Login to an account using username and password
+      tags:
+      - Auth
+  /api/v1/auth/me:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Account'
+        "403":
+          description: Token not provided/invalid
+      summary: Get information for the current logged in user
+      tags:
+      - Auth
+  /api/v1/auth/refresh:
+    post:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Refresh successful
+          schema:
+            $ref: '#/definitions/api.loginResponseMessage'
+        "403":
+          description: Token not provided/invalid
+      summary: Refresh a token for an account
+      tags:
+      - Auth
+  /api/v1/tags:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of tags
+          schema:
+            $ref: '#/definitions/model.Tag'
+        "403":
+          description: Token not provided/invalid
+      summary: List tags
+      tags:
+      - Tags
+    post:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Created tag
+          schema:
+            $ref: '#/definitions/model.Tag'
+        "400":
+          description: Token not provided/invalid
+        "403":
+          description: Token not provided/invalid
+      summary: Create tag
+      tags:
+      - Tags
+swagger: "2.0"

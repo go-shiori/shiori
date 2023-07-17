@@ -75,7 +75,7 @@ func (h *handler) apiInsertViaExtension(w http.ResponseWriter, r *http.Request, 
 	// Save the bookmark with whatever we already have downloaded
 	// since we need the ID in order to download the archive
 	// Only when old bookmark is not exists.
-	if (!exist) {
+	if !exist {
 		books, err := h.DB.SaveBookmarks(ctx, true, request)
 		if err != nil {
 			log.Printf("error saving bookmark before downloading content: %s", err)

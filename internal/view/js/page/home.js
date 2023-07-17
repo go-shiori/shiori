@@ -35,13 +35,13 @@ var template = `
     </div>
     <p class="empty-message" v-if="!loading && listIsEmpty">No saved bookmarks yet :(</p>
     <div id="bookmarks-grid" ref="bookmarksGrid" :class="{list: appOptions.listMode}">
-        <pagination-box v-if="maxPage > 1" 
-            :page="page" 
-            :maxPage="maxPage" 
+        <pagination-box v-if="maxPage > 1"
+            :page="page"
+            :maxPage="maxPage"
             :editMode="editMode"
             @change="changePage">
         </pagination-box>
-        <bookmark-item v-for="(book, index) in bookmarks" 
+        <bookmark-item v-for="(book, index) in bookmarks"
             :id="book.id"
             :url="book.url"
             :title="book.title"
@@ -53,7 +53,7 @@ var template = `
             :hasEbook="book.hasEbook"
             :tags="book.tags"
             :index="index"
-            :key="book.id" 
+            :key="book.id"
             :editMode="editMode"
             :showId="appOptions.showId"
             :listMode="appOptions.listMode"
@@ -68,9 +68,9 @@ var template = `
             @generate-ebook="ebookGenerate"
             @update="showDialogUpdateCache">
         </bookmark-item>
-        <pagination-box v-if="maxPage > 1" 
-            :page="page" 
-            :maxPage="maxPage" 
+        <pagination-box v-if="maxPage > 1"
+            :page="page"
+            :maxPage="maxPage"
             :editMode="editMode"
             @change="changePage">
         </pagination-box>
@@ -214,7 +214,7 @@ export default {
 			var skipFetchTags = Error("skip fetching tags");
 
 			this.loading = true;
-			fetch(url)
+			fetch(url, {headers: {'Content-Type': 'application/json'}})
 				.then(response => {
 					if (!response.ok) throw response;
 					return response.json();
@@ -244,7 +244,7 @@ export default {
 
 					// Fetch tags if requested
 					if (fetchTags) {
-						return fetch(new URL("api/tags", document.baseURI));
+						return fetch(new URL("api/tags", document.baseURI), {headers: {'Content-Type': 'application/json'}});
 					} else {
 						this.loading = false;
 						throw skipFetchTags;

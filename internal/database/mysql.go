@@ -602,6 +602,36 @@ func (db *MySQLDatabase) DeleteAccounts(ctx context.Context, usernames ...string
 	return nil
 }
 
+// CreateTags creates new tags from submitted objects.
+func (db *MySQLDatabase) CreateTags(ctx context.Context, tags ...model.Tag) error {
+	query := `INSERT INTO tag (name) VALUES `
+	values := []interface{}{}
+
+	for _, t := range tags {
+		query += "(?),"
+		values = append(values, t.Name)
+	}
+	query = query[0 : len(query)-1]
+
+	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
+		stmt, err := tx.Preparex(query)
+		if err != nil {
+			return errors.Wrap(errors.WithStack(err), "error preparing query")
+		}
+
+		_, err = stmt.ExecContext(ctx, values...)
+		if err != nil {
+			return errors.Wrap(errors.WithStack(err), "error executing query")
+		}
+
+		return nil
+	}); err != nil {
+		return errors.Wrap(errors.WithStack(err), "error running transaction")
+	}
+
+	return nil
+}
+
 // GetTags fetch list of tags and their frequency.
 func (db *MySQLDatabase) GetTags(ctx context.Context) ([]model.Tag, error) {
 	tags := []model.Tag{}

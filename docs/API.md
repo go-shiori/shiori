@@ -1,5 +1,7 @@
 This is a brief explanation of Shiori's API. For more examples you can import this [collection](https://github.com/go-shiori/shiori/blob/master/docs/postman/shiori.postman_collection.json) in Postman.
 
+> ⚠️ **This is the documentation for the old API. This API is deprecated and will be removed in the future. Please refer and start migrating to the [API v1](./APIv1.md) instead.**
+
 <!-- TOC -->
 
 - [Auth](#auth)

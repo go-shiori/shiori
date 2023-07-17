@@ -611,6 +611,23 @@ func (db *PGDatabase) DeleteAccounts(ctx context.Context, usernames ...string) (
 	return nil
 }
 
+// CreateTags creates new tags from submitted objects.
+func (db *PGDatabase) CreateTags(ctx context.Context, tags ...model.Tag) error {
+	query := `INSERT INTO tag (name) VALUES (:name)`
+
+	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
+		if _, err := tx.NamedExec(query, tags); err != nil {
+			return errors.WithStack(err)
+		}
+
+		return nil
+	}); err != nil {
+		return errors.Wrap(errors.WithStack(err), "error running transaction")
+	}
+
+	return nil
+}
+
 // GetTags fetch list of tags and their frequency.
 func (db *PGDatabase) GetTags(ctx context.Context) ([]model.Tag, error) {
 	tags := []model.Tag{}

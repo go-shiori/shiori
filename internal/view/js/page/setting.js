@@ -98,7 +98,7 @@ export default {
 			if (this.loading) return;
 
 			this.loading = true;
-			fetch(new URL("api/accounts", document.baseURI))
+			fetch(new URL("api/accounts", document.baseURI), {headers: {'Content-Type': 'application/json'}})
 				.then(response => {
 					if (!response.ok) throw response;
 					return response.json();
