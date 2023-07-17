@@ -665,9 +665,13 @@ func (db *SQLiteDatabase) SaveAccount(ctx context.Context, account model.Account
 // SaveSettings update settings for specific account  in database. Returns error if any happened.
 func (db *SQLiteDatabase) SaveSettings(ctx context.Context, account model.Account) error {
 	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
-		// TODO: be sure configures format is correct before change that in database
+		err := IsJson(account.Configures)
+		if err != nil {
+			return err
+		}
+
 		// Update account configures in database for specific user
-		_, err := tx.Exec(`UPDATE account
+		_, err = tx.Exec(`UPDATE account
 	   SET configures = ?
 	   WHERE username = ?`,
 			account.Configures, account.Username)

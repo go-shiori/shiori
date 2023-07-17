@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"embed"
+	"encoding/json"
 	"log"
 
 	"github.com/go-shiori/shiori/internal/model"
@@ -118,4 +119,15 @@ func (db *dbbase) withTx(ctx context.Context, fn func(tx *sqlx.Tx) error) error 
 	}
 
 	return err
+}
+
+// get a string and return errors if it is not in json format
+func IsJson(input string) error {
+	var jsonData interface{}
+	err := json.Unmarshal([]byte(input), &jsonData)
+	if err != nil {
+		return err
+	} else {
+		return nil
+	}
 }
