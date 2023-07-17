@@ -40,16 +40,8 @@ type GetBookmarksOptions struct {
 
 // GetAccountsOptions is options for fetching accounts from database.
 type GetAccountsOptions struct {
-	Keyword       string
-	Owner         bool
-	Showid        bool
-	Listmode      bool
-	Hidethumbnail bool
-	Hideexcerpt   bool
-	Nightmode     bool
-	Keepmetadata  bool
-	Usearchive    bool
-	Makepublic    bool
+	Keyword string
+	Owner   bool
 }
 
 // DB is interface for accessing and manipulating data in database.
