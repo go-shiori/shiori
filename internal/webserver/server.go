@@ -104,10 +104,8 @@ func Logger(r *http.Request, statusCode int, size int) {
 	}
 }
 
-// ServeApp serves web interface in specified port
-func ServeApp(cfg Config) error {
-	// Create handler
-	hdl := handler{
+func GetLegacyHandler(cfg Config) *Handler {
+	return &Handler{
 		DB:           cfg.DB,
 		DataDir:      cfg.DataDir,
 		UserCache:    cch.New(time.Hour, 10*time.Minute),
@@ -116,11 +114,17 @@ func ServeApp(cfg Config) error {
 		RootPath:     cfg.RootPath,
 		Log:          cfg.Log,
 	}
+}
 
-	hdl.prepareSessionCache()
+// ServeApp serves web interface in specified port
+func ServeApp(cfg Config) error {
+	// Create handler
+	hdl := GetLegacyHandler(cfg)
+
+	hdl.PrepareSessionCache()
 	hdl.prepareArchiveCache()
 
-	err := hdl.prepareTemplates()
+	err := hdl.PrepareTemplates()
 	if err != nil {
 		return fmt.Errorf("failed to prepare templates: %v", err)
 	}
@@ -181,29 +185,29 @@ func ServeApp(cfg Config) error {
 
 	router.GET(cfg.RootPath, withLogging(hdl.serveIndexPage))
 	router.GET(jp("/login"), withLogging(hdl.serveLoginPage))
-	router.GET(jp("/bookmark/:id/thumb"), withLogging(hdl.serveThumbnailImage))
-	router.GET(jp("/bookmark/:id/content"), withLogging(hdl.serveBookmarkContent))
-	router.GET(jp("/bookmark/:id/ebook"), withLogging(hdl.serveBookmarkEbook))
-	router.GET(jp("/bookmark/:id/archive/*filepath"), withLogging(hdl.serveBookmarkArchive))
+	router.GET(jp("/bookmark/:id/thumb"), withLogging(hdl.ServeThumbnailImage))
+	router.GET(jp("/bookmark/:id/content"), withLogging(hdl.ServeBookmarkContent))
+	router.GET(jp("/bookmark/:id/ebook"), withLogging(hdl.ServeBookmarkEbook))
+	router.GET(jp("/bookmark/:id/archive/*filepath"), withLogging(hdl.ServeBookmarkArchive))
 
 	router.POST(jp("/api/login"), withLogging(hdl.apiLogin))
-	router.POST(jp("/api/logout"), withLogging(hdl.apiLogout))
-	router.GET(jp("/api/bookmarks"), withLogging(hdl.apiGetBookmarks))
-	router.GET(jp("/api/tags"), withLogging(hdl.apiGetTags))
-	router.PUT(jp("/api/tag"), withLogging(hdl.apiRenameTag))
-	router.POST(jp("/api/bookmarks"), withLogging(hdl.apiInsertBookmark))
-	router.DELETE(jp("/api/bookmarks"), withLogging(hdl.apiDeleteBookmark))
-	router.PUT(jp("/api/bookmarks"), withLogging(hdl.apiUpdateBookmark))
-	router.PUT(jp("/api/cache"), withLogging(hdl.apiUpdateCache))
-	router.PUT(jp("/api/ebook"), withLogging(hdl.apiDownloadEbook))
-	router.PUT(jp("/api/bookmarks/tags"), withLogging(hdl.apiUpdateBookmarkTags))
-	router.POST(jp("/api/bookmarks/ext"), withLogging(hdl.apiInsertViaExtension))
-	router.DELETE(jp("/api/bookmarks/ext"), withLogging(hdl.apiDeleteViaExtension))
+	router.POST(jp("/api/logout"), withLogging(hdl.ApiLogout))
+	router.GET(jp("/api/bookmarks"), withLogging(hdl.ApiGetBookmarks))
+	router.GET(jp("/api/tags"), withLogging(hdl.ApiGetTags))
+	router.PUT(jp("/api/tag"), withLogging(hdl.ApiRenameTag))
+	router.POST(jp("/api/bookmarks"), withLogging(hdl.ApiInsertBookmark))
+	router.DELETE(jp("/api/bookmarks"), withLogging(hdl.ApiDeleteBookmark))
+	router.PUT(jp("/api/bookmarks"), withLogging(hdl.ApiUpdateBookmark))
+	router.PUT(jp("/api/cache"), withLogging(hdl.ApiUpdateCache))
+	router.PUT(jp("/api/ebook"), withLogging(hdl.ApiDownloadEbook))
+	router.PUT(jp("/api/bookmarks/tags"), withLogging(hdl.ApiUpdateBookmarkTags))
+	router.POST(jp("/api/bookmarks/ext"), withLogging(hdl.ApiInsertViaExtension))
+	router.DELETE(jp("/api/bookmarks/ext"), withLogging(hdl.ApiDeleteViaExtension))
 
-	router.GET(jp("/api/accounts"), withLogging(hdl.apiGetAccounts))
-	router.PUT(jp("/api/accounts"), withLogging(hdl.apiUpdateAccount))
-	router.POST(jp("/api/accounts"), withLogging(hdl.apiInsertAccount))
-	router.DELETE(jp("/api/accounts"), withLogging(hdl.apiDeleteAccount))
+	router.GET(jp("/api/accounts"), withLogging(hdl.ApiGetAccounts))
+	router.PUT(jp("/api/accounts"), withLogging(hdl.ApiUpdateAccount))
+	router.POST(jp("/api/accounts"), withLogging(hdl.ApiInsertAccount))
+	router.DELETE(jp("/api/accounts"), withLogging(hdl.ApiDeleteAccount))
 
 	// Route for panic, keep logging anyhow
 	router.PanicHandler = func(w http.ResponseWriter, r *http.Request, arg interface{}) {

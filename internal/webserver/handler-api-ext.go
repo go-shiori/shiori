@@ -16,8 +16,8 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-// apiInsertViaExtension is handler for POST /api/bookmarks/ext
-func (h *handler) apiInsertViaExtension(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+// ApiInsertViaExtension is handler for POST /api/bookmarks/ext
+func (h *Handler) ApiInsertViaExtension(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	ctx := r.Context()
 
 	// Make sure session still valid
@@ -117,8 +117,8 @@ func (h *handler) apiInsertViaExtension(w http.ResponseWriter, r *http.Request, 
 	checkError(err)
 }
 
-// apiDeleteViaExtension is handler for DELETE /api/bookmark/ext
-func (h *handler) apiDeleteViaExtension(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+// ApiDeleteViaExtension is handler for DELETE /api/bookmark/ext
+func (h *Handler) ApiDeleteViaExtension(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	ctx := r.Context()
 
 	// Make sure session still valid

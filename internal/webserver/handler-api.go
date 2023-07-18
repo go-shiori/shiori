@@ -49,7 +49,7 @@ func downloadBookmarkContent(book *model.Bookmark, dataDir string, request *http
 }
 
 // apiLogin is handler for POST /api/login
-func (h *handler) apiLogin(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (h *Handler) apiLogin(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	ctx := r.Context()
 
 	// Decode request
@@ -141,10 +141,10 @@ func (h *handler) apiLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 	genSession(account, expTime)
 }
 
-// apiLogout is handler for POST /api/logout
-func (h *handler) apiLogout(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+// ApiLogout is handler for POST /api/logout
+func (h *Handler) ApiLogout(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	// Get session ID
-	sessionID := h.getSessionID(r)
+	sessionID := h.GetSessionID(r)
 	if sessionID != "" {
 		h.SessionCache.Delete(sessionID)
 	}
@@ -152,8 +152,8 @@ func (h *handler) apiLogout(w http.ResponseWriter, r *http.Request, ps httproute
 	fmt.Fprint(w, 1)
 }
 
-// apiGetBookmarks is handler for GET /api/bookmarks
-func (h *handler) apiGetBookmarks(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+// ApiGetBookmarks is handler for GET /api/bookmarks
+func (h *Handler) ApiGetBookmarks(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	ctx := r.Context()
 
 	// Make sure session still valid
@@ -231,8 +231,8 @@ func (h *handler) apiGetBookmarks(w http.ResponseWriter, r *http.Request, ps htt
 	checkError(err)
 }
 
-// apiGetTags is handler for GET /api/tags
-func (h *handler) apiGetTags(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+// ApiGetTags is handler for GET /api/tags
+func (h *Handler) ApiGetTags(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	ctx := r.Context()
 
 	// Make sure session still valid
@@ -248,8 +248,8 @@ func (h *handler) apiGetTags(w http.ResponseWriter, r *http.Request, ps httprout
 	checkError(err)
 }
 
-// apiRenameTag is handler for PUT /api/tag
-func (h *handler) apiRenameTag(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+// ApiRenameTag is handler for PUT /api/tag
+func (h *Handler) ApiRenameTag(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	ctx := r.Context()
 
 	// Make sure session still valid
@@ -288,8 +288,8 @@ func newAPIInsertBookmarkPayload() *apiInsertBookmarkPayload {
 	}
 }
 
-// apiInsertBookmark is handler for POST /api/bookmark
-func (h *handler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+// ApiInsertBookmark is handler for POST /api/bookmark
+func (h *Handler) ApiInsertBookmark(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	ctx := r.Context()
 
 	// Make sure session still valid
@@ -358,7 +358,7 @@ func (h *handler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 }
 
 // apiDeleteBookmarks is handler for DELETE /api/bookmark
-func (h *handler) apiDeleteBookmark(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (h *Handler) ApiDeleteBookmark(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	ctx := r.Context()
 
 	// Make sure session still valid
@@ -389,8 +389,8 @@ func (h *handler) apiDeleteBookmark(w http.ResponseWriter, r *http.Request, ps h
 	fmt.Fprint(w, 1)
 }
 
-// apiUpdateBookmark is handler for PUT /api/bookmarks
-func (h *handler) apiUpdateBookmark(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+// ApiUpdateBookmark is handler for PUT /api/bookmarks
+func (h *Handler) ApiUpdateBookmark(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	ctx := r.Context()
 
 	// Make sure session still valid
@@ -466,8 +466,8 @@ func (h *handler) apiUpdateBookmark(w http.ResponseWriter, r *http.Request, ps h
 	checkError(err)
 }
 
-// apiDownloadEbook is handler for PUT /api/ebook
-func (h *handler) apiDownloadEbook(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+// ApiDownloadEbook is handler for PUT /api/ebook
+func (h *Handler) ApiDownloadEbook(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	ctx := r.Context()
 
 	// Make sure session still valid
@@ -564,8 +564,8 @@ func (h *handler) apiDownloadEbook(w http.ResponseWriter, r *http.Request, ps ht
 	checkError(err)
 }
 
-// apiUpdateCache is handler for PUT /api/cache
-func (h *handler) apiUpdateCache(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+// ApiUpdateCache is handler for PUT /api/cache
+func (h *Handler) ApiUpdateCache(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	ctx := r.Context()
 
 	// Make sure session still valid
@@ -685,8 +685,8 @@ func (h *handler) apiUpdateCache(w http.ResponseWriter, r *http.Request, ps http
 	checkError(err)
 }
 
-// apiUpdateBookmarkTags is handler for PUT /api/bookmarks/tags
-func (h *handler) apiUpdateBookmarkTags(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+// ApiUpdateBookmarkTags is handler for PUT /api/bookmarks/tags
+func (h *Handler) ApiUpdateBookmarkTags(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	ctx := r.Context()
 
 	// Make sure session still valid
@@ -757,8 +757,8 @@ func (h *handler) apiUpdateBookmarkTags(w http.ResponseWriter, r *http.Request, 
 	checkError(err)
 }
 
-// apiGetAccounts is handler for GET /api/accounts
-func (h *handler) apiGetAccounts(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+// ApiGetAccounts is handler for GET /api/accounts
+func (h *Handler) ApiGetAccounts(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	ctx := r.Context()
 
 	// Make sure session still valid
@@ -774,8 +774,8 @@ func (h *handler) apiGetAccounts(w http.ResponseWriter, r *http.Request, ps http
 	checkError(err)
 }
 
-// apiInsertAccount is handler for POST /api/accounts
-func (h *handler) apiInsertAccount(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+// ApiInsertAccount is handler for POST /api/accounts
+func (h *Handler) ApiInsertAccount(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	ctx := r.Context()
 
 	// Make sure session still valid
@@ -794,8 +794,8 @@ func (h *handler) apiInsertAccount(w http.ResponseWriter, r *http.Request, ps ht
 	fmt.Fprint(w, 1)
 }
 
-// apiUpdateAccount is handler for PUT /api/accounts
-func (h *handler) apiUpdateAccount(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+// ApiUpdateAccount is handler for PUT /api/accounts
+func (h *Handler) ApiUpdateAccount(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	ctx := r.Context()
 
 	// Make sure session still valid
@@ -846,8 +846,8 @@ func (h *handler) apiUpdateAccount(w http.ResponseWriter, r *http.Request, ps ht
 	fmt.Fprint(w, 1)
 }
 
-// apiDeleteAccount is handler for DELETE /api/accounts
-func (h *handler) apiDeleteAccount(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+// ApiDeleteAccount is handler for DELETE /api/accounts
+func (h *Handler) ApiDeleteAccount(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	ctx := r.Context()
 
 	// Make sure session still valid

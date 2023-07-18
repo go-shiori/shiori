@@ -21,7 +21,7 @@ import (
 )
 
 // serveFile is handler for general file request
-func (h *handler) serveFile(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (h *Handler) serveFile(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	rootPath := strings.Trim(h.RootPath, "/")
 	urlPath := strings.Trim(r.URL.Path, "/")
 	filePath := strings.TrimPrefix(urlPath, rootPath)
@@ -32,7 +32,7 @@ func (h *handler) serveFile(w http.ResponseWriter, r *http.Request, ps httproute
 }
 
 // serveJsFile is handler for GET /js/*filepath
-func (h *handler) serveJsFile(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (h *Handler) serveJsFile(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	jsFilePath := ps.ByName("filepath")
 	jsFilePath = path.Join("js", jsFilePath)
 	jsDir, jsName := path.Split(jsFilePath)
@@ -50,7 +50,7 @@ func (h *handler) serveJsFile(w http.ResponseWriter, r *http.Request, ps httprou
 }
 
 // serveIndexPage is handler for GET /
-func (h *handler) serveIndexPage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (h *Handler) serveIndexPage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	// Make sure session still valid
 	err := h.validateSession(r)
 	if err != nil {
@@ -61,7 +61,7 @@ func (h *handler) serveIndexPage(w http.ResponseWriter, r *http.Request, ps http
 	}
 
 	if developmentMode {
-		if err := h.prepareTemplates(); err != nil {
+		if err := h.PrepareTemplates(); err != nil {
 			log.Printf("error during template preparation: %s", err)
 		}
 	}
@@ -71,7 +71,7 @@ func (h *handler) serveIndexPage(w http.ResponseWriter, r *http.Request, ps http
 }
 
 // serveLoginPage is handler for GET /login
-func (h *handler) serveLoginPage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (h *Handler) serveLoginPage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	// Make sure session is not valid
 	err := h.validateSession(r)
 	if err == nil {
@@ -81,7 +81,7 @@ func (h *handler) serveLoginPage(w http.ResponseWriter, r *http.Request, ps http
 	}
 
 	if developmentMode {
-		if err := h.prepareTemplates(); err != nil {
+		if err := h.PrepareTemplates(); err != nil {
 			log.Printf("error during template preparation: %s", err)
 		}
 	}
@@ -90,8 +90,8 @@ func (h *handler) serveLoginPage(w http.ResponseWriter, r *http.Request, ps http
 	checkError(err)
 }
 
-// serveBookmarkContent is handler for GET /bookmark/:id/content
-func (h *handler) serveBookmarkContent(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+// ServeBookmarkContent is handler for GET /bookmark/:id/content
+func (h *Handler) ServeBookmarkContent(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	ctx := r.Context()
 
 	// Get bookmark ID from URL
@@ -192,7 +192,7 @@ func (h *handler) serveBookmarkContent(w http.ResponseWriter, r *http.Request, p
 
 	// Execute template
 	if developmentMode {
-		if err := h.prepareTemplates(); err != nil {
+		if err := h.PrepareTemplates(); err != nil {
 			log.Printf("error during template preparation: %s", err)
 		}
 	}
@@ -206,8 +206,8 @@ func (h *handler) serveBookmarkContent(w http.ResponseWriter, r *http.Request, p
 	checkError(err)
 }
 
-// serveThumbnailImage is handler for GET /bookmark/:id/thumb
-func (h *handler) serveThumbnailImage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+// ServeThumbnailImage is handler for GET /bookmark/:id/thumb
+func (h *Handler) ServeThumbnailImage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	// Get bookmark ID from URL
 	ctx := r.Context()
 
@@ -265,8 +265,8 @@ func (h *handler) serveThumbnailImage(w http.ResponseWriter, r *http.Request, ps
 	checkError(err)
 }
 
-// serveBookmarkArchive is handler for GET /bookmark/:id/archive/*filepath
-func (h *handler) serveBookmarkArchive(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+// ServeBookmarkArchive is handler for GET /bookmark/:id/archive/*filepath
+func (h *Handler) ServeBookmarkArchive(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	ctx := r.Context()
 
 	// Get parameter from URL
@@ -333,8 +333,8 @@ func (h *handler) serveBookmarkArchive(w http.ResponseWriter, r *http.Request, p
 		err = h.templates["archive"].Execute(tplOutput, &bookmark)
 		checkError(err)
 
-		archiveCSSPath := path.Join(h.RootPath, "/css/archive.css")
-		sourceSansProCSSPath := path.Join(h.RootPath, "/css/source-sans-pro.min.css")
+		archiveCSSPath := path.Join(h.RootPath, "/assets/css/archive.css")
+		sourceSansProCSSPath := path.Join(h.RootPath, "/assets/css/source-sans-pro.min.css")
 
 		docHead := doc.Find("head")
 		docHead.PrependHtml(`<meta charset="UTF-8">`)
@@ -362,7 +362,7 @@ func (h *handler) serveBookmarkArchive(w http.ResponseWriter, r *http.Request, p
 }
 
 // serveEbook is handler for GET /bookmark/:id/ebook
-func (h *handler) serveBookmarkEbook(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (h *Handler) ServeBookmarkEbook(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	ctx := r.Context()
 
 	// Get bookmark ID from URL
