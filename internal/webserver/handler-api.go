@@ -875,7 +875,7 @@ func (h *handler) apiUpdateSettings(w http.ResponseWriter, r *http.Request, ps h
 	// Save new password to database
 	account.Config = request.Config
 	//	account.Owner = request.Owner
-	err = h.DB.SaveSettings(ctx, account)
+	err = h.DB.SaveAccountSettings(ctx, account)
 	checkError(err)
 
 	fmt.Fprint(w, 1)

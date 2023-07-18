@@ -67,8 +67,8 @@ type DB interface {
 	// SaveAccount saves new account in database
 	SaveAccount(ctx context.Context, a model.Account) error
 
-	// SaveSettings saves settings for specific user in database
-	SaveSettings(ctx context.Context, a model.Account) error
+	// SaveAccountSettings saves settings for specific user in database
+	SaveAccountSettings(ctx context.Context, a model.Account) error
 
 	// GetAccounts fetch list of account (without its password) with matching keyword.
 	GetAccounts(ctx context.Context, opts GetAccountsOptions) ([]model.Account, error)

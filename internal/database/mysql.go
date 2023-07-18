@@ -541,8 +541,8 @@ func (db *MySQLDatabase) SaveAccount(ctx context.Context, account model.Account)
 	return errors.WithStack(err)
 }
 
-// SaveSettings update settings for specific account  in database. Returns error if any happened
-func (db *MySQLDatabase) SaveSettings(ctx context.Context, account model.Account) (err error) {
+// SaveAccountSettings update settings for specific account  in database. Returns error if any happened
+func (db *MySQLDatabase) SaveAccountSettings(ctx context.Context, account model.Account) (err error) {
 	err = IsJson(account.Config)
 	if err != nil {
 		return errors.WithStack(err)

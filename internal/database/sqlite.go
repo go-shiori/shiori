@@ -662,8 +662,8 @@ func (db *SQLiteDatabase) SaveAccount(ctx context.Context, account model.Account
 	return nil
 }
 
-// SaveSettings update settings for specific account  in database. Returns error if any happened.
-func (db *SQLiteDatabase) SaveSettings(ctx context.Context, account model.Account) error {
+// SaveAccountSettings update settings for specific account  in database. Returns error if any happened.
+func (db *SQLiteDatabase) SaveAccountSettings(ctx context.Context, account model.Account) error {
 	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
 		err := IsJson(account.Config)
 		if err != nil {
