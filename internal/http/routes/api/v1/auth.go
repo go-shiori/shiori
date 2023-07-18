@@ -14,8 +14,9 @@ import (
 )
 
 type AuthAPIRoutes struct {
-	logger *logrus.Logger
-	deps   *config.Dependencies
+	logger             *logrus.Logger
+	deps               *config.Dependencies
+	legacyLoginHandler model.LegacyLoginHandler
 }
 
 func (r *AuthAPIRoutes) Setup(group *gin.RouterGroup) model.Routes {
@@ -23,10 +24,6 @@ func (r *AuthAPIRoutes) Setup(group *gin.RouterGroup) model.Routes {
 	group.POST("/login", r.loginHandler)
 	group.POST("/refresh", r.refreshHandler)
 	return r
-}
-
-func (r *AuthAPIRoutes) setCookie(c *gin.Context, token string, expiration time.Time) {
-	c.SetCookie("auth", token, int(expiration.Unix()), "/", "", !r.deps.Config.Development, false)
 }
 
 type loginRequestPayload struct {
@@ -46,7 +43,9 @@ func (p *loginRequestPayload) IsValid() error {
 }
 
 type loginResponseMessage struct {
-	Token string `json:"token"`
+	Token      string `json:"token"`
+	SessionID  string `json:"session"` // Deprecated, used only for legacy APIs
+	Expiration int64  `json:"expires"` // Deprecated, used only for legacy APIs
 }
 
 // loginHandler godoc
@@ -87,12 +86,18 @@ func (r *AuthAPIRoutes) loginHandler(c *gin.Context) {
 		return
 	}
 
-	responseMessage := loginResponseMessage{
-		Token: token,
+	sessionID, err := r.legacyLoginHandler(*account, time.Hour*24*30)
+	if err != nil {
+		r.logger.WithError(err).Error("failed execute legacy login handler")
+		response.SendInternalServerError(c)
+		return
 	}
 
-	// TODO: move cookie logic to frontend routes
-	r.setCookie(c, token, expiration)
+	responseMessage := loginResponseMessage{
+		Token:      token,
+		SessionID:  sessionID,
+		Expiration: expiration.Unix(),
+	}
 
 	response.Send(c, http.StatusOK, responseMessage)
 }
@@ -124,8 +129,6 @@ func (r *AuthAPIRoutes) refreshHandler(c *gin.Context) {
 		Token: token,
 	}
 
-	r.setCookie(c, token, expiration)
-
 	response.Send(c, http.StatusAccepted, responseMessage)
 }
 
@@ -147,9 +150,10 @@ func (r *AuthAPIRoutes) meHandler(c *gin.Context) {
 	response.Send(c, http.StatusOK, ctx.GetAccount())
 }
 
-func NewAuthAPIRoutes(logger *logrus.Logger, deps *config.Dependencies) *AuthAPIRoutes {
+func NewAuthAPIRoutes(logger *logrus.Logger, deps *config.Dependencies, loginHandler model.LegacyLoginHandler) *AuthAPIRoutes {
 	return &AuthAPIRoutes{
-		logger: logger,
-		deps:   deps,
+		logger:             logger,
+		deps:               deps,
+		legacyLoginHandler: loginHandler,
 	}
 }
