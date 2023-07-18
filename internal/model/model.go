@@ -27,11 +27,3 @@ type Bookmark struct {
 	CreateArchive bool   `json:"createArchive"`
 	CreateEbook   bool   `json:"createEbook"`
 }
-
-// Account is person that allowed to access web interface.
-type Account struct {
-	ID       int    `db:"id"       json:"id"`
-	Username string `db:"username" json:"username"`
-	Password string `db:"password" json:"password,omitempty"`
-	Owner    bool   `db:"owner"    json:"owner"`
-}
