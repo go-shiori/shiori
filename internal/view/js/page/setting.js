@@ -95,7 +95,7 @@ export default {
             });
             const request = {
                 username: this.activeAccount.username,
-                configures: JSON.stringify(this.appOptions)
+                config: JSON.stringify(this.appOptions)
             };
             // TODO: DO i need loading page? if no remove this.dialog.loading = false
             fetch(new URL("api/accountssettings", document.baseURI), {
@@ -179,7 +179,7 @@ export default {
 						this.showErrorDialog("Password does not match");
 						return;
 					}
-                    const defaultconfigures = {
+                    const defaultconfig = {
                         showId: false,
                         listMode: false,
                         hideThumbnail: false,
@@ -189,13 +189,13 @@ export default {
                         useArchive: false,
                         makePublic: false
                     };
-                    data.configures = JSON.stringify(defaultconfigures);
+                    data.config = JSON.stringify(defaultconfig);
 
 					var request = {
 						username: data.username,
 						password: data.password,
 						owner: !data.visitor,
-                        configures: data.configures,
+                        config: data.config,
 					}
 
 					this.dialog.loading = true;

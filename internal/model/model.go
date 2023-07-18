@@ -30,9 +30,9 @@ type Bookmark struct {
 
 // Account is person that allowed to access web interface.
 type Account struct {
-	ID         int    `db:"id"                   json:"id"`
-	Username   string `db:"username"             json:"username"`
-	Password   string `db:"password"             json:"password,omitempty"`
-	Owner      bool   `db:"owner"                json:"owner"`
-	Configures string `db:"configures"           json:"configures"`
+	ID       int    `db:"id"                   json:"id"`
+	Username string `db:"username"             json:"username"`
+	Password string `db:"password"             json:"password,omitempty"`
+	Owner    bool   `db:"owner"                json:"owner"`
+	Config   string `db:"config"               json:"config"`
 }

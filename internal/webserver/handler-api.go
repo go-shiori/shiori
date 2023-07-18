@@ -106,9 +106,9 @@ func (h *handler) apiLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 
 	if len(accounts) == 0 && request.Username == "shiori" && request.Password == "gopher" {
 		genSession(model.Account{
-			Username:   "shiori",
-			Owner:      true,
-			Configures: "{\"showId\":false,\"listMode\":false,\"hideThumbnail\":false,\"hideExcerpt\":false,\"nightMode\":false,\"keepMetadata\":false,\"useArchive\":false,\"makePublic\":false}",
+			Username: "shiori",
+			Owner:    true,
+			Config:   "{\"showId\":false,\"listMode\":false,\"hideThumbnail\":false,\"hideExcerpt\":false,\"nightMode\":false,\"keepMetadata\":false,\"useArchive\":false,\"makePublic\":false}",
 		}, time.Hour)
 		return
 	}
@@ -857,8 +857,8 @@ func (h *handler) apiUpdateSettings(w http.ResponseWriter, r *http.Request, ps h
 
 	// Decode request
 	request := struct {
-		Username   string `json:"username"`
-		Configures string `json:"configures"`
+		Username string `json:"username"`
+		Config   string `json:"config"`
 	}{}
 
 	err = json.NewDecoder(r.Body).Decode(&request)
@@ -873,7 +873,7 @@ func (h *handler) apiUpdateSettings(w http.ResponseWriter, r *http.Request, ps h
 	}
 
 	// Save new password to database
-	account.Configures = request.Configures
+	account.Config = request.Config
 	//	account.Owner = request.Owner
 	err = h.DB.SaveSettings(ctx, account)
 	checkError(err)

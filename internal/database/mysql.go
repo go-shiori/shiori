@@ -532,26 +532,26 @@ func (db *MySQLDatabase) SaveAccount(ctx context.Context, account model.Account)
 
 	// Insert account to database
 	_, err = db.ExecContext(ctx, `INSERT INTO account
-		(username, password, owner, configures) VALUES (?, ?, ?, ?)
+		(username, password, owner, config) VALUES (?, ?, ?, ?)
 		ON DUPLICATE KEY UPDATE
 		password = VALUES(password),
 		owner = VALUES(owner)`,
-		account.Username, hashedPassword, account.Owner, account.Configures)
+		account.Username, hashedPassword, account.Owner, account.Config)
 
 	return errors.WithStack(err)
 }
 
 // SaveSettings update settings for specific account  in database. Returns error if any happened
 func (db *MySQLDatabase) SaveSettings(ctx context.Context, account model.Account) (err error) {
-	err = IsJson(account.Configures)
+	err = IsJson(account.Config)
 	if err != nil {
 		return errors.WithStack(err)
 	}
-	// Update account configures in database for specific user
+	// Update account config in database for specific user
 	_, err = db.ExecContext(ctx, `UPDATE account
-		SET configures = ?
+		SET config = ?
 		WHERE username = ?`,
-		account.Configures, account.Username)
+		account.Config, account.Username)
 
 	return errors.WithStack(err)
 }
@@ -560,7 +560,7 @@ func (db *MySQLDatabase) SaveSettings(ctx context.Context, account model.Account
 func (db *MySQLDatabase) GetAccounts(ctx context.Context, opts GetAccountsOptions) ([]model.Account, error) {
 	// Create query
 	args := []interface{}{}
-	query := `SELECT id, username, owner, configures FROM account WHERE 1`
+	query := `SELECT id, username, owner, config FROM account WHERE 1`
 
 	if opts.Keyword != "" {
 		query += " AND username LIKE ?"
@@ -588,7 +588,7 @@ func (db *MySQLDatabase) GetAccounts(ctx context.Context, opts GetAccountsOption
 func (db *MySQLDatabase) GetAccount(ctx context.Context, username string) (model.Account, bool, error) {
 	account := model.Account{}
 	if err := db.GetContext(ctx, &account, `SELECT
-		id, username, password, owner, configures FROM account WHERE username = ?`,
+		id, username, password, owner, config FROM account WHERE username = ?`,
 		username,
 	); err != nil {
 		return account, false, errors.WithStack(err)
