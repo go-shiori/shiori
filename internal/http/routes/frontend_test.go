@@ -15,7 +15,7 @@ func TestFrontendRoutes(t *testing.T) {
 	logger := logrus.New()
 
 	g := gin.Default()
-	router := NewFrontendRoutes(logger, config.HttpConfig{})
+	router := NewFrontendRoutes(logger, &config.HttpConfig{})
 	router.Setup(g)
 
 	t.Run("/", func(t *testing.T) {
