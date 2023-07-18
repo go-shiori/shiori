@@ -3,7 +3,6 @@ CREATE TABLE IF NOT EXISTS account(
     username TEXT NOT NULL,
     password TEXT NOT NULL,
     owner INTEGER NOT NULL DEFAULT 0,
-    config   TEXT NOT NULL,
     CONSTRAINT account_PK PRIMARY KEY(id),
     CONSTRAINT account_username_UNIQUE UNIQUE(username)
 );
