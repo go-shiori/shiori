@@ -15,10 +15,6 @@ type APIRoutes struct {
 }
 
 func (r *APIRoutes) Setup(g *gin.RouterGroup) model.Routes {
-	if r.deps.Config.Development {
-		r.handle(g, "/debug", NewDebugPIRoutes(r.logger, r.deps))
-	}
-
 	// Account API handles authentication in each route
 	r.handle(g, "/auth", NewAuthAPIRoutes(r.logger, r.deps, r.loginHandler))
 
