@@ -78,7 +78,7 @@ type Config struct {
 	Hostname    string `env:"HOSTNAME,required"`
 	Development bool   `env:"DEVELOPMENT,default=false"`
 	// LogLevel string `env:"LOG_LEVEL,default=info"`
-	Http HttpConfig
+	Http *HttpConfig
 }
 
 func ParseServerConfiguration(ctx context.Context, logger *logrus.Logger) *Config {

@@ -73,7 +73,7 @@ func newServerCommandHandler(logger *logrus.Logger) func(cmd *cobra.Command, arg
 		cfg.Http.RootPath = rootPath
 		cfg.Http.AccessLog = accessLog
 
-		server := http.NewHttpServer(logger, cfg.Http, dependencies).Setup(cfg.Http, dependencies)
+		server := http.NewHttpServer(logger).Setup(cfg.Http, dependencies)
 
 		if err := server.Start(ctx); err != nil {
 			logger.WithError(err).Fatal("error starting server")

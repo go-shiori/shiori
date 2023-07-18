@@ -25,7 +25,7 @@ type HttpServer struct {
 	logger *logrus.Logger
 }
 
-func (s *HttpServer) Setup(cfg config.HttpConfig, deps *config.Dependencies) *HttpServer {
+func (s *HttpServer) Setup(cfg *config.HttpConfig, deps *config.Dependencies) *HttpServer {
 	s.engine.Use(
 		requestid.New(),
 		ginlogrus.Logger(deps.Log),
@@ -37,11 +37,13 @@ func (s *HttpServer) Setup(cfg config.HttpConfig, deps *config.Dependencies) *Ht
 		gin.SetMode(gin.ReleaseMode)
 	}
 
-	s.handle("/system", routes.NewSystemRoutes(s.logger))
-	s.handle("/bookmark", routes.NewBookmarkRoutes(s.logger, deps))
-	s.handle("/api/v1", api_v1.NewAPIRoutes(s.logger, deps))
-	s.handle("/swagger", routes.NewSwaggerAPIRoutes(s.logger))
 	routes.NewFrontendRoutes(s.logger, cfg).Setup(s.engine)
+	legacyRoutes := routes.NewLegacyAPIRoutes(s.logger, deps, cfg)
+	legacyRoutes.Setup(s.engine)
+	s.handle("/system", routes.NewSystemRoutes(s.logger))
+	// s.handle("/bookmark", routes.NewBookmarkRoutes(s.logger, deps))
+	s.handle("/api/v1", api_v1.NewAPIRoutes(s.logger, deps, legacyRoutes.HandleLogin))
+	s.handle("/swagger", routes.NewSwaggerAPIRoutes(s.logger))
 
 	s.http.Handler = s.engine
 	s.http.Addr = fmt.Sprintf("%s%d", cfg.Address, cfg.Port)
@@ -81,7 +83,7 @@ func (s *HttpServer) WaitStop(ctx context.Context) {
 	}
 }
 
-func NewHttpServer(logger *logrus.Logger, cfg config.HttpConfig, dependencies *config.Dependencies) *HttpServer {
+func NewHttpServer(logger *logrus.Logger) *HttpServer {
 	return &HttpServer{
 		logger: logger,
 		http:   &http.Server{},
