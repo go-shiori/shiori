@@ -25,16 +25,16 @@ func TestFrontendRoutes(t *testing.T) {
 		require.Equal(t, 200, w.Code)
 	})
 
-	t.Run("/login.html", func(t *testing.T) {
+	t.Run("/login", func(t *testing.T) {
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("GET", "/login.html", nil)
+		req, _ := http.NewRequest("GET", "/login", nil)
 		g.ServeHTTP(w, req)
 		require.Equal(t, 200, w.Code)
 	})
 
 	t.Run("/css/stylesheet.css", func(t *testing.T) {
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("GET", "/css/stylesheet.css", nil)
+		req, _ := http.NewRequest("GET", "/assets/css/stylesheet.css", nil)
 		g.ServeHTTP(w, req)
 		require.Equal(t, 200, w.Code)
 	})
