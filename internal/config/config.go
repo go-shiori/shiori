@@ -70,7 +70,7 @@ type HttpConfig struct {
 		}
 	}
 	Storage struct {
-		DataDir string `env:"DATA_DIR"`
+		DataDir string `env:"DIR"` // Using DIR to be backwards compatible with the old config
 	}
 }
 
