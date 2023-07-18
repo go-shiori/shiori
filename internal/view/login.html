@@ -82,6 +82,14 @@
 					}
 				},
 				login() {
+					function parseJWT(token) {
+						try {
+							return JSON.parse(atob(token.split('.')[1]));
+						} catch (e) {
+							return null;
+						}
+					}
+
 					// needed to work around autofill issue
 					// https://github.com/facebook/react/issues/1159#issuecomment-506584346
 					this.username = document.querySelector('#username').value;
@@ -98,12 +106,12 @@
 					// Send request
 					this.loading = true;
 
-					fetch(new URL("api/login", document.baseURI), {
+					fetch(new URL("api/v1/auth/login", document.baseURI), {
 						method: "post",
 						body: JSON.stringify({
 							username: this.username,
 							password: this.password,
-							remember: this.remember == 1 ? true : false,
+							remember_me: this.remember == 1 ? true : false,
 						}),
 						headers: { "Content-Type": "application/json" },
 					}).then(response => {
@@ -111,13 +119,14 @@
 						return response.json();
 					}).then(json => {
 						// Save session id
-						document.cookie = `session-id=${json.session}; Path=${new URL(document.baseURI).pathname}; Expires=${json.expires}`;
+						document.cookie = `session-id=${json.message.session}; Path=${new URL(document.baseURI).pathname}; Expires=${json.message.expires}`;
 
 						// Save account data
-						localStorage.setItem("shiori-account", JSON.stringify(json.account));
+						localStorage.setItem("shiori-token", JSON.stringify(json.message.token));
+						localStorage.setItem("shiori-account", JSON.stringify(parseJWT(json.message.token).account));
 
 						// Go to destination page
-						var currentUrl = new Url,
+						var currentUrl = new Url(),
 							dstUrl = currentUrl.query.dst,
 							dstPage = currentUrl.hash || "home";
 
@@ -125,8 +134,10 @@
 							dstPage = "";
 						}
 
+						// TODO: Improve this redirect logic
 						var newUrl = new Url(dstUrl || document.baseURI);
 						newUrl.hash = dstPage;
+
 						location.href = newUrl;
 					}).catch(err => {
 						this.loading = false;
@@ -146,6 +157,7 @@
 				// Load setting
 				this.loadSetting();
 				localStorage.removeItem("shiori-account");
+				localStorage.removeItem("shiori-token");
 
 				// <input autofocus> wasn't working all the time, so I'm putting this here as a fallback
 				document.querySelector('#username').focus()
