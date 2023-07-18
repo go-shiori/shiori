@@ -97,6 +97,29 @@ func preRunRootHandler(cmd *cobra.Command, args []string) {
 		cError.Printf("Error running migration: %s\n", err)
 		os.Exit(1)
 	}
+
+	// Workaround: Get accounts to make sure at least one is present in the database.
+	// If there's no accounts in the database, create the shiori/gopher account the legacy api
+	// hardcoded in the login handler.
+	accounts, err := db.GetAccounts(cmd.Context(), database.GetAccountsOptions{})
+	if err != nil {
+		cError.Printf("Failed to get owner account: %v\n", err)
+		os.Exit(1)
+	}
+
+	if len(accounts) == 0 {
+		account := model.Account{
+			Username: "shiori",
+			Password: "gopher",
+			Owner:    true,
+		}
+
+		if err := db.SaveAccount(cmd.Context(), account); err != nil {
+			cError.Printf("Failed to ensure owner account: %v\n", err)
+			os.Exit(1)
+			return
+		}
+	}
 }
 
 func getDataDir(portableMode bool) (string, error) {
