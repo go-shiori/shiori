@@ -25,10 +25,10 @@ type HttpServer struct {
 	logger *logrus.Logger
 }
 
-func (s *HttpServer) Setup(cfg *config.HttpConfig, deps *config.Dependencies) *HttpServer {
+func (s *HttpServer) Setup(cfg *config.Config, deps *config.Dependencies) *HttpServer {
 	s.engine.Use(requestid.New())
 
-	if cfg.AccessLog {
+	if cfg.Http.AccessLog {
 		s.engine.Use(ginlogrus.Logger(deps.Log))
 	}
 
@@ -41,7 +41,7 @@ func (s *HttpServer) Setup(cfg *config.HttpConfig, deps *config.Dependencies) *H
 		gin.SetMode(gin.ReleaseMode)
 	}
 
-	if cfg.ServeWebUI {
+	if cfg.Http.ServeWebUI {
 		routes.NewFrontendRoutes(s.logger, cfg).Setup(s.engine)
 	}
 
@@ -56,7 +56,7 @@ func (s *HttpServer) Setup(cfg *config.HttpConfig, deps *config.Dependencies) *H
 	s.handle("/swagger", routes.NewSwaggerAPIRoutes(s.logger))
 
 	s.http.Handler = s.engine
-	s.http.Addr = fmt.Sprintf("%s%d", cfg.Address, cfg.Port)
+	s.http.Addr = fmt.Sprintf("%s%d", cfg.Http.Address, cfg.Http.Port)
 
 	return s
 }

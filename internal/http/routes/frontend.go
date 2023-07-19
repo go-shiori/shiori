@@ -44,7 +44,7 @@ func newAssetsFS(logger *logrus.Logger, fs embed.FS) static.ServeFileSystem {
 
 type FrontendRoutes struct {
 	logger *logrus.Logger
-	cfg    *config.HttpConfig
+	cfg    *config.Config
 }
 
 func (r *FrontendRoutes) loadTemplates(e *gin.Engine) {
@@ -64,18 +64,18 @@ func (r *FrontendRoutes) Setup(e *gin.Engine) {
 	group.Use(gzip.Gzip(gzip.DefaultCompression))
 	group.GET("/login", func(ctx *gin.Context) {
 		ctx.HTML(http.StatusOK, "login.html", gin.H{
-			"RootPath": r.cfg.RootPath,
+			"RootPath": r.cfg.Http.RootPath,
 		})
 	})
 	group.GET("/", func(ctx *gin.Context) {
 		ctx.HTML(http.StatusOK, "index.html", gin.H{
-			"RootPath": r.cfg.RootPath,
+			"RootPath": r.cfg.Http.RootPath,
 		})
 	})
 	e.StaticFS("/assets", newAssetsFS(r.logger, views.Assets))
 }
 
-func NewFrontendRoutes(logger *logrus.Logger, cfg *config.HttpConfig) *FrontendRoutes {
+func NewFrontendRoutes(logger *logrus.Logger, cfg *config.Config) *FrontendRoutes {
 	return &FrontendRoutes{
 		logger: logger,
 		cfg:    cfg,

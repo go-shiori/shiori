@@ -71,22 +71,29 @@ type HttpConfig struct {
 			Path string `env:"ROUTE_API_PATH,default=/api/v1"`
 		}
 	}
-	Storage struct {
-		DataDir string `env:"DIR"` // Using DIR to be backwards compatible with the old config
-	}
 }
 
-func (c Config) IsValid() error {
+type DatabaseConfig struct {
+	DBMS string `env:"DBMS,default=sqlite"` // Deprecated
+	// DBMS requires more environment variables. Check the database package for more information.
+	URL string `env:"DATABASE_URL,default=sqlite3://shiori.db"`
+}
+
+func (c Config) IsValid() (errs []error, isValid bool) {
 	if c.Http.SecretKey == "" {
-		return fmt.Errorf("SHIORI_HTTP_SECRET_KEY is required")
+		errs = append(errs, fmt.Errorf("SHIORI_HTTP_SECRET_KEY is required"))
 	}
 
-	return nil
+	return errs, len(errs) == 0
 }
 
 type Config struct {
 	Hostname    string `env:"HOSTNAME,required"`
 	Development bool   `env:"DEVELOPMENT,default=false"`
+	Database    *DatabaseConfig
+	Storage     struct {
+		DataDir string `env:"DIR"` // Using DIR to be backwards compatible with the old config
+	}
 	// LogLevel string `env:"LOG_LEVEL,default=info"`
 	Http *HttpConfig
 }

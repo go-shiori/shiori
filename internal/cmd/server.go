@@ -35,12 +35,12 @@ func newServerCommandHandler(logger *logrus.Logger) func(cmd *cobra.Command, arg
 
 		ctx := context.Background()
 
-		database, err := openDatabase(ctx)
+		cfg := config.ParseServerConfiguration(ctx, logger)
+
+		database, err := openDatabase(ctx, cfg.Database.DBMS, cfg.Database.URL)
 		if err != nil {
 			logger.WithError(err).Fatal("error opening database")
 		}
-
-		cfg := config.ParseServerConfiguration(ctx, logger)
 
 		if cfg.Development {
 			logger.Warn("Development mode is ENABLED, this will enable some helpers for local development, unsuitable for production environments")
@@ -48,7 +48,7 @@ func newServerCommandHandler(logger *logrus.Logger) func(cmd *cobra.Command, arg
 
 		dependencies := config.NewDependencies(logger, database, cfg)
 		dependencies.Domains.Auth = domains.NewAccountsDomain(logger, cfg.Http.SecretKey, database)
-		dependencies.Domains.Archiver = domains.NewArchiverDomain(logger, cfg.Http.Storage.DataDir)
+		dependencies.Domains.Archiver = domains.NewArchiverDomain(logger, cfg.Storage.DataDir)
 
 		// Get flags value
 		port, _ := cmd.Flags().GetInt("port")
@@ -79,7 +79,17 @@ func newServerCommandHandler(logger *logrus.Logger) func(cmd *cobra.Command, arg
 		cfg.Http.ServeWebUI = serveWebUI
 		cfg.Http.SecretKey = secretKey
 
-		server := http.NewHttpServer(logger).Setup(cfg.Http, dependencies)
+		// Check configuration
+		// For now it will just log to the console, but in the future it will be fatal. The only required
+		// setting for now is the secret key.
+		if errs, isValid := cfg.IsValid(); !isValid {
+			logger.Error("Found some errors in configuration.For now server will start but this will be fatal in the future.")
+			for _, err := range errs {
+				logger.WithError(err).Error("found invalid configuration")
+			}
+		}
+
+		server := http.NewHttpServer(logger).Setup(cfg, dependencies)
 
 		if err := server.Start(ctx); err != nil {
 			logger.WithError(err).Fatal("error starting server")

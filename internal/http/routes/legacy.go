@@ -16,7 +16,7 @@ import (
 
 type LegacyAPIRoutes struct {
 	logger        *logrus.Logger
-	cfg           *config.HttpConfig
+	cfg           *config.Config
 	deps          *config.Dependencies
 	legacyHandler *webserver.Handler
 }
@@ -65,7 +65,7 @@ func (r *LegacyAPIRoutes) Setup(g *gin.Engine) {
 	r.legacyHandler = webserver.GetLegacyHandler(webserver.Config{
 		DB:       r.deps.Database,
 		DataDir:  r.cfg.Storage.DataDir,
-		RootPath: r.cfg.RootPath,
+		RootPath: r.cfg.Http.RootPath,
 		Log:      false, // Already done by gin
 	})
 	r.legacyHandler.PrepareSessionCache()
@@ -125,7 +125,7 @@ func (r *LegacyAPIRoutes) Setup(g *gin.Engine) {
 	legacyGroup.DELETE("/api/accounts", r.handle(r.legacyHandler.ApiDeleteAccount))
 }
 
-func NewLegacyAPIRoutes(logger *logrus.Logger, deps *config.Dependencies, cfg *config.HttpConfig) *LegacyAPIRoutes {
+func NewLegacyAPIRoutes(logger *logrus.Logger, deps *config.Dependencies, cfg *config.Config) *LegacyAPIRoutes {
 	return &LegacyAPIRoutes{
 		logger: logger,
 		cfg:    cfg,

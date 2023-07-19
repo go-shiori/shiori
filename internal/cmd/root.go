@@ -86,7 +86,8 @@ func preRunRootHandler(cmd *cobra.Command, args []string) {
 	}
 
 	// Open database
-	db, err = openDatabase(cmd.Context())
+	dbms, _ := os.LookupEnv("SHIORI_DBMS")
+	db, err = openDatabase(cmd.Context(), dbms, "")
 	if err != nil {
 		cError.Printf("Failed to open database: %v\n", err)
 		os.Exit(1)
@@ -155,15 +156,17 @@ func getDataDir(portableMode bool) (string, error) {
 	return ".", nil
 }
 
-func openDatabase(ctx context.Context) (database.DB, error) {
-	switch dbms, _ := os.LookupEnv("SHIORI_DBMS"); dbms {
-	case "mysql":
-		return openMySQLDatabase(ctx)
-	case "postgresql":
-		return openPostgreSQLDatabase(ctx)
-	default:
-		return openSQLiteDatabase(ctx)
+func openDatabase(ctx context.Context, dbms, dbURL string) (database.DB, error) {
+	if dbURL != "" {
+		return database.Connect(ctx, dbURL)
 	}
+	if dbms == "mysql" {
+		return openMySQLDatabase(ctx)
+	}
+	if dbms == "postgresql" {
+		return openPostgreSQLDatabase(ctx)
+	}
+	return openSQLiteDatabase(ctx)
 }
 
 func openSQLiteDatabase(ctx context.Context) (database.DB, error) {
