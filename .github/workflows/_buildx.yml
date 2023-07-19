@@ -42,7 +42,7 @@ jobs:
         run: |
           echo "tag_flags=--tag ${{ github.ref }}" >> $GITHUB_ENV
           REPO=ghcr.io/${{ github.repository }}
-          echo "tag_flags=--tag $REPO:pr-${{ github.event.number }}" >> $GITHUB_ENV
+          echo "tag_flags=--tag $REPO:pr-${{ github.event.pull_request.number }}" >> $GITHUB_ENV
 
       - name: Buildx
         working-directory: .github/workflows/docker
