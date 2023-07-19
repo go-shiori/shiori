@@ -63,7 +63,7 @@ func initShiori(ctx context.Context, cmd *cobra.Command) (*config.Config, *confi
 	})
 
 	if lvl, err := logrus.ParseLevel(logLevel); err != nil {
-		cError.Printf("Failed to set log level: %v\n", err)
+		logger.WithError(err).Panic("failed to set log level")
 	} else {
 		logger.SetLevel(lvl)
 	}
