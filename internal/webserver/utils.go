@@ -97,7 +97,7 @@ func assetExists(filePath string) bool {
 
 func fileExists(filePath string) bool {
 	info, err := os.Stat(filePath)
-	return !os.IsNotExist(err) && !info.IsDir()
+	return err == nil && !info.IsDir()
 }
 
 func createTemplate(filename string, funcMap template.FuncMap) (*template.Template, error) {
