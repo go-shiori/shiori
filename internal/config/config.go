@@ -77,13 +77,9 @@ type Config struct {
 }
 
 // IsValid checks if the configuration is valid
-func (c Config) IsValid() (errs []error, isValid bool) {
-	if c.Http.SecretKey == "" {
+func (c HttpConfig) IsValid() (errs []error, isValid bool) {
+	if c.SecretKey == "" {
 		errs = append(errs, fmt.Errorf("SHIORI_HTTP_SECRET_KEY is required"))
-	}
-
-	if c.Storage.DataDir == "" {
-		errs = append(errs, fmt.Errorf("SHIORI_DIR behaviour will change in the future. Check the storage documentation."))
 	}
 
 	return errs, len(errs) == 0

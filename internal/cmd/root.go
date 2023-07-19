@@ -75,16 +75,6 @@ func initShiori(ctx context.Context, cmd *cobra.Command) (*config.Config, *confi
 		cfg.Storage.DataDir = storageDirectory
 	}
 
-	// Check configuration
-	// For now it will just log to the console, but in the future it will be fatal. The only required
-	// setting for now is the secret key.
-	if errs, isValid := cfg.IsValid(); !isValid {
-		logger.Error("Found some errors in configuration.For now server will start but this will be fatal in the future.")
-		for _, err := range errs {
-			logger.WithError(err).Error("found invalid configuration")
-		}
-	}
-
 	cfg.SetDefaults(logger, portableMode)
 
 	err := os.MkdirAll(cfg.Storage.DataDir, model.DataDirPerm)
