@@ -29,6 +29,8 @@ func deleteCmd() *cobra.Command {
 }
 
 func deleteHandler(cmd *cobra.Command, args []string) {
+	cfg, deps := initShiori(cmd.Context(), cmd)
+
 	// Parse flags
 	skipConfirm, _ := cmd.Flags().GetBool("yes")
 
@@ -52,7 +54,7 @@ func deleteHandler(cmd *cobra.Command, args []string) {
 	}
 
 	// Delete bookmarks from database
-	err = db.DeleteBookmarks(cmd.Context(), ids...)
+	err = deps.Database.DeleteBookmarks(cmd.Context(), ids...)
 	if err != nil {
 		cError.Printf("Failed to delete bookmarks: %v\n", err)
 		os.Exit(1)
@@ -60,15 +62,15 @@ func deleteHandler(cmd *cobra.Command, args []string) {
 
 	// Delete thumbnail image and archives from local disk
 	if len(ids) == 0 {
-		thumbDir := fp.Join(dataDir, "thumb")
-		archiveDir := fp.Join(dataDir, "archive")
+		thumbDir := fp.Join(cfg.Storage.DataDir, "thumb")
+		archiveDir := fp.Join(cfg.Storage.DataDir, "archive")
 		os.RemoveAll(thumbDir)
 		os.RemoveAll(archiveDir)
 	} else {
 		for _, id := range ids {
 			strID := strconv.Itoa(id)
-			imgPath := fp.Join(dataDir, "thumb", strID)
-			archivePath := fp.Join(dataDir, "archive", strID)
+			imgPath := fp.Join(cfg.Storage.DataDir, "thumb", strID)
+			archivePath := fp.Join(cfg.Storage.DataDir, "archive", strID)
 
 			os.Remove(imgPath)
 			os.Remove(archivePath)

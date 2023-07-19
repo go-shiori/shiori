@@ -15,6 +15,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func noopLegacyLoginHandler(_ model.Account, _ time.Duration) (string, error) {
+	return "", nil
+}
+
 func TestAccountsRoute(t *testing.T) {
 	logger := logrus.New()
 	ctx := context.TODO()
@@ -22,7 +26,7 @@ func TestAccountsRoute(t *testing.T) {
 	t.Run("login invalid", func(t *testing.T) {
 		g := testutil.NewGin()
 		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
-		router := NewAuthAPIRoutes(logger, deps)
+		router := NewAuthAPIRoutes(logger, deps, noopLegacyLoginHandler)
 		router.Setup(g.Group("/"))
 		w := httptest.NewRecorder()
 		body := []byte(`{"username": "gopher"}`)
@@ -35,7 +39,7 @@ func TestAccountsRoute(t *testing.T) {
 	t.Run("login incorrect", func(t *testing.T) {
 		g := testutil.NewGin()
 		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
-		router := NewAuthAPIRoutes(logger, deps)
+		router := NewAuthAPIRoutes(logger, deps, noopLegacyLoginHandler)
 		router.Setup(g.Group("/"))
 		w := httptest.NewRecorder()
 		body := []byte(`{"username": "gopher", "password": "shiori"}`)
@@ -48,7 +52,7 @@ func TestAccountsRoute(t *testing.T) {
 	t.Run("login correct", func(t *testing.T) {
 		g := testutil.NewGin()
 		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
-		router := NewAuthAPIRoutes(logger, deps)
+		router := NewAuthAPIRoutes(logger, deps, noopLegacyLoginHandler)
 		router.Setup(g.Group("/"))
 
 		// Create an account manually to test
@@ -73,7 +77,7 @@ func TestAccountsRoute(t *testing.T) {
 		g := testutil.NewGin()
 		g.Use(middleware.AuthMiddleware(deps))
 
-		router := NewAuthAPIRoutes(logger, deps)
+		router := NewAuthAPIRoutes(logger, deps, noopLegacyLoginHandler)
 		router.Setup(g.Group("/"))
 
 		// Create an account manually to test
@@ -101,7 +105,7 @@ func TestAccountsRoute(t *testing.T) {
 		g := testutil.NewGin()
 		g.Use(middleware.AuthMiddleware(deps))
 
-		router := NewAuthAPIRoutes(logger, deps)
+		router := NewAuthAPIRoutes(logger, deps, noopLegacyLoginHandler)
 		router.Setup(g.Group("/"))
 
 		req := httptest.NewRequest("GET", "/me", nil)
@@ -155,7 +159,7 @@ func TestRefreshHandler(t *testing.T) {
 	g := testutil.NewGin()
 
 	_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
-	router := NewAuthAPIRoutes(logger, deps)
+	router := NewAuthAPIRoutes(logger, deps, noopLegacyLoginHandler)
 	g.Use(middleware.AuthMiddleware(deps)) // Requires AuthMiddleware to manipulate context
 	router.Setup(g.Group("/"))
 

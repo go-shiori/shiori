@@ -6,6 +6,11 @@ on:
       version:
         description: "Version to bump to, example: v1.5.2"
         required: true
+      ref:
+        description: "Ref to release from"
+        required: true
+        type: string
+        default: master
 
 jobs:
   tag-release:
@@ -18,7 +23,7 @@ jobs:
         uses: actions/checkout@24cb9080177205b6e8c946b17badbe402adc938f # v3.4.0
         with:
           fetch-depth: 0
-          ref: master
+          ref: ${{ inputs.ref }}
       - name: Tag release
         run: |
           git config user.email "${{github.repository_owner}}@users.noreply.github.com"

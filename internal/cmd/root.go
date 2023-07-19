@@ -6,35 +6,29 @@ import (
 	fp "path/filepath"
 	"time"
 
+	"github.com/go-shiori/shiori/internal/config"
 	"github.com/go-shiori/shiori/internal/database"
+	"github.com/go-shiori/shiori/internal/domains"
 	"github.com/go-shiori/shiori/internal/model"
-	apppaths "github.com/muesli/go-app-paths"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"golang.org/x/net/context"
 )
 
-var (
-	db              database.DB
-	dataDir         string
-	developmentMode bool
-	logLevel        string
-	logCaller       bool
-)
-
 // ShioriCmd returns the root command for shiori
 func ShioriCmd() *cobra.Command {
-	logger := logrus.New()
-
 	rootCmd := &cobra.Command{
 		Use:   "shiori",
 		Short: "Simple command-line bookmark manager built with Go",
 	}
 
-	rootCmd.PersistentPreRun = preRunRootHandler
 	rootCmd.PersistentFlags().Bool("portable", false, "run shiori in portable mode")
-	rootCmd.PersistentFlags().StringVar(&logLevel, "log-level", logrus.InfoLevel.String(), "set logrus loglevel")
-	rootCmd.PersistentFlags().BoolVar(&logCaller, "log-caller", false, "logrus report caller or not")
+	rootCmd.PersistentFlags().String("storage-directory", "", "path to store shiori data")
+	rootCmd.MarkFlagsMutuallyExclusive("portable", "storage-directory")
+
+	rootCmd.PersistentFlags().String("log-level", logrus.InfoLevel.String(), "set logrus loglevel")
+	rootCmd.PersistentFlags().Bool("log-caller", false, "logrus report caller or not")
+
 	rootCmd.AddCommand(
 		addCmd(),
 		printCmd(),
@@ -46,104 +40,105 @@ func ShioriCmd() *cobra.Command {
 		pocketCmd(),
 		serveCmd(),
 		checkCmd(),
-		newVersionCommand(logger),
-		newServerCommand(logger),
+		newVersionCommand(),
+		newServerCommand(),
 	)
 
 	return rootCmd
 }
 
-func preRunRootHandler(cmd *cobra.Command, args []string) {
-	// init logrus
-	logrus.SetReportCaller(logCaller)
-	logrus.SetFormatter(&logrus.TextFormatter{
+func initShiori(ctx context.Context, cmd *cobra.Command) (*config.Config, *config.Dependencies) {
+	logger := logrus.New()
+
+	portableMode, _ := cmd.Flags().GetBool("portable")
+	logLevel, _ := cmd.Flags().GetString("log-level")
+	logCaller, _ := cmd.Flags().GetBool("log-caller")
+	storageDirectory, _ := cmd.Flags().GetString("storage-directory")
+
+	logger.SetReportCaller(logCaller)
+	logger.SetFormatter(&logrus.TextFormatter{
 		FullTimestamp:    true,
 		TimestampFormat:  time.RFC3339,
 		CallerPrettyfier: SFCallerPrettyfier,
 	})
 
 	if lvl, err := logrus.ParseLevel(logLevel); err != nil {
-		cError.Printf("Failed to set log level: %v\n", err)
+		logger.WithError(err).Panic("failed to set log level")
 	} else {
-		logrus.SetLevel(lvl)
+		logger.SetLevel(lvl)
 	}
 
-	// Read flag
-	var err error
-	portableMode, _ := cmd.Flags().GetBool("portable")
+	cfg := config.ParseServerConfiguration(ctx, logger)
 
-	// Get and create data dir
-	dataDir, err = getDataDir(portableMode)
-	if err != nil {
-		cError.Printf("Failed to get data dir: %v\n", err)
-		os.Exit(1)
+	if storageDirectory != "" && cfg.Storage.DataDir != "" {
+		logger.Warn("--storage-directory is set, overriding SHIORI_DIR.")
+		cfg.Storage.DataDir = storageDirectory
 	}
 
-	err = os.MkdirAll(dataDir, model.DataDirPerm)
+	cfg.SetDefaults(logger, portableMode)
+
+	err := os.MkdirAll(cfg.Storage.DataDir, model.DataDirPerm)
 	if err != nil {
-		cError.Printf("Failed to create data dir: %v\n", err)
-		os.Exit(1)
+		logger.WithError(err).Fatal("error creating data directory")
 	}
 
-	// Open database
-	db, err = openDatabase(cmd.Context())
+	db, err := openDatabase(ctx, cfg.Database.DBMS, cfg.Database.URL)
 	if err != nil {
-		cError.Printf("Failed to open database: %v\n", err)
-		os.Exit(1)
+		logger.WithError(err).Fatal("error opening database")
 	}
 
 	// Migrate
 	if err := db.Migrate(); err != nil {
-		cError.Printf("Error running migration: %s\n", err)
+		logger.WithError(err).Fatalf("Error running migration")
+	}
+
+	if cfg.Development {
+		logger.Warn("Development mode is ENABLED, this will enable some helpers for local development, unsuitable for production environments")
+	}
+
+	dependencies := config.NewDependencies(logger, db, cfg)
+	dependencies.Domains.Auth = domains.NewAccountsDomain(logger, cfg.Http.SecretKey, db)
+	dependencies.Domains.Archiver = domains.NewArchiverDomain(logger, cfg.Storage.DataDir)
+
+	// Workaround: Get accounts to make sure at least one is present in the database.
+	// If there's no accounts in the database, create the shiori/gopher account the legacy api
+	// hardcoded in the login handler.
+	accounts, err := db.GetAccounts(cmd.Context(), database.GetAccountsOptions{})
+	if err != nil {
+		cError.Printf("Failed to get owner account: %v\n", err)
 		os.Exit(1)
 	}
-}
 
-func getDataDir(portableMode bool) (string, error) {
-	// If in portable mode, uses directory of executable
-	if portableMode {
-		exePath, err := os.Executable()
-		if err != nil {
-			return "", err
+	if len(accounts) == 0 {
+		account := model.Account{
+			Username: "shiori",
+			Password: "gopher",
+			Owner:    true,
 		}
 
-		exeDir := fp.Dir(exePath)
-		return fp.Join(exeDir, "shiori-data"), nil
+		if err := db.SaveAccount(cmd.Context(), account); err != nil {
+			logger.WithError(err).Fatal("error ensuring owner account")
+		}
 	}
 
-	if developmentMode {
-		return "dev-data", nil
-	}
-
-	// Try to look at environment variables
-	dataDir, found := os.LookupEnv("SHIORI_DIR")
-	if found {
-		return dataDir, nil
-	}
-
-	// Try to use platform specific app path
-	userScope := apppaths.NewScope(apppaths.User, "shiori")
-	dataDir, err := userScope.DataPath("")
-	if err == nil {
-		return dataDir, nil
-	}
-
-	// When all fail, use current working directory
-	return ".", nil
+	return cfg, dependencies
 }
 
-func openDatabase(ctx context.Context) (database.DB, error) {
-	switch dbms, _ := os.LookupEnv("SHIORI_DBMS"); dbms {
-	case "mysql":
-		return openMySQLDatabase(ctx)
-	case "postgresql":
-		return openPostgreSQLDatabase(ctx)
-	default:
-		return openSQLiteDatabase(ctx)
+func openDatabase(ctx context.Context, dbms, dbURL string) (database.DB, error) {
+	if dbURL != "" {
+		return database.Connect(ctx, dbURL)
 	}
+	if dbms == "mysql" {
+		return openMySQLDatabase(ctx)
+	}
+	if dbms == "postgresql" {
+		return openPostgreSQLDatabase(ctx)
+	}
+	return openSQLiteDatabase(ctx)
 }
 
 func openSQLiteDatabase(ctx context.Context) (database.DB, error) {
+	dataDir := os.Getenv("SHIORI_DIR")
 	dbPath := fp.Join(dataDir, "shiori.db")
 	return database.OpenSQLiteDatabase(ctx, dbPath)
 }

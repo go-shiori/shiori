@@ -13,8 +13,8 @@ import (
 
 var developmentMode = false
 
-// Handler is handler for serving the web interface.
-type handler struct {
+// Handler is Handler for serving the web interface.
+type Handler struct {
 	DB           database.DB
 	DataDir      string
 	RootPath     string
@@ -26,7 +26,7 @@ type handler struct {
 	templates map[string]*template.Template
 }
 
-func (h *handler) prepareSessionCache() {
+func (h *Handler) PrepareSessionCache() {
 	h.SessionCache.OnEvicted(func(key string, val interface{}) {
 		account := val.(model.Account)
 		arr, found := h.UserCache.Get(account.Username)
@@ -46,14 +46,14 @@ func (h *handler) prepareSessionCache() {
 	})
 }
 
-func (h *handler) prepareArchiveCache() {
+func (h *Handler) prepareArchiveCache() {
 	h.ArchiveCache.OnEvicted(func(key string, data interface{}) {
 		archive := data.(*warc.Archive)
 		archive.Close()
 	})
 }
 
-func (h *handler) prepareTemplates() error {
+func (h *Handler) PrepareTemplates() error {
 	// Prepare variables
 	var err error
 	h.templates = make(map[string]*template.Template)
@@ -90,7 +90,7 @@ func (h *handler) prepareTemplates() error {
 	return nil
 }
 
-func (h *handler) getSessionID(r *http.Request) string {
+func (h *Handler) GetSessionID(r *http.Request) string {
 	// Try to get session ID from the header
 	sessionID := r.Header.Get("X-Session-Id")
 
@@ -108,8 +108,8 @@ func (h *handler) getSessionID(r *http.Request) string {
 }
 
 // validateSession checks whether user session is still valid or not
-func (h *handler) validateSession(r *http.Request) error {
-	sessionID := h.getSessionID(r)
+func (h *Handler) validateSession(r *http.Request) error {
+	sessionID := h.GetSessionID(r)
 	if sessionID == "" {
 		return fmt.Errorf("session is not exist")
 	}

@@ -25,26 +25,40 @@ type HttpServer struct {
 	logger *logrus.Logger
 }
 
-func (s *HttpServer) Setup(cfg config.HttpConfig, deps *config.Dependencies) *HttpServer {
+func (s *HttpServer) Setup(cfg *config.Config, deps *config.Dependencies) *HttpServer {
+	if !cfg.Development {
+		gin.SetMode(gin.ReleaseMode)
+	}
+
+	s.engine = gin.New()
+
+	s.engine.Use(requestid.New())
+
+	if cfg.Http.AccessLog {
+		s.engine.Use(ginlogrus.Logger(deps.Log))
+	}
+
 	s.engine.Use(
-		requestid.New(),
-		ginlogrus.Logger(deps.Log),
 		middleware.AuthMiddleware(deps),
 		gin.Recovery(),
 	)
 
-	if !deps.Config.Development {
-		gin.SetMode(gin.ReleaseMode)
+	if cfg.Http.ServeWebUI {
+		routes.NewFrontendRoutes(s.logger, cfg).Setup(s.engine)
 	}
 
+	// LegacyRoutes will be here until we migrate everything from internal/webserver to this new
+	// package.
+	legacyRoutes := routes.NewLegacyAPIRoutes(s.logger, deps, cfg)
+	legacyRoutes.Setup(s.engine)
+
 	s.handle("/system", routes.NewSystemRoutes(s.logger))
-	s.handle("/bookmark", routes.NewBookmarkRoutes(s.logger, deps))
-	s.handle("/api/v1", api_v1.NewAPIRoutes(s.logger, deps))
+	// s.handle("/bookmark", routes.NewBookmarkRoutes(s.logger, deps))
+	s.handle("/api/v1", api_v1.NewAPIRoutes(s.logger, deps, legacyRoutes.HandleLogin))
 	s.handle("/swagger", routes.NewSwaggerAPIRoutes(s.logger))
-	routes.NewFrontendRoutes(s.logger, cfg).Setup(s.engine)
 
 	s.http.Handler = s.engine
-	s.http.Addr = fmt.Sprintf("%s%d", cfg.Address, cfg.Port)
+	s.http.Addr = fmt.Sprintf("%s%d", cfg.Http.Address, cfg.Http.Port)
 
 	return s
 }
@@ -81,10 +95,9 @@ func (s *HttpServer) WaitStop(ctx context.Context) {
 	}
 }
 
-func NewHttpServer(logger *logrus.Logger, cfg config.HttpConfig, dependencies *config.Dependencies) *HttpServer {
+func NewHttpServer(logger *logrus.Logger) *HttpServer {
 	return &HttpServer{
 		logger: logger,
 		http:   &http.Server{},
-		engine: gin.New(),
 	}
 }

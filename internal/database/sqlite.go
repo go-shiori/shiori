@@ -42,7 +42,7 @@ func OpenSQLiteDatabase(ctx context.Context, databasePath string) (sqliteDB *SQL
 	}
 
 	sqliteDB = &SQLiteDatabase{dbbase: dbbase{*db}}
-	return sqliteDB, err
+	return sqliteDB, nil
 }
 
 // Migrate runs migrations for this database engine

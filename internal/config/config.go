@@ -3,7 +3,9 @@ package config
 import (
 	"bufio"
 	"context"
+	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -41,12 +43,13 @@ func readDotEnv(logger *logrus.Logger) map[string]string {
 }
 
 type HttpConfig struct {
-	Enabled   bool   `env:"HTTP_ENABLED,default=True"`
-	Port      int    `env:"HTTP_PORT,default=8080"`
-	Address   string `env:"HTTP_ADDRESS,default=:"`
-	RootPath  string `env:"HTTP_ROOT_PATH,default=/"`
-	AccessLog bool   `env:"HTTP_ACCESS_LOG,default=True"`
-	SecretKey string `env:"HTTP_SECRET_KEY"`
+	Enabled    bool   `env:"HTTP_ENABLED,default=True"`
+	Port       int    `env:"HTTP_PORT,default=8080"`
+	Address    string `env:"HTTP_ADDRESS,default=:"`
+	RootPath   string `env:"HTTP_ROOT_PATH,default=/"`
+	AccessLog  bool   `env:"HTTP_ACCESS_LOG,default=True"`
+	ServeWebUI bool   `env:"HTTP_SERVE_WEB_UI,default=True"`
+	SecretKey  string `env:"HTTP_SECRET_KEY"`
 	// Fiber Specific
 	BodyLimit                    int           `env:"HTTP_BODY_LIMIT,default=1024"`
 	ReadTimeout                  time.Duration `env:"HTTP_READ_TIMEOUT,default=10s"`
@@ -54,31 +57,52 @@ type HttpConfig struct {
 	IDLETimeout                  time.Duration `env:"HTTP_IDLE_TIMEOUT,default=10s"`
 	DisableKeepAlive             bool          `env:"HTTP_DISABLE_KEEP_ALIVE,default=true"`
 	DisablePreParseMultipartForm bool          `env:"HTTP_DISABLE_PARSE_MULTIPART_FORM,default=true"`
-	Routes                       struct {
-		Bookmark struct {
-			Path string `env:"ROUTES_BOOKMARK_PATH,default=/bookmark"`
-		}
-		Frontend struct {
-			Path   string        `env:"ROUTES_STATIC_PATH,default=/"`
-			MaxAge time.Duration `env:"ROUTES_STATIC_MAX_AGE,default=720h"`
-		}
-		System struct {
-			Path string `env:"ROUTES_SYSTEM_PATH,default=/system"`
-		}
-		API struct {
-			Path string `env:"ROUTE_API_PATH,default=/api/v1"`
-		}
-	}
-	Storage struct {
-		DataDir string `env:"DATA_DIR"`
-	}
+}
+
+type DatabaseConfig struct {
+	DBMS string `env:"DBMS"` // Deprecated
+	// DBMS requires more environment variables. Check the database package for more information.
+	URL string `env:"DATABASE_URL"`
+}
+
+type StorageConfig struct {
+	DataDir string `env:"DIR"` // Using DIR to be backwards compatible with the old config
 }
 
 type Config struct {
 	Hostname    string `env:"HOSTNAME,required"`
-	Development bool   `env:"DEVELOPMENT,default=false"`
+	Development bool   `env:"DEVELOPMENT,default=False"`
+	Database    *DatabaseConfig
+	Storage     *StorageConfig
 	// LogLevel string `env:"LOG_LEVEL,default=info"`
-	Http HttpConfig
+	Http *HttpConfig
+}
+
+// IsValid checks if the configuration is valid
+func (c HttpConfig) IsValid() (errs []error, isValid bool) {
+	if c.SecretKey == "" {
+		errs = append(errs, fmt.Errorf("SHIORI_HTTP_SECRET_KEY is required"))
+	}
+
+	return errs, len(errs) == 0
+}
+
+// SetDefaults sets the default values for the configuration
+func (c Config) SetDefaults(logger *logrus.Logger, portableMode bool) {
+	// Set the default storage directory if not set, setting also the database url for
+	// sqlite3 if that engine is used
+	if c.Storage.DataDir == "" {
+		var err error
+		c.Storage.DataDir, err = getStorageDirectory(portableMode)
+		if err != nil {
+			logger.WithError(err).Fatal("couldn't determine the data directory")
+		}
+	}
+
+	// Set default database url if not set
+	if c.Database.DBMS == "" && c.Database.URL == "" {
+		c.Database.URL = fmt.Sprintf("sqlite:///%s", filepath.Join(c.Storage.DataDir, "shiori.db"))
+	}
 }
 
 func ParseServerConfiguration(ctx context.Context, logger *logrus.Logger) *Config {

@@ -26,12 +26,12 @@ func GetTestConfigurationAndDependencies(t *testing.T, ctx context.Context, logg
 	require.NoError(t, err)
 	require.NoError(t, db.Migrate())
 
-	cfg.Http.Storage.DataDir = tempDir
+	cfg.Storage.DataDir = tempDir
 
 	deps := config.NewDependencies(logger, db, cfg)
 	deps.Database = db
 	deps.Domains.Auth = domains.NewAccountsDomain(logger, cfg.Http.SecretKey, db)
-	deps.Domains.Archiver = domains.NewArchiverDomain(logger, cfg.Http.Storage.DataDir)
+	deps.Domains.Archiver = domains.NewArchiverDomain(logger, cfg.Storage.DataDir)
 
 	return cfg, deps
 }

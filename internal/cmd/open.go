@@ -36,6 +36,8 @@ func openCmd() *cobra.Command {
 }
 
 func openHandler(cmd *cobra.Command, args []string) {
+	cfg, deps := initShiori(cmd.Context(), cmd)
+
 	// Parse flags
 	skipConfirm, _ := cmd.Flags().GetBool("yes")
 	archiveMode, _ := cmd.Flags().GetBool("archive")
@@ -73,7 +75,7 @@ func openHandler(cmd *cobra.Command, args []string) {
 		WithContent: true,
 	}
 
-	bookmarks, err := db.GetBookmarks(cmd.Context(), getOptions)
+	bookmarks, err := deps.Database.GetBookmarks(cmd.Context(), getOptions)
 	if err != nil {
 		cError.Printf("Failed to get bookmarks: %v\n", err)
 		os.Exit(1)
@@ -130,7 +132,7 @@ func openHandler(cmd *cobra.Command, args []string) {
 
 	// Open archive
 	id := strconv.Itoa(bookmarks[0].ID)
-	archivePath := fp.Join(dataDir, "archive", id)
+	archivePath := fp.Join(cfg.Storage.DataDir, "archive", id)
 
 	archive, err := warc.Open(archivePath)
 	if err != nil {
