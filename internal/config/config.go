@@ -71,7 +71,7 @@ type StorageConfig struct {
 
 type Config struct {
 	Hostname    string `env:"HOSTNAME,required"`
-	Development bool   `env:"DEVELOPMENT,default=false"`
+	Development bool   `env:"DEVELOPMENT,default=False"`
 	Database    *DatabaseConfig
 	Storage     *StorageConfig
 	// LogLevel string `env:"LOG_LEVEL,default=info"`

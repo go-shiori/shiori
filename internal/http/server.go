@@ -26,9 +26,11 @@ type HttpServer struct {
 }
 
 func (s *HttpServer) Setup(cfg *config.Config, deps *config.Dependencies) *HttpServer {
-	if !deps.Config.Development {
+	if !cfg.Development {
 		gin.SetMode(gin.ReleaseMode)
 	}
+
+	s.engine = gin.New()
 
 	s.engine.Use(requestid.New())
 
@@ -97,6 +99,5 @@ func NewHttpServer(logger *logrus.Logger) *HttpServer {
 	return &HttpServer{
 		logger: logger,
 		http:   &http.Server{},
-		engine: gin.New(),
 	}
 }
