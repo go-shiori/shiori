@@ -1,0 +1,14 @@
+name: Delete registry tag
+
+on: workflow_call
+
+jobs:
+  purge-image:
+    name: Delete tag
+    runs-on: ubuntu-latest
+    steps:
+      - uses: chipkent/action-cleanup-package@1316a66015b82d745b57acbb6c570f2bb1d108f9 # v1.0.3
+        with:
+          package-name: ${{ github.event.repository.name }}
+          tag: ${{ env.TAG_NAME }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}

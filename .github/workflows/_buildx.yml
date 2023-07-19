@@ -50,4 +50,4 @@ jobs:
           set -x
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login -u "${{ github.repository_owner }}" --password-stdin ghcr.io
           docker buildx create --use --name builder
-          docker buildx build -f Dockerfile.ci --platform=linux/amd64,arm64,linux/arm/v7 --push --output=type=registry ${{ env.tag_flags }} .
+          docker buildx build -f Dockerfile.ci --platform=linux/amd64,arm64,linux/arm/v7 --push ${{ env.tag_flags }} .
