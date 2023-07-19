@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -26,6 +27,5 @@ func getStorageDirectory(portableMode bool) (string, error) {
 		return dataDir, nil
 	}
 
-	// When all fail, use current working directory
-	return ".", nil
+	return "", fmt.Errorf("couldn't determine the data directory")
 }

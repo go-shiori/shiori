@@ -65,13 +65,15 @@ type DatabaseConfig struct {
 	URL string `env:"DATABASE_URL"`
 }
 
+type StorageConfig struct {
+	DataDir string `env:"DIR"` // Using DIR to be backwards compatible with the old config
+}
+
 type Config struct {
 	Hostname    string `env:"HOSTNAME,required"`
 	Development bool   `env:"DEVELOPMENT,default=false"`
 	Database    *DatabaseConfig
-	Storage     struct {
-		DataDir string `env:"DIR"` // Using DIR to be backwards compatible with the old config
-	}
+	Storage     *StorageConfig
 	// LogLevel string `env:"LOG_LEVEL,default=info"`
 	Http *HttpConfig
 }
@@ -93,7 +95,7 @@ func (c Config) SetDefaults(logger *logrus.Logger, portableMode bool) {
 		var err error
 		c.Storage.DataDir, err = getStorageDirectory(portableMode)
 		if err != nil {
-			logger.WithError(err).Warn("error getting data directory, using default.")
+			logger.WithError(err).Fatal("couldn't determine the data directory")
 		}
 	}
 
