@@ -38,7 +38,7 @@ jobs:
           echo "tag_flags=--tag $REPO:$TAG --tag $REPO:$TAG2" >> $GITHUB_ENV
 
       - name: Prepare pull request tags
-        if: (github.event.workflow_call.event == 'pull_request')
+        if: github.event == 'pull_request'
         run: |
           echo "tag_flags=--tag ${{ github.ref }}" >> $GITHUB_ENV
           REPO=ghcr.io/${{ github.repository }}
