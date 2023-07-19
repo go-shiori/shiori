@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -59,11 +60,23 @@ type HttpConfig struct {
 }
 
 type DatabaseConfig struct {
-	DBMS string `env:"DBMS,default=sqlite"` // Deprecated
+	DBMS string `env:"DBMS"` // Deprecated
 	// DBMS requires more environment variables. Check the database package for more information.
-	URL string `env:"DATABASE_URL,default=sqlite3://shiori.db"`
+	URL string `env:"DATABASE_URL"`
 }
 
+type Config struct {
+	Hostname    string `env:"HOSTNAME,required"`
+	Development bool   `env:"DEVELOPMENT,default=false"`
+	Database    *DatabaseConfig
+	Storage     struct {
+		DataDir string `env:"DIR"` // Using DIR to be backwards compatible with the old config
+	}
+	// LogLevel string `env:"LOG_LEVEL,default=info"`
+	Http *HttpConfig
+}
+
+// IsValid checks if the configuration is valid
 func (c Config) IsValid() (errs []error, isValid bool) {
 	if c.Http.SecretKey == "" {
 		errs = append(errs, fmt.Errorf("SHIORI_HTTP_SECRET_KEY is required"))
@@ -76,15 +89,22 @@ func (c Config) IsValid() (errs []error, isValid bool) {
 	return errs, len(errs) == 0
 }
 
-type Config struct {
-	Hostname    string `env:"HOSTNAME,required"`
-	Development bool   `env:"DEVELOPMENT,default=false"`
-	Database    *DatabaseConfig
-	Storage     struct {
-		DataDir string `env:"DIR"` // Using DIR to be backwards compatible with the old config
+// SetDefaults sets the default values for the configuration
+func (c Config) SetDefaults(logger *logrus.Logger, portableMode bool) {
+	// Set the default storage directory if not set, setting also the database url for
+	// sqlite3 if that engine is used
+	if c.Storage.DataDir == "" {
+		var err error
+		c.Storage.DataDir, err = getStorageDirectory(portableMode)
+		if err != nil {
+			logger.WithError(err).Warn("error getting data directory, using default.")
+		}
 	}
-	// LogLevel string `env:"LOG_LEVEL,default=info"`
-	Http *HttpConfig
+
+	// Set default database url if not set
+	if c.Database.DBMS == "" && c.Database.URL == "" {
+		c.Database.URL = fmt.Sprintf("sqlite:///%s", filepath.Join(c.Storage.DataDir, "shiori.db"))
+	}
 }
 
 func ParseServerConfiguration(ctx context.Context, logger *logrus.Logger) *Config {

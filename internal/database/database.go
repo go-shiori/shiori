@@ -58,8 +58,7 @@ func Connect(ctx context.Context, dbURL string) (DB, error) {
 	case "postgres":
 		return OpenPGDatabase(ctx, dbURL)
 	case "sqlite":
-	case "sqlite3":
-		return OpenSQLiteDatabase(ctx, dbURL)
+		return OpenSQLiteDatabase(ctx, dbU.Path)
 	}
 
 	return nil, fmt.Errorf("unsupported database scheme: %s", dbU.Scheme)
