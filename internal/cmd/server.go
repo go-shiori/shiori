@@ -14,15 +14,17 @@ import (
 func newServerCommand(logger *logrus.Logger) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "server",
-		Short: "Run the Shiori webserver [alpha]",
-		Long:  "Runs the new Shiori webserver with new API definitions. [alpha]",
+		Short: "Starts the Shiori webserver",
+		Long:  "Serves the Shiori web interface and API.",
 		Run:   newServerCommandHandler(logger),
 	}
 
 	cmd.Flags().IntP("port", "p", 8080, "Port used by the server")
 	cmd.Flags().StringP("address", "a", "", "Address the server listens to")
 	cmd.Flags().StringP("webroot", "r", "/", "Root path that used by server")
-	cmd.Flags().Bool("log", true, "Print out a non-standard access log")
+	cmd.Flags().Bool("access-log", true, "Print out a non-standard access log")
+	cmd.Flags().Bool("serve-web-ui", true, "Serve static files from the webroot path")
+	cmd.Flags().String("secret-key", "", "Secret key used for encrypting session data")
 
 	return cmd
 }
@@ -52,7 +54,9 @@ func newServerCommandHandler(logger *logrus.Logger) func(cmd *cobra.Command, arg
 		port, _ := cmd.Flags().GetInt("port")
 		address, _ := cmd.Flags().GetString("address")
 		rootPath, _ := cmd.Flags().GetString("webroot")
-		accessLog, _ := cmd.Flags().GetBool("log")
+		accessLog, _ := cmd.Flags().GetBool("access-log")
+		serveWebUI, _ := cmd.Flags().GetBool("serve-web-ui")
+		secretKey, _ := cmd.Flags().GetString("secret-key")
 
 		// Validate root path
 		if rootPath == "" {
@@ -72,6 +76,8 @@ func newServerCommandHandler(logger *logrus.Logger) func(cmd *cobra.Command, arg
 		cfg.Http.Address = address + ":"
 		cfg.Http.RootPath = rootPath
 		cfg.Http.AccessLog = accessLog
+		cfg.Http.ServeWebUI = serveWebUI
+		cfg.Http.SecretKey = secretKey
 
 		server := http.NewHttpServer(logger).Setup(cfg.Http, dependencies)
 

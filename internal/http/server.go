@@ -26,9 +26,13 @@ type HttpServer struct {
 }
 
 func (s *HttpServer) Setup(cfg *config.HttpConfig, deps *config.Dependencies) *HttpServer {
+	s.engine.Use(requestid.New())
+
+	if cfg.AccessLog {
+		s.engine.Use(ginlogrus.Logger(deps.Log))
+	}
+
 	s.engine.Use(
-		requestid.New(),
-		ginlogrus.Logger(deps.Log),
 		middleware.AuthMiddleware(deps),
 		gin.Recovery(),
 	)
@@ -37,9 +41,15 @@ func (s *HttpServer) Setup(cfg *config.HttpConfig, deps *config.Dependencies) *H
 		gin.SetMode(gin.ReleaseMode)
 	}
 
-	routes.NewFrontendRoutes(s.logger, cfg).Setup(s.engine)
+	if cfg.ServeWebUI {
+		routes.NewFrontendRoutes(s.logger, cfg).Setup(s.engine)
+	}
+
+	// LegacyRoutes will be here until we migrate everything from internal/webserver to this new
+	// package.
 	legacyRoutes := routes.NewLegacyAPIRoutes(s.logger, deps, cfg)
 	legacyRoutes.Setup(s.engine)
+
 	s.handle("/system", routes.NewSystemRoutes(s.logger))
 	// s.handle("/bookmark", routes.NewBookmarkRoutes(s.logger, deps))
 	s.handle("/api/v1", api_v1.NewAPIRoutes(s.logger, deps, legacyRoutes.HandleLogin))

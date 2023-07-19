@@ -3,6 +3,7 @@ package config
 import (
 	"bufio"
 	"context"
+	"fmt"
 	"os"
 	"strings"
 	"time"
@@ -41,12 +42,13 @@ func readDotEnv(logger *logrus.Logger) map[string]string {
 }
 
 type HttpConfig struct {
-	Enabled   bool   `env:"HTTP_ENABLED,default=True"`
-	Port      int    `env:"HTTP_PORT,default=8080"`
-	Address   string `env:"HTTP_ADDRESS,default=:"`
-	RootPath  string `env:"HTTP_ROOT_PATH,default=/"`
-	AccessLog bool   `env:"HTTP_ACCESS_LOG,default=True"`
-	SecretKey string `env:"HTTP_SECRET_KEY"`
+	Enabled    bool   `env:"HTTP_ENABLED,default=True"`
+	Port       int    `env:"HTTP_PORT,default=8080"`
+	Address    string `env:"HTTP_ADDRESS,default=:"`
+	RootPath   string `env:"HTTP_ROOT_PATH,default=/"`
+	AccessLog  bool   `env:"HTTP_ACCESS_LOG,default=True"`
+	ServeWebUI bool   `env:"HTTP_SERVE_WEB_UI,default=True"`
+	SecretKey  string `env:"HTTP_SECRET_KEY"`
 	// Fiber Specific
 	BodyLimit                    int           `env:"HTTP_BODY_LIMIT,default=1024"`
 	ReadTimeout                  time.Duration `env:"HTTP_READ_TIMEOUT,default=10s"`
@@ -72,6 +74,14 @@ type HttpConfig struct {
 	Storage struct {
 		DataDir string `env:"DIR"` // Using DIR to be backwards compatible with the old config
 	}
+}
+
+func (c Config) IsValid() error {
+	if c.Http.SecretKey == "" {
+		return fmt.Errorf("SHIORI_HTTP_SECRET_KEY is required")
+	}
+
+	return nil
 }
 
 type Config struct {
