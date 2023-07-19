@@ -56,21 +56,6 @@ type HttpConfig struct {
 	IDLETimeout                  time.Duration `env:"HTTP_IDLE_TIMEOUT,default=10s"`
 	DisableKeepAlive             bool          `env:"HTTP_DISABLE_KEEP_ALIVE,default=true"`
 	DisablePreParseMultipartForm bool          `env:"HTTP_DISABLE_PARSE_MULTIPART_FORM,default=true"`
-	Routes                       struct {
-		Bookmark struct {
-			Path string `env:"ROUTES_BOOKMARK_PATH,default=/bookmark"`
-		}
-		Frontend struct {
-			Path   string        `env:"ROUTES_STATIC_PATH,default=/"`
-			MaxAge time.Duration `env:"ROUTES_STATIC_MAX_AGE,default=720h"`
-		}
-		System struct {
-			Path string `env:"ROUTES_SYSTEM_PATH,default=/system"`
-		}
-		API struct {
-			Path string `env:"ROUTE_API_PATH,default=/api/v1"`
-		}
-	}
 }
 
 type DatabaseConfig struct {
