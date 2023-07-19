@@ -22,6 +22,7 @@ func serveCmd() *cobra.Command {
 	cmd.Flags().StringP("address", "a", "", "Address the server listens to")
 	cmd.Flags().StringP("webroot", "r", "/", "Root path that used by server")
 	cmd.Flags().Bool("log", true, "Print out a non-standard access log")
+	cmd.Flags().Bool("disable-auth", false, "disable user login/out; no auth required")
 
 	return cmd
 }
@@ -32,6 +33,7 @@ func serveHandler(cmd *cobra.Command, args []string) {
 	address, _ := cmd.Flags().GetString("address")
 	rootPath, _ := cmd.Flags().GetString("webroot")
 	log, _ := cmd.Flags().GetBool("log")
+	disableAuth, _ := cmd.Flags().GetBool("disable-auth")
 
 	// Validate root path
 	if rootPath == "" {
@@ -54,6 +56,7 @@ func serveHandler(cmd *cobra.Command, args []string) {
 		ServerPort:    port,
 		RootPath:      rootPath,
 		Log:           log,
+		DisableAuth:   disableAuth,
 	}
 
 	err := webserver.ServeApp(serverConfig)

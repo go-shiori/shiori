@@ -20,6 +20,7 @@ type Config struct {
 	ServerPort    int
 	RootPath      string
 	Log           bool
+	DisableAuth   bool
 }
 
 // ErrorResponse defines a single HTTP error response.
@@ -115,6 +116,7 @@ func ServeApp(cfg Config) error {
 		ArchiveCache: cch.New(time.Minute, 5*time.Minute),
 		RootPath:     cfg.RootPath,
 		Log:          cfg.Log,
+		DisableAuth:  cfg.DisableAuth,
 	}
 
 	hdl.prepareSessionCache()
@@ -180,12 +182,13 @@ func ServeApp(cfg Config) error {
 	router.GET(jp("/fonts/*filepath"), withLogging(hdl.serveFile))
 
 	router.GET(cfg.RootPath, withLogging(hdl.serveIndexPage))
-	router.GET(jp("/login"), withLogging(hdl.serveLoginPage))
+	if !cfg.DisableAuth {
+		router.GET(jp("/login"), withLogging(hdl.serveLoginPage))
+	}
 	router.GET(jp("/bookmark/:id/thumb"), withLogging(hdl.serveThumbnailImage))
 	router.GET(jp("/bookmark/:id/content"), withLogging(hdl.serveBookmarkContent))
 	router.GET(jp("/bookmark/:id/ebook"), withLogging(hdl.serveBookmarkEbook))
 	router.GET(jp("/bookmark/:id/archive/*filepath"), withLogging(hdl.serveBookmarkArchive))
-
 	router.POST(jp("/api/login"), withLogging(hdl.apiLogin))
 	router.POST(jp("/api/logout"), withLogging(hdl.apiLogout))
 	router.GET(jp("/api/bookmarks"), withLogging(hdl.apiGetBookmarks))
@@ -231,6 +234,6 @@ func ServeApp(cfg Config) error {
 	}
 
 	// Serve app
-	logrus.Infoln("Serve shiori in", url, cfg.RootPath)
+	logrus.Infoln("Serve shiori in", url, cfg.RootPath, "disable-auth:", cfg.DisableAuth)
 	return svr.ListenAndServe()
 }
