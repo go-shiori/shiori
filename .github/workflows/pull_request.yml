@@ -15,6 +15,7 @@ jobs:
   call-test:
     uses: ./.github/workflows/_test.yml
   call-gorelease:
+    needs: [call-lint, call-test]
     uses: ./.github/workflows/_gorelease.yml
   call-buildx:
     needs: call-gorelease
