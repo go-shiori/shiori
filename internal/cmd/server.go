@@ -57,6 +57,7 @@ func newServerCommandHandler(logger *logrus.Logger) func(cmd *cobra.Command, arg
 		accessLog, _ := cmd.Flags().GetBool("access-log")
 		serveWebUI, _ := cmd.Flags().GetBool("serve-web-ui")
 		secretKey, _ := cmd.Flags().GetString("secret-key")
+		portableMode, _ := cmd.Flags().GetBool("portable")
 
 		// Validate root path
 		if rootPath == "" {
@@ -86,6 +87,13 @@ func newServerCommandHandler(logger *logrus.Logger) func(cmd *cobra.Command, arg
 			logger.Error("Found some errors in configuration.For now server will start but this will be fatal in the future.")
 			for _, err := range errs {
 				logger.WithError(err).Error("found invalid configuration")
+			}
+		}
+
+		if cfg.Storage.DataDir == "" {
+			cfg.Storage.DataDir, err = getDataDir(portableMode)
+			if err != nil {
+				logger.WithError(err).Warn("error getting data directory, using default.")
 			}
 		}
 
