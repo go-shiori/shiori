@@ -26,6 +26,10 @@ type HttpServer struct {
 }
 
 func (s *HttpServer) Setup(cfg *config.Config, deps *config.Dependencies) *HttpServer {
+	if !deps.Config.Development {
+		gin.SetMode(gin.ReleaseMode)
+	}
+
 	s.engine.Use(requestid.New())
 
 	if cfg.Http.AccessLog {
@@ -36,10 +40,6 @@ func (s *HttpServer) Setup(cfg *config.Config, deps *config.Dependencies) *HttpS
 		middleware.AuthMiddleware(deps),
 		gin.Recovery(),
 	)
-
-	if !deps.Config.Development {
-		gin.SetMode(gin.ReleaseMode)
-	}
 
 	if cfg.Http.ServeWebUI {
 		routes.NewFrontendRoutes(s.logger, cfg).Setup(s.engine)
