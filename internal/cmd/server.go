@@ -40,15 +40,7 @@ func newServerCommandHandler() func(cmd *cobra.Command, args []string) {
 
 		cfg, dependencies := initShiori(ctx, cmd)
 
-		// Check HTTP configuration
-		// For now it will just log to the console, but in the future it will be fatal. The only required
-		// setting for now is the secret key.
-		if errs, isValid := cfg.Http.IsValid(); !isValid {
-			dependencies.Log.Error("Found some errors in configuration.For now server will start but this will be fatal in the future.")
-			for _, err := range errs {
-				dependencies.Log.WithError(err).Error("found invalid configuration")
-			}
-		}
+		cfg.Http.SetDefaults(dependencies.Log)
 
 		// Validate root path
 		if rootPath == "" {
