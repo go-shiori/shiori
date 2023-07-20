@@ -67,7 +67,7 @@ func (r *LegacyAPIRoutes) Setup(g *gin.Engine) {
 		DataDir:  r.cfg.Storage.DataDir,
 		RootPath: r.cfg.Http.RootPath,
 		Log:      false, // Already done by gin
-	})
+	}, r.deps)
 	r.legacyHandler.PrepareSessionCache()
 	r.legacyHandler.PrepareTemplates()
 

@@ -19,7 +19,7 @@ func newServerCommand() *cobra.Command {
 	cmd.Flags().IntP("port", "p", 8080, "Port used by the server")
 	cmd.Flags().StringP("address", "a", "", "Address the server listens to")
 	cmd.Flags().StringP("webroot", "r", "/", "Root path that used by server")
-	cmd.Flags().Bool("access-log", true, "Print out a non-standard access log")
+	cmd.Flags().Bool("access-log", false, "Print out a non-standard access log")
 	cmd.Flags().Bool("serve-web-ui", true, "Serve static files from the webroot path")
 	cmd.Flags().String("secret-key", "", "Secret key used for encrypting session data")
 
