@@ -24,9 +24,9 @@ var (
 
 func init() {
 	// Set globally
-	model.Version = version
-	model.Commit = commit
-	model.Date = date
+	model.BuildVersion = version
+	model.BuildCommit = commit
+	model.BuildDate = date
 }
 
 func main() {
