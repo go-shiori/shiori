@@ -4,11 +4,13 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"strings"
 
+	"github.com/go-shiori/shiori/internal/config"
 	"github.com/go-shiori/shiori/internal/database"
 	"github.com/go-shiori/shiori/internal/model"
-	"github.com/go-shiori/warc"
 	cch "github.com/patrickmn/go-cache"
+	"github.com/sirupsen/logrus"
 )
 
 var developmentMode = false
@@ -22,6 +24,8 @@ type Handler struct {
 	SessionCache *cch.Cache
 	ArchiveCache *cch.Cache
 	Log          bool
+
+	depenencies *config.Dependencies
 
 	templates map[string]*template.Template
 }
@@ -43,13 +47,6 @@ func (h *Handler) PrepareSessionCache() {
 		}
 
 		h.UserCache.Set(account.Username, sessionIDs, -1)
-	})
-}
-
-func (h *Handler) prepareArchiveCache() {
-	h.ArchiveCache.OnEvicted(func(key string, data interface{}) {
-		archive := data.(*warc.Archive)
-		archive.Close()
 	})
 }
 
@@ -109,6 +106,31 @@ func (h *Handler) GetSessionID(r *http.Request) string {
 
 // validateSession checks whether user session is still valid or not
 func (h *Handler) validateSession(r *http.Request) error {
+	authorization := r.Header.Get(model.AuthorizationHeader)
+	if authorization != "" {
+		authParts := strings.SplitN(authorization, " ", 2)
+		if len(authParts) != 2 && authParts[0] != model.AuthorizationTokenType {
+			return fmt.Errorf("session has been expired")
+		}
+
+		account, err := h.depenencies.Domains.Auth.CheckToken(r.Context(), authParts[1])
+		if err != nil {
+			return err
+		}
+
+		if r.Method != "" && r.Method != "GET" && !account.Owner {
+			return fmt.Errorf("account level is not sufficient")
+		}
+
+		h.depenencies.Log.WithFields(logrus.Fields{
+			"username": account.Username,
+			"method":   r.Method,
+			"path":     r.URL.Path,
+		}).Info("allowing legacy api access using JWT token")
+
+		return nil
+	}
+
 	sessionID := h.GetSessionID(r)
 	if sessionID == "" {
 		return fmt.Errorf("session is not exist")

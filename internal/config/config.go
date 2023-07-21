@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gofrs/uuid"
 	"github.com/sethvargo/go-envconfig"
 	"github.com/sirupsen/logrus"
 )
@@ -78,13 +79,17 @@ type Config struct {
 	Http *HttpConfig
 }
 
-// IsValid checks if the configuration is valid
-func (c HttpConfig) IsValid() (errs []error, isValid bool) {
+// SetDefaults sets the default values for the configuration
+func (c *HttpConfig) SetDefaults(logger *logrus.Logger) {
+	// Set a random secret key if not set
 	if c.SecretKey == "" {
-		errs = append(errs, fmt.Errorf("SHIORI_HTTP_SECRET_KEY is required"))
+		logger.Warn("SHIORI_HTTP_SECRET_KEY is not set, using random value. This means that all sessions will be invalidated on server restart.")
+		randomUUID, err := uuid.NewV4()
+		if err != nil {
+			logger.WithError(err).Fatal("couldn't generate a random UUID")
+		}
+		c.SecretKey = randomUUID.String()
 	}
-
-	return errs, len(errs) == 0
 }
 
 // SetDefaults sets the default values for the configuration
