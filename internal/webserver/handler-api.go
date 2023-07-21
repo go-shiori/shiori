@@ -221,7 +221,7 @@ func (h *Handler) ApiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 		panic(fmt.Errorf("failed to clean URL: %v", err))
 	}
 
-	userHasDefinedTitle := book.Title == ""
+	userHasDefinedTitle := book.Title != ""
 	// Make sure bookmark's title not empty
 	if book.Title == "" {
 		book.Title = book.URL
