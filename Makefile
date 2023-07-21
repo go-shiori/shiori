@@ -19,6 +19,9 @@ LDFLAGS += -s -w -X main.version=$(BUILD_HASH) -X main.date=$(BUILD_TIME)
 GIN_MODE ?= debug
 SHIORI_DEVELOPMENT ?= true
 
+# Swagger
+SWAGGER_DOCS_PATH ?= ./docs/swagger
+
 # Help documentatin à la https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 .PHONY: help
 help:
@@ -42,7 +45,11 @@ run-server:
 ## Generate swagger docs
 .PHONY: swagger
 swagger:
-	swag init
+	SWAGGER_DOCS_PATH=$(SWAGGER_DOCS_PATH) $(BASH) -xe ./scripts/swagger.sh
+
+.PHONY: swagger-check
+swagger-check:
+	SWAGGER_DOCS_PATH=$(SWAGGER_DOCS_PATH) $(BASH) -xe ./scripts/swagger_check.sh
 
 ## Run linter
 .PHONY: lint
