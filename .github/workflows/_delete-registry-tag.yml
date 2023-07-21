@@ -1,6 +1,12 @@
 name: Delete registry tag
 
-on: workflow_call
+on:
+  workflow_call:
+    inputs:
+      tag_name:
+        description: 'The docker tag to remove'
+        required: true
+        type: string
 
 jobs:
   purge-image:
@@ -9,6 +15,6 @@ jobs:
     steps:
       - uses: chipkent/action-cleanup-package@1316a66015b82d745b57acbb6c570f2bb1d108f9 # v1.0.3
         with:
-          package-name: ${{ github.event.repository.name }}
-          tag: ${{ env.TAG_NAME }}
+          package-name: ghcr.io/${{ github.repository }}
+          tag: ${{ inputs.tag_name }}
           github-token: ${{ secrets.GITHUB_TOKEN }}

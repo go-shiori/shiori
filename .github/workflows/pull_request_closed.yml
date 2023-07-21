@@ -9,4 +9,4 @@ jobs:
   delete-tag:
     uses: ./.github/workflows/_delete-registry-tag.yml
     with:
-      TAG_NAME: pr-${{ github.event.pull_request.number }}
+      tag_name: pr-${{ github.event.pull_request.number }}
