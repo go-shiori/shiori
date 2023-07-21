@@ -22,9 +22,9 @@ func (r *SystemRoutes) livenessHandler(c *gin.Context) {
 		Commit  string `json:"commit"`
 		Date    string `json:"date"`
 	}{
-		Version: model.Version,
-		Commit:  model.Commit,
-		Date:    model.Date,
+		Version: model.BuildVersion,
+		Commit:  model.BuildCommit,
+		Date:    model.BuildDate,
 	})
 }
 

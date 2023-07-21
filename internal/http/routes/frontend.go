@@ -10,6 +10,7 @@ import (
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
 	"github.com/go-shiori/shiori/internal/config"
+	"github.com/go-shiori/shiori/internal/model"
 	views "github.com/go-shiori/shiori/internal/view"
 	"github.com/sirupsen/logrus"
 )
@@ -65,11 +66,13 @@ func (r *FrontendRoutes) Setup(e *gin.Engine) {
 	group.GET("/login", func(ctx *gin.Context) {
 		ctx.HTML(http.StatusOK, "login.html", gin.H{
 			"RootPath": r.cfg.Http.RootPath,
+			"Version":  model.BuildVersion,
 		})
 	})
 	group.GET("/", func(ctx *gin.Context) {
 		ctx.HTML(http.StatusOK, "index.html", gin.H{
 			"RootPath": r.cfg.Http.RootPath,
+			"Version":  model.BuildVersion,
 		})
 	})
 	e.StaticFS("/assets", newAssetsFS(r.logger, views.Assets))

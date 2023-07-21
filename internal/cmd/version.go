@@ -17,6 +17,6 @@ func newVersionCommand() *cobra.Command {
 
 func newVersionCommandHandler() func(cmd *cobra.Command, args []string) {
 	return func(cmd *cobra.Command, args []string) {
-		cmd.Printf("Shiori version %s (build %s) at %s\n", model.Version, model.Commit, model.Date)
+		cmd.Printf("Shiori version %s (build %s) at %s\n", model.BuildVersion, model.BuildCommit, model.BuildDate)
 	}
 }
