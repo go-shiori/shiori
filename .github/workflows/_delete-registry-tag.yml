@@ -9,12 +9,14 @@ on:
         type: string
 
 jobs:
-  purge-image:
-    name: Delete tag
+  purge-image-tag:
+    name: Delete image from ghcr.io
     runs-on: ubuntu-latest
     steps:
-      - uses: chipkent/action-cleanup-package@1316a66015b82d745b57acbb6c570f2bb1d108f9 # v1.0.3
+      - name: Delete image tag
+        uses: bots-house/ghcr-delete-image-action@3827559c68cb4dcdf54d813ea9853be6d468d3a4 # v1.1.0
         with:
-          package-name: ${{ github.repository }}
+          owner: go-shiori
+          name: shiori
+          token: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ inputs.tag_name }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
