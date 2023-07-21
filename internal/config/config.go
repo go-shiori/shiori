@@ -83,11 +83,11 @@ type Config struct {
 func (c *HttpConfig) SetDefaults(logger *logrus.Logger) {
 	// Set a random secret key if not set
 	if c.SecretKey == "" {
+		logger.Warn("SHIORI_HTTP_SECRET_KEY is not set, using random value. This means that all sessions will be invalidated on server restart.")
 		randomUUID, err := uuid.NewV4()
 		if err != nil {
 			logger.WithError(err).Fatal("couldn't generate a random UUID")
 		}
-		logger.Warn("SHIORI_HTTP_SECRET_KEY is not set, setting random UUID. This means that all sessions will be invalidated on server restart.")
 		c.SecretKey = randomUUID.String()
 	}
 }
