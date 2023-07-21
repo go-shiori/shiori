@@ -49,14 +49,14 @@ type loginResponseMessage struct {
 }
 
 // loginHandler godoc
-// @Summary      Login to an account using username and password
-// @Tags         Auth
-// @Accept       json
-// @Produce      json
-// @Param        payload   body    loginRequestPayload    false  "Login data"
-// @Success      200  {object}  loginResponseMessage  "Login successful"
-// @Failure      400  {object}  nil                   "Invalid login data"
-// @Router       /api/v1/auth/login [post]
+//	@Summary	Login to an account using username and password
+//	@Tags		Auth
+//	@Accept		json
+//	@Produce	json
+//	@Param		payload	body		loginRequestPayload		false	"Login data"
+//	@Success	200		{object}	loginResponseMessage	"Login successful"
+//	@Failure	400		{object}	nil						"Invalid login data"
+//	@Router		/api/v1/auth/login [post]
 func (r *AuthAPIRoutes) loginHandler(c *gin.Context) {
 	var payload loginRequestPayload
 	if err := c.ShouldBindJSON(&payload); err != nil {
@@ -103,13 +103,13 @@ func (r *AuthAPIRoutes) loginHandler(c *gin.Context) {
 }
 
 // refreshHandler godoc
-// @Summary      Refresh a token for an account
-// @Tags         Auth
-// @securityDefinitions.apikey ApiKeyAuth
-// @Produce      json
-// @Success      200  {object}  loginResponseMessage  "Refresh successful"
-// @Failure      403  {object}  nil                   "Token not provided/invalid"
-// @Router       /api/v1/auth/refresh [post]
+//	@Summary					Refresh a token for an account
+//	@Tags						Auth
+//	@securityDefinitions.apikey	ApiKeyAuth
+//	@Produce					json
+//	@Success					200	{object}	loginResponseMessage	"Refresh successful"
+//	@Failure					403	{object}	nil						"Token not provided/invalid"
+//	@Router						/api/v1/auth/refresh [post]
 func (r *AuthAPIRoutes) refreshHandler(c *gin.Context) {
 	ctx := context.NewContextFromGin(c)
 	if !ctx.UserIsLogged() {
@@ -133,13 +133,13 @@ func (r *AuthAPIRoutes) refreshHandler(c *gin.Context) {
 }
 
 // meHandler godoc
-// @Summary      Get information for the current logged in user
-// @Tags         Auth
-// @securityDefinitions.apikey ApiKeyAuth
-// @Produce      json
-// @Success      200  {object}  model.Account
-// @Failure      403  {object}  nil                   "Token not provided/invalid"
-// @Router       /api/v1/auth/me [get]
+//	@Summary					Get information for the current logged in user
+//	@Tags						Auth
+//	@securityDefinitions.apikey	ApiKeyAuth
+//	@Produce					json
+//	@Success					200	{object}	model.Account
+//	@Failure					403	{object}	nil	"Token not provided/invalid"
+//	@Router						/api/v1/auth/me [get]
 func (r *AuthAPIRoutes) meHandler(c *gin.Context) {
 	ctx := context.NewContextFromGin(c)
 	if !ctx.UserIsLogged() {
