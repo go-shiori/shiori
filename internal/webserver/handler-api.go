@@ -221,6 +221,7 @@ func (h *Handler) ApiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 		panic(fmt.Errorf("failed to clean URL: %v", err))
 	}
 
+	userHasDefinedTitle := book.Title == ""
 	// Make sure bookmark's title not empty
 	if book.Title == "" {
 		book.Title = book.URL
@@ -236,7 +237,7 @@ func (h *Handler) ApiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 
 	if payload.Async {
 		go func() {
-			bookmark, err := downloadBookmarkContent(book, h.DataDir, r, book.Title != "", book.Excerpt != "")
+			bookmark, err := downloadBookmarkContent(book, h.DataDir, r, !userHasDefinedTitle, book.Excerpt != "")
 			if err != nil {
 				log.Printf("error downloading boorkmark: %s", err)
 				return
@@ -248,7 +249,7 @@ func (h *Handler) ApiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 	} else {
 		// Workaround. Download content after saving the bookmark so we have the proper database
 		// id already set in the object regardless of the database engine.
-		book, err = downloadBookmarkContent(book, h.DataDir, r, book.Title != "", book.Excerpt != "")
+		book, err = downloadBookmarkContent(book, h.DataDir, r, !userHasDefinedTitle, book.Excerpt != "")
 		if err != nil {
 			log.Printf("error downloading boorkmark: %s", err)
 		} else if _, err := h.DB.SaveBookmarks(ctx, false, *book); err != nil {
