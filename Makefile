@@ -20,6 +20,7 @@ GIN_MODE ?= debug
 SHIORI_DEVELOPMENT ?= true
 
 # Swagger
+SWAG_VERSION := v1.8.12
 SWAGGER_DOCS_PATH ?= ./docs/swagger
 
 # Help documentatin à la https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
@@ -45,11 +46,15 @@ run-server:
 ## Generate swagger docs
 .PHONY: swagger
 swagger:
-	SWAGGER_DOCS_PATH=$(SWAGGER_DOCS_PATH) $(BASH) -xe ./scripts/swagger.sh
+	SWAGGER_DOCS_PATH=$(SWAGGER_DOCS_PATH) $(BASH) ./scripts/swagger.sh
 
 .PHONY: swagger-check
 swagger-check:
-	SWAGGER_DOCS_PATH=$(SWAGGER_DOCS_PATH) $(BASH) -xe ./scripts/swagger_check.sh
+	REQUIRED_SWAG_VERSION=$(SWAG_VERSION) SWAGGER_DOCS_PATH=$(SWAGGER_DOCS_PATH) $(BASH) ./scripts/swagger_check.sh
+
+.PHONY: swag-fmt
+swag-fmt:
+	swag fmt --dir internal/http
 
 ## Run linter
 .PHONY: lint
