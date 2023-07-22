@@ -738,14 +738,8 @@ func (db *SQLiteDatabase) GetAccount(ctx context.Context, username string) (mode
 	// Parse configBytes into UserConfig struct
 	var userConfig model.UserConfig
 	_ = json.Unmarshal(configBytes, &userConfig)
-	account.Config.ShowId = userConfig.ShowId
-	account.Config.ListMode = userConfig.ListMode
-	account.Config.HideThumbnail = userConfig.HideThumbnail
-	account.Config.HideExcerpt = userConfig.HideExcerpt
-	account.Config.NightMode = userConfig.NightMode
-	account.Config.KeepMetadata = userConfig.KeepMetadata
-	account.Config.UseArchive = userConfig.UseArchive
-	account.Config.MakePublic = userConfig.MakePublic
+	// Assign values from userConfig to account.Config
+	account.Config = userConfig
 
 	return account, account.ID != 0, nil
 }
