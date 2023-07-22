@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/go-shiori/shiori/internal/http"
+	"github.com/go-shiori/shiori/internal/model"
 	"github.com/spf13/cobra"
 )
 
@@ -62,6 +63,8 @@ func newServerCommandHandler() func(cmd *cobra.Command, args []string) {
 		cfg.Http.AccessLog = accessLog
 		cfg.Http.ServeWebUI = serveWebUI
 		cfg.Http.SecretKey = secretKey
+
+		dependencies.Log.Infof("Starting Shiori v%s", model.BuildVersion)
 
 		server := http.NewHttpServer(dependencies.Log).Setup(cfg, dependencies)
 
