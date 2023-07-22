@@ -23,7 +23,7 @@
 </head>
 
 <body>
-	<div id="login-scene" :class="{night: nightMode}">
+	<div id="login-scene" :class="{night: NightMode}">
 		<p class="error-message" v-if="error !== ''">{{error}}</p>
 		<div id="login-box">
 			<form @submit.prevent="login">
@@ -61,7 +61,7 @@
 				username: "",
 				password: "",
 				remember: false,
-				nightMode: false,
+				NightMode: false,
 			},
 			methods: {
 				async getErrorMessage(err) {
@@ -109,8 +109,7 @@
 
 						// Save account data
 						localStorage.setItem("shiori-account", JSON.stringify(json.account));
-                        const config = JSON.parse(json.account.config);
-                        localStorage.setItem("shiori-setting", JSON.stringify(config));
+                        localStorage.setItem("shiori-setting", JSON.stringify(json.account.config));
 
 						// Go to destination page
 						var currentUrl = new Url,
@@ -133,9 +132,9 @@
 				},
 				loadSetting() {
 					var opts = JSON.parse(localStorage.getItem("shiori-setting")) || {},
-						nightMode = (typeof opts.nightMode === "boolean") ? opts.nightMode : false;
+						NightMode = (typeof opts.NightMode === "boolean") ? opts.NightMode : false;
 
-					this.nightMode = nightMode;
+					this.NightMode = NightMode;
 				}
 			},
 			mounted() {

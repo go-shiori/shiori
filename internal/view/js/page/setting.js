@@ -5,38 +5,38 @@ var template = `
         <details open class="setting-group" id="setting-display">
             <summary>Display</summary>
             <label>
-                <input type="checkbox" v-model="appOptions.showId" @change="saveSetting">
+                <input type="checkbox" v-model="appOptions.ShowId" @change="saveSetting">
                 Show bookmark's ID
             </label>
             <label>
-                <input type="checkbox" v-model="appOptions.listMode" @change="saveSetting">
+                <input type="checkbox" v-model="appOptions.ListMode" @change="saveSetting">
                 Display bookmarks as list
             </label>
             <label>
-                <input type="checkbox" v-model="appOptions.hideThumbnail" @change="saveSetting">
+                <input type="checkbox" v-model="appOptions.HideThumbnail" @change="saveSetting">
                 Hide thumbnail image
             </label>
             <label>
-                <input type="checkbox" v-model="appOptions.hideExcerpt" @change="saveSetting">
+                <input type="checkbox" v-model="appOptions.HideExcerpt" @change="saveSetting">
                 Hide bookmark's excerpt
             </label>
             <label>
-                <input type="checkbox" v-model="appOptions.nightMode" @change="saveSetting">
+                <input type="checkbox" v-model="appOptions.NightMode" @change="saveSetting">
                 Use dark theme
             </label>
         </details>
         <details v-if="activeAccount.owner" open class="setting-group" id="setting-bookmarks">
             <summary>Bookmarks</summary>
             <label>
-                <input type="checkbox" v-model="appOptions.keepMetadata" @change="saveSetting">
+                <input type="checkbox" v-model="appOptions.KeepMetadata" @change="saveSetting">
                 Keep bookmark's metadata when updating
             </label>
             <label>
-                <input type="checkbox" v-model="appOptions.useArchive" @change="saveSetting">
+                <input type="checkbox" v-model="appOptions.UseArchive" @change="saveSetting">
                 Create archive by default
             </label>
             <label>
-                <input type="checkbox" v-model="appOptions.makePublic" @change="saveSetting">
+                <input type="checkbox" v-model="appOptions.MakePublic" @change="saveSetting">
                 Make archive publicly available by default
             </label>
         </details>
@@ -84,18 +84,18 @@ export default {
 	methods: {
 		saveSetting() {
 			this.$emit("setting-changed", {
-				showId: this.appOptions.showId,
-                listMode: this.appOptions.listMode,
-                hideThumbnail: this.appOptions.hideThumbnail,
-                hideExcerpt: this.appOptions.hideExcerpt,
-                nightMode: this.appOptions.nightMode,
-                keepMetadata: this.appOptions.keepMetadata,
-                useArchive: this.appOptions.useArchive,
-                makePublic: this.appOptions.makePublic,
+				ShowId: this.appOptions.ShowId,
+                ListMode: this.appOptions.ListMode,
+                HideThumbnail: this.appOptions.HideThumbnail,
+                HideExcerpt: this.appOptions.HideExcerpt,
+                NightMode: this.appOptions.NightMode,
+                KeepMetadata: this.appOptions.KeepMetadata,
+                UseArchive: this.appOptions.UseArchive,
+                MakePublic: this.appOptions.MakePublic,
             });
             const request = {
                 username: this.activeAccount.username,
-                config: JSON.stringify(this.appOptions)
+                config: this.appOptions
             };
             // TODO: DO i need loading page? if no remove this.dialog.loading = false
             fetch(new URL("api/accountssettings", document.baseURI), {
@@ -180,16 +180,16 @@ export default {
 						return;
 					}
                     const defaultconfig = {
-                        showId: false,
-                        listMode: false,
-                        hideThumbnail: false,
-                        hideExcerpt: false,
-                        nightMode: false,
-                        keepMetadata: false,
-                        useArchive: false,
-                        makePublic: false
+                        ShowId: false,
+                        ListMode: false,
+                        HideThumbnail: false,
+                        HideExcerpt: false,
+                        NightMode: false,
+                        KeepMetadata: false,
+                        UseArchive: false,
+                        MakePublic: false
                     };
-                    data.config = JSON.stringify(defaultconfig);
+                    data.config = defaultconfig;
 
 					var request = {
 						username: data.username,

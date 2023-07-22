@@ -24,7 +24,7 @@
 </head>
 
 <body class="night">
-	<div id="content-scene" :class="{night: appOptions.nightMode}">
+	<div id="content-scene" :class="{night: appOptions.NightMode}">
 		<div id="header">
 			<p id="metadata" v-cloak>Added {{localtime()}}</p>
 			<p id="title" dir="auto">$$.Book.Title$$</p>
@@ -63,19 +63,19 @@
 				},
 				loadSetting() {
 					var opts = JSON.parse(localStorage.getItem("shiori-setting")) || {},
-						showId = (typeof opts.showId === "boolean") ? opts.showId : false,
-						listMode = (typeof opts.listMode === "boolean") ? opts.listMode : false,
-						nightMode = (typeof opts.nightMode === "boolean") ? opts.nightMode : false,
-						useArchive = (typeof opts.useArchive === "boolean") ? opts.useArchive : false;
+						ShowId = (typeof opts.ShowId === "boolean") ? opts.ShowId : false,
+						ListMode = (typeof opts.ListMode === "boolean") ? opts.ListMode : false,
+						NightMode = (typeof opts.NightMode === "boolean") ? opts.NightMode : false,
+						UseArchive = (typeof opts.UseArchive === "boolean") ? opts.UseArchive : false;
 
 					this.appOptions = {
-						showId: showId,
-						listMode: listMode,
-						nightMode: nightMode,
-						useArchive: useArchive,
+						ShowId: ShowId,
+						ListMode: ListMode,
+						NightMode: NightMode,
+						UseArchive: UseArchive,
 					};
 
-					document.body.className = nightMode ? "night" : "";
+					document.body.className = NightMode ? "night" : "";
 				}
 			},
 			mounted() {

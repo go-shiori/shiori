@@ -14,16 +14,16 @@ export default {
 			type: Object,
 			default() {
 				return {
-					showId: false,
-					listMode: false,
-					nightMode: false,
-					hideThumbnail: false,
-					hideExcerpt: false,
+					ShowId: false,
+					ListMode: false,
+					NightMode: false,
+					HideThumbnail: false,
+					HideExcerpt: false,
 
-					keepMetadata: false,
-					useArchive: false,
+					KeepMetadata: false,
+					UseArchive: false,
 					createEbook: false,
-					makePublic: false,
+					MakePublic: false,
 				};
 			}
 		}

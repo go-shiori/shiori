@@ -34,7 +34,7 @@ var template = `
         </a>
     </div>
     <p class="empty-message" v-if="!loading && listIsEmpty">No saved bookmarks yet :(</p>
-    <div id="bookmarks-grid" ref="bookmarksGrid" :class="{list: appOptions.listMode}">
+    <div id="bookmarks-grid" ref="bookmarksGrid" :class="{list: appOptions.ListMode}">
         <pagination-box v-if="maxPage > 1" 
             :page="page" 
             :maxPage="maxPage" 
@@ -55,10 +55,10 @@ var template = `
             :index="index"
             :key="book.id" 
             :editMode="editMode"
-            :showId="appOptions.showId"
-            :listMode="appOptions.listMode"
-            :hideThumbnail="appOptions.hideThumbnail"
-            :hideExcerpt="appOptions.hideExcerpt"
+            :ShowSd="appOptions.ShowId"
+            :ListMode="appOptions.ListMode"
+            :HideThumbnail="appOptions.HideThumbnail"
+            :HideExcerpt="appOptions.HideExcerpt"
             :selected="isSelected(book.id)"
             :menuVisible="activeAccount.owner"
             @select="toggleSelection"
@@ -376,12 +376,12 @@ export default {
 					name: "createArchive",
 					label: "Create archive",
 					type: "check",
-					value: this.appOptions.useArchive,
+					value: this.appOptions.UseArchive,
 				}, {
 					name: "makePublic",
 					label: "Make archive publicly available",
 					type: "check",
-					value: this.appOptions.makePublic,
+					value: this.appOptions.MakePublic,
 				}],
 				mainText: "OK",
 				secondText: "Cancel",
@@ -667,12 +667,12 @@ export default {
 					name: "keepMetadata",
 					label: "Keep the old title and excerpt",
 					type: "check",
-					value: this.appOptions.keepMetadata,
+					value: this.appOptions.KeepMetadata,
 				}, {
 					name: "createArchive",
 					label: "Update archive as well",
 					type: "check",
-					value: this.appOptions.useArchive,
+					value: this.appOptions.UseArchive,
 				}, {
 					name: "createEbook",
 					label: "Update Ebook as well",
