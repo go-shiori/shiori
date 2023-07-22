@@ -878,10 +878,11 @@ func (h *handler) apiUpdateSettings(w http.ResponseWriter, r *http.Request, ps h
 	checkError(err)
 
 	if !exist {
-		panic(fmt.Errorf("username doesn't exist"))
+		http.Error(w, "Username doesn't exist", http.StatusBadRequest)
+		return
 	}
 
-	// Save new password to database
+	// Save new config to database
 	account.Config = request.Config
 	//	account.Owner = request.Owner
 	err = h.DB.SaveAccountSettings(ctx, account)
