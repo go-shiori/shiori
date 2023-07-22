@@ -1,5 +1,10 @@
 package model
 
+import (
+	"encoding/json"
+	"errors"
+)
+
 // Tag is the tag for a bookmark.
 type Tag struct {
 	ID         int    `db:"id"          json:"id"`
@@ -46,4 +51,13 @@ type UserConfig struct {
 	KeepMetadata  bool `json:"KeepMetadata"`
 	UseArchive    bool `json:"UseArchive"`
 	MakePublic    bool `json:"MakePublic"`
+}
+
+func (c *UserConfig) Scan(value interface{}) error {
+	b, ok := value.([]byte)
+	if !ok {
+		return errors.New("unexpected type for UserConfig")
+	}
+
+	return json.Unmarshal(b, c)
 }
