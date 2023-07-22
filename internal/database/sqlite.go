@@ -646,14 +646,15 @@ func (db *SQLiteDatabase) SaveAccount(ctx context.Context, account model.Account
 		if err != nil {
 			return err
 		}
+		jsonConfig, _ := Jsonif(account.Config)
 
 		// Insert account to database
 		_, err = tx.Exec(`INSERT INTO account
 		(username, password, owner, config) VALUES (?, ?, ?, ?)
 		ON CONFLICT(username) DO UPDATE SET
 		password = ?, owner = ?`,
-			account.Username, hashedPassword, account.Owner, account.Config,
-			hashedPassword, account.Owner, account.Config)
+			account.Username, hashedPassword, account.Owner, jsonConfig,
+			hashedPassword, account.Owner, jsonConfig)
 		return errors.WithStack(err)
 	}); err != nil {
 		return errors.WithStack(err)
@@ -665,13 +666,8 @@ func (db *SQLiteDatabase) SaveAccount(ctx context.Context, account model.Account
 // SaveAccountSettings update settings for specific account  in database. Returns error if any happened.
 func (db *SQLiteDatabase) SaveAccountSettings(ctx context.Context, account model.Account) error {
 	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
-		err := IsJson(account.Config)
-		if err != nil {
-			return err
-		}
-
 		// Update account config in database for specific user
-		_, err = tx.Exec(`UPDATE account
+		_, err := tx.Exec(`UPDATE account
 	   SET config = ?
 	   WHERE username = ?`,
 			account.Config, account.Username)
@@ -701,10 +697,27 @@ func (db *SQLiteDatabase) GetAccounts(ctx context.Context, opts GetAccountsOptio
 	query += ` ORDER BY username`
 
 	// Fetch list account
-	accounts := []model.Account{}
-	err := db.SelectContext(ctx, &accounts, query, args...)
-	if err != nil && err != sql.ErrNoRows {
+	rows, err := db.Queryx(query, args...)
+	if err != nil {
 		return nil, errors.WithStack(err)
+	}
+	defer func() {
+		err := rows.Close()
+		if err != nil {
+			log.Println(err)
+		}
+	}()
+
+	accounts := []model.Account{}
+
+	for rows.Next() {
+		var account model.Account
+		var configBytes []byte
+		err = rows.Scan(&account.ID, &account.Username, &account.Owner, &configBytes)
+		if err != nil {
+			return nil, errors.WithStack(err)
+		}
+		accounts = append(accounts, account)
 	}
 
 	return accounts, nil
@@ -714,13 +727,11 @@ func (db *SQLiteDatabase) GetAccounts(ctx context.Context, opts GetAccountsOptio
 // Returns the account and boolean whether it's exist or not.
 func (db *SQLiteDatabase) GetAccount(ctx context.Context, username string) (model.Account, bool, error) {
 	account := model.Account{}
-	if err := db.GetContext(ctx, &account, `SELECT
+	row := db.QueryRowx(`SELECT
 		id, username, password, owner, config FROM account WHERE username = ?`,
-		username,
-	); err != nil {
-		return account, false, errors.WithStack(err)
-	}
-
+		username)
+	var configBytes []byte
+	_ = row.Scan(&account.ID, &account.Username, &account.Password, &account.Owner, &configBytes)
 	return account, account.ID != 0, nil
 }
 

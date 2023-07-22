@@ -4,6 +4,7 @@ import (
 	"context"
 	"embed"
 	"encoding/json"
+	"fmt"
 	"log"
 
 	"github.com/go-shiori/shiori/internal/model"
@@ -42,6 +43,18 @@ type GetBookmarksOptions struct {
 type GetAccountsOptions struct {
 	Keyword string
 	Owner   bool
+	Config  model.UserConfig
+}
+
+type UserConfig struct {
+	ShowId        bool `json:"ShowId"`
+	ListMode      bool `json:"ListMode"`
+	HideThumbnail bool `json:"HideThumbnail"`
+	HideExcerpt   bool `json:"HideExcerpt"`
+	NightMode     bool `json:"NightMode"`
+	KeepMetadata  bool `json:"KeepMetadata"`
+	UseArchive    bool `json:"UseArchive"`
+	MakePublic    bool `json:"MakePublic"`
 }
 
 // DB is interface for accessing and manipulating data in database.
@@ -122,4 +135,30 @@ func IsJson(input string) error {
 	} else {
 		return nil
 	}
+}
+
+func Jsonif(uc model.UserConfig) ([]byte, error) {
+	jsonBytes, err := json.Marshal(map[string]interface{}{
+		"ShowId":        uc.ShowId,
+		"ListMode":      uc.ListMode,
+		"HideThumbnail": uc.HideThumbnail,
+		"HideExcerpt":   uc.HideExcerpt,
+		"NightMode":     uc.NightMode,
+		"KeepMetadata":  uc.KeepMetadata,
+		"UseArchive":    uc.UseArchive,
+		"MakePublic":    uc.MakePublic,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return jsonBytes, nil
+}
+
+func (c *UserConfig) Scan(value interface{}) error {
+	b, ok := value.([]byte)
+	if !ok {
+		return fmt.Errorf("unexpected type for UserConfig: %T", value)
+	}
+
+	return json.Unmarshal(b, c)
 }
