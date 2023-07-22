@@ -3,7 +3,9 @@ package database
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
@@ -539,6 +541,7 @@ func (db *PGDatabase) SaveAccount(ctx context.Context, account model.Account) (e
 	if err != nil {
 		return err
 	}
+	jsonConfig, _ := Jsonify(account.Config)
 
 	// Insert account to database
 	_, err = db.ExecContext(ctx, `INSERT INTO account
@@ -546,23 +549,20 @@ func (db *PGDatabase) SaveAccount(ctx context.Context, account model.Account) (e
 		ON CONFLICT(username) DO UPDATE SET
 		password = $2,
 		owner = $3`,
-		account.Username, hashedPassword, account.Owner, account.Config)
+		account.Username, hashedPassword, account.Owner, jsonConfig)
 
 	return errors.WithStack(err)
 }
 
 // SaveAccountSettings update settings for specific account  in database. Returns error if any happened
 func (db *PGDatabase) SaveAccountSettings(ctx context.Context, account model.Account) (err error) {
-	err = IsJson(account.Config)
-	if err != nil {
-		return errors.WithStack(err)
-	}
 
 	// Insert account to database
+	jsonConfig, _ := Jsonify(account.Config)
 	_, err = db.ExecContext(ctx, `UPDATE account
    		SET config = $1
    		WHERE username = $2`,
-		account.Config, account.Username)
+		jsonConfig, account.Username)
 
 	return errors.WithStack(err)
 }
@@ -585,10 +585,27 @@ func (db *PGDatabase) GetAccounts(ctx context.Context, opts GetAccountsOptions) 
 	query += ` ORDER BY username`
 
 	// Fetch list account
-	accounts := []model.Account{}
-	err := db.SelectContext(ctx, &accounts, query, args...)
-	if err != nil && err != sql.ErrNoRows {
+	rows, err := db.Queryx(query, args...)
+	if err != nil {
 		return nil, errors.WithStack(err)
+	}
+	defer func() {
+		err := rows.Close()
+		if err != nil {
+			log.Println(err)
+		}
+	}()
+
+	accounts := []model.Account{}
+
+	for rows.Next() {
+		var account model.Account
+		var configBytes []byte
+		err = rows.Scan(&account.ID, &account.Username, &account.Owner, &configBytes)
+		if err != nil {
+			return nil, errors.WithStack(err)
+		}
+		accounts = append(accounts, account)
 	}
 
 	return accounts, nil
@@ -598,13 +615,23 @@ func (db *PGDatabase) GetAccounts(ctx context.Context, opts GetAccountsOptions) 
 // Returns the account and boolean whether it's exist or not.
 func (db *PGDatabase) GetAccount(ctx context.Context, username string) (model.Account, bool, error) {
 	account := model.Account{}
-	if err := db.GetContext(ctx, &account, `SELECT
-		id, username, password, owner, config FROM account WHERE username = $1`,
-		username,
-	); err != nil {
-		return account, false, errors.WithStack(err)
-	}
 
+	row := db.QueryRowx(`SELECT
+		id, username, password, owner, config FROM account WHERE username = $1`,
+		username)
+	var configBytes []byte
+	_ = row.Scan(&account.ID, &account.Username, &account.Password, &account.Owner, &configBytes)
+	// Parse configBytes into UserConfig struct
+	var userConfig UserConfig
+	_ = json.Unmarshal(configBytes, &userConfig)
+	account.Config.ShowId = userConfig.ShowId
+	account.Config.ListMode = userConfig.ListMode
+	account.Config.HideThumbnail = userConfig.HideThumbnail
+	account.Config.HideExcerpt = userConfig.HideExcerpt
+	account.Config.NightMode = userConfig.NightMode
+	account.Config.KeepMetadata = userConfig.KeepMetadata
+	account.Config.UseArchive = userConfig.UseArchive
+	account.Config.MakePublic = userConfig.MakePublic
 	return account, account.ID != 0, nil
 }
 
