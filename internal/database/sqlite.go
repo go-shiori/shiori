@@ -667,7 +667,7 @@ func (db *SQLiteDatabase) SaveAccount(ctx context.Context, account model.Account
 // SaveAccountSettings update settings for specific account  in database. Returns error if any happened.
 func (db *SQLiteDatabase) SaveAccountSettings(ctx context.Context, account model.Account) error {
 	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
-		jsonConfig, _ := Jsonifiy(account.Config)
+		jsonConfig, _ := Jsonify(account.Config)
 		// Update account config in database for specific user
 		_, err := tx.Exec(`UPDATE account
 	   SET config = ?
