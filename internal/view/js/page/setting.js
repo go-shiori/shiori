@@ -89,9 +89,13 @@ export default {
                 HideThumbnail: this.appOptions.HideThumbnail,
                 HideExcerpt: this.appOptions.HideExcerpt,
                 NightMode: this.appOptions.NightMode,
-                KeepMetadata: this.appOptions.KeepMetadata,
-                UseArchive: this.appOptions.UseArchive,
-                MakePublic: this.appOptions.MakePublic,
+                ...(this.activeAccount.owner
+                    ? {
+                        KeepMetadata: this.appOptions.KeepMetadata,
+                        UseArchive: this.appOptions.UseArchive,
+                        MakePublic: this.appOptions.MakePublic,
+                    }
+                    :{}),
             });
             const request = {
                 username: this.activeAccount.username,

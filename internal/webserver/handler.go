@@ -129,3 +129,19 @@ func (h *handler) validateSession(r *http.Request) error {
 
 	return nil
 }
+
+// validateSession checks whether user session is still valid or not without owner status
+func (h *handler) validateSessionWithoutOwnerStatus(r *http.Request) error {
+	sessionID := h.getSessionID(r)
+	if sessionID == "" {
+		return fmt.Errorf("session is not exist")
+	}
+
+	// Make sure session is not expired yet
+	_, found := h.SessionCache.Get(sessionID)
+	if !found {
+		return fmt.Errorf("session has been expired")
+	}
+
+	return nil
+}

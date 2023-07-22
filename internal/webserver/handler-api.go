@@ -861,7 +861,7 @@ func (h *handler) apiUpdateSettings(w http.ResponseWriter, r *http.Request, ps h
 	ctx := r.Context()
 
 	// Make sure session still valid
-	err := h.validateSession(r)
+	err := h.validateSessionWithoutOwnerStatus(r)
 	checkError(err)
 
 	// Decode request
