@@ -108,7 +108,16 @@ func (h *handler) apiLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 		genSession(model.Account{
 			Username: "shiori",
 			Owner:    true,
-			Config:   "{\"showId\":false,\"listMode\":false,\"hideThumbnail\":false,\"hideExcerpt\":false,\"nightMode\":false,\"keepMetadata\":false,\"useArchive\":false,\"makePublic\":false}",
+			Config: model.UserConfig{
+				ShowId:        false,
+				ListMode:      false,
+				HideThumbnail: false,
+				HideExcerpt:   false,
+				NightMode:     false,
+				KeepMetadata:  false,
+				UseArchive:    false,
+				MakePublic:    false,
+			},
 		}, time.Hour)
 		return
 	}
@@ -857,8 +866,8 @@ func (h *handler) apiUpdateSettings(w http.ResponseWriter, r *http.Request, ps h
 
 	// Decode request
 	request := struct {
-		Username string `json:"username"`
-		Config   string `json:"config"`
+		Username string           `json:"username"`
+		Config   model.UserConfig `json:"config"`
 	}{}
 
 	err = json.NewDecoder(r.Body).Decode(&request)
