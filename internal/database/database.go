@@ -115,16 +115,7 @@ func (db *dbbase) withTx(ctx context.Context, fn func(tx *sqlx.Tx) error) error 
 }
 
 func Jsonify(uc model.UserConfig) ([]byte, error) {
-	jsonBytes, err := json.Marshal(map[string]interface{}{
-		"ShowId":        uc.ShowId,
-		"ListMode":      uc.ListMode,
-		"HideThumbnail": uc.HideThumbnail,
-		"HideExcerpt":   uc.HideExcerpt,
-		"NightMode":     uc.NightMode,
-		"KeepMetadata":  uc.KeepMetadata,
-		"UseArchive":    uc.UseArchive,
-		"MakePublic":    uc.MakePublic,
-	})
+	jsonBytes, err := json.Marshal(uc)
 	if err != nil {
 		return nil, err
 	}
