@@ -101,7 +101,6 @@ export default {
                 username: this.activeAccount.username,
                 config: this.appOptions
             };
-            // TODO: DO i need loading page? if no remove this.dialog.loading = false
             fetch(new URL("api/accountssettings", document.baseURI), {
                 method: "put",
                 body: JSON.stringify(request),
@@ -111,11 +110,7 @@ export default {
             }).then(response => {
                 if (!response.ok) throw response;
                 return response;
-            }).then(() => {
-                this.dialog.loading = false;
-                this.dialog.visible = false;
-            }).catch(err => {
-                this.dialog.loading = false;
+            }) .catch(err => {
                 this.getErrorMessage(err).then(msg => {
                     this.showErrorDialog(msg);
                 })
