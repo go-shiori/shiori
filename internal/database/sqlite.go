@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"log"
 	"strings"
 	"time"
@@ -646,7 +647,7 @@ func (db *SQLiteDatabase) SaveAccount(ctx context.Context, account model.Account
 		if err != nil {
 			return err
 		}
-		jsonConfig, _ := Jsonif(account.Config)
+		jsonConfig, _ := Jsonify(account.Config)
 
 		// Insert account to database
 		_, err = tx.Exec(`INSERT INTO account
@@ -666,11 +667,12 @@ func (db *SQLiteDatabase) SaveAccount(ctx context.Context, account model.Account
 // SaveAccountSettings update settings for specific account  in database. Returns error if any happened.
 func (db *SQLiteDatabase) SaveAccountSettings(ctx context.Context, account model.Account) error {
 	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
+		jsonConfig, _ := Jsonifiy(account.Config)
 		// Update account config in database for specific user
 		_, err := tx.Exec(`UPDATE account
 	   SET config = ?
 	   WHERE username = ?`,
-			account.Config, account.Username)
+			jsonConfig, account.Username)
 		return errors.WithStack(err)
 	}); err != nil {
 		return errors.WithStack(err)
@@ -732,6 +734,19 @@ func (db *SQLiteDatabase) GetAccount(ctx context.Context, username string) (mode
 		username)
 	var configBytes []byte
 	_ = row.Scan(&account.ID, &account.Username, &account.Password, &account.Owner, &configBytes)
+
+	// Parse configBytes into UserConfig struct
+	var userConfig UserConfig
+	_ = json.Unmarshal(configBytes, &userConfig)
+	account.Config.ShowId = userConfig.ShowId
+	account.Config.ListMode = userConfig.ListMode
+	account.Config.HideThumbnail = userConfig.HideThumbnail
+	account.Config.HideExcerpt = userConfig.HideExcerpt
+	account.Config.NightMode = userConfig.NightMode
+	account.Config.KeepMetadata = userConfig.KeepMetadata
+	account.Config.UseArchive = userConfig.UseArchive
+	account.Config.MakePublic = userConfig.MakePublic
+
 	return account, account.ID != 0, nil
 }
 

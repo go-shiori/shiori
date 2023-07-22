@@ -137,7 +137,7 @@ func IsJson(input string) error {
 	}
 }
 
-func Jsonif(uc model.UserConfig) ([]byte, error) {
+func Jsonify(uc model.UserConfig) ([]byte, error) {
 	jsonBytes, err := json.Marshal(map[string]interface{}{
 		"ShowId":        uc.ShowId,
 		"ListMode":      uc.ListMode,
