@@ -611,7 +611,7 @@ func (db *MySQLDatabase) GetAccount(ctx context.Context, username string) (model
 	_ = row.Scan(&account.ID, &account.Username, &account.Password, &account.Owner, &configBytes)
 
 	// Parse configBytes into UserConfig struct
-	var userConfig UserConfig
+	var userConfig model.UserConfig
 	_ = json.Unmarshal(configBytes, &userConfig)
 	account.Config.ShowId = userConfig.ShowId
 	account.Config.ListMode = userConfig.ListMode
