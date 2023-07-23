@@ -558,7 +558,6 @@ func (db *PGDatabase) SaveAccount(ctx context.Context, account model.Account) (e
 func (db *PGDatabase) SaveAccountSettings(ctx context.Context, account model.Account) (err error) {
 
 	// Insert account to database
-	//jsonConfig, _ := Jsonify(account.Config)
 	_, err = db.ExecContext(ctx, `UPDATE account
    		SET config = $1
    		WHERE username = $2`,
