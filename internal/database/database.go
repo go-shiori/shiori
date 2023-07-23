@@ -42,7 +42,6 @@ type GetBookmarksOptions struct {
 type GetAccountsOptions struct {
 	Keyword string
 	Owner   bool
-	Config  model.UserConfig
 }
 
 // DB is interface for accessing and manipulating data in database.

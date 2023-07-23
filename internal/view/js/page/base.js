@@ -19,7 +19,6 @@ export default {
 					NightMode: false,
 					HideThumbnail: false,
 					HideExcerpt: false,
-
 					KeepMetadata: false,
 					UseArchive: false,
 					createEbook: false,
