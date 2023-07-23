@@ -178,23 +178,11 @@ export default {
 						this.showErrorDialog("Password does not match");
 						return;
 					}
-                    const defaultconfig = {
-                        ShowId: false,
-                        ListMode: false,
-                        HideThumbnail: false,
-                        HideExcerpt: false,
-                        NightMode: false,
-                        KeepMetadata: false,
-                        UseArchive: false,
-                        MakePublic: false
-                    };
-                    data.config = defaultconfig;
 
 					var request = {
 						username: data.username,
 						password: data.password,
 						owner: !data.visitor,
-                        config: data.config,
 					}
 
 					this.dialog.loading = true;
