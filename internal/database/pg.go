@@ -3,7 +3,6 @@ package database
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"log"
 	"strings"
@@ -541,7 +540,6 @@ func (db *PGDatabase) SaveAccount(ctx context.Context, account model.Account) (e
 	if err != nil {
 		return err
 	}
-	jsonConfig, _ := Jsonify(account.Config)
 
 	// Insert account to database
 	_, err = db.ExecContext(ctx, `INSERT INTO account
@@ -549,7 +547,7 @@ func (db *PGDatabase) SaveAccount(ctx context.Context, account model.Account) (e
 		ON CONFLICT(username) DO UPDATE SET
 		password = $2,
 		owner = $3`,
-		account.Username, hashedPassword, account.Owner, jsonConfig)
+		account.Username, hashedPassword, account.Owner, account.Config)
 
 	return errors.WithStack(err)
 }
@@ -599,8 +597,7 @@ func (db *PGDatabase) GetAccounts(ctx context.Context, opts GetAccountsOptions) 
 
 	for rows.Next() {
 		var account model.Account
-		var configBytes []byte
-		err = rows.Scan(&account.ID, &account.Username, &account.Owner, &configBytes)
+		err = rows.Scan(&account.ID, &account.Username, &account.Owner, &account.Config)
 		if err != nil {
 			return nil, errors.WithStack(err)
 		}
@@ -618,13 +615,7 @@ func (db *PGDatabase) GetAccount(ctx context.Context, username string) (model.Ac
 	row := db.QueryRowx(`SELECT
 		id, username, password, owner, config FROM account WHERE username = $1`,
 		username)
-	var configBytes []byte
-	_ = row.Scan(&account.ID, &account.Username, &account.Password, &account.Owner, &configBytes)
-	// Parse configBytes into UserConfig struct
-	var userConfig model.UserConfig
-	_ = json.Unmarshal(configBytes, &userConfig)
-	// Assign values from userConfig to account.Config
-	account.Config = userConfig
+	_ = row.Scan(&account.ID, &account.Username, &account.Password, &account.Owner, &account.Config)
 	return account, account.ID != 0, nil
 }
 

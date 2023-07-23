@@ -3,7 +3,6 @@ package database
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"log"
 	"strings"
 	"time"
@@ -531,7 +530,6 @@ func (db *MySQLDatabase) SaveAccount(ctx context.Context, account model.Account)
 	if err != nil {
 		return errors.WithStack(err)
 	}
-	jsonConfig, _ := Jsonify(account.Config)
 
 	// Insert account to database
 	_, err = db.ExecContext(ctx, `INSERT INTO account
@@ -539,7 +537,7 @@ func (db *MySQLDatabase) SaveAccount(ctx context.Context, account model.Account)
 		ON DUPLICATE KEY UPDATE
 		password = VALUES(password),
 		owner = VALUES(owner)`,
-		account.Username, hashedPassword, account.Owner, jsonConfig)
+		account.Username, hashedPassword, account.Owner, account.Config)
 
 	return errors.WithStack(err)
 }
@@ -588,8 +586,7 @@ func (db *MySQLDatabase) GetAccounts(ctx context.Context, opts GetAccountsOption
 
 	for rows.Next() {
 		var account model.Account
-		var configBytes []byte
-		err = rows.Scan(&account.ID, &account.Username, &account.Owner, &configBytes)
+		err = rows.Scan(&account.ID, &account.Username, &account.Owner, &account.Config)
 		if err != nil {
 			return nil, errors.WithStack(err)
 		}
@@ -606,14 +603,7 @@ func (db *MySQLDatabase) GetAccount(ctx context.Context, username string) (model
 	row := db.QueryRowx(`SELECT
 		id, username, password, owner, config FROM account WHERE username = ?`,
 		username)
-	var configBytes []byte
-	_ = row.Scan(&account.ID, &account.Username, &account.Password, &account.Owner, &configBytes)
-
-	// Parse configBytes into UserConfig struct
-	var userConfig model.UserConfig
-	_ = json.Unmarshal(configBytes, &userConfig)
-	// Assign values from userConfig to account.Config
-	account.Config = userConfig
+	_ = row.Scan(&account.ID, &account.Username, &account.Password, &account.Owner, &account.Config)
 
 	return account, account.ID != 0, nil
 }
