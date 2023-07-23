@@ -547,11 +547,11 @@ func (db *MySQLDatabase) SaveAccount(ctx context.Context, account model.Account)
 // SaveAccountSettings update settings for specific account  in database. Returns error if any happened
 func (db *MySQLDatabase) SaveAccountSettings(ctx context.Context, account model.Account) (err error) {
 	// Update account config in database for specific user
-	jsonConfig, _ := Jsonify(account.Config)
+	//jsonConfig, _ := Jsonify(account.Config)
 	_, err = db.ExecContext(ctx, `UPDATE account
 		SET config = ?
 		WHERE username = ?`,
-		jsonConfig, account.Username)
+		account.Config, account.Username)
 
 	return errors.WithStack(err)
 }

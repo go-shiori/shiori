@@ -1,6 +1,7 @@
 package model
 
 import (
+	"database/sql/driver"
 	"encoding/json"
 	"errors"
 )
@@ -60,4 +61,8 @@ func (c *UserConfig) Scan(value interface{}) error {
 	}
 
 	return json.Unmarshal(b, c)
+}
+
+func (c UserConfig) Value() (driver.Value, error) {
+	return json.Marshal(c)
 }
