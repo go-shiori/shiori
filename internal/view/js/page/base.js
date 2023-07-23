@@ -21,7 +21,7 @@ export default {
 					HideExcerpt: false,
 					KeepMetadata: false,
 					UseArchive: false,
-					createEbook: false,
+					CreateEbook: false,
 					MakePublic: false,
 				};
 			}

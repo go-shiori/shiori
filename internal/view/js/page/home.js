@@ -677,7 +677,7 @@ export default {
 					name: "createEbook",
 					label: "Update Ebook as well",
 					type: "check",
-					value: this.appOptions.createEbook,
+					value: this.appOptions.CreateEbook,
                 }],
 				mainText: "Yes",
 				secondText: "No",
