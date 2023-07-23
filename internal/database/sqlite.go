@@ -696,26 +696,10 @@ func (db *SQLiteDatabase) GetAccounts(ctx context.Context, opts GetAccountsOptio
 	query += ` ORDER BY username`
 
 	// Fetch list account
-	rows, err := db.Queryx(query, args...)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-	defer func() {
-		err := rows.Close()
-		if err != nil {
-			log.Println(err)
-		}
-	}()
-
 	accounts := []model.Account{}
-
-	for rows.Next() {
-		var account model.Account
-		err = rows.Scan(&account.ID, &account.Username, &account.Owner, &account.Config)
-		if err != nil {
-			return nil, errors.WithStack(err)
-		}
-		accounts = append(accounts, account)
+	err := db.SelectContext(ctx, &accounts, query, args...)
+	if err != nil && err != sql.ErrNoRows {
+		return nil, errors.WithStack(err)
 	}
 
 	return accounts, nil
@@ -725,10 +709,12 @@ func (db *SQLiteDatabase) GetAccounts(ctx context.Context, opts GetAccountsOptio
 // Returns the account and boolean whether it's exist or not.
 func (db *SQLiteDatabase) GetAccount(ctx context.Context, username string) (model.Account, bool, error) {
 	account := model.Account{}
-	row := db.QueryRowx(`SELECT
+	if err := db.GetContext(ctx, &account, `SELECT
 		id, username, password, owner, config FROM account WHERE username = ?`,
-		username)
-	_ = row.Scan(&account.ID, &account.Username, &account.Password, &account.Owner, &account.Config)
+		username,
+	); err != nil {
+		return account, false, errors.WithStack(err)
+	}
 
 	return account, account.ID != 0, nil
 }
