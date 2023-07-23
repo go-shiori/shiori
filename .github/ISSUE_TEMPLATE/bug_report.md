@@ -4,14 +4,13 @@ about: Report problems with Shiori
 title: One line description of the bug
 labels: type:bug
 assignees: ''
-
 ---
 
 ## Data
-- **Shiori version**: 
-- **Database Engine**: 
-- **Operating system**: 
-- **CLI/Web interface/Web Extension**: 
+- **Shiori version**: If unknown, run `shiori version` in your terminal or check your server logs.
+- **Database Engine**: If unknown, SQLite is the default.
+- **Operating system**:
+- **CLI/Web interface/Web Extension**:
 
 ## Describe the bug / actual behavior
 A clear and concise description of what the bug is.
