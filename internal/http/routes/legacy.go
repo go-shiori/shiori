@@ -119,8 +119,6 @@ func (r *LegacyAPIRoutes) Setup(g *gin.Engine) {
 	legacyGroup.GET("/api/accounts", r.handle(r.legacyHandler.ApiGetAccounts))
 	// router.PUT(jp("/api/accounts"), withLogging(hdl.apiUpdateAccount))
 	legacyGroup.PUT("/api/accounts", r.handle(r.legacyHandler.ApiUpdateAccount))
-	//router.PUT(jp("/api/accountssettings"), withLogging(hdl.apiUpdateSettings))
-	legacyGroup.PUT("/api/accountssettings", r.handle(r.legacyHandler.ApiUpdateSettings))
 	// router.POST(jp("/api/accounts"), withLogging(hdl.apiInsertAccount))
 	legacyGroup.POST("/api/accounts", r.handle(r.legacyHandler.ApiInsertAccount))
 	// router.DELETE(jp("/api/accounts"), withLogging(hdl.apiDeleteAccount))

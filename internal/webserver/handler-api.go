@@ -752,41 +752,6 @@ func (h *Handler) ApiUpdateAccount(w http.ResponseWriter, r *http.Request, ps ht
 	fmt.Fprint(w, 1)
 }
 
-// ApiUpdateSettings is handler for PUT /api/accounts
-func (h *Handler) ApiUpdateSettings(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	ctx := r.Context()
-
-	// Make sure session still valid
-	err := h.validateSessionWithoutOwnerStatus(r)
-	checkError(err)
-
-	// Decode request
-	request := struct {
-		Username string           `json:"username"`
-		Config   model.UserConfig `json:"config"`
-	}{}
-
-	err = json.NewDecoder(r.Body).Decode(&request)
-	checkError(err)
-
-	// Get existing account data from database
-	account, exist, err := h.DB.GetAccount(ctx, request.Username)
-	checkError(err)
-
-	if !exist {
-		http.Error(w, "Username doesn't exist", http.StatusBadRequest)
-		return
-	}
-
-	// Save new config to database
-	account.Config = request.Config
-	//	account.Owner = request.Owner
-	err = h.DB.SaveAccountSettings(ctx, account)
-	checkError(err)
-
-	fmt.Fprint(w, 1)
-}
-
 // ApiDeleteAccount is handler for DELETE /api/accounts
 func (h *Handler) ApiDeleteAccount(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	ctx := r.Context()
