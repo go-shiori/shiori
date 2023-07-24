@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        go: ["1.19", "1.20"]
+        go: ["1.20"]
     services:
       postgres:
         image: postgres:15
@@ -33,10 +33,15 @@ jobs:
     name: Go ${{ matrix.go }} unit tests
     steps:
     - uses: actions/checkout@24cb9080177205b6e8c946b17badbe402adc938f # v3.4.0
+
     - name: Setup go
       uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v3.5.0
       with:
         go-version: ${{ matrix.go }}
+
+    - name: Set up gotestfmt
+      uses: gotesttools/gotestfmt-action@65f1d2228f06cc5e828b84597440fbd063d12ea2 # v2.1.0
+
     - uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 # 3.3.1
       with:
         path: |
@@ -46,8 +51,10 @@ jobs:
         restore-keys: |
           golangci-lint.cache-{interval_number}-
           golangci-lint.cache-
-    - run: go test ./...
+
+    - run: make unittest
       env:
         SHIORI_TEST_PG_URL: "postgres://shiori:shiori@localhost:5432/shiori?sslmode=disable"
         SHIORI_TEST_MYSQL_URL: "shiori:shiori@(localhost:3306)/shiori"
+
     - run: CGO_ENABLED=0 go build -tags osusergo,netgo -ldflags="-s -w -X main.version=$(git describe --tags) -X main.date=$(date --iso-8601=seconds)"

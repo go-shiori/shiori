@@ -29,6 +29,8 @@ func addCmd() *cobra.Command {
 }
 
 func addHandler(cmd *cobra.Command, args []string) {
+	cfg, deps := initShiori(cmd.Context(), cmd)
+
 	// Read flag and arguments
 	url := args[0]
 	title, _ := cmd.Flags().GetString("title")
@@ -70,7 +72,7 @@ func addHandler(cmd *cobra.Command, args []string) {
 	}
 
 	// Save bookmark to database
-	books, err := db.SaveBookmarks(cmd.Context(), true, book)
+	books, err := deps.Database.SaveBookmarks(cmd.Context(), true, book)
 	if err != nil {
 		cError.Printf("Failed to save bookmark: %v\n", err)
 		os.Exit(1)
@@ -90,7 +92,7 @@ func addHandler(cmd *cobra.Command, args []string) {
 
 		if err == nil && content != nil {
 			request := core.ProcessRequest{
-				DataDir:     dataDir,
+				DataDir:     cfg.Storage.DataDir,
 				Bookmark:    book,
 				Content:     content,
 				ContentType: contentType,
@@ -112,7 +114,7 @@ func addHandler(cmd *cobra.Command, args []string) {
 		}
 
 		// Save bookmark to database
-		_, err = db.SaveBookmarks(cmd.Context(), false, book)
+		_, err = deps.Database.SaveBookmarks(cmd.Context(), false, book)
 		if err != nil {
 			cError.Printf("Failed to save bookmark with content: %v\n", err)
 			os.Exit(1)

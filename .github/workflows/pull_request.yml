@@ -2,7 +2,8 @@ name: 'Pull Request'
 
 on:
   pull_request:
-    branches: master
+    branches:
+    - master
 
 concurrency:
   group: ci-tests-${{ github.ref }}-1
@@ -13,3 +14,9 @@ jobs:
     uses: ./.github/workflows/_golangci-lint.yml
   call-test:
     uses: ./.github/workflows/_test.yml
+  call-gorelease:
+    needs: [call-lint, call-test]
+    uses: ./.github/workflows/_gorelease.yml
+  call-buildx:
+    needs: call-gorelease
+    uses: ./.github/workflows/_buildx.yml

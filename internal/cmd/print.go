@@ -32,6 +32,8 @@ func printCmd() *cobra.Command {
 }
 
 func printHandler(cmd *cobra.Command, args []string) {
+	_, deps := initShiori(cmd.Context(), cmd)
+
 	// Read flags
 	tags, _ := cmd.Flags().GetStringSlice("tags")
 	keyword, _ := cmd.Flags().GetString("search")
@@ -61,7 +63,7 @@ func printHandler(cmd *cobra.Command, args []string) {
 		OrderMethod:  orderMethod,
 	}
 
-	bookmarks, err := db.GetBookmarks(cmd.Context(), searchOptions)
+	bookmarks, err := deps.Database.GetBookmarks(cmd.Context(), searchOptions)
 	if err != nil {
 		cError.Printf("Failed to get bookmarks: %v\n", err)
 		return

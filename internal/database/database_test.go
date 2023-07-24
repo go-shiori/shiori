@@ -13,6 +13,7 @@ type testDatabaseFactory func(ctx context.Context) (DB, error)
 
 func testDatabase(t *testing.T, dbFactory testDatabaseFactory) {
 	tests := map[string]databaseTestCase{
+		// Bookmarks
 		"testBookmarkAutoIncrement":       testBookmarkAutoIncrement,
 		"testCreateBookmark":              testCreateBookmark,
 		"testCreateBookmarkWithContent":   testCreateBookmarkWithContent,
@@ -25,6 +26,9 @@ func testDatabase(t *testing.T, dbFactory testDatabaseFactory) {
 		"testGetBookmarkNotExistant":      testGetBookmarkNotExistant,
 		"testGetBookmarks":                testGetBookmarks,
 		"testGetBookmarksCount":           testGetBookmarksCount,
+		// Tags
+		"testCreateTag":  testCreateTag,
+		"testCreateTags": testCreateTags,
 	}
 
 	for testName, testCase := range tests {
@@ -274,4 +278,17 @@ func testGetBookmarksCount(t *testing.T, db DB) {
 	})
 	assert.NoError(t, err, "Get bookmarks count should not fail")
 	assert.Equal(t, count, expectedCount, "count should be %d", expectedCount)
+}
+
+func testCreateTag(t *testing.T, db DB) {
+	ctx := context.TODO()
+	tag := model.Tag{Name: "shiori"}
+	err := db.CreateTags(ctx, tag)
+	assert.NoError(t, err, "Save tag must not fail")
+}
+
+func testCreateTags(t *testing.T, db DB) {
+	ctx := context.TODO()
+	err := db.CreateTags(ctx, model.Tag{Name: "shiori"}, model.Tag{Name: "shiori2"})
+	assert.NoError(t, err, "Save tag must not fail")
 }

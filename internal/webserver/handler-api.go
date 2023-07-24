@@ -13,12 +13,10 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/go-shiori/shiori/internal/core"
 	"github.com/go-shiori/shiori/internal/database"
 	"github.com/go-shiori/shiori/internal/model"
-	"github.com/gofrs/uuid"
 	"github.com/julienschmidt/httprouter"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -48,113 +46,10 @@ func downloadBookmarkContent(book *model.Bookmark, dataDir string, request *http
 	return &result, err
 }
 
-// apiLogin is handler for POST /api/login
-func (h *handler) apiLogin(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	ctx := r.Context()
-
-	// Decode request
-	request := struct {
-		Username string `json:"username"`
-		Password string `json:"password"`
-		Remember bool   `json:"remember"`
-		Owner    bool   `json:"owner"`
-	}{}
-
-	err := json.NewDecoder(r.Body).Decode(&request)
-	checkError(err)
-
-	// Prepare function to generate session
-	genSession := func(account model.Account, expTime time.Duration) {
-		// Create session ID
-		sessionID, err := uuid.NewV4()
-		checkError(err)
-
-		// Save session ID to cache
-		strSessionID := sessionID.String()
-		h.SessionCache.Set(strSessionID, account, expTime)
-
-		// Save user's session IDs to cache as well
-		// useful for mass logout
-		sessionIDs := []string{strSessionID}
-		if val, found := h.UserCache.Get(request.Username); found {
-			sessionIDs = val.([]string)
-			sessionIDs = append(sessionIDs, strSessionID)
-		}
-		h.UserCache.Set(request.Username, sessionIDs, -1)
-
-		// Send login result
-		account.Password = ""
-		loginResult := struct {
-			Session string        `json:"session"`
-			Account model.Account `json:"account"`
-			Expires string        `json:"expires"`
-		}{strSessionID, account, time.Now().UTC().Add(expTime).Format(time.RFC1123)}
-
-		w.Header().Set("Content-Type", "application/json")
-		err = json.NewEncoder(w).Encode(&loginResult)
-		checkError(err)
-	}
-
-	// Check if user's database is empty or there are no owner.
-	// If yes, and user uses default account, let him in.
-	searchOptions := database.GetAccountsOptions{
-		Owner: true,
-	}
-
-	accounts, err := h.DB.GetAccounts(ctx, searchOptions)
-	checkError(err)
-
-	if len(accounts) == 0 && request.Username == "shiori" && request.Password == "gopher" {
-		genSession(model.Account{
-			Username: "shiori",
-			Owner:    true,
-			Config: model.UserConfig{
-				ShowId:        false,
-				ListMode:      false,
-				HideThumbnail: false,
-				HideExcerpt:   false,
-				NightMode:     false,
-				KeepMetadata:  false,
-				UseArchive:    false,
-				MakePublic:    false,
-			},
-		}, time.Hour)
-		return
-	}
-
-	// Get account data from database
-	account, exist, err := h.DB.GetAccount(ctx, request.Username)
-	checkError(err)
-
-	if !exist {
-		panic(fmt.Errorf("username doesn't exist"))
-	}
-
-	// Compare password with database
-	err = bcrypt.CompareHashAndPassword([]byte(account.Password), []byte(request.Password))
-	if err != nil {
-		panic(fmt.Errorf("username and password don't match"))
-	}
-
-	// If login request is as owner, make sure this account is owner
-	if request.Owner && !account.Owner {
-		panic(fmt.Errorf("account level is not sufficient as owner"))
-	}
-
-	// Calculate expiration time
-	expTime := time.Hour
-	if request.Remember {
-		expTime = time.Hour * 24 * 30
-	}
-
-	// Create session
-	genSession(account, expTime)
-}
-
-// apiLogout is handler for POST /api/logout
-func (h *handler) apiLogout(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+// ApiLogout is handler for POST /api/logout
+func (h *Handler) ApiLogout(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	// Get session ID
-	sessionID := h.getSessionID(r)
+	sessionID := h.GetSessionID(r)
 	if sessionID != "" {
 		h.SessionCache.Delete(sessionID)
 	}
@@ -162,8 +57,8 @@ func (h *handler) apiLogout(w http.ResponseWriter, r *http.Request, ps httproute
 	fmt.Fprint(w, 1)
 }
 
-// apiGetBookmarks is handler for GET /api/bookmarks
-func (h *handler) apiGetBookmarks(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+// ApiGetBookmarks is handler for GET /api/bookmarks
+func (h *Handler) ApiGetBookmarks(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	ctx := r.Context()
 
 	// Make sure session still valid
@@ -241,8 +136,8 @@ func (h *handler) apiGetBookmarks(w http.ResponseWriter, r *http.Request, ps htt
 	checkError(err)
 }
 
-// apiGetTags is handler for GET /api/tags
-func (h *handler) apiGetTags(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+// ApiGetTags is handler for GET /api/tags
+func (h *Handler) ApiGetTags(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	ctx := r.Context()
 
 	// Make sure session still valid
@@ -258,8 +153,8 @@ func (h *handler) apiGetTags(w http.ResponseWriter, r *http.Request, ps httprout
 	checkError(err)
 }
 
-// apiRenameTag is handler for PUT /api/tag
-func (h *handler) apiRenameTag(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+// ApiRenameTag is handler for PUT /api/tag
+func (h *Handler) ApiRenameTag(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	ctx := r.Context()
 
 	// Make sure session still valid
@@ -298,8 +193,8 @@ func newAPIInsertBookmarkPayload() *apiInsertBookmarkPayload {
 	}
 }
 
-// apiInsertBookmark is handler for POST /api/bookmark
-func (h *handler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+// ApiInsertBookmark is handler for POST /api/bookmark
+func (h *Handler) ApiInsertBookmark(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	ctx := r.Context()
 
 	// Make sure session still valid
@@ -326,6 +221,7 @@ func (h *handler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 		panic(fmt.Errorf("failed to clean URL: %v", err))
 	}
 
+	userHasDefinedTitle := book.Title != ""
 	// Make sure bookmark's title not empty
 	if book.Title == "" {
 		book.Title = book.URL
@@ -341,7 +237,7 @@ func (h *handler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 
 	if payload.Async {
 		go func() {
-			bookmark, err := downloadBookmarkContent(book, h.DataDir, r, book.Title != "", book.Excerpt != "")
+			bookmark, err := downloadBookmarkContent(book, h.DataDir, r, !userHasDefinedTitle, book.Excerpt != "")
 			if err != nil {
 				log.Printf("error downloading boorkmark: %s", err)
 				return
@@ -353,7 +249,7 @@ func (h *handler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 	} else {
 		// Workaround. Download content after saving the bookmark so we have the proper database
 		// id already set in the object regardless of the database engine.
-		book, err = downloadBookmarkContent(book, h.DataDir, r, book.Title != "", book.Excerpt != "")
+		book, err = downloadBookmarkContent(book, h.DataDir, r, !userHasDefinedTitle, book.Excerpt != "")
 		if err != nil {
 			log.Printf("error downloading boorkmark: %s", err)
 		} else if _, err := h.DB.SaveBookmarks(ctx, false, *book); err != nil {
@@ -367,8 +263,8 @@ func (h *handler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 	checkError(err)
 }
 
-// apiDeleteBookmarks is handler for DELETE /api/bookmark
-func (h *handler) apiDeleteBookmark(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+// ApiDeleteBookmarks is handler for DELETE /api/bookmark
+func (h *Handler) ApiDeleteBookmark(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	ctx := r.Context()
 
 	// Make sure session still valid
@@ -399,8 +295,8 @@ func (h *handler) apiDeleteBookmark(w http.ResponseWriter, r *http.Request, ps h
 	fmt.Fprint(w, 1)
 }
 
-// apiUpdateBookmark is handler for PUT /api/bookmarks
-func (h *handler) apiUpdateBookmark(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+// ApiUpdateBookmark is handler for PUT /api/bookmarks
+func (h *Handler) ApiUpdateBookmark(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	ctx := r.Context()
 
 	// Make sure session still valid
@@ -476,8 +372,8 @@ func (h *handler) apiUpdateBookmark(w http.ResponseWriter, r *http.Request, ps h
 	checkError(err)
 }
 
-// apiDownloadEbook is handler for PUT /api/ebook
-func (h *handler) apiDownloadEbook(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+// ApiDownloadEbook is handler for PUT /api/ebook
+func (h *Handler) ApiDownloadEbook(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	ctx := r.Context()
 
 	// Make sure session still valid
@@ -574,8 +470,8 @@ func (h *handler) apiDownloadEbook(w http.ResponseWriter, r *http.Request, ps ht
 	checkError(err)
 }
 
-// apiUpdateCache is handler for PUT /api/cache
-func (h *handler) apiUpdateCache(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+// ApiUpdateCache is handler for PUT /api/cache
+func (h *Handler) ApiUpdateCache(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	ctx := r.Context()
 
 	// Make sure session still valid
@@ -695,8 +591,8 @@ func (h *handler) apiUpdateCache(w http.ResponseWriter, r *http.Request, ps http
 	checkError(err)
 }
 
-// apiUpdateBookmarkTags is handler for PUT /api/bookmarks/tags
-func (h *handler) apiUpdateBookmarkTags(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+// ApiUpdateBookmarkTags is handler for PUT /api/bookmarks/tags
+func (h *Handler) ApiUpdateBookmarkTags(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	ctx := r.Context()
 
 	// Make sure session still valid
@@ -767,8 +663,8 @@ func (h *handler) apiUpdateBookmarkTags(w http.ResponseWriter, r *http.Request, 
 	checkError(err)
 }
 
-// apiGetAccounts is handler for GET /api/accounts
-func (h *handler) apiGetAccounts(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+// ApiGetAccounts is handler for GET /api/accounts
+func (h *Handler) ApiGetAccounts(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	ctx := r.Context()
 
 	// Make sure session still valid
@@ -784,8 +680,8 @@ func (h *handler) apiGetAccounts(w http.ResponseWriter, r *http.Request, ps http
 	checkError(err)
 }
 
-// apiInsertAccount is handler for POST /api/accounts
-func (h *handler) apiInsertAccount(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+// ApiInsertAccount is handler for POST /api/accounts
+func (h *Handler) ApiInsertAccount(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	ctx := r.Context()
 
 	// Make sure session still valid
@@ -804,8 +700,8 @@ func (h *handler) apiInsertAccount(w http.ResponseWriter, r *http.Request, ps ht
 	fmt.Fprint(w, 1)
 }
 
-// apiUpdateAccount is handler for PUT /api/accounts
-func (h *handler) apiUpdateAccount(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+// ApiUpdateAccount is handler for PUT /api/accounts
+func (h *Handler) ApiUpdateAccount(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	ctx := r.Context()
 
 	// Make sure session still valid
@@ -856,8 +752,8 @@ func (h *handler) apiUpdateAccount(w http.ResponseWriter, r *http.Request, ps ht
 	fmt.Fprint(w, 1)
 }
 
-// apiUpdateSettings is handler for PUT /api/accounts
-func (h *handler) apiUpdateSettings(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+// ApiUpdateSettings is handler for PUT /api/accounts
+func (h *Handler) ApiUpdateSettings(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	ctx := r.Context()
 
 	// Make sure session still valid
@@ -891,8 +787,8 @@ func (h *handler) apiUpdateSettings(w http.ResponseWriter, r *http.Request, ps h
 	fmt.Fprint(w, 1)
 }
 
-// apiDeleteAccount is handler for DELETE /api/accounts
-func (h *handler) apiDeleteAccount(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+// ApiDeleteAccount is handler for DELETE /api/accounts
+func (h *Handler) ApiDeleteAccount(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	ctx := r.Context()
 
 	// Make sure session still valid

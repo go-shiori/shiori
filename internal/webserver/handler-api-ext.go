@@ -16,8 +16,8 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-// apiInsertViaExtension is handler for POST /api/bookmarks/ext
-func (h *handler) apiInsertViaExtension(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+// ApiInsertViaExtension is handler for POST /api/bookmarks/ext
+func (h *Handler) ApiInsertViaExtension(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	ctx := r.Context()
 
 	// Make sure session still valid
@@ -75,7 +75,7 @@ func (h *handler) apiInsertViaExtension(w http.ResponseWriter, r *http.Request, 
 	// Save the bookmark with whatever we already have downloaded
 	// since we need the ID in order to download the archive
 	// Only when old bookmark is not exists.
-	if (!exist) {
+	if !exist {
 		books, err := h.DB.SaveBookmarks(ctx, true, request)
 		if err != nil {
 			log.Printf("error saving bookmark before downloading content: %s", err)
@@ -117,8 +117,8 @@ func (h *handler) apiInsertViaExtension(w http.ResponseWriter, r *http.Request, 
 	checkError(err)
 }
 
-// apiDeleteViaExtension is handler for DELETE /api/bookmark/ext
-func (h *handler) apiDeleteViaExtension(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+// ApiDeleteViaExtension is handler for DELETE /api/bookmark/ext
+func (h *Handler) ApiDeleteViaExtension(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	ctx := r.Context()
 
 	// Make sure session still valid

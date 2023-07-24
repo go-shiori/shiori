@@ -1,0 +1,12 @@
+name: 'Clean up Docker images from PR'
+
+on:
+  pull_request:
+    types:
+    - closed
+
+jobs:
+  delete-tag:
+    uses: ./.github/workflows/_delete-registry-tag.yml
+    with:
+      tag_name: pr-${{ github.event.pull_request.number }}

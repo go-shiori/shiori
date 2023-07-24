@@ -2,24 +2,24 @@
 <html lang="en">
 
 <head>
-	<base href="$$.$$">
+	<base href="$$.RootPath$$">
 	<title>Login - Shiori</title>
 
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-	<link rel="apple-touch-icon-precomposed" sizes="152x152" href="res/apple-touch-icon-152x152.png">
-	<link rel="apple-touch-icon-precomposed" sizes="144x144" href="res/apple-touch-icon-144x144.png">
-	<link rel="icon" type="image/png" href="res/favicon-32x32.png" sizes="32x32">
-	<link rel="icon" type="image/png" href="res/favicon-16x16.png" sizes="16x16">
-	<link rel="icon" type="image/x-icon" href="res/favicon.ico">
+	<link rel="apple-touch-icon-precomposed" sizes="152x152" href="assets/res/apple-touch-icon-152x152.png">
+	<link rel="apple-touch-icon-precomposed" sizes="144x144" href="assets/res/apple-touch-icon-144x144.png">
+	<link rel="icon" type="image/png" href="assets/res/favicon-32x32.png" sizes="32x32">
+	<link rel="icon" type="image/png" href="assets/res/favicon-16x16.png" sizes="16x16">
+	<link rel="icon" type="image/x-icon" href="assets/res/favicon.ico">
 
-	<link href="css/source-sans-pro.min.css" rel="stylesheet">
-	<link href="css/fontawesome.min.css" rel="stylesheet">
-	<link href="css/stylesheet.css" rel="stylesheet">
+	<link href="assets/css/source-sans-pro.min.css" rel="stylesheet">
+	<link href="assets/css/fontawesome.min.css" rel="stylesheet">
+	<link href="assets/css/stylesheet.css" rel="stylesheet">
 
-	<script src="js/vue.min.js"></script>
-	<script src="js/url.min.js"></script>
+	<script src="assets/js/vue.min.js"></script>
+	<script src="assets/js/url.min.js"></script>
 </head>
 
 <body>
@@ -50,6 +50,9 @@
 				</div>
 			</form>
 		</div>
+		<div>
+			<p>$$.Version$$</p>
+		</div>
 	</div>
 
 	<script type="module">
@@ -70,12 +73,26 @@
 							return err.message;
 						case Response:
 							var text = await err.text();
+
+							// Handle new error messages
+							if (text[0] == "{") {
+								var json = JSON.parse(text);
+								return json.message;
+							}
 							return `${text} (${err.status})`;
 						default:
 							return err;
 					}
 				},
 				login() {
+					function parseJWT(token) {
+						try {
+							return JSON.parse(atob(token.split('.')[1]));
+						} catch (e) {
+							return null;
+						}
+					}
+
 					// needed to work around autofill issue
 					// https://github.com/facebook/react/issues/1159#issuecomment-506584346
 					this.username = document.querySelector('#username').value;
@@ -92,12 +109,12 @@
 					// Send request
 					this.loading = true;
 
-					fetch(new URL("api/login", document.baseURI), {
+					fetch(new URL("api/v1/auth/login", document.baseURI), {
 						method: "post",
 						body: JSON.stringify({
 							username: this.username,
 							password: this.password,
-							remember: this.remember == 1 ? true : false,
+							remember_me: this.remember == 1 ? true : false,
 						}),
 						headers: { "Content-Type": "application/json" },
 					}).then(response => {
@@ -105,14 +122,15 @@
 						return response.json();
 					}).then(json => {
 						// Save session id
-						document.cookie = `session-id=${json.session}; Path=${new URL(document.baseURI).pathname}; Expires=${json.expires}`;
+						document.cookie = `session-id=${json.message.session}; Path=${new URL(document.baseURI).pathname}; Expires=${json.message.expires}`;
 
 						// Save account data
-						localStorage.setItem("shiori-account", JSON.stringify(json.account));
-                        localStorage.setItem("shiori-setting", JSON.stringify(json.account.config));
+						localStorage.setItem("shiori-token", JSON.stringify(json.message.token));
+						localStorage.setItem("shiori-account", JSON.stringify(parseJWT(json.message.token).account));
+						localStorage.setItem("shiori-setting", JSON.stringify(parseJWT(json.message.token).account.config));
 
 						// Go to destination page
-						var currentUrl = new Url,
+						var currentUrl = new Url(),
 							dstUrl = currentUrl.query.dst,
 							dstPage = currentUrl.hash || "home";
 
@@ -120,8 +138,10 @@
 							dstPage = "";
 						}
 
+						// TODO: Improve this redirect logic
 						var newUrl = new Url(dstUrl || document.baseURI);
 						newUrl.hash = dstPage;
+
 						location.href = newUrl;
 					}).catch(err => {
 						this.loading = false;
@@ -141,6 +161,7 @@
 				// Load setting
 				this.loadSetting();
 				localStorage.removeItem("shiori-account");
+				localStorage.removeItem("shiori-token");
 
 				// <input autofocus> wasn't working all the time, so I'm putting this here as a fallback
 				document.querySelector('#username').focus()

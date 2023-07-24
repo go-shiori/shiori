@@ -25,6 +25,8 @@ func pocketCmd() *cobra.Command {
 }
 
 func pocketHandler(cmd *cobra.Command, args []string) {
+	_, deps := initShiori(cmd.Context(), cmd)
+
 	// Open pocket's file
 	srcFile, err := os.Open(args[0])
 	if err != nil {
@@ -70,7 +72,7 @@ func pocketHandler(cmd *cobra.Command, args []string) {
 			return
 		}
 
-		_, exist, err := db.GetBookmark(cmd.Context(), 0, url)
+		_, exist, err := deps.Database.GetBookmark(cmd.Context(), 0, url)
 		if err != nil {
 			cError.Printf("Skip %s: Get Bookmark fail, %v", url, err)
 			return
@@ -103,7 +105,7 @@ func pocketHandler(cmd *cobra.Command, args []string) {
 	})
 
 	// Save bookmark to database
-	bookmarks, err = db.SaveBookmarks(cmd.Context(), true, bookmarks...)
+	bookmarks, err = deps.Database.SaveBookmarks(cmd.Context(), true, bookmarks...)
 	if err != nil {
 		cError.Printf("Failed to save bookmarks: %v\n", err)
 		os.Exit(1)

@@ -29,6 +29,8 @@ func checkCmd() *cobra.Command {
 }
 
 func checkHandler(cmd *cobra.Command, args []string) {
+	_, deps := initShiori(cmd.Context(), cmd)
+
 	// Parse flags
 	skipConfirm, _ := cmd.Flags().GetBool("yes")
 
@@ -53,7 +55,7 @@ func checkHandler(cmd *cobra.Command, args []string) {
 
 	// Fetch bookmarks from database
 	filterOptions := database.GetBookmarksOptions{IDs: ids}
-	bookmarks, err := db.GetBookmarks(cmd.Context(), filterOptions)
+	bookmarks, err := deps.Database.GetBookmarks(cmd.Context(), filterOptions)
 	if err != nil {
 		cError.Printf("Failed to get bookmarks: %v\n", err)
 		os.Exit(1)

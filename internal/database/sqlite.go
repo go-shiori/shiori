@@ -42,7 +42,7 @@ func OpenSQLiteDatabase(ctx context.Context, databasePath string) (sqliteDB *SQL
 	}
 
 	sqliteDB = &SQLiteDatabase{dbbase: dbbase{*db}}
-	return sqliteDB, err
+	return sqliteDB, nil
 }
 
 // Migrate runs migrations for this database engine
@@ -738,6 +738,36 @@ func (db *SQLiteDatabase) DeleteAccounts(ctx context.Context, usernames ...strin
 		return nil
 	}); err != nil {
 		return errors.WithStack(err)
+	}
+
+	return nil
+}
+
+// CreateTags creates new tags from submitted objects.
+func (db *SQLiteDatabase) CreateTags(ctx context.Context, tags ...model.Tag) error {
+	query := `INSERT INTO tag (name) VALUES `
+	values := []interface{}{}
+
+	for _, t := range tags {
+		query += "(?),"
+		values = append(values, t.Name)
+	}
+	query = query[0 : len(query)-1]
+
+	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
+		stmt, err := tx.Preparex(query)
+		if err != nil {
+			return errors.Wrap(errors.WithStack(err), "error preparing query")
+		}
+
+		_, err = stmt.ExecContext(ctx, values...)
+		if err != nil {
+			return errors.Wrap(errors.WithStack(err), "error executing query")
+		}
+
+		return nil
+	}); err != nil {
+		return errors.Wrap(errors.WithStack(err), "error running transaction")
 	}
 
 	return nil

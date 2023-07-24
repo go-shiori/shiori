@@ -1,11 +1,5 @@
 package model
 
-import (
-	"database/sql/driver"
-	"encoding/json"
-	"errors"
-)
-
 // Tag is the tag for a bookmark.
 type Tag struct {
 	ID         int    `db:"id"          json:"id"`
@@ -32,37 +26,4 @@ type Bookmark struct {
 	Tags          []Tag  `json:"tags"`
 	CreateArchive bool   `json:"createArchive"`
 	CreateEbook   bool   `json:"createEbook"`
-}
-
-// Account is person that allowed to access web interface.
-type Account struct {
-	ID       int        `db:"id"                   json:"id"`
-	Username string     `db:"username"             json:"username"`
-	Password string     `db:"password"             json:"password,omitempty"`
-	Owner    bool       `db:"owner"                json:"owner"`
-	Config   UserConfig `db:"config"               json:"config"`
-}
-
-type UserConfig struct {
-	ShowId        bool `json:"ShowId"`
-	ListMode      bool `json:"ListMode"`
-	HideThumbnail bool `json:"HideThumbnail"`
-	HideExcerpt   bool `json:"HideExcerpt"`
-	NightMode     bool `json:"NightMode"`
-	KeepMetadata  bool `json:"KeepMetadata"`
-	UseArchive    bool `json:"UseArchive"`
-	MakePublic    bool `json:"MakePublic"`
-}
-
-func (c *UserConfig) Scan(value interface{}) error {
-	b, ok := value.([]byte)
-	if !ok {
-		return errors.New("unexpected type for UserConfig")
-	}
-
-	return json.Unmarshal(b, c)
-}
-
-func (c UserConfig) Value() (driver.Value, error) {
-	return json.Marshal(c)
 }

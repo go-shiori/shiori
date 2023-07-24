@@ -1,0 +1,22 @@
+name: Delete registry tag
+
+on:
+  workflow_call:
+    inputs:
+      tag_name:
+        description: 'The docker tag to remove'
+        required: true
+        type: string
+
+jobs:
+  purge-image-tag:
+    name: Delete image from ghcr.io
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete image tag
+        uses: bots-house/ghcr-delete-image-action@3827559c68cb4dcdf54d813ea9853be6d468d3a4 # v1.1.0
+        with:
+          owner: go-shiori
+          name: shiori
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ inputs.tag_name }}

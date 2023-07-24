@@ -23,10 +23,10 @@ jobs:
           mv binaries/shiori_linux_amd64_v1 binaries/shiori_linux_amd64
           gzip -d -S binaries/.gz__  -r .
           chmod 755 binaries/shiori_linux_*/shiori
-      - name: Buildx
-        working-directory: .github/workflows/docker
+      - name: Prepare master push tags
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         run: |
-          echo "${{ secrets.GITHUB_TOKEN }}" | docker login -u "${{ github.repository_owner }}" --password-stdin ghcr.io
+          echo "tag_flags=--tag ${{ github.ref }}" >> $GITHUB_ENV
           REPO=ghcr.io/${{ github.repository }}
           TAG=$(git describe --tags)
           if [ -z "$(git tag --points-at HEAD)" ]
@@ -35,5 +35,19 @@ jobs:
           else
             TAG2="latest"
           fi
+          echo "tag_flags=--tag $REPO:$TAG --tag $REPO:$TAG2" >> $GITHUB_ENV
+
+      - name: Prepare pull request tags
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "tag_flags=--tag ${{ github.ref }}" >> $GITHUB_ENV
+          REPO=ghcr.io/${{ github.repository }}
+          echo "tag_flags=--tag $REPO:pr-${{ github.event.pull_request.number }}" >> $GITHUB_ENV
+
+      - name: Buildx
+        working-directory: .github/workflows/docker
+        run: |
+          set -x
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login -u "${{ github.repository_owner }}" --password-stdin ghcr.io
           docker buildx create --use --name builder
-          docker buildx build -f Dockerfile.ci --platform=linux/amd64,arm64,linux/arm/v7 --push --output=type=registry --tag $REPO:$TAG --tag $REPO:$TAG2 .
+          docker buildx build -f Dockerfile.ci --platform=linux/amd64,arm64,linux/arm/v7 --push ${{ env.tag_flags }} .

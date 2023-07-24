@@ -24,8 +24,10 @@ func exportCmd() *cobra.Command {
 }
 
 func exportHandler(cmd *cobra.Command, args []string) {
+	_, deps := initShiori(cmd.Context(), cmd)
+
 	// Fetch bookmarks from database
-	bookmarks, err := db.GetBookmarks(cmd.Context(), database.GetBookmarksOptions{})
+	bookmarks, err := deps.Database.GetBookmarks(cmd.Context(), database.GetBookmarksOptions{})
 	if err != nil {
 		cError.Printf("Failed to get bookmarks: %v\n", err)
 		os.Exit(1)
