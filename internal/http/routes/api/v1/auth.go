@@ -23,6 +23,7 @@ func (r *AuthAPIRoutes) Setup(group *gin.RouterGroup) model.Routes {
 	group.GET("/me", r.meHandler)
 	group.POST("/login", r.loginHandler)
 	group.POST("/refresh", r.refreshHandler)
+	group.PUT("/account", r.settingsHandler)
 	return r
 }
 
@@ -46,6 +47,18 @@ type loginResponseMessage struct {
 	Token      string `json:"token"`
 	SessionID  string `json:"session"` // Deprecated, used only for legacy APIs
 	Expiration int64  `json:"expires"` // Deprecated, used only for legacy APIs
+}
+
+type settingRequestPayload struct {
+	Username string           `json:"username"    validate:"required"`
+	Config   model.UserConfig `json:"config"`
+}
+
+func (p *settingRequestPayload) IsValid() error {
+	if p.Username == "" {
+		return fmt.Errorf("username should not be empty")
+	}
+	return nil
 }
 
 // loginHandler godoc
@@ -144,6 +157,40 @@ func (r *AuthAPIRoutes) meHandler(c *gin.Context) {
 	ctx := context.NewContextFromGin(c)
 	if !ctx.UserIsLogged() {
 		response.SendError(c, http.StatusForbidden, nil)
+		return
+	}
+
+	response.Send(c, http.StatusOK, ctx.GetAccount())
+}
+
+func (r *AuthAPIRoutes) settingsHandler(c *gin.Context) {
+	var payload settingRequestPayload
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		response.SendInternalServerError(c)
+		return
+	}
+
+	if err := payload.IsValid(); err != nil {
+		response.SendError(c, http.StatusBadRequest, err.Error())
+		return
+	}
+	ctx := context.NewContextFromGin(c)
+	if ctx.UserIsLogged() {
+		response.SendError(c, http.StatusForbidden, nil)
+		return
+	}
+
+	account, _, err := r.deps.Database.GetAccount(c, payload.Username)
+	if err != nil {
+		response.SendInternalServerError(c)
+		return
+	}
+	account.Config = payload.Config
+	//fmt.Println(account)
+
+	err = r.deps.Database.SaveAccountSettings(c, account)
+	if err != nil {
+		response.SendInternalServerError(c)
 		return
 	}
 

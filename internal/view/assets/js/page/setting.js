@@ -97,16 +97,18 @@ export default {
                     }
                     :{}),
             });
-            const request = {
+    //        const request = {
+    //            username: this.activeAccount.username,
+    //            config: this.appOptions
+    //        };
+            fetch(new URL("api/v1/auth/account", document.baseURI), {
+                method: "put",
+                body: JSON.stringify({
                 username: this.activeAccount.username,
                 config: this.appOptions
-            };
-            fetch(new URL("api/accountssettings", document.baseURI), {
-                method: "put",
-                body: JSON.stringify(request),
-                headers: {
-                    "Content-Type": "application/json",
-                },
+                    //request
+                }),
+				headers: { "Content-Type": "application/json" },
             }).then(response => {
                 if (!response.ok) throw response;
                 return response;
