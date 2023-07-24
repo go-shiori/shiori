@@ -3,7 +3,6 @@ package database
 import (
 	"context"
 	"embed"
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/url"
@@ -135,12 +134,4 @@ func (db *dbbase) withTx(ctx context.Context, fn func(tx *sqlx.Tx) error) error 
 	}
 
 	return err
-}
-
-func Jsonify(uc model.UserConfig) ([]byte, error) {
-	jsonBytes, err := json.Marshal(uc)
-	if err != nil {
-		return nil, err
-	}
-	return jsonBytes, nil
 }
