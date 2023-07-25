@@ -23,7 +23,7 @@ func (r *AuthAPIRoutes) Setup(group *gin.RouterGroup) model.Routes {
 	group.GET("/me", r.meHandler)
 	group.POST("/login", r.loginHandler)
 	group.POST("/refresh", r.refreshHandler)
-	group.PUT("/account", r.settingsHandler)
+	group.PATCH("/account", r.settingsHandler)
 	return r
 }
 
@@ -164,6 +164,11 @@ func (r *AuthAPIRoutes) meHandler(c *gin.Context) {
 }
 
 func (r *AuthAPIRoutes) settingsHandler(c *gin.Context) {
+	ctx := context.NewContextFromGin(c)
+	if ctx.UserIsLogged() {
+		response.SendError(c, http.StatusForbidden, nil)
+		return
+	}
 	var payload settingRequestPayload
 	if err := c.ShouldBindJSON(&payload); err != nil {
 		response.SendInternalServerError(c)
@@ -172,11 +177,6 @@ func (r *AuthAPIRoutes) settingsHandler(c *gin.Context) {
 
 	if err := payload.IsValid(); err != nil {
 		response.SendError(c, http.StatusBadRequest, err.Error())
-		return
-	}
-	ctx := context.NewContextFromGin(c)
-	if ctx.UserIsLogged() {
-		response.SendError(c, http.StatusForbidden, nil)
 		return
 	}
 

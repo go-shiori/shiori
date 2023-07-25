@@ -81,10 +81,10 @@ export default {
 			accounts: []
 		}
 	},
-	methods: {
-		saveSetting() {
-			this.$emit("setting-changed", {
-				ShowId: this.appOptions.ShowId,
+    methods: {
+        saveSetting() {
+            this.$emit("setting-changed", {
+                ShowId: this.appOptions.ShowId,
                 ListMode: this.appOptions.ListMode,
                 HideThumbnail: this.appOptions.HideThumbnail,
                 HideExcerpt: this.appOptions.HideExcerpt,
@@ -97,18 +97,14 @@ export default {
                     }
                     :{}),
             });
-    //        const request = {
-    //            username: this.activeAccount.username,
-    //            config: this.appOptions
-    //        };
-            fetch(new URL("api/v1/auth/account", document.baseURI), {
-                method: "put",
+            //request
+            fetch(new URL("/api/v1/auth/account", document.baseURI), {
+                method: "PATCH",
                 body: JSON.stringify({
-                username: this.activeAccount.username,
-                config: this.appOptions
-                    //request
+                    username: this.activeAccount.username,
+                    config: this.appOptions
                 }),
-				headers: { "Content-Type": "application/json" },
+                headers: { "Content-Type": "application/json" },
             }).then(response => {
                 if (!response.ok) throw response;
                 return response;
