@@ -167,30 +167,25 @@ func (r *AuthAPIRoutes) settingsHandler(c *gin.Context) {
 	ctx := context.NewContextFromGin(c)
 	if ctx.UserIsLogged() {
 		response.SendError(c, http.StatusForbidden, nil)
-		return
 	}
 	var payload settingRequestPayload
 	if err := c.ShouldBindJSON(&payload); err != nil {
 		response.SendInternalServerError(c)
-		return
 	}
 
 	if err := payload.IsValid(); err != nil {
 		response.SendError(c, http.StatusBadRequest, err.Error())
-		return
 	}
 
 	account, _, err := r.deps.Database.GetAccount(c, payload.Username)
 	if err != nil {
 		response.SendInternalServerError(c)
-		return
 	}
 	account.Config = payload.Config
 
 	err = r.deps.Database.SaveAccountSettings(c, account)
 	if err != nil {
 		response.SendInternalServerError(c)
-		return
 	}
 
 	response.Send(c, http.StatusOK, ctx.GetAccount())
