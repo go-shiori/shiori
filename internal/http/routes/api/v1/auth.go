@@ -23,7 +23,7 @@ func (r *AuthAPIRoutes) Setup(group *gin.RouterGroup) model.Routes {
 	group.GET("/me", r.meHandler)
 	group.POST("/login", r.loginHandler)
 	group.POST("/refresh", r.refreshHandler)
-	group.PATCH("/account", r.settingsHandler)
+	group.PUT("/account", r.settingsHandler)
 	return r
 }
 
@@ -186,7 +186,6 @@ func (r *AuthAPIRoutes) settingsHandler(c *gin.Context) {
 		return
 	}
 	account.Config = payload.Config
-	//fmt.Println(account)
 
 	err = r.deps.Database.SaveAccountSettings(c, account)
 	if err != nil {
