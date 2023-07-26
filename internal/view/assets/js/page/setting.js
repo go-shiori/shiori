@@ -83,20 +83,24 @@ export default {
 	},
     methods: {
         saveSetting() {
-            this.$emit("setting-changed", {
+            let options = {
                 ShowId: this.appOptions.ShowId,
                 ListMode: this.appOptions.ListMode,
                 HideThumbnail: this.appOptions.HideThumbnail,
                 HideExcerpt: this.appOptions.HideExcerpt,
                 NightMode: this.appOptions.NightMode,
-                ...(this.activeAccount.owner
-                    ? {
-                        KeepMetadata: this.appOptions.KeepMetadata,
-                        UseArchive: this.appOptions.UseArchive,
-                        MakePublic: this.appOptions.MakePublic,
-                    }
-                    :{}),
-            });
+            };
+
+            if (this.activeAccount.owner) {
+                options = {
+                    ...options,
+                    KeepMetadata: this.appOptions.KeepMetadata,
+                    UseArchive: this.appOptions.UseArchive,
+                    MakePublic: this.appOptions.MakePublic,
+                };
+            }
+
+            this.$emit("setting-changed", options);
             //request
             fetch(new URL("/api/v1/auth/account", document.baseURI), {
                 method: "PATCH",
