@@ -3,7 +3,7 @@ package model
 import (
 	"database/sql/driver"
 	"encoding/json"
-	"errors"
+	"fmt"
 )
 
 // Account is the database model for account.
@@ -45,12 +45,16 @@ type AccountDTO struct {
 }
 
 func (c *UserConfig) Scan(value interface{}) error {
-	b, ok := value.([]byte)
-	if !ok {
-		return errors.New("unexpected type for UserConfig")
+	switch v := value.(type) {
+	case []byte:
+		json.Unmarshal(v, &c)
+		return nil
+	case string:
+		json.Unmarshal([]byte(v), &c)
+		return nil
+	default:
+		return fmt.Errorf("unsupported type: %T", v)
 	}
-
-	return json.Unmarshal(b, c)
 }
 
 func (c UserConfig) Value() (driver.Value, error) {
