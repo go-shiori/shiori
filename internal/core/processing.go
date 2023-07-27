@@ -146,6 +146,7 @@ func ProcessBookmark(req ProcessRequest) (book model.Bookmark, isFatalErr bool, 
 	if book.CreateArchive {
 		archivePath := fp.Join(req.DataDir, "archive", fmt.Sprintf("%d", book.ID))
 		os.Remove(archivePath)
+		os.Remove(imgPath)
 
 		archivalRequest := warc.ArchivalRequest{
 			URL:         book.URL,
