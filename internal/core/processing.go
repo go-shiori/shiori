@@ -98,6 +98,12 @@ func ProcessBookmark(req ProcessRequest) (book model.Bookmark, isFatalErr bool, 
 			book.Title = book.URL
 		}
 
+		if book.CreateArchive {
+			archivePath := fp.Join(req.DataDir, "archive", fmt.Sprintf("%d", book.ID))
+			imgPath := fp.Join(req.DataDir, "thumb", fmt.Sprintf("%d", book.ID))
+			os.Remove(archivePath)
+			os.Remove(imgPath)
+		}
 		// Get image URL
 		if article.Image != "" {
 			imageURLs = append(imageURLs, article.Image)
@@ -145,9 +151,6 @@ func ProcessBookmark(req ProcessRequest) (book model.Bookmark, isFatalErr bool, 
 	// If needed, create offline archive as well
 	if book.CreateArchive {
 		archivePath := fp.Join(req.DataDir, "archive", fmt.Sprintf("%d", book.ID))
-		os.Remove(archivePath)
-		os.Remove(imgPath)
-
 		archivalRequest := warc.ArchivalRequest{
 			URL:         book.URL,
 			Reader:      archivalInput,
