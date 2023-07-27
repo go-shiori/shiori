@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 	fp "path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/pkg/errors"
@@ -60,6 +62,8 @@ func GenerateEbook(req ProcessRequest) (book model.Bookmark, err error) {
 		}
 	}
 	// create epub file
+	ebookIdentifier := GenerateEPUBIdentifier()
+
 	epubFile, err := os.Create(ebookfile)
 	if err != nil {
 		return book, errors.Wrap(err, "can't create ebook")
@@ -101,10 +105,10 @@ func GenerateEbook(req ProcessRequest) (book model.Bookmark, err error) {
 		return book, errors.Wrap(err, "can't create content.opf")
 	}
 	_, err = contentOpfWriter.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
-<package xmlns="http://www.idpf.org/2007/opf" version="2.0" unique-identifier="BookId">
+<package xmlns="http://www.idpf.org/2007/opf" version="2.0" unique-identifier="` + ebookIdentifier + `">
   <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
     <dc:title>` + book.Title + `</dc:title>
-    <dc:identifier xmlns:opf="http://www.idpf.org/2007/opf" id="BookId" opf:scheme="uuid">BookId</dc:identifier>
+    <dc:identifier xmlns:opf="http://www.idpf.org/2007/opf" id="` + ebookIdentifier + `" opf:scheme="uuid">` + ebookIdentifier + `</dc:identifier>
   </metadata>
   <manifest>
     <item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml"/>
@@ -150,7 +154,7 @@ img {
   "http://www.daisy.org/z3986/2005/ncx-2005-1.dtd">
 <ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1">
   <head>
-    <meta name="dtb:uid" content="urn:uuid:12345678-1234-5678-1234-567812345678"/>
+    <meta name="dtb:uid" content="urn:uuid:` + ebookIdentifier + `"/>
     <meta name="dtb:depth" content="1"/>
     <meta name="dtb:totalPageCount" content="0"/>
     <meta name="dtb:maxPageNumber" content="0"/>
@@ -252,4 +256,24 @@ func GetImages(html string) (map[string]string, error) {
 	}
 
 	return images, nil
+}
+
+func GenerateEPUBIdentifier() string {
+	rand.Seed(time.Now().UnixNano())
+
+	// Define the valid characters for the identifier
+	validChars := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_:."
+
+	// Generate a random identifier of length 24
+	identifier := make([]byte, 24)
+	for i := range identifier {
+		identifier[i] = validChars[rand.Intn(len(validChars))]
+	}
+
+	// Ensure the identifier starts with a letter
+	if identifier[0] >= '0' && identifier[0] <= '9' {
+		identifier[0] = validChars[rand.Intn(52)] // Generate a random letter
+	}
+
+	return string(identifier)
 }
