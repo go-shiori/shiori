@@ -259,7 +259,8 @@ func GetImages(html string) (map[string]string, error) {
 }
 
 func GenerateEPUBIdentifier() string {
-	rand.Seed(time.Now().UnixNano())
+	src := rand.NewSource(time.Now().UnixNano())
+	rnd := rand.New(src)
 
 	// Define the valid characters for the identifier
 	validChars := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_:."
@@ -267,12 +268,12 @@ func GenerateEPUBIdentifier() string {
 	// Generate a random identifier of length 24
 	identifier := make([]byte, 24)
 	for i := range identifier {
-		identifier[i] = validChars[rand.Intn(len(validChars))]
+		identifier[i] = validChars[rnd.Intn(len(validChars))]
 	}
 
 	// Ensure the identifier starts with a letter
 	if identifier[0] >= '0' && identifier[0] <= '9' {
-		identifier[0] = validChars[rand.Intn(52)] // Generate a random letter
+		identifier[0] = validChars[rnd.Intn(52)] // Generate a random letter
 	}
 
 	return string(identifier)
