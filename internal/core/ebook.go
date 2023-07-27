@@ -102,8 +102,9 @@ func GenerateEbook(req ProcessRequest) (book model.Bookmark, err error) {
 	}
 	_, err = contentOpfWriter.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
 <package xmlns="http://www.idpf.org/2007/opf" version="2.0" unique-identifier="BookId">
-  <metadata>
+  <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
     <dc:title>` + book.Title + `</dc:title>
+    <dc:identifier xmlns:opf="http://www.idpf.org/2007/opf" id="BookId" opf:scheme="uuid">BookId</dc:identifier>
   </metadata>
   <manifest>
     <item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml"/>
