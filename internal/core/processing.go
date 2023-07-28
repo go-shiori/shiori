@@ -128,17 +128,20 @@ func ProcessBookmark(req ProcessRequest) (book model.Bookmark, isFatalErr bool, 
 
 	// If needed, create ebook as well
 	if book.CreateEbook {
-		//	ebookPath := fp.Join(req.DataDir, "ebook", fmt.Sprintf("%d.epub", book.ID))
-		ebookPath := fp.Join(req.DataDir, "ebook")
-		//	os.Remove(ebookPath)
+		ebookFile := fp.Join(req.DataDir, "ebook", fmt.Sprintf("%d.epub", book.ID))
+		tmpebookfile := fp.Join(req.DataDir, "tmp/ebook", fmt.Sprintf("%d.epub", book.ID))
+		tmpEbookPath := fp.Join(req.DataDir, "tmp/ebook")
 
 		if strings.Contains(contentType, "application/pdf") {
 			return book, false, errors.Wrap(err, "can't create ebook from pdf")
 		} else {
-			_, err = GenerateEbook(req, ebookPath)
+			_, err = GenerateEbook(req, tmpEbookPath)
 			if err != nil {
+				os.Remove(tmpebookfile)
 				return book, true, errors.Wrap(err, "failed to create ebook")
 			}
+			os.Remove(ebookFile)
+			os.Rename(tmpebookfile, ebookFile)
 			book.HasEbook = true
 		}
 	}
@@ -146,7 +149,7 @@ func ProcessBookmark(req ProcessRequest) (book model.Bookmark, isFatalErr bool, 
 	// If needed, create offline archive as well
 	if book.CreateArchive {
 		archivePath := fp.Join(req.DataDir, "archive", fmt.Sprintf("%d", book.ID))
-		os.Remove(archivePath)
+		tmpArchivePath := fp.Join(req.DataDir, "tmp/archive", fmt.Sprintf("%d", book.ID))
 
 		archivalRequest := warc.ArchivalRequest{
 			URL:         book.URL,
@@ -156,11 +159,13 @@ func ProcessBookmark(req ProcessRequest) (book model.Bookmark, isFatalErr bool, 
 			LogEnabled:  req.LogArchival,
 		}
 
-		err = warc.NewArchive(archivalRequest, archivePath)
+		err = warc.NewArchive(archivalRequest, tmpArchivePath)
 		if err != nil {
+			os.Remove(tmpArchivePath)
 			return book, false, fmt.Errorf("failed to create archive: %v", err)
 		}
-
+		os.Remove(archivePath)
+		os.Rename(tmpArchivePath, archivePath)
 		book.HasArchive = true
 	}
 
