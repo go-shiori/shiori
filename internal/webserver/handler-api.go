@@ -434,7 +434,9 @@ func (h *Handler) ApiDownloadEbook(w http.ResponseWriter, r *http.Request, ps ht
 				ContentType: contentType,
 			}
 
-			book, err = core.GenerateEbook(request)
+			//TODO: if file exist book return avilable file
+			ebookPath := fp.Join(request.DataDir, "ebook")
+			book, err = core.GenerateEbook(request, ebookPath)
 			content.Close()
 
 			if err != nil {

@@ -16,7 +16,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func GenerateEbook(req ProcessRequest) (book model.Bookmark, err error) {
+func GenerateEbook(req ProcessRequest, dstPath string) (book model.Bookmark, err error) {
 	// variable for store generated html code
 	var html string
 
@@ -40,34 +40,28 @@ func GenerateEbook(req ProcessRequest) (book model.Bookmark, err error) {
 	if _, err := os.Stat(archivePath); err == nil {
 		book.HasArchive = true
 	}
-	ebookfile := fp.Join(req.DataDir, "ebook", fmt.Sprintf("%d.epub", book.ID))
-	// if epub exist finish prosess else continue
-	if _, err := os.Stat(ebookfile); err == nil {
-		book.HasEbook = true
-		return book, nil
-	}
+
 	contentType := req.ContentType
 	if strings.Contains(contentType, "application/pdf") {
 		return book, errors.New("can't create ebook for pdf")
 	}
 
-	ebookDir := fp.Join(req.DataDir, "ebook")
 	// check if directory not exsist create that
-	if _, err := os.Stat(ebookDir); os.IsNotExist(err) {
-		err := os.MkdirAll(ebookDir, model.DataDirPerm)
+	if _, err := os.Stat(dstPath); os.IsNotExist(err) {
+		err := os.MkdirAll(dstPath, model.DataDirPerm)
 		if err != nil {
 			return book, errors.Wrap(err, "can't create ebook directory")
 		}
 	}
 	// create epub file
-	epubFile, err := os.Create(ebookfile)
+	dstFile, err := os.Create(fp.Join(dstPath, fmt.Sprintf("%d.epub", book.ID)))
 	if err != nil {
 		return book, errors.Wrap(err, "can't create ebook")
 	}
-	defer epubFile.Close()
+	defer dstFile.Close()
 
 	// Create zip archive
-	epubWriter := zip.NewWriter(epubFile)
+	epubWriter := zip.NewWriter(dstFile)
 	defer epubWriter.Close()
 
 	// Create the mimetype file

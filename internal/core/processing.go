@@ -128,13 +128,14 @@ func ProcessBookmark(req ProcessRequest) (book model.Bookmark, isFatalErr bool, 
 
 	// If needed, create ebook as well
 	if book.CreateEbook {
-		ebookPath := fp.Join(req.DataDir, "ebook", fmt.Sprintf("%d.epub", book.ID))
-		os.Remove(ebookPath)
+		//	ebookPath := fp.Join(req.DataDir, "ebook", fmt.Sprintf("%d.epub", book.ID))
+		ebookPath := fp.Join(req.DataDir, "ebook")
+		//	os.Remove(ebookPath)
 
 		if strings.Contains(contentType, "application/pdf") {
 			return book, false, errors.Wrap(err, "can't create ebook from pdf")
 		} else {
-			_, err = GenerateEbook(req)
+			_, err = GenerateEbook(req, ebookPath)
 			if err != nil {
 				return book, true, errors.Wrap(err, "failed to create ebook")
 			}
