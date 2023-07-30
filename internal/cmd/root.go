@@ -82,7 +82,7 @@ func initShiori(ctx context.Context, cmd *cobra.Command) (*config.Config, *confi
 		logger.WithError(err).Fatal("error creating data directory")
 	}
 
-	db, err := openDatabase(ctx, cfg.Database.DBMS, cfg.Database.URL)
+	db, err := openDatabase(logger, ctx, cfg)
 	if err != nil {
 		logger.WithError(err).Fatal("error opening database")
 	}
@@ -124,23 +124,24 @@ func initShiori(ctx context.Context, cmd *cobra.Command) (*config.Config, *confi
 	return cfg, dependencies
 }
 
-func openDatabase(ctx context.Context, dbms, dbURL string) (database.DB, error) {
-	if dbURL != "" {
-		return database.Connect(ctx, dbURL)
+func openDatabase(logger *logrus.Logger, ctx context.Context, cfg *config.Config) (database.DB, error) {
+	if cfg.Database.URL != "" {
+		return database.Connect(ctx, cfg.Database.URL)
 	}
-	if dbms == "mysql" {
+
+	if cfg.Database.DBMS != "" {
+		logger.Warnf("The use of SHIORI_DBMS is deprecated and will be removed in the future. Please migrate to SHIORI_DATABASE_URL instead.")
+	}
+
+	// TODO remove this the moment DBMS is deprecated
+	if cfg.Database.DBMS == "mysql" {
 		return openMySQLDatabase(ctx)
 	}
-	if dbms == "postgresql" {
+	if cfg.Database.DBMS == "postgresql" {
 		return openPostgreSQLDatabase(ctx)
 	}
-	return openSQLiteDatabase(ctx)
-}
 
-func openSQLiteDatabase(ctx context.Context) (database.DB, error) {
-	dataDir := os.Getenv("SHIORI_DIR")
-	dbPath := fp.Join(dataDir, "shiori.db")
-	return database.OpenSQLiteDatabase(ctx, dbPath)
+	return database.OpenSQLiteDatabase(ctx, fp.Join(cfg.Storage.DataDir, "shiori.db"))
 }
 
 func openMySQLDatabase(ctx context.Context) (database.DB, error) {
