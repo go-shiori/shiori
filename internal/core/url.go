@@ -57,6 +57,10 @@ func RemoveUTMParams(url string) (string, error) {
 	tmp.RawQuery = queryEncodeWithoutEmptyValues(queries)
 
 	// Append fragment before returning URL.
-	returnUrl := tmp.String() + "#" + frag
-	return returnUrl, nil
+	if frag == "" {
+		return tmp.String(), nil
+	} else {
+		returnUrl := tmp.String() + "#" + frag
+		return returnUrl, nil
+	}
 }
