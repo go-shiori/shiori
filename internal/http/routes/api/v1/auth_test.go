@@ -3,6 +3,7 @@ package api_v1
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -182,5 +183,56 @@ func TestRefreshHandler(t *testing.T) {
 		w := testutil.PerformRequest(g, "POST", "/refresh", testutil.WithHeader(model.AuthorizationHeader, model.AuthorizationTokenType+" "+token))
 
 		require.Equal(t, http.StatusAccepted, w.Code)
+	})
+}
+
+func TestSettingsHandler(t *testing.T) {
+	logger := logrus.New()
+	ctx := context.TODO()
+	g := testutil.NewGin()
+
+	_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+	router := NewAuthAPIRoutes(logger, deps, noopLegacyLoginHandler)
+	g.Use(middleware.AuthMiddleware(deps))
+	router.Setup(g.Group("/"))
+
+	t.Run("token valid", func(t *testing.T) {
+		token, err := deps.Domains.Auth.CreateTokenForAccount(&model.Account{
+			Username: "shiori",
+		}, time.Now().Add(time.Minute))
+		require.NoError(t, err)
+
+		type settingRequestPayload struct {
+			Config model.UserConfig `json:"config"`
+		}
+		payload := settingRequestPayload{
+			Config: model.UserConfig{
+				// add your configuration data here
+			},
+		}
+		payloadJSON, err := json.Marshal(payload)
+		if err != nil {
+			logrus.Printf("problem")
+		}
+
+		w := testutil.PerformRequest(g, "PATCH", "/account", testutil.WithBody(string(payloadJSON)), testutil.WithHeader(model.AuthorizationHeader, model.AuthorizationTokenType+" "+token))
+
+		require.Equal(t, http.StatusOK, w.Code)
+
+	})
+
+	t.Run("config not valid", func(t *testing.T) {
+		token, err := deps.Domains.Auth.CreateTokenForAccount(&model.Account{
+			Username: "shiori",
+		}, time.Now().Add(time.Minute))
+		require.NoError(t, err)
+
+		type settingRequestPayload struct {
+			Config model.UserConfig `json:"config"`
+		}
+		w := testutil.PerformRequest(g, "PATCH", "/account", testutil.WithBody("notValidConfig"), testutil.WithHeader(model.AuthorizationHeader, model.AuthorizationTokenType+" "+token))
+
+		require.Equal(t, http.StatusInternalServerError, w.Code)
+
 	})
 }
