@@ -155,6 +155,15 @@ func (r *AuthAPIRoutes) meHandler(c *gin.Context) {
 	response.Send(c, http.StatusOK, ctx.GetAccount())
 }
 
+// settingsHandler godoc
+// @Summary      Get config for the current logged in user and save that in database
+// @Tags         Auth
+// @securityDefinitions.apikey ApiKeyAuth
+// @Param        payload   body    settingRequestPayload    false  "Config data"
+// @Produce      json
+// @Success      200  {object}  model.Account
+// @Failure      403  {object}  nil                   "Token not provided/invalid"
+// @Router       /api/v1/auth/account [patch]
 func (r *AuthAPIRoutes) settingsHandler(c *gin.Context) {
 	ctx := context.NewContextFromGin(c)
 	if !ctx.UserIsLogged() {
