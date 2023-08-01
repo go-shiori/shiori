@@ -113,7 +113,11 @@ export default {
                 },
             }).then(response => {
                 if (!response.ok) throw response;
-                return response;
+                return response.json();
+            }).then(responseData => {
+                const responseString = JSON.stringify(responseData.message);
+                localStorage.setItem('shiori-account', responseString);
+                //return response.json();
             }) .catch(err => {
                 this.getErrorMessage(err).then(msg => {
                     this.showErrorDialog(msg);

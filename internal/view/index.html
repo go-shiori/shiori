@@ -92,7 +92,6 @@
 								return response;
 							}).then(() => {
 								localStorage.removeItem("shiori-account");
-								localStorage.removeItem("shiori-setting");
 								document.cookie = `session-id=; Path=${new URL(document.baseURI).pathname}; Expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
 								location.href = new URL("login", document.baseURI);
 							}).catch(err => {
@@ -105,20 +104,19 @@
 					});
 				},
 				saveSetting(opts) {
-					localStorage.setItem("shiori-setting", JSON.stringify(opts));
 					this.appOptions = opts;
-					document.body.className = opts.NightMode ? "night" : "";
+					document.body.className = opts.config.NightMode ? "night" : "";
 				},
 				loadSetting() {
-					var opts = JSON.parse(localStorage.getItem("shiori-setting")) || {},
-						ShowId = (typeof opts.ShowId === "boolean") ? opts.ShowId : false,
-						ListMode = (typeof opts.ListMode === "boolean") ? opts.ListMode : false,
-						HideThumbnail = (typeof opts.HideThumbnail === "boolean") ? opts.HideThumbnail : false,
-						HideExcerpt = (typeof opts.HideExcerpt === "boolean") ? opts.HideExcerpt : false,
-						NightMode = (typeof opts.NightMode === "boolean") ? opts.NightMode : false,
-						KeepMetadata = (typeof opts.KeepMetadata === "boolean") ? opts.KeepMetadata : false,
-						UseArchive = (typeof opts.UseArchive === "boolean") ? opts.UseArchive : false,
-						MakePublic = (typeof opts.MakePublic === "boolean") ? opts.MakePublic : false;
+					var opts = JSON.parse(localStorage.getItem("shiori-account")) || {},
+						ShowId = (typeof opts.config.ShowId === "boolean") ? opts.config.ShowId : false,
+						ListMode = (typeof opts.config.ListMode === "boolean") ? opts.config.ListMode : false,
+						HideThumbnail = (typeof opts.config,HideThumbnail === "boolean") ? opts.config.HideThumbnail : false,
+						HideExcerpt = (typeof opts.config.HideExcerpt === "boolean") ? opts.config.HideExcerpt : false,
+						NightMode = (typeof opts.config.NightMode === "boolean") ? opts.config.NightMode : false,
+						KeepMetadata = (typeof opts.config.KeepMetadata === "boolean") ? opts.config.KeepMetadata : false,
+						UseArchive = (typeof opts.config.UseArchive === "boolean") ? opts.config.UseArchive : false,
+						MakePublic = (typeof opts.config.MakePublic === "boolean") ? opts.config.MakePublic : false;
 
 					this.appOptions = {
 						ShowId: ShowId,

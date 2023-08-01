@@ -62,11 +62,11 @@
 					return dayjs(strTime).format("D MMMM YYYY, HH:mm:ss");
 				},
 				loadSetting() {
-					var opts = JSON.parse(localStorage.getItem("shiori-setting")) || {},
-						ShowId = (typeof opts.ShowId === "boolean") ? opts.ShowId : false,
-						ListMode = (typeof opts.ListMode === "boolean") ? opts.ListMode : false,
-						NightMode = (typeof opts.NightMode === "boolean") ? opts.NightMode : false,
-						UseArchive = (typeof opts.UseArchive === "boolean") ? opts.UseArchive : false;
+					var opts = JSON.parse(localStorage.getItem("shiori-account")) || {},
+						ShowId = (typeof opts.config.ShowId === "boolean") ? opts.config.ShowId : false,
+						ListMode = (typeof opts.config.ListMode === "boolean") ? opts.config.ListMode : false,
+						NightMode = (typeof opts.config.NightMode === "boolean") ? opts.config.NightMode : false,
+						UseArchive = (typeof opts.config.UseArchive === "boolean") ? opts.config.UseArchive : false;
 
 					this.appOptions = {
 						ShowId: ShowId,

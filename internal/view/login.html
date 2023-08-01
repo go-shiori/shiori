@@ -127,7 +127,6 @@
 						// Save account data
 						localStorage.setItem("shiori-token", JSON.stringify(json.message.token));
 						localStorage.setItem("shiori-account", JSON.stringify(parseJWT(json.message.token).account));
-						localStorage.setItem("shiori-setting", JSON.stringify(parseJWT(json.message.token).account.config));
 
 						// Go to destination page
 						var currentUrl = new Url(),
@@ -151,8 +150,8 @@
 					});
 				},
 				loadSetting() {
-					var opts = JSON.parse(localStorage.getItem("shiori-setting")) || {},
-						NightMode = (typeof opts.NightMode === "boolean") ? opts.NightMode : false;
+					var opts = JSON.parse(localStorage.getItem("shiori-account")) || {},
+						NightMode = (typeof opts.config.NightMode === "boolean") ? opts.configNightMode : false;
 
 					this.NightMode = NightMode;
 				}
