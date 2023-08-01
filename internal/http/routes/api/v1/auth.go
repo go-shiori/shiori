@@ -50,15 +50,7 @@ type loginResponseMessage struct {
 }
 
 type settingRequestPayload struct {
-	Username string           `json:"username"    validate:"required"`
-	Config   model.UserConfig `json:"config"`
-}
-
-func (p *settingRequestPayload) IsValid() error {
-	if p.Username == "" {
-		return fmt.Errorf("username should not be empty")
-	}
-	return nil
+	Config model.UserConfig `json:"config"`
 }
 
 // loginHandler godoc
@@ -165,7 +157,7 @@ func (r *AuthAPIRoutes) meHandler(c *gin.Context) {
 
 func (r *AuthAPIRoutes) settingsHandler(c *gin.Context) {
 	ctx := context.NewContextFromGin(c)
-	if ctx.UserIsLogged() {
+	if !ctx.UserIsLogged() {
 		response.SendError(c, http.StatusForbidden, nil)
 	}
 	var payload settingRequestPayload
@@ -173,17 +165,10 @@ func (r *AuthAPIRoutes) settingsHandler(c *gin.Context) {
 		response.SendInternalServerError(c)
 	}
 
-	if err := payload.IsValid(); err != nil {
-		response.SendError(c, http.StatusBadRequest, err.Error())
-	}
-
-	account, _, err := r.deps.Database.GetAccount(c, payload.Username)
-	if err != nil {
-		response.SendInternalServerError(c)
-	}
+	account := ctx.GetAccount()
 	account.Config = payload.Config
 
-	err = r.deps.Database.SaveAccountSettings(c, account)
+	err := r.deps.Database.SaveAccountSettings(c, *account)
 	if err != nil {
 		response.SendInternalServerError(c)
 	}
