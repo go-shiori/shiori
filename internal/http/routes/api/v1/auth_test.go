@@ -227,9 +227,6 @@ func TestSettingsHandler(t *testing.T) {
 		}, time.Now().Add(time.Minute))
 		require.NoError(t, err)
 
-		type settingRequestPayload struct {
-			Config model.UserConfig `json:"config"`
-		}
 		w := testutil.PerformRequest(g, "PATCH", "/account", testutil.WithBody("notValidConfig"), testutil.WithHeader(model.AuthorizationHeader, model.AuthorizationTokenType+" "+token))
 
 		require.Equal(t, http.StatusInternalServerError, w.Code)
