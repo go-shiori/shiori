@@ -72,7 +72,7 @@ func ProcessBookmark(req ProcessRequest) (book model.Bookmark, isFatalErr bool, 
 
 		nurl, err := url.Parse(book.URL)
 		if err != nil {
-			return book, true, fmt.Errorf("Failed to parse url: %v", err)
+			return book, true, fmt.Errorf("failed to parse url: %v", err)
 		}
 
 		article, err := readability.FromReader(readabilityInput, nurl)
@@ -117,13 +117,17 @@ func ProcessBookmark(req ProcessRequest) (book model.Bookmark, isFatalErr bool, 
 	// Save article image to local disk
 	strID := strconv.Itoa(book.ID)
 	imgPath := fp.Join(req.DataDir, "thumb", strID)
+	tmpImgPath := fp.Join(req.DataDir, "tmp/thumb", strID)
 
 	for _, imageURL := range imageURLs {
-		err = downloadBookImage(imageURL, imgPath)
+		err = downloadBookImage(imageURL, tmpImgPath)
 		if err == nil {
 			book.ImageURL = path.Join("/", "bookmark", strID, "thumb")
+			os.Remove(tmpImgPath)
 			break
 		}
+		os.Remove(imgPath)
+		os.Rename(tmpImgPath, imgPath)
 	}
 
 	// If needed, create ebook as well
