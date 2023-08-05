@@ -117,17 +117,13 @@ func ProcessBookmark(req ProcessRequest) (book model.Bookmark, isFatalErr bool, 
 	// Save article image to local disk
 	strID := strconv.Itoa(book.ID)
 	imgPath := fp.Join(req.DataDir, "thumb", strID)
-	tmpImgPath := fp.Join(req.DataDir, "tmp/thumb", strID)
 
 	for _, imageURL := range imageURLs {
-		err = downloadBookImage(imageURL, tmpImgPath)
+		err = downloadBookImage(imageURL, imgPath)
 		if err == nil {
 			book.ImageURL = path.Join("/", "bookmark", strID, "thumb")
-			os.Remove(tmpImgPath)
 			break
 		}
-		os.Remove(imgPath)
-		os.Rename(tmpImgPath, imgPath)
 	}
 
 	// If needed, create ebook as well
@@ -200,6 +196,11 @@ func downloadBookImage(url, dstPath string) error {
 	if err != nil {
 		return fmt.Errorf("failed to create image dir: %v", err)
 	}
+	tmpFile, err := os.CreateTemp("", "image")
+	if err != nil {
+		return fmt.Errorf("failed to create temporary image file: %v", err)
+	}
+	defer os.Remove(tmpFile.Name())
 
 	dstFile, err := os.Create(dstPath)
 	if err != nil {
@@ -221,7 +222,7 @@ func downloadBookImage(url, dstPath string) error {
 	imgRatio := float64(imgWidth) / float64(imgHeight)
 
 	if imgWidth >= 600 && imgHeight >= 400 && imgRatio > 1.3 {
-		err = jpeg.Encode(dstFile, img, nil)
+		err = jpeg.Encode(tmpFile, img, nil)
 	} else {
 		// Create background
 		bg := image.NewNRGBA(imgRect)
@@ -246,11 +247,22 @@ func downloadBookImage(url, dstPath string) error {
 		draw.Draw(bg, bgRect, fg, fgPosition, draw.Over)
 
 		// Save to file
-		err = jpeg.Encode(dstFile, bg, nil)
+		err = jpeg.Encode(tmpFile, bg, nil)
 	}
 
 	if err != nil {
 		return fmt.Errorf("failed to save image %s: %v", url, err)
+	}
+
+	// Copy temporary file to destination
+	_, err = tmpFile.Seek(0, io.SeekStart)
+	if err != nil {
+		return fmt.Errorf("failed to rewind temporary image file: %v", err)
+	}
+
+	_, err = io.Copy(dstFile, tmpFile)
+	if err != nil {
+		return fmt.Errorf("failed to copy image to the destination")
 	}
 
 	return nil
