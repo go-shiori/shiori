@@ -715,8 +715,8 @@ export default {
                             if (data.createEbook && !book.hasEbook){
                                 faildCreateEbook.push(book.id);
                             }
-                        }),
-
+                        });
+                        if(faildCreateEbook.length > 0 || faildUpdateArchives.length > 0){
                         this.showDialog({
                             title: `Update Archive Error`,
                             content: `Bookmarks Update Archive Faild : ${faildUpdateArchives.join(", ")} 
@@ -727,6 +727,7 @@ export default {
                                 this.dialog.visible = false;
                             },
                         })
+                    }
                     }).catch(err => {
                         this.selection = [];
                         this.editMode = false;
