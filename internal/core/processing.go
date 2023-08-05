@@ -128,20 +128,15 @@ func ProcessBookmark(req ProcessRequest) (book model.Bookmark, isFatalErr bool, 
 
 	// If needed, create ebook as well
 	if book.CreateEbook {
-		ebookFile := fp.Join(req.DataDir, "ebook", fmt.Sprintf("%d.epub", book.ID))
-		tmpebookfile := fp.Join(req.DataDir, "tmp/ebook", fmt.Sprintf("%d.epub", book.ID))
-		tmpEbookPath := fp.Join(req.DataDir, "tmp/ebook")
+		ebookPath := fp.Join(req.DataDir, "ebook", strID)
 
 		if strings.Contains(contentType, "application/pdf") {
 			return book, false, errors.Wrap(err, "can't create ebook from pdf")
 		} else {
-			_, err = GenerateEbook(req, tmpEbookPath)
+			_, err = GenerateEbook(req, ebookPath)
 			if err != nil {
-				os.Remove(tmpebookfile)
 				return book, true, errors.Wrap(err, "failed to create ebook")
 			}
-			os.Remove(ebookFile)
-			os.Rename(tmpebookfile, ebookFile)
 			book.HasEbook = true
 		}
 	}
@@ -191,22 +186,12 @@ func downloadBookImage(url, dstPath string) error {
 	}
 
 	// At this point, the download has finished successfully.
-	// Prepare destination file.
-	err = os.MkdirAll(fp.Dir(dstPath), model.DataDirPerm)
-	if err != nil {
-		return fmt.Errorf("failed to create image dir: %v", err)
-	}
+	// Create tmpFile
 	tmpFile, err := os.CreateTemp("", "image")
 	if err != nil {
 		return fmt.Errorf("failed to create temporary image file: %v", err)
 	}
 	defer os.Remove(tmpFile.Name())
-
-	dstFile, err := os.Create(dstPath)
-	if err != nil {
-		return fmt.Errorf("failed to create image file: %v", err)
-	}
-	defer dstFile.Close()
 
 	// Parse image and process it.
 	// If image is smaller than 600x400 or its ratio is less than 4:3, resize.
@@ -254,6 +239,17 @@ func downloadBookImage(url, dstPath string) error {
 		return fmt.Errorf("failed to save image %s: %v", url, err)
 	}
 
+	// Prepare destination file.
+	err = os.MkdirAll(fp.Dir(dstPath), model.DataDirPerm)
+	if err != nil {
+		return fmt.Errorf("failed to create image dir: %v", err)
+	}
+
+	dstFile, err := os.Create(dstPath)
+	if err != nil {
+		return fmt.Errorf("failed to create image file: %v", err)
+	}
+	defer dstFile.Close()
 	// Copy temporary file to destination
 	_, err = tmpFile.Seek(0, io.SeekStart)
 	if err != nil {

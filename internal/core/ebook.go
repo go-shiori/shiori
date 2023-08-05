@@ -46,22 +46,16 @@ func GenerateEbook(req ProcessRequest, dstPath string) (book model.Bookmark, err
 		return book, errors.New("can't create ebook for pdf")
 	}
 
-	// check if directory not exsist create that
-	if _, err := os.Stat(dstPath); os.IsNotExist(err) {
-		err := os.MkdirAll(dstPath, model.DataDirPerm)
-		if err != nil {
-			return book, errors.Wrap(err, "can't create ebook directory")
-		}
-	}
-	// create epub file
-	dstFile, err := os.Create(fp.Join(dstPath, fmt.Sprintf("%d.epub", book.ID)))
+	// create temporary epub file
+	tmpFile, err := os.CreateTemp("", "ebook*.epub")
 	if err != nil {
-		return book, errors.Wrap(err, "can't create ebook")
+		return book, errors.Wrap(err, "can't create temporary EPUB file")
 	}
-	defer dstFile.Close()
+	defer tmpFile.Close()
+	defer os.Remove(tmpFile.Name())
 
 	// Create zip archive
-	epubWriter := zip.NewWriter(dstFile)
+	epubWriter := zip.NewWriter(tmpFile)
 	defer epubWriter.Close()
 
 	// Create the mimetype file
@@ -217,6 +211,43 @@ img {
 	if err != nil {
 		return book, errors.Wrap(err, "can't write into content.html")
 	}
+	// close epub and tmpFile
+	err = epubWriter.Close()
+	if err != nil {
+		return book, errors.Wrap(err, "failed to close EPUB writer")
+	}
+	err = tmpFile.Close()
+	if err != nil {
+		return book, errors.Wrap(err, "failed to close temporary EPUB file")
+	}
+	// open temporary file again
+	tmpFile, err = os.Open(tmpFile.Name())
+	if err != nil {
+		return book, errors.Wrap(err, "can't open temporary EPUB file")
+	}
+	defer tmpFile.Close()
+
+	// create ebook directory if it need
+	err = os.MkdirAll(fp.Dir(dstPath), model.DataDirPerm)
+
+	// create dstFile
+	dstFile, err := os.Create(dstPath + ".epub")
+	if err != nil {
+		return book, errors.Wrap(err, "can't create ebook in dstPath")
+	}
+	defer dstFile.Close()
+
+	// Copy the content from the temporary file to the destination file
+	_, err = tmpFile.Seek(0, io.SeekStart)
+	if err != nil {
+		return book, errors.Wrap(err, "failed to rewind temporary ebook file")
+	}
+
+	_, err = io.Copy(dstFile, tmpFile)
+	if err != nil {
+		return book, errors.Wrap(err, "failed to copy image to the destination")
+	}
+
 	book.HasEbook = true
 	return book, nil
 }
