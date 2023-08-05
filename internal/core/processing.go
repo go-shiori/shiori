@@ -164,25 +164,11 @@ func ProcessBookmark(req ProcessRequest) (book model.Bookmark, isFatalErr bool, 
 		}
 
 		// Prepare destination file.
-		archivePath := fp.Join(req.DataDir, "archive", fmt.Sprintf("%d", book.ID))
-		err = os.MkdirAll(fp.Dir(archivePath), model.DataDirPerm)
-		if err != nil {
-			return book, false, fmt.Errorf("failed to create destination directory archive: %v", err)
-		}
-		dstFile, err := os.Create(archivePath)
-		if err != nil {
-			return book, false, fmt.Errorf("failed to create destination archive: %v", err)
-		}
-		defer dstFile.Close()
-		// Copy temporary file to destination
-		_, err = tmpFile.Seek(0, io.SeekStart)
-		if err != nil {
-			return book, false, fmt.Errorf("failed to rewind temporary archive file: %v", err)
-		}
+		dstPath := fp.Join(req.DataDir, "archive", fmt.Sprintf("%d", book.ID))
 
-		_, err = io.Copy(dstFile, tmpFile)
+		err = MoveToDestination(dstPath, tmpFile)
 		if err != nil {
-			return book, false, fmt.Errorf("failed to copy archive to the destination %v", err)
+			return book, false, fmt.Errorf("failed move archive to destination `: %v", err)
 		}
 
 		book.HasArchive = true
@@ -263,26 +249,35 @@ func downloadBookImage(url, dstPath string) error {
 		return fmt.Errorf("failed to save image %s: %v", url, err)
 	}
 
-	// Prepare destination file.
-	err = os.MkdirAll(fp.Dir(dstPath), model.DataDirPerm)
+	err = MoveToDestination(dstPath, tmpFile)
 	if err != nil {
-		return fmt.Errorf("failed to create image dir: %v", err)
+		return err
+	}
+
+	return nil
+}
+
+func MoveToDestination(dstPath string, tmpFile *os.File) error {
+	// Prepare destination file.
+	err := os.MkdirAll(fp.Dir(dstPath), model.DataDirPerm)
+	if err != nil {
+		return fmt.Errorf("failed to create destination dir: %v", err)
 	}
 
 	dstFile, err := os.Create(dstPath)
 	if err != nil {
-		return fmt.Errorf("failed to create image file: %v", err)
+		return fmt.Errorf("failed to create destination file: %v", err)
 	}
 	defer dstFile.Close()
 	// Copy temporary file to destination
 	_, err = tmpFile.Seek(0, io.SeekStart)
 	if err != nil {
-		return fmt.Errorf("failed to rewind temporary image file: %v", err)
+		return fmt.Errorf("failed to rewind temporary file: %v", err)
 	}
 
 	_, err = io.Copy(dstFile, tmpFile)
 	if err != nil {
-		return fmt.Errorf("failed to copy image to the destination")
+		return fmt.Errorf("failed to copy file to the destination")
 	}
 
 	return nil

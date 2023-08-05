@@ -227,25 +227,9 @@ img {
 	}
 	defer tmpFile.Close()
 
-	// create ebook directory if it need
-	err = os.MkdirAll(fp.Dir(dstPath), model.DataDirPerm)
-
-	// create dstFile
-	dstFile, err := os.Create(dstPath + ".epub")
+	err = MoveToDestination(dstPath, tmpFile)
 	if err != nil {
-		return book, errors.Wrap(err, "can't create ebook in dstPath")
-	}
-	defer dstFile.Close()
-
-	// Copy the content from the temporary file to the destination file
-	_, err = tmpFile.Seek(0, io.SeekStart)
-	if err != nil {
-		return book, errors.Wrap(err, "failed to rewind temporary ebook file")
-	}
-
-	_, err = io.Copy(dstFile, tmpFile)
-	if err != nil {
-		return book, errors.Wrap(err, "failed to copy image to the destination")
+		return book, errors.Wrap(err, "failed move ebook to destination")
 	}
 
 	book.HasEbook = true
