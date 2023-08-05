@@ -66,6 +66,8 @@ func ProcessBookmark(req ProcessRequest) (book model.Bookmark, isFatalErr bool, 
 	}
 
 	// If this is HTML, parse for readable content
+	strID := strconv.Itoa(book.ID)
+	imgPath := fp.Join(req.DataDir, "thumb", strID)
 	var imageURLs []string
 	if strings.Contains(contentType, "text/html") {
 		isReadable := readability.Check(readabilityCheckInput)
@@ -101,6 +103,8 @@ func ProcessBookmark(req ProcessRequest) (book model.Bookmark, isFatalErr bool, 
 		// Get image URL
 		if article.Image != "" {
 			imageURLs = append(imageURLs, article.Image)
+		} else {
+			os.Remove(imgPath)
 		}
 
 		if article.Favicon != "" {
@@ -115,9 +119,6 @@ func ProcessBookmark(req ProcessRequest) (book model.Bookmark, isFatalErr bool, 
 	}
 
 	// Save article image to local disk
-	strID := strconv.Itoa(book.ID)
-	imgPath := fp.Join(req.DataDir, "thumb", strID)
-
 	for _, imageURL := range imageURLs {
 		err = downloadBookImage(imageURL, imgPath)
 		if err == nil {
