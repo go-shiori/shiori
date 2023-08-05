@@ -143,8 +143,11 @@ func ProcessBookmark(req ProcessRequest) (book model.Bookmark, isFatalErr bool, 
 
 	// If needed, create offline archive as well
 	if book.CreateArchive {
-		archivePath := fp.Join(req.DataDir, "archive", fmt.Sprintf("%d", book.ID))
-		tmpArchivePath := fp.Join(req.DataDir, "tmp/archive", fmt.Sprintf("%d", book.ID))
+		tmpFile, err := os.CreateTemp("", "archive")
+		if err != nil {
+			return book, false, fmt.Errorf("failed to create temp archive: %v", err)
+		}
+		defer os.Remove(tmpFile.Name())
 
 		archivalRequest := warc.ArchivalRequest{
 			URL:         book.URL,
@@ -154,13 +157,34 @@ func ProcessBookmark(req ProcessRequest) (book model.Bookmark, isFatalErr bool, 
 			LogEnabled:  req.LogArchival,
 		}
 
-		err = warc.NewArchive(archivalRequest, tmpArchivePath)
+		err = warc.NewArchive(archivalRequest, tmpFile.Name())
 		if err != nil {
-			os.Remove(tmpArchivePath)
+			defer os.Remove(tmpFile.Name())
 			return book, false, fmt.Errorf("failed to create archive: %v", err)
 		}
-		os.Remove(archivePath)
-		os.Rename(tmpArchivePath, archivePath)
+
+		// Prepare destination file.
+		archivePath := fp.Join(req.DataDir, "archive", fmt.Sprintf("%d", book.ID))
+		err = os.MkdirAll(fp.Dir(archivePath), model.DataDirPerm)
+		if err != nil {
+			return book, false, fmt.Errorf("failed to create destination directory archive: %v", err)
+		}
+		dstFile, err := os.Create(archivePath)
+		if err != nil {
+			return book, false, fmt.Errorf("failed to create destination archive: %v", err)
+		}
+		defer dstFile.Close()
+		// Copy temporary file to destination
+		_, err = tmpFile.Seek(0, io.SeekStart)
+		if err != nil {
+			return book, false, fmt.Errorf("failed to rewind temporary archive file: %v", err)
+		}
+
+		_, err = io.Copy(dstFile, tmpFile)
+		if err != nil {
+			return book, false, fmt.Errorf("failed to copy archive to the destination %v", err)
+		}
+
 		book.HasArchive = true
 	}
 
