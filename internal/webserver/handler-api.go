@@ -110,7 +110,7 @@ func (h *Handler) ApiGetBookmarks(w http.ResponseWriter, r *http.Request, ps htt
 		strID := strconv.Itoa(bookmarks[i].ID)
 		imgPath := fp.Join(h.DataDir, "thumb", strID)
 		archivePath := fp.Join(h.DataDir, "archive", strID)
-		ebookPath := fp.Join(h.DataDir, "ebook", strID+".epub")
+		ebookPath := fp.Join(h.DataDir, "ebook", strID)
 
 		if fileExists(imgPath) {
 			bookmarks[i].ImageURL = path.Join(h.RootPath, "bookmark", strID, "thumb")
@@ -285,7 +285,7 @@ func (h *Handler) ApiDeleteBookmark(w http.ResponseWriter, r *http.Request, ps h
 		strID := strconv.Itoa(id)
 		imgPath := fp.Join(h.DataDir, "thumb", strID)
 		archivePath := fp.Join(h.DataDir, "archive", strID)
-		ebookPath := fp.Join(h.DataDir, "ebook", strID+".epub")
+		ebookPath := fp.Join(h.DataDir, "ebook", strID)
 
 		os.Remove(imgPath)
 		os.Remove(archivePath)
@@ -434,14 +434,32 @@ func (h *Handler) ApiDownloadEbook(w http.ResponseWriter, r *http.Request, ps ht
 				ContentType: contentType,
 			}
 
-			//TODO: if file exist book return avilable file
-			ebookPath := fp.Join(request.DataDir, "ebook")
-			book, err = core.GenerateEbook(request, ebookPath)
-			content.Close()
+			// if file exist book return avilable file
+			strID := strconv.Itoa(book.ID)
+			ebookPath := fp.Join(request.DataDir, "ebook", strID)
+			_, err = os.Stat(ebookPath)
+			if err == nil {
+				// file already exists, return the existing file
+				imagePath := fp.Join(request.DataDir, "thumb", fmt.Sprintf("%d", book.ID))
+				archivePath := fp.Join(request.DataDir, "archive", fmt.Sprintf("%d", book.ID))
 
-			if err != nil {
-				chProblem <- book.ID
-				return
+				if _, err := os.Stat(imagePath); err == nil {
+					book.ImageURL = fp.Join("/", "bookmark", strID, "thumb")
+				}
+
+				if _, err := os.Stat(archivePath); err == nil {
+					book.HasArchive = true
+				}
+				book.HasEbook = true
+			} else {
+				// generate ebook file
+				book, err = core.GenerateEbook(request, ebookPath)
+				content.Close()
+
+				if err != nil {
+					chProblem <- book.ID
+					return
+				}
 			}
 
 			// Update list of bookmarks
