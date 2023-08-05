@@ -702,15 +702,35 @@ export default {
 						this.editMode = false;
 						this.dialog.loading = false;
 						this.dialog.visible = false;
+                        
+                        let faildUpdateArchives = [];
+                        let faildCreateEbook = [];
+                        json.forEach(book => {
+                            var item = items.find(el => el.id === book.id);
+                            this.bookmarks.splice(item.index, 1, book);
 
-						json.forEach(book => {
-							var item = items.find(el => el.id === book.id);
-							this.bookmarks.splice(item.index, 1, book);
-						});
-					}).catch(err => {
-						this.selection = [];
-						this.editMode = false;
-						this.dialog.loading = false;
+                            if (data.createArchive && !book.hasArchive){
+                                faildUpdateArchives.push(book.id);
+                            }
+                            if (data.createEbook && !book.hasEbook){
+                                faildCreateEbook.push(book.id);
+                            }
+                        }),
+
+                        this.showDialog({
+                            title: `Update Archive Error`,
+                            content: `Bookmarks Update Archive Faild : ${faildUpdateArchives.join(", ")} 
+                            Bookmarks  Create Ebook Faild: ${faildCreateEbook.join(",")} 
+                            We recovered the last available version.`,
+                            mainText: "OK",
+                            mainClick: () => {
+                                this.dialog.visible = false;
+                            },
+                        })
+                    }).catch(err => {
+                        this.selection = [];
+                        this.editMode = false;
+                        this.dialog.loading = false;
 
 						this.getErrorMessage(err).then(msg => {
 							this.showErrorDialog(msg);
