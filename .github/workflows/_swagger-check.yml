@@ -17,4 +17,5 @@ jobs:
         run: go install github.com/swaggo/swag/cmd/swag@v1.16.1
 
       - name: check
-        run: make swagger-check
+        run: PATH=$GOPATH/bin:$PATH make swagger-check
+
