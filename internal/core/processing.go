@@ -121,7 +121,7 @@ func ProcessBookmark(req ProcessRequest) (book model.Bookmark, isFatalErr bool, 
 
 	// Save article image to local disk
 	for i, imageURL := range imageURLs {
-		err = downloadBookImage(imageURL, imgPath)
+		err = DownloadBookImage(imageURL, imgPath)
 		if err != nil {
 			if err.Error() == fmt.Sprintf("%s is not a supported image", imageURL) {
 				log.Printf("Not found image for URL: %s", imageURL)
@@ -190,7 +190,7 @@ func ProcessBookmark(req ProcessRequest) (book model.Bookmark, isFatalErr bool, 
 	return book, false, nil
 }
 
-func downloadBookImage(url, dstPath string) error {
+func DownloadBookImage(url, dstPath string) error {
 	// Fetch data from URL
 	resp, err := httpClient.Get(url)
 	if err != nil {
