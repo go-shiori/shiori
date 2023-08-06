@@ -20,7 +20,7 @@ GIN_MODE ?= debug
 SHIORI_DEVELOPMENT ?= true
 
 # Swagger
-SWAG_VERSION := v1.16.1
+SWAG_VERSION := v1.8.12
 SWAGGER_DOCS_PATH ?= ./docs/swagger
 
 # Help documentatin à la https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
