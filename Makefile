@@ -57,9 +57,13 @@ swag-fmt:
 	swag fmt --dir internal/http
 	go fmt ./internal/http/...
 
-## Run linter
+## Run linters
 .PHONY: lint
-lint:
+lint: golangci-lint swag-check
+
+## Run golangci-lint
+.PHONY: golangci-lint
+golangci-lint:
 	golangci-lint run
 
 ## Run unit tests
