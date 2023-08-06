@@ -720,8 +720,8 @@ export default {
                         this.showDialog({
                             title: `Update Archive Error`,
                             content: `Bookmarks Update Archive Faild : ${faildUpdateArchives.join(", ")} 
-                            Bookmarks  Create Ebook Faild: ${faildCreateEbook.join(",")} 
-                            We recovered the last available version.`,
+                            Bookmarks  Create Ebook Failed: ${faildCreateEbook.join(",")} 
+                            Files that failed retrieval were not overwritten.`,
                             mainText: "OK",
                             mainClick: () => {
                                 this.dialog.visible = false;
