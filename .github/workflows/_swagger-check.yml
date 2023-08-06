@@ -17,5 +17,5 @@ jobs:
         run: go install $(cat go.mod | grep swaggo/swag | cut -d " " -f 1)/cmd/swag@$(cat go.mod | grep swaggo/swag | cut -d " " -f 2)
 
       - name: check
-        run: make swagger-check
+        run: make swag-check
 

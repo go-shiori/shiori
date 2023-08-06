@@ -48,8 +48,8 @@ run-server:
 swagger:
 	SWAGGER_DOCS_PATH=$(SWAGGER_DOCS_PATH) $(BASH) ./scripts/swagger.sh
 
-.PHONY: swagger-check
-swagger-check:
+.PHONY: swag-check
+swag-check:
 	REQUIRED_SWAG_VERSION=$(SWAG_VERSION) SWAGGER_DOCS_PATH=$(SWAGGER_DOCS_PATH) $(BASH) ./scripts/swagger_check.sh
 
 .PHONY: swag-fmt
