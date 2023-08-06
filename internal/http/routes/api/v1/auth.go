@@ -49,6 +49,7 @@ type loginResponseMessage struct {
 }
 
 // loginHandler godoc
+//
 //	@Summary	Login to an account using username and password
 //	@Tags		Auth
 //	@Accept		json
@@ -103,6 +104,7 @@ func (r *AuthAPIRoutes) loginHandler(c *gin.Context) {
 }
 
 // refreshHandler godoc
+//
 //	@Summary					Refresh a token for an account
 //	@Tags						Auth
 //	@securityDefinitions.apikey	ApiKeyAuth
@@ -133,6 +135,7 @@ func (r *AuthAPIRoutes) refreshHandler(c *gin.Context) {
 }
 
 // meHandler godoc
+//
 //	@Summary					Get information for the current logged in user
 //	@Tags						Auth
 //	@securityDefinitions.apikey	ApiKeyAuth
