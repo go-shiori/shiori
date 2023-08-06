@@ -120,11 +120,14 @@ func ProcessBookmark(req ProcessRequest) (book model.Bookmark, isFatalErr bool, 
 	}
 
 	// Save article image to local disk
-	for _, imageURL := range imageURLs {
+	for i, imageURL := range imageURLs {
 		err = downloadBookImage(imageURL, imgPath)
 		if err != nil {
 			if err.Error() == fmt.Sprintf("%s is not a supported image", imageURL) {
 				log.Printf("Not found image for URL: %s", imageURL)
+				if i == len(imageURLs)-1 {
+					os.Remove(imgPath)
+				}
 			} else {
 				log.Printf("File download not successful for image URL: %s", imageURL)
 			}
@@ -201,7 +204,6 @@ func downloadBookImage(url, dstPath string) error {
 		!strings.Contains(cp, "image/pjpeg") &&
 		!strings.Contains(cp, "image/jpg") &&
 		!strings.Contains(cp, "image/png") {
-		os.Remove(dstPath)
 		return fmt.Errorf("%s is not a supported image", url)
 	}
 
