@@ -30,10 +30,11 @@ On Windows, you can simply set the `PATH` by using the advanced system settings.
 
 ## Building From Source
 
-Shiori uses Go module so make sure you have version of `go >= 1.14.1` installed, then run:
+Shiori uses Go module so make sure you have version of `go >= 1.14.1` installed. In the cloned git repository run:
 
 ```
 go get -u -v github.com/go-shiori/shiori
+go build
 ```
 
 ## Using Docker Image
