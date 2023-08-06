@@ -16,7 +16,7 @@ if [ -n "$(git status --porcelain)" ]; then
 fi
 
 # Check swag comments
-make swag-fmt 2> /dev/null
+make swag-fmt
 if [ -n "$(git status --porcelain)" ]; then
     echo "❌ swag comments are not formatted. Please run 'make swag-fmt' and commit the changes."
     git reset --hard
@@ -24,7 +24,10 @@ if [ -n "$(git status --porcelain)" ]; then
 fi
 
 # Check swagger documentation
-TMPDIR=$(mktemp -d)
-SWAGGER_DOCS_PATH=$TMPDIR/swagger make swagger 2> /dev/null
-
-diff -r $SWAGGER_DOCS_PATH $TMPDIR/swagger
+# TMPDIR=$(mktemp -d)
+# SWAGGER_DOCS_PATH=$TMPDIR/swagger make swagger
+if [ -n "$(git status --porcelain)" ]; then
+    echo "❌ swagger documentation not updated, please run 'make swagger' and commit the changes."
+    git reset --hard
+    exit 1
+fi
