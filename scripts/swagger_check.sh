@@ -24,8 +24,7 @@ if [ -n "$(git status --porcelain)" ]; then
 fi
 
 # Check swagger documentation
-# TMPDIR=$(mktemp -d)
-# SWAGGER_DOCS_PATH=$TMPDIR/swagger make swagger
+make swagger
 if [ -n "$(git status --porcelain)" ]; then
     echo "❌ swagger documentation not updated, please run 'make swagger' and commit the changes."
     git reset --hard
