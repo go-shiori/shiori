@@ -110,7 +110,7 @@ func (h *Handler) ApiGetBookmarks(w http.ResponseWriter, r *http.Request, ps htt
 		strID := strconv.Itoa(bookmarks[i].ID)
 		imgPath := fp.Join(h.DataDir, "thumb", strID)
 		archivePath := fp.Join(h.DataDir, "archive", strID)
-		ebookPath := fp.Join(h.DataDir, "ebook", strID)
+		ebookPath := fp.Join(h.DataDir, "ebook", strID+".epub")
 
 		if fileExists(imgPath) {
 			bookmarks[i].ImageURL = path.Join(h.RootPath, "bookmark", strID, "thumb")
@@ -285,7 +285,7 @@ func (h *Handler) ApiDeleteBookmark(w http.ResponseWriter, r *http.Request, ps h
 		strID := strconv.Itoa(id)
 		imgPath := fp.Join(h.DataDir, "thumb", strID)
 		archivePath := fp.Join(h.DataDir, "archive", strID)
-		ebookPath := fp.Join(h.DataDir, "ebook", strID)
+		ebookPath := fp.Join(h.DataDir, "ebook", strID+".epub")
 
 		os.Remove(imgPath)
 		os.Remove(archivePath)
@@ -436,7 +436,7 @@ func (h *Handler) ApiDownloadEbook(w http.ResponseWriter, r *http.Request, ps ht
 
 			// if file exist book return avilable file
 			strID := strconv.Itoa(book.ID)
-			ebookPath := fp.Join(request.DataDir, "ebook", strID)
+			ebookPath := fp.Join(request.DataDir, "ebook", strID+".epub")
 			_, err = os.Stat(ebookPath)
 			if err == nil {
 				// file already exists, return the existing file
