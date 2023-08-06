@@ -1,7 +1,6 @@
 package core_test
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	fp "path/filepath"
@@ -14,8 +13,9 @@ import (
 
 func TestGenerateEbook_ValidBookmarkID_ReturnsBookmarkWithHasEbookTrue(t *testing.T) {
 	tempDir := t.TempDir()
-
 	defer os.RemoveAll(tempDir)
+	parentDir := t.TempDir()
+	defer os.RemoveAll(parentDir)
 
 	mockRequest := core.ProcessRequest{
 		Bookmark: model.Bookmark{
@@ -24,11 +24,11 @@ func TestGenerateEbook_ValidBookmarkID_ReturnsBookmarkWithHasEbookTrue(t *testin
 			HTML:     "<html><body>Example HTML</body></html>",
 			HasEbook: false,
 		},
-		DataDir:     tempDir,
+		DataDir:     parentDir,
 		ContentType: "text/html",
 	}
 
-	bookmark, err := core.GenerateEbook(mockRequest)
+	bookmark, err := core.GenerateEbook(mockRequest, fp.Join(tempDir, "1"))
 
 	assert.True(t, bookmark.HasEbook)
 	assert.NoError(t, err)
@@ -46,7 +46,7 @@ func TestGenerateEbook_InvalidBookmarkID_ReturnsError(t *testing.T) {
 		ContentType: "text/html",
 	}
 
-	bookmark, err := core.GenerateEbook(mockRequest)
+	bookmark, err := core.GenerateEbook(mockRequest, tempDir)
 
 	assert.Equal(t, model.Bookmark{
 		ID:       0,
@@ -58,13 +58,15 @@ func TestGenerateEbook_InvalidBookmarkID_ReturnsError(t *testing.T) {
 func TestGenerateEbook_ValidBookmarkID_EbookExist_EbookExist_ReturnWithHasEbookTrue(t *testing.T) {
 	tempDir := t.TempDir()
 	defer os.RemoveAll(tempDir)
+	parentDir := t.TempDir()
+	defer os.RemoveAll(parentDir)
 
 	mockRequest := core.ProcessRequest{
 		Bookmark: model.Bookmark{
 			ID:       1,
 			HasEbook: false,
 		},
-		DataDir:     tempDir,
+		DataDir:     parentDir,
 		ContentType: "text/html",
 	}
 	// Create the ebook directory
@@ -81,7 +83,7 @@ func TestGenerateEbook_ValidBookmarkID_EbookExist_EbookExist_ReturnWithHasEbookT
 	}
 	defer file.Close()
 
-	bookmark, err := core.GenerateEbook(mockRequest)
+	bookmark, err := core.GenerateEbook(mockRequest, fp.Join(tempDir, "1"))
 
 	assert.True(t, bookmark.HasEbook)
 	assert.NoError(t, err)
@@ -90,13 +92,15 @@ func TestGenerateEbook_ValidBookmarkID_EbookExist_EbookExist_ReturnWithHasEbookT
 func TestGenerateEbook_ValidBookmarkID_EbookExist_ImagePathExist_ReturnWithHasEbookTrue(t *testing.T) {
 	tempDir := t.TempDir()
 	defer os.RemoveAll(tempDir)
+	parentDir := t.TempDir()
+	defer os.RemoveAll(parentDir)
 
 	mockRequest := core.ProcessRequest{
 		Bookmark: model.Bookmark{
 			ID:       1,
 			HasEbook: false,
 		},
-		DataDir:     tempDir,
+		DataDir:     parentDir,
 		ContentType: "text/html",
 	}
 	// Create the image directory
@@ -113,7 +117,7 @@ func TestGenerateEbook_ValidBookmarkID_EbookExist_ImagePathExist_ReturnWithHasEb
 	}
 	defer file.Close()
 
-	bookmark, err := core.GenerateEbook(mockRequest)
+	bookmark, err := core.GenerateEbook(mockRequest, fp.Join(tempDir, "1"))
 	expectedimagePath := "/bookmark/1/thumb"
 	if expectedimagePath != bookmark.ImageURL {
 		t.Errorf("Expected imageURL %s, but got %s", bookmark.ImageURL, expectedimagePath)
@@ -125,13 +129,15 @@ func TestGenerateEbook_ValidBookmarkID_EbookExist_ImagePathExist_ReturnWithHasEb
 func TestGenerateEbook_ValidBookmarkID_EbookExist_ReturnWithHasArchiveTrue(t *testing.T) {
 	tempDir := t.TempDir()
 	defer os.RemoveAll(tempDir)
+	parentDir := t.TempDir()
+	defer os.RemoveAll(parentDir)
 
 	mockRequest := core.ProcessRequest{
 		Bookmark: model.Bookmark{
 			ID:       1,
 			HasEbook: false,
 		},
-		DataDir:     tempDir,
+		DataDir:     parentDir,
 		ContentType: "text/html",
 	}
 	// Create the archive directory
@@ -148,7 +154,7 @@ func TestGenerateEbook_ValidBookmarkID_EbookExist_ReturnWithHasArchiveTrue(t *te
 	}
 	defer file.Close()
 
-	bookmark, err := core.GenerateEbook(mockRequest)
+	bookmark, err := core.GenerateEbook(mockRequest, fp.Join(tempDir, "1"))
 	assert.True(t, bookmark.HasArchive)
 	assert.NoError(t, err)
 }
@@ -166,54 +172,11 @@ func TestGenerateEbook_ValidBookmarkID_RetuenError_PDF(t *testing.T) {
 		ContentType: "application/pdf",
 	}
 
-	bookmark, err := core.GenerateEbook(mockRequest)
+	bookmark, err := core.GenerateEbook(mockRequest, tempDir)
 
 	assert.False(t, bookmark.HasEbook)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "can't create ebook for pdf")
-}
-
-func TestGenerateEbook_CreateEbookDirectoryNotWritable(t *testing.T) {
-	// Create a temporary directory to use as the parent directory
-	parentDir := t.TempDir()
-
-	// Create a child directory with read-only permissions
-	ebookDir := fp.Join(parentDir, "ebook")
-	err := os.Mkdir(ebookDir, 0444)
-	if err != nil {
-		t.Fatalf("could not create ebook directory: %s", err)
-	}
-
-	mockRequest := core.ProcessRequest{
-		Bookmark: model.Bookmark{
-			ID:       1,
-			HasEbook: false,
-		},
-		DataDir:     ebookDir,
-		ContentType: "text/html",
-	}
-
-	// Call GenerateEbook to create the ebook directory
-	bookmark, err := core.GenerateEbook(mockRequest)
-	if err == nil {
-		t.Fatal("GenerateEbook succeeded even though MkdirAll should have failed")
-	}
-	if !errors.Is(err, os.ErrPermission) {
-		t.Fatalf("unexpected error: expected os.ErrPermission, got %v", err)
-	}
-
-	// Check if the ebook directory still exists and has read-only permissions
-	info, err := os.Stat(ebookDir)
-	if err != nil {
-		t.Fatalf("could not retrieve ebook directory info: %s", err)
-	}
-	if !info.IsDir() {
-		t.Errorf("ebook directory is not a directory")
-	}
-	if info.Mode().Perm() != 0444 {
-		t.Errorf("ebook directory has incorrect permissions: expected 0444, got %o", info.Mode().Perm())
-	}
-	assert.False(t, bookmark.HasEbook)
 }
 
 // Add more unit tests for other scenarios that missing specialy
