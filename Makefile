@@ -55,7 +55,7 @@ swagger-check:
 .PHONY: swag-fmt
 swag-fmt:
 	swag fmt --dir internal/http
-	go fmt ./internal/http
+	go fmt ./internal/http/...
 
 ## Run linter
 .PHONY: lint
