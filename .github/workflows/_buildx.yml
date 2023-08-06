@@ -26,10 +26,9 @@ jobs:
       - name: Prepare master push tags
         if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         run: |
-          echo "tag_flags=--tag ${{ github.ref }}" >> $GITHUB_ENV
           REPO=ghcr.io/${{ github.repository }}
           TAG=$(git describe --tags)
-          if [ -z "$(git tag --points-at HEAD)" ]
+          if [ -z "$(git tag --points-at HEAD)" ] || [ "$TAG" == *"rc"* ]
           then
             TAG2="dev"
           else
