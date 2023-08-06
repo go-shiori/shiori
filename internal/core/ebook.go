@@ -227,7 +227,7 @@ img {
 	}
 	defer tmpFile.Close()
 
-	err = MoveToDestination(dstPath, tmpFile)
+	err = MoveFileToDestination(dstPath, tmpFile)
 	if err != nil {
 		return book, errors.Wrap(err, "failed move ebook to destination")
 	}

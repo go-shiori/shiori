@@ -167,7 +167,7 @@ func ProcessBookmark(req ProcessRequest) (book model.Bookmark, isFatalErr bool, 
 		// Prepare destination file.
 		dstPath := fp.Join(req.DataDir, "archive", fmt.Sprintf("%d", book.ID))
 
-		err = MoveToDestination(dstPath, tmpFile)
+		err = MoveFileToDestination(dstPath, tmpFile)
 		if err != nil {
 			return book, false, fmt.Errorf("failed move archive to destination `: %v", err)
 		}
@@ -250,7 +250,7 @@ func downloadBookImage(url, dstPath string) error {
 		return fmt.Errorf("failed to save image %s: %v", url, err)
 	}
 
-	err = MoveToDestination(dstPath, tmpFile)
+	err = MoveFileToDestination(dstPath, tmpFile)
 	if err != nil {
 		return err
 	}
@@ -258,7 +258,8 @@ func downloadBookImage(url, dstPath string) error {
 	return nil
 }
 
-func MoveToDestination(dstPath string, tmpFile *os.File) error {
+// dstPath requires the filename
+func MoveFileToDestination(dstPath string, tmpFile *os.File) error {
 	// Prepare destination file.
 	err := os.MkdirAll(fp.Dir(dstPath), model.DataDirPerm)
 	if err != nil {
