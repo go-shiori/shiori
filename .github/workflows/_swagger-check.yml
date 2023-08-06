@@ -13,9 +13,9 @@ jobs:
         with:
           go-version-file: 'go.mod'
 
-      - name: install swag
-        run: go install github.com/swaggo/swag/cmd/swag@v1.16.1
+      - name: Install dependencies
+        run: go install $(cat go.mod | grep swaggo/swag | cut -d " " -f 1)/cmd/swag@$(cat go.mod | grep swaggo/swag | cut -d " " -f 2)
 
       - name: check
-        run: PATH=$(go env GOPATH)/bin:$PATH make swagger-check
+        run: make swagger-check
 
