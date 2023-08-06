@@ -16,12 +16,12 @@ if [ -n "$(git status --porcelain)" ]; then
 fi
 
 # Check swag comments
-# make swag-fmt
-# if [ -n "$(git status --porcelain)" ]; then
-#     echo "❌ swag comments are not formatted. Please run 'make swag-fmt' and commit the changes."
-#     git reset --hard
-#     exit 1
-# fi
+make swag-fmt
+if [ -n "$(git status --porcelain)" ]; then
+    echo "❌ swag comments are not formatted. Please run 'make swag-fmt' and commit the changes."
+    git reset --hard
+    exit 1
+fi
 
 # Check swagger documentation
 make swagger
