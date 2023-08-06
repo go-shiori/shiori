@@ -703,24 +703,24 @@ export default {
 						this.dialog.loading = false;
 						this.dialog.visible = false;
                         
-                        let faildUpdateArchives = [];
-                        let faildCreateEbook = [];
+                        let faildedUpdateArchives = [];
+                        let faildedCreateEbook = [];
                         json.forEach(book => {
                             var item = items.find(el => el.id === book.id);
                             this.bookmarks.splice(item.index, 1, book);
 
                             if (data.createArchive && !book.hasArchive){
-                                faildUpdateArchives.push(book.id);
+                                faildedUpdateArchives.push(book.id);
                             }
                             if (data.createEbook && !book.hasEbook){
-                                faildCreateEbook.push(book.id);
+                                faildedCreateEbook.push(book.id);
                             }
                         });
                         if(faildCreateEbook.length > 0 || faildUpdateArchives.length > 0){
                         this.showDialog({
-                            title: `Update Archive Error`,
-                            content: `Bookmarks Update Archive Faild : ${faildUpdateArchives.join(", ")} 
-                            Bookmarks  Create Ebook Failed: ${faildCreateEbook.join(",")} 
+                            title: `Bookmarks Id that Update Action Faild`,
+                            content: `Archive:[ ${faildedUpdateArchives.join(", ")} ] 
+                            Ebook: [ ${faildedCreateEbook.join(",")} ]
                             Files that failed retrieval were not overwritten.`,
                             mainText: "OK",
                             mainClick: () => {
