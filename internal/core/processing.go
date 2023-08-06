@@ -8,6 +8,7 @@ import (
 	"image/draw"
 	"image/jpeg"
 	"io"
+	"log"
 	"math"
 	"net/url"
 	"os"
@@ -121,6 +122,14 @@ func ProcessBookmark(req ProcessRequest) (book model.Bookmark, isFatalErr bool, 
 	// Save article image to local disk
 	for _, imageURL := range imageURLs {
 		err = downloadBookImage(imageURL, imgPath)
+		if err != nil {
+			if err.Error() == fmt.Sprintf("%s is not a supported image", imageURL) {
+				log.Printf("Not found image for URL: %s", imageURL)
+			} else {
+				log.Printf("File download not successful for image URL: %s", imageURL)
+			}
+			continue
+		}
 		if err == nil {
 			book.ImageURL = path.Join("/", "bookmark", strID, "thumb")
 			break
@@ -192,7 +201,7 @@ func downloadBookImage(url, dstPath string) error {
 		!strings.Contains(cp, "image/pjpeg") &&
 		!strings.Contains(cp, "image/jpg") &&
 		!strings.Contains(cp, "image/png") {
-
+		os.Remove(dstPath)
 		return fmt.Errorf("%s is not a supported image", url)
 	}
 
