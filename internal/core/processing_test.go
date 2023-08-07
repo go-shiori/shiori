@@ -53,7 +53,6 @@ func TestDownloadBookImage_notSuccess(t *testing.T) {
 	err := core.DownloadBookImage(imageURL, dstPath)
 
 	// Assert
-	//assert.NoError(t, err)
 	assert.EqualError(t, err, "https://github.com/go-shiori/shiori/blob/master/internal/view/assets/res/apple-touch-icon-152x152.png is not a supported image")
 	assert.NoFileExists(t, dstPath)
 }
@@ -173,7 +172,7 @@ func TestProcessBookmarkMultipleImagefaveiconAndThumb(t *testing.T) {
   <head>
     <meta property="og:image" content="http://example.com/image1.jpg">
     <meta property="og:image" content="https://raw.githubusercontent.com/go-shiori/shiori/master/docs/readme/cover.png">
-    <link rel="icon" type="image/png" href="https://github.githubassets.com/favicons/favicon-dark.svg">
+    <link rel="icon" type="image/svg" href="https://github.githubassets.com/favicons/favicon-dark.svg">
   </head>
   <body>
     <p>This is an example article</p>
@@ -278,4 +277,49 @@ func TestProcessBookmarkKeepExcerptEmpty(t *testing.T) {
 	if expected.Excerpt != bookmark.Excerpt {
 		t.Errorf("Unexpected Excerpt: got %v, want %v", expected.Excerpt, bookmark.Excerpt)
 	}
+}
+
+func TestProcessBookmarkIDZero(t *testing.T) {
+	bookmark := model.Bookmark{
+		ID:            0,
+		URL:           "https://example.com",
+		Title:         "Example",
+		Excerpt:       "This is an example article",
+		CreateEbook:   true,
+		CreateArchive: true,
+	}
+	content := bytes.NewBufferString("<html><head></head><body><p>This is an example article</p></body></html>")
+	request := core.ProcessRequest{
+		Bookmark:    bookmark,
+		Content:     content,
+		ContentType: "text/html",
+		DataDir:     "/tmp",
+		KeepTitle:   true,
+		KeepExcerpt: true,
+	}
+	_, isFatal, err := core.ProcessBookmark(request)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "bookmark ID is not valid")
+	assert.True(t, isFatal)
+}
+func TestProcessBookmarkContentTypeNotTextHtml(t *testing.T) {
+	bookmark := model.Bookmark{
+		ID:            1,
+		URL:           "https://example.com",
+		Title:         "Example",
+		Excerpt:       "This is an example article",
+		CreateEbook:   true,
+		CreateArchive: true,
+	}
+	content := bytes.NewBufferString("<html><head></head><body><p>This is an example article</p></body></html>")
+	request := core.ProcessRequest{
+		Bookmark:    bookmark,
+		Content:     content,
+		ContentType: "application/pdf",
+		DataDir:     "/tmp",
+		KeepTitle:   true,
+		KeepExcerpt: true,
+	}
+	_, _, err := core.ProcessBookmark(request)
+	assert.NoError(t, err)
 }
