@@ -2,6 +2,8 @@ package core_test
 
 import (
 	"bytes"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	fp "path/filepath"
 	"testing"
@@ -73,9 +75,16 @@ func TestDownloadBookImage_Success(t *testing.T) {
 	assert.FileExists(t, dstPath)
 }
 
-func TestDownloadBookImage_SuccessSmallSize(t *testing.T) {
+func TestDownloadBookImage_SuccessMediumSize(t *testing.T) {
+	// create a file server handler for the 'testdata' directory
+	fs := http.FileServer(http.Dir("../../testdata/"))
+
+	// start a test server with the file server handler
+	server := httptest.NewServer(fs)
+	defer server.Close()
+
 	// Arrange
-	imageURL := "https://raw.githubusercontent.com/go-shiori/shiori/757599fcfc729bffc28e007adf71400248885d0b/testdata/medium_image.png"
+	imageURL := server.URL + "/medium_image.png"
 	tempDir := t.TempDir()
 	defer os.RemoveAll(tempDir)
 	dstPath := fp.Join(tempDir, "1")
@@ -168,16 +177,23 @@ func TestProcessBookmarkMultipleImage(t *testing.T) {
 }
 
 func TestProcessBookmarkMultipleImagefaveiconAndThumb(t *testing.T) {
+	// create a file server handler for the 'testdata' directory
+	fs := http.FileServer(http.Dir("../../testdata/"))
+
+	// start a test server with the file server handler
+	server := httptest.NewServer(fs)
+	defer server.Close()
+
 	html := `html<html>
-  <head>
+  	<head>
     <meta property="og:image" content="http://example.com/image1.jpg">
-    <meta property="og:image" content="https://raw.githubusercontent.com/go-shiori/shiori/757599fcfc729bffc28e007adf71400248885d0b/testdata/big_image.png">
-    <link rel="icon" type="image/svg" href="https://github.githubassets.com/favicons/favicon-dark.svg">
-  </head>
-  <body>
-    <p>This is an example article</p>
-  </body>
-</html>`
+    <meta property="og:image" content="` + server.URL + `/big_image.png">
+    <link rel="icon" type="image/svg" href="` + server.URL + `/favicon.svg">
+  	</head>
+  	<body>
+    	<p>This is an example article</p>
+  	</body>
+	</html>`
 	bookmark := model.Bookmark{
 		ID:            1,
 		URL:           "https://example.com",

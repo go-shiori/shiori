@@ -12,7 +12,6 @@ import (
 	"math"
 	"net/url"
 	"os"
-	"path"
 	fp "path/filepath"
 	"strconv"
 	"strings"
@@ -134,7 +133,7 @@ func ProcessBookmark(req ProcessRequest) (book model.Bookmark, isFatalErr bool, 
 			continue
 		}
 		if err == nil {
-			book.ImageURL = path.Join("/", "bookmark", strID, "thumb")
+			book.ImageURL = fp.Join("/", "bookmark", strID, "thumb")
 			break
 		}
 	}
