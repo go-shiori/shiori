@@ -75,7 +75,7 @@ func TestDownloadBookImage_Success(t *testing.T) {
 
 func TestDownloadBookImage_SuccessSmallSize(t *testing.T) {
 	// Arrange
-	imageURL := "https://www.google.com/images/branding/googlelogo/2x/googlelogo_light_color_272x92dp.png"
+	imageURL := "https://raw.githubusercontent.com/go-shiori/shiori/757599fcfc729bffc28e007adf71400248885d0b/testdata/medium_image.png"
 	tempDir := t.TempDir()
 	defer os.RemoveAll(tempDir)
 	dstPath := fp.Join(tempDir, "1")
@@ -171,7 +171,7 @@ func TestProcessBookmarkMultipleImagefaveiconAndThumb(t *testing.T) {
 	html := `html<html>
   <head>
     <meta property="og:image" content="http://example.com/image1.jpg">
-    <meta property="og:image" content="https://raw.githubusercontent.com/go-shiori/shiori/master/docs/readme/cover.png">
+    <meta property="og:image" content="https://raw.githubusercontent.com/go-shiori/shiori/757599fcfc729bffc28e007adf71400248885d0b/testdata/big_image.png">
     <link rel="icon" type="image/svg" href="https://github.githubassets.com/favicons/favicon-dark.svg">
   </head>
   <body>
