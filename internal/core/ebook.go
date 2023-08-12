@@ -16,6 +16,9 @@ import (
 	"github.com/pkg/errors"
 )
 
+// this function get request and a destination path and will create an epub file in dstPath from that request
+// it will return a bookmark model and err
+// bookmark model later use for update UI shiori based on this function be sucssesful or not
 func GenerateEbook(req ProcessRequest, dstPath string) (book model.Bookmark, err error) {
 	// variable for store generated html code
 	var html string
@@ -27,6 +30,7 @@ func GenerateEbook(req ProcessRequest, dstPath string) (book model.Bookmark, err
 		return book, errors.New("bookmark ID is not valid")
 	}
 
+	// get current state of bookmark
 	// cheak archive and thumb
 	strID := strconv.Itoa(book.ID)
 
@@ -41,6 +45,8 @@ func GenerateEbook(req ProcessRequest, dstPath string) (book model.Bookmark, err
 		book.HasArchive = true
 	}
 
+	// this function create ebook from reader mode of bookmark so
+	// we can't create ebook from PDF so we return error here if bookmark is a pdf
 	contentType := req.ContentType
 	if strings.Contains(contentType, "application/pdf") {
 		return book, errors.New("can't create ebook for pdf")
@@ -226,7 +232,7 @@ img {
 		return book, errors.Wrap(err, "can't open temporary EPUB file")
 	}
 	defer tmpFile.Close()
-
+	// if everitings go well we start move ebook to dstPath
 	err = MoveFileToDestination(dstPath, tmpFile)
 	if err != nil {
 		return book, errors.Wrap(err, "failed move ebook to destination")
