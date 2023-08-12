@@ -17,6 +17,7 @@ import (
 )
 
 // this function get request and a destination path and will create an epub file in dstPath from that request
+// dstPath should be incouded file name with '.epub'
 // it will return a bookmark model and err
 // bookmark model later use for update UI shiori based on this function be sucssesful or not
 func GenerateEbook(req ProcessRequest, dstPath string) (book model.Bookmark, err error) {
