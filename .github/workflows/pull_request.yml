@@ -14,8 +14,10 @@ jobs:
     uses: ./.github/workflows/_golangci-lint.yml
   call-test:
     uses: ./.github/workflows/_test.yml
+  call-swagger-check:
+    uses: ./.github/workflows/_swagger-check.yml
   call-gorelease:
-    needs: [call-lint, call-test]
+    needs: [call-lint, call-test, call-swagger-check]
     uses: ./.github/workflows/_gorelease.yml
   call-buildx:
     needs: call-gorelease

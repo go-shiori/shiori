@@ -1,5 +1,5 @@
 definitions:
-  api.loginRequestPayload:
+  api_v1.loginRequestPayload:
     properties:
       password:
         type: string
@@ -11,8 +11,14 @@ definitions:
     - password
     - username
     type: object
-  api.loginResponseMessage:
+  api_v1.loginResponseMessage:
     properties:
+      expires:
+        description: Deprecated, used only for legacy APIs
+        type: integer
+      session:
+        description: Deprecated, used only for legacy APIs
+        type: string
       token:
         type: string
     type: object
@@ -48,14 +54,14 @@ paths:
         in: body
         name: payload
         schema:
-          $ref: '#/definitions/api.loginRequestPayload'
+          $ref: '#/definitions/api_v1.loginRequestPayload'
       produces:
       - application/json
       responses:
         "200":
           description: Login successful
           schema:
-            $ref: '#/definitions/api.loginResponseMessage'
+            $ref: '#/definitions/api_v1.loginResponseMessage'
         "400":
           description: Invalid login data
       summary: Login to an account using username and password
@@ -83,7 +89,7 @@ paths:
         "200":
           description: Refresh successful
           schema:
-            $ref: '#/definitions/api.loginResponseMessage'
+            $ref: '#/definitions/api_v1.loginResponseMessage'
         "403":
           description: Token not provided/invalid
       summary: Refresh a token for an account
