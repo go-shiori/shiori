@@ -156,7 +156,7 @@ func (r *AuthAPIRoutes) meHandler(c *gin.Context) {
 }
 
 // settingsHandler godoc
-// @Summary      Get config for the current logged in user and save that in database
+// @Summary      Perform actions on the currently logged-in user.
 // @Tags         Auth
 // @securityDefinitions.apikey ApiKeyAuth
 // @Param        payload   body    settingRequestPayload    false  "Config data"
