@@ -92,6 +92,7 @@
 								return response;
 							}).then(() => {
 								localStorage.removeItem("shiori-account");
+								localStorage.removeItem("shiori-token");
 								document.cookie = `session-id=; Path=${new URL(document.baseURI).pathname}; Expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
 								location.href = new URL("login", document.baseURI);
 							}).catch(err => {
