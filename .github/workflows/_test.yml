@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        go: ["1.20"]
+        go: ["1.21"]
     services:
       postgres:
         image: postgres:15
