@@ -711,17 +711,17 @@ export default {
 
                             if (data.createArchive && !book.hasArchive){
                                 faildedUpdateArchives.push(book.id);
+                                console.error("can't update archive for bookmark id", book.id)
                             }
                             if (data.createEbook && !book.hasEbook){
                                 faildedCreateEbook.push(book.id);
+                                console.error("can't update ebook for bookmark id:", book.id)
                             }
                         });
-                        if(faildCreateEbook.length > 0 || faildUpdateArchives.length > 0){
+                        if(faildedCreateEbook.length > 0 || faildedUpdateArchives.length > 0){
                         this.showDialog({
                             title: `Bookmarks Id that Update Action Faild`,
-                            content: `Archive:[ ${faildedUpdateArchives.join(", ")} ] 
-                            Ebook: [ ${faildedCreateEbook.join(",")} ]
-                            Files that failed retrieval were not overwritten.`,
+                            content: `Not all bookmarks could have their contents updated, but no files were overwritten.`,
                             mainText: "OK",
                             mainClick: () => {
                                 this.dialog.visible = false;
