@@ -232,4 +232,65 @@ func TestSettingsHandler(t *testing.T) {
 		require.Equal(t, http.StatusInternalServerError, w.Code)
 
 	})
+	t.Run("Test configure change in database", func(t *testing.T) {
+		// Create a tmp database
+		g := testutil.NewGin()
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+		router := NewAuthAPIRoutes(logger, deps, noopLegacyLoginHandler)
+		g.Use(middleware.AuthMiddleware(deps))
+		router.Setup(g.Group("/"))
+
+		// Create an account manually to test
+		account := model.Account{
+			Username: "shiori",
+			Password: "gopher",
+			Owner:    true,
+			Config: model.UserConfig{
+				ShowId:        true,
+				ListMode:      true,
+				HideThumbnail: true,
+				HideExcerpt:   true,
+				NightMode:     true,
+				KeepMetadata:  true,
+				UseArchive:    true,
+				MakePublic:    true,
+			},
+		}
+		require.NoError(t, deps.Database.SaveAccount(ctx, account))
+
+		// Get current user config
+		user, _, err := deps.Database.GetAccount(ctx, "shiori")
+		require.NoError(t, err)
+		require.Equal(t, user.Config, account.Config)
+
+		// Send Request to update config for user
+		token, err := deps.Domains.Auth.CreateTokenForAccount(&user, time.Now().Add(time.Minute))
+		require.NoError(t, err)
+
+		payloadJSON := []byte(`{
+			"config": {
+			"ShowId": false,
+			"ListMode": false,
+			"HideThumbnail": false,
+			"HideExcerpt": false,
+			"NightMode": false,
+			"KeepMetadata": false,
+			"UseArchive": false,
+			"MakePublic": false
+			  }
+			}`)
+
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodPatch, "/account", bytes.NewBuffer(payloadJSON))
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Add("Authorization", "Bearer "+token)
+		g.ServeHTTP(w, req)
+
+		require.Equal(t, 200, w.Code)
+		user, _, err = deps.Database.GetAccount(ctx, "shiori")
+
+		require.NoError(t, err)
+		require.NotEqual(t, user.Config, account.Config)
+
+	})
 }
