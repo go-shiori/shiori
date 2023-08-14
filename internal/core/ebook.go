@@ -62,7 +62,6 @@ func GenerateEbook(req ProcessRequest, dstPath string) (book model.Bookmark, err
 
 	// Create zip archive
 	epubWriter := zip.NewWriter(tmpFile)
-	defer epubWriter.Close()
 
 	// Create the mimetype file
 	mimetypeWriter, err := epubWriter.Create("mimetype")
