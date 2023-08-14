@@ -55,7 +55,7 @@ func TestDownloadBookImage_notSuccess(t *testing.T) {
 	err := core.DownloadBookImage(imageURL, dstPath)
 
 	// Assert
-	assert.EqualError(t, err, "https://github.com/go-shiori/shiori/blob/master/internal/view/assets/res/apple-touch-icon-152x152.png is not a supported image")
+	assert.EqualError(t, err, "unsupported image type")
 	assert.NoFileExists(t, dstPath)
 }
 

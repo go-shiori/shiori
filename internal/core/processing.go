@@ -37,6 +37,8 @@ type ProcessRequest struct {
 	LogArchival bool
 }
 
+var ErrNoSupportedImageType = errors.New("unsupported image type")
+
 // ProcessBookmark process the bookmark and archive it if needed.
 // Return three values, is error fatal, and error value.
 func ProcessBookmark(req ProcessRequest) (book model.Bookmark, isFatalErr bool, err error) {
@@ -121,15 +123,14 @@ func ProcessBookmark(req ProcessRequest) (book model.Bookmark, isFatalErr bool, 
 	// Save article image to local disk
 	for i, imageURL := range imageURLs {
 		err = DownloadBookImage(imageURL, imgPath)
-		if err != nil {
-			if err.Error() == fmt.Sprintf("%s is not a supported image", imageURL) {
-				log.Printf("Not found image for URL: %s", imageURL)
-				if i == len(imageURLs)-1 {
-					os.Remove(imgPath)
-				}
-			} else {
-				log.Printf("File download not successful for image URL: %s", imageURL)
+		if err != nil && errors.Is(err, ErrNoSupportedImageType) {
+			log.Printf("Not found image for URL: %s", imageURL)
+			if i == len(imageURLs)-1 {
+				os.Remove(imgPath)
 			}
+		}
+		if err != nil {
+			log.Printf("File download not successful for image URL: %s", imageURL)
 			continue
 		}
 		if err == nil {
@@ -203,7 +204,7 @@ func DownloadBookImage(url, dstPath string) error {
 		!strings.Contains(cp, "image/pjpeg") &&
 		!strings.Contains(cp, "image/jpg") &&
 		!strings.Contains(cp, "image/png") {
-		return fmt.Errorf("%s is not a supported image", url)
+		return ErrNoSupportedImageType
 	}
 
 	// At this point, the download has finished successfully.
