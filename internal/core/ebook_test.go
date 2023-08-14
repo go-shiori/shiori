@@ -16,9 +16,7 @@ func TestGenerateEbook(t *testing.T) {
 		t.Run("valid bookmarkId that return HasEbook true", func(t *testing.T) {
 			// test cae
 			tempDir := t.TempDir()
-			defer os.RemoveAll(tempDir)
 			dstDir := t.TempDir()
-			defer os.RemoveAll(dstDir)
 
 			mockRequest := core.ProcessRequest{
 				Bookmark: model.Bookmark{
@@ -38,9 +36,7 @@ func TestGenerateEbook(t *testing.T) {
 		})
 		t.Run("ebook generate with valid BookmarkID EbookExist ImagePathExist ReturnWithHasEbookTrue", func(t *testing.T) {
 			tempDir := t.TempDir()
-			defer os.RemoveAll(tempDir)
 			dstDir := t.TempDir()
-			defer os.RemoveAll(dstDir)
 
 			mockRequest := core.ProcessRequest{
 				Bookmark: model.Bookmark{
@@ -75,9 +71,7 @@ func TestGenerateEbook(t *testing.T) {
 		t.Run("generate ebook valid BookmarkID EbookExist Returnh HasArchive True", func(t *testing.T) {
 
 			tempDir := t.TempDir()
-			defer os.RemoveAll(tempDir)
 			dstDir := t.TempDir()
-			defer os.RemoveAll(dstDir)
 
 			mockRequest := core.ProcessRequest{
 				Bookmark: model.Bookmark{
@@ -109,7 +103,6 @@ func TestGenerateEbook(t *testing.T) {
 	t.Run("specific ebook generate case", func(t *testing.T) {
 		t.Run("unvalid bookmarkId that return Error", func(t *testing.T) {
 			tempDir := t.TempDir()
-			defer os.RemoveAll(tempDir)
 			mockRequest := core.ProcessRequest{
 				Bookmark: model.Bookmark{
 					ID:       0,
@@ -129,9 +122,7 @@ func TestGenerateEbook(t *testing.T) {
 		})
 		t.Run("ebook exist return HasEbook true", func(t *testing.T) {
 			tempDir := t.TempDir()
-			defer os.RemoveAll(tempDir)
 			dstDir := t.TempDir()
-			defer os.RemoveAll(dstDir)
 
 			mockRequest := core.ProcessRequest{
 				Bookmark: model.Bookmark{
@@ -162,7 +153,6 @@ func TestGenerateEbook(t *testing.T) {
 		})
 		t.Run("generate ebook valid BookmarkID RetuenError for PDF file", func(t *testing.T) {
 			tempDir := t.TempDir()
-			defer os.RemoveAll(tempDir)
 
 			mockRequest := core.ProcessRequest{
 				Bookmark: model.Bookmark{

@@ -52,7 +52,6 @@ func TestDownloadBookImage(t *testing.T) {
 			// images is too small with unsupported format with a valid URL
 			imageURL := "https://github.com/go-shiori/shiori/blob/master/internal/view/assets/res/apple-touch-icon-152x152.png"
 			tempDir := t.TempDir()
-			defer os.RemoveAll(tempDir)
 			dstPath := fp.Join(tempDir, "1")
 			defer os.Remove(dstPath)
 
@@ -67,7 +66,6 @@ func TestDownloadBookImage(t *testing.T) {
 			// Arrange
 			imageURL := "https://raw.githubusercontent.com/go-shiori/shiori/master/docs/readme/cover.png"
 			tempDir := t.TempDir()
-			defer os.RemoveAll(tempDir)
 			dstPath := fp.Join(tempDir, "1")
 			defer os.Remove(dstPath)
 
@@ -89,7 +87,6 @@ func TestDownloadBookImage(t *testing.T) {
 			// Arrange
 			imageURL := server.URL + "/medium_image.png"
 			tempDir := t.TempDir()
-			defer os.RemoveAll(tempDir)
 			dstPath := fp.Join(tempDir, "1")
 			defer os.Remove(dstPath)
 
