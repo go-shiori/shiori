@@ -35,7 +35,7 @@ make swagger
 
 ## Lint the code
 
-In order to lint the code, you need to have installed [golangci-lint](https://golangci-lint.run).
+In order to lint the code, you need to have installed [golangci-lint](https://golangci-lint.run) and [swag](https://github.com/swaggo/swag).
 
 After that, run the following command:
 

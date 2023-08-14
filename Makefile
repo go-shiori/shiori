@@ -19,6 +19,10 @@ LDFLAGS += -s -w -X main.version=$(BUILD_HASH) -X main.date=$(BUILD_TIME)
 GIN_MODE ?= debug
 SHIORI_DEVELOPMENT ?= true
 
+# Swagger
+SWAG_VERSION := v1.8.12
+SWAGGER_DOCS_PATH ?= ./docs/swagger
+
 # Help documentatin à la https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 .PHONY: help
 help:
@@ -42,11 +46,24 @@ run-server:
 ## Generate swagger docs
 .PHONY: swagger
 swagger:
-	swag init
+	SWAGGER_DOCS_PATH=$(SWAGGER_DOCS_PATH) $(BASH) ./scripts/swagger.sh
 
-## Run linter
+.PHONY: swag-check
+swag-check:
+	REQUIRED_SWAG_VERSION=$(SWAG_VERSION) SWAGGER_DOCS_PATH=$(SWAGGER_DOCS_PATH) $(BASH) ./scripts/swagger_check.sh
+
+.PHONY: swag-fmt
+swag-fmt:
+	swag fmt --dir internal/http
+	go fmt ./internal/http/...
+
+## Run linters
 .PHONY: lint
-lint:
+lint: golangci-lint swag-check
+
+## Run golangci-lint
+.PHONY: golangci-lint
+golangci-lint:
 	golangci-lint run
 
 ## Run unit tests
