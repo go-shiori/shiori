@@ -24,9 +24,6 @@ type LegacyAPIRoutes struct {
 func (r *LegacyAPIRoutes) convertHttprouteParams(params gin.Params) httprouter.Params {
 	routerParams := httprouter.Params{}
 	for _, p := range params {
-		if p.Key == "filepath" {
-			r.logger.WithField("value", p.Value).Error("filepath")
-		}
 		routerParams = append(routerParams, httprouter.Param{
 			Key:   p.Key,
 			Value: p.Value,
