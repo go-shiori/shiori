@@ -88,7 +88,7 @@ paths:
             $ref: '#/definitions/model.Account'
         "403":
           description: Token not provided/invalid
-      summary: Get config for the current logged in user and save that in database
+      summary: Perform actions on the currently logged-in user.
       tags:
       - Auth
   /api/v1/auth/login:

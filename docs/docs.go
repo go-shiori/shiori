@@ -24,7 +24,7 @@ const docTemplate = `{
                 "tags": [
                     "Auth"
                 ],
-                "summary": "Get config for the current logged in user and save that in database",
+                "summary": "Perform actions on the currently logged-in user.",
                 "parameters": [
                     {
                         "description": "Config data",
