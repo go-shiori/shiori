@@ -58,7 +58,6 @@ func GenerateEbook(req ProcessRequest, dstPath string) (book model.Bookmark, err
 	if err != nil {
 		return book, errors.Wrap(err, "can't create temporary EPUB file")
 	}
-	defer tmpFile.Close()
 	defer os.Remove(tmpFile.Name())
 
 	// Create zip archive
