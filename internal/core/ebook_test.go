@@ -14,8 +14,8 @@ import (
 func TestGenerateEbook_ValidBookmarkID_ReturnsBookmarkWithHasEbookTrue(t *testing.T) {
 	tempDir := t.TempDir()
 	defer os.RemoveAll(tempDir)
-	parentDir := t.TempDir()
-	defer os.RemoveAll(parentDir)
+	dstDir := t.TempDir()
+	defer os.RemoveAll(dstDir)
 
 	mockRequest := core.ProcessRequest{
 		Bookmark: model.Bookmark{
@@ -24,7 +24,7 @@ func TestGenerateEbook_ValidBookmarkID_ReturnsBookmarkWithHasEbookTrue(t *testin
 			HTML:     "<html><body>Example HTML</body></html>",
 			HasEbook: false,
 		},
-		DataDir:     parentDir,
+		DataDir:     dstDir,
 		ContentType: "text/html",
 	}
 
@@ -58,15 +58,15 @@ func TestGenerateEbook_InvalidBookmarkID_ReturnsError(t *testing.T) {
 func TestGenerateEbook_ValidBookmarkID_EbookExist_EbookExist_ReturnWithHasEbookTrue(t *testing.T) {
 	tempDir := t.TempDir()
 	defer os.RemoveAll(tempDir)
-	parentDir := t.TempDir()
-	defer os.RemoveAll(parentDir)
+	dstDir := t.TempDir()
+	defer os.RemoveAll(dstDir)
 
 	mockRequest := core.ProcessRequest{
 		Bookmark: model.Bookmark{
 			ID:       1,
 			HasEbook: false,
 		},
-		DataDir:     parentDir,
+		DataDir:     dstDir,
 		ContentType: "text/html",
 	}
 	// Create the ebook directory
@@ -92,15 +92,15 @@ func TestGenerateEbook_ValidBookmarkID_EbookExist_EbookExist_ReturnWithHasEbookT
 func TestGenerateEbook_ValidBookmarkID_EbookExist_ImagePathExist_ReturnWithHasEbookTrue(t *testing.T) {
 	tempDir := t.TempDir()
 	defer os.RemoveAll(tempDir)
-	parentDir := t.TempDir()
-	defer os.RemoveAll(parentDir)
+	dstDir := t.TempDir()
+	defer os.RemoveAll(dstDir)
 
 	mockRequest := core.ProcessRequest{
 		Bookmark: model.Bookmark{
 			ID:       1,
 			HasEbook: false,
 		},
-		DataDir:     parentDir,
+		DataDir:     dstDir,
 		ContentType: "text/html",
 	}
 	// Create the image directory
@@ -129,15 +129,15 @@ func TestGenerateEbook_ValidBookmarkID_EbookExist_ImagePathExist_ReturnWithHasEb
 func TestGenerateEbook_ValidBookmarkID_EbookExist_ReturnWithHasArchiveTrue(t *testing.T) {
 	tempDir := t.TempDir()
 	defer os.RemoveAll(tempDir)
-	parentDir := t.TempDir()
-	defer os.RemoveAll(parentDir)
+	dstDir := t.TempDir()
+	defer os.RemoveAll(dstDir)
 
 	mockRequest := core.ProcessRequest{
 		Bookmark: model.Bookmark{
 			ID:       1,
 			HasEbook: false,
 		},
-		DataDir:     parentDir,
+		DataDir:     dstDir,
 		ContentType: "text/html",
 	}
 	// Create the archive directory
