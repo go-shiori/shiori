@@ -124,7 +124,7 @@ func ProcessBookmark(req ProcessRequest) (book model.Bookmark, isFatalErr bool, 
 	for i, imageURL := range imageURLs {
 		err = DownloadBookImage(imageURL, imgPath)
 		if err != nil && errors.Is(err, ErrNoSupportedImageType) {
-			log.Printf("Not found image for URL: %s", imageURL)
+			log.Printf("%s: %s", err.String(), imageURL)
 			if i == len(imageURLs)-1 {
 				os.Remove(imgPath)
 			}
