@@ -7,20 +7,24 @@
 
 **Check out our latest [Announcements](https://github.com/go-shiori/shiori/discussions/categories/announcements)**
 
-Shiori is a simple bookmarks manager written in the Go language. Intended as a simple clone of [Pocket][pocket]. You can use it as a command line application or as a web application. This application is distributed as a single binary, which means it can be installed and used easily.
+Shiori is a simple bookmarks manager written in the Go language. You can use it as a command line application or as a web application, distributed as a single binary, which means it can be installed and used easily.
+
+You can use it as a bookmark manager or as an alternative to [Pocket][pocket] or other read-later services due to it's archival and readability features.
 
 ![Screenshot][screenshot]
 
 ## Features
 
-- Basic bookmarks management i.e. add, edit, delete and search.
-- Import and export bookmarks from and to Netscape Bookmark file.
-- Import bookmarks from Pocket.
-- Simple and clean command line interface.
-- Simple and pretty web interface for those who don't want to use a command line app.
-- Portable, thanks to its single binary format.
-- Support for sqlite3, PostgreSQL and MySQL as its database.
-- Where possible, by default `shiori` will parse the readable content and create an offline archive of the webpage.
+- Basic **bookmarks management** i.e. add, edit, delete and search.
+- **Import and export** bookmarks from and to Netscape Bookmark file.
+- Import bookmarks from **Pocket**.
+- Simple and clean **command line interface**.
+- Simple and pretty **web interface** for those who don't want to use a command line app.
+- **Portable**, thanks to its single binary format.
+- Support for **sqlite3**, **PostgreSQL** and **MySQL** as its database.
+- Where possible and by default `shiori` will **parse the readable content**.
+- Optionally **create an offline archive of the webpage** using [warc](warc). (See [#353](https://github.com/go-shiori/shiori/issues/353))
+- Optionally **create an ebook** from the readable content in ePub using [go-epub](go-epub).
 - [BETA] [web extension][web-extension] support for Firefox and Chrome.
 
 ![Comparison of reader mode and archive mode][mode-comparison]
@@ -39,4 +43,5 @@ Shiori is distributed under the terms of the [MIT license][mit], which means you
 [screenshot]: https://raw.githubusercontent.com/go-shiori/shiori/master/docs/readme/cover.png
 [mode-comparison]: https://raw.githubusercontent.com/go-shiori/shiori/master/docs/readme/comparison.png
 [pocket]: https://getpocket.com/
+[warc]: https://github.com/go-shiori/warc
 [256]: https://github.com/go-shiori/shiori/issues/256
