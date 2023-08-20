@@ -702,15 +702,36 @@ export default {
 						this.editMode = false;
 						this.dialog.loading = false;
 						this.dialog.visible = false;
+                        
+                        let faildedUpdateArchives = [];
+                        let faildedCreateEbook = [];
+                        json.forEach(book => {
+                            var item = items.find(el => el.id === book.id);
+                            this.bookmarks.splice(item.index, 1, book);
 
-						json.forEach(book => {
-							var item = items.find(el => el.id === book.id);
-							this.bookmarks.splice(item.index, 1, book);
-						});
-					}).catch(err => {
-						this.selection = [];
-						this.editMode = false;
-						this.dialog.loading = false;
+                            if (data.createArchive && !book.hasArchive){
+                                faildedUpdateArchives.push(book.id);
+                                console.error("can't update archive for bookmark id", book.id)
+                            }
+                            if (data.createEbook && !book.hasEbook){
+                                faildedCreateEbook.push(book.id);
+                                console.error("can't update ebook for bookmark id:", book.id)
+                            }
+                        });
+                        if(faildedCreateEbook.length > 0 || faildedUpdateArchives.length > 0){
+                        this.showDialog({
+                            title: `Bookmarks Id that Update Action Faild`,
+                            content: `Not all bookmarks could have their contents updated, but no files were overwritten.`,
+                            mainText: "OK",
+                            mainClick: () => {
+                                this.dialog.visible = false;
+                            },
+                        })
+                    }
+                    }).catch(err => {
+                        this.selection = [];
+                        this.editMode = false;
+                        this.dialog.loading = false;
 
 						this.getErrorMessage(err).then(msg => {
 							this.showErrorDialog(msg);
