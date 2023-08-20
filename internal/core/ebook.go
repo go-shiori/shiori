@@ -16,10 +16,9 @@ import (
 	"github.com/pkg/errors"
 )
 
-// this function get request and a destination path and will create an epub file in dstPath from that request
-// dstPath should be incouded file name with '.epub'
-// it will return a bookmark model and err
-// bookmark model later use for update UI shiori based on this function be sucssesful or not
+// GenerateEbook receives a `ProcessRequest` and generates an ebook file in the destination path specified.
+// The destination path `dstPath` should include file name with ".epub" extension
+// The bookmark model will be used to update the UI based on whether this function is successful or not.
 func GenerateEbook(req ProcessRequest, dstPath string) (book model.Bookmark, err error) {
 	// variable for store generated html code
 	var html string
