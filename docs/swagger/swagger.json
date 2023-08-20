@@ -22,7 +22,7 @@
                         "name": "payload",
                         "in": "body",
                         "schema": {
-                            "$ref": "#/definitions/api.loginRequestPayload"
+                            "$ref": "#/definitions/api_v1.loginRequestPayload"
                         }
                     }
                 ],
@@ -30,7 +30,7 @@
                     "200": {
                         "description": "Login successful",
                         "schema": {
-                            "$ref": "#/definitions/api.loginResponseMessage"
+                            "$ref": "#/definitions/api_v1.loginResponseMessage"
                         }
                     },
                     "400": {
@@ -74,7 +74,7 @@
                     "200": {
                         "description": "Refresh successful",
                         "schema": {
-                            "$ref": "#/definitions/api.loginResponseMessage"
+                            "$ref": "#/definitions/api_v1.loginResponseMessage"
                         }
                     },
                     "403": {
@@ -130,7 +130,7 @@
         }
     },
     "definitions": {
-        "api.loginRequestPayload": {
+        "api_v1.loginRequestPayload": {
             "type": "object",
             "required": [
                 "password",
@@ -148,9 +148,17 @@
                 }
             }
         },
-        "api.loginResponseMessage": {
+        "api_v1.loginResponseMessage": {
             "type": "object",
             "properties": {
+                "expires": {
+                    "description": "Deprecated, used only for legacy APIs",
+                    "type": "integer"
+                },
+                "session": {
+                    "description": "Deprecated, used only for legacy APIs",
+                    "type": "string"
+                },
                 "token": {
                     "type": "string"
                 }

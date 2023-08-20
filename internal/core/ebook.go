@@ -5,20 +5,21 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"math/rand"
 	"net/http"
 	"os"
 	fp "path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/pkg/errors"
 )
 
-func GenerateEbook(req ProcessRequest) (book model.Bookmark, err error) {
+// GenerateEbook receives a `ProcessRequest` and generates an ebook file in the destination path specified.
+// The destination path `dstPath` should include file name with ".epub" extension
+// The bookmark model will be used to update the UI based on whether this function is successful or not.
+func GenerateEbook(req ProcessRequest, dstPath string) (book model.Bookmark, err error) {
 	// variable for store generated html code
 	var html string
 
@@ -29,6 +30,7 @@ func GenerateEbook(req ProcessRequest) (book model.Bookmark, err error) {
 		return book, errors.New("bookmark ID is not valid")
 	}
 
+	// get current state of bookmark
 	// cheak archive and thumb
 	strID := strconv.Itoa(book.ID)
 
@@ -42,37 +44,23 @@ func GenerateEbook(req ProcessRequest) (book model.Bookmark, err error) {
 	if _, err := os.Stat(archivePath); err == nil {
 		book.HasArchive = true
 	}
-	ebookfile := fp.Join(req.DataDir, "ebook", fmt.Sprintf("%d.epub", book.ID))
-	// if epub exist finish prosess else continue
-	if _, err := os.Stat(ebookfile); err == nil {
-		book.HasEbook = true
-		return book, nil
-	}
+
+	// this function create ebook from reader mode of bookmark so
+	// we can't create ebook from PDF so we return error here if bookmark is a pdf
 	contentType := req.ContentType
 	if strings.Contains(contentType, "application/pdf") {
 		return book, errors.New("can't create ebook for pdf")
 	}
 
-	ebookDir := fp.Join(req.DataDir, "ebook")
-	// check if directory not exsist create that
-	if _, err := os.Stat(ebookDir); os.IsNotExist(err) {
-		err := os.MkdirAll(ebookDir, model.DataDirPerm)
-		if err != nil {
-			return book, errors.Wrap(err, "can't create ebook directory")
-		}
-	}
-	// create epub file
-	ebookIdentifier := GenerateEPUBIdentifier()
-
-	epubFile, err := os.Create(ebookfile)
+	// create temporary epub file
+	tmpFile, err := os.CreateTemp("", "ebook")
 	if err != nil {
-		return book, errors.Wrap(err, "can't create ebook")
+		return book, errors.Wrap(err, "can't create temporary EPUB file")
 	}
-	defer epubFile.Close()
+	defer os.Remove(tmpFile.Name())
 
 	// Create zip archive
-	epubWriter := zip.NewWriter(epubFile)
-	defer epubWriter.Close()
+	epubWriter := zip.NewWriter(tmpFile)
 
 	// Create the mimetype file
 	mimetypeWriter, err := epubWriter.Create("mimetype")
@@ -105,10 +93,9 @@ func GenerateEbook(req ProcessRequest) (book model.Bookmark, err error) {
 		return book, errors.Wrap(err, "can't create content.opf")
 	}
 	_, err = contentOpfWriter.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
-<package xmlns="http://www.idpf.org/2007/opf" version="2.0" unique-identifier="` + ebookIdentifier + `">
-  <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
+<package xmlns="http://www.idpf.org/2007/opf" version="2.0" unique-identifier="BookId">
+  <metadata>
     <dc:title>` + book.Title + `</dc:title>
-    <dc:identifier xmlns:opf="http://www.idpf.org/2007/opf" id="` + ebookIdentifier + `" opf:scheme="uuid">` + ebookIdentifier + `</dc:identifier>
   </metadata>
   <manifest>
     <item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml"/>
@@ -154,7 +141,7 @@ img {
   "http://www.daisy.org/z3986/2005/ncx-2005-1.dtd">
 <ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1">
   <head>
-    <meta name="dtb:uid" content="urn:uuid:` + ebookIdentifier + `"/>
+    <meta name="dtb:uid" content="urn:uuid:12345678-1234-5678-1234-567812345678"/>
     <meta name="dtb:depth" content="1"/>
     <meta name="dtb:totalPageCount" content="0"/>
     <meta name="dtb:maxPageNumber" content="0"/>
@@ -228,6 +215,27 @@ img {
 	if err != nil {
 		return book, errors.Wrap(err, "can't write into content.html")
 	}
+	// close epub and tmpFile
+	err = epubWriter.Close()
+	if err != nil {
+		return book, errors.Wrap(err, "failed to close EPUB writer")
+	}
+	err = tmpFile.Close()
+	if err != nil {
+		return book, errors.Wrap(err, "failed to close temporary EPUB file")
+	}
+	// open temporary file again
+	tmpFile, err = os.Open(tmpFile.Name())
+	if err != nil {
+		return book, errors.Wrap(err, "can't open temporary EPUB file")
+	}
+	defer tmpFile.Close()
+	// if everitings go well we start move ebook to dstPath
+	err = MoveFileToDestination(dstPath, tmpFile)
+	if err != nil {
+		return book, errors.Wrap(err, "failed move ebook to destination")
+	}
+
 	book.HasEbook = true
 	return book, nil
 }
@@ -256,25 +264,4 @@ func GetImages(html string) (map[string]string, error) {
 	}
 
 	return images, nil
-}
-
-func GenerateEPUBIdentifier() string {
-	src := rand.NewSource(time.Now().UnixNano())
-	rnd := rand.New(src)
-
-	// Define the valid characters for the identifier
-	validChars := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_:."
-
-	// Generate a random identifier of length 24
-	identifier := make([]byte, 24)
-	for i := range identifier {
-		identifier[i] = validChars[rnd.Intn(len(validChars))]
-	}
-
-	// Ensure the identifier starts with a letter
-	if identifier[0] >= '0' && identifier[0] <= '9' {
-		identifier[0] = validChars[rnd.Intn(52)] // Generate a random letter
-	}
-
-	return string(identifier)
 }
