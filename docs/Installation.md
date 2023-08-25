@@ -5,6 +5,7 @@ There are several installation methods available :
 - [Using Precompiled Binary](#using-precompiled-binary)
 - [Building From Source](#building-from-source)
 - [Using Docker Image](#using-docker-image)
+  - [Deploying with Fly.io](#deploying-with-flyio)
 
 <!-- /TOC -->
 
@@ -49,3 +50,32 @@ If you want to build the Docker image on your own, Shiori already has its [Docke
 ```
 docker build -t shiori .
 ```
+
+### Deploying with Fly.io
+
+You can also deploy direclty with [Fly.io](https://fly.io) using the docker image[^1]. 
+[^1]: Thanks to [Oscar Carlsson's post](https://www.monotux.tech/posts/2022/09/more-flies-please/)
+
+1. lauch a new Fly.io app, and create permanent storage 
+```shell
+cd directory-where-you-store-your-shiori-flyio-toml
+flyctl launch --no-deploy
+flyctl volumes create shiori_data --size 1
+```
+2. Add the following sections to your fly.toml:
+```shell
+[build]
+  image = "ghcr.io/go-shiori/shiori:latest"
+
+[mounts]
+  source="shiori_data" # change it if you use another volume name in step 1
+  destination="/shiori"
+```
+
+3. Deploy
+```shell
+flyctl deploy
+```
+
+4. Now the shiori app should run like expected - the default username is `shiori` and the default password is `gopher`. This account will be removed when you’ve added a new account through the web-UI. You can run `flyctl open` to open your Shiori.
+
