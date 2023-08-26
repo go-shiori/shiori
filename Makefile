@@ -87,5 +87,5 @@ coverage:
 	$(GO) tool cover -html=coverage.txt
 
 .PHONY: docs
-docs: swagger
+docs:
 	DOCS_BUILD_PATH=$(DOCS_BUILD_PATH) $(BASH) ./scripts/docs.sh
