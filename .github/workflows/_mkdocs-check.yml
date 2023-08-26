@@ -1,4 +1,4 @@
-name: "Build mkdocs documentation"
+name: "Check mkdocs documentation"
 
 on: workflow_call
 
