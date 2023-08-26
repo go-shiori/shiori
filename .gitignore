@@ -16,3 +16,7 @@ dist/
 
 # macOS trash files
 .DS_Store
+
+# Docs
+docs/.venv
+build/docs

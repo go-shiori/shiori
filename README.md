@@ -24,7 +24,7 @@ You can use it as a bookmark manager or as an alternative to [Pocket][pocket] or
 - Support for **sqlite3**, **PostgreSQL** and **MySQL** as its database.
 - Where possible and by default `shiori` will **parse the readable content**.
 - Optionally **create an offline archive of the webpage** using [warc](warc). (See [#353](https://github.com/go-shiori/shiori/issues/353))
-- Optionally **create an ebook** from the readable content in ePub using [go-epub](go-epub).
+- Optionally **create an ebook** from the readable content in ePub using [go-epub][go-epub].
 - [BETA] [web extension][web-extension] support for Firefox and Chrome.
 
 ![Comparison of reader mode and archive mode][mode-comparison]

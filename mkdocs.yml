@@ -1,0 +1,38 @@
+site_name: Shiori
+site_url: https://github.com/go-shiori/shiori
+docs_dir: docs
+theme:
+  name: material
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.tabs
+  palette:
+    # Light mode
+    - scheme: shiori
+      media: "(prefers-color-scheme: light)"
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Dark mode
+    - scheme: slate
+      media: "(prefers-color-scheme: dark)"
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+extra_css:
+  - assets/css/style.css
+plugins:
+  - swagger-ui-tag:
+      tryItOutEnabled: false
+nav:
+  - Getting Started:
+    - Installation: getting_started/installation.md
+    - Quickstart: quickstart.md
+  - User's Guide:
+    - CLI: users_guide/cli.md
+    - Web Interface: users_guide/web.md
+    - API: users_guide/APIv1.md
+  - Contributing:
+    - Code of Conduct: CodeOfConduct.md
+    - Contributing Guide: Contributing.md

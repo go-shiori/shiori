@@ -1,9 +1,10 @@
-This is a brief explanation of Shiori's API. For more examples you can import this [collection](https://github.com/go-shiori/shiori/blob/master/docs/postman/shiori.postman_collection.json) in Postman.
+# Legacy API
 
 > ⚠️ **This is the documentation for the old API. This API is deprecated and will be removed in the future. Please refer and start migrating to the [API v1](./APIv1.md) instead.**
 
-<!-- TOC -->
+This is a brief explanation of Shiori's **legacy** API.
 
+<!-- TOC -->
 - [Auth](#auth)
     - [Log in](#log-in)
     - [Log out](#log-out)
@@ -20,12 +21,11 @@ This is a brief explanation of Shiori's API. For more examples you can import th
     - [Create account](#create-account)
     - [Edit account](#edit-account)
     - [Delete accounts](#delete-accounts)
-
 <!-- /TOC -->
 
-# Auth
+## Auth
 
-## Log in
+### Log in
 Most actions require a session id. For that, you'll need to log in using your username and password.
 |Request info|Value|
 |-|-|
@@ -54,7 +54,7 @@ It will return your session ID in a JSON:
 }
 ```
 
-## Log out
+### Log out
 Log out of a session ID.
 |Request info|Value|
 |-|-|
@@ -62,8 +62,8 @@ Log out of a session ID.
 |Method|`POST`|
 |`X-Session-Id` Header|`sessionId`|
 
-# Bookmarks
-## Get bookmarks
+## Bookmarks
+### Get bookmarks
 Gets the last 30 bookmarks (last page).
 |Request info|Value|
 |-|-|
@@ -100,7 +100,7 @@ Returns:
 }
 ```
 
-## Add bookmark
+### Add bookmark
 Add a bookmark. For some reason, Shiori ignores the provided title and excerpt, and instead fetches them automatically. Note the tag format, a regular JSON list will result in an error.
 
 |Request info|Value|
@@ -146,7 +146,7 @@ Returns:
 }
 ```
 
-## Edit bookmark
+### Edit bookmark
 Modifies a bookmark, by ID.
 |Request info|Value|
 |-|-|
@@ -173,7 +173,7 @@ Body:
 ```
 After providing the ID, provide the modified fields. The syntax is the same as [adding](#Add-a-bookmark).
 
-## Delete bookmark
+### Delete bookmark
 Deletes a list of bookmarks, by their IDs.
 |Request info|Value|
 |-|-|
@@ -186,8 +186,8 @@ Body:
 [1, 2, 3]
 ```
 
-# Tags
-## Get tags
+## Tags
+### Get tags
 Gets the list of tags, their IDs and the number of entries that have those tags.
 |Request info|Value|
 |-|-|
@@ -210,7 +210,7 @@ Returns:
     }
 ```
 
-## Rename tag
+### Rename tag
 Renames a tag, provided its ID.
 |Request info|Value|
 |-|-|
@@ -226,8 +226,8 @@ Body:
 }
 ```
 
-# Accounts
-## List accounts
+## Accounts
+### List accounts
 Gets the list of all user accounts, their IDs, and whether or not they are owners.
 |Request info|Value|
 |-|-|
@@ -246,7 +246,7 @@ Returns:
 ]
 ```
 
-## Create account
+### Create account
 Creates a new user.
 |Request info|Value|
 |-|-|
@@ -262,7 +262,7 @@ Body:
 }
 ```
 
-## Edit account
+### Edit account
 Changes an account's password or owner status.
 |Request info|Value|
 |-|-|
@@ -279,7 +279,7 @@ Body:
 }
 ```
 
-## Delete accounts
+### Delete accounts
 Deletes a list of users.
 |Request info|Value|
 |-|-|
