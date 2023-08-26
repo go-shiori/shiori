@@ -2,6 +2,7 @@
 
 VENV_PATH="docs/.venv"
 
+
 # Check if the docs virtualenv is created
 if [[ ! -d "${VENV_PATH}" ]]; then
     python3 -m venv ${VENV_PATH}
@@ -14,4 +15,4 @@ source ${VENV_PATH}/bin/activate
 pip install -r docs/requirements.txt
 
 # Build the docs
-mkdocs build --clean -d ${DOCS_BUILD_PATH}
+mkdocs build --clean ${MKDOCS_EXTRA_FLAGS} -d ${DOCS_BUILD_PATH}
