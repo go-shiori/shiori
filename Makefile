@@ -89,3 +89,7 @@ coverage:
 .PHONY: docs
 docs:
 	DOCS_BUILD_PATH=$(DOCS_BUILD_PATH) $(BASH) ./scripts/docs.sh
+
+.PHONY: docs-publish
+docs:
+	DOCS_ACTION=publish $(BASH) ./scripts/docs.sh
