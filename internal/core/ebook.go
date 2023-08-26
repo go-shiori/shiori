@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	fp "path/filepath"
-	"regexp"
 	"strconv"
 	"strings"
 
@@ -17,8 +16,6 @@ import (
 // The destination path `dstPath` should include file name with ".epub" extension
 // The bookmark model will be used to update the UI based on whether this function is successful or not.
 func GenerateEbook(req ProcessRequest, dstPath string) (book model.Bookmark, err error) {
-	// variable for store generated html code
-	//var html string
 
 	book = req.Bookmark
 
@@ -27,8 +24,7 @@ func GenerateEbook(req ProcessRequest, dstPath string) (book model.Bookmark, err
 		return book, errors.New("bookmark ID is not valid")
 	}
 
-	// get current state of bookmark
-	// cheak archive and thumb
+	// get current state of bookmark cheak archive and thumb
 	strID := strconv.Itoa(book.ID)
 
 	imagePath := fp.Join(req.DataDir, "thumb", fmt.Sprintf("%d", book.ID))
@@ -56,8 +52,7 @@ func GenerateEbook(req ProcessRequest, dstPath string) (book model.Bookmark, err
 	}
 	defer os.Remove(tmpFile.Name())
 
-	// Create zip archive
-	//epubWriter := zip.NewWriter(tmpFile)
+	// Create ebook
 	ebook := epub.NewEpub(book.Title)
 	ebook.SetTitle(book.Title)
 	ebook.SetAuthor(book.Author)
@@ -67,6 +62,7 @@ func GenerateEbook(req ProcessRequest, dstPath string) (book model.Bookmark, err
 	ebook.Write(tmpFile.Name())
 
 	defer tmpFile.Close()
+
 	// if everitings go well we start move ebook to dstPath
 	err = MoveFileToDestination(dstPath, tmpFile)
 	if err != nil {
@@ -75,30 +71,4 @@ func GenerateEbook(req ProcessRequest, dstPath string) (book model.Bookmark, err
 
 	book.HasEbook = true
 	return book, nil
-}
-
-// function get html and return list of image url inside html file
-func GetImages(html string) (map[string]string, error) {
-	// Regular expression to match image tags and their URLs
-	imageTagRegex := regexp.MustCompile(`<img.*?src="(.*?)".*?>`)
-
-	// Find all matches in the HTML string
-	imageTagMatches := imageTagRegex.FindAllStringSubmatch(html, -1)
-	// Create a dictionary to store the image URLs
-	images := make(map[string]string)
-
-	// Check if there are any matches
-	if len(imageTagMatches) == 0 {
-		return nil, nil
-	}
-
-	// Loop through all the matches and add them to the dictionary
-	for _, match := range imageTagMatches {
-		imageURL := match[1]
-		if !strings.HasPrefix(imageURL, "data:image/") {
-			images[imageURL] = match[0]
-		}
-	}
-
-	return images, nil
 }
