@@ -60,6 +60,8 @@ func GenerateEbook(req ProcessRequest, dstPath string) (book model.Bookmark, err
 	//epubWriter := zip.NewWriter(tmpFile)
 	ebook := epub.NewEpub(book.Title)
 	ebook.SetTitle(book.Title)
+	ebook.SetAuthor(book.Author)
+	ebook.SetDescription(book.Excerpt)
 	ebook.AddSection(string(book.HTML), book.Title, "", "")
 	ebook.EmbedImages()
 	ebook.Write(tmpFile.Name())
