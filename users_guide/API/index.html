@@ -1,0 +1,700 @@
+
+<!DOCTYPE html>
+
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<link href="https://github.com/go-shiori/shiori/users_guide/API/" rel="canonical"/>
+<link href="../../assets/images/favicon.png" rel="icon"/>
+<meta content="mkdocs-1.5.2, mkdocs-material-9.2.3" name="generator"/>
+<title>Legacy API - Shiori</title>
+<link href="../../assets/stylesheets/main.0e669242.min.css" rel="stylesheet"/>
+<link href="../../assets/stylesheets/palette.85d0ee34.min.css" rel="stylesheet"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
+<style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+<link href="../../assets/css/style.css" rel="stylesheet"/>
+<script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+</head>
+<body data-md-color-accent="indigo" data-md-color-primary="indigo" data-md-color-scheme="shiori" dir="ltr">
+<script>var palette=__md_get("__palette");if(palette&&"object"==typeof palette.color)for(var key of Object.keys(palette.color))document.body.setAttribute("data-md-color-"+key,palette.color[key])</script>
+<input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
+<input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
+<label class="md-overlay" for="__drawer"></label>
+<div data-md-component="skip">
+<a class="md-skip" href="#legacy-api">
+          Skip to content
+        </a>
+</div>
+<div data-md-component="announce">
+</div>
+<header class="md-header" data-md-component="header">
+<nav aria-label="Header" class="md-header__inner md-grid">
+<a aria-label="Shiori" class="md-header__button md-logo" data-md-component="logo" href="../.." title="Shiori">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+<label class="md-header__button md-icon" for="__drawer">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"></path></svg>
+</label>
+<div class="md-header__title" data-md-component="header-title">
+<div class="md-header__ellipsis">
+<div class="md-header__topic">
+<span class="md-ellipsis">
+            Shiori
+          </span>
+</div>
+<div class="md-header__topic" data-md-component="header-topic">
+<span class="md-ellipsis">
+            
+              Legacy API
+            
+          </span>
+</div>
+</div>
+</div>
+<form class="md-header__option" data-md-component="palette">
+<input aria-label="Switch to dark mode" class="md-option" data-md-color-accent="indigo" data-md-color-media="(prefers-color-scheme: light)" data-md-color-primary="indigo" data-md-color-scheme="shiori" id="__palette_1" name="__palette" type="radio"/>
+<label class="md-header__button md-icon" for="__palette_2" hidden="" title="Switch to dark mode">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"></path></svg>
+</label>
+<input aria-label="Switch to light mode" class="md-option" data-md-color-accent="indigo" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-primary="indigo" data-md-color-scheme="slate" id="__palette_2" name="__palette" type="radio"/>
+<label class="md-header__button md-icon" for="__palette_1" hidden="" title="Switch to light mode">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12c0-2.42-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"></path></svg>
+</label>
+</form>
+</nav>
+</header>
+<div class="md-container" data-md-component="container">
+<nav aria-label="Tabs" class="md-tabs" data-md-component="tabs">
+<div class="md-grid">
+<ul class="md-tabs__list">
+<li class="md-tabs__item">
+<a class="md-tabs__link" href="../../getting_started/installation/">
+          
+  
+  Getting Started
+
+        </a>
+</li>
+<li class="md-tabs__item">
+<a class="md-tabs__link" href="../cli/">
+          
+  
+  User's Guide
+
+        </a>
+</li>
+<li class="md-tabs__item">
+<a class="md-tabs__link" href="../../CodeOfConduct.md">
+          
+  
+  Contributing
+
+        </a>
+</li>
+</ul>
+</div>
+</nav>
+<main class="md-main" data-md-component="main">
+<div class="md-main__inner md-grid">
+<div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Navigation" class="md-nav md-nav--primary md-nav--lifted" data-md-level="0">
+<label class="md-nav__title" for="__drawer">
+<a aria-label="Shiori" class="md-nav__button md-logo" data-md-component="logo" href="../.." title="Shiori">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+    Shiori
+  </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Getting Started
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_1_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_1">
+<span class="md-nav__icon md-icon"></span>
+            Getting Started
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../getting_started/installation/">
+<span class="md-ellipsis">
+    Installation
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../quickstart.md">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+<span class="md-ellipsis">
+    User's Guide
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_2_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_2">
+<span class="md-nav__icon md-icon"></span>
+            User's Guide
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../cli/">
+<span class="md-ellipsis">
+    CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../web.md">
+<span class="md-ellipsis">
+    Web Interface
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../APIv1/">
+<span class="md-ellipsis">
+    API
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+<span class="md-ellipsis">
+    Contributing
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_3">
+<span class="md-nav__icon md-icon"></span>
+            Contributing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../CodeOfConduct.md">
+<span class="md-ellipsis">
+    Code of Conduct
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../Contributing.md">
+<span class="md-ellipsis">
+    Contributing Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#auth">
+    Auth
+  </a>
+<nav aria-label="Auth" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#log-in">
+    Log in
+  </a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#log-out">
+    Log out
+  </a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#bookmarks">
+    Bookmarks
+  </a>
+<nav aria-label="Bookmarks" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#get-bookmarks">
+    Get bookmarks
+  </a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#add-bookmark">
+    Add bookmark
+  </a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#edit-bookmark">
+    Edit bookmark
+  </a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#delete-bookmark">
+    Delete bookmark
+  </a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#tags">
+    Tags
+  </a>
+<nav aria-label="Tags" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#get-tags">
+    Get tags
+  </a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#rename-tag">
+    Rename tag
+  </a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#accounts">
+    Accounts
+  </a>
+<nav aria-label="Accounts" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#list-accounts">
+    List accounts
+  </a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#create-account">
+    Create account
+  </a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#edit-account">
+    Edit account
+  </a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#delete-accounts">
+    Delete accounts
+  </a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-content" data-md-component="content">
+<article class="md-content__inner md-typeset">
+<h1 id="legacy-api">Legacy API</h1>
+<blockquote>
+<p>⚠️ <strong>This is the documentation for the old API. This API is deprecated and will be removed in the future. Please refer and start migrating to the <a href="../APIv1/">API v1</a> instead.</strong></p>
+</blockquote>
+<p>This is a brief explanation of Shiori's <strong>legacy</strong> API.</p>
+<!-- TOC -->
+<ul>
+<li><a href="#auth">Auth</a><ul>
+<li><a href="#log-in">Log in</a></li>
+<li><a href="#log-out">Log out</a></li>
+</ul>
+</li>
+<li><a href="#bookmarks">Bookmarks</a><ul>
+<li><a href="#get-bookmarks">Get bookmarks</a></li>
+<li><a href="#add-bookmark">Add bookmark</a></li>
+<li><a href="#edit-bookmark">Edit bookmark</a></li>
+<li><a href="#delete-bookmark">Delete bookmark</a></li>
+</ul>
+</li>
+<li><a href="#tags">Tags</a><ul>
+<li><a href="#get-tags">Get tags</a></li>
+<li><a href="#rename-tag">Rename tag</a></li>
+</ul>
+</li>
+<li><a href="#accounts">Accounts</a><ul>
+<li><a href="#list-accounts">List accounts</a></li>
+<li><a href="#create-account">Create account</a></li>
+<li><a href="#edit-account">Edit account</a></li>
+<li><a href="#delete-accounts">Delete accounts</a></li>
+</ul>
+</li>
+</ul>
+<!-- /TOC -->
+<h2 id="auth">Auth</h2>
+<h3 id="log-in">Log in</h3>
+<p>Most actions require a session id. For that, you'll need to log in using your username and password.
+|Request info|Value|
+|-|-|
+|Endpoint|<code>/api/login</code>|
+|Method|<code>POST</code>|</p>
+<p>Body:</p>
+<pre><code class="language-json">{
+    "username": "shiori",
+    "password": "gopher",
+    "remember": true,
+    "owner": true
+}
+</code></pre>
+<p>It will return your session ID in a JSON:</p>
+<pre><code class="language-json">{
+    "session": "YOUR_SESSION_ID",
+    "account": {
+        "id": 1,
+        "username": "shiori",
+        "owner": true
+    }
+}
+</code></pre>
+<h3 id="log-out">Log out</h3>
+<p>Log out of a session ID.
+|Request info|Value|
+|-|-|
+|Endpoint|<code>/api/logout</code>|
+|Method|<code>POST</code>|
+|<code>X-Session-Id</code> Header|<code>sessionId</code>|</p>
+<h2 id="bookmarks">Bookmarks</h2>
+<h3 id="get-bookmarks">Get bookmarks</h3>
+<p>Gets the last 30 bookmarks (last page).
+|Request info|Value|
+|-|-|
+|Endpoint|<code>/api/bookmarks</code>|
+|Method|<code>GET</code>|
+|<code>X-Session-Id</code> Header|<code>sessionId</code>|</p>
+<p>Returns:</p>
+<pre><code class="language-json">{
+    "bookmarks": [
+        {
+            "id": 825,
+            "url": "https://interesting_cool_article.com",
+            "title": "Cool Interesting Article",
+            "excerpt": "An interesting and cool article indeed!",
+            "author": "",
+            "public": 0,
+            "modified": "2020-12-06 00:00:00",
+            "imageURL": "",
+            "hasContent": true,
+            "hasArchive": true,
+            "tags": [
+                {
+                    "id": 7,
+                    "name": "TAG"
+                }
+            ],
+            "createArchive": false
+        },
+    ],
+    "maxPage": 19,
+    "page": 1
+}
+</code></pre>
+<h3 id="add-bookmark">Add bookmark</h3>
+<p>Add a bookmark. For some reason, Shiori ignores the provided title and excerpt, and instead fetches them automatically. Note the tag format, a regular JSON list will result in an error.</p>
+<table>
+<thead>
+<tr>
+<th>Request info</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Endpoint</td>
+<td><code>/api/bookmarks</code></td>
+</tr>
+<tr>
+<td>Method</td>
+<td><code>POST</code></td>
+</tr>
+<tr>
+<td><code>X-Session-Id</code> Header</td>
+<td><code>sessionId</code></td>
+</tr>
+</tbody>
+</table>
+<p>Body:</p>
+<pre><code class="language-json">{
+    "url": "https://interesting_cool_article.com",
+    "createArchive": true,
+    "public": 1,
+    "tags": [{"name": "Interesting"}, {"name": "Cool"}],
+    "title": "Cool Interesting Article",
+    "excerpt": "An interesting and cool article indeed!"
+}
+</code></pre>
+<p>Returns:</p>
+<pre><code class="language-json">{
+    "id": 827,
+    "url": "https://interesting_cool_article.com",
+    "title": "TITLE",
+    "excerpt": "EXCERPT",
+    "author": "AUTHOR",
+    "public": 1,
+    "modified": "DATE",
+    "html": "HTML",
+    "imageURL": "/bookmark/827/thumb",
+    "hasContent": false,
+    "hasArchive": true,
+    "tags": [
+        {
+             "name": "Interesting"
+        },
+        {
+             "name": "Cool"
+        }
+    ],
+    "createArchive": true
+}
+</code></pre>
+<h3 id="edit-bookmark">Edit bookmark</h3>
+<p>Modifies a bookmark, by ID.
+|Request info|Value|
+|-|-|
+|Endpoint|<code>/api/bookmarks</code>|
+|Method|<code>PUT</code>|
+|<code>X-Session-Id</code> Header|<code>sessionId</code>|</p>
+<p>Body:</p>
+<pre><code class="language-json">{
+    "id": 3,
+    "url": "https://interesting_cool_article.com",
+    "title": "Cool Interesting Article",
+    "excerpt": "An interesting and cool article indeed!",
+    "author": "AUTHOR",
+    "public": 1,
+    "modified": "2019-09-22 00:00:00",
+    "imageURL": "/bookmark/3/thumb",
+    "hasContent": false,
+    "hasArchive": false,
+    "tags": [],
+    "createArchive": false
+}
+</code></pre>
+<p>After providing the ID, provide the modified fields. The syntax is the same as <a href="#Add-a-bookmark">adding</a>.</p>
+<h3 id="delete-bookmark">Delete bookmark</h3>
+<p>Deletes a list of bookmarks, by their IDs.
+|Request info|Value|
+|-|-|
+|Endpoint|<code>/api/bookmarks</code>|
+|Method|<code>DEL</code>|
+|<code>X-Session-Id</code> Header|<code>sessionId</code>|</p>
+<p>Body:</p>
+<pre><code class="language-json">[1, 2, 3]
+</code></pre>
+<h2 id="tags">Tags</h2>
+<h3 id="get-tags">Get tags</h3>
+<p>Gets the list of tags, their IDs and the number of entries that have those tags.
+|Request info|Value|
+|-|-|
+|Endpoint|<code>/api/tags</code>|
+|Method|<code>GET</code>|
+|<code>X-Session-Id</code> Header|<code>sessionId</code>|</p>
+<p>Returns:</p>
+<pre><code class="language-json">[
+    {
+        "id": 1,
+        "name": "Cool",
+        "nBookmarks": 1
+    },
+    {
+        "id": 2,
+        "name": "Interesting",
+        "nBookmarks": 1
+    }
+</code></pre>
+<h3 id="rename-tag">Rename tag</h3>
+<p>Renames a tag, provided its ID.
+|Request info|Value|
+|-|-|
+|Endpoint|<code>/api/tags</code>|
+|Method|<code>PUT</code>|
+|<code>X-Session-Id</code> Header|<code>sessionId</code>|</p>
+<p>Body:</p>
+<pre><code class="language-json">{
+    "id": 1,
+    "name": "TAG_NEW_NAME"
+}
+</code></pre>
+<h2 id="accounts">Accounts</h2>
+<h3 id="list-accounts">List accounts</h3>
+<p>Gets the list of all user accounts, their IDs, and whether or not they are owners.
+|Request info|Value|
+|-|-|
+|Endpoint|<code>/api/accounts</code>|
+|Method|<code>GET</code>|
+|<code>X-Session-Id</code> Header|<code>sessionId</code>|</p>
+<p>Returns:</p>
+<pre><code class="language-json">[
+    {
+        "id": 1,
+        "username": "shiori",
+        "owner": true
+    }
+]
+</code></pre>
+<h3 id="create-account">Create account</h3>
+<p>Creates a new user.
+|Request info|Value|
+|-|-|
+|Endpoint|<code>/api/accounts</code>|
+|Method|<code>POST</code>|
+|<code>X-Session-Id</code> Header|<code>sessionId</code>|
+Body:</p>
+<pre><code class="language-json">{
+    "username": "shiori2",
+    "password": "gopher",
+    "owner": false
+}
+</code></pre>
+<h3 id="edit-account">Edit account</h3>
+<p>Changes an account's password or owner status.
+|Request info|Value|
+|-|-|
+|Endpoint|<code>/api/accounts</code>|
+|Method|<code>PUT</code>|
+|<code>X-Session-Id</code> Header|<code>sessionId</code>|
+Body:</p>
+<pre><code class="language-json">{
+    "username": "shiori",
+    "oldPassword": "gopher",
+    "newPassword": "gopher",
+    "owner": true
+}
+</code></pre>
+<h3 id="delete-accounts">Delete accounts</h3>
+<p>Deletes a list of users.
+|Request info|Value|
+|-|-|
+|Endpoint|<code>/api/accounts</code>|
+|Method|<code>DEL</code>|
+|<code>X-Session-Id</code> Header|<code>sessionId</code>|</p>
+<p>Body:</p>
+<pre><code class="language-json">["shiori", "shiori2"]
+</code></pre>
+</article>
+</div>
+</div>
+</main>
+<footer class="md-footer">
+<div class="md-footer-meta md-typeset">
+<div class="md-footer-meta__inner md-grid">
+<div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" rel="noopener" target="_blank">
+      Material for MkDocs
+    </a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<div class="md-dialog" data-md-component="dialog">
+<div class="md-dialog__inner md-typeset"></div>
+</div>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs"], "search": "../../assets/javascripts/workers/search.dfff1995.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script src="../../assets/javascripts/bundle.78eede0e.min.js"></script>
+<script>document$.subscribe(() => {
+            window.update_swagger_ui_iframe_height = function (id) {
+                var iFrameID = document.getElementById(id);
+                if (iFrameID) {
+                    full_height = (iFrameID.contentWindow.document.body.scrollHeight + 80) + "px";
+                    iFrameID.height = full_height;
+                    iFrameID.style.height = full_height;
+                }
+            }
+        
+            let iframe_id_list = []
+            var iframes = document.getElementsByClassName("swagger-ui-iframe");
+            for (var i = 0; i < iframes.length; i++) { 
+                iframe_id_list.push(iframes[i].getAttribute("id"))
+            }
+        
+            let ticking = true;
+            
+            document.addEventListener('scroll', function(e) {
+                if (!ticking) {
+                    window.requestAnimationFrame(()=> {
+                        let half_vh = window.innerHeight/2;
+                        for(var i = 0; i < iframe_id_list.length; i++) {
+                            let element = document.getElementById(iframe_id_list[i])
+                            if(element==null){
+                                return
+                            }
+                            let diff = element.getBoundingClientRect().top
+                            if(element.contentWindow.update_top_val){
+                                element.contentWindow.update_top_val(half_vh - diff)
+                            }
+                        }
+                        ticking = false;
+                    });
+                    ticking = true;
+                }
+            });
+        
+            const dark_scheme_name = "slate"
+            
+            window.scheme = document.body.getAttribute("data-md-color-scheme")
+            const options = {
+                attributeFilter: ['data-md-color-scheme'],
+            };
+            function color_scheme_callback(mutations) {
+                for (let mutation of mutations) {
+                    if (mutation.attributeName === "data-md-color-scheme") {
+                        scheme = document.body.getAttribute("data-md-color-scheme")
+                        var iframe_list = document.getElementsByClassName("swagger-ui-iframe")
+                        for(var i = 0; i < iframe_list.length; i++) {
+                            var ele = iframe_list.item(i);
+                            if (ele) {
+                                if (scheme === dark_scheme_name) {
+                                    ele.contentWindow.enable_dark_mode();
+                                } else {
+                                    ele.contentWindow.disable_dark_mode();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            observer = new MutationObserver(color_scheme_callback);
+            observer.observe(document.body, options);
+            })</script></body>
+</html>
