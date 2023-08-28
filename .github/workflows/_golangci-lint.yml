@@ -9,7 +9,7 @@ jobs:
   golangci:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@24cb9080177205b6e8c946b17badbe402adc938f # v3.4.0
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
       - name: golangci-lint
         uses: golangci/golangci-lint-action@639cd343e1d3b897ff35927a75193d57cfcba299 # 3.6.0
         with:
