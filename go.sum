@@ -11,8 +11,6 @@ github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578/go.mod h1:uGdko
 github.com/andybalholm/cascadia v1.3.1/go.mod h1:R4bJ1UQfqADjvDa4P6HZHLh/3OxWWEqc0Sk8XGwHqvA=
 github.com/andybalholm/cascadia v1.3.2 h1:3Xi6Dw5lHF15JtdcmAHD3i1+T8plmv7BQ/nsViSLyss=
 github.com/andybalholm/cascadia v1.3.2/go.mod h1:7gtRlve5FxPPgIgX36uWBX58OdBsSS6lUvCFb+h7KvU=
-github.com/bmaupin/go-epub v1.1.1-0.20230816135150-45f45a4d57ba h1:KsxwiuDsAixHe+PH0uVbRGs2EVVBxyfKF/Io67gV27A=
-github.com/bmaupin/go-epub v1.1.1-0.20230816135150-45f45a4d57ba/go.mod h1:Wzh2rgIAWokCBSSF4C5/Z1LuufAGu/cETNd6O+2856E=
 github.com/bytedance/sonic v1.5.0/go.mod h1:ED5hyg4y6t3/9Ku1R6dU/4KyJ48DZ4jPhfY1O2AihPM=
 github.com/bytedance/sonic v1.9.2 h1:GDaNjuWSGu09guE9Oql0MSTNhNCLlWwO8y/xM5BzcbM=
 github.com/bytedance/sonic v1.9.2/go.mod h1:i736AoUSYt75HyZLoJW9ERYxcy6eaN6h4BZXU064P/U=
@@ -76,6 +74,8 @@ github.com/go-playground/validator/v10 v10.14.1/go.mod h1:9iXMNT7sEkjXb0I+enO7QX
 github.com/go-shiori/dom v0.0.0-20190930082056-9d974a4f8b25/go.mod h1:360KoNl36ftFYhjLHuEty78kWUGw8i1opEicvIDLfRk=
 github.com/go-shiori/dom v0.0.0-20230515143342-73569d674e1c h1:wpkoddUomPfHiOziHZixGO5ZBS73cKqVzZipfrLmO1w=
 github.com/go-shiori/dom v0.0.0-20230515143342-73569d674e1c/go.mod h1:oVDCh3qjJMLVUSILBRwrm+Bc6RNXGZYtoh9xdvf1ffM=
+github.com/go-shiori/go-epub v1.1.1-0.20230829131709-922954663716 h1:itLthh959oyRxPoWINQU/JL5FuQPqnCPBROgimyqs+8=
+github.com/go-shiori/go-epub v1.1.1-0.20230829131709-922954663716/go.mod h1:whnnn+cj52BOHlqcWWYfKelM4xO31KfqxQQ1oo6h8Xg=
 github.com/go-shiori/go-readability v0.0.0-20230421032831-c66949dfc0ad h1:3VP5Q8Mh165h2DHmXWFT4LJlwwvgTRlEuoe2vnsVnJ4=
 github.com/go-shiori/go-readability v0.0.0-20230421032831-c66949dfc0ad/go.mod h1:2DpZlTJO/ycxp/vsc/C11oUyveStOgIXB88SYV1lncI=
 github.com/go-shiori/warc v0.0.0-20200621032813-359908319d1d h1:+SEf4hYDaAt2eyq8Xu3YyWCpnMsK8sZfbYsDRFCUgBM=

@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	epub "github.com/bmaupin/go-epub"
+	epub "github.com/go-shiori/go-epub"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/pkg/errors"
 )
