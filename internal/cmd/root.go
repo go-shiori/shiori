@@ -156,16 +156,31 @@ func openMySQLDatabase(ctx context.Context) (database.DB, error) {
 
 func openPostgreSQLDatabase(ctx context.Context) (database.DB, error) {
 	host, _ := os.LookupEnv("SHIORI_PG_HOST")
+	if host == "" {
+		host = "localhost"
+	}
 	port, _ := os.LookupEnv("SHIORI_PG_PORT")
+	if port == "" {
+		port = "5432"
+	}
 	user, _ := os.LookupEnv("SHIORI_PG_USER")
 	password, _ := os.LookupEnv("SHIORI_PG_PASS")
 	dbName, _ := os.LookupEnv("SHIORI_PG_NAME")
+	if dbName == "" {
+		dbName = "shiori"
+	}
 	sslmode, _ := os.LookupEnv("SHIORI_PG_SSLMODE")
 	if sslmode == "" {
 		sslmode = "disable"
 	}
 
-	connString := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
-		host, port, user, password, dbName, sslmode)
+	connString := fmt.Sprintf("host=%s port=%s dbname=%s sslmode=%s",
+		host, port, dbName, sslmode)
+	if user != "" {
+		connString += fmt.Sprintf(" user=%s", user)
+	}
+	if password != "" {
+		connString += fmt.Sprintf(" password=%s", password)
+	}
 	return database.OpenPGDatabase(ctx, connString)
 }
