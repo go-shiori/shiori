@@ -273,14 +273,21 @@ func testGetBookmarksWithSQLCharacters(t *testing.T, db DB) {
 	_, err := db.SaveBookmarks(ctx, true, book)
 	assert.NoError(t, err, "Save bookmarks must not fail")
 
-	characters := []string{";", "%", "_", "\\", "\""}
+	characters := []string{";", "%", "_", "\\", "\"", ":"}
 
 	for _, char := range characters {
-		t.Run(char, func(t *testing.T) {
+		t.Run("GetBookmarks/"+char, func(t *testing.T) {
 			_, err := db.GetBookmarks(ctx, GetBookmarksOptions{
 				Keyword: char,
 			})
 			assert.NoError(t, err, "Get bookmarks should not fail")
+		})
+
+		t.Run("GetBookmarksCount/"+char, func(t *testing.T) {
+			_, err := db.GetBookmarksCount(ctx, GetBookmarksOptions{
+				Keyword: char,
+			})
+			assert.NoError(t, err, "Get bookmarks count should not fail")
 		})
 	}
 }
