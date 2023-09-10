@@ -371,10 +371,10 @@ func (db *PGDatabase) GetBookmarksCount(ctx context.Context, opts GetBookmarksOp
 	// Add where clause for search keyword
 	if opts.Keyword != "" {
 		query += ` AND (
-			url LIKE :lurl OR
-			title LIKE :kw OR
-			excerpt LIKE :kw OR
-			content LIKE :kw
+			url LIKE '%' || :kw || '%' OR
+			title LIKE '%' || :kw || '%' OR
+			excerpt LIKE '%' || :kw || '%' OR
+			content LIKE '%' || :kw || '%'
 		)`
 
 		arg["lurl"] = "%" + opts.Keyword + "%"
