@@ -270,19 +270,22 @@ func (db *SQLiteDatabase) GetBookmarks(ctx context.Context, opts GetBookmarksOpt
 
 	// Add where clause for search keyword
 	if opts.Keyword != "" {
-		query += ` AND (b.url LIKE ? OR b.excerpt LIKE ? OR b.id IN (
+		query += ` AND (b.url LIKE '%' || ? || '%' OR b.excerpt LIKE '%' || ? || '%' OR b.id IN (
 			SELECT docid id
 			FROM bookmark_content
 			WHERE title MATCH ? OR content MATCH ?))`
 
-		args = append(args,
-			"%"+opts.Keyword+"%",
-			"%"+opts.Keyword+"%")
-
-		// Replace dash with spaces since FTS5 uses `-name` as column identifier
-		opts.Keyword = strings.Replace(opts.Keyword, "-", " ", -1)
 		args = append(args, opts.Keyword, opts.Keyword)
 
+		// Replace dash with spaces since FTS5 uses `-name` as column identifier and double quote
+		// since FTS5 uses double quote as string identifier
+		// Reference: https://sqlite.org/fts5.html#fts5_strings
+		ftsKeyword := strings.Replace(opts.Keyword, "-", " ", -1)
+
+		// Properly set double quotes for string literals in sqlite's fts
+		ftsKeyword = strings.Replace(ftsKeyword, "\"", "\"\"", -1)
+
+		args = append(args, "\""+ftsKeyword+"\"", "\""+ftsKeyword+"\"")
 	}
 
 	// Add where clause for tags.
