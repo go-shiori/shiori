@@ -14,18 +14,19 @@ type testDatabaseFactory func(ctx context.Context) (DB, error)
 func testDatabase(t *testing.T, dbFactory testDatabaseFactory) {
 	tests := map[string]databaseTestCase{
 		// Bookmarks
-		"testBookmarkAutoIncrement":       testBookmarkAutoIncrement,
-		"testCreateBookmark":              testCreateBookmark,
-		"testCreateBookmarkWithContent":   testCreateBookmarkWithContent,
-		"testCreateBookmarkTwice":         testCreateBookmarkTwice,
-		"testCreateBookmarkWithTag":       testCreateBookmarkWithTag,
-		"testCreateTwoDifferentBookmarks": testCreateTwoDifferentBookmarks,
-		"testUpdateBookmark":              testUpdateBookmark,
-		"testUpdateBookmarkWithContent":   testUpdateBookmarkWithContent,
-		"testGetBookmark":                 testGetBookmark,
-		"testGetBookmarkNotExistant":      testGetBookmarkNotExistant,
-		"testGetBookmarks":                testGetBookmarks,
-		"testGetBookmarksCount":           testGetBookmarksCount,
+		"testBookmarkAutoIncrement":         testBookmarkAutoIncrement,
+		"testCreateBookmark":                testCreateBookmark,
+		"testCreateBookmarkWithContent":     testCreateBookmarkWithContent,
+		"testCreateBookmarkTwice":           testCreateBookmarkTwice,
+		"testCreateBookmarkWithTag":         testCreateBookmarkWithTag,
+		"testCreateTwoDifferentBookmarks":   testCreateTwoDifferentBookmarks,
+		"testUpdateBookmark":                testUpdateBookmark,
+		"testUpdateBookmarkWithContent":     testUpdateBookmarkWithContent,
+		"testGetBookmark":                   testGetBookmark,
+		"testGetBookmarkNotExistant":        testGetBookmarkNotExistant,
+		"testGetBookmarks":                  testGetBookmarks,
+		"testGetBookmarksWithSQLCharacters": testGetBookmarksWithSQLCharacters,
+		"testGetBookmarksCount":             testGetBookmarksCount,
 		// Tags
 		"testCreateTag":  testCreateTag,
 		"testCreateTags": testCreateTags,
@@ -259,6 +260,29 @@ func testGetBookmarks(t *testing.T, db DB) {
 	assert.NoError(t, err, "Get bookmarks should not fail")
 	assert.Len(t, results, 1, "results should contain one item")
 	assert.Equal(t, savedBookmark.ID, results[0].ID, "bookmark should be the one saved")
+}
+
+func testGetBookmarksWithSQLCharacters(t *testing.T, db DB) {
+	ctx := context.TODO()
+
+	// _ := 0
+	book := model.Bookmark{
+		URL:   "https://github.com/go-shiori/shiori",
+		Title: "shiori",
+	}
+	_, err := db.SaveBookmarks(ctx, true, book)
+	assert.NoError(t, err, "Save bookmarks must not fail")
+
+	characters := []string{";", "%", "_", "\\", "\""}
+
+	for _, char := range characters {
+		t.Run(char, func(t *testing.T) {
+			_, err := db.GetBookmarks(ctx, GetBookmarksOptions{
+				Keyword: char,
+			})
+			assert.NoError(t, err, "Get bookmarks should not fail")
+		})
+	}
 }
 
 func testGetBookmarksCount(t *testing.T, db DB) {
