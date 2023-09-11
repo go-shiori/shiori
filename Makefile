@@ -23,6 +23,10 @@ SHIORI_DEVELOPMENT ?= true
 SWAG_VERSION := v1.8.12
 SWAGGER_DOCS_PATH ?= ./docs/swagger
 
+# Docs
+DOCS_BUILD_PATH ?= ./build/docs
+MKDOCS_EXTRA_FLAGS ?=
+
 # Help documentatin à la https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 .PHONY: help
 help:
@@ -81,3 +85,11 @@ build: clean
 coverage:
 	$(GO) test $(GO_TEST_FLAGS) -coverprofile=coverage.txt ./...
 	$(GO) tool cover -html=coverage.txt
+
+.PHONY: docs
+docs:
+	DOCS_BUILD_PATH=$(DOCS_BUILD_PATH) $(BASH) ./scripts/docs.sh
+
+.PHONY: docs-publish
+docs:
+	DOCS_ACTION=publish $(BASH) ./scripts/docs.sh

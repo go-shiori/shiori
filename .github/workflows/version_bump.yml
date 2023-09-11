@@ -36,3 +36,7 @@ jobs:
   call-buildx:
     needs: call-gorelease
     uses: ./.github/workflows/_buildx.yml
+  call-mkdocs-publish:
+    needs: call-buildx
+    uses: ./.github/workflows/_mkdocs-publish.yml
+

@@ -1,0 +1,4 @@
+mkdocs==1.5.2
+mkdocs-material==9.2.3
+mkdocs-material-extensions==1.1.1
+mkdocs-swagger-ui-tag==0.6.4
