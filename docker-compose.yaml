@@ -16,18 +16,9 @@ services:
       - "postgres"
       - "mariadb"
     environment:
-      SHIORI_DBMS: mysql
       SHIORI_DIR: /srv/shiori
-      SHIORI_PG_USER: shiori
-      SHIORI_PG_PASS: shiori
-      SHIORI_PG_NAME: shiori
-      SHIORI_PG_HOST: postgres
-      SHIORI_PG_PORT: 5432
-      SHIORI_PG_SSLMODE: disable
-      SHIORI_MYSQL_USER: shiori
-      SHIORI_MYSQL_PASS: shiori
-      SHIORI_MYSQL_NAME: shiori
-      SHIORI_MYSQL_ADDRESS: (mariadb)
+      #SHIORI_DATABASE_URL: mysql://shiori:shiori@(mariadb)/shiori?charset=utf8mb4
+      SHIORI_DATABASE_URL: postgres://shiori:shiori@postgres/shiori?sslmode=disable
 
   postgres:
     image: postgres:15
