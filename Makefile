@@ -20,7 +20,7 @@ GIN_MODE ?= debug
 SHIORI_DEVELOPMENT ?= true
 
 # Swagger
-SWAG_VERSION := $(shell cat go.mod | grep "swaggo\/swag" | cut -d " " -f 2)
+SWAG_VERSION := $(shell cat go.mod | grep "swaggo/swag" | cut -d " " -f 2)
 SWAGGER_DOCS_PATH ?= ./docs/swagger
 
 # Help documentatin à la https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
