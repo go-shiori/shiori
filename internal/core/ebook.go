@@ -76,7 +76,7 @@ func GenerateEbook(req ProcessRequest, dstPath string) (book model.Bookmark, err
 
 	defer tmpFile.Close()
 
-	// If everitings go well we start move ebook to dstPath
+	// If everything go well we move ebook to dstPath
 	err = MoveFileToDestination(dstPath, tmpFile)
 	if err != nil {
 		return book, errors.Wrap(err, "failed move ebook to destination")
