@@ -5,7 +5,7 @@ BASH ?= $(shell command -v bash 2> /dev/null)
 SHIORI_DIR ?= dev-data
 
 # Testing
-GO_TEST_FLAGS ?= -v -race
+GO_TEST_FLAGS ?= -v -race -count=1
 GOTESTFMT_FLAGS ?=
 
 # Build
@@ -20,7 +20,7 @@ GIN_MODE ?= debug
 SHIORI_DEVELOPMENT ?= true
 
 # Swagger
-SWAG_VERSION := v1.8.12
+SWAG_VERSION := $(shell grep "swaggo/swag" go.mod | cut -d " " -f 2)
 SWAGGER_DOCS_PATH ?= ./docs/swagger
 
 # Help documentatin à la https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
