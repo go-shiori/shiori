@@ -71,6 +71,11 @@ golangci-lint:
 unittest:
 	GIN_MODE=$(GIN_MODE) GO_TEST_FLAGS="$(GO_TEST_FLAGS)" GOTESTFMT_FLAGS="$(GOTESTFMT_FLAGS)" $(BASH) -xe ./scripts/test.sh
 
+## Build styles
+.PHONY: styles
+styles:
+	$(BASH) ./scripts/styles.sh
+
 ## Build binary
 .PHONY: build
 build: clean

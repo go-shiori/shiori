@@ -19,3 +19,6 @@ dist/
 
 # macOS trash files
 .DS_Store
+
+# frontend
+node_modules
