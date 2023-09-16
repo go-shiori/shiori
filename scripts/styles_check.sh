@@ -9,7 +9,7 @@ if [ -n "$(git status --porcelain)" ]; then
 fi
 
 # Check style.css file
-make styles
+CLEANCSS_OPTS=${CLEANCSS_OPTS} make styles
 if [ -n "$(git status --porcelain)" ]; then
     echo "❌ style.css wasn't built from less changes. Please run 'make styles' and commit the changes."
     git reset --hard

@@ -263,7 +263,7 @@ func (h *Handler) ServeBookmarkArchive(w http.ResponseWriter, r *http.Request, p
 		err = h.templates["archive"].Execute(tplOutput, &bookmark)
 		checkError(err)
 
-		archiveCSSPath := path.Join(h.RootPath, "/assets/css/style.css")
+		archiveCSSPath := path.Join(h.RootPath, "/assets/css/archive.css")
 
 		docHead := doc.Find("head")
 		docHead.PrependHtml(`<meta charset="UTF-8">`)

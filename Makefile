@@ -23,6 +23,9 @@ SHIORI_DEVELOPMENT ?= true
 SWAG_VERSION := $(shell grep "swaggo/swag" go.mod | cut -d " " -f 2)
 SWAGGER_DOCS_PATH ?= ./docs/swagger
 
+# Frontend
+CLEANCSS_OPTS ?= --with-rebase
+
 # Help documentatin à la https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 .PHONY: help
 help:
@@ -74,12 +77,12 @@ unittest:
 ## Build styles
 .PHONY: styles
 styles:
-	$(BASH) ./scripts/styles.sh
+	CLEANCSS_OPTS=$(CLEANCSS_OPTS) $(BASH) ./scripts/styles.sh
 
 ## Build styles
 .PHONY: styles-check
 styles-check:
-	$(BASH) ./scripts/styles_check.sh
+	CLEANCSS_OPTS=$(CLEANCSS_OPTS) $(BASH) ./scripts/styles_check.sh
 
 ## Build binary
 .PHONY: build
