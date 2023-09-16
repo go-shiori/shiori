@@ -35,9 +35,9 @@ make swagger
 
 ## Updating the frontend styles
 
-The styles that are bundled with Shiori are stored under `internal/view/assets/css/style.css` and created from the less files under `internal/views/assets/less`.
+The styles that are bundled with Shiori are stored under `internal/view/assets/css/style.css` and `internal/view/assets/css/archive.css` and created from the less files under `internal/views/assets/less`.
 
-If you want to make frontend changes you need to do that under the less files and then compile them to css. In order to do that, you need to have installed [bun](https://bun.sh) (preferred) or [lessc](http://lesscss.org/usage/#command-line-usage).
+If you want to make frontend changes you need to do that under the less files and then compile them to css. In order to do that, you need to have installed [bun](https://bun.sh) (preferred) or [lessc](http://lesscss.org/usage/#command-line-usage)/[clean-css-cli](https://github.com/clean-css/clean-css-cli).
 
 Then, run the following command:
 
@@ -45,7 +45,7 @@ Then, run the following command:
 make styles
 ```
 
-The `style.css` will be updated and it needs **to be commited** to the repository.
+The `style.css`/`archive.css` will be updated and changes **needs to be commited** to the repository.
 
 ## Lint the code
 
