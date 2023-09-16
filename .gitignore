@@ -1,5 +1,8 @@
-# Exclude config file
+# Exclude IDE
 .vscode/
+.idea/
+
+# Exclude config file
 *.toml
 
 # Exclude executable file

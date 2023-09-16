@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/url"
+	"strings"
 
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/jmoiron/sqlx"
@@ -54,7 +55,8 @@ func Connect(ctx context.Context, dbURL string) (DB, error) {
 
 	switch dbU.Scheme {
 	case "mysql":
-		return OpenMySQLDatabase(ctx, dbURL)
+		urlNoSchema := strings.Split(dbURL, "://")[1]
+		return OpenMySQLDatabase(ctx, urlNoSchema)
 	case "postgres":
 		return OpenPGDatabase(ctx, dbURL)
 	case "sqlite":

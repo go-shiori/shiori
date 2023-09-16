@@ -35,22 +35,12 @@ Shiori uses an SQLite3 database stored in the above data directory by default. I
 
 ### MySQL
 
-| Variable               | Description                                         |
-|------------------------|-----------------------------------------------------|
-| `SHIORI_DBMS`          | Must be set to `mysql`                              |
-| `SHIORI_MYSQL_USER`    | Name of MySQL user                                  |
-| `SHIORI_MYSQL_PASS`    | Password for the above user                         |
-| `SHIORI_MYSQL_NAME`    | Name of database to use                             |
-| `SHIORI_MYSQL_ADDRESS` | Address of MySQL server, e.g. `tcp(127.0.0.1:3306)` or `unix(/tmp/mysqld.sock)` |
+MySQL example: `SHIORI_DATABASE_URL="mysql://username:password@(hostname:port)/database?charset=utf8mb4"`
+
+You can find additional details in [go mysql sql driver documentation](https://github.com/go-sql-driver/mysql#dsn-data-source-name).
 
 ### PostgreSQL
 
-| Variable            | Description                                         |
-|---------------------|-----------------------------------------------------|
-| `SHIORI_DBMS`       | Must be set to `postgresql`                         |
-| `SHIORI_PG_USER`    | Name of PostgreSQL user                             |
-| `SHIORI_PG_PASS`    | Password for the above user                         |
-| `SHIORI_PG_NAME`    | Name of database to use                             |
-| `SHIORI_PG_HOST`    | Address of PostgreSQL server                        |
-| `SHIORI_PG_PORT`    | Port number used by PostgreSQL server               |
-| `SHIORI_PG_SSLMODE` | PostgreSQL connection SSL mode (default: `disable`) |
+PostgreSQL example: `SHIORI_DATABASE_URL="postgres://pqgotest:password@hostname/database?sslmode=verify-full"`
+
+You can find additional details in [go postgres sql driver documentation](https://pkg.go.dev/github.com/lib/pq).
