@@ -264,13 +264,12 @@ func (h *Handler) ServeBookmarkArchive(w http.ResponseWriter, r *http.Request, p
 		checkError(err)
 
 		archiveCSSPath := path.Join(h.RootPath, "/assets/css/style.css")
-		sourceSansProCSSPath := path.Join(h.RootPath, "/assets/css/source-sans-pro.min.css")
 
 		docHead := doc.Find("head")
 		docHead.PrependHtml(`<meta charset="UTF-8">`)
 		docHead.AppendHtml(`<link href="` + archiveCSSPath + `" rel="stylesheet">`)
-		docHead.AppendHtml(`<link href="` + sourceSansProCSSPath + `" rel="stylesheet">`)
 		doc.Find("body").PrependHtml(tplOutput.String())
+		doc.Find("body").AddClass("shiori-archive-content")
 
 		// Revert back to HTML
 		outerHTML, err := goquery.OuterHtml(doc.Selection)
