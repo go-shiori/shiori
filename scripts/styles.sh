@@ -1,11 +1,16 @@
 #!/bin/bash
 
-CMD="lessc"
+INPUT=internal/view/assets/less/style.less
+OUTPUT=internal/view/assets/css/style.css
 
-# Check if bun is installled
+# Use bun is installled
 if [ -x "$(command -v bun)" ]; then
     bun install
-    CMD="bun x lessc -x"
+    bun x lessc $INPUT $OUTPUT
+    bun x clean-css-cli -o $OUTPUT $OUTPUT
+    exit 0
 fi
 
-$CMD internal/view/assets/less/style.less internal/view/assets/css/style.css
+# Default to lessc and cleancss
+lessc $INPUT $OUTPUT
+cleancss -o $OUTPUT $OUTPUT
