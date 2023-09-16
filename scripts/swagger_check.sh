@@ -12,6 +12,7 @@ fi
 # Check if the git tree for CWD is clean
 if [ -n "$(git status --porcelain)" ]; then
     echo "❌ git tree is not clean. Please commit all changes before running this script."
+    git diff
     exit 1
 fi
 
@@ -19,6 +20,7 @@ fi
 make swag-fmt
 if [ -n "$(git status --porcelain)" ]; then
     echo "❌ swag comments are not formatted. Please run 'make swag-fmt' and commit the changes."
+    git diff
     git reset --hard
     exit 1
 fi
@@ -27,6 +29,7 @@ fi
 make swagger
 if [ -n "$(git status --porcelain)" ]; then
     echo "❌ swagger documentation not updated, please run 'make swagger' and commit the changes."
+    git diff
     git reset --hard
     exit 1
 fi
