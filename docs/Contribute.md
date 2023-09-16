@@ -33,6 +33,20 @@ Then, run the following command:
 make swagger
 ```
 
+## Updating the frontend styles
+
+The styles that are bundled with Shiori are stored under `internal/view/assets/css/style.css` and created from the less files under `internal/views/assets/less`.
+
+If you want to make frontend changes you need to do that under the less files and then compile them to css. In order to do that, you need to have installed [bun](https://bun.sh) (preferred) or [lessc](http://lesscss.org/usage/#command-line-usage).
+
+Then, run the following command:
+
+```bash
+make styles
+```
+
+The `style.css` will be updated and it needs **to be commited** to the repository.
+
 ## Lint the code
 
 In order to lint the code, you need to have installed [golangci-lint](https://golangci-lint.run) and [swag](https://github.com/swaggo/swag).
