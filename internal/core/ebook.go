@@ -64,9 +64,15 @@ func GenerateEbook(req ProcessRequest, dstPath string) (book model.Bookmark, err
 	ebook.SetTitle(book.Title)
 	ebook.SetAuthor(book.Author)
 	ebook.SetDescription(book.Excerpt)
-	ebook.AddSection(`<h1 style="text-align:center"> `+book.Title+` </h1>`+book.HTML+lastline, book.Title, "", "")
+	_, err = ebook.AddSection(`<h1 style="text-align:center"> `+book.Title+` </h1>`+book.HTML+lastline, book.Title, "", "")
+	if err != nil {
+		return book, errors.Wrap(err, "can't add ebook Section")
+	}
 	ebook.EmbedImages()
-	ebook.Write(tmpFile.Name())
+	err = ebook.Write(tmpFile.Name())
+	if err != nil {
+		return book, errors.Wrap(err, "can't create ebook file")
+	}
 
 	defer tmpFile.Close()
 
