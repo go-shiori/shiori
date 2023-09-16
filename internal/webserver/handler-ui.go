@@ -263,7 +263,7 @@ func (h *Handler) ServeBookmarkArchive(w http.ResponseWriter, r *http.Request, p
 		err = h.templates["archive"].Execute(tplOutput, &bookmark)
 		checkError(err)
 
-		archiveCSSPath := path.Join(h.RootPath, "/assets/css/archive.css")
+		archiveCSSPath := path.Join(h.RootPath, "/assets/css/style.css")
 		sourceSansProCSSPath := path.Join(h.RootPath, "/assets/css/source-sans-pro.min.css")
 
 		docHead := doc.Find("head")
