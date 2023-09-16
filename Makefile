@@ -76,6 +76,11 @@ unittest:
 styles:
 	$(BASH) ./scripts/styles.sh
 
+## Build styles
+.PHONY: styles-check
+styles-check:
+	$(BASH) ./scripts/styles_check.sh
+
 ## Build binary
 .PHONY: build
 build: clean
