@@ -19,7 +19,6 @@
 	z-index         : 10001;
 	background-color: rgba(0, 0, 0, 0.6);
 	padding         : 32px;
-    resize          : both;
 
 	.custom-dialog {
 		display         : flex;
@@ -54,6 +53,7 @@
 			align-content        : start;
 			align-items          : baseline;
 			grid-gap             : 16px;
+            flex-grow            : 1;
 
 			&::after {
 				content          : "";
@@ -154,4 +154,9 @@
 			}
 		}
 	}
+}
+@media screen and (min-width: 1920px) {
+    .custom-dialog {
+        resize: both;
+    }
 }
