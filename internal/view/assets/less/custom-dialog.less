@@ -23,13 +23,12 @@
 	.custom-dialog {
 		display         : flex;
 		flex-flow       : column nowrap;
-		width           : 100%;
-		max-width       : 400px;
 		min-height      : 0;
 		max-height      : 100%;
 		overflow        : auto;
 		background-color: var(--contentBg);
 		font-size       : 16px;
+        resize          : both;
 
 		.custom-dialog-header {
 			padding         : 16px;
@@ -155,8 +154,18 @@
 		}
 	}
 }
-@media screen and (min-width: 1920px) {
+
+@media screen and (max-width: 400px) {
+        .custom-dialog {
+		width           : 100%;
+		max-width       : 100%;
+    }
+}
+
+
+@media screen and (min-width: 401px) {
     .custom-dialog {
-        resize: both;
+        max-width: 100%;
+        min-width: 400px;
     }
 }
