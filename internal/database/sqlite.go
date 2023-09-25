@@ -285,7 +285,7 @@ func (db *SQLiteDatabase) GetBookmarks(ctx context.Context, opts GetBookmarksOpt
 		// Properly set double quotes for string literals in sqlite's fts
 		ftsKeyword = strings.ReplaceAll(ftsKeyword, "\"", "\"\"")
 
-		args = append(args, "\""+ftsKeyword+"\"", "\""+ftsKeyword+"\"")
+		args = append(args, "\""+ftsKeyword+"\" *", "\""+ftsKeyword+"\" *")
 	}
 
 	// Add where clause for tags.
@@ -479,7 +479,7 @@ func (db *SQLiteDatabase) GetBookmarksCount(ctx context.Context, opts GetBookmar
 		// Properly set double quotes for string literals in sqlite's fts
 		ftsKeyword = strings.ReplaceAll(ftsKeyword, "\"", "\"\"")
 
-		args = append(args, "\""+ftsKeyword+"\"", "\""+ftsKeyword+"\"")
+		args = append(args, "\""+ftsKeyword+"\" *", "\""+ftsKeyword+"\" *")
 	}
 
 	// Add where clause for tags.

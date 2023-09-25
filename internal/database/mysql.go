@@ -253,7 +253,7 @@ func (db *MySQLDatabase) GetBookmarks(ctx context.Context, opts GetBookmarksOpti
 			MATCH(title, excerpt, content) AGAINST (? IN BOOLEAN MODE)
 		)`
 
-		args = append(args, "%"+opts.Keyword+"%", opts.Keyword)
+		args = append(args, "%"+opts.Keyword+"%", opts.Keyword+"*")
 	}
 
 	// Add where clause for tags.
@@ -383,7 +383,7 @@ func (db *MySQLDatabase) GetBookmarksCount(ctx context.Context, opts GetBookmark
 
 		args = append(args,
 			"%"+opts.Keyword+"%",
-			opts.Keyword)
+			opts.Keyword+"*")
 	}
 
 	// Add where clause for tags.
