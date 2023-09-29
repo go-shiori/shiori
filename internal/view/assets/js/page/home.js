@@ -589,6 +589,7 @@ export default {
 			});
 		},
         ebookGenerate(items) {
+            var authToken = JSON.parse(localStorage.getItem("shiori-token"));
             // Check and filter items
             if (typeof items !== "object") return;
             if (!Array.isArray(items)) items = [items];
@@ -608,17 +609,19 @@ export default {
                 ids: ids,
             };
             this.loading = true;
-            fetch(new URL("api/ebook", document.baseURI), {
+            fetch(new URL("api/v1/bookmarks/getebook", document.baseURI), {
                 method: "put",
                 body: JSON.stringify(data),
-                headers: { "Content-Type": "application/json" },
+                headers: { "Content-Type": "application/json",
+                Authorization: `Bearer ${authToken}`,
+                },
             }).then(response => {
                 if (!response.ok) throw response;
                 return response.json();
             }).then(json => {
                 this.selection = [];
                 this.editMode = false;
-                json.forEach(book => {
+                json.message.forEach(book => {
                     // download ebooks
                     const id = book.id;
                     if (book.hasEbook){
