@@ -155,15 +155,19 @@
 	}
 }
 
-@media screen and (max-width: 400px) {
-        .custom-dialog {
-		width           : 100%;
-		max-width       : 100%;
-    }
+
+@media only screen and (max-width: 768px) {
+	.custom-dialog-overlay {
+		padding: 0px;
+	}
+
+	.custom-dialog {
+		width: 100%;
+		height: 100%;
+	}
 }
 
-
-@media screen and (min-width: 401px) {
+@media screen and (min-width: 769px) {
     .custom-dialog {
         max-width: 100%;
         min-width: 400px;
