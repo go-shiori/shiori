@@ -44,7 +44,7 @@ serve:
 ## Runs server for local development
 .PHONY: run-server
 run-server:
-	GIN_MODE=$(GIN_MODE) SHIORI_DEVELOPMENT=$(SHIORI_DEVELOPMENT) SHIORI_DIR=$(SHIORI_DIR) go run main.go server
+	GIN_MODE=$(GIN_MODE) SHIORI_DEVELOPMENT=$(SHIORI_DEVELOPMENT) SHIORI_DIR=$(SHIORI_DIR) SHIORI_SECRET_KEY=shiori go run main.go server
 
 ## Generate swagger docs
 .PHONY: swagger
