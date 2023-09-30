@@ -2,45 +2,14 @@ Before using `shiori`, make sure it has been installed on your system. By defaul
 
 <!-- TOC -->
 
-- [Running Docker Container](#running-docker-container)
 - [Using Command Line Interface](#using-command-line-interface)
   - [Search syntax](#search-syntax)
-- [Using Web Interface](#using-web-interface)
+- [How to use the Web Interface](#using-web-interface)
+  - [Adding bookmarks manually](#adding-bookmarks-manually)
 - [Improved import from Pocket](#improved-import-from-pocket)
 - [Import from Wallabag](#import-from-wallabag)
 
 <!-- /TOC -->
-
-## Running Docker Container
-
-> If you are not using `shiori` from Docker image, you can skip this section.
-
-After building or pulling the image, you will be able to start a container from it. To preserve the data, you need to bind the directory for storing database, thumbnails and archive. In this example we're binding the data directory to our current working directory :
-
-```
-docker run -d --rm --name shiori -p 8080:8080 -v $(pwd):/shiori ghcr.io/go-shiori/shiori
-```
-
-The above command will :
-
-- Creates a new container from image `ghcr.io/go-shiori/shiori`.
-- Set the container name to `shiori` (option `--name`).
-- Bind the host current working directory to `/shiori` inside container (option `-v`).
-- Expose port `8080` in container to port `8080` in host machine (option `-p`).
-- Run the container in background (option `-d`).
-- Automatically remove the container when it stopped (option `--rm`).
-
-After you've run the container in background, you can access console of the container:
-
-```
-docker exec -it shiori sh
-```
-
-Now you can use `shiori` like normal. If you've finished, you can stop and remove the container by running :
-
-```
-docker stop shiori
-```
 
 ## Using Command Line Interface
 
@@ -79,8 +48,7 @@ With the `print` command line interface, you can use `-s` flag to submit keyword
 You may also use `-t` flag to include tags and `-e` flag to exclude tags.
 
 
-
-## Using Web Interface
+## How to use the Web Interface
 
 To access web interface run `shiori serve` or start Docker container following tutorial above. If you want to use a different port instead of 8080, you can simply run `shiori serve -p <portnumber>`. Once started you can access the web interface in `http://localhost:8080` or `http://localhost:<portnumber>` if you customized it. You will be greeted with login screen like this :
 
@@ -103,6 +71,26 @@ When searching for bookmarks, you may use `tag:tagname` to include tags and `-ta
 
 - `Click` on the tag name to include it;
 - `Alt + Click` on the tag name to exclude it.
+
+
+### Adding bookmarks manually
+
+- Within the web application, you can add a new bookmark by following the steps depicted in the screenshots below:
+
+![gs-01](./screenshots/17-gs-add-bookmark.png)
+![gs-02](./screenshots/18-gs-add-bookmark.png)
+![gs-03](./screenshots/19-gs-add-bookmark.png)
+
+This action will generate a new entry, as illustrated in the final screenshot.
+
+- Following this step, you should proceed to select the __Update Archive__ button in order to initiate the process of creating a local copy of the page.
+
+![gs-04](./screenshots/20-gs-add-bookmark.png)
+![gs-05](./screenshots/21-gs-add-bookmark.png)
+
+- At this point, you will be able to observe your downloaded bookmark, which has been successfully stored locally.
+
+![gs-06](./screenshots/22-gs-add-bookmark.png)
 
 
 ## Improved import from Pocket
@@ -136,7 +124,6 @@ rm pocket2shiori.sh 'path_to_your/pocket_export.html'
 ```
 
 ##  Import from Wallabag
-
 
 1. Export your entries from Wallabag as a json file
 
