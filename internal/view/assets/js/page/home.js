@@ -214,7 +214,12 @@ export default {
 			var skipFetchTags = Error("skip fetching tags");
 
 			this.loading = true;
-			fetch(url, {headers: {'Content-Type': 'application/json'}})
+			fetch(url, {
+				headers: {
+					'Content-Type': 'application/json',
+					'Authorization': 'Bearer ' + localStorage.getItem("shiori-token"),
+				}
+			})
 				.then(response => {
 					if (!response.ok) throw response;
 					return response.json();
@@ -244,7 +249,7 @@ export default {
 
 					// Fetch tags if requested
 					if (fetchTags) {
-						return fetch(new URL("api/tags", document.baseURI), {headers: {'Content-Type': 'application/json'}});
+						return fetch(new URL("api/tags", document.baseURI), { headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem("shiori-token") } });
 					} else {
 						this.loading = false;
 						throw skipFetchTags;
@@ -418,7 +423,7 @@ export default {
 					fetch(new URL("api/bookmarks", document.baseURI), {
 						method: "post",
 						body: JSON.stringify(data),
-						headers: { "Content-Type": "application/json" }
+						headers: { "Content-Type": "application/json", 'Authorization': 'Bearer ' + localStorage.getItem("shiori-token") }
 					}).then(response => {
 						if (!response.ok) throw response;
 						return response.json();
@@ -507,7 +512,7 @@ export default {
 					fetch(new URL("api/bookmarks", document.baseURI), {
 						method: "put",
 						body: JSON.stringify(book),
-						headers: { "Content-Type": "application/json" }
+						headers: { "Content-Type": "application/json", 'Authorization': 'Bearer ' + localStorage.getItem("shiori-token") }
 					}).then(response => {
 						if (!response.ok) throw response;
 						return response.json();
@@ -562,7 +567,7 @@ export default {
 					fetch(new URL("api/bookmarks", document.baseURI), {
 						method: "delete",
 						body: JSON.stringify(ids),
-						headers: { "Content-Type": "application/json" },
+						headers: { "Content-Type": "application/json", 'Authorization': 'Bearer ' + localStorage.getItem("shiori-token") },
 					}).then(response => {
 						if (!response.ok) throw response;
 						return response;
@@ -588,61 +593,61 @@ export default {
 				}
 			});
 		},
-        ebookGenerate(items) {
-            // Check and filter items
-            if (typeof items !== "object") return;
-            if (!Array.isArray(items)) items = [items];
+		ebookGenerate(items) {
+			// Check and filter items
+			if (typeof items !== "object") return;
+			if (!Array.isArray(items)) items = [items];
 
-            items = items.filter(item => {
-                var id = (typeof item.id === "number") ? item.id : 0,
-                    index = (typeof item.index === "number") ? item.index : -1;
+			items = items.filter(item => {
+				var id = (typeof item.id === "number") ? item.id : 0,
+					index = (typeof item.index === "number") ? item.index : -1;
 
-                return id > 0 && index > -1;
-            });
+				return id > 0 && index > -1;
+			});
 
-            if (items.length === 0) return;
+			if (items.length === 0) return;
 
-            // define variable and send request
-            var ids = items.map(item => item.id);
-            var data = {
-                ids: ids,
-            };
-            this.loading = true;
-            fetch(new URL("api/ebook", document.baseURI), {
-                method: "put",
-                body: JSON.stringify(data),
-                headers: { "Content-Type": "application/json" },
-            }).then(response => {
-                if (!response.ok) throw response;
-                return response.json();
-            }).then(json => {
-                this.selection = [];
-                this.editMode = false;
-                json.forEach(book => {
-                    // download ebooks
-                    const id = book.id;
-                    if (book.hasEbook){
-                    const ebook_url = new URL(`bookmark/${id}/ebook`, document.baseURI);
-                    const downloadLink = document.createElement("a");
-                    downloadLink.href = ebook_url.toString();
-                    downloadLink.download = `${book.title}.epub`;
-                    downloadLink.click();
-                    }
+			// define variable and send request
+			var ids = items.map(item => item.id);
+			var data = {
+				ids: ids,
+			};
+			this.loading = true;
+			fetch(new URL("api/ebook", document.baseURI), {
+				method: "put",
+				body: JSON.stringify(data),
+				headers: { "Content-Type": "application/json", 'Authorization': 'Bearer ' + localStorage.getItem("shiori-token") },
+			}).then(response => {
+				if (!response.ok) throw response;
+				return response.json();
+			}).then(json => {
+				this.selection = [];
+				this.editMode = false;
+				json.forEach(book => {
+					// download ebooks
+					const id = book.id;
+					if (book.hasEbook) {
+						const ebook_url = new URL(`bookmark/${id}/ebook`, document.baseURI);
+						const downloadLink = document.createElement("a");
+						downloadLink.href = ebook_url.toString();
+						downloadLink.download = `${book.title}.epub`;
+						downloadLink.click();
+					}
 
-                    var item = items.find(el => el.id === book.id);
+					var item = items.find(el => el.id === book.id);
 					this.bookmarks.splice(item.index, 1, book);
-                });
-            }).catch(err => {
-                this.selection = [];
-                this.editMode = false;
-                this.getErrorMessage(err).then(msg => {
-                    this.showErrorDialog(msg);
-                })
-            })
-                .finally(() => {
-                    this.loading = false;
-                });
-        },
+				});
+			}).catch(err => {
+				this.selection = [];
+				this.editMode = false;
+				this.getErrorMessage(err).then(msg => {
+					this.showErrorDialog(msg);
+				})
+			})
+				.finally(() => {
+					this.loading = false;
+				});
+		},
 		showDialogUpdateCache(items) {
 			// Check and filter items
 			if (typeof items !== "object") return;
@@ -678,7 +683,7 @@ export default {
 					label: "Update Ebook as well",
 					type: "check",
 					value: this.appOptions.createEbook,
-                }],
+				}],
 				mainText: "Yes",
 				secondText: "No",
 				mainClick: (data) => {
@@ -686,14 +691,14 @@ export default {
 						ids: ids,
 						createArchive: data.createArchive,
 						keepMetadata: data.keepMetadata,
-                        createEbook: data.createEbook,
+						createEbook: data.createEbook,
 					};
 
 					this.dialog.loading = true;
 					fetch(new URL("api/cache", document.baseURI), {
 						method: "put",
 						body: JSON.stringify(data),
-						headers: { "Content-Type": "application/json" },
+						headers: { "Content-Type": "application/json", 'Authorization': 'Bearer ' + localStorage.getItem("shiori-token") },
 					}).then(response => {
 						if (!response.ok) throw response;
 						return response.json();
@@ -702,36 +707,36 @@ export default {
 						this.editMode = false;
 						this.dialog.loading = false;
 						this.dialog.visible = false;
-                        
-                        let faildedUpdateArchives = [];
-                        let faildedCreateEbook = [];
-                        json.forEach(book => {
-                            var item = items.find(el => el.id === book.id);
-                            this.bookmarks.splice(item.index, 1, book);
 
-                            if (data.createArchive && !book.hasArchive){
-                                faildedUpdateArchives.push(book.id);
-                                console.error("can't update archive for bookmark id", book.id)
-                            }
-                            if (data.createEbook && !book.hasEbook){
-                                faildedCreateEbook.push(book.id);
-                                console.error("can't update ebook for bookmark id:", book.id)
-                            }
-                        });
-                        if(faildedCreateEbook.length > 0 || faildedUpdateArchives.length > 0){
-                        this.showDialog({
-                            title: `Bookmarks Id that Update Action Faild`,
-                            content: `Not all bookmarks could have their contents updated, but no files were overwritten.`,
-                            mainText: "OK",
-                            mainClick: () => {
-                                this.dialog.visible = false;
-                            },
-                        })
-                    }
-                    }).catch(err => {
-                        this.selection = [];
-                        this.editMode = false;
-                        this.dialog.loading = false;
+						let faildedUpdateArchives = [];
+						let faildedCreateEbook = [];
+						json.forEach(book => {
+							var item = items.find(el => el.id === book.id);
+							this.bookmarks.splice(item.index, 1, book);
+
+							if (data.createArchive && !book.hasArchive) {
+								faildedUpdateArchives.push(book.id);
+								console.error("can't update archive for bookmark id", book.id)
+							}
+							if (data.createEbook && !book.hasEbook) {
+								faildedCreateEbook.push(book.id);
+								console.error("can't update ebook for bookmark id:", book.id)
+							}
+						});
+						if (faildedCreateEbook.length > 0 || faildedUpdateArchives.length > 0) {
+							this.showDialog({
+								title: `Bookmarks Id that Update Action Faild`,
+								content: `Not all bookmarks could have their contents updated, but no files were overwritten.`,
+								mainText: "OK",
+								mainClick: () => {
+									this.dialog.visible = false;
+								},
+							})
+						}
+					}).catch(err => {
+						this.selection = [];
+						this.editMode = false;
+						this.dialog.loading = false;
 
 						this.getErrorMessage(err).then(msg => {
 							this.showErrorDialog(msg);
@@ -792,7 +797,7 @@ export default {
 					fetch(new URL("api/bookmarks/tags", document.baseURI), {
 						method: "put",
 						body: JSON.stringify(request),
-						headers: { "Content-Type": "application/json" },
+						headers: { "Content-Type": "application/json", 'Authorization': 'Bearer ' + localStorage.getItem("shiori-token") },
 					}).then(response => {
 						if (!response.ok) throw response;
 						return response.json();
@@ -858,7 +863,7 @@ export default {
 					fetch(new URL("api/tag", document.baseURI), {
 						method: "PUT",
 						body: JSON.stringify(newData),
-						headers: { "Content-Type": "application/json" },
+						headers: { "Content-Type": "application/json", 'Authorization': 'Bearer ' + localStorage.getItem("shiori-token") },
 					}).then(response => {
 						if (!response.ok) throw response;
 						return response.json();
