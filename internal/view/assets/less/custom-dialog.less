@@ -25,6 +25,8 @@
 		flex-flow       : column nowrap;
 		min-height      : 0;
 		max-height      : 100%;
+        max-width       : 100%;
+        width           : 400px;
 		overflow        : auto;
 		background-color: var(--contentBg);
 		font-size       : 16px;
@@ -162,15 +164,8 @@
 	}
 
 	.custom-dialog {
-		width : 100%;
-		height: 100%;
-		resize: none;
+		width : 100% !important;
+		height: 100% !important;
+		resize: none !important;
 	}
-}
-
-@media screen and (min-width: 769px) {
-    .custom-dialog {
-        max-width : 100%;
-        width     : 400px;
-    }
 }
