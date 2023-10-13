@@ -112,14 +112,14 @@ func (h *Handler) ApiGetBookmarks(w http.ResponseWriter, r *http.Request, ps htt
 		archivePath := fp.Join(h.DataDir, "archive", strID)
 		ebookPath := fp.Join(h.DataDir, "ebook", strID+".epub")
 
-		if fileExists(imgPath) {
+		if FileExists(imgPath) {
 			bookmarks[i].ImageURL = path.Join(h.RootPath, "bookmark", strID, "thumb")
 		}
 
-		if fileExists(archivePath) {
+		if FileExists(archivePath) {
 			bookmarks[i].HasArchive = true
 		}
-		if fileExists(ebookPath) {
+		if FileExists(ebookPath) {
 			bookmarks[i].HasEbook = true
 		}
 	}
@@ -673,7 +673,7 @@ func (h *Handler) ApiUpdateBookmarkTags(w http.ResponseWriter, r *http.Request, 
 		imgPath := fp.Join(h.DataDir, "thumb", strID)
 		imgURL := path.Join(h.RootPath, "bookmark", strID, "thumb")
 
-		if fileExists(imgPath) {
+		if FileExists(imgPath) {
 			bookmarks[i].ImageURL = imgURL
 		}
 	}
