@@ -115,7 +115,7 @@ func (h *Handler) validateSession(r *http.Request) error {
 
 		account, err := h.depenencies.Domains.Auth.CheckToken(r.Context(), authParts[1])
 		if err != nil {
-			return err
+			return fmt.Errorf("session has been expired")
 		}
 
 		if r.Method != "" && r.Method != "GET" && !account.Owner {
