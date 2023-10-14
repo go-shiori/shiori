@@ -118,7 +118,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/model.Account"
+                            "$ref": "#/definitions/model.Bookmark"
                         }
                     },
                     "403": {
@@ -247,6 +247,59 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.Bookmark": {
+            "type": "object",
+            "properties": {
+                "author": {
+                    "type": "string"
+                },
+                "createArchive": {
+                    "type": "boolean"
+                },
+                "createEbook": {
+                    "type": "boolean"
+                },
+                "excerpt": {
+                    "type": "string"
+                },
+                "hasArchive": {
+                    "type": "boolean"
+                },
+                "hasContent": {
+                    "type": "boolean"
+                },
+                "hasEbook": {
+                    "type": "boolean"
+                },
+                "html": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "imageURL": {
+                    "type": "string"
+                },
+                "modified": {
+                    "type": "string"
+                },
+                "public": {
+                    "type": "integer"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Tag"
+                    }
+                },
+                "title": {
+                    "type": "string"
+                },
+                "url": {
                     "type": "string"
                 }
             }

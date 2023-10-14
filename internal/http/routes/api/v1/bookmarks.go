@@ -202,7 +202,7 @@ func NewBookmarksPIRoutes(logger *logrus.Logger, deps *config.Dependencies) *Boo
 //	@securityDefinitions.apikey	ApiKeyAuth
 //	@Param						payload	body	updateCachePayload	true "Update Cache Payload"`
 //	@Produce					json
-//	@Success					200	{object}	model.Account
+//	@Success					200	{object}	model.Bookmark
 //	@Failure					403	{object}	nil	"Token not provided/invalid"
 //	@Router						/api/v1/bookmaeks/cache [put]
 func (r *BookmarksAPIRoutes) updateCache(c *gin.Context) {

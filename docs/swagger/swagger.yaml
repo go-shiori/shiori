@@ -50,6 +50,41 @@ definitions:
       username:
         type: string
     type: object
+  model.Bookmark:
+    properties:
+      author:
+        type: string
+      createArchive:
+        type: boolean
+      createEbook:
+        type: boolean
+      excerpt:
+        type: string
+      hasArchive:
+        type: boolean
+      hasContent:
+        type: boolean
+      hasEbook:
+        type: boolean
+      html:
+        type: string
+      id:
+        type: integer
+      imageURL:
+        type: string
+      modified:
+        type: string
+      public:
+        type: integer
+      tags:
+        items:
+          $ref: '#/definitions/model.Tag'
+        type: array
+      title:
+        type: string
+      url:
+        type: string
+    type: object
   model.Tag:
     properties:
       id:
@@ -127,7 +162,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/model.Account'
+            $ref: '#/definitions/model.Bookmark'
         "403":
           description: Token not provided/invalid
       summary: Update Cache and Ebook on server.
