@@ -610,10 +610,14 @@ export default {
 			// define variable and send request
 			var ids = items.map(item => item.id);
 			var data = {
-				ids: ids,
-			};
+                ids: ids,
+                createArchive: false,
+                keepMetadata: true,
+                createEbook: true,
+                skipExist: true,
+            };
 			this.loading = true;
-			fetch(new URL("api/v1/bookmarks/getebook", document.baseURI), {
+			fetch(new URL("api/v1/bookmarks/cache", document.baseURI), {
 				method: "put",
 				body: JSON.stringify(data),
 				headers: { "Content-Type": "application/json", 'Authorization': 'Bearer ' + localStorage.getItem("shiori-token") },
@@ -692,6 +696,7 @@ export default {
 						createArchive: data.createArchive,
 						keepMetadata: data.keepMetadata,
 						createEbook: data.createEbook,
+                        skipExist: false,
 					};
 
 					this.dialog.loading = true;

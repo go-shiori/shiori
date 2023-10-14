@@ -54,6 +54,7 @@ type updateCachePayload struct {
 	KeepMetadata  bool  `json:"keepMetadata"`
 	CreateArchive bool  `json:"createArchive"`
 	CreateEbook   bool  `json:"createEbook"`
+	SkipExist     bool  `json:"skipExist"`
 }
 
 func (p *updateCachePayload) IsValid() error {
@@ -420,6 +421,15 @@ func (r *BookmarksAPIRoutes) updateCache(c *gin.Context) {
 				ContentType: contentType,
 				KeepTitle:   keepMetadata,
 				KeepExcerpt: keepMetadata,
+			}
+
+			if payload.SkipExist && book.CreateEbook {
+				strID := strconv.Itoa(book.ID)
+				ebookPath := fp.Join(request.DataDir, "ebook", strID+".epub")
+				_, err = os.Stat(ebookPath)
+				if err == nil {
+					request.Bookmark.CreateEbook = false
+				}
 			}
 
 			book, _, err = core.ProcessBookmark(request)
