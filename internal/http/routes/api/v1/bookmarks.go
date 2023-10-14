@@ -195,6 +195,17 @@ func NewBookmarksPIRoutes(logger *logrus.Logger, deps *config.Dependencies) *Boo
 	}
 }
 
+// updateCache godoc
+//
+//	@Summary					Update Cache and Ebook on server.
+//	@Tags						Auth
+//	@securityDefinitions.apikey	ApiKeyAuth
+//	@Param						payload	body	updateCachePayloadPayload	Ids, KeepMetadata, CreateArchive, CreateEbook, SkipExist
+//	@Produce					json
+//	@Success					200	{object}	model.Account
+//	@Failure					403	{object}	nil	"Token not provided/invalid"
+//	@Router						/api/v1/bookmaeks/cache [put]
+
 func (r *BookmarksAPIRoutes) updateCache(c *gin.Context) {
 	ctx := context.NewContextFromGin(c)
 	if !ctx.UserIsLogged() {
