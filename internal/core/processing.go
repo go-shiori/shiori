@@ -21,6 +21,7 @@ import (
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/go-shiori/warc"
 	"github.com/pkg/errors"
+	"golang.org/x/image/webp"
 
 	// Add support for png
 	_ "image/png"
@@ -203,6 +204,7 @@ func DownloadBookImage(url, dstPath string) error {
 	if !strings.Contains(cp, "image/jpeg") &&
 		!strings.Contains(cp, "image/pjpeg") &&
 		!strings.Contains(cp, "image/jpg") &&
+		!strings.Contains(cp, "image/webp") &&
 		!strings.Contains(cp, "image/png") {
 		return ErrNoSupportedImageType
 	}
@@ -218,9 +220,19 @@ func DownloadBookImage(url, dstPath string) error {
 	// Parse image and process it.
 	// If image is smaller than 600x400 or its ratio is less than 4:3, resize.
 	// Else, save it as it is.
-	img, _, err := image.Decode(resp.Body)
-	if err != nil {
-		return fmt.Errorf("failed to parse image %s: %v", url, err)
+	var img image.Image
+	switch {
+	case strings.Contains(cp, "image/webp"):
+		img, err = webp.Decode(resp.Body)
+		if err != nil {
+			return fmt.Errorf("failed to parse image %s: %v", url, err)
+		}
+	default:
+		img, _, err = image.Decode(resp.Body)
+		if err != nil {
+			return fmt.Errorf("failed to parse image %s: %v", url, err)
+		}
+
 	}
 
 	imgRect := img.Bounds()
