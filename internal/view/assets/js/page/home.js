@@ -695,7 +695,7 @@ export default {
 					};
 
 					this.dialog.loading = true;
-					fetch(new URL("api/cache", document.baseURI), {
+					fetch(new URL("api/v1/bookmarks/cache", document.baseURI), {
 						method: "put",
 						body: JSON.stringify(data),
 						headers: { "Content-Type": "application/json", 'Authorization': 'Bearer ' + localStorage.getItem("shiori-token") },
@@ -710,7 +710,7 @@ export default {
 
 						let faildedUpdateArchives = [];
 						let faildedCreateEbook = [];
-						json.forEach(book => {
+						json.message.forEach(book => {
 							var item = items.find(el => el.id === book.id);
 							this.bookmarks.splice(item.index, 1, book);
 

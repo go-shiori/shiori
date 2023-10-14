@@ -100,7 +100,7 @@ func (r *LegacyAPIRoutes) Setup(g *gin.Engine) {
 	// router.PUT(jp("/api/bookmarks"), withLogging(hdl.apiUpdateBookmark))
 	legacyGroup.PUT("/api/bookmarks", r.handle(r.legacyHandler.ApiUpdateBookmark))
 	// router.PUT(jp("/api/cache"), withLogging(hdl.apiUpdateCache))
-	legacyGroup.PUT("/api/cache", r.handle(r.legacyHandler.ApiUpdateCache))
+	//legacyGroup.PUT("/api/cache", r.handle(r.legacyHandler.ApiUpdateCache))
 	// router.PUT(jp("/api/bookmarks/tags"), withLogging(hdl.apiUpdateBookmarkTags))
 	legacyGroup.PUT("/api/bookmarks/tags", r.handle(r.legacyHandler.ApiUpdateBookmarkTags))
 	// router.POST(jp("/api/bookmarks/ext"), withLogging(hdl.apiInsertViaExtension))
