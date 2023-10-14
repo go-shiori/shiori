@@ -28,7 +28,7 @@ func (r *BookmarksAPIRoutes) Setup(g *gin.RouterGroup) model.Routes {
 func (r *BookmarksAPIRoutes) listHandler(c *gin.Context) {
 	bookmarks, err := r.deps.Database.GetBookmarks(c, database.GetBookmarksOptions{})
 	if err != nil {
-		r.logger.WithError(err).Error("error getting bookmakrs")
+		r.logger.WithError(err).Error("error getting bookmarks")
 		response.SendInternalServerError(c)
 		return
 	}

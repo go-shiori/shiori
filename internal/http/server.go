@@ -79,7 +79,7 @@ func (s *HttpServer) Start(_ context.Context) error {
 }
 
 func (s *HttpServer) Stop(ctx context.Context) error {
-	s.logger.WithField("addr", s.http.Addr).Info("stoppping http server")
+	s.logger.WithField("addr", s.http.Addr).Info("stopping http server")
 	return s.http.Shutdown(ctx)
 }
 

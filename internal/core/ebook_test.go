@@ -101,7 +101,7 @@ func TestGenerateEbook(t *testing.T) {
 		})
 	})
 	t.Run("specific ebook generate case", func(t *testing.T) {
-		t.Run("unvalid bookmarkId that return Error", func(t *testing.T) {
+		t.Run("invalid bookmarkId that return Error", func(t *testing.T) {
 			tempDir := t.TempDir()
 			mockRequest := core.ProcessRequest{
 				Bookmark: model.Bookmark{

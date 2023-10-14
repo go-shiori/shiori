@@ -509,7 +509,7 @@ func (db *PGDatabase) DeleteBookmarks(ctx context.Context, ids ...int) (err erro
 	return nil
 }
 
-// GetBookmark fetchs bookmark based on its ID or URL.
+// GetBookmark fetches bookmark based on its ID or URL.
 // Returns the bookmark and boolean whether it's exist or not.
 func (db *PGDatabase) GetBookmark(ctx context.Context, id int, url string) (model.Bookmark, bool, error) {
 	args := []interface{}{id}

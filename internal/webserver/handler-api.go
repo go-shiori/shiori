@@ -434,7 +434,7 @@ func (h *Handler) ApiDownloadEbook(w http.ResponseWriter, r *http.Request, ps ht
 				ContentType: contentType,
 			}
 
-			// if file exist book return avilable file
+			// if file exist book return available file
 			strID := strconv.Itoa(book.ID)
 			ebookPath := fp.Join(request.DataDir, "ebook", strID+".epub")
 			_, err = os.Stat(ebookPath)
