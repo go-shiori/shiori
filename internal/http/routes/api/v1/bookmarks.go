@@ -429,6 +429,7 @@ func (r *BookmarksAPIRoutes) updateCache(c *gin.Context) {
 				_, err = os.Stat(ebookPath)
 				if err == nil {
 					request.Bookmark.CreateEbook = false
+					request.Bookmark.HasEbook = true
 				}
 			}
 
