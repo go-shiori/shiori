@@ -94,6 +94,39 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/bookmaeks/cache": {
+            "put": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Update Cache and Ebook on server.",
+                "parameters": [
+                    {
+                        "description": "Update Cache Payload",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api_v1.updateCachePayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.Account"
+                        }
+                    },
+                    "403": {
+                        "description": "Token not provided/invalid"
+                    }
+                }
+            }
+        },
         "/api/v1/tags": {
             "get": {
                 "produces": [
@@ -172,6 +205,32 @@ const docTemplate = `{
                 },
                 "token": {
                     "type": "string"
+                }
+            }
+        },
+        "api_v1.updateCachePayload": {
+            "type": "object",
+            "required": [
+                "ids"
+            ],
+            "properties": {
+                "createArchive": {
+                    "type": "boolean"
+                },
+                "createEbook": {
+                    "type": "boolean"
+                },
+                "ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "keepMetadata": {
+                    "type": "boolean"
+                },
+                "skipExist": {
+                    "type": "boolean"
                 }
             }
         },
