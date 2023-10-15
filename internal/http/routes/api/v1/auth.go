@@ -23,6 +23,7 @@ func (r *AuthAPIRoutes) Setup(group *gin.RouterGroup) model.Routes {
 	group.GET("/me", r.meHandler)
 	group.POST("/login", r.loginHandler)
 	group.POST("/refresh", r.refreshHandler)
+	group.PATCH("/account", r.settingsHandler)
 	return r
 }
 
@@ -46,6 +47,10 @@ type loginResponseMessage struct {
 	Token      string `json:"token"`
 	SessionID  string `json:"session"` // Deprecated, used only for legacy APIs
 	Expiration int64  `json:"expires"` // Deprecated, used only for legacy APIs
+}
+
+type settingRequestPayload struct {
+	Config model.UserConfig `json:"config"`
 }
 
 // loginHandler godoc
@@ -148,6 +153,37 @@ func (r *AuthAPIRoutes) meHandler(c *gin.Context) {
 	if !ctx.UserIsLogged() {
 		response.SendError(c, http.StatusForbidden, nil)
 		return
+	}
+
+	response.Send(c, http.StatusOK, ctx.GetAccount())
+}
+
+// settingsHandler godoc
+//
+//	@Summary					Perform actions on the currently logged-in user.
+//	@Tags						Auth
+//	@securityDefinitions.apikey	ApiKeyAuth
+//	@Param						payload	body	settingRequestPayload	false	"Config data"
+//	@Produce					json
+//	@Success					200	{object}	model.Account
+//	@Failure					403	{object}	nil	"Token not provided/invalid"
+//	@Router						/api/v1/auth/account [patch]
+func (r *AuthAPIRoutes) settingsHandler(c *gin.Context) {
+	ctx := context.NewContextFromGin(c)
+	if !ctx.UserIsLogged() {
+		response.SendError(c, http.StatusForbidden, nil)
+	}
+	var payload settingRequestPayload
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		response.SendInternalServerError(c)
+	}
+
+	account := ctx.GetAccount()
+	account.Config = payload.Config
+
+	err := r.deps.Database.SaveAccountSettings(c, *account)
+	if err != nil {
+		response.SendInternalServerError(c)
 	}
 
 	response.Send(c, http.StatusOK, ctx.GetAccount())

@@ -15,6 +15,38 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/v1/auth/account": {
+            "patch": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Perform actions on the currently logged-in user.",
+                "parameters": [
+                    {
+                        "description": "Config data",
+                        "name": "payload",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/api_v1.settingRequestPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.Account"
+                        }
+                    },
+                    "403": {
+                        "description": "Token not provided/invalid"
+                    }
+                }
+            }
+        },
         "/api/v1/auth/login": {
             "post": {
                 "consumes": [
@@ -175,9 +207,20 @@ const docTemplate = `{
                 }
             }
         },
+        "api_v1.settingRequestPayload": {
+            "type": "object",
+            "properties": {
+                "config": {
+                    "$ref": "#/definitions/model.UserConfig"
+                }
+            }
+        },
         "model.Account": {
             "type": "object",
             "properties": {
+                "config": {
+                    "$ref": "#/definitions/model.UserConfig"
+                },
                 "id": {
                     "type": "integer"
                 },
@@ -203,6 +246,35 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                }
+            }
+        },
+        "model.UserConfig": {
+            "type": "object",
+            "properties": {
+                "HideExcerpt": {
+                    "type": "boolean"
+                },
+                "HideThumbnail": {
+                    "type": "boolean"
+                },
+                "KeepMetadata": {
+                    "type": "boolean"
+                },
+                "ListMode": {
+                    "type": "boolean"
+                },
+                "MakePublic": {
+                    "type": "boolean"
+                },
+                "NightMode": {
+                    "type": "boolean"
+                },
+                "ShowId": {
+                    "type": "boolean"
+                },
+                "UseArchive": {
+                    "type": "boolean"
                 }
             }
         }
