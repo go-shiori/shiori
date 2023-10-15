@@ -422,6 +422,7 @@ export default {
 						public: data.makePublic ? 1 : 0,
 						tags: tags,
 						createArchive: data.createArchive,
+						createEbook: data.createEbook,
 					};
 
 					this.dialog.loading = true;
