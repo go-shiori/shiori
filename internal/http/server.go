@@ -34,6 +34,10 @@ func (s *HttpServer) Setup(cfg *config.Config, deps *config.Dependencies) *HttpS
 
 	s.engine.Use(requestid.New())
 
+	if cfg.Http.RootPath != "" {
+		s.engine.Use(middleware.StripWebrootPrefixMiddleware(cfg.Http.RootPath))
+	}
+
 	if cfg.Http.AccessLog {
 		s.engine.Use(ginlogrus.Logger(deps.Log))
 	}
