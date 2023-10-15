@@ -383,6 +383,11 @@ export default {
 					type: "check",
 					value: this.appOptions.UseArchive,
 				}, {
+					name: "createEbook",
+					label: "Create Ebook",
+					type: "check",
+					value: this.appOptions.CreateEbook,
+				}, {
 					name: "makePublic",
 					label: "Make archive publicly available",
 					type: "check",

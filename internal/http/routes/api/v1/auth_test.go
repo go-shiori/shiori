@@ -253,6 +253,7 @@ func TestSettingsHandler(t *testing.T) {
 				NightMode:     true,
 				KeepMetadata:  true,
 				UseArchive:    true,
+				CreateEbook:   true,
 				MakePublic:    true,
 			},
 		}
@@ -276,6 +277,7 @@ func TestSettingsHandler(t *testing.T) {
 			"NightMode": false,
 			"KeepMetadata": false,
 			"UseArchive": false,
+			"CreateEbook": false,
 			"MakePublic": false
 			  }
 			}`)
