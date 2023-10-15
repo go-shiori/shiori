@@ -434,12 +434,32 @@ func (h *Handler) ApiDownloadEbook(w http.ResponseWriter, r *http.Request, ps ht
 				ContentType: contentType,
 			}
 
-			book, err = core.GenerateEbook(request)
-			content.Close()
+			// if file exist book return avilable file
+			strID := strconv.Itoa(book.ID)
+			ebookPath := fp.Join(request.DataDir, "ebook", strID+".epub")
+			_, err = os.Stat(ebookPath)
+			if err == nil {
+				// file already exists, return the existing file
+				imagePath := fp.Join(request.DataDir, "thumb", fmt.Sprintf("%d", book.ID))
+				archivePath := fp.Join(request.DataDir, "archive", fmt.Sprintf("%d", book.ID))
 
-			if err != nil {
-				chProblem <- book.ID
-				return
+				if _, err := os.Stat(imagePath); err == nil {
+					book.ImageURL = fp.Join("/", "bookmark", strID, "thumb")
+				}
+
+				if _, err := os.Stat(archivePath); err == nil {
+					book.HasArchive = true
+				}
+				book.HasEbook = true
+			} else {
+				// generate ebook file
+				book, err = core.GenerateEbook(request, ebookPath)
+				content.Close()
+
+				if err != nil {
+					chProblem <- book.ID
+					return
+				}
 			}
 
 			// Update list of bookmarks

@@ -5,7 +5,7 @@ BASH ?= $(shell command -v bash 2> /dev/null)
 SHIORI_DIR ?= dev-data
 
 # Testing
-GO_TEST_FLAGS ?= -v -race
+GO_TEST_FLAGS ?= -v -race -count=1
 GOTESTFMT_FLAGS ?=
 
 # Build
@@ -20,8 +20,11 @@ GIN_MODE ?= debug
 SHIORI_DEVELOPMENT ?= true
 
 # Swagger
-SWAG_VERSION := v1.8.12
+SWAG_VERSION := $(shell grep "swaggo/swag" go.mod | cut -d " " -f 2)
 SWAGGER_DOCS_PATH ?= ./docs/swagger
+
+# Frontend
+CLEANCSS_OPTS ?= --with-rebase
 
 # Help documentatin à la https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 .PHONY: help
@@ -41,7 +44,7 @@ serve:
 ## Runs server for local development
 .PHONY: run-server
 run-server:
-	GIN_MODE=$(GIN_MODE) SHIORI_DEVELOPMENT=$(SHIORI_DEVELOPMENT) SHIORI_DIR=$(SHIORI_DIR) go run main.go server
+	GIN_MODE=$(GIN_MODE) SHIORI_DEVELOPMENT=$(SHIORI_DEVELOPMENT) SHIORI_DIR=$(SHIORI_DIR) SHIORI_SECRET_KEY=shiori go run main.go server
 
 ## Generate swagger docs
 .PHONY: swagger
@@ -70,6 +73,16 @@ golangci-lint:
 .PHONY: unittest
 unittest:
 	GIN_MODE=$(GIN_MODE) GO_TEST_FLAGS="$(GO_TEST_FLAGS)" GOTESTFMT_FLAGS="$(GOTESTFMT_FLAGS)" $(BASH) -xe ./scripts/test.sh
+
+## Build styles
+.PHONY: styles
+styles:
+	CLEANCSS_OPTS=$(CLEANCSS_OPTS) $(BASH) ./scripts/styles.sh
+
+## Build styles
+.PHONY: styles-check
+styles-check:
+	CLEANCSS_OPTS=$(CLEANCSS_OPTS) $(BASH) ./scripts/styles_check.sh
 
 ## Build binary
 .PHONY: build

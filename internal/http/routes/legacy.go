@@ -8,7 +8,7 @@ import (
 	"github.com/go-shiori/shiori/internal/config"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/go-shiori/shiori/internal/webserver"
-	"github.com/gofrs/uuid"
+	"github.com/gofrs/uuid/v5"
 	"github.com/julienschmidt/httprouter"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
