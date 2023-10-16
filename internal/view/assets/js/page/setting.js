@@ -83,7 +83,6 @@ export default {
 	},
     methods: {
         saveSetting() {
-            var authToken = JSON.parse(localStorage.getItem("shiori-token"));
             let options = {
                 ShowId: this.appOptions.ShowId,
                 ListMode: this.appOptions.ListMode,
@@ -108,9 +107,10 @@ export default {
                 body: JSON.stringify({
                     config: this.appOptions
                 }),
-                headers: { "Content-Type": "application/json",
-                Authorization: `Bearer ${authToken}`,
-                },
+				headers: {
+					'Content-Type': 'application/json',
+					'Authorization': 'Bearer ' + localStorage.getItem("shiori-token"),
+				}
             }).then(response => {
                 if (!response.ok) throw response;
                 return response.json();
