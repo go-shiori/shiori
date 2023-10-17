@@ -37,7 +37,7 @@ make swagger
 
 The styles that are bundled with Shiori are stored under `internal/view/assets/css/style.css` and `internal/view/assets/css/archive.css` and created from the less files under `internal/views/assets/less`.
 
-If you want to make frontend changes you need to do that under the less files and then compile them to css. In order to do that, you need to have installed [bun](https://bun.sh) (preferred) or [lessc](http://lesscss.org/usage/#command-line-usage)/[clean-css-cli](https://github.com/clean-css/clean-css-cli).
+If you want to make frontend changes you need to do that under the less files and then compile them to css. In order to do that, you need to have installed [bun](https://bun.sh).
 
 Then, run the following command:
 
