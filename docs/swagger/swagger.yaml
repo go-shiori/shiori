@@ -22,8 +22,15 @@ definitions:
       token:
         type: string
     type: object
+  api_v1.settingRequestPayload:
+    properties:
+      config:
+        $ref: '#/definitions/model.UserConfig'
+    type: object
   model.Account:
     properties:
+      config:
+        $ref: '#/definitions/model.UserConfig'
       id:
         type: integer
       owner:
@@ -42,9 +49,48 @@ definitions:
       name:
         type: string
     type: object
+  model.UserConfig:
+    properties:
+      HideExcerpt:
+        type: boolean
+      HideThumbnail:
+        type: boolean
+      KeepMetadata:
+        type: boolean
+      ListMode:
+        type: boolean
+      MakePublic:
+        type: boolean
+      NightMode:
+        type: boolean
+      ShowId:
+        type: boolean
+      UseArchive:
+        type: boolean
+    type: object
 info:
   contact: {}
 paths:
+  /api/v1/auth/account:
+    patch:
+      parameters:
+      - description: Config data
+        in: body
+        name: payload
+        schema:
+          $ref: '#/definitions/api_v1.settingRequestPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Account'
+        "403":
+          description: Token not provided/invalid
+      summary: Perform actions on the currently logged-in user.
+      tags:
+      - Auth
   /api/v1/auth/login:
     post:
       consumes:

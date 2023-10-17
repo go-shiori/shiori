@@ -263,7 +263,7 @@ func (h *Handler) ApiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 	checkError(err)
 }
 
-// apiDeleteBookmarks is handler for DELETE /api/bookmark
+// ApiDeleteBookmarks is handler for DELETE /api/bookmark
 func (h *Handler) ApiDeleteBookmark(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	ctx := r.Context()
 
