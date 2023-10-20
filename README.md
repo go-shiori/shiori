@@ -33,6 +33,7 @@ All documentation is available in the [docs folder][documentation]. If you think
 
 Shiori is distributed under the terms of the [MIT license][mit], which means you can use it and modify it however you want. However, if you make an enhancement for it, if possible, please send a pull request.
 
+[getting started]: https://github.com/go-shiori/shiori/blob/master/docs/Getting-Started.md
 [documentation]: https://github.com/go-shiori/shiori/blob/master/docs/index.md
 [mit]: https://choosealicense.com/licenses/mit/
 [web-extension]: https://github.com/go-shiori/shiori-web-ext
