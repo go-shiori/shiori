@@ -107,6 +107,7 @@ When searching for bookmarks, you may use `tag:tagname` to include tags and `-ta
 - `Alt + Click` on the tag name to exclude it.
 
 ## Community contributions
+
 ### Improved import from Pocket
 
 Shiori offers a [Command Line Interface](https://github.com/go-shiori/shiori/blob/master/docs/Usage.md#using-command-line-interface) with the command `shiori pocket` to import Pocket entries but with this can only import them as links and not as complete entries.
