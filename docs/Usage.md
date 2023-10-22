@@ -6,9 +6,10 @@ Before using `shiori`, make sure it has been installed on your system. By defaul
 - [Using Command Line Interface](#using-command-line-interface)
   - [Search syntax](#search-syntax)
 - [Using Web Interface](#using-web-interface)
-- [Improved import from Pocket](#improved-import-from-pocket)
-- [Import from Wallabag](#import-from-wallabag)
-- [Add URL to Shiori from Android](#Add-URL-to-Shiori-from-Android)
+- [Community contributions](##community-contributions)
+    - [Improved import from Pocket](###improved-import-from-pocket)
+    - [Import from Wallabag](###import-from-wallabag)
+    - [Add URL to Shiori from Android](###Add-URL-to-Shiori-from-Android)
 
 <!-- /TOC -->
 
@@ -105,8 +106,8 @@ When searching for bookmarks, you may use `tag:tagname` to include tags and `-ta
 - `Click` on the tag name to include it;
 - `Alt + Click` on the tag name to exclude it.
 
-
-## Improved import from Pocket
+## Community contributions
+### Improved import from Pocket
 
 Shiori offers a [Command Line Interface](https://github.com/go-shiori/shiori/blob/master/docs/Usage.md#using-command-line-interface) with the command `shiori pocket` to import Pocket entries but with this can only import them as links and not as complete entries.
 
@@ -136,7 +137,7 @@ This is optional, but once the import is complete you can clean up by running:
 rm pocket2shiori.sh 'path_to_your/pocket_export.html'
 ```
 
-##  Import from Wallabag
+###  Import from Wallabag
 
 
 1. Export your entries from Wallabag as a json file
@@ -157,11 +158,11 @@ inside the container.
   ```
   
   
-##  Add URL to Shiori from Android
+###  Add URL to Shiori from Android
 
 
-1. Install [Temux](https://termux.dev/en/)
-2. Open temux and run bellow command
+1. Install [Termux](https://termux.dev/en/)
+2. Open termux and run bellow command
 ```bash
 mkdir -p ~/bin
 touch ~/bin/termux-url-opener
