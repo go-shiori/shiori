@@ -23,6 +23,7 @@ type UserConfig struct {
 	NightMode     bool `json:"NightMode"`
 	KeepMetadata  bool `json:"KeepMetadata"`
 	UseArchive    bool `json:"UseArchive"`
+	CreateEbook   bool `json:"CreateEbook"`
 	MakePublic    bool `json:"MakePublic"`
 }
 
