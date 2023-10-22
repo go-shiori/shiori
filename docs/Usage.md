@@ -7,9 +7,9 @@ Before using `shiori`, make sure it has been installed on your system. By defaul
   - [Search syntax](#search-syntax)
 - [Using Web Interface](#using-web-interface)
 - [Community contributions](#community-contributions)
-    - [Improved import from Pocket](##improved-import-from-pocket)
-    - [Import from Wallabag](##import-from-wallabag)
-    - [Add URL to Shiori from Android](##Add-URL-to-Shiori-from-Android)
+    - [Improved import from Pocket](#improved-import-from-pocket)
+    - [Import from Wallabag](#import-from-wallabag)
+    - [Add URL to Shiori from Android](#Add-URL-to-Shiori-from-Android)
 
 <!-- /TOC -->
 
