@@ -500,7 +500,7 @@ func (db *MySQLDatabase) DeleteBookmarks(ctx context.Context, ids ...int) (err e
 	return nil
 }
 
-// GetBookmark fetchs bookmark based on its ID or URL.
+// GetBookmark fetches bookmark based on its ID or URL.
 // Returns the bookmark and boolean whether it's exist or not.
 func (db *MySQLDatabase) GetBookmark(ctx context.Context, id int, url string) (model.Bookmark, bool, error) {
 	args := []interface{}{id}

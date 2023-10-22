@@ -23,7 +23,7 @@ func testDatabase(t *testing.T, dbFactory testDatabaseFactory) {
 		"testUpdateBookmark":                testUpdateBookmark,
 		"testUpdateBookmarkWithContent":     testUpdateBookmarkWithContent,
 		"testGetBookmark":                   testGetBookmark,
-		"testGetBookmarkNotExistant":        testGetBookmarkNotExistant,
+		"testGetBookmarkNotExistent":        testGetBookmarkNotExistent,
 		"testGetBookmarks":                  testGetBookmarks,
 		"testGetBookmarksWithSQLCharacters": testGetBookmarksWithSQLCharacters,
 		"testGetBookmarksCount":             testGetBookmarksCount,
@@ -231,7 +231,7 @@ func testGetBookmark(t *testing.T, db DB) {
 	assert.Equal(t, book.URL, savedBookmark.URL, "Retrieved bookmark should be the same")
 }
 
-func testGetBookmarkNotExistant(t *testing.T, db DB) {
+func testGetBookmarkNotExistent(t *testing.T, db DB) {
 	ctx := context.TODO()
 
 	savedBookmark, exists, err := db.GetBookmark(ctx, 1, "")
