@@ -36,6 +36,10 @@ var template = `
                 Create archive by default
             </label>
             <label>
+                <input type="checkbox" v-model="appOptions.CreateEbook" @change="saveSetting">
+                Create ebook by default
+            </label>
+            <label>
                 <input type="checkbox" v-model="appOptions.MakePublic" @change="saveSetting">
                 Make archive publicly available by default
             </label>
@@ -96,6 +100,7 @@ export default {
                     ...options,
                     KeepMetadata: this.appOptions.KeepMetadata,
                     UseArchive: this.appOptions.UseArchive,
+                    CreateEbook: this.appOptions.CreateEbook,
                     MakePublic: this.appOptions.MakePublic,
                 };
             }

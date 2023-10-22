@@ -64,12 +64,14 @@
 						ListMode = (typeof opts.config.ListMode === "boolean") ? opts.config.ListMode : false,
 						NightMode = (typeof opts.config.NightMode === "boolean") ? opts.config.NightMode : false,
 						UseArchive = (typeof opts.config.UseArchive === "boolean") ? opts.config.UseArchive : false;
+						CreateEbook = (typeof opts.config.CreateEbook === "boolean") ? opts.config.CreateEbook : false;
 
 					this.appOptions = {
 						ShowId: ShowId,
 						ListMode: ListMode,
 						NightMode: NightMode,
 						UseArchive: UseArchive,
+						CreateEbook: CreateEbook,
 					};
 
 					document.body.className = NightMode ? "night" : "";
