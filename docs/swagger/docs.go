@@ -252,6 +252,9 @@ const docTemplate = `{
         "model.UserConfig": {
             "type": "object",
             "properties": {
+                "CreateEbook": {
+                    "type": "boolean"
+                },
                 "HideExcerpt": {
                     "type": "boolean"
                 },
