@@ -51,6 +51,8 @@ definitions:
     type: object
   model.UserConfig:
     properties:
+      CreateEbook:
+        type: boolean
       HideExcerpt:
         type: boolean
       HideThumbnail:

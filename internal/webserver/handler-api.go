@@ -180,6 +180,7 @@ type apiInsertBookmarkPayload struct {
 	Excerpt       string      `json:"excerpt"`
 	Tags          []model.Tag `json:"tags"`
 	CreateArchive bool        `json:"createArchive"`
+	CreateEbook   bool        `json:"createEbook"`
 	MakePublic    int         `json:"public"`
 	Async         bool        `json:"async"`
 }
@@ -189,6 +190,7 @@ type apiInsertBookmarkPayload struct {
 func newAPIInsertBookmarkPayload() *apiInsertBookmarkPayload {
 	return &apiInsertBookmarkPayload{
 		CreateArchive: false,
+		CreateEbook:   false,
 		Async:         true,
 	}
 }
@@ -213,6 +215,7 @@ func (h *Handler) ApiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 		Tags:          payload.Tags,
 		Public:        payload.MakePublic,
 		CreateArchive: payload.CreateArchive,
+		CreateEbook:   payload.CreateEbook,
 	}
 
 	// Clean up bookmark URL
