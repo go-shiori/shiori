@@ -81,7 +81,7 @@ func (r *BookmarkRoutes) bookmarkEbookHandler(c *gin.Context) {
 
 	bookmarkIDParam, present := c.Params.Get("id")
 	if !present {
-		response.SendError(c, 400, "Invalid bookmark ID")
+		response.SendError(c, http.StatusBadRequest, "Invalid bookmark ID")
 		return
 	}
 
@@ -93,24 +93,24 @@ func (r *BookmarkRoutes) bookmarkEbookHandler(c *gin.Context) {
 	}
 
 	if bookmarkID == 0 {
-		response.SendError(c, 404, nil)
+		response.SendError(c, http.StatusNotFound, nil)
 		return
 	}
 
 	bookmark, found, err := r.deps.Database.GetBookmark(c, bookmarkID, "")
 	if err != nil || !found {
-		response.SendError(c, 404, nil)
+		response.SendError(c, http.StatusNotFound, nil)
 		return
 	}
 
 	if bookmark.Public != 1 && !ctx.UserIsLogged() {
-		response.SendError(c, http.StatusForbidden, nil)
+		response.SendError(c, http.StatusUnauthorized, nil)
 		return
 	}
 
 	ebookPath := fp.Join(DataDir, "ebook", bookmarkIDParam+".epub")
 	if !ws.FileExists(ebookPath) {
-		response.SendError(c, 404, nil)
+		response.SendError(c, http.StatusNotFound, nil)
 		return
 	}
 	filename := bookmark.Title + ".epub"
