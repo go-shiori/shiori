@@ -1,5 +1,5 @@
 var template = `
-<div class="bookmark" :class="{list: listMode, 'no-thumbnail': hideThumbnail, selected: selected}">
+<div class="bookmark" :class="{list: ListMode, 'no-thumbnail': HideThumbnail, selected: selected}">
 	<a class="bookmark-selector" 
 		v-if="editMode" 
 		@click="selectBookmark">
@@ -12,7 +12,7 @@ var template = `
 			<i v-if="public" class="fas fa-eye"></i>
 		</p>
 		<p class="excerpt" v-if="excerptVisible">{{excerpt}}</p>
-		<p class="id" v-show="showId">{{id}}</p>
+		<p class="id" v-show="ShowId">{{id}}</p>
 	</a>
 	<div class="bookmark-tags" v-if="tags.length > 0">
 		<a v-for="tag in tags" @click="tagClicked($event, tag.name)">{{tag.name}}</a>
@@ -52,11 +52,11 @@ export default {
 		hasArchive: Boolean,
 		hasEbook: Boolean,
 		index: Number,
-		showId: Boolean,
+		ShowId: Boolean,
 		editMode: Boolean,
-		listMode: Boolean,
-		hideThumbnail: Boolean,
-		hideExcerpt: Boolean,
+		ListMode: Boolean,
+		HideThumbnail: Boolean,
+		HideExcerpt: Boolean,
 		selected: Boolean,
 		menuVisible: Boolean,
 		tags: {
@@ -89,12 +89,12 @@ export default {
 		},
 		thumbnailVisible() {
 			return this.imageURL !== "" &&
-				!this.hideThumbnail;
+				!this.HideThumbnail;
 		},
 		excerptVisible() {
 			return this.excerpt !== "" &&
 				!this.thumbnailVisible &&
-				!this.hideExcerpt;
+				!this.HideExcerpt;
 		},
 		thumbnailStyleURL() {
 			return {

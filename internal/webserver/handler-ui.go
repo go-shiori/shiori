@@ -278,7 +278,7 @@ func (h *Handler) ServeBookmarkArchive(w http.ResponseWriter, r *http.Request, p
 		// Gzip it again and send to response writer
 		gzipWriter := gzip.NewWriter(w)
 		if _, err := gzipWriter.Write([]byte(outerHTML)); err != nil {
-			log.Printf("error writting gzip file: %s", err)
+			log.Printf("error writing gzip file: %s", err)
 		}
 		gzipWriter.Flush()
 		return
@@ -286,7 +286,7 @@ func (h *Handler) ServeBookmarkArchive(w http.ResponseWriter, r *http.Request, p
 
 	// Serve content
 	if _, err := w.Write(content); err != nil {
-		log.Printf("error writting response: %s", err)
+		log.Printf("error writing response: %s", err)
 	}
 }
 
