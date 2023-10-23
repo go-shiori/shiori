@@ -240,6 +240,14 @@ const docTemplate = `{
                 }
             }
         },
+        "api_v1.settingRequestPayload": {
+            "type": "object",
+            "properties": {
+                "config": {
+                    "$ref": "#/definitions/model.UserConfig"
+                }
+            }
+        },
         "api_v1.updateCachePayload": {
             "type": "object",
             "required": [
@@ -263,11 +271,6 @@ const docTemplate = `{
                 },
                 "skipExist": {
                     "type": "boolean"
-        "api_v1.settingRequestPayload": {
-            "type": "object",
-            "properties": {
-                "config": {
-                    "$ref": "#/definitions/model.UserConfig"
                 }
             }
         },

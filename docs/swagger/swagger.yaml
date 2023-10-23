@@ -22,7 +22,11 @@ definitions:
       token:
         type: string
     type: object
-
+  api_v1.settingRequestPayload:
+    properties:
+      config:
+        $ref: '#/definitions/model.UserConfig'
+    type: object
   api_v1.updateCachePayload:
     properties:
       createArchive:
@@ -39,10 +43,6 @@ definitions:
         type: boolean
     required:
     - ids
-  api_v1.settingRequestPayload:
-    properties:
-      config:
-        $ref: '#/definitions/model.UserConfig'
     type: object
   model.Account:
     properties:
