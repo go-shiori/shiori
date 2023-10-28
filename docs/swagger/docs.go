@@ -254,10 +254,10 @@ const docTemplate = `{
                 "ids"
             ],
             "properties": {
-                "createArchive": {
+                "create_archive": {
                     "type": "boolean"
                 },
-                "createEbook": {
+                "create_ebook": {
                     "type": "boolean"
                 },
                 "ids": {
@@ -266,10 +266,10 @@ const docTemplate = `{
                         "type": "integer"
                     }
                 },
-                "keepMetadata": {
+                "keep_metadata": {
                     "type": "boolean"
                 },
-                "skipExist": {
+                "skip_exist": {
                     "type": "boolean"
                 }
             }
@@ -300,10 +300,10 @@ const docTemplate = `{
                 "author": {
                     "type": "string"
                 },
-                "createArchive": {
+                "create_archive": {
                     "type": "boolean"
                 },
-                "createEbook": {
+                "create_ebook": {
                     "type": "boolean"
                 },
                 "excerpt": {

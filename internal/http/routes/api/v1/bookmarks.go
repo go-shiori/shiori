@@ -34,10 +34,10 @@ func (r *BookmarksAPIRoutes) Setup(g *gin.RouterGroup) model.Routes {
 
 type updateCachePayload struct {
 	Ids           []int `json:"ids"    validate:"required"`
-	KeepMetadata  bool  `json:"keepMetadata"`
-	CreateArchive bool  `json:"createArchive"`
-	CreateEbook   bool  `json:"createEbook"`
-	SkipExist     bool  `json:"skipExist"`
+	KeepMetadata  bool  `json:"keep_metadata"`
+	CreateArchive bool  `json:"create_archive"`
+	CreateEbook   bool  `json:"create_ebook"`
+	SkipExist     bool  `json:"skip_exist"`
 }
 
 func (p *updateCachePayload) IsValid() error {
@@ -68,7 +68,7 @@ type apiCreateBookmarkPayload struct {
 	Title         string      `json:"title"`
 	Excerpt       string      `json:"excerpt"`
 	Tags          []model.Tag `json:"tags"`
-	CreateArchive bool        `json:"createArchive"`
+	CreateArchive bool        `json:"create_archive"`
 	MakePublic    int         `json:"public"`
 	Async         bool        `json:"async"`
 }
@@ -261,7 +261,7 @@ func (r *BookmarksAPIRoutes) updateCache(c *gin.Context) {
 		book.CreateArchive = payload.CreateArchive
 		book.CreateEbook = payload.CreateEbook
 
-		go func(i int, book model.Bookmark, keepMetadata bool) {
+		go func(i int, book model.Bookmark, keep_metadata bool) {
 			// Make sure to finish the WG
 			defer wg.Done()
 
@@ -283,8 +283,8 @@ func (r *BookmarksAPIRoutes) updateCache(c *gin.Context) {
 				Bookmark:    book,
 				Content:     content,
 				ContentType: contentType,
-				KeepTitle:   keepMetadata,
-				KeepExcerpt: keepMetadata,
+				KeepTitle:   keep_metadata,
+				KeepExcerpt: keep_metadata,
 			}
 
 			if payload.SkipExist && book.CreateEbook {

@@ -178,8 +178,8 @@ type apiInsertBookmarkPayload struct {
 	Title         string      `json:"title"`
 	Excerpt       string      `json:"excerpt"`
 	Tags          []model.Tag `json:"tags"`
-	CreateArchive bool        `json:"createArchive"`
-	CreateEbook   bool        `json:"createEbook"`
+	CreateArchive bool        `json:"create_archive"`
+	CreateEbook   bool        `json:"create_ebook"`
 	MakePublic    int         `json:"public"`
 	Async         bool        `json:"async"`
 }
@@ -373,7 +373,6 @@ func (h *Handler) ApiUpdateBookmark(w http.ResponseWriter, r *http.Request, ps h
 	err = json.NewEncoder(w).Encode(&newBook)
 	checkError(err)
 }
-
 
 // ApiUpdateBookmarkTags is handler for PUT /api/bookmarks/tags
 func (h *Handler) ApiUpdateBookmarkTags(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {

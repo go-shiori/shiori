@@ -29,17 +29,17 @@ definitions:
     type: object
   api_v1.updateCachePayload:
     properties:
-      createArchive:
+      create_archive:
         type: boolean
-      createEbook:
+      create_ebook:
         type: boolean
       ids:
         items:
           type: integer
         type: array
-      keepMetadata:
+      keep_metadata:
         type: boolean
-      skipExist:
+      skip_exist:
         type: boolean
     required:
     - ids
@@ -61,9 +61,9 @@ definitions:
     properties:
       author:
         type: string
-      createArchive:
+      create_archive:
         type: boolean
-      createEbook:
+      create_ebook:
         type: boolean
       excerpt:
         type: string
