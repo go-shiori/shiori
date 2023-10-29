@@ -24,6 +24,6 @@ type Bookmark struct {
 	HasArchive    bool   `json:"hasArchive"`
 	HasEbook      bool   `json:"hasEbook"`
 	Tags          []Tag  `json:"tags"`
-	CreateArchive bool   `json:"createArchive"`
-	CreateEbook   bool   `json:"createEbook"`
+	CreateArchive bool   `json:"create_archive"`
+	CreateEbook   bool   `json:"create_ebook"`
 }

@@ -12,7 +12,6 @@ import (
 	fp "path/filepath"
 	"strconv"
 	"strings"
-	"sync"
 
 	"github.com/go-shiori/shiori/internal/core"
 	"github.com/go-shiori/shiori/internal/database"
@@ -112,14 +111,14 @@ func (h *Handler) ApiGetBookmarks(w http.ResponseWriter, r *http.Request, ps htt
 		archivePath := fp.Join(h.DataDir, "archive", strID)
 		ebookPath := fp.Join(h.DataDir, "ebook", strID+".epub")
 
-		if fileExists(imgPath) {
+		if FileExists(imgPath) {
 			bookmarks[i].ImageURL = path.Join(h.RootPath, "bookmark", strID, "thumb")
 		}
 
-		if fileExists(archivePath) {
+		if FileExists(archivePath) {
 			bookmarks[i].HasArchive = true
 		}
-		if fileExists(ebookPath) {
+		if FileExists(ebookPath) {
 			bookmarks[i].HasEbook = true
 		}
 	}
@@ -179,8 +178,8 @@ type apiInsertBookmarkPayload struct {
 	Title         string      `json:"title"`
 	Excerpt       string      `json:"excerpt"`
 	Tags          []model.Tag `json:"tags"`
-	CreateArchive bool        `json:"createArchive"`
-	CreateEbook   bool        `json:"createEbook"`
+	CreateArchive bool        `json:"create_archive"`
+	CreateEbook   bool        `json:"create_ebook"`
 	MakePublic    int         `json:"public"`
 	Async         bool        `json:"async"`
 }
@@ -375,245 +374,6 @@ func (h *Handler) ApiUpdateBookmark(w http.ResponseWriter, r *http.Request, ps h
 	checkError(err)
 }
 
-// ApiDownloadEbook is handler for PUT /api/ebook
-func (h *Handler) ApiDownloadEbook(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	ctx := r.Context()
-
-	// Make sure session still valid
-	err := h.validateSession(r)
-	checkError(err)
-
-	// Decode request
-	request := struct {
-		IDs []int `json:"ids"`
-	}{}
-	err = json.NewDecoder(r.Body).Decode(&request)
-	checkError(err)
-
-	// Get existing bookmark from database
-	filter := database.GetBookmarksOptions{
-		IDs:         request.IDs,
-		WithContent: true,
-	}
-
-	bookmarks, err := h.DB.GetBookmarks(ctx, filter)
-	checkError(err)
-	if len(bookmarks) == 0 {
-		http.NotFound(w, r)
-		return
-	}
-
-	// Fetch data from internet
-	mx := sync.RWMutex{}
-	wg := sync.WaitGroup{}
-	chDone := make(chan struct{})
-	chProblem := make(chan int, 10)
-	semaphore := make(chan struct{}, 10)
-
-	for i, book := range bookmarks {
-		wg.Add(1)
-
-		go func(i int, book model.Bookmark) {
-			// Make sure to finish the WG
-			defer wg.Done()
-
-			// Register goroutine to semaphore
-			semaphore <- struct{}{}
-			defer func() {
-				<-semaphore
-			}()
-
-			// Download data from internet
-			content, contentType, err := core.DownloadBookmark(book.URL)
-			if err != nil {
-				chProblem <- book.ID
-				return
-			}
-
-			request := core.ProcessRequest{
-				DataDir:     h.DataDir,
-				Bookmark:    book,
-				Content:     content,
-				ContentType: contentType,
-			}
-
-			// if file exist book return avilable file
-			strID := strconv.Itoa(book.ID)
-			ebookPath := fp.Join(request.DataDir, "ebook", strID+".epub")
-			_, err = os.Stat(ebookPath)
-			if err == nil {
-				// file already exists, return the existing file
-				imagePath := fp.Join(request.DataDir, "thumb", fmt.Sprintf("%d", book.ID))
-				archivePath := fp.Join(request.DataDir, "archive", fmt.Sprintf("%d", book.ID))
-
-				if _, err := os.Stat(imagePath); err == nil {
-					book.ImageURL = fp.Join("/", "bookmark", strID, "thumb")
-				}
-
-				if _, err := os.Stat(archivePath); err == nil {
-					book.HasArchive = true
-				}
-				book.HasEbook = true
-			} else {
-				// generate ebook file
-				book, err = core.GenerateEbook(request, ebookPath)
-				content.Close()
-
-				if err != nil {
-					chProblem <- book.ID
-					return
-				}
-			}
-
-			// Update list of bookmarks
-			mx.Lock()
-			bookmarks[i] = book
-			mx.Unlock()
-		}(i, book)
-	}
-	// Receive all problematic bookmarks
-	idWithProblems := []int{}
-	go func() {
-		for {
-			select {
-			case <-chDone:
-				return
-			case id := <-chProblem:
-				idWithProblems = append(idWithProblems, id)
-			}
-		}
-	}()
-
-	// Wait until all download finished
-	wg.Wait()
-	close(chDone)
-
-	w.Header().Set("Content-Type", "application1/json")
-	err = json.NewEncoder(w).Encode(&bookmarks)
-	checkError(err)
-}
-
-// ApiUpdateCache is handler for PUT /api/cache
-func (h *Handler) ApiUpdateCache(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	ctx := r.Context()
-
-	// Make sure session still valid
-	err := h.validateSession(r)
-	checkError(err)
-
-	// Decode request
-	request := struct {
-		IDs           []int `json:"ids"`
-		KeepMetadata  bool  `json:"keepMetadata"`
-		CreateArchive bool  `json:"createArchive"`
-		CreateEbook   bool  `json:"createEbook"`
-	}{}
-
-	err = json.NewDecoder(r.Body).Decode(&request)
-	checkError(err)
-
-	// Get existing bookmark from database
-	filter := database.GetBookmarksOptions{
-		IDs:         request.IDs,
-		WithContent: true,
-	}
-
-	bookmarks, err := h.DB.GetBookmarks(ctx, filter)
-	checkError(err)
-	if len(bookmarks) == 0 {
-		panic(fmt.Errorf("no bookmark with matching ids"))
-	}
-
-	// For web interface, let's limit to max 20 IDs to update, and 5 for archival.
-	// This is done to prevent the REST request from client took too long to finish.
-	if len(bookmarks) > 20 {
-		panic(fmt.Errorf("max 20 bookmarks to update"))
-	} else if len(bookmarks) > 5 && request.CreateArchive {
-		panic(fmt.Errorf("max 5 bookmarks to update with archival"))
-	}
-
-	// Fetch data from internet
-	mx := sync.RWMutex{}
-	wg := sync.WaitGroup{}
-	chDone := make(chan struct{})
-	chProblem := make(chan int, 10)
-	semaphore := make(chan struct{}, 10)
-
-	for i, book := range bookmarks {
-		wg.Add(1)
-
-		// Mark whether book will be archived or ebook generate request
-		book.CreateArchive = request.CreateArchive
-		book.CreateEbook = request.CreateEbook
-
-		go func(i int, book model.Bookmark, keepMetadata bool) {
-			// Make sure to finish the WG
-			defer wg.Done()
-
-			// Register goroutine to semaphore
-			semaphore <- struct{}{}
-			defer func() {
-				<-semaphore
-			}()
-
-			// Download data from internet
-			content, contentType, err := core.DownloadBookmark(book.URL)
-			if err != nil {
-				chProblem <- book.ID
-				return
-			}
-
-			request := core.ProcessRequest{
-				DataDir:     h.DataDir,
-				Bookmark:    book,
-				Content:     content,
-				ContentType: contentType,
-				KeepTitle:   keepMetadata,
-				KeepExcerpt: keepMetadata,
-			}
-
-			book, _, err = core.ProcessBookmark(request)
-			content.Close()
-
-			if err != nil {
-				chProblem <- book.ID
-				return
-			}
-
-			// Update list of bookmarks
-			mx.Lock()
-			bookmarks[i] = book
-			mx.Unlock()
-		}(i, book, request.KeepMetadata)
-	}
-
-	// Receive all problematic bookmarks
-	idWithProblems := []int{}
-	go func() {
-		for {
-			select {
-			case <-chDone:
-				return
-			case id := <-chProblem:
-				idWithProblems = append(idWithProblems, id)
-			}
-		}
-	}()
-
-	// Wait until all download finished
-	wg.Wait()
-	close(chDone)
-
-	// Update database
-	_, err = h.DB.SaveBookmarks(ctx, false, bookmarks...)
-	checkError(err)
-
-	// Return new saved result
-	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(&bookmarks)
-	checkError(err)
-}
-
 // ApiUpdateBookmarkTags is handler for PUT /api/bookmarks/tags
 func (h *Handler) ApiUpdateBookmarkTags(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	ctx := r.Context()
@@ -676,7 +436,7 @@ func (h *Handler) ApiUpdateBookmarkTags(w http.ResponseWriter, r *http.Request, 
 		imgPath := fp.Join(h.DataDir, "thumb", strID)
 		imgURL := path.Join(h.RootPath, "bookmark", strID, "thumb")
 
-		if fileExists(imgPath) {
+		if FileExists(imgPath) {
 			bookmarks[i].ImageURL = imgURL
 		}
 	}

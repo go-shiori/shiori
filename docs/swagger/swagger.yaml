@@ -27,6 +27,23 @@ definitions:
       config:
         $ref: '#/definitions/model.UserConfig'
     type: object
+  api_v1.updateCachePayload:
+    properties:
+      create_archive:
+        type: boolean
+      create_ebook:
+        type: boolean
+      ids:
+        items:
+          type: integer
+        type: array
+      keep_metadata:
+        type: boolean
+      skip_exist:
+        type: boolean
+    required:
+    - ids
+    type: object
   model.Account:
     properties:
       config:
@@ -38,6 +55,41 @@ definitions:
       password:
         type: string
       username:
+        type: string
+    type: object
+  model.Bookmark:
+    properties:
+      author:
+        type: string
+      create_archive:
+        type: boolean
+      create_ebook:
+        type: boolean
+      excerpt:
+        type: string
+      hasArchive:
+        type: boolean
+      hasContent:
+        type: boolean
+      hasEbook:
+        type: boolean
+      html:
+        type: string
+      id:
+        type: integer
+      imageURL:
+        type: string
+      modified:
+        type: string
+      public:
+        type: integer
+      tags:
+        items:
+          $ref: '#/definitions/model.Tag'
+        type: array
+      title:
+        type: string
+      url:
         type: string
     type: object
   model.Tag:
@@ -141,6 +193,27 @@ paths:
         "403":
           description: Token not provided/invalid
       summary: Refresh a token for an account
+      tags:
+      - Auth
+  /api/v1/bookmaeks/cache:
+    put:
+      parameters:
+      - description: Update Cache Payload
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/api_v1.updateCachePayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Bookmark'
+        "403":
+          description: Token not provided/invalid
+      summary: Update Cache and Ebook on server.
       tags:
       - Auth
   /api/v1/tags:

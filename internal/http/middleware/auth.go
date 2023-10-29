@@ -16,17 +16,12 @@ import (
 // `account` with the account model for the logged in user.
 func AuthMiddleware(deps *config.Dependencies) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		authorization := c.GetHeader(model.AuthorizationHeader)
-		if authorization == "" {
-			return
+		token := getTokenFromHeader(c)
+		if token == "" {
+			token = getTokenFromCookie(c)
 		}
 
-		authParts := strings.SplitN(authorization, " ", 2)
-		if len(authParts) != 2 && authParts[0] != model.AuthorizationTokenType {
-			return
-		}
-
-		account, err := deps.Domains.Auth.CheckToken(c, authParts[1])
+		account, err := deps.Domains.Auth.CheckToken(c, token)
 		if err != nil {
 			return
 		}
@@ -45,4 +40,29 @@ func AuthenticationRequired() gin.HandlerFunc {
 			return
 		}
 	}
+}
+
+// getTokenFromHeader returns the token from the Authorization header, if any.
+func getTokenFromHeader(c *gin.Context) string {
+	authorization := c.GetHeader(model.AuthorizationHeader)
+	if authorization == "" {
+		return ""
+	}
+
+	authParts := strings.SplitN(authorization, " ", 2)
+	if len(authParts) != 2 && authParts[0] != model.AuthorizationTokenType {
+		return ""
+	}
+
+	return authParts[1]
+}
+
+// getTokenFromCookie returns the token from the token cookie, if any.
+func getTokenFromCookie(c *gin.Context) string {
+	cookie, err := c.Cookie("token")
+	if err != nil {
+		return ""
+	}
+
+	return cookie
 }

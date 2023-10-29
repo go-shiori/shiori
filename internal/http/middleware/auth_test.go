@@ -43,7 +43,7 @@ func TestAuthMiddleware(t *testing.T) {
 	_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
 	middleware := AuthMiddleware(deps)
 
-	t.Run("test no authorization header", func(t *testing.T) {
+	t.Run("test no authorization method", func(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, router := gin.CreateTestContext(w)
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
@@ -62,6 +62,23 @@ func TestAuthMiddleware(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 		c.Request, _ = http.NewRequest("GET", "/", nil)
 		c.Request.Header.Set(model.AuthorizationHeader, model.AuthorizationTokenType+" "+token)
+		middleware(c)
+		_, exists := c.Get(model.ContextAccountKey)
+		require.True(t, exists)
+	})
+
+	t.Run("test authorization cookie", func(t *testing.T) {
+		account := model.Account{Username: "shiori"}
+		token, err := deps.Domains.Auth.CreateTokenForAccount(&account, time.Now().Add(time.Minute))
+		require.NoError(t, err)
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+		c.Request, _ = http.NewRequest("GET", "/", nil)
+		c.Request.AddCookie(&http.Cookie{
+			Name:   "token",
+			Value:  token,
+			MaxAge: int(time.Now().Add(time.Minute).Unix()),
+		})
 		middleware(c)
 		_, exists := c.Get(model.ContextAccountKey)
 		require.True(t, exists)
