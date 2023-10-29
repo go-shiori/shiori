@@ -50,11 +50,11 @@ func (h *Handler) ServeBookmarkContent(w http.ResponseWriter, r *http.Request, p
 
 	// Check if it has ebook.
 	ebookPath := fp.Join(h.DataDir, "ebook", strID+".epub")
-	if fileExists(ebookPath) {
+	if FileExists(ebookPath) {
 		bookmark.HasEbook = true
 	}
 	archivePath := fp.Join(h.DataDir, "archive", strID)
-	if fileExists(archivePath) {
+	if FileExists(archivePath) {
 		bookmark.HasArchive = true
 
 		// Open archive, look in cache first
@@ -320,7 +320,7 @@ func (h *Handler) ServeBookmarkEbook(w http.ResponseWriter, r *http.Request, ps 
 
 	// Check if it has ebook.
 	ebookPath := fp.Join(h.DataDir, "ebook", strID+".epub")
-	if !fileExists(ebookPath) {
+	if !FileExists(ebookPath) {
 		http.Error(w, "ebook not found", http.StatusNotFound)
 		return
 	}

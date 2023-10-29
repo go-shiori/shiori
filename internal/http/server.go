@@ -53,7 +53,7 @@ func (s *HttpServer) Setup(cfg *config.Config, deps *config.Dependencies) *HttpS
 	legacyRoutes.Setup(s.engine)
 
 	s.handle("/system", routes.NewSystemRoutes(s.logger))
-	// s.handle("/bookmark", routes.NewBookmarkRoutes(s.logger, deps))
+	s.handle("/bookmark", routes.NewBookmarkRoutes(s.logger, deps))
 	s.handle("/api/v1", api_v1.NewAPIRoutes(s.logger, deps, legacyRoutes.HandleLogin))
 	s.handle("/swagger", routes.NewSwaggerAPIRoutes(s.logger))
 

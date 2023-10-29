@@ -121,6 +121,7 @@
 					}).then(json => {
 						// Save session id
 						document.cookie = `session-id=${json.message.session}; Path=${new URL(document.baseURI).pathname}; Expires=${json.message.expires}`;
+						document.cookie = `token=${json.message.token}; Path=${new URL(document.baseURI).pathname}; Expires=${json.message.expires}`;
 
 						// Save account data
 						localStorage.setItem("shiori-token", json.message.token);
