@@ -9,7 +9,7 @@ if [ -n "$(git status internal/view/assets/css --porcelain)" ]; then
 fi
 
 # Check if prettier is ok
-if ! bun x prettier internal/ --check; then
+if ! bun x prettier internal/view/ --check; then
     echo "❌ code style issues found. Please run 'make styles' and commit the changes."
     exit 1
 fi
