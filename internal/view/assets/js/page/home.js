@@ -378,10 +378,15 @@ export default {
 					separator: ",",
 					dictionary: this.tags.map(tag => tag.name)
 				}, {
-					name: "createArchive",
+					name: "create_archive",
 					label: "Create archive",
 					type: "check",
 					value: this.appOptions.UseArchive,
+				}, {
+					name: "create_ebook",
+					label: "Create Ebook",
+					type: "check",
+					value: this.appOptions.CreateEbook,
 				}, {
 					name: "makePublic",
 					label: "Make archive publicly available",
@@ -416,7 +421,8 @@ export default {
 						excerpt: data.excerpt.trim(),
 						public: data.makePublic ? 1 : 0,
 						tags: tags,
-						createArchive: data.createArchive,
+						create_archive: data.create_archive,
+						create_ebook: data.create_ebook,
 					};
 
 					this.dialog.loading = true;
@@ -610,10 +616,14 @@ export default {
 			// define variable and send request
 			var ids = items.map(item => item.id);
 			var data = {
-				ids: ids,
-			};
+                ids: ids,
+                create_archive: false,
+                keep_metadata: true,
+                create_ebook: true,
+                skip_exist: true,
+            };
 			this.loading = true;
-			fetch(new URL("api/ebook", document.baseURI), {
+			fetch(new URL("api/v1/bookmarks/cache", document.baseURI), {
 				method: "put",
 				body: JSON.stringify(data),
 				headers: { "Content-Type": "application/json", 'Authorization': 'Bearer ' + localStorage.getItem("shiori-token") },
@@ -623,7 +633,7 @@ export default {
 			}).then(json => {
 				this.selection = [];
 				this.editMode = false;
-				json.forEach(book => {
+				json.message.forEach(book => {
 					// download ebooks
 					const id = book.id;
 					if (book.hasEbook) {
@@ -669,17 +679,17 @@ export default {
 				title: "Update Cache",
 				content: "Update cache for selected bookmarks ? This action is irreversible.",
 				fields: [{
-					name: "keepMetadata",
+					name: "keep_metadata",
 					label: "Keep the old title and excerpt",
 					type: "check",
 					value: this.appOptions.KeepMetadata,
 				}, {
-					name: "createArchive",
+					name: "create_archive",
 					label: "Update archive as well",
 					type: "check",
 					value: this.appOptions.UseArchive,
 				}, {
-					name: "createEbook",
+					name: "create_ebook",
 					label: "Update Ebook as well",
 					type: "check",
 					value: this.appOptions.CreateEbook,
@@ -689,13 +699,14 @@ export default {
 				mainClick: (data) => {
 					var data = {
 						ids: ids,
-						createArchive: data.createArchive,
-						keepMetadata: data.keepMetadata,
-						createEbook: data.createEbook,
+						create_archive: data.create_archive,
+						keep_metadata: data.keep_metadata,
+						create_ebook: data.create_ebook,
+                        skip_exist: false,
 					};
 
 					this.dialog.loading = true;
-					fetch(new URL("api/cache", document.baseURI), {
+					fetch(new URL("api/v1/bookmarks/cache", document.baseURI), {
 						method: "put",
 						body: JSON.stringify(data),
 						headers: { "Content-Type": "application/json", 'Authorization': 'Bearer ' + localStorage.getItem("shiori-token") },
@@ -710,15 +721,15 @@ export default {
 
 						let faildedUpdateArchives = [];
 						let faildedCreateEbook = [];
-						json.forEach(book => {
+						json.message.forEach(book => {
 							var item = items.find(el => el.id === book.id);
 							this.bookmarks.splice(item.index, 1, book);
 
-							if (data.createArchive && !book.hasArchive) {
+							if (data.create_archive && !book.hasArchive) {
 								faildedUpdateArchives.push(book.id);
 								console.error("can't update archive for bookmark id", book.id)
 							}
-							if (data.createEbook && !book.hasEbook) {
+							if (data.create_ebook && !book.hasEbook) {
 								faildedCreateEbook.push(book.id);
 								console.error("can't update ebook for bookmark id:", book.id)
 							}

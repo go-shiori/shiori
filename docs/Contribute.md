@@ -45,7 +45,7 @@ Then, run the following command:
 make styles
 ```
 
-The `style.css`/`archive.css` will be updated and changes **needs to be commited** to the repository.
+The `style.css`/`archive.css` will be updated and changes **needs to be committed** to the repository.
 
 ## Lint the code
 

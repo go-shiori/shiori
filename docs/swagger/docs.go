@@ -126,6 +126,39 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/bookmaeks/cache": {
+            "put": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Update Cache and Ebook on server.",
+                "parameters": [
+                    {
+                        "description": "Update Cache Payload",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api_v1.updateCachePayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.Bookmark"
+                        }
+                    },
+                    "403": {
+                        "description": "Token not provided/invalid"
+                    }
+                }
+            }
+        },
         "/api/v1/tags": {
             "get": {
                 "produces": [
@@ -215,6 +248,32 @@ const docTemplate = `{
                 }
             }
         },
+        "api_v1.updateCachePayload": {
+            "type": "object",
+            "required": [
+                "ids"
+            ],
+            "properties": {
+                "create_archive": {
+                    "type": "boolean"
+                },
+                "create_ebook": {
+                    "type": "boolean"
+                },
+                "ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "keep_metadata": {
+                    "type": "boolean"
+                },
+                "skip_exist": {
+                    "type": "boolean"
+                }
+            }
+        },
         "model.Account": {
             "type": "object",
             "properties": {
@@ -231,6 +290,59 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.Bookmark": {
+            "type": "object",
+            "properties": {
+                "author": {
+                    "type": "string"
+                },
+                "create_archive": {
+                    "type": "boolean"
+                },
+                "create_ebook": {
+                    "type": "boolean"
+                },
+                "excerpt": {
+                    "type": "string"
+                },
+                "hasArchive": {
+                    "type": "boolean"
+                },
+                "hasContent": {
+                    "type": "boolean"
+                },
+                "hasEbook": {
+                    "type": "boolean"
+                },
+                "html": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "imageURL": {
+                    "type": "string"
+                },
+                "modified": {
+                    "type": "string"
+                },
+                "public": {
+                    "type": "integer"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Tag"
+                    }
+                },
+                "title": {
+                    "type": "string"
+                },
+                "url": {
                     "type": "string"
                 }
             }
@@ -252,6 +364,9 @@ const docTemplate = `{
         "model.UserConfig": {
             "type": "object",
             "properties": {
+                "CreateEbook": {
+                    "type": "boolean"
+                },
                 "HideExcerpt": {
                     "type": "boolean"
                 },
