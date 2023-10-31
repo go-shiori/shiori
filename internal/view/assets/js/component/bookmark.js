@@ -62,9 +62,9 @@ export default {
 		tags: {
 			type: Array,
 			default() {
-				return []
-			}
-		}
+				return [];
+			},
+		},
 	},
 	computed: {
 		mainURL() {
@@ -79,34 +79,31 @@ export default {
 		ebookURL() {
 			if (this.hasEbook) {
 				return new URL(`bookmark/${this.id}/ebook`, document.baseURI);
-			} else  {
-                return null;
-            }
+			} else {
+				return null;
+			}
 		},
 		hostnameURL() {
 			var url = new URL(this.url);
 			return url.hostname.replace(/^www\./, "");
 		},
 		thumbnailVisible() {
-			return this.imageURL !== "" &&
-				!this.HideThumbnail;
+			return this.imageURL !== "" && !this.HideThumbnail;
 		},
 		excerptVisible() {
-			return this.excerpt !== "" &&
-				!this.thumbnailVisible &&
-				!this.HideExcerpt;
+			return this.excerpt !== "" && !this.thumbnailVisible && !this.HideExcerpt;
 		},
 		thumbnailStyleURL() {
 			return {
-				backgroundImage: `url("${this.imageURL}")`
-			}
+				backgroundImage: `url("${this.imageURL}")`,
+			};
 		},
 		eventItem() {
 			return {
 				id: this.id,
 				index: this.index,
-			}
-		}
+			};
+		},
 	},
 	methods: {
 		tagClicked(name, event) {
@@ -125,12 +122,12 @@ export default {
 			this.$emit("update", this.eventItem);
 		},
 		downloadebook() {
-            const id = this.id;
-            const ebook_url = new URL(`bookmark/${id}/ebook`, document.baseURI);
-            const downloadLink = document.createElement("a");
-            downloadLink.href = ebook_url.toString();
-            downloadLink.download = `${this.title}.epub`;
-            downloadLink.click();
+			const id = this.id;
+			const ebook_url = new URL(`bookmark/${id}/ebook`, document.baseURI);
+			const downloadLink = document.createElement("a");
+			downloadLink.href = ebook_url.toString();
+			downloadLink.download = `${this.title}.epub`;
+			downloadLink.click();
 		},
-	}
-}
+	},
+};

@@ -7,8 +7,8 @@ export default {
 					id: 0,
 					username: "",
 					owner: false,
-				}
-			}
+				};
+			},
 		},
 		appOptions: {
 			type: Object,
@@ -24,25 +24,25 @@ export default {
 					CreateEbook: false,
 					MakePublic: false,
 				};
-			}
-		}
+			},
+		},
 	},
 	data() {
 		return {
-			dialog: {}
-		}
+			dialog: {},
+		};
 	},
 	methods: {
 		defaultDialog() {
 			return {
 				visible: false,
 				loading: false,
-				title: '',
-				content: '',
+				title: "",
+				content: "",
 				fields: [],
 				showLabel: false,
-				mainText: 'Yes',
-				secondText: '',
+				mainText: "Yes",
+				secondText: "",
 				mainClick: () => {
 					this.dialog.visible = false;
 				},
@@ -51,8 +51,8 @@ export default {
 				},
 				escPressed: () => {
 					if (!this.loading) this.dialog.visible = false;
-				}
-			}
+				},
+			};
 		},
 		showDialog(cfg) {
 			var base = this.defaultDialog();
@@ -81,34 +81,44 @@ export default {
 			}
 		},
 		isSessionError(err) {
-			switch (err.toString().replace(/\(\d+\)/g, "").trim().toLowerCase()) {
+			switch (
+				err
+					.toString()
+					.replace(/\(\d+\)/g, "")
+					.trim()
+					.toLowerCase()
+			) {
 				case "session is not exist":
 				case "session has been expired":
-					return true
+					return true;
 				default:
 					return false;
 			}
 		},
 		showErrorDialog(msg) {
 			var sessionError = this.isSessionError(msg),
-				dialogContent = sessionError ? "Session has expired, please login again." : msg;
+				dialogContent = sessionError
+					? "Session has expired, please login again."
+					: msg;
 
 			this.showDialog({
 				visible: true,
-				title: 'Error',
+				title: "Error",
 				content: dialogContent,
-				mainText: 'OK',
+				mainText: "OK",
 				mainClick: () => {
 					this.dialog.visible = false;
 					if (sessionError) {
 						var loginUrl = new Url("login", document.baseURI);
 						loginUrl.query.dst = window.location.href;
 
-						document.cookie = `session-id=; Path=${new URL(document.baseURI).pathname}; Expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
+						document.cookie = `session-id=; Path=${
+							new URL(document.baseURI).pathname
+						}; Expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
 						location.href = loginUrl.toString();
 					}
-				}
+				},
 			});
 		},
-	}
-}
+	},
+};

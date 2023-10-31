@@ -1,44 +1,44 @@
 :root {
-	--bg            : #EEE;
-	--sidebarBg     : #292929;
+	--bg: #eee;
+	--sidebarBg: #292929;
 	--sidebarHoverBg: #232323;
-	--headerBg      : #FFF;
-	--contentBg     : #FFF;
-	--border        : #E5E5E5;
-	--color         : #232323;
-	--colorLink     : #999;
-	--colorSidebar  : #FFF;
-	--main          : #F44336;
-	--errorColor    : #F44336;
-	--selectedBg    : #ffe7e5;
+	--headerBg: #fff;
+	--contentBg: #fff;
+	--border: #e5e5e5;
+	--color: #232323;
+	--colorLink: #999;
+	--colorSidebar: #fff;
+	--main: #f44336;
+	--errorColor: #f44336;
+	--selectedBg: #ffe7e5;
 
 	@media (prefers-color-scheme: dark) {
 		&:root {
-			--bg        : #1F1F1F;
-			--headerBg  : #292929;
-			--contentBg : #292929;
-			--border    : #191919;
-			--color     : #FFF;
+			--bg: #1f1f1f;
+			--headerBg: #292929;
+			--contentBg: #292929;
+			--border: #191919;
+			--color: #fff;
 			--selectedBg: #261918;
 		}
 	}
 }
 
 &.night {
-	--bg        : #1F1F1F;
-	--headerBg  : #292929;
-	--contentBg : #292929;
-	--border    : #191919;
-	--color     : #FFF;
+	--bg: #1f1f1f;
+	--headerBg: #292929;
+	--contentBg: #292929;
+	--border: #191919;
+	--color: #fff;
 	--selectedBg: #261918;
 }
 
 * {
-	border-width   : 0;
-	box-sizing     : border-box;
-	font-family    : "Source Sans Pro", sans-serif;
-	margin         : 0;
-	padding        : 0;
+	border-width: 0;
+	box-sizing: border-box;
+	font-family: "Source Sans Pro", sans-serif;
+	margin: 0;
+	padding: 0;
 	text-decoration: none;
 }
 
@@ -55,55 +55,55 @@ a {
 }
 
 #login-scene {
-	height          : 100%;
-	height          : 100dvh;
-	padding         : 16px;
-	overflow        : auto;
-	display         : flex;
-	align-items     : center;
-	flex-flow       : column nowrap;
+	height: 100%;
+	height: 100dvh;
+	padding: 16px;
+	overflow: auto;
+	display: flex;
+	align-items: center;
+	flex-flow: column nowrap;
 	background-color: var(--bg);
 
-	>.error-message {
-		width           : 100%;
-		max-width       : 400px;
-		font-size       : 1em;
+	> .error-message {
+		width: 100%;
+		max-width: 400px;
+		font-size: 1em;
 		background-color: var(--contentBg);
-		border          : 1px solid var(--border);
-		padding         : 16px;
-		margin-top      : auto;
-		margin-bottom   : 16px;
-		text-align      : center;
-		color           : var(--errorColor);
+		border: 1px solid var(--border);
+		padding: 16px;
+		margin-top: auto;
+		margin-bottom: 16px;
+		text-align: center;
+		color: var(--errorColor);
 	}
 
 	#login-box {
-		width           : 100%;
-		max-width       : 400px;
-		margin-bottom   : auto;
+		width: 100%;
+		max-width: 400px;
+		margin-bottom: auto;
 		background-color: var(--contentBg);
-		display         : flex;
-		flex-flow       : column nowrap;
-		border          : 1px solid var(--border);
-		flex-shrink     : 0;
+		display: flex;
+		flex-flow: column nowrap;
+		border: 1px solid var(--border);
+		flex-shrink: 0;
 
 		&:first-child {
 			margin-top: auto;
 		}
 
 		#logo-area {
-			display         : flex;
-			align-items     : center;
-			flex-flow       : column nowrap;
-			padding         : 16px;
+			display: flex;
+			align-items: center;
+			flex-flow: column nowrap;
+			padding: 16px;
 			background-color: var(--main);
-			border-bottom   : 1px solid var(--border);
-			flex-shrink     : 0;
+			border-bottom: 1px solid var(--border);
+			flex-shrink: 0;
 
 			#logo {
-				font-size  : 3em;
+				font-size: 3em;
 				font-weight: 100;
-				color      : var(--contentBg);
+				color: var(--contentBg);
 
 				span {
 					margin-right: 8px;
@@ -112,66 +112,66 @@ a {
 
 			#tagline {
 				font-weight: 500;
-				margin-top : 4px;
-				color      : var(--contentBg);
-				text-align : center;
+				margin-top: 4px;
+				color: var(--contentBg);
+				text-align: center;
 			}
 		}
 
 		#input-area {
-			padding              : 16px;
-			display              : grid;
-			grid-gap             : 16px;
+			padding: 16px;
+			display: grid;
+			grid-gap: 16px;
 			grid-template-columns: auto 1fr;
-			justify-content      : baseline;
-			align-items          : center;
-			border-bottom        : 1px solid var(--border);
+			justify-content: baseline;
+			align-items: center;
+			border-bottom: 1px solid var(--border);
 
-			>label {
+			> label {
 				color: var(--color);
 			}
 
-			>input {
-				color           : var(--color);
-				padding         : 8px;
+			> input {
+				color: var(--color);
+				padding: 8px;
 				background-color: var(--contentBg);
-				border          : 1px solid var(--border);
-				min-width       : 0;
-				font-size       : 1em;
+				border: 1px solid var(--border);
+				min-width: 0;
+				font-size: 1em;
 			}
 
 			.checkbox-field {
-				grid-column    : 1 / span 2;
-				display        : flex;
-				flex-flow      : row nowrap;
-				align-items    : center;
+				grid-column: 1 / span 2;
+				display: flex;
+				flex-flow: row nowrap;
+				align-items: center;
 				justify-content: center;
-				cursor         : pointer;
+				cursor: pointer;
 
 				&:hover,
 				&:focus {
-					text-decoration      : underline;
+					text-decoration: underline;
 					text-decoration-color: var(--main);
 				}
 
-				>input[type="checkbox"] {
+				> input[type="checkbox"] {
 					margin-right: 8px;
 				}
 			}
 		}
 
 		#button-area {
-			display        : flex;
-			flex-flow      : row nowrap;
-			padding        : 16px;
+			display: flex;
+			flex-flow: row nowrap;
+			padding: 16px;
 			justify-content: center;
 
 			a {
-				color         : var(--color);
+				color: var(--color);
 				text-transform: uppercase;
-				text-align    : center;
-				font-weight   : 600;
-				cursor        : default;
+				text-align: center;
+				font-weight: 600;
+				cursor: default;
 
 				&.button {
 					cursor: pointer;
@@ -187,87 +187,87 @@ a {
 }
 
 #main-scene {
-	min-height      : 100%;
-	min-height      : 100dvh;
-	padding-top     : 60px;
-	padding-left    : 60px;
+	min-height: 100%;
+	min-height: 100dvh;
+	padding-top: 60px;
+	padding-left: 60px;
 	background-color: var(--bg);
 
 	#main-sidebar {
-		top             : 0;
-		left            : 0;
-		width           : 60px;
-		height          : 100%;
-		height          : 100dvh;
-		position        : fixed;
-		display         : flex;
-		flex-flow       : column nowrap;
+		top: 0;
+		left: 0;
+		width: 60px;
+		height: 100%;
+		height: 100dvh;
+		position: fixed;
+		display: flex;
+		flex-flow: column nowrap;
 		background-color: var(--sidebarBg);
-		z-index         : 1;
+		z-index: 1;
 
 		a {
 			flex-shrink: 0;
-			display    : block;
-			width      : 60px;
+			display: block;
+			width: 60px;
 			line-height: 60px;
-			text-align : center;
-			font-size  : 1em;
-			color      : var(--colorSidebar);
+			text-align: center;
+			font-size: 1em;
+			color: var(--colorSidebar);
 
 			&.active {
-				cursor          : default;
-				color           : var(--colorSidebar);
+				cursor: default;
+				color: var(--colorSidebar);
 				background-color: var(--main);
 			}
 
 			&:hover,
 			&:focus {
-				color           : var(--main);
+				color: var(--main);
 				background-color: var(--sidebarHoverBg);
 			}
 		}
 	}
 
 	.page-header {
-		top             : 0px;
-		left            : 60px;
-		right           : 0px;
-		height          : 60px;
-		position        : fixed;
-		color           : var(--color);
+		top: 0px;
+		left: 60px;
+		right: 0px;
+		height: 60px;
+		position: fixed;
+		color: var(--color);
 		background-color: var(--headerBg);
-		border-bottom   : 1px solid var(--border);
-		padding         : 0 16px;
-		z-index         : 10;
+		border-bottom: 1px solid var(--border);
+		padding: 0 16px;
+		z-index: 10;
 	}
 
 	h1.page-header {
 		line-height: 60px;
-		font-size  : 1.3em;
+		font-size: 1.3em;
 		font-weight: 600;
 	}
 
 	div.page-header {
-		display    : flex;
-		flex-flow  : row nowrap;
+		display: flex;
+		flex-flow: row nowrap;
 		align-items: center;
 
 		p {
-			flex       : 1 0;
-			font-size  : 1.3em;
+			flex: 1 0;
+			font-size: 1.3em;
 			font-weight: 600;
 			line-height: 60px;
-			color      : var(--color);
+			color: var(--color);
 		}
 
 		input[type="text"] {
-			flex            : 1 0;
-			min-width       : 0;
-			margin-right    : 8px;
-			font-size       : 1.1em;
-			font-weight     : 500;
-			line-height     : 59px;
-			color           : var(--color);
+			flex: 1 0;
+			min-width: 0;
+			margin-right: 8px;
+			font-size: 1.1em;
+			font-weight: 500;
+			line-height: 59px;
+			color: var(--color);
 			background-color: var(--contentBg);
 
 			&::placeholder {
@@ -276,11 +276,11 @@ a {
 		}
 
 		a {
-			display    : block;
-			width      : 24px;
+			display: block;
+			width: 24px;
 			line-height: 24px;
-			color      : var(--colorLink);
-			text-align : center;
+			color: var(--colorLink);
+			text-align: center;
 
 			&:not(:last-child) {
 				margin-right: 8px;
@@ -293,44 +293,44 @@ a {
 	}
 
 	.loading-overlay {
-		display         : flex;
-		flex-flow       : column nowrap;
-		align-items     : center;
-		justify-content : center;
-		overflow        : hidden;
-		position        : fixed;
-		top             : 0;
-		left            : 0;
-		width           : 100%;
-		width           : 100dvw;
-		height          : 100%;
-		height          : 100dvh;
-		z-index         : 10001;
+		display: flex;
+		flex-flow: column nowrap;
+		align-items: center;
+		justify-content: center;
+		overflow: hidden;
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+		width: 100dvw;
+		height: 100%;
+		height: 100dvh;
+		z-index: 10001;
 		background-color: rgba(0, 0, 0, 0.6);
 
 		i {
-			color      : var(--colorSidebar);
-			font-size  : 4em;
-			text-align : center;
-			width      : 80px;
+			color: var(--colorSidebar);
+			font-size: 4em;
+			text-align: center;
+			width: 80px;
 			line-height: 80px;
-			position   : absolute;
+			position: absolute;
 		}
 	}
 
 	@media (max-width: 600px) {
-		padding-top   : 50px;
-		padding-left  : 0;
+		padding-top: 50px;
+		padding-left: 0;
 		padding-bottom: 50px;
 
 		#main-sidebar {
-			top       : auto;
-			right     : 0;
-			bottom    : 0;
-			width     : 100%;
-			width     : 100dvw;
-			height    : 50px;
-			flex-flow : row nowrap;
+			top: auto;
+			right: 0;
+			bottom: 0;
+			width: 100%;
+			width: 100dvw;
+			height: 50px;
+			flex-flow: row nowrap;
 			border-top: 1px solid var(--border);
 
 			.spacer {
@@ -338,27 +338,27 @@ a {
 			}
 
 			a {
-				width      : auto;
-				flex       : 1 0;
+				width: auto;
+				flex: 1 0;
 				line-height: 50px;
 
 				&:hover,
 				&:focus {
-					color           : var(--colorSidebar);
+					color: var(--colorSidebar);
 					background-color: var(--main);
 				}
 			}
 		}
 
 		.page-header {
-			left  : 0;
+			left: 0;
 			height: 50px;
 		}
 
 		h1.page-header {
-			text-align    : center;
-			font-size     : 1em;
-			line-height   : 50px;
+			text-align: center;
+			font-size: 1em;
+			line-height: 50px;
 			text-transform: uppercase;
 		}
 
@@ -366,23 +366,23 @@ a {
 			flex-flow: row wrap;
 
 			p {
-				flex       : 1 0;
-				font-size  : 1em;
+				flex: 1 0;
+				font-size: 1em;
 				font-weight: 500;
 				line-height: 3em;
-				padding    : 0;
+				padding: 0;
 			}
 
 			input[type="text"] {
-				flex       : 1 0;
-				font-size  : 1em;
+				flex: 1 0;
+				font-size: 1em;
 				font-weight: 500;
 				line-height: 3em;
 			}
 
 			a {
-				display    : block;
-				width      : 24px;
+				display: block;
+				width: 24px;
 				line-height: 100%;
 			}
 		}
@@ -390,30 +390,30 @@ a {
 }
 
 #content-scene {
-	padding         : 20px;
-	display         : flex;
-	color           : var(--color);
+	padding: 20px;
+	display: flex;
+	color: var(--color);
 	background-color: var(--bg);
-	flex-flow       : column nowrap;
-	align-items     : center;
+	flex-flow: column nowrap;
+	align-items: center;
 
 	#header {
-		width           : 100%;
-		padding         : 20px;
-		max-width       : 840px;
-		margin-bottom   : 16px;
+		width: 100%;
+		padding: 20px;
+		max-width: 840px;
+		margin-bottom: 16px;
 		background-color: var(--contentBg);
-		border          : 1px solid var(--border);
-		display         : flex;
-		flex-flow       : column;
-		align-items     : center;
+		border: 1px solid var(--border);
+		display: flex;
+		flex-flow: column;
+		align-items: center;
 
 		#metadata {
-			display   : flex;
-			flex-flow : row wrap;
+			display: flex;
+			flex-flow: row wrap;
 			text-align: center;
-			font-size : 16px;
-			color     : var(--colorLink);
+			font-size: 16px;
+			color: var(--colorLink);
 
 			&[v-cloak] {
 				visibility: hidden;
@@ -421,23 +421,23 @@ a {
 		}
 
 		#title {
-			padding          : 8px 0;
+			padding: 8px 0;
 			grid-column-start: 1;
-			grid-column-end  : -1;
-			font-size        : 36px;
-			font-weight      : 700;
-			word-break       : break-word;
-			hyphens          : none;
-			text-align       : center;
+			grid-column-end: -1;
+			font-size: 36px;
+			font-weight: 700;
+			word-break: break-word;
+			hyphens: none;
+			text-align: center;
 		}
 
 		#links {
-			display  : flex;
+			display: flex;
 			flex-flow: row wrap;
 
 			a {
-				padding        : 0 4px;
-				color          : var(--color);
+				padding: 0 4px;
+				color: var(--color);
 				text-decoration: underline;
 
 				&:hover,
@@ -449,14 +449,14 @@ a {
 	}
 
 	#content {
-		width           : 100%;
-		padding         : 20px;
-		max-width       : 840px;
+		width: 100%;
+		padding: 20px;
+		max-width: 840px;
 		background-color: var(--contentBg);
-		border          : 1px solid var(--border);
+		border: 1px solid var(--border);
 
 		* {
-			font-size  : 18px;
+			font-size: 18px;
 			line-height: 180%;
 
 			&:not(:last-child) {
@@ -465,7 +465,7 @@ a {
 		}
 
 		a {
-			color          : var(--color);
+			color: var(--color);
 			text-decoration: underline;
 
 			&:hover,
@@ -476,16 +476,16 @@ a {
 
 		pre,
 		code {
-			overflow   : auto;
-			border     : 1px solid var(--border);
-			font-family: 'Ubuntu Mono', 'Courier New', Courier, monospace;
-			font-size  : 16px;
+			overflow: auto;
+			border: 1px solid var(--border);
+			font-family: "Ubuntu Mono", "Courier New", Courier, monospace;
+			font-size: 16px;
 		}
 
 		pre {
 			padding: 8px;
 
-			>code {
+			> code {
 				border: 0;
 			}
 		}
@@ -496,12 +496,12 @@ a {
 		}
 
 		img {
-			height   : auto;
+			height: auto;
 			max-width: 100%;
 		}
 
 		table {
-			border         : 1px solid var(--border);
+			border: 1px solid var(--border);
 			border-collapse: collapse;
 
 			tr,
@@ -514,44 +514,44 @@ a {
 }
 
 #page-home {
-	>.empty-message {
-		width           : 100%;
-		max-width       : 400px;
-		font-size       : 1em;
+	> .empty-message {
+		width: 100%;
+		max-width: 400px;
+		font-size: 1em;
 		background-color: var(--contentBg);
-		border          : 1px solid var(--border);
-		padding         : 16px;
-		margin          : 16px;
-		color           : var(--errorColor);
+		border: 1px solid var(--border);
+		padding: 16px;
+		margin: 16px;
+		color: var(--errorColor);
 	}
 
 	#edit-box {
 		background-color: var(--selectedBg);
-		border-bottom   : 1px solid var(--main);
+		border-bottom: 1px solid var(--main);
 	}
 
 	#bookmarks-grid {
-		display              : grid;
-		grid-template-rows   : min-content;
+		display: grid;
+		grid-template-rows: min-content;
 		grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-		grid-gap             : 16px;
-		padding              : 16px;
-		overflow             : auto;
+		grid-gap: 16px;
+		padding: 16px;
+		overflow: auto;
 
 		.bookmark {
 			align-self: start;
 		}
 
 		.pagination-box {
-			grid-column-end  : -1;
+			grid-column-end: -1;
 			grid-column-start: 1;
-			display          : flex;
-			flex-flow        : row nowrap;
-			align-self       : start;
+			display: flex;
+			flex-flow: row nowrap;
+			align-self: start;
 
 			a {
 				padding: 8px;
-				color  : var(--colorLink);
+				color: var(--colorLink);
 
 				&:hover,
 				&:focus {
@@ -560,32 +560,32 @@ a {
 			}
 
 			input {
-				width           : 40px;
-				padding         : 8px;
-				text-align      : center;
-				font-size       : 0.9em;
-				color           : var(--color);
-				border          : 1px solid var(--border);
+				width: 40px;
+				padding: 8px;
+				text-align: center;
+				font-size: 0.9em;
+				color: var(--color);
+				border: 1px solid var(--border);
 				background-color: var(--contentBg);
-				margin          : 0 8px;
+				margin: 0 8px;
 			}
 
 			p {
-				font-size  : 0.9em;
-				color      : var(--colorLink);
+				font-size: 0.9em;
+				color: var(--colorLink);
 				line-height: 37px;
 				font-weight: 600;
 
 				&:last-of-type::before {
-					content     : "/";
+					content: "/";
 					margin-right: 8px;
 				}
 			}
 		}
 
 		&.list {
-			grid-gap             : 0;
-			padding-bottom       : 0;
+			grid-gap: 0;
+			padding-bottom: 0;
 			grid-template-columns: minmax(0, 1000px);
 
 			.pagination-box {
@@ -616,21 +616,21 @@ a {
 
 			a {
 				font-size: 1em;
-				color    : var(--color);
+				color: var(--color);
 
 				span {
 					&:last-child {
-						font-size  : 1em;
-						color      : var(--colorLink);
+						font-size: 1em;
+						color: var(--colorLink);
 						margin-left: 4px;
 
 						&::before {
-							content     : "(";
+							content: "(";
 							margin-right: 2px;
 						}
 
 						&::after {
-							content    : ")";
+							content: ")";
 							margin-left: 2px;
 						}
 					}
@@ -648,45 +648,45 @@ a {
 #page-setting {
 	min-height: 0;
 	max-height: 100%;
-	display   : flex;
-	flex-flow : column nowrap;
+	display: flex;
+	flex-flow: column nowrap;
 
 	.setting-container {
-		padding  : 8px;
-		display  : flex;
-		overflow : auto;
+		padding: 8px;
+		display: flex;
+		overflow: auto;
 		flex-flow: column nowrap;
-		flex     : 1 0;
+		flex: 1 0;
 
 		&::after {
-			content   : "";
-			display   : block;
+			content: "";
+			display: block;
 			min-height: 1px;
 		}
 
 		details.setting-group {
-			margin          : 8px;
-			display         : block;
-			max-width       : 350px;
-			color           : var(--color);
+			margin: 8px;
+			display: block;
+			max-width: 350px;
+			color: var(--color);
 			background-color: var(--contentBg);
-			border          : 1px solid var(--border);
+			border: 1px solid var(--border);
 
 			@media (max-width: 600px) {
 				max-width: 100%;
 			}
 
 			summary {
-				list-style : none;
+				list-style: none;
 				font-weight: 600;
-				width      : 100%;
-				padding    : 12px 8px;
-				font-size  : 1.1em;
+				width: 100%;
+				padding: 12px 8px;
+				font-size: 1.1em;
 
 				cursor: pointer;
 
 				&:hover {
-					color: var(--main)
+					color: var(--main);
 				}
 
 				&::-webkit-details-marker {
@@ -694,7 +694,7 @@ a {
 				}
 
 				&::after {
-					content    : "+";
+					content: "+";
 					margin-left: 8px;
 					font-weight: 600;
 				}
@@ -709,25 +709,25 @@ a {
 			}
 
 			div.setting-group-footer {
-				padding    : 4px 8px;
-				display    : flex;
-				flex-flow  : column nowrap;
+				padding: 4px 8px;
+				display: flex;
+				flex-flow: column nowrap;
 				align-items: flex-end;
-				border-top : 1px solid var(--border);
+				border-top: 1px solid var(--border);
 
-				>a {
+				> a {
 					text-transform: uppercase;
-					padding       : 8px 4px;
-					font-size     : 0.9em;
-					font-weight   : 600;
+					padding: 8px 4px;
+					font-size: 0.9em;
+					font-weight: 600;
 
 					&:hover {
 						color: var(--main);
 					}
 
 					&:focus {
-						outline      : none;
-						color        : var(--main);
+						outline: none;
+						color: var(--main);
 						border-bottom: 1px dashed var(--main);
 					}
 				}
@@ -737,7 +737,7 @@ a {
 
 	#setting-display,
 	#setting-bookmarks {
-		display  : flex;
+		display: flex;
 		flex-flow: column nowrap;
 
 		&[open] {
@@ -749,20 +749,20 @@ a {
 		}
 
 		label {
-			padding    : 4px 8px;
-			color      : var(--color);
-			display    : flex;
-			flex-flow  : row nowrap;
+			padding: 4px 8px;
+			color: var(--color);
+			display: flex;
+			flex-flow: row nowrap;
 			align-items: center;
-			cursor     : pointer;
+			cursor: pointer;
 
 			&:hover,
 			&:focus {
-				text-decoration      : underline;
+				text-decoration: underline;
 				text-decoration-color: var(--main);
 			}
 
-			>input[type="checkbox"] {
+			> input[type="checkbox"] {
 				margin-right: 8px;
 			}
 		}
@@ -777,9 +777,9 @@ a {
 			list-style: none;
 
 			li {
-				padding    : 8px;
-				display    : flex;
-				flex-flow  : row nowrap;
+				padding: 8px;
+				display: flex;
+				flex-flow: row nowrap;
 				align-items: center;
 
 				&:not(:last-child) {
@@ -788,8 +788,8 @@ a {
 
 				p {
 					font-size: 1em;
-					color    : var(--color);
-					flex     : 1 0;
+					color: var(--color);
+					flex: 1 0;
 
 					span {
 						color: var(--colorLink);
@@ -798,7 +798,7 @@ a {
 
 				a {
 					margin-left: 8px;
-					color      : var(--colorLink);
+					color: var(--colorLink);
 
 					&:hover {
 						color: var(--main);
