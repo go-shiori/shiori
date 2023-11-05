@@ -84,7 +84,7 @@ var template = `
         </a>
     </custom-dialog>
     <custom-dialog v-bind="dialog"/>
-</div>`
+</div>`;
 
 import paginationBox from "../component/pagination.js";
 import bookmarkItem from "../component/bookmark.js";
@@ -97,7 +97,7 @@ export default {
 	components: {
 		bookmarkItem,
 		paginationBox,
-		customDialog
+		customDialog,
 	},
 	data() {
 		return {
@@ -114,9 +114,9 @@ export default {
 			dialogTags: {
 				visible: false,
 				editMode: false,
-				title: 'Existing Tags',
-				mainText: 'OK',
-				secondText: 'Rename Tags',
+				title: "Existing Tags",
+				mainText: "OK",
+				secondText: "Rename Tags",
 				mainClick: () => {
 					if (this.dialogTags.editMode) {
 						this.dialogTags.editMode = false;
@@ -130,14 +130,14 @@ export default {
 				escPressed: () => {
 					this.dialogTags.visible = false;
 					this.dialogTags.editMode = false;
-				}
+				},
 			},
-		}
+		};
 	},
 	computed: {
 		listIsEmpty() {
 			return this.bookmarks.length <= 0;
-		}
+		},
 	},
 	watch: {
 		"dialogTags.editMode"(editMode) {
@@ -150,7 +150,7 @@ export default {
 				this.dialogTags.mainText = "OK";
 				this.dialogTags.secondText = "Rename Tags";
 			}
-		}
+		},
 	},
 	methods: {
 		reloadData() {
@@ -163,8 +163,8 @@ export default {
 			if (this.loading) return;
 
 			// Set default args
-			saveState = (typeof saveState === "boolean") ? saveState : true;
-			fetchTags = (typeof fetchTags === "boolean") ? fetchTags : false;
+			saveState = typeof saveState === "boolean" ? saveState : true;
+			fetchTags = typeof fetchTags === "boolean" ? fetchTags : false;
 
 			// Parse search query
 			var keyword = this.search,
@@ -177,23 +177,23 @@ export default {
 				rxResult;
 
 			// Get excluded tag first, while also removing it from keyword
-			while (rxResult = rxExcludeTagA.exec(keyword)) {
+			while ((rxResult = rxExcludeTagA.exec(keyword))) {
 				keyword = keyword.replace(rxResult[0], "");
 				excludedTags.push(rxResult[2]);
 			}
 
-			while (rxResult = rxExcludeTagB.exec(keyword)) {
+			while ((rxResult = rxExcludeTagB.exec(keyword))) {
 				keyword = keyword.replace(rxResult[0], "");
 				excludedTags.push(rxResult[2]);
 			}
 
 			// Get included tags
-			while (rxResult = rxIncludeTagA.exec(keyword)) {
+			while ((rxResult = rxIncludeTagA.exec(keyword))) {
 				keyword = keyword.replace(rxResult[0], "");
 				tags.push(rxResult[2]);
 			}
 
-			while (rxResult = rxIncludeTagB.exec(keyword)) {
+			while ((rxResult = rxIncludeTagB.exec(keyword))) {
 				keyword = keyword.replace(rxResult[0], "");
 				tags.push(rxResult[2]);
 			}
@@ -207,7 +207,7 @@ export default {
 				keyword: keyword,
 				tags: tags.join(","),
 				exclude: excludedTags.join(","),
-				page: this.page
+				page: this.page,
 			});
 
 			// Fetch data from API
@@ -216,15 +216,15 @@ export default {
 			this.loading = true;
 			fetch(url, {
 				headers: {
-					'Content-Type': 'application/json',
-					'Authorization': 'Bearer ' + localStorage.getItem("shiori-token"),
-				}
+					"Content-Type": "application/json",
+					Authorization: "Bearer " + localStorage.getItem("shiori-token"),
+				},
 			})
-				.then(response => {
+				.then((response) => {
 					if (!response.ok) throw response;
 					return response.json();
 				})
-				.then(json => {
+				.then((json) => {
 					// Set data
 					this.page = json.page;
 					this.maxPage = json.maxPage;
@@ -235,7 +235,7 @@ export default {
 						var history = {
 							activePage: "page-home",
 							search: this.search,
-							page: this.page
+							page: this.page,
 						};
 
 						var url = new Url(document.baseURI);
@@ -249,27 +249,32 @@ export default {
 
 					// Fetch tags if requested
 					if (fetchTags) {
-						return fetch(new URL("api/tags", document.baseURI), { headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem("shiori-token") } });
+						return fetch(new URL("api/tags", document.baseURI), {
+							headers: {
+								"Content-Type": "application/json",
+								Authorization: "Bearer " + localStorage.getItem("shiori-token"),
+							},
+						});
 					} else {
 						this.loading = false;
 						throw skipFetchTags;
 					}
 				})
-				.then(response => {
+				.then((response) => {
 					if (!response.ok) throw response;
 					return response.json();
 				})
-				.then(json => {
+				.then((json) => {
 					this.tags = json;
 					this.loading = false;
 				})
-				.catch(err => {
+				.catch((err) => {
 					this.loading = false;
 
 					if (err !== skipFetchTags) {
-						this.getErrorMessage(err).then(msg => {
+						this.getErrorMessage(err).then((msg) => {
 							this.showErrorDialog(msg);
-						})
+						});
 					}
 				});
 		},
@@ -287,12 +292,12 @@ export default {
 			this.editMode = !this.editMode;
 		},
 		toggleSelection(item) {
-			var idx = this.selection.findIndex(el => el.id === item.id);
+			var idx = this.selection.findIndex((el) => el.id === item.id);
 			if (idx === -1) this.selection.push(item);
 			else this.selection.splice(idx, 1);
 		},
 		isSelected(bookId) {
-			return this.selection.findIndex(el => el.id === bookId) > -1;
+			return this.selection.findIndex((el) => el.id === bookId) > -1;
 		},
 		dialogTagClicked(event, tag) {
 			if (!this.dialogTags.editMode) {
@@ -307,7 +312,7 @@ export default {
 		},
 		filterTag(tagName, excludeMode) {
 			// Set default parameter
-			excludeMode = (typeof excludeMode === "boolean") ? excludeMode : false;
+			excludeMode = typeof excludeMode === "boolean" ? excludeMode : false;
 
 			if (this.dialogTags.editMode) {
 				return;
@@ -321,7 +326,9 @@ export default {
 			}
 
 			var rxSpace = /\s+/g,
-				includeTag = rxSpace.test(tagName) ? `tag:"${tagName}"` : `tag:${tagName}`,
+				includeTag = rxSpace.test(tagName)
+					? `tag:"${tagName}"`
+					: `tag:${tagName}`,
 				excludeTag = "-" + includeTag,
 				rxIncludeTag = new RegExp(`(^|\\s)${includeTag}`, "ig"),
 				rxExcludeTag = new RegExp(`(^|\\s)${excludeTag}`, "ig"),
@@ -362,37 +369,45 @@ export default {
 			this.showDialog({
 				title: "New Bookmark",
 				content: "Create a new bookmark",
-				fields: [{
-					name: "url",
-					label: "Url, start with http://...",
-				}, {
-					name: "title",
-					label: "Custom title (optional)"
-				}, {
-					name: "excerpt",
-					label: "Custom excerpt (optional)",
-					type: "area"
-				}, {
-					name: "tags",
-					label: "Comma separated tags (optional)",
-					separator: ",",
-					dictionary: this.tags.map(tag => tag.name)
-				}, {
-					name: "create_archive",
-					label: "Create archive",
-					type: "check",
-					value: this.appOptions.UseArchive,
-				}, {
-					name: "create_ebook",
-					label: "Create Ebook",
-					type: "check",
-					value: this.appOptions.CreateEbook,
-				}, {
-					name: "makePublic",
-					label: "Make archive publicly available",
-					type: "check",
-					value: this.appOptions.MakePublic,
-				}],
+				fields: [
+					{
+						name: "url",
+						label: "Url, start with http://...",
+					},
+					{
+						name: "title",
+						label: "Custom title (optional)",
+					},
+					{
+						name: "excerpt",
+						label: "Custom excerpt (optional)",
+						type: "area",
+					},
+					{
+						name: "tags",
+						label: "Comma separated tags (optional)",
+						separator: ",",
+						dictionary: this.tags.map((tag) => tag.name),
+					},
+					{
+						name: "create_archive",
+						label: "Create archive",
+						type: "check",
+						value: this.appOptions.UseArchive,
+					},
+					{
+						name: "create_ebook",
+						label: "Create Ebook",
+						type: "check",
+						value: this.appOptions.CreateEbook,
+					},
+					{
+						name: "makePublic",
+						label: "Make archive publicly available",
+						type: "check",
+						value: this.appOptions.MakePublic,
+					},
+				],
 				mainText: "OK",
 				secondText: "Cancel",
 				mainClick: (data) => {
@@ -407,10 +422,10 @@ export default {
 						.toLowerCase()
 						.replace(/\s+/g, " ")
 						.split(/\s*,\s*/g)
-						.filter(tag => tag.trim() !== "")
-						.map(tag => {
+						.filter((tag) => tag.trim() !== "")
+						.map((tag) => {
 							return {
-								name: tag.trim()
+								name: tag.trim(),
 							};
 						});
 
@@ -429,65 +444,77 @@ export default {
 					fetch(new URL("api/bookmarks", document.baseURI), {
 						method: "post",
 						body: JSON.stringify(data),
-						headers: { "Content-Type": "application/json", 'Authorization': 'Bearer ' + localStorage.getItem("shiori-token") }
-					}).then(response => {
-						if (!response.ok) throw response;
-						return response.json();
-					}).then(json => {
-						this.dialog.loading = false;
-						this.dialog.visible = false;
-						this.bookmarks.splice(0, 0, json);
-					}).catch(err => {
-						this.dialog.loading = false;
-						this.getErrorMessage(err).then(msg => {
-							this.showErrorDialog(msg);
+						headers: {
+							"Content-Type": "application/json",
+							Authorization: "Bearer " + localStorage.getItem("shiori-token"),
+						},
+					})
+						.then((response) => {
+							if (!response.ok) throw response;
+							return response.json();
 						})
-					});
-				}
+						.then((json) => {
+							this.dialog.loading = false;
+							this.dialog.visible = false;
+							this.bookmarks.splice(0, 0, json);
+						})
+						.catch((err) => {
+							this.dialog.loading = false;
+							this.getErrorMessage(err).then((msg) => {
+								this.showErrorDialog(msg);
+							});
+						});
+				},
 			});
 		},
 		showDialogEdit(item) {
 			// Check the item
 			if (typeof item !== "object") return;
 
-			var id = (typeof item.id === "number") ? item.id : 0,
-				index = (typeof item.index === "number") ? item.index : -1;
+			var id = typeof item.id === "number" ? item.id : 0,
+				index = typeof item.index === "number" ? item.index : -1;
 
 			if (id < 1 || index < 0) return;
 
 			// Get the existing bookmark value
 			var book = JSON.parse(JSON.stringify(this.bookmarks[index])),
-				strTags = book.tags.map(tag => tag.name).join(", ");
+				strTags = book.tags.map((tag) => tag.name).join(", ");
 
 			this.showDialog({
 				title: "Edit Bookmark",
 				content: "Edit the bookmark's data",
 				showLabel: true,
-				fields: [{
-					name: "url",
-					label: "Url",
-					value: book.url,
-				}, {
-					name: "title",
-					label: "Title",
-					value: book.title,
-				}, {
-					name: "excerpt",
-					label: "Excerpt",
-					type: "area",
-					value: book.excerpt,
-				}, {
-					name: "tags",
-					label: "Tags",
-					value: strTags,
-					separator: ",",
-					dictionary: this.tags.map(tag => tag.name)
-				}, {
-					name: "makePublic",
-					label: "Make archive publicly available",
-					type: "check",
-					value: book.public >= 1,
-				}],
+				fields: [
+					{
+						name: "url",
+						label: "Url",
+						value: book.url,
+					},
+					{
+						name: "title",
+						label: "Title",
+						value: book.title,
+					},
+					{
+						name: "excerpt",
+						label: "Excerpt",
+						type: "area",
+						value: book.excerpt,
+					},
+					{
+						name: "tags",
+						label: "Tags",
+						value: strTags,
+						separator: ",",
+						dictionary: this.tags.map((tag) => tag.name),
+					},
+					{
+						name: "makePublic",
+						label: "Make archive publicly available",
+						type: "check",
+						value: book.public >= 1,
+					},
+				],
 				mainText: "OK",
 				secondText: "Cancel",
 				mainClick: (data) => {
@@ -499,10 +526,10 @@ export default {
 						.toLowerCase()
 						.replace(/\s+/g, " ")
 						.split(/\s*,\s*/g)
-						.filter(tag => tag.trim() !== "")
-						.map(tag => {
+						.filter((tag) => tag.trim() !== "")
+						.map((tag) => {
 							return {
-								name: tag.trim()
+								name: tag.trim(),
 							};
 						});
 
@@ -518,21 +545,27 @@ export default {
 					fetch(new URL("api/bookmarks", document.baseURI), {
 						method: "put",
 						body: JSON.stringify(book),
-						headers: { "Content-Type": "application/json", 'Authorization': 'Bearer ' + localStorage.getItem("shiori-token") }
-					}).then(response => {
-						if (!response.ok) throw response;
-						return response.json();
-					}).then(json => {
-						this.dialog.loading = false;
-						this.dialog.visible = false;
-						this.bookmarks.splice(index, 1, json);
-					}).catch(err => {
-						this.dialog.loading = false;
-						this.getErrorMessage(err).then(msg => {
-							this.showErrorDialog(msg);
+						headers: {
+							"Content-Type": "application/json",
+							Authorization: "Bearer " + localStorage.getItem("shiori-token"),
+						},
+					})
+						.then((response) => {
+							if (!response.ok) throw response;
+							return response.json();
 						})
-					});
-				}
+						.then((json) => {
+							this.dialog.loading = false;
+							this.dialog.visible = false;
+							this.bookmarks.splice(index, 1, json);
+						})
+						.catch((err) => {
+							this.dialog.loading = false;
+							this.getErrorMessage(err).then((msg) => {
+								this.showErrorDialog(msg);
+							});
+						});
+				},
 			});
 		},
 		showDialogDelete(items) {
@@ -540,9 +573,9 @@ export default {
 			if (typeof items !== "object") return;
 			if (!Array.isArray(items)) items = [items];
 
-			items = items.filter(item => {
-				var id = (typeof item.id === "number") ? item.id : 0,
-					index = (typeof item.index === "number") ? item.index : -1;
+			items = items.filter((item) => {
+				var id = typeof item.id === "number" ? item.id : 0,
+					index = typeof item.index === "number" ? item.index : -1;
 
 				return id > 0 && index > -1;
 			});
@@ -550,12 +583,13 @@ export default {
 			if (items.length === 0) return;
 
 			// Split ids and indices
-			var ids = items.map(item => item.id),
-				indices = items.map(item => item.index).sort((a, b) => b - a);
+			var ids = items.map((item) => item.id),
+				indices = items.map((item) => item.index).sort((a, b) => b - a);
 
 			// Create title and content
 			var title = "Delete Bookmarks",
-				content = "Delete the selected bookmarks ? This action is irreversible.";
+				content =
+					"Delete the selected bookmarks ? This action is irreversible.";
 
 			if (items.length === 1) {
 				title = "Delete Bookmark";
@@ -573,30 +607,36 @@ export default {
 					fetch(new URL("api/bookmarks", document.baseURI), {
 						method: "delete",
 						body: JSON.stringify(ids),
-						headers: { "Content-Type": "application/json", 'Authorization': 'Bearer ' + localStorage.getItem("shiori-token") },
-					}).then(response => {
-						if (!response.ok) throw response;
-						return response;
-					}).then(() => {
-						this.selection = [];
-						this.editMode = false;
-						this.dialog.loading = false;
-						this.dialog.visible = false;
-						indices.forEach(index => this.bookmarks.splice(index, 1))
-
-						if (this.bookmarks.length < 20) {
-							this.loadData(false);
-						}
-					}).catch(err => {
-						this.selection = [];
-						this.editMode = false;
-						this.dialog.loading = false;
-
-						this.getErrorMessage(err).then(msg => {
-							this.showErrorDialog(msg);
+						headers: {
+							"Content-Type": "application/json",
+							Authorization: "Bearer " + localStorage.getItem("shiori-token"),
+						},
+					})
+						.then((response) => {
+							if (!response.ok) throw response;
+							return response;
 						})
-					});
-				}
+						.then(() => {
+							this.selection = [];
+							this.editMode = false;
+							this.dialog.loading = false;
+							this.dialog.visible = false;
+							indices.forEach((index) => this.bookmarks.splice(index, 1));
+
+							if (this.bookmarks.length < 20) {
+								this.loadData(false);
+							}
+						})
+						.catch((err) => {
+							this.selection = [];
+							this.editMode = false;
+							this.dialog.loading = false;
+
+							this.getErrorMessage(err).then((msg) => {
+								this.showErrorDialog(msg);
+							});
+						});
+				},
 			});
 		},
 		ebookGenerate(items) {
@@ -604,9 +644,9 @@ export default {
 			if (typeof items !== "object") return;
 			if (!Array.isArray(items)) items = [items];
 
-			items = items.filter(item => {
-				var id = (typeof item.id === "number") ? item.id : 0,
-					index = (typeof item.index === "number") ? item.index : -1;
+			items = items.filter((item) => {
+				var id = typeof item.id === "number" ? item.id : 0,
+					index = typeof item.index === "number" ? item.index : -1;
 
 				return id > 0 && index > -1;
 			});
@@ -614,46 +654,55 @@ export default {
 			if (items.length === 0) return;
 
 			// define variable and send request
-			var ids = items.map(item => item.id);
+			var ids = items.map((item) => item.id);
 			var data = {
-                ids: ids,
-                create_archive: false,
-                keep_metadata: true,
-                create_ebook: true,
-                skip_exist: true,
-            };
+				ids: ids,
+				create_archive: false,
+				keep_metadata: true,
+				create_ebook: true,
+				skip_exist: true,
+			};
 			this.loading = true;
 			fetch(new URL("api/v1/bookmarks/cache", document.baseURI), {
 				method: "put",
 				body: JSON.stringify(data),
-				headers: { "Content-Type": "application/json", 'Authorization': 'Bearer ' + localStorage.getItem("shiori-token") },
-			}).then(response => {
-				if (!response.ok) throw response;
-				return response.json();
-			}).then(json => {
-				this.selection = [];
-				this.editMode = false;
-				json.message.forEach(book => {
-					// download ebooks
-					const id = book.id;
-					if (book.hasEbook) {
-						const ebook_url = new URL(`bookmark/${id}/ebook`, document.baseURI);
-						const downloadLink = document.createElement("a");
-						downloadLink.href = ebook_url.toString();
-						downloadLink.download = `${book.title}.epub`;
-						downloadLink.click();
-					}
-
-					var item = items.find(el => el.id === book.id);
-					this.bookmarks.splice(item.index, 1, book);
-				});
-			}).catch(err => {
-				this.selection = [];
-				this.editMode = false;
-				this.getErrorMessage(err).then(msg => {
-					this.showErrorDialog(msg);
-				})
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: "Bearer " + localStorage.getItem("shiori-token"),
+				},
 			})
+				.then((response) => {
+					if (!response.ok) throw response;
+					return response.json();
+				})
+				.then((json) => {
+					this.selection = [];
+					this.editMode = false;
+					json.message.forEach((book) => {
+						// download ebooks
+						const id = book.id;
+						if (book.hasEbook) {
+							const ebook_url = new URL(
+								`bookmark/${id}/ebook`,
+								document.baseURI,
+							);
+							const downloadLink = document.createElement("a");
+							downloadLink.href = ebook_url.toString();
+							downloadLink.download = `${book.title}.epub`;
+							downloadLink.click();
+						}
+
+						var item = items.find((el) => el.id === book.id);
+						this.bookmarks.splice(item.index, 1, book);
+					});
+				})
+				.catch((err) => {
+					this.selection = [];
+					this.editMode = false;
+					this.getErrorMessage(err).then((msg) => {
+						this.showErrorDialog(msg);
+					});
+				})
 				.finally(() => {
 					this.loading = false;
 				});
@@ -663,9 +712,9 @@ export default {
 			if (typeof items !== "object") return;
 			if (!Array.isArray(items)) items = [items];
 
-			items = items.filter(item => {
-				var id = (typeof item.id === "number") ? item.id : 0,
-					index = (typeof item.index === "number") ? item.index : -1;
+			items = items.filter((item) => {
+				var id = typeof item.id === "number" ? item.id : 0,
+					index = typeof item.index === "number" ? item.index : -1;
 
 				return id > 0 && index > -1;
 			});
@@ -673,27 +722,32 @@ export default {
 			if (items.length === 0) return;
 
 			// Show dialog
-			var ids = items.map(item => item.id);
+			var ids = items.map((item) => item.id);
 
 			this.showDialog({
 				title: "Update Cache",
-				content: "Update cache for selected bookmarks ? This action is irreversible.",
-				fields: [{
-					name: "keep_metadata",
-					label: "Keep the old title and excerpt",
-					type: "check",
-					value: this.appOptions.KeepMetadata,
-				}, {
-					name: "create_archive",
-					label: "Update archive as well",
-					type: "check",
-					value: this.appOptions.UseArchive,
-				}, {
-					name: "create_ebook",
-					label: "Update Ebook as well",
-					type: "check",
-					value: this.appOptions.CreateEbook,
-                }],
+				content:
+					"Update cache for selected bookmarks ? This action is irreversible.",
+				fields: [
+					{
+						name: "keep_metadata",
+						label: "Keep the old title and excerpt",
+						type: "check",
+						value: this.appOptions.KeepMetadata,
+					},
+					{
+						name: "create_archive",
+						label: "Update archive as well",
+						type: "check",
+						value: this.appOptions.UseArchive,
+					},
+					{
+						name: "create_ebook",
+						label: "Update Ebook as well",
+						type: "check",
+						value: this.appOptions.CreateEbook,
+					},
+				],
 				mainText: "Yes",
 				secondText: "No",
 				mainClick: (data) => {
@@ -702,58 +756,70 @@ export default {
 						create_archive: data.create_archive,
 						keep_metadata: data.keep_metadata,
 						create_ebook: data.create_ebook,
-                        skip_exist: false,
+						skip_exist: false,
 					};
 
 					this.dialog.loading = true;
 					fetch(new URL("api/v1/bookmarks/cache", document.baseURI), {
 						method: "put",
 						body: JSON.stringify(data),
-						headers: { "Content-Type": "application/json", 'Authorization': 'Bearer ' + localStorage.getItem("shiori-token") },
-					}).then(response => {
-						if (!response.ok) throw response;
-						return response.json();
-					}).then(json => {
-						this.selection = [];
-						this.editMode = false;
-						this.dialog.loading = false;
-						this.dialog.visible = false;
-
-						let faildedUpdateArchives = [];
-						let faildedCreateEbook = [];
-						json.message.forEach(book => {
-							var item = items.find(el => el.id === book.id);
-							this.bookmarks.splice(item.index, 1, book);
-
-							if (data.create_archive && !book.hasArchive) {
-								faildedUpdateArchives.push(book.id);
-								console.error("can't update archive for bookmark id", book.id)
-							}
-							if (data.create_ebook && !book.hasEbook) {
-								faildedCreateEbook.push(book.id);
-								console.error("can't update ebook for bookmark id:", book.id)
-							}
-						});
-						if (faildedCreateEbook.length > 0 || faildedUpdateArchives.length > 0) {
-							this.showDialog({
-								title: `Bookmarks Id that Update Action Faild`,
-								content: `Not all bookmarks could have their contents updated, but no files were overwritten.`,
-								mainText: "OK",
-								mainClick: () => {
-									this.dialog.visible = false;
-								},
-							})
-						}
-					}).catch(err => {
-						this.selection = [];
-						this.editMode = false;
-						this.dialog.loading = false;
-
-						this.getErrorMessage(err).then(msg => {
-							this.showErrorDialog(msg);
+						headers: {
+							"Content-Type": "application/json",
+							Authorization: "Bearer " + localStorage.getItem("shiori-token"),
+						},
+					})
+						.then((response) => {
+							if (!response.ok) throw response;
+							return response.json();
 						})
-					});
-				}
+						.then((json) => {
+							this.selection = [];
+							this.editMode = false;
+							this.dialog.loading = false;
+							this.dialog.visible = false;
+
+							let faildedUpdateArchives = [];
+							let faildedCreateEbook = [];
+							json.message.forEach((book) => {
+								var item = items.find((el) => el.id === book.id);
+								this.bookmarks.splice(item.index, 1, book);
+
+								if (data.create_archive && !book.hasArchive) {
+									faildedUpdateArchives.push(book.id);
+									console.error(
+										"can't update archive for bookmark id",
+										book.id,
+									);
+								}
+								if (data.create_ebook && !book.hasEbook) {
+									faildedCreateEbook.push(book.id);
+									console.error("can't update ebook for bookmark id:", book.id);
+								}
+							});
+							if (
+								faildedCreateEbook.length > 0 ||
+								faildedUpdateArchives.length > 0
+							) {
+								this.showDialog({
+									title: `Bookmarks Id that Update Action Faild`,
+									content: `Not all bookmarks could have their contents updated, but no files were overwritten.`,
+									mainText: "OK",
+									mainClick: () => {
+										this.dialog.visible = false;
+									},
+								});
+							}
+						})
+						.catch((err) => {
+							this.selection = [];
+							this.editMode = false;
+							this.dialog.loading = false;
+
+							this.getErrorMessage(err).then((msg) => {
+								this.showErrorDialog(msg);
+							});
+						});
+				},
 			});
 		},
 		showDialogAddTags(items) {
@@ -761,9 +827,9 @@ export default {
 			if (typeof items !== "object") return;
 			if (!Array.isArray(items)) items = [items];
 
-			items = items.filter(item => {
-				var id = (typeof item.id === "number") ? item.id : 0,
-					index = (typeof item.index === "number") ? item.index : -1;
+			items = items.filter((item) => {
+				var id = typeof item.id === "number" ? item.id : 0,
+					index = typeof item.index === "number" ? item.index : -1;
 
 				return id > 0 && index > -1;
 			});
@@ -774,25 +840,27 @@ export default {
 			this.showDialog({
 				title: "Add New Tags",
 				content: "Add new tags to selected bookmarks",
-				fields: [{
-					name: "tags",
-					label: "Comma separated tags",
-					value: "",
-					separator: ",",
-					dictionary: this.tags.map(tag => tag.name)
-				}],
-				mainText: 'OK',
-				secondText: 'Cancel',
+				fields: [
+					{
+						name: "tags",
+						label: "Comma separated tags",
+						value: "",
+						separator: ",",
+						dictionary: this.tags.map((tag) => tag.name),
+					},
+				],
+				mainText: "OK",
+				secondText: "Cancel",
 				mainClick: (data) => {
 					// Validate input
 					var tags = data.tags
 						.toLowerCase()
-						.replace(/\s+/g, ' ')
+						.replace(/\s+/g, " ")
 						.split(/\s*,\s*/g)
-						.filter(tag => tag.trim() !== '')
-						.map(tag => {
+						.filter((tag) => tag.trim() !== "")
+						.map((tag) => {
 							return {
-								name: tag.trim()
+								name: tag.trim(),
 							};
 						});
 
@@ -800,54 +868,64 @@ export default {
 
 					// Send data
 					var request = {
-						ids: items.map(item => item.id),
-						tags: tags
-					}
+						ids: items.map((item) => item.id),
+						tags: tags,
+					};
 
 					this.dialog.loading = true;
 					fetch(new URL("api/bookmarks/tags", document.baseURI), {
 						method: "put",
 						body: JSON.stringify(request),
-						headers: { "Content-Type": "application/json", 'Authorization': 'Bearer ' + localStorage.getItem("shiori-token") },
-					}).then(response => {
-						if (!response.ok) throw response;
-						return response.json();
-					}).then(json => {
-						this.selection = [];
-						this.editMode = false;
-						this.dialog.loading = false;
-						this.dialog.visible = false;
-
-						json.forEach(book => {
-							var item = items.find(el => el.id === book.id);
-							this.bookmarks.splice(item.index, 1, book);
-						});
-					}).catch(err => {
-						this.selection = [];
-						this.editMode = false;
-						this.dialog.loading = false;
-
-						this.getErrorMessage(err).then(msg => {
-							this.showErrorDialog(msg);
+						headers: {
+							"Content-Type": "application/json",
+							Authorization: "Bearer " + localStorage.getItem("shiori-token"),
+						},
+					})
+						.then((response) => {
+							if (!response.ok) throw response;
+							return response.json();
 						})
-					});
-				}
+						.then((json) => {
+							this.selection = [];
+							this.editMode = false;
+							this.dialog.loading = false;
+							this.dialog.visible = false;
+
+							json.forEach((book) => {
+								var item = items.find((el) => el.id === book.id);
+								this.bookmarks.splice(item.index, 1, book);
+							});
+						})
+						.catch((err) => {
+							this.selection = [];
+							this.editMode = false;
+							this.dialog.loading = false;
+
+							this.getErrorMessage(err).then((msg) => {
+								this.showErrorDialog(msg);
+							});
+						});
+				},
 			});
 		},
 		showDialogTags() {
 			this.dialogTags.visible = true;
 			this.dialogTags.editMode = false;
-			this.dialogTags.secondText = this.activeAccount.owner ? "Rename Tags" : "";
+			this.dialogTags.secondText = this.activeAccount.owner
+				? "Rename Tags"
+				: "";
 		},
 		showDialogRenameTag(tag) {
 			this.showDialog({
 				title: "Rename Tag",
 				content: `Change the name for tag "#${tag.name}"`,
-				fields: [{
-					name: "newName",
-					label: "New tag name",
-					value: tag.name,
-				}],
+				fields: [
+					{
+						name: "newName",
+						label: "New tag name",
+						value: tag.name,
+					},
+				],
 				mainText: "OK",
 				secondText: "Cancel",
 				secondClick: () => {
@@ -861,8 +939,12 @@ export default {
 				mainClick: (data) => {
 					// Save the old query
 					var rxSpace = /\s+/g,
-						oldTagQuery = rxSpace.test(tag.name) ? `"#${tag.name}"` : `#${tag.name}`,
-						newTagQuery = rxSpace.test(data.newName) ? `"#${data.newName}"` : `#${data.newName}`;
+						oldTagQuery = rxSpace.test(tag.name)
+							? `"#${tag.name}"`
+							: `#${tag.name}`,
+						newTagQuery = rxSpace.test(data.newName)
+							? `"#${data.newName}"`
+							: `#${data.newName}`;
 
 					// Send data
 					var newData = {
@@ -874,38 +956,44 @@ export default {
 					fetch(new URL("api/tag", document.baseURI), {
 						method: "PUT",
 						body: JSON.stringify(newData),
-						headers: { "Content-Type": "application/json", 'Authorization': 'Bearer ' + localStorage.getItem("shiori-token") },
-					}).then(response => {
-						if (!response.ok) throw response;
-						return response.json();
-					}).then(() => {
-						tag.name = data.newName;
-
-						this.dialog.loading = false;
-						this.dialog.visible = false;
-						this.dialogTags.visible = true;
-						this.dialogTags.editMode = false;
-						this.tags.sort((a, b) => {
-							var aName = a.name.toLowerCase(),
-								bName = b.name.toLowerCase();
-
-							if (aName < bName) return -1;
-							else if (aName > bName) return 1;
-							else return 0;
-						});
-
-						if (this.search.includes(oldTagQuery)) {
-							this.search = this.search.replace(oldTagQuery, newTagQuery);
-							this.loadData();
-						}
-					}).catch(err => {
-						this.dialog.loading = false;
-						this.dialogTags.visible = false;
-						this.dialogTags.editMode = false;
-						this.getErrorMessage(err).then(msg => {
-							this.showErrorDialog(msg);
+						headers: {
+							"Content-Type": "application/json",
+							Authorization: "Bearer " + localStorage.getItem("shiori-token"),
+						},
+					})
+						.then((response) => {
+							if (!response.ok) throw response;
+							return response.json();
 						})
-					});
+						.then(() => {
+							tag.name = data.newName;
+
+							this.dialog.loading = false;
+							this.dialog.visible = false;
+							this.dialogTags.visible = true;
+							this.dialogTags.editMode = false;
+							this.tags.sort((a, b) => {
+								var aName = a.name.toLowerCase(),
+									bName = b.name.toLowerCase();
+
+								if (aName < bName) return -1;
+								else if (aName > bName) return 1;
+								else return 0;
+							});
+
+							if (this.search.includes(oldTagQuery)) {
+								this.search = this.search.replace(oldTagQuery, newTagQuery);
+								this.loadData();
+							}
+						})
+						.catch((err) => {
+							this.dialog.loading = false;
+							this.dialogTags.visible = false;
+							this.dialogTags.editMode = false;
+							this.getErrorMessage(err).then((msg) => {
+								this.showErrorDialog(msg);
+							});
+						});
 				},
 			});
 		},
@@ -923,18 +1011,18 @@ export default {
 			this.page = page;
 			this.search = search;
 			this.loadData(false);
-		}
+		};
 
-		window.addEventListener('popstate', stateWatcher);
-		this.$once('hook:beforeDestroy', () => {
-			window.removeEventListener('popstate', stateWatcher);
-		})
+		window.addEventListener("popstate", stateWatcher);
+		this.$once("hook:beforeDestroy", () => {
+			window.removeEventListener("popstate", stateWatcher);
+		});
 
 		// Set initial parameter
-		var url = new Url;
+		var url = new Url();
 		this.search = url.query.search || "";
 		this.page = url.query.page || 1;
 
 		this.loadData(false, true);
-	}
-}
+	},
+};

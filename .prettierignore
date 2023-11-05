@@ -1,0 +1,16 @@
+# Ignore some files we don't want to format
+*.html
+*.json
+*.md
+*.yml
+*.yaml
+
+# Ignore build artifacts
+internal/view/assets/css/
+
+# Ignore bundled dependencies
+internal/view/assets/js/dayjs.min.js
+internal/view/assets/js/url.js
+internal/view/assets/js/url.min.js
+internal/view/assets/js/vue.js
+internal/view/assets/js/vue.min.js

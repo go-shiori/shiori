@@ -23,7 +23,7 @@ var template = `
 			<i class="fas fa-fw fa-angle-double-right"></i>
 		</a>
 	</template>
-</div>`
+</div>`;
 
 export default {
 	template: template,
@@ -39,6 +39,6 @@ export default {
 			else if (page <= 1) page = 1;
 
 			this.$emit("change", page);
-		}
-	}
-}
+		},
+	},
+};

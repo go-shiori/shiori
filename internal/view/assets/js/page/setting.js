@@ -77,107 +77,114 @@ export default {
 	template: template,
 	mixins: [basePage],
 	components: {
-		customDialog
+		customDialog,
 	},
 	data() {
 		return {
 			loading: false,
-			accounts: []
-		}
+			accounts: [],
+		};
 	},
-    methods: {
-        saveSetting() {
-            let options = {
-                ShowId: this.appOptions.ShowId,
-                ListMode: this.appOptions.ListMode,
-                HideThumbnail: this.appOptions.HideThumbnail,
-                HideExcerpt: this.appOptions.HideExcerpt,
-                NightMode: this.appOptions.NightMode,
-            };
+	methods: {
+		saveSetting() {
+			let options = {
+				ShowId: this.appOptions.ShowId,
+				ListMode: this.appOptions.ListMode,
+				HideThumbnail: this.appOptions.HideThumbnail,
+				HideExcerpt: this.appOptions.HideExcerpt,
+				NightMode: this.appOptions.NightMode,
+			};
 
-            if (this.activeAccount.owner) {
-                options = {
-                    ...options,
-                    KeepMetadata: this.appOptions.KeepMetadata,
-                    UseArchive: this.appOptions.UseArchive,
-                    CreateEbook: this.appOptions.CreateEbook,
-                    MakePublic: this.appOptions.MakePublic,
-                };
-            }
+			if (this.activeAccount.owner) {
+				options = {
+					...options,
+					KeepMetadata: this.appOptions.KeepMetadata,
+					UseArchive: this.appOptions.UseArchive,
+					CreateEbook: this.appOptions.CreateEbook,
+					MakePublic: this.appOptions.MakePublic,
+				};
+			}
 
-            this.$emit("setting-changed", options);
-            //request
-            fetch(new URL("/api/v1/auth/account", document.baseURI), {
-                method: "PATCH",
-                body: JSON.stringify({
-                    config: this.appOptions
-                }),
+			this.$emit("setting-changed", options);
+			//request
+			fetch(new URL("/api/v1/auth/account", document.baseURI), {
+				method: "PATCH",
+				body: JSON.stringify({
+					config: this.appOptions,
+				}),
 				headers: {
-					'Content-Type': 'application/json',
-					'Authorization': 'Bearer ' + localStorage.getItem("shiori-token"),
-				}
-            }).then(response => {
-                if (!response.ok) throw response;
-                return response.json();
-            }).then(responseData => {
-                const responseString = JSON.stringify(responseData.message);
-                localStorage.setItem('shiori-account', responseString);
-            }) .catch(err => {
-                this.getErrorMessage(err).then(msg => {
-                    this.showErrorDialog(msg);
-                })
-            });
-
-        },
-        loadAccounts() {
+					"Content-Type": "application/json",
+					Authorization: "Bearer " + localStorage.getItem("shiori-token"),
+				},
+			})
+				.then((response) => {
+					if (!response.ok) throw response;
+					return response.json();
+				})
+				.then((responseData) => {
+					const responseString = JSON.stringify(responseData.message);
+					localStorage.setItem("shiori-account", responseString);
+				})
+				.catch((err) => {
+					this.getErrorMessage(err).then((msg) => {
+						this.showErrorDialog(msg);
+					});
+				});
+		},
+		loadAccounts() {
 			if (this.loading) return;
 
 			this.loading = true;
 			fetch(new URL("api/accounts", document.baseURI), {
 				headers: {
-					'Content-Type': 'application/json',
-					'Authorization': 'Bearer ' + localStorage.getItem("shiori-token"),
-				}
+					"Content-Type": "application/json",
+					Authorization: "Bearer " + localStorage.getItem("shiori-token"),
+				},
 			})
-				.then(response => {
+				.then((response) => {
 					if (!response.ok) throw response;
 					return response.json();
 				})
-				.then(json => {
+				.then((json) => {
 					this.loading = false;
 					this.accounts = json;
 				})
-				.catch(err => {
+				.catch((err) => {
 					this.loading = false;
-					this.getErrorMessage(err).then(msg => {
+					this.getErrorMessage(err).then((msg) => {
 						this.showErrorDialog(msg);
-					})
+					});
 				});
 		},
 		showDialogNewAccount() {
 			this.showDialog({
 				title: "New Account",
 				content: "Input new account's data :",
-				fields: [{
-					name: "username",
-					label: "Username",
-					value: "",
-				}, {
-					name: "password",
-					label: "Password",
-					type: "password",
-					value: "",
-				}, {
-					name: "repeat",
-					label: "Repeat password",
-					type: "password",
-					value: "",
-				}, {
-					name: "visitor",
-					label: "This account is for visitor",
-					type: "check",
-					value: false,
-				}],
+				fields: [
+					{
+						name: "username",
+						label: "Username",
+						value: "",
+					},
+					{
+						name: "password",
+						label: "Password",
+						type: "password",
+						value: "",
+					},
+					{
+						name: "repeat",
+						label: "Repeat password",
+						type: "password",
+						value: "",
+					},
+					{
+						name: "visitor",
+						label: "This account is for visitor",
+						type: "check",
+						value: false,
+					},
+				],
 				mainText: "OK",
 				secondText: "Cancel",
 				mainClick: (data) => {
@@ -200,7 +207,7 @@ export default {
 						username: data.username,
 						password: data.password,
 						owner: !data.visitor,
-					}
+					};
 
 					this.dialog.loading = true;
 					fetch(new URL("api/accounts", document.baseURI), {
@@ -208,59 +215,69 @@ export default {
 						body: JSON.stringify(request),
 						headers: {
 							"Content-Type": "application/json",
-							'Authorization': 'Bearer ' + localStorage.getItem("shiori-token"),
-						}
-					}).then(response => {
-						if (!response.ok) throw response;
-						return response;
-					}).then(() => {
-						this.dialog.loading = false;
-						this.dialog.visible = false;
-
-						this.accounts.push({ username: data.username, owner: !data.visitor });
-						this.accounts.sort((a, b) => {
-							var nameA = a.username.toLowerCase(),
-								nameB = b.username.toLowerCase();
-
-							if (nameA < nameB) {
-								return -1;
-							}
-
-							if (nameA > nameB) {
-								return 1;
-							}
-
-							return 0;
-						});
-					}).catch(err => {
-						this.dialog.loading = false;
-						this.getErrorMessage(err).then(msg => {
-							this.showErrorDialog(msg);
+							Authorization: "Bearer " + localStorage.getItem("shiori-token"),
+						},
+					})
+						.then((response) => {
+							if (!response.ok) throw response;
+							return response;
 						})
-					});
-				}
+						.then(() => {
+							this.dialog.loading = false;
+							this.dialog.visible = false;
+
+							this.accounts.push({
+								username: data.username,
+								owner: !data.visitor,
+							});
+							this.accounts.sort((a, b) => {
+								var nameA = a.username.toLowerCase(),
+									nameB = b.username.toLowerCase();
+
+								if (nameA < nameB) {
+									return -1;
+								}
+
+								if (nameA > nameB) {
+									return 1;
+								}
+
+								return 0;
+							});
+						})
+						.catch((err) => {
+							this.dialog.loading = false;
+							this.getErrorMessage(err).then((msg) => {
+								this.showErrorDialog(msg);
+							});
+						});
+				},
 			});
 		},
 		showDialogChangePassword(account) {
 			this.showDialog({
 				title: "Change Password",
 				content: "Input new password :",
-				fields: [{
-					name: "oldPassword",
-					label: "Old password",
-					type: "password",
-					value: "",
-				}, {
-					name: "password",
-					label: "New password",
-					type: "password",
-					value: "",
-				}, {
-					name: "repeat",
-					label: "Repeat password",
-					type: "password",
-					value: "",
-				}],
+				fields: [
+					{
+						name: "oldPassword",
+						label: "Old password",
+						type: "password",
+						value: "",
+					},
+					{
+						name: "password",
+						label: "New password",
+						type: "password",
+						value: "",
+					},
+					{
+						name: "repeat",
+						label: "Repeat password",
+						type: "password",
+						value: "",
+					},
+				],
 				mainText: "OK",
 				secondText: "Cancel",
 				mainClick: (data) => {
@@ -284,7 +301,7 @@ export default {
 						oldPassword: data.oldPassword,
 						newPassword: data.password,
 						owner: account.owner,
-					}
+					};
 
 					this.dialog.loading = true;
 					fetch(new URL("api/accounts", document.baseURI), {
@@ -292,21 +309,24 @@ export default {
 						body: JSON.stringify(request),
 						headers: {
 							"Content-Type": "application/json",
-							'Authorization': 'Bearer ' + localStorage.getItem("shiori-token"),
+							Authorization: "Bearer " + localStorage.getItem("shiori-token"),
 						},
-					}).then(response => {
-						if (!response.ok) throw response;
-						return response;
-					}).then(() => {
-						this.dialog.loading = false;
-						this.dialog.visible = false;
-					}).catch(err => {
-						this.dialog.loading = false;
-						this.getErrorMessage(err).then(msg => {
-							this.showErrorDialog(msg);
+					})
+						.then((response) => {
+							if (!response.ok) throw response;
+							return response;
 						})
-					});
-				}
+						.then(() => {
+							this.dialog.loading = false;
+							this.dialog.visible = false;
+						})
+						.catch((err) => {
+							this.dialog.loading = false;
+							this.getErrorMessage(err).then((msg) => {
+								this.showErrorDialog(msg);
+							});
+						});
+				},
 			});
 		},
 		showDialogDeleteAccount(account, idx) {
@@ -322,26 +342,29 @@ export default {
 						body: JSON.stringify([account.username]),
 						headers: {
 							"Content-Type": "application/json",
-							'Authorization': 'Bearer ' + localStorage.getItem("shiori-token")
+							Authorization: "Bearer " + localStorage.getItem("shiori-token"),
 						},
-					}).then(response => {
-						if (!response.ok) throw response;
-						return response;
-					}).then(() => {
-						this.dialog.loading = false;
-						this.dialog.visible = false;
-						this.accounts.splice(idx, 1);
-					}).catch(err => {
-						this.dialog.loading = false;
-						this.getErrorMessage(err).then(msg => {
-							this.showErrorDialog(msg);
+					})
+						.then((response) => {
+							if (!response.ok) throw response;
+							return response;
 						})
-					});
-				}
+						.then(() => {
+							this.dialog.loading = false;
+							this.dialog.visible = false;
+							this.accounts.splice(idx, 1);
+						})
+						.catch((err) => {
+							this.dialog.loading = false;
+							this.getErrorMessage(err).then((msg) => {
+								this.showErrorDialog(msg);
+							});
+						});
+				},
 			});
 		},
 	},
 	mounted() {
 		this.loadAccounts();
-	}
-}
+	},
+};

@@ -66,96 +66,107 @@ export default {
 		visible: Boolean,
 		content: {
 			type: String,
-			default: ''
+			default: "",
 		},
 		fields: {
 			type: Array,
 			default() {
-				return []
-			}
+				return [];
+			},
 		},
 		showLabel: {
 			type: Boolean,
-			default: false
+			default: false,
 		},
 		mainText: {
 			type: String,
-			default: 'OK'
+			default: "OK",
 		},
 		secondText: String,
 		mainClick: {
 			type: Function,
-			default() { this.visible = false; }
+			default() {
+				this.visible = false;
+			},
 		},
 		secondClick: {
 			type: Function,
-			default() { this.visible = false; }
+			default() {
+				this.visible = false;
+			},
 		},
 		escPressed: {
 			type: Function,
-			default() { this.visible = false; }
-		}
+			default() {
+				this.visible = false;
+			},
+		},
 	},
 	data() {
 		return {
-			formFields: []
+			formFields: [],
 		};
 	},
 	computed: {
 		btnTabIndex() {
 			return this.fields.length + 1;
-		}
+		},
 	},
 	watch: {
 		fields: {
 			immediate: true,
 			handler() {
-				this.formFields = this.fields.map(field => {
-					if (typeof field === 'string') return {
-						name: field,
-						label: field,
-						value: '',
-						type: 'text',
-						dictionary: [],
-						separator: ' ',
-						suggestion: undefined
-					}
+				this.formFields = this.fields.map((field) => {
+					if (typeof field === "string")
+						return {
+							name: field,
+							label: field,
+							value: "",
+							type: "text",
+							dictionary: [],
+							separator: " ",
+							suggestion: undefined,
+						};
 
-					if (typeof field === 'object') return {
-						name: field.name || '',
-						label: field.label || '',
-						value: field.value || '',
-						type: field.type || 'text',
-						dictionary: field.dictionary instanceof Array ? field.dictionary : [],
-						separator: field.separator || ' ',
-						suggestion: undefined
-					}
+					if (typeof field === "object")
+						return {
+							name: field.name || "",
+							label: field.label || "",
+							value: field.value || "",
+							type: field.type || "text",
+							dictionary:
+								field.dictionary instanceof Array ? field.dictionary : [],
+							separator: field.separator || " ",
+							suggestion: undefined,
+						};
 				});
-			}
+			},
 		},
-		'fields.length'() {
+		"fields.length"() {
 			this.focus();
 		},
 		visible: {
 			immediate: true,
-			handler() { this.focus() }
-		}
+			handler() {
+				this.focus();
+			},
+		},
 	},
 	methods: {
 		fieldType(f) {
-			var type = f.type || 'text';
-			if (type !== 'text' && type !== 'password') return 'text';
+			var type = f.type || "text";
+			if (type !== "text" && type !== "password") return "text";
 			else return type;
 		},
 		handleMainClick() {
 			var data = {};
-			this.formFields.forEach(field => {
+			this.formFields.forEach((field) => {
 				var value = field.value;
-				if (field.type === 'number') value = parseInt(value, 10) || 0;
-				else if (field.type === 'float') value = parseFloat(value) || 0.0;
-				else if (field.type === 'check') value = Boolean(value);
+				if (field.type === "number") value = parseInt(value, 10) || 0;
+				else if (field.type === "float") value = parseFloat(value) || 0.0;
+				else if (field.type === "check") value = Boolean(value);
 				data[field.name] = value;
-			})
+			});
 
 			this.mainClick(data);
 		},
@@ -178,9 +189,9 @@ export default {
 				lastWord = words[words.length - 1].toLowerCase(),
 				suggestion;
 
-			if (lastWord !== '') {
-				suggestion = dictionary.find(word => {
-					return word.toLowerCase().startsWith(lastWord)
+			if (lastWord !== "") {
+				suggestion = dictionary.find((word) => {
+					return word.toLowerCase().startsWith(lastWord);
 				});
 			}
 
@@ -192,11 +203,11 @@ export default {
 			// Display suggestion
 			this.$nextTick(() => {
 				var input = this.$refs.input[index],
-					suggestionNode = this.$refs['suggestion-' + index][0],
+					suggestionNode = this.$refs["suggestion-" + index][0],
 					inputRect = input.getBoundingClientRect();
 
-				suggestionNode.style.top = (inputRect.bottom - 1) + 'px';
-				suggestionNode.style.left = inputRect.left + 'px';
+				suggestionNode.style.top = inputRect.bottom - 1 + "px";
+				suggestionNode.style.left = inputRect.left + "px";
 			});
 		},
 		handleInputEnter(index) {
@@ -223,7 +234,7 @@ export default {
 				if (!this.visible) return;
 
 				var fields = this.$refs.input,
-					otherInput = this.$el.querySelectorAll('input'),
+					otherInput = this.$el.querySelectorAll("input"),
 					button = this.$refs.mainButton;
 
 				if (fields && fields.length > 0) {
@@ -235,7 +246,7 @@ export default {
 				} else if (button) {
 					button.focus();
 				}
-			})
-		}
-	}
-}
+			});
+		},
+	},
+};
