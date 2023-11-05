@@ -1,0 +1,2 @@
+ALTER TABLE account
+    ADD COLUMN config JSON NOT NULL DEFAULT '{}';

@@ -21,6 +21,7 @@ import (
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/go-shiori/warc"
 	"github.com/pkg/errors"
+	_ "golang.org/x/image/webp"
 
 	// Add support for png
 	_ "image/png"
@@ -142,6 +143,7 @@ func ProcessBookmark(req ProcessRequest) (book model.Bookmark, isFatalErr bool, 
 	// If needed, create ebook as well
 	if book.CreateEbook {
 		ebookPath := fp.Join(req.DataDir, "ebook", strID+".epub")
+		req.Bookmark = book
 
 		if strings.Contains(contentType, "application/pdf") {
 			return book, false, errors.Wrap(err, "can't create ebook from pdf")
@@ -203,6 +205,7 @@ func DownloadBookImage(url, dstPath string) error {
 	if !strings.Contains(cp, "image/jpeg") &&
 		!strings.Contains(cp, "image/pjpeg") &&
 		!strings.Contains(cp, "image/jpg") &&
+		!strings.Contains(cp, "image/webp") &&
 		!strings.Contains(cp, "image/png") {
 		return ErrNoSupportedImageType
 	}

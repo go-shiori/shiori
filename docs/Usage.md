@@ -6,8 +6,10 @@ Before using `shiori`, make sure it has been installed on your system. By defaul
 - [Using Command Line Interface](#using-command-line-interface)
   - [Search syntax](#search-syntax)
 - [Using Web Interface](#using-web-interface)
-- [Improved import from Pocket](#improved-import-from-pocket)
-- [Import from Wallabag](#import-from-wallabag)
+- [Community contributions](#community-contributions)
+    - [Improved import from Pocket](#improved-import-from-pocket)
+    - [Import from Wallabag](#import-from-wallabag)
+    - [Add URL to Shiori from Android](#Add-URL-to-Shiori-from-Android)
 
 <!-- /TOC -->
 
@@ -104,8 +106,9 @@ When searching for bookmarks, you may use `tag:tagname` to include tags and `-ta
 - `Click` on the tag name to include it;
 - `Alt + Click` on the tag name to exclude it.
 
+## Community contributions
 
-## Improved import from Pocket
+### Improved import from Pocket
 
 Shiori offers a [Command Line Interface](https://github.com/go-shiori/shiori/blob/master/docs/Usage.md#using-command-line-interface) with the command `shiori pocket` to import Pocket entries but with this can only import them as links and not as complete entries.
 
@@ -135,7 +138,7 @@ This is optional, but once the import is complete you can clean up by running:
 rm pocket2shiori.sh 'path_to_your/pocket_export.html'
 ```
 
-##  Import from Wallabag
+###  Import from Wallabag
 
 
 1. Export your entries from Wallabag as a json file
@@ -154,3 +157,36 @@ inside the container.
     chmod +x wallabag2shiori
     ./wallabag2shiori 'path/to/to/wallabag_export_json_file'
   ```
+  
+  
+###  Add URL to Shiori from Android
+
+
+1. Install [Termux](https://termux.dev/en/)
+2. Open termux and run bellow command
+```bash
+mkdir -p ~/bin
+touch ~/bin/termux-url-opener
+chmod +x ~/bin/termux-url-opener
+nano ~/bin/termux-url-opener
+```
+3. Edit bellow code and replace `Shiori_URL`, `Username`, `Password` with yours
+```bash
+#!/bin/bash
+
+# shiori settings
+Shiori_URL="http://127.0.0.1:8080"
+Username="shiori"
+Password="gopher"
+
+token=$(curl -s -X POST -H "Content-Type: application/json" -d '{"username": "'"$Username"'" , "password": "'"$Password"'", "remember": true}' $Shiori_URL/api/v1/auth/login | grep -oP '(?<="token":")[^"]*')
+
+curl -s -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $token" -d '{ "url": "'"$1"'", "createArchive": false, "public": 1, "tags": [], "title": "", "excerpt": "" }' $Shiori_URL/api/bookmarks
+exit
+```
+4. Paste above content in editor and `Volume-down` and `o` than Enter to save file.
+5. `Volume-down` and `x` to exit editor.
+6. close termux
+
+
+You can share links with termux from Share menu links will automatically add to Shiori from mobile device.

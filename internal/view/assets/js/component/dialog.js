@@ -31,9 +31,10 @@ var template = `
 						@focus="$event.target.select()"
 						@keyup="handleInput(index)"
 						@keyup.enter="handleInputEnter(index)">
-					<span :ref="'suggestion-'+index" 
-						v-if="field.suggestion" 
-						class="suggestion">{{field.suggestion}}</span>
+					<button :ref="'suggestion-'+index"
+						v-if="field.suggestion"
+						@click="handleInputEnter(index)"
+						class="suggestion">{{field.suggestion}}</button>
 				</template>
 			</slot>
 		</div>
@@ -191,11 +192,11 @@ export default {
 			// Display suggestion
 			this.$nextTick(() => {
 				var input = this.$refs.input[index],
-					span = this.$refs['suggestion-' + index][0],
+					suggestionNode = this.$refs['suggestion-' + index][0],
 					inputRect = input.getBoundingClientRect();
 
-				span.style.top = (inputRect.bottom - 1) + 'px';
-				span.style.left = inputRect.left + 'px';
+				suggestionNode.style.top = (inputRect.bottom - 1) + 'px';
+				suggestionNode.style.left = inputRect.left + 'px';
 			});
 		},
 		handleInputEnter(index) {
@@ -214,6 +215,8 @@ export default {
 
 			this.formFields[index].value = words.join(separator) + separator;
 			this.formFields[index].suggestion = undefined;
+			// Focus input again after suggestion is accepted
+			this.$refs.input[index].focus();
 		},
 		focus() {
 			this.$nextTick(() => {

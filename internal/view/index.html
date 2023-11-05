@@ -21,7 +21,7 @@
 </head>
 
 <body class="night">
-	<div id="main-scene" :class="{night: appOptions.nightMode}">
+	<div id="main-scene" :class="{night: appOptions.NightMode}">
 		<div id="main-sidebar">
 			<a v-for="item in sidebarItems" :title="item.title" :class="{active: activePage === item.page}" @click="switchPage(item.page)">
 				<i class="fas fa-fw" :class="item.icon"></i>
@@ -88,6 +88,7 @@
 								return response;
 							}).then(() => {
 								localStorage.removeItem("shiori-account");
+								localStorage.removeItem("shiori-token");
 								document.cookie = `session-id=; Path=${new URL(document.baseURI).pathname}; Expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
 								location.href = new URL("login", document.baseURI);
 							}).catch(err => {
@@ -100,33 +101,34 @@
 					});
 				},
 				saveSetting(opts) {
-					localStorage.setItem("shiori-setting", JSON.stringify(opts));
 					this.appOptions = opts;
-					document.body.className = opts.nightMode ? "night" : "";
+					document.body.className = opts.config.NightMode ? "night" : "";
 				},
 				loadSetting() {
-					var opts = JSON.parse(localStorage.getItem("shiori-setting")) || {},
-						showId = (typeof opts.showId === "boolean") ? opts.showId : false,
-						listMode = (typeof opts.listMode === "boolean") ? opts.listMode : false,
-						hideThumbnail = (typeof opts.hideThumbnail === "boolean") ? opts.hideThumbnail : false,
-						hideExcerpt = (typeof opts.hideExcerpt === "boolean") ? opts.hideExcerpt : false,
-						nightMode = (typeof opts.nightMode === "boolean") ? opts.nightMode : false,
-						keepMetadata = (typeof opts.keepMetadata === "boolean") ? opts.keepMetadata : false,
-						useArchive = (typeof opts.useArchive === "boolean") ? opts.useArchive : false,
-						makePublic = (typeof opts.makePublic === "boolean") ? opts.makePublic : false;
+					var opts = JSON.parse(localStorage.getItem("shiori-account")) || {},
+						ShowId = (typeof opts.config.ShowId === "boolean") ? opts.config.ShowId : false,
+						ListMode = (typeof opts.config.ListMode === "boolean") ? opts.config.ListMode : false,
+						HideThumbnail = (typeof opts.config.HideThumbnail === "boolean") ? opts.config.HideThumbnail : false,
+						HideExcerpt = (typeof opts.config.HideExcerpt === "boolean") ? opts.config.HideExcerpt : false,
+						NightMode = (typeof opts.config.NightMode === "boolean") ? opts.config.NightMode : false,
+						KeepMetadata = (typeof opts.config.KeepMetadata === "boolean") ? opts.config.KeepMetadata : false,
+						UseArchive = (typeof opts.config.UseArchive === "boolean") ? opts.config.UseArchive : false,
+						CreateEbook = (typeof opts.config.CreateEbook === "boolean") ? opts.config.CreateEbook : false,
+						MakePublic = (typeof opts.config.MakePublic === "boolean") ? opts.config.MakePublic : false;
 
 					this.appOptions = {
-						showId: showId,
-						listMode: listMode,
-						hideThumbnail: hideThumbnail,
-						hideExcerpt: hideExcerpt,
-						nightMode: nightMode,
-						keepMetadata: keepMetadata,
-						useArchive: useArchive,
-						makePublic: makePublic,
+						ShowId: ShowId,
+						ListMode: ListMode,
+						HideThumbnail: HideThumbnail,
+						HideExcerpt: HideExcerpt,
+						NightMode: NightMode,
+						KeepMetadata: KeepMetadata,
+						UseArchive: UseArchive,
+						CreateEbook: CreateEbook,
+						MakePublic: MakePublic,
 					};
 
-					document.body.className = nightMode ? "night" : "";
+					document.body.className = NightMode ? "night" : "";
 				},
 				loadAccount() {
 					var account = JSON.parse(localStorage.getItem("shiori-account")) || {},

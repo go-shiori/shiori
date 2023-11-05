@@ -5,38 +5,42 @@ var template = `
         <details open class="setting-group" id="setting-display">
             <summary>Display</summary>
             <label>
-                <input type="checkbox" v-model="appOptions.showId" @change="saveSetting">
+                <input type="checkbox" v-model="appOptions.ShowId" @change="saveSetting">
                 Show bookmark's ID
             </label>
             <label>
-                <input type="checkbox" v-model="appOptions.listMode" @change="saveSetting">
+                <input type="checkbox" v-model="appOptions.ListMode" @change="saveSetting">
                 Display bookmarks as list
             </label>
             <label>
-                <input type="checkbox" v-model="appOptions.hideThumbnail" @change="saveSetting">
+                <input type="checkbox" v-model="appOptions.HideThumbnail" @change="saveSetting">
                 Hide thumbnail image
             </label>
             <label>
-                <input type="checkbox" v-model="appOptions.hideExcerpt" @change="saveSetting">
+                <input type="checkbox" v-model="appOptions.HideExcerpt" @change="saveSetting">
                 Hide bookmark's excerpt
             </label>
             <label>
-                <input type="checkbox" v-model="appOptions.nightMode" @change="saveSetting">
+                <input type="checkbox" v-model="appOptions.NightMode" @change="saveSetting">
                 Use dark theme
             </label>
         </details>
         <details v-if="activeAccount.owner" open class="setting-group" id="setting-bookmarks">
             <summary>Bookmarks</summary>
             <label>
-                <input type="checkbox" v-model="appOptions.keepMetadata" @change="saveSetting">
+                <input type="checkbox" v-model="appOptions.KeepMetadata" @change="saveSetting">
                 Keep bookmark's metadata when updating
             </label>
             <label>
-                <input type="checkbox" v-model="appOptions.useArchive" @change="saveSetting">
+                <input type="checkbox" v-model="appOptions.UseArchive" @change="saveSetting">
                 Create archive by default
             </label>
             <label>
-                <input type="checkbox" v-model="appOptions.makePublic" @change="saveSetting">
+                <input type="checkbox" v-model="appOptions.CreateEbook" @change="saveSetting">
+                Create ebook by default
+            </label>
+            <label>
+                <input type="checkbox" v-model="appOptions.MakePublic" @change="saveSetting">
                 Make archive publicly available by default
             </label>
         </details>
@@ -81,20 +85,51 @@ export default {
 			accounts: []
 		}
 	},
-	methods: {
-		saveSetting() {
-			this.$emit("setting-changed", {
-				showId: this.appOptions.showId,
-				listMode: this.appOptions.listMode,
-				hideThumbnail: this.appOptions.hideThumbnail,
-				hideExcerpt: this.appOptions.hideExcerpt,
-				nightMode: this.appOptions.nightMode,
-				keepMetadata: this.appOptions.keepMetadata,
-				useArchive: this.appOptions.useArchive,
-				makePublic: this.appOptions.makePublic,
-			});
-		},
-		loadAccounts() {
+    methods: {
+        saveSetting() {
+            let options = {
+                ShowId: this.appOptions.ShowId,
+                ListMode: this.appOptions.ListMode,
+                HideThumbnail: this.appOptions.HideThumbnail,
+                HideExcerpt: this.appOptions.HideExcerpt,
+                NightMode: this.appOptions.NightMode,
+            };
+
+            if (this.activeAccount.owner) {
+                options = {
+                    ...options,
+                    KeepMetadata: this.appOptions.KeepMetadata,
+                    UseArchive: this.appOptions.UseArchive,
+                    CreateEbook: this.appOptions.CreateEbook,
+                    MakePublic: this.appOptions.MakePublic,
+                };
+            }
+
+            this.$emit("setting-changed", options);
+            //request
+            fetch(new URL("/api/v1/auth/account", document.baseURI), {
+                method: "PATCH",
+                body: JSON.stringify({
+                    config: this.appOptions
+                }),
+				headers: {
+					'Content-Type': 'application/json',
+					'Authorization': 'Bearer ' + localStorage.getItem("shiori-token"),
+				}
+            }).then(response => {
+                if (!response.ok) throw response;
+                return response.json();
+            }).then(responseData => {
+                const responseString = JSON.stringify(responseData.message);
+                localStorage.setItem('shiori-account', responseString);
+            }) .catch(err => {
+                this.getErrorMessage(err).then(msg => {
+                    this.showErrorDialog(msg);
+                })
+            });
+
+        },
+        loadAccounts() {
 			if (this.loading) return;
 
 			this.loading = true;

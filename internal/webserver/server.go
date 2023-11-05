@@ -27,6 +27,6 @@ func GetLegacyHandler(cfg Config, dependencies *config.Dependencies) *Handler {
 		ArchiveCache: cch.New(time.Minute, 5*time.Minute),
 		RootPath:     cfg.RootPath,
 		Log:          cfg.Log,
-		depenencies:  dependencies,
+		dependencies: dependencies,
 	}
 }
