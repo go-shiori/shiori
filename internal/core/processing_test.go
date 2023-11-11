@@ -104,7 +104,7 @@ func TestDownloadBookImage(t *testing.T) {
 func TestProcessBookmark(t *testing.T) {
 	t.Run("ProcessRequest with sucssesful result", func(t *testing.T) {
 		t.Run("Normal without image", func(t *testing.T) {
-			bookmark := model.Bookmark{
+			bookmark := model.BookmarkDTO{
 				ID:            1,
 				URL:           "https://example.com",
 				Title:         "Example",
@@ -148,7 +148,7 @@ func TestProcessBookmark(t *testing.T) {
 		    <p>This is an example article</p>
 		  </body>
 		</html>`
-			bookmark := model.Bookmark{
+			bookmark := model.BookmarkDTO{
 				ID:            1,
 				URL:           "https://example.com",
 				Title:         "Example",
@@ -198,7 +198,7 @@ func TestProcessBookmark(t *testing.T) {
     			<p>This is an example article</p>
   			</body>
 			</html>`
-			bookmark := model.Bookmark{
+			bookmark := model.BookmarkDTO{
 				ID:            1,
 				URL:           "https://example.com",
 				Title:         "Example",
@@ -231,7 +231,7 @@ func TestProcessBookmark(t *testing.T) {
 			}
 		})
 		t.Run("ProcessRequest sucssesful with empty title ", func(t *testing.T) {
-			bookmark := model.Bookmark{
+			bookmark := model.BookmarkDTO{
 				ID:            1,
 				URL:           "https://example.com",
 				Title:         "",
@@ -264,7 +264,7 @@ func TestProcessBookmark(t *testing.T) {
 			}
 		})
 		t.Run("ProcessRequest sucssesful with empty Excerpt", func(t *testing.T) {
-			bookmark := model.Bookmark{
+			bookmark := model.BookmarkDTO{
 				ID:            1,
 				URL:           "https://example.com",
 				Title:         "",
@@ -299,7 +299,7 @@ func TestProcessBookmark(t *testing.T) {
 		t.Run("Specific case", func(t *testing.T) {
 			t.Run("ProcessRequest with ID zero", func(t *testing.T) {
 
-				bookmark := model.Bookmark{
+				bookmark := model.BookmarkDTO{
 					ID:            0,
 					URL:           "https://example.com",
 					Title:         "Example",
@@ -324,7 +324,7 @@ func TestProcessBookmark(t *testing.T) {
 
 			t.Run("ProcessRequest that content type not zero", func(t *testing.T) {
 
-				bookmark := model.Bookmark{
+				bookmark := model.BookmarkDTO{
 					ID:            1,
 					URL:           "https://example.com",
 					Title:         "Example",

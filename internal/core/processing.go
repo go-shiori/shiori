@@ -30,7 +30,7 @@ import (
 // ProcessRequest is the request for processing bookmark.
 type ProcessRequest struct {
 	DataDir     string
-	Bookmark    model.Bookmark
+	Bookmark    model.BookmarkDTO
 	Content     io.Reader
 	ContentType string
 	KeepTitle   bool
@@ -42,7 +42,7 @@ var ErrNoSupportedImageType = errors.New("unsupported image type")
 
 // ProcessBookmark process the bookmark and archive it if needed.
 // Return three values, is error fatal, and error value.
-func ProcessBookmark(req ProcessRequest) (book model.Bookmark, isFatalErr bool, err error) {
+func ProcessBookmark(req ProcessRequest) (book model.BookmarkDTO, isFatalErr bool, err error) {
 	book = req.Bookmark
 	contentType := req.ContentType
 

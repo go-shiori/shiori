@@ -13,6 +13,7 @@ import (
 	"github.com/go-shiori/shiori/internal/config"
 	"github.com/go-shiori/shiori/internal/core"
 	"github.com/go-shiori/shiori/internal/database"
+	"github.com/go-shiori/shiori/internal/dependencies"
 	"github.com/go-shiori/shiori/internal/http/context"
 	"github.com/go-shiori/shiori/internal/http/response"
 	"github.com/go-shiori/shiori/internal/model"
@@ -21,7 +22,7 @@ import (
 
 type BookmarksAPIRoutes struct {
 	logger *logrus.Logger
-	deps   *config.Dependencies
+	deps   *dependencies.Dependencies
 }
 
 func (r *BookmarksAPIRoutes) Setup(g *gin.RouterGroup) model.Routes {
@@ -73,8 +74,8 @@ type apiCreateBookmarkPayload struct {
 	Async         bool        `json:"async"`
 }
 
-func (payload *apiCreateBookmarkPayload) ToBookmark() (*model.Bookmark, error) {
-	bookmark := &model.Bookmark{
+func (payload *apiCreateBookmarkPayload) ToBookmark() (*model.BookmarkDTO, error) {
+	bookmark := &model.BookmarkDTO{
 		URL:           payload.URL,
 		Title:         payload.Title,
 		Excerpt:       payload.Excerpt,
@@ -188,7 +189,7 @@ func (r *BookmarksAPIRoutes) deleteHandler(c *gin.Context) {
 	response.Send(c, 200, "Bookmark deleted")
 }
 
-func NewBookmarksPIRoutes(logger *logrus.Logger, deps *config.Dependencies) *BookmarksAPIRoutes {
+func NewBookmarksPIRoutes(logger *logrus.Logger, deps *dependencies.Dependencies) *BookmarksAPIRoutes {
 	return &BookmarksAPIRoutes{
 		logger: logger,
 		deps:   deps,
@@ -261,7 +262,7 @@ func (r *BookmarksAPIRoutes) updateCache(c *gin.Context) {
 		book.CreateArchive = payload.CreateArchive
 		book.CreateEbook = payload.CreateEbook
 
-		go func(i int, book model.Bookmark, keep_metadata bool) {
+		go func(i int, book model.BookmarkDTO, keep_metadata bool) {
 			// Make sure to finish the WG
 			defer wg.Done()
 

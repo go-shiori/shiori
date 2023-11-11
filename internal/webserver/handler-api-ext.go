@@ -25,7 +25,7 @@ func (h *Handler) ApiInsertViaExtension(w http.ResponseWriter, r *http.Request, 
 	checkError(err)
 
 	// Decode request
-	request := model.Bookmark{}
+	request := model.BookmarkDTO{}
 	err = json.NewDecoder(r.Body).Decode(&request)
 	checkError(err)
 
@@ -126,7 +126,7 @@ func (h *Handler) ApiDeleteViaExtension(w http.ResponseWriter, r *http.Request, 
 	checkError(err)
 
 	// Decode request
-	request := model.Bookmark{}
+	request := model.BookmarkDTO{}
 	err = json.NewDecoder(r.Body).Decode(&request)
 	checkError(err)
 

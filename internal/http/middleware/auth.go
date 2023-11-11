@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-shiori/shiori/internal/config"
+	"github.com/go-shiori/shiori/internal/dependencies"
 	"github.com/go-shiori/shiori/internal/http/context"
 	"github.com/go-shiori/shiori/internal/http/response"
 	"github.com/go-shiori/shiori/internal/model"
@@ -14,7 +14,7 @@ import (
 // AuthMiddleware provides basic authentication capabilities to all routes underneath
 // its usage, only allowing authenticated users access and set a custom local context
 // `account` with the account model for the logged in user.
-func AuthMiddleware(deps *config.Dependencies) gin.HandlerFunc {
+func AuthMiddleware(deps *dependencies.Dependencies) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token := getTokenFromHeader(c)
 		if token == "" {

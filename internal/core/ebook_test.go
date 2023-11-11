@@ -19,7 +19,7 @@ func TestGenerateEbook(t *testing.T) {
 			dstDir := t.TempDir()
 
 			mockRequest := core.ProcessRequest{
-				Bookmark: model.Bookmark{
+				Bookmark: model.BookmarkDTO{
 					ID:       1,
 					Title:    "Example Bookmark",
 					HTML:     "<html><body>Example HTML</body></html>",
@@ -39,7 +39,7 @@ func TestGenerateEbook(t *testing.T) {
 			dstDir := t.TempDir()
 
 			mockRequest := core.ProcessRequest{
-				Bookmark: model.Bookmark{
+				Bookmark: model.BookmarkDTO{
 					ID:       1,
 					HasEbook: false,
 				},
@@ -74,7 +74,7 @@ func TestGenerateEbook(t *testing.T) {
 			dstDir := t.TempDir()
 
 			mockRequest := core.ProcessRequest{
-				Bookmark: model.Bookmark{
+				Bookmark: model.BookmarkDTO{
 					ID:       1,
 					HasEbook: false,
 				},
@@ -104,7 +104,7 @@ func TestGenerateEbook(t *testing.T) {
 		t.Run("invalid bookmarkId that return Error", func(t *testing.T) {
 			tempDir := t.TempDir()
 			mockRequest := core.ProcessRequest{
-				Bookmark: model.Bookmark{
+				Bookmark: model.BookmarkDTO{
 					ID:       0,
 					HasEbook: false,
 				},
@@ -114,7 +114,7 @@ func TestGenerateEbook(t *testing.T) {
 
 			bookmark, err := core.GenerateEbook(mockRequest, tempDir)
 
-			assert.Equal(t, model.Bookmark{
+			assert.Equal(t, model.BookmarkDTO{
 				ID:       0,
 				HasEbook: false,
 			}, bookmark)
@@ -125,7 +125,7 @@ func TestGenerateEbook(t *testing.T) {
 			dstDir := t.TempDir()
 
 			mockRequest := core.ProcessRequest{
-				Bookmark: model.Bookmark{
+				Bookmark: model.BookmarkDTO{
 					ID:       1,
 					HasEbook: false,
 				},
@@ -155,7 +155,7 @@ func TestGenerateEbook(t *testing.T) {
 			tempDir := t.TempDir()
 
 			mockRequest := core.ProcessRequest{
-				Bookmark: model.Bookmark{
+				Bookmark: model.BookmarkDTO{
 					ID:       1,
 					HasEbook: false,
 				},

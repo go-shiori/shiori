@@ -8,12 +8,15 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/gin-contrib/gzip"
 	"github.com/gin-contrib/requestid"
 	"github.com/gin-gonic/gin"
 	"github.com/go-shiori/shiori/internal/config"
+	"github.com/go-shiori/shiori/internal/dependencies"
 	"github.com/go-shiori/shiori/internal/http/middleware"
 	"github.com/go-shiori/shiori/internal/http/routes"
 	api_v1 "github.com/go-shiori/shiori/internal/http/routes/api/v1"
+	"github.com/go-shiori/shiori/internal/http/templates"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/sirupsen/logrus"
 	ginlogrus "github.com/toorop/gin-logrus"
@@ -25,12 +28,16 @@ type HttpServer struct {
 	logger *logrus.Logger
 }
 
-func (s *HttpServer) Setup(cfg *config.Config, deps *config.Dependencies) *HttpServer {
+func (s *HttpServer) Setup(cfg *config.Config, deps *dependencies.Dependencies) (*HttpServer, error) {
 	if !cfg.Development {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
 	s.engine = gin.New()
+
+	templates.SetupTemplates(s.engine)
+
+	s.engine.Use(gzip.Gzip(gzip.DefaultCompression))
 
 	s.engine.Use(requestid.New())
 
@@ -60,7 +67,7 @@ func (s *HttpServer) Setup(cfg *config.Config, deps *config.Dependencies) *HttpS
 	s.http.Handler = s.engine
 	s.http.Addr = fmt.Sprintf("%s%d", cfg.Http.Address, cfg.Http.Port)
 
-	return s
+	return s, nil
 }
 
 func (s *HttpServer) handle(path string, routes model.Routes) {

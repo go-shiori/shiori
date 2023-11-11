@@ -2,7 +2,7 @@ package api_v1
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/go-shiori/shiori/internal/config"
+	"github.com/go-shiori/shiori/internal/dependencies"
 	"github.com/go-shiori/shiori/internal/http/middleware"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/sirupsen/logrus"
@@ -10,7 +10,7 @@ import (
 
 type APIRoutes struct {
 	logger       *logrus.Logger
-	deps         *config.Dependencies
+	deps         *dependencies.Dependencies
 	loginHandler model.LegacyLoginHandler
 }
 
@@ -31,7 +31,7 @@ func (s *APIRoutes) handle(g *gin.RouterGroup, path string, routes model.Routes)
 	routes.Setup(group)
 }
 
-func NewAPIRoutes(logger *logrus.Logger, deps *config.Dependencies, loginHandler model.LegacyLoginHandler) *APIRoutes {
+func NewAPIRoutes(logger *logrus.Logger, deps *dependencies.Dependencies, loginHandler model.LegacyLoginHandler) *APIRoutes {
 	return &APIRoutes{
 		logger:       logger,
 		deps:         deps,

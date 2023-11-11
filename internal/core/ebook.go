@@ -15,7 +15,7 @@ import (
 // GenerateEbook receives a `ProcessRequest` and generates an ebook file in the destination path specified.
 // The destination path `dstPath` should include file name with ".epub" extension
 // The bookmark model will be used to update the UI based on whether this function is successful or not.
-func GenerateEbook(req ProcessRequest, dstPath string) (book model.Bookmark, err error) {
+func GenerateEbook(req ProcessRequest, dstPath string) (book model.BookmarkDTO, err error) {
 
 	book = req.Bookmark
 
