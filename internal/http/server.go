@@ -8,7 +8,6 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/gin-contrib/gzip"
 	"github.com/gin-contrib/requestid"
 	"github.com/gin-gonic/gin"
 	"github.com/go-shiori/shiori/internal/config"
@@ -37,7 +36,7 @@ func (s *HttpServer) Setup(cfg *config.Config, deps *dependencies.Dependencies) 
 
 	templates.SetupTemplates(s.engine)
 
-	s.engine.Use(gzip.Gzip(gzip.DefaultCompression))
+	// s.engine.Use(gzip.Gzip(gzip.DefaultCompression))
 
 	s.engine.Use(requestid.New())
 

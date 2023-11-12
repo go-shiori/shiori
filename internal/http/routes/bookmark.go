@@ -1,8 +1,7 @@
 package routes
 
 import (
-	"bytes"
-	"compress/gzip"
+	"fmt"
 	"html/template"
 	"net/http"
 	"strconv"
@@ -10,7 +9,6 @@ import (
 
 	fp "path/filepath"
 
-	"github.com/PuerkitoBio/goquery"
 	"github.com/gin-gonic/gin"
 	"github.com/go-shiori/shiori/internal/config"
 	"github.com/go-shiori/shiori/internal/dependencies"
@@ -18,6 +16,7 @@ import (
 	"github.com/go-shiori/shiori/internal/http/response"
 	"github.com/go-shiori/shiori/internal/model"
 	ws "github.com/go-shiori/shiori/internal/webserver"
+	"github.com/gofrs/uuid/v5"
 	"github.com/sirupsen/logrus"
 )
 
@@ -28,7 +27,7 @@ type BookmarkRoutes struct {
 
 func (r *BookmarkRoutes) Setup(group *gin.RouterGroup) model.Routes {
 	group.GET("/:id/archive", r.bookmarkArchiveHandler)
-	group.GET("/:id/archive/*filepath", r.bookmarkArchiveHandler)
+	group.GET("/:id/archive/file/*filepath", r.bookmarkArchiveFileHandler)
 	group.GET("/:id/content", r.bookmarkContentHandler)
 	group.GET("/:id/thumb", r.bookmarkThumbnailHandler)
 	group.GET("/:id/ebook", r.bookmarkEbookHandler)
@@ -97,6 +96,26 @@ func (r *BookmarkRoutes) bookmarkArchiveHandler(c *gin.Context) {
 		return
 	}
 
+	c.HTML(http.StatusOK, "archive.html", gin.H{
+		"RootPath": r.deps.Config.Http.RootPath,
+		"Version":  model.BuildVersion,
+		"Book":     bookmark,
+	})
+}
+
+func (r *BookmarkRoutes) bookmarkArchiveFileHandler(c *gin.Context) {
+	ctx := context.NewContextFromGin(c)
+
+	bookmark, err := r.getBookmark(ctx)
+	if err != nil {
+		return
+	}
+
+	if !r.deps.Domains.Bookmarks.HasArchive(bookmark) {
+		response.SendError(c, http.StatusNotFound, nil)
+		return
+	}
+
 	resourcePath, _ := c.Params.Get("filepath")
 	resourcePath = strings.TrimPrefix(resourcePath, "/")
 
@@ -104,6 +123,12 @@ func (r *BookmarkRoutes) bookmarkArchiveHandler(c *gin.Context) {
 	if err != nil {
 		r.logger.WithError(err).Error("error opening archive")
 		response.SendInternalServerError(c)
+		return
+	}
+	defer archive.Close()
+
+	if !archive.HasResource(resourcePath) {
+		response.SendError(c, http.StatusNotFound, nil)
 		return
 	}
 
@@ -114,41 +139,12 @@ func (r *BookmarkRoutes) bookmarkArchiveHandler(c *gin.Context) {
 		return
 	}
 
-	// If this is HTML and root, inject shiori header
-	if strings.Contains(strings.ToLower(resourceContentType), "text/html") && resourcePath == "" {
-		// Extract gzip
-		buffer := bytes.NewBuffer(content)
-		gzipReader, err := gzip.NewReader(buffer)
-		if err != nil {
-			r.logger.WithError(err).Error("error creating gzip reader")
-			response.SendInternalServerError(c)
-			return
-		}
+	// Generate weak ETAG
+	shioriUUID := uuid.NewV5(uuid.NamespaceURL, model.ShioriURLNamespace)
+	c.Header("Etag", fmt.Sprintf("W/%s", uuid.NewV5(shioriUUID, fmt.Sprintf("%x-%x-%x", bookmark.ID, resourcePath, len(content)))))
+	c.Header("Cache-Control", "max-age=31536000")
 
-		// Parse gzipped content
-		doc, err := goquery.NewDocumentFromReader(gzipReader)
-		if err != nil {
-			r.logger.WithError(err).Error("error parsing gzipped content")
-			response.SendInternalServerError(c)
-			return
-		}
-
-		// Revert back to HTML
-		outerHTML, err := goquery.OuterHtml(doc.Selection)
-		if err != nil {
-			r.logger.WithError(err).Error("error creating outer HTML")
-			response.SendInternalServerError(c)
-			return
-		}
-
-		// Gzip it again and send to response writer
-		c.Data(http.StatusOK, "text/html", []byte(outerHTML))
-		return
-	}
-
-	// Serve content
 	c.Header("Content-Encoding", "gzip")
-	// TODO: Set ETag header
 	c.Data(http.StatusOK, resourceContentType, content)
 }
 
