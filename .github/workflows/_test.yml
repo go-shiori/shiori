@@ -55,3 +55,8 @@ jobs:
         SHIORI_TEST_MYSQL_URL: "shiori:shiori@(localhost:3306)/shiori"
 
     - run: CGO_ENABLED=0 go build -tags osusergo,netgo -ldflags="-s -w -X main.version=$(git describe --tags) -X main.date=$(date --iso-8601=seconds)"
+
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@eaaf4bedf32dbdc6b720b63067d99c4d77d6047d # 3.1.4
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
