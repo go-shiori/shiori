@@ -195,7 +195,7 @@ paths:
       summary: Refresh a token for an account
       tags:
       - Auth
-  /api/v1/bookmaeks/cache:
+  /api/v1/bookmarks/cache:
     put:
       parameters:
       - description: Update Cache Payload
