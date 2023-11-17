@@ -4,6 +4,7 @@ module github.com/go-shiori/shiori
 go 1.21
 
 require (
+	git.sr.ht/~emersion/go-sqlite3-fts5 v0.0.0-20230217131031-f2c8767594fc
 	github.com/PuerkitoBio/goquery v1.8.1
 	github.com/disintegration/imaging v1.6.2
 	github.com/fatih/color v1.16.0
