@@ -9,7 +9,7 @@ GO_TEST_FLAGS ?= -v -race -count=1
 GOTESTFMT_FLAGS ?=
 
 # Build
-CGO_ENABLED ?= 0
+CGO_ENABLED ?= 1
 BUILD_TIME := $(shell date -u +%Y%m%d.%H%M%S)
 BUILD_HASH := $(shell git describe --tags)
 BUILD_TAGS ?= osusergo,netgo

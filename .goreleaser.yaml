@@ -4,7 +4,7 @@ before:
 builds:
   - binary: shiori
     env:
-      - CGO_ENABLED=0
+      - CGO_ENABLED=1
       - GIN_MODE=release
     tags:
       - netgo
