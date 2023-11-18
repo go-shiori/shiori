@@ -205,7 +205,7 @@ func NewBookmarksPIRoutes(logger *logrus.Logger, deps *dependencies.Dependencies
 //	@Produce					json
 //	@Success					200	{object}	model.Bookmark
 //	@Failure					403	{object}	nil	"Token not provided/invalid"
-//	@Router						/api/v1/bookmaeks/cache [put]
+//	@Router						/api/v1/bookmarks/cache [put]
 func (r *BookmarksAPIRoutes) updateCache(c *gin.Context) {
 	ctx := context.NewContextFromGin(c)
 	if !ctx.UserIsLogged() {

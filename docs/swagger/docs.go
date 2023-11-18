@@ -126,7 +126,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/bookmaeks/cache": {
+        "/api/v1/bookmarks/cache": {
             "put": {
                 "produces": [
                     "application/json"
