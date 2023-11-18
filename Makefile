@@ -94,3 +94,8 @@ build: clean
 coverage:
 	$(GO) test $(GO_TEST_FLAGS) -coverprofile=coverage.txt ./...
 	$(GO) tool cover -html=coverage.txt
+
+## Run generate accross the project
+.PHONY: generated
+generate:
+	$(GO) generate ./...

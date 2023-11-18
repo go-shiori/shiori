@@ -33,6 +33,7 @@ require (
 	github.com/swaggo/gin-swagger v1.6.0
 	github.com/swaggo/swag v1.16.2
 	github.com/toorop/gin-logrus v0.0.0-20210225092905-2c785434f26f
+	go.uber.org/mock v0.3.0
 	golang.org/x/crypto v0.15.0
 	golang.org/x/image v0.14.0
 	golang.org/x/net v0.18.0
