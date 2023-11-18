@@ -30,7 +30,7 @@ func redirectPage(w http.ResponseWriter, r *http.Request, url string) {
 	http.Redirect(w, r, url, http.StatusMovedPermanently)
 }
 
-func fileExists(filePath string) bool {
+func FileExists(filePath string) bool {
 	info, err := os.Stat(filePath)
 	return err == nil && !info.IsDir()
 }

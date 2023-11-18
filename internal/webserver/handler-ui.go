@@ -50,11 +50,11 @@ func (h *Handler) ServeBookmarkContent(w http.ResponseWriter, r *http.Request, p
 
 	// Check if it has ebook.
 	ebookPath := fp.Join(h.DataDir, "ebook", strID+".epub")
-	if fileExists(ebookPath) {
+	if FileExists(ebookPath) {
 		bookmark.HasEbook = true
 	}
 	archivePath := fp.Join(h.DataDir, "archive", strID)
-	if fileExists(archivePath) {
+	if FileExists(archivePath) {
 		bookmark.HasArchive = true
 
 		// Open archive, look in cache first
@@ -278,7 +278,7 @@ func (h *Handler) ServeBookmarkArchive(w http.ResponseWriter, r *http.Request, p
 		// Gzip it again and send to response writer
 		gzipWriter := gzip.NewWriter(w)
 		if _, err := gzipWriter.Write([]byte(outerHTML)); err != nil {
-			log.Printf("error writting gzip file: %s", err)
+			log.Printf("error writing gzip file: %s", err)
 		}
 		gzipWriter.Flush()
 		return
@@ -286,7 +286,7 @@ func (h *Handler) ServeBookmarkArchive(w http.ResponseWriter, r *http.Request, p
 
 	// Serve content
 	if _, err := w.Write(content); err != nil {
-		log.Printf("error writting response: %s", err)
+		log.Printf("error writing response: %s", err)
 	}
 }
 
@@ -320,7 +320,7 @@ func (h *Handler) ServeBookmarkEbook(w http.ResponseWriter, r *http.Request, ps 
 
 	// Check if it has ebook.
 	ebookPath := fp.Join(h.DataDir, "ebook", strID+".epub")
-	if !fileExists(ebookPath) {
+	if !FileExists(ebookPath) {
 		http.Error(w, "ebook not found", http.StatusNotFound)
 		return
 	}

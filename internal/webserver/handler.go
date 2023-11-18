@@ -25,7 +25,7 @@ type Handler struct {
 	ArchiveCache *cch.Cache
 	Log          bool
 
-	depenencies *config.Dependencies
+	dependencies *config.Dependencies
 
 	templates map[string]*template.Template
 }
@@ -113,16 +113,16 @@ func (h *Handler) validateSession(r *http.Request) error {
 			return fmt.Errorf("session has been expired")
 		}
 
-		account, err := h.depenencies.Domains.Auth.CheckToken(r.Context(), authParts[1])
+		account, err := h.dependencies.Domains.Auth.CheckToken(r.Context(), authParts[1])
 		if err != nil {
-			return err
+			return fmt.Errorf("session has been expired")
 		}
 
 		if r.Method != "" && r.Method != "GET" && !account.Owner {
 			return fmt.Errorf("account level is not sufficient")
 		}
 
-		h.depenencies.Log.WithFields(logrus.Fields{
+		h.dependencies.Log.WithFields(logrus.Fields{
 			"username": account.Username,
 			"method":   r.Method,
 			"path":     r.URL.Path,
