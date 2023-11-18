@@ -2,13 +2,18 @@ There are several installation methods available :
 
 <!-- TOC -->
 
-- [Using Precompiled Binary](#using-precompiled-binary)
-- [Building From Source](#building-from-source)
-- [Using Docker Image](#using-docker-image)
+- [Supported](#supported)
+  - [Using Precompiled Binary](#using-precompiled-binary)
+  - [Building From Source](#building-from-source)
+  - [Using Docker Image](#using-docker-image)
+- [Community provided](#community-provided)
+  - [Using Kubernetes manifests](#using-kubernetes-manifests)
 
 <!-- /TOC -->
 
-## Using Precompiled Binary
+## Supported
+
+### Using Precompiled Binary
 
 Download the latest version of `shiori` from [the release page](https://github.com/go-shiori/shiori/releases/latest), then put it in your `PATH`.
 
@@ -28,7 +33,7 @@ source $HOME/.profile
 
 On Windows, you can simply set the `PATH` by using the advanced system settings.
 
-## Building From Source
+### Building From Source
 
 Shiori uses Go module so make sure you have version of `go >= 1.14.1` installed, then run:
 
@@ -36,7 +41,7 @@ Shiori uses Go module so make sure you have version of `go >= 1.14.1` installed,
 go get -u -v github.com/go-shiori/shiori
 ```
 
-## Using Docker Image
+### Using Docker Image
 
 To use Docker image, you can pull the latest automated build from Docker Hub :
 
@@ -50,7 +55,11 @@ If you want to build the Docker image on your own, Shiori already has its [Docke
 docker build -t shiori .
 ```
 
-## Using Kubernetes manifests
+## Community provided
+
+Below this there are other ways to deploy Shiori which are not supported by the team but were provided by the community to help others have a starting point.
+
+### Using Kubernetes manifests
 
 If you're self-hosting with a Kubernetes cluster, here are manifest files that
 you can use to deploy Shiori:
