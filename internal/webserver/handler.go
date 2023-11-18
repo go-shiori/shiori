@@ -13,8 +13,6 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var developmentMode = false
-
 // Handler is Handler for serving the web interface.
 type Handler struct {
 	DB           database.DB
