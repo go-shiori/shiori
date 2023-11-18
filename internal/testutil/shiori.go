@@ -9,6 +9,7 @@ import (
 	"github.com/go-shiori/shiori/internal/database"
 	"github.com/go-shiori/shiori/internal/dependencies"
 	"github.com/go-shiori/shiori/internal/domains"
+	"github.com/psanford/memfs"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
 )
@@ -31,8 +32,10 @@ func GetTestConfigurationAndDependencies(t *testing.T, ctx context.Context, logg
 
 	deps := dependencies.NewDependencies(logger, db, cfg)
 	deps.Database = db
-	deps.Domains.Auth = domains.NewAccountsDomain(logger, cfg.Http.SecretKey, db)
-	deps.Domains.Archiver = domains.NewArchiverDomain(logger, cfg.Storage.DataDir)
+	deps.Domains.Auth = domains.NewAccountsDomain(deps)
+	deps.Domains.Archiver = domains.NewArchiverDomain(deps)
+	deps.Domains.Bookmarks = domains.NewBookmarksDomain(deps)
+	deps.Domains.Storage = domains.NewStorageDomain(deps, memfs.New())
 
 	return cfg, deps
 }

@@ -7,7 +7,6 @@ require (
 	github.com/PuerkitoBio/goquery v1.8.1
 	github.com/disintegration/imaging v1.6.2
 	github.com/fatih/color v1.16.0
-	github.com/gin-contrib/gzip v0.0.6
 	github.com/gin-contrib/requestid v0.0.6
 	github.com/gin-contrib/static v0.0.1
 	github.com/gin-gonic/gin v1.9.1
@@ -24,6 +23,7 @@ require (
 	github.com/muesli/go-app-paths v0.2.2
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1
+	github.com/psanford/memfs v0.0.0-20230130182539-4dbf7e3e865e
 	github.com/sethvargo/go-envconfig v0.9.0
 	github.com/shurcooL/vfsgen v0.0.0-20230704071429-0000e147ea92
 	github.com/sirupsen/logrus v1.9.3

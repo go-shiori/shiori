@@ -6,14 +6,13 @@ import (
 	"strconv"
 
 	"github.com/go-shiori/shiori/internal/core"
+	"github.com/go-shiori/shiori/internal/dependencies"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/go-shiori/warc"
-	"github.com/sirupsen/logrus"
 )
 
 type ArchiverDomain struct {
-	dataDir string
-	logger  *logrus.Logger
+	deps *dependencies.Dependencies
 }
 
 func (d *ArchiverDomain) DownloadBookmarkArchive(book model.BookmarkDTO) (*model.BookmarkDTO, error) {
@@ -23,7 +22,7 @@ func (d *ArchiverDomain) DownloadBookmarkArchive(book model.BookmarkDTO) (*model
 	}
 
 	processRequest := core.ProcessRequest{
-		DataDir:     d.dataDir,
+		DataDir:     d.deps.Config.Storage.DataDir,
 		Bookmark:    book,
 		Content:     content,
 		ContentType: contentType,
@@ -40,7 +39,7 @@ func (d *ArchiverDomain) DownloadBookmarkArchive(book model.BookmarkDTO) (*model
 }
 
 func (d *ArchiverDomain) GetBookmarkArchive(book *model.BookmarkDTO) (*warc.Archive, error) {
-	archivePath := filepath.Join(d.dataDir, "archive", strconv.Itoa(book.ID))
+	archivePath := filepath.Join(d.deps.Config.Storage.DataDir, "archive", strconv.Itoa(book.ID))
 
 	if !FileExists(archivePath) {
 		return nil, fmt.Errorf("archive not found")
@@ -49,9 +48,8 @@ func (d *ArchiverDomain) GetBookmarkArchive(book *model.BookmarkDTO) (*warc.Arch
 	return warc.Open(archivePath)
 }
 
-func NewArchiverDomain(logger *logrus.Logger, dataDir string) ArchiverDomain {
-	return ArchiverDomain{
-		dataDir: dataDir,
-		logger:  logger,
+func NewArchiverDomain(deps *dependencies.Dependencies) *ArchiverDomain {
+	return &ArchiverDomain{
+		deps: deps,
 	}
 }

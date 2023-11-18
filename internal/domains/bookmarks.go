@@ -11,39 +11,35 @@ import (
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/go-shiori/shiori/internal/config"
-	"github.com/go-shiori/shiori/internal/database"
+	"github.com/go-shiori/shiori/internal/dependencies"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/go-shiori/warc"
-	"github.com/sirupsen/logrus"
 )
 
 type BookmarksDomain struct {
-	logger *logrus.Logger
-	db     database.DB
-	cfg    *config.Config
+	deps *dependencies.Dependencies
 }
 
 func (d *BookmarksDomain) HasEbook(b *model.BookmarkDTO) bool {
-	ebookPath := filepath.Join(d.cfg.Storage.DataDir, "ebook", strconv.Itoa(b.ID)+".epub")
-	return FileExists(ebookPath)
+	ebookPath := filepath.Join("ebook", strconv.Itoa(b.ID)+".epub")
+	return d.deps.Domains.Storage.FileExists(ebookPath)
 }
 
 func (d *BookmarksDomain) HasArchive(b *model.BookmarkDTO) bool {
-	archivePath := filepath.Join(d.cfg.Storage.DataDir, "archive", strconv.Itoa(b.ID))
-	return FileExists(archivePath)
+	archivePath := filepath.Join(d.deps.Config.Storage.DataDir, "archive", strconv.Itoa(b.ID))
+	return d.deps.Domains.Storage.FileExists(archivePath)
 }
 
 func (d *BookmarksDomain) GetThumbnailPath(b *model.BookmarkDTO) string {
-	return filepath.Join(d.cfg.Storage.DataDir, "thumb", strconv.Itoa(b.ID))
+	return filepath.Join("thumb", strconv.Itoa(b.ID))
 }
 
 func (d *BookmarksDomain) HasThumbnail(b *model.BookmarkDTO) bool {
-	return FileExists(d.GetThumbnailPath(b))
+	return d.deps.Domains.Storage.FileExists(d.GetThumbnailPath(b))
 }
 
 func (d *BookmarksDomain) GetBookmark(ctx context.Context, id model.DBID) (*model.BookmarkDTO, error) {
-	bookmark, _, err := d.db.GetBookmark(ctx, int(id), "")
+	bookmark, _, err := d.deps.Database.GetBookmark(ctx, int(id), "")
 	if err != nil {
 		return nil, fmt.Errorf("failed to get bookmark: %w", err)
 	}
@@ -63,7 +59,9 @@ func (d *BookmarksDomain) GetBookmarkContentsFromArchive(bookmark *model.Bookmar
 	}
 
 	// Open archive, look in cache first
-	archivePath := filepath.Join(d.cfg.Storage.DataDir, "archive", fmt.Sprintf("%d", bookmark.ID))
+	archivePath := filepath.Join(d.deps.Config.Storage.DataDir, "archive", fmt.Sprintf("%d", bookmark.ID))
+	// TODO: Move to archiver domain
+	// TODO: Use storagedomain to operate with the file
 	archive, err := warc.Open(archivePath)
 	if err != nil {
 		return "", fmt.Errorf("failed to open archive: %w", err)
@@ -72,7 +70,7 @@ func (d *BookmarksDomain) GetBookmarkContentsFromArchive(bookmark *model.Bookmar
 	// Find all image and convert its source to use the archive URL.
 	createArchivalURL := func(archivalName string) string {
 		var archivalURL url.URL
-		archivalURL.Path = path.Join(d.cfg.Http.RootPath, "bookmark", fmt.Sprintf("%d", bookmark.ID), "archive", archivalName)
+		archivalURL.Path = path.Join(d.deps.Config.Http.RootPath, "bookmark", fmt.Sprintf("%d", bookmark.ID), "archive", archivalName)
 		return archivalURL.String()
 	}
 
@@ -124,10 +122,8 @@ func (d *BookmarksDomain) GetBookmarkContentsFromArchive(bookmark *model.Bookmar
 	return template.HTML(bookmark.HTML), nil
 }
 
-func NewBookmarksDomain(logger *logrus.Logger, db database.DB, cfg *config.Config) BookmarksDomain {
-	return BookmarksDomain{
-		logger: logger,
-		db:     db,
-		cfg:    cfg,
+func NewBookmarksDomain(deps *dependencies.Dependencies) *BookmarksDomain {
+	return &BookmarksDomain{
+		deps: deps,
 	}
 }

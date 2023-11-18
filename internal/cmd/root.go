@@ -98,9 +98,10 @@ func initShiori(ctx context.Context, cmd *cobra.Command) (*config.Config, *depen
 	}
 
 	dependencies := dependencies.NewDependencies(logger, db, cfg)
-	dependencies.Domains.Auth = domains.NewAccountsDomain(logger, cfg.Http.SecretKey, db)
-	dependencies.Domains.Archiver = domains.NewArchiverDomain(logger, cfg.Storage.DataDir)
-	dependencies.Domains.Bookmarks = domains.NewBookmarksDomain(logger, db, cfg)
+	dependencies.Domains.Auth = domains.NewAccountsDomain(dependencies)
+	dependencies.Domains.Archiver = domains.NewArchiverDomain(dependencies)
+	dependencies.Domains.Bookmarks = domains.NewBookmarksDomain(dependencies)
+	dependencies.Domains.Storage = domains.NewStorageDomain(dependencies, os.DirFS(cfg.Storage.DataDir))
 
 	// Workaround: Get accounts to make sure at least one is present in the database.
 	// If there's no accounts in the database, create the shiori/gopher account the legacy api
