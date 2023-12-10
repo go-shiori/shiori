@@ -60,7 +60,7 @@ func (r *BookmarkRoutes) getBookmark(c *context.Context) (*model.BookmarkDTO, er
 	}
 
 	if bookmark.Public != 1 && !c.UserIsLogged() {
-		response.SendError(c.Context, http.StatusForbidden, nil)
+		response.RedirectToLogin(c.Context, c.Request.URL.String())
 		return nil, err
 	}
 
