@@ -39,6 +39,7 @@ func (r *BookmarkRoutes) getBookmark(c *context.Context) (*model.BookmarkDTO, er
 	bookmarkIDParam, present := c.Params.Get("id")
 	if !present {
 		response.SendError(c.Context, 400, "Invalid bookmark ID")
+		return nil, model.ErrBookmarkInvalidID
 	}
 
 	bookmarkID, err := strconv.Atoi(bookmarkIDParam)
@@ -50,18 +51,18 @@ func (r *BookmarkRoutes) getBookmark(c *context.Context) (*model.BookmarkDTO, er
 
 	if bookmarkID == 0 {
 		response.SendError(c.Context, 404, nil)
-		return nil, err
+		return nil, model.ErrBookmarkNotFound
 	}
 
 	bookmark, err := r.deps.Domains.Bookmarks.GetBookmark(c.Context, model.DBID(bookmarkID))
 	if err != nil {
 		response.SendError(c.Context, 404, nil)
-		return nil, err
+		return nil, model.ErrBookmarkNotFound
 	}
 
 	if bookmark.Public != 1 && !c.UserIsLogged() {
 		response.RedirectToLogin(c.Context, c.Request.URL.String())
-		return nil, err
+		return nil, model.ErrUnauthorized
 	}
 
 	return bookmark, nil
