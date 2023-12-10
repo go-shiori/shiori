@@ -26,7 +26,7 @@ func (d *BookmarksDomain) HasEbook(b *model.BookmarkDTO) bool {
 }
 
 func (d *BookmarksDomain) HasArchive(b *model.BookmarkDTO) bool {
-	archivePath := filepath.Join(d.deps.Config.Storage.DataDir, "archive", strconv.Itoa(b.ID))
+	archivePath := filepath.Join("archive", strconv.Itoa(b.ID))
 	return d.deps.Domains.Storage.FileExists(archivePath)
 }
 
