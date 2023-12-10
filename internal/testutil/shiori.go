@@ -19,7 +19,7 @@ func GetTestConfigurationAndDependencies(t *testing.T, ctx context.Context, logg
 	require.NoError(t, err)
 
 	cfg := config.ParseServerConfiguration(ctx, logger)
-	cfg.Http.SecretKey = "test"
+	cfg.Http.SecretKey = []byte("test")
 
 	tempDir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)

@@ -50,7 +50,7 @@ type HttpConfig struct {
 	RootPath   string `env:"HTTP_ROOT_PATH,default=/"`
 	AccessLog  bool   `env:"HTTP_ACCESS_LOG,default=True"`
 	ServeWebUI bool   `env:"HTTP_SERVE_WEB_UI,default=True"`
-	SecretKey  string `env:"HTTP_SECRET_KEY"`
+	SecretKey  []byte `env:"HTTP_SECRET_KEY"`
 	// Fiber Specific
 	BodyLimit                    int           `env:"HTTP_BODY_LIMIT,default=1024"`
 	ReadTimeout                  time.Duration `env:"HTTP_READ_TIMEOUT,default=10s"`
@@ -82,13 +82,13 @@ type Config struct {
 // SetDefaults sets the default values for the configuration
 func (c *HttpConfig) SetDefaults(logger *logrus.Logger) {
 	// Set a random secret key if not set
-	if c.SecretKey == "" {
+	if len(c.SecretKey) == 0 {
 		logger.Warn("SHIORI_HTTP_SECRET_KEY is not set, using random value. This means that all sessions will be invalidated on server restart.")
 		randomUUID, err := uuid.NewV4()
 		if err != nil {
 			logger.WithError(err).Fatal("couldn't generate a random UUID")
 		}
-		c.SecretKey = randomUUID.String()
+		c.SecretKey = []byte(randomUUID.String())
 	}
 }
 

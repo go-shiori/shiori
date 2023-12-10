@@ -37,7 +37,7 @@ func newServerCommandHandler() func(cmd *cobra.Command, args []string) {
 		rootPath, _ := cmd.Flags().GetString("webroot")
 		accessLog, _ := cmd.Flags().GetBool("access-log")
 		serveWebUI, _ := cmd.Flags().GetBool("serve-web-ui")
-		secretKey, _ := cmd.Flags().GetString("secret-key")
+		secretKey, _ := cmd.Flags().GetBytesHex("secret-key")
 
 		cfg, dependencies := initShiori(ctx, cmd)
 

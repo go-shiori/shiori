@@ -26,5 +26,6 @@ func NewDependencies(log *logrus.Logger, db database.DB, cfg *config.Config) *De
 		Log:      log,
 		Config:   cfg,
 		Database: db,
+		Domains:  &Domains{},
 	}
 }
