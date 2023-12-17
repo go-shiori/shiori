@@ -7,13 +7,13 @@ import (
 	"github.com/go-shiori/shiori/internal/config"
 	"github.com/go-shiori/shiori/internal/dependencies"
 	"github.com/go-shiori/shiori/internal/domains"
-	"github.com/psanford/memfs"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
 )
 
 func TestDirExists(t *testing.T) {
-	fs := memfs.New()
+	fs := afero.NewMemMapFs()
 	fs.MkdirAll("foo", 0755)
 
 	domain := domains.NewStorageDomain(
@@ -30,9 +30,9 @@ func TestDirExists(t *testing.T) {
 }
 
 func TestFileExists(t *testing.T) {
-	fs := memfs.New()
+	fs := afero.NewMemMapFs()
 	fs.MkdirAll("foo", 0755)
-	fs.WriteFile("foo/file", []byte("hello world"), 0644)
+	fs.Create("foo/file")
 
 	domain := domains.NewStorageDomain(
 		&dependencies.Dependencies{

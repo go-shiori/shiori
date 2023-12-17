@@ -15,12 +15,13 @@ import (
 
 	"github.com/go-shiori/shiori/internal/core"
 	"github.com/go-shiori/shiori/internal/database"
+	"github.com/go-shiori/shiori/internal/dependencies"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/julienschmidt/httprouter"
 	"golang.org/x/crypto/bcrypt"
 )
 
-func downloadBookmarkContent(book *model.BookmarkDTO, dataDir string, request *http.Request, keepTitle, keepExcerpt bool) (*model.BookmarkDTO, error) {
+func downloadBookmarkContent(deps *dependencies.Dependencies, book *model.BookmarkDTO, dataDir string, request *http.Request, keepTitle, keepExcerpt bool) (*model.BookmarkDTO, error) {
 	content, contentType, err := core.DownloadBookmark(book.URL)
 	if err != nil {
 		return nil, fmt.Errorf("error downloading url: %s", err)
@@ -35,7 +36,7 @@ func downloadBookmarkContent(book *model.BookmarkDTO, dataDir string, request *h
 		KeepExcerpt: keepExcerpt,
 	}
 
-	result, isFatalErr, err := core.ProcessBookmark(processRequest)
+	result, isFatalErr, err := core.ProcessBookmark(deps, processRequest)
 	content.Close()
 
 	if err != nil && isFatalErr {
@@ -239,7 +240,7 @@ func (h *Handler) ApiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 
 	if payload.Async {
 		go func() {
-			bookmark, err := downloadBookmarkContent(book, h.DataDir, r, userHasDefinedTitle, book.Excerpt != "")
+			bookmark, err := downloadBookmarkContent(h.dependencies, book, h.DataDir, r, userHasDefinedTitle, book.Excerpt != "")
 			if err != nil {
 				log.Printf("error downloading boorkmark: %s", err)
 				return
@@ -251,7 +252,7 @@ func (h *Handler) ApiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 	} else {
 		// Workaround. Download content after saving the bookmark so we have the proper database
 		// id already set in the object regardless of the database engine.
-		book, err = downloadBookmarkContent(book, h.DataDir, r, userHasDefinedTitle, book.Excerpt != "")
+		book, err = downloadBookmarkContent(h.dependencies, book, h.DataDir, r, userHasDefinedTitle, book.Excerpt != "")
 		if err != nil {
 			log.Printf("error downloading boorkmark: %s", err)
 		} else if _, err := h.DB.SaveBookmarks(ctx, false, *book); err != nil {

@@ -18,9 +18,11 @@ import (
 
 	"github.com/disintegration/imaging"
 	"github.com/go-shiori/go-readability"
+	"github.com/go-shiori/shiori/internal/dependencies"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/go-shiori/warc"
 	"github.com/pkg/errors"
+	"github.com/spf13/afero"
 	_ "golang.org/x/image/webp"
 
 	// Add support for png
@@ -42,7 +44,7 @@ var ErrNoSupportedImageType = errors.New("unsupported image type")
 
 // ProcessBookmark process the bookmark and archive it if needed.
 // Return three values, is error fatal, and error value.
-func ProcessBookmark(req ProcessRequest) (book model.BookmarkDTO, isFatalErr bool, err error) {
+func ProcessBookmark(deps *dependencies.Dependencies, req ProcessRequest) (book model.BookmarkDTO, isFatalErr bool, err error) {
 	book = req.Bookmark
 	contentType := req.ContentType
 
@@ -70,7 +72,7 @@ func ProcessBookmark(req ProcessRequest) (book model.BookmarkDTO, isFatalErr boo
 
 	// If this is HTML, parse for readable content
 	strID := strconv.Itoa(book.ID)
-	imgPath := fp.Join(req.DataDir, "thumb", strID)
+	imgPath := model.GetThumbnailPath(&book)
 	var imageURLs []string
 	if strings.Contains(contentType, "text/html") {
 		isReadable := readability.Check(readabilityCheckInput)
@@ -107,7 +109,7 @@ func ProcessBookmark(req ProcessRequest) (book model.BookmarkDTO, isFatalErr boo
 		if article.Image != "" {
 			imageURLs = append(imageURLs, article.Image)
 		} else {
-			os.Remove(imgPath)
+			deps.Domains.Storage.FS().Remove(imgPath)
 		}
 
 		if article.Favicon != "" {
@@ -123,11 +125,11 @@ func ProcessBookmark(req ProcessRequest) (book model.BookmarkDTO, isFatalErr boo
 
 	// Save article image to local disk
 	for i, imageURL := range imageURLs {
-		err = DownloadBookImage(imageURL, imgPath)
+		err = DownloadBookImage(deps.Domains.Storage.FS(), imageURL, imgPath)
 		if err != nil && errors.Is(err, ErrNoSupportedImageType) {
 			log.Printf("%s: %s", err, imageURL)
 			if i == len(imageURLs)-1 {
-				os.Remove(imgPath)
+				deps.Domains.Storage.FS().Remove(imgPath)
 			}
 		}
 		if err != nil {
@@ -142,13 +144,13 @@ func ProcessBookmark(req ProcessRequest) (book model.BookmarkDTO, isFatalErr boo
 
 	// If needed, create ebook as well
 	if book.CreateEbook {
-		ebookPath := fp.Join(req.DataDir, "ebook", strID+".epub")
+		ebookPath := model.GetEbookPath(&book)
 		req.Bookmark = book
 
 		if strings.Contains(contentType, "application/pdf") {
 			return book, false, errors.Wrap(err, "can't create ebook from pdf")
 		} else {
-			_, err = GenerateEbook(req, ebookPath)
+			_, err = GenerateEbook(deps, req, ebookPath)
 			if err != nil {
 				return book, true, errors.Wrap(err, "failed to create ebook")
 			}
@@ -162,7 +164,7 @@ func ProcessBookmark(req ProcessRequest) (book model.BookmarkDTO, isFatalErr boo
 		if err != nil {
 			return book, false, fmt.Errorf("failed to create temp archive: %v", err)
 		}
-		defer os.Remove(tmpFile.Name())
+		defer deps.Domains.Storage.FS().Remove(tmpFile.Name())
 
 		archivalRequest := warc.ArchivalRequest{
 			URL:         book.URL,
@@ -178,10 +180,8 @@ func ProcessBookmark(req ProcessRequest) (book model.BookmarkDTO, isFatalErr boo
 			return book, false, fmt.Errorf("failed to create archive: %v", err)
 		}
 
-		// Prepare destination file.
-		dstPath := fp.Join(req.DataDir, "archive", fmt.Sprintf("%d", book.ID))
-
-		err = MoveFileToDestination(dstPath, tmpFile)
+		dstPath := model.GetArchivePath(&book)
+		err = MoveFileToDestination(deps.Domains.Storage.FS(), dstPath, tmpFile)
 		if err != nil {
 			return book, false, fmt.Errorf("failed move archive to destination `: %v", err)
 		}
@@ -192,7 +192,7 @@ func ProcessBookmark(req ProcessRequest) (book model.BookmarkDTO, isFatalErr boo
 	return book, false, nil
 }
 
-func DownloadBookImage(url, dstPath string) error {
+func DownloadBookImage(fs afero.Fs, url, dstPath string) error {
 	// Fetch data from URL
 	resp, err := httpClient.Get(url)
 	if err != nil {
@@ -264,7 +264,7 @@ func DownloadBookImage(url, dstPath string) error {
 		return fmt.Errorf("failed to save image %s: %v", url, err)
 	}
 
-	err = MoveFileToDestination(dstPath, tmpFile)
+	err = MoveFileToDestination(fs, dstPath, tmpFile)
 	if err != nil {
 		return err
 	}
@@ -273,14 +273,15 @@ func DownloadBookImage(url, dstPath string) error {
 }
 
 // dstPath requires the filename
-func MoveFileToDestination(dstPath string, tmpFile *os.File) error {
+// TODO: move to storage domain
+func MoveFileToDestination(fs afero.Fs, dstPath string, tmpFile *os.File) error {
 	// Prepare destination file.
-	err := os.MkdirAll(fp.Dir(dstPath), model.DataDirPerm)
+	err := fs.MkdirAll(fp.Dir(dstPath), model.DataDirPerm)
 	if err != nil {
 		return fmt.Errorf("failed to create destination dir: %v", err)
 	}
 
-	dstFile, err := os.Create(dstPath)
+	dstFile, err := fs.Create(dstPath)
 	if err != nil {
 		return fmt.Errorf("failed to create destination file: %v", err)
 	}

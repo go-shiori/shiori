@@ -37,3 +37,7 @@ func SendInternalServerError(ctx *gin.Context) {
 func RedirectToLogin(ctx *gin.Context, dst string) {
 	ctx.Redirect(http.StatusFound, "/login?dst="+dst)
 }
+
+func NotFound(ctx *gin.Context) {
+	ctx.AbortWithStatus(http.StatusNotFound)
+}

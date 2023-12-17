@@ -96,7 +96,7 @@ func (h *Handler) ApiInsertViaExtension(w http.ResponseWriter, r *http.Request, 
 		}
 
 		var isFatalErr bool
-		book, isFatalErr, err = core.ProcessBookmark(request)
+		book, isFatalErr, err = core.ProcessBookmark(h.dependencies, request)
 
 		if tmp, ok := contentBuffer.(io.ReadCloser); ok {
 			tmp.Close()

@@ -100,3 +100,124 @@ func TestBookmarkRoutesGetBookmark(t *testing.T) {
 		require.NoError(t, err)
 	})
 }
+
+func TestBookmarkContentHandler(t *testing.T) {
+	logger := logrus.New()
+
+	_, deps := testutil.GetTestConfigurationAndDependencies(t, context.Background(), logger)
+
+	bookmark := testutil.GetValidBookmark()
+	bookmark.HTML = "<html><body><h1>Bookmark HTML content</h1></body></html>"
+	boomkarks, err := deps.Database.SaveBookmarks(context.TODO(), true, *bookmark)
+	require.NoError(t, err)
+
+	bookmark = &boomkarks[0]
+
+	t.Run("not logged in", func(t *testing.T) {
+		g := gin.Default()
+		router := NewBookmarkRoutes(logger, deps)
+		router.Setup(g.Group("/"))
+		w := httptest.NewRecorder()
+		path := "/" + strconv.Itoa(bookmark.ID) + "/content"
+		req, _ := http.NewRequest("GET", path, nil)
+		g.ServeHTTP(w, req)
+		require.Equal(t, http.StatusFound, w.Code)
+		require.Equal(t, "/login?dst="+path, w.Header().Get("Location"))
+	})
+
+	t.Run("get existing bookmark content", func(t *testing.T) {
+		g := gin.Default()
+		templates.SetupTemplates(g)
+		g.Use(func(c *gin.Context) {
+			c.Set(model.ContextAccountKey, "test")
+		})
+		router := NewBookmarkRoutes(logger, deps)
+		router.Setup(g.Group("/"))
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("GET", "/"+strconv.Itoa(bookmark.ID)+"/content", nil)
+		g.ServeHTTP(w, req)
+		t.Log(w.Header().Get("Location"))
+		require.Equal(t, 200, w.Code)
+		require.Contains(t, w.Body.String(), bookmark.HTML)
+	})
+}
+
+func TestBookmarkFileHandlers(t *testing.T) {
+	logger := logrus.New()
+
+	_, deps := testutil.GetTestConfigurationAndDependencies(t, context.Background(), logger)
+
+	bookmark := testutil.GetValidBookmark()
+	bookmark.HTML = "<html><body><h1>Bookmark HTML content</h1></body></html>"
+	bookmark.HasArchive = true
+	bookmark.CreateArchive = true
+	bookmark.CreateEbook = true
+	bookmarks, err := deps.Database.SaveBookmarks(context.TODO(), true, *bookmark)
+	require.NoError(t, err)
+
+	bookmark, err = deps.Domains.Archiver.DownloadBookmarkArchive(bookmarks[0])
+	require.NoError(t, err)
+
+	bookmarks, err = deps.Database.SaveBookmarks(context.TODO(), false, *bookmark)
+	require.NoError(t, err)
+	bookmark = &bookmarks[0]
+
+	g := gin.Default()
+	templates.SetupTemplates(g)
+	g.Use(func(c *gin.Context) {
+		c.Set(model.ContextAccountKey, "test")
+	})
+	router := NewBookmarkRoutes(logger, deps)
+	router.Setup(g.Group("/"))
+
+	t.Run("get existing bookmark archive", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("GET", "/"+strconv.Itoa(bookmark.ID)+"/archive", nil)
+		g.ServeHTTP(w, req)
+		require.Contains(t, w.Body.String(), "iframe")
+		require.Equal(t, 200, w.Code)
+	})
+
+	t.Run("get existing bookmark thumbnail", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("GET", "/"+strconv.Itoa(bookmark.ID)+"/thumb", nil)
+		g.ServeHTTP(w, req)
+		require.Equal(t, 200, w.Code)
+	})
+
+	t.Run("bookmark without archive", func(t *testing.T) {
+		bookmark := testutil.GetValidBookmark()
+		bookmarks, err := deps.Database.SaveBookmarks(context.TODO(), true, *bookmark)
+		require.NoError(t, err)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("GET", "/"+strconv.Itoa(bookmarks[0].ID)+"/archive", nil)
+		g.ServeHTTP(w, req)
+		require.Equal(t, http.StatusNotFound, w.Code)
+	})
+
+	t.Run("get existing bookmark archive file", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("GET", "/"+strconv.Itoa(bookmark.ID)+"/archive/file/", nil)
+		g.ServeHTTP(w, req)
+		require.Equal(t, 200, w.Code)
+	})
+
+	t.Run("bookmark with ebook", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("GET", "/"+strconv.Itoa(bookmarks[0].ID)+"/ebook", nil)
+		g.ServeHTTP(w, req)
+		require.Equal(t, http.StatusOK, w.Code)
+	})
+
+	t.Run("bookmark without ebook", func(t *testing.T) {
+		bookmark := testutil.GetValidBookmark()
+		bookmarks, err := deps.Database.SaveBookmarks(context.TODO(), true, *bookmark)
+		require.NoError(t, err)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("GET", "/"+strconv.Itoa(bookmarks[0].ID)+"/ebook", nil)
+		g.ServeHTTP(w, req)
+		require.Equal(t, http.StatusNotFound, w.Code)
+	})
+}

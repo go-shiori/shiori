@@ -2,19 +2,18 @@ package model
 
 import (
 	"context"
-	"html/template"
+	"io/fs"
 	"time"
 
 	"github.com/go-shiori/warc"
+	"github.com/spf13/afero"
 )
 
 type BookmarksDomain interface {
 	HasEbook(b *BookmarkDTO) bool
 	HasArchive(b *BookmarkDTO) bool
-	GetThumbnailPath(b *BookmarkDTO) string
 	HasThumbnail(b *BookmarkDTO) bool
 	GetBookmark(ctx context.Context, id DBID) (*BookmarkDTO, error)
-	GetBookmarkContentsFromArchive(bookmark *BookmarkDTO) (template.HTML, error)
 }
 
 type AccountsDomain interface {
@@ -29,6 +28,8 @@ type ArchiverDomain interface {
 }
 
 type StorageDomain interface {
+	Stat(name string) (fs.FileInfo, error)
+	FS() afero.Fs
 	FileExists(path string) bool
 	DirExists(path string) bool
 }

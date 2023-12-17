@@ -175,7 +175,7 @@ func updateHandler(cmd *cobra.Command, args []string) {
 					LogArchival: logArchival,
 				}
 
-				book, _, err = core.ProcessBookmark(request)
+				book, _, err = core.ProcessBookmark(deps, request)
 				content.Close()
 
 				if err != nil {

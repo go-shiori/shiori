@@ -101,7 +101,7 @@ func addHandler(cmd *cobra.Command, args []string) {
 				KeepExcerpt: excerpt != "",
 			}
 
-			book, isFatalErr, err = core.ProcessBookmark(request)
+			book, isFatalErr, err = core.ProcessBookmark(deps, request)
 			content.Close()
 
 			if err != nil {

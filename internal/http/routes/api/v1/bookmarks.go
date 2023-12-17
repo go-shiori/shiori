@@ -33,6 +33,13 @@ func (r *BookmarksAPIRoutes) Setup(g *gin.RouterGroup) model.Routes {
 	return r
 }
 
+func NewBookmarksPIRoutes(logger *logrus.Logger, deps *dependencies.Dependencies) *BookmarksAPIRoutes {
+	return &BookmarksAPIRoutes{
+		logger: logger,
+		deps:   deps,
+	}
+}
+
 type updateCachePayload struct {
 	Ids           []int `json:"ids"    validate:"required"`
 	KeepMetadata  bool  `json:"keep_metadata"`
@@ -189,13 +196,6 @@ func (r *BookmarksAPIRoutes) deleteHandler(c *gin.Context) {
 	response.Send(c, 200, "Bookmark deleted")
 }
 
-func NewBookmarksPIRoutes(logger *logrus.Logger, deps *dependencies.Dependencies) *BookmarksAPIRoutes {
-	return &BookmarksAPIRoutes{
-		logger: logger,
-		deps:   deps,
-	}
-}
-
 // updateCache godoc
 //
 //	@Summary					Update Cache and Ebook on server.
@@ -298,7 +298,7 @@ func (r *BookmarksAPIRoutes) updateCache(c *gin.Context) {
 				}
 			}
 
-			book, _, err = core.ProcessBookmark(request)
+			book, _, err = core.ProcessBookmark(r.deps, request)
 			content.Close()
 
 			if err != nil {

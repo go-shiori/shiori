@@ -3,7 +3,6 @@ package domains
 import (
 	"fmt"
 	"path/filepath"
-	"strconv"
 
 	"github.com/go-shiori/shiori/internal/core"
 	"github.com/go-shiori/shiori/internal/dependencies"
@@ -28,7 +27,7 @@ func (d *ArchiverDomain) DownloadBookmarkArchive(book model.BookmarkDTO) (*model
 		ContentType: contentType,
 	}
 
-	result, isFatalErr, err := core.ProcessBookmark(processRequest)
+	result, isFatalErr, err := core.ProcessBookmark(d.deps, processRequest)
 	content.Close()
 
 	if err != nil && isFatalErr {
@@ -39,13 +38,14 @@ func (d *ArchiverDomain) DownloadBookmarkArchive(book model.BookmarkDTO) (*model
 }
 
 func (d *ArchiverDomain) GetBookmarkArchive(book *model.BookmarkDTO) (*warc.Archive, error) {
-	archivePath := filepath.Join(d.deps.Config.Storage.DataDir, "archive", strconv.Itoa(book.ID))
+	archivePath := model.GetArchivePath(book)
 
-	if !FileExists(archivePath) {
-		return nil, fmt.Errorf("archive not found")
+	if !d.deps.Domains.Storage.FileExists(archivePath) {
+		return nil, fmt.Errorf("archive for bookmark %d doesn't exist", book.ID)
 	}
 
-	return warc.Open(archivePath)
+	// FIXME: This only works in local filesystem
+	return warc.Open(filepath.Join(d.deps.Config.Storage.DataDir, archivePath))
 }
 
 func NewArchiverDomain(deps *dependencies.Dependencies) *ArchiverDomain {

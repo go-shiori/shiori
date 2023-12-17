@@ -2,7 +2,6 @@ package domains_test
 
 import (
 	"context"
-	"path/filepath"
 	"testing"
 
 	"github.com/go-shiori/shiori/internal/config"
@@ -10,14 +9,14 @@ import (
 	"github.com/go-shiori/shiori/internal/domains"
 	"github.com/go-shiori/shiori/internal/mocks"
 	"github.com/go-shiori/shiori/internal/model"
-	"github.com/psanford/memfs"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )
 
 func TestBookmarkDomain(t *testing.T) {
-	fs := memfs.New()
+	fs := afero.NewMemMapFs()
 
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
@@ -31,12 +30,12 @@ func TestBookmarkDomain(t *testing.T) {
 	deps.Domains.Storage = domains.NewStorageDomain(deps, fs)
 
 	fs.MkdirAll("thumb", 0755)
-	fs.WriteFile("thumb/1", []byte("x"), 0644)
+	fs.Create("thumb/1")
 	fs.MkdirAll("ebook", 0755)
-	fs.WriteFile("ebook/1.epub", []byte("x"), 0644)
+	fs.Create("ebook/1.epub")
 	fs.MkdirAll("archive", 0755)
 	// TODO: write a valid archive file
-	fs.WriteFile("archive/1", []byte("x"), 0644)
+	fs.Create("archive/1")
 
 	domain := domains.NewBookmarksDomain(deps)
 	t.Run("HasEbook", func(t *testing.T) {
@@ -55,11 +54,6 @@ func TestBookmarkDomain(t *testing.T) {
 		t.Run("No", func(t *testing.T) {
 			require.False(t, domain.HasArchive(&model.BookmarkDTO{ID: 2}))
 		})
-	})
-
-	t.Run("GetThumbnailPath", func(t *testing.T) {
-		thumbnailPath := domain.GetThumbnailPath(&model.BookmarkDTO{ID: 1})
-		require.Equal(t, filepath.Join("thumb/1"), thumbnailPath)
 	})
 
 	t.Run("HasThumbnail", func(t *testing.T) {
