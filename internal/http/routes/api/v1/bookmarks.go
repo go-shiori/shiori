@@ -10,7 +10,6 @@ import (
 	"sync"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-shiori/shiori/internal/config"
 	"github.com/go-shiori/shiori/internal/core"
 	"github.com/go-shiori/shiori/internal/database"
 	"github.com/go-shiori/shiori/internal/dependencies"
@@ -213,10 +212,6 @@ func (r *BookmarksAPIRoutes) updateCache(c *gin.Context) {
 		return
 	}
 
-	// Get server config
-	logger := logrus.New()
-	cfg := config.ParseServerConfiguration(ctx, logger)
-
 	var payload updateCachePayload
 	if err := c.ShouldBindJSON(&payload); err != nil {
 		response.SendInternalServerError(c)
@@ -280,7 +275,7 @@ func (r *BookmarksAPIRoutes) updateCache(c *gin.Context) {
 			}
 
 			request := core.ProcessRequest{
-				DataDir:     cfg.Storage.DataDir,
+				DataDir:     r.deps.Config.Storage.DataDir,
 				Bookmark:    book,
 				Content:     content,
 				ContentType: contentType,
