@@ -2,6 +2,7 @@ package domains_test
 
 import (
 	"context"
+	"os"
 	"testing"
 
 	"github.com/go-shiori/shiori/internal/config"
@@ -44,4 +45,61 @@ func TestFileExists(t *testing.T) {
 
 	require.True(t, domain.FileExists("foo/file"))
 	require.False(t, domain.FileExists("bar"))
+}
+
+func TestWriteFile(t *testing.T) {
+	fs := afero.NewMemMapFs()
+
+	domain := domains.NewStorageDomain(
+		&dependencies.Dependencies{
+			Config: config.ParseServerConfiguration(context.TODO(), logrus.New()),
+			Log:    logrus.New(),
+		},
+		fs,
+	)
+
+	err := domain.WriteData("foo/file.ext", []byte("foo"))
+	require.NoError(t, err)
+	require.True(t, domain.FileExists("foo/file.ext"))
+	require.True(t, domain.DirExists("foo"))
+	handler, err := domain.FS().Open("foo/file.ext")
+	require.NoError(t, err)
+	defer handler.Close()
+
+	data, err := afero.ReadAll(handler)
+	require.NoError(t, err)
+
+	require.Equal(t, "foo", string(data))
+}
+
+func TestSaveFile(t *testing.T) {
+	fs := afero.NewMemMapFs()
+
+	domain := domains.NewStorageDomain(
+		&dependencies.Dependencies{
+			Config: config.ParseServerConfiguration(context.TODO(), logrus.New()),
+			Log:    logrus.New(),
+		},
+		fs,
+	)
+
+	tempFile, err := os.CreateTemp("", "")
+	require.NoError(t, err)
+	defer os.Remove(tempFile.Name())
+
+	_, err = tempFile.WriteString("foo")
+	require.NoError(t, err)
+
+	err = domain.WriteFile("foo/file.ext", tempFile)
+	require.NoError(t, err)
+	require.True(t, domain.FileExists("foo/file.ext"))
+	require.True(t, domain.DirExists("foo"))
+	handler, err := domain.FS().Open("foo/file.ext")
+	require.NoError(t, err)
+	defer handler.Close()
+
+	data, err := afero.ReadAll(handler)
+	require.NoError(t, err)
+
+	require.Equal(t, "foo", string(data))
 }

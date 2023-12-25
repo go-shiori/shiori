@@ -29,7 +29,7 @@ func TestDownloadBookImage(t *testing.T) {
 			defer os.Remove(dstPath)
 
 			// Act
-			err := core.DownloadBookImage(deps.Domains.Storage.FS(), imageURL, dstPath)
+			err := core.DownloadBookImage(deps, imageURL, dstPath)
 
 			// Assert
 			assert.EqualError(t, err, "unsupported image type")
@@ -43,7 +43,7 @@ func TestDownloadBookImage(t *testing.T) {
 			defer os.Remove(dstPath)
 
 			// Act
-			err := core.DownloadBookImage(deps.Domains.Storage.FS(), imageURL, dstPath)
+			err := core.DownloadBookImage(deps, imageURL, dstPath)
 
 			// Assert
 			assert.NoError(t, err)
@@ -64,7 +64,7 @@ func TestDownloadBookImage(t *testing.T) {
 			defer os.Remove(dstPath)
 
 			// Act
-			err := core.DownloadBookImage(deps.Domains.Storage.FS(), imageURL, dstPath)
+			err := core.DownloadBookImage(deps, imageURL, dstPath)
 
 			// Assert
 			assert.NoError(t, err)

@@ -22,7 +22,6 @@ import (
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/go-shiori/warc"
 	"github.com/pkg/errors"
-	"github.com/spf13/afero"
 	_ "golang.org/x/image/webp"
 
 	// Add support for png
@@ -125,7 +124,7 @@ func ProcessBookmark(deps *dependencies.Dependencies, req ProcessRequest) (book 
 
 	// Save article image to local disk
 	for i, imageURL := range imageURLs {
-		err = DownloadBookImage(deps.Domains.Storage.FS(), imageURL, imgPath)
+		err = DownloadBookImage(deps, imageURL, imgPath)
 		if err != nil && errors.Is(err, ErrNoSupportedImageType) {
 			log.Printf("%s: %s", err, imageURL)
 			if i == len(imageURLs)-1 {
@@ -181,7 +180,7 @@ func ProcessBookmark(deps *dependencies.Dependencies, req ProcessRequest) (book 
 		}
 
 		dstPath := model.GetArchivePath(&book)
-		err = MoveFileToDestination(deps.Domains.Storage.FS(), dstPath, tmpFile)
+		err = deps.Domains.Storage.WriteFile(dstPath, tmpFile)
 		if err != nil {
 			return book, false, fmt.Errorf("failed move archive to destination `: %v", err)
 		}
@@ -192,7 +191,7 @@ func ProcessBookmark(deps *dependencies.Dependencies, req ProcessRequest) (book 
 	return book, false, nil
 }
 
-func DownloadBookImage(fs afero.Fs, url, dstPath string) error {
+func DownloadBookImage(deps *dependencies.Dependencies, url, dstPath string) error {
 	// Fetch data from URL
 	resp, err := httpClient.Get(url)
 	if err != nil {
@@ -264,37 +263,9 @@ func DownloadBookImage(fs afero.Fs, url, dstPath string) error {
 		return fmt.Errorf("failed to save image %s: %v", url, err)
 	}
 
-	err = MoveFileToDestination(fs, dstPath, tmpFile)
+	err = deps.Domains.Storage.WriteFile(dstPath, tmpFile)
 	if err != nil {
 		return err
-	}
-
-	return nil
-}
-
-// dstPath requires the filename
-// TODO: move to storage domain
-func MoveFileToDestination(fs afero.Fs, dstPath string, tmpFile *os.File) error {
-	// Prepare destination file.
-	err := fs.MkdirAll(fp.Dir(dstPath), model.DataDirPerm)
-	if err != nil {
-		return fmt.Errorf("failed to create destination dir: %v", err)
-	}
-
-	dstFile, err := fs.Create(dstPath)
-	if err != nil {
-		return fmt.Errorf("failed to create destination file: %v", err)
-	}
-	defer dstFile.Close()
-	// Copy temporary file to destination
-	_, err = tmpFile.Seek(0, io.SeekStart)
-	if err != nil {
-		return fmt.Errorf("failed to rewind temporary file: %v", err)
-	}
-
-	_, err = io.Copy(dstFile, tmpFile)
-	if err != nil {
-		return fmt.Errorf("failed to copy file to the destination")
 	}
 
 	return nil

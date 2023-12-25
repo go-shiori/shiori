@@ -76,7 +76,7 @@ func GenerateEbook(deps *dependencies.Dependencies, req ProcessRequest, dstPath 
 	defer tmpFile.Close()
 
 	// If everything go well we move ebook to dstPath
-	err = MoveFileToDestination(deps.Domains.Storage.FS(), dstPath, tmpFile)
+	err = deps.Domains.Storage.WriteFile(dstPath, tmpFile)
 	if err != nil {
 		return book, errors.Wrap(err, "failed move ebook to destination")
 	}

@@ -3,6 +3,7 @@ package model
 import (
 	"context"
 	"io/fs"
+	"os"
 	"time"
 
 	"github.com/go-shiori/warc"
@@ -32,4 +33,6 @@ type StorageDomain interface {
 	FS() afero.Fs
 	FileExists(path string) bool
 	DirExists(path string) bool
+	WriteData(dst string, data []byte) error
+	WriteFile(dst string, src *os.File) error
 }
