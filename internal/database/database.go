@@ -1,4 +1,3 @@
-//go:generate mockgen -destination=../mocks/database.go -package=mocks github.com/go-shiori/shiori/internal/database DB
 package database
 
 import (

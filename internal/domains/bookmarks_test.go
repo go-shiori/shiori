@@ -5,24 +5,25 @@ import (
 	"testing"
 
 	"github.com/go-shiori/shiori/internal/config"
+	"github.com/go-shiori/shiori/internal/database"
 	"github.com/go-shiori/shiori/internal/dependencies"
 	"github.com/go-shiori/shiori/internal/domains"
-	"github.com/go-shiori/shiori/internal/mocks"
 	"github.com/go-shiori/shiori/internal/model"
+	"github.com/go-shiori/shiori/internal/testutil"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/mock/gomock"
 )
 
 func TestBookmarkDomain(t *testing.T) {
 	fs := afero.NewMemMapFs()
 
-	mockCtrl := gomock.NewController(t)
-	defer mockCtrl.Finish()
+	db, err := database.OpenSQLiteDatabase(context.TODO(), ":memory:")
+	require.NoError(t, err)
+	require.NoError(t, db.Migrate())
 
 	deps := &dependencies.Dependencies{
-		Database: mocks.NewMockDB(mockCtrl),
+		Database: db,
 		Config:   config.ParseServerConfiguration(context.TODO(), logrus.New()),
 		Log:      logrus.New(),
 		Domains:  &dependencies.Domains{},
@@ -67,12 +68,8 @@ func TestBookmarkDomain(t *testing.T) {
 
 	t.Run("GetBookmark", func(t *testing.T) {
 		t.Run("Success", func(t *testing.T) {
-			deps.Database.(*mocks.MockDB).EXPECT().
-				GetBookmark(gomock.Any(), 1, "").
-				Return(model.BookmarkDTO{
-					ID:   1,
-					HTML: "<p>hello world</p>",
-				}, true, nil)
+			_, err := deps.Database.SaveBookmarks(context.TODO(), true, *testutil.GetValidBookmark())
+			require.NoError(t, err)
 			bookmark, err := domain.GetBookmark(context.Background(), 1)
 			require.NoError(t, err)
 			require.Equal(t, 1, bookmark.ID)
