@@ -4,6 +4,10 @@ BASH ?= $(shell command -v bash 2> /dev/null)
 # Development
 SHIORI_DIR ?= dev-data
 
+# Testing
+GO_TEST_FLAGS ?= -v -race -count=1 -covermode=atomic -coverprofile=coverage.out
+GOTESTFMT_FLAGS ?=
+
 # Build
 CGO_ENABLED ?= 0
 BUILD_TIME := $(shell date -u +%Y%m%d.%H%M%S)
