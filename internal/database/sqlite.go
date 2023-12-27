@@ -9,7 +9,7 @@ import (
 
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/golang-migrate/migrate/v4"
-	"github.com/golang-migrate/migrate/v4/database/sqlite3"
+	"github.com/golang-migrate/migrate/v4/database/sqlite"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
@@ -33,18 +33,6 @@ type tagContent struct {
 	model.Tag
 }
 
-// OpenSQLiteDatabase creates and open connection to new SQLite3 database.
-func OpenSQLiteDatabase(ctx context.Context, databasePath string) (sqliteDB *SQLiteDatabase, err error) {
-	// Open database
-	db, err := sqlx.ConnectContext(ctx, "sqlite3", databasePath)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-
-	sqliteDB = &SQLiteDatabase{dbbase: dbbase{*db}}
-	return sqliteDB, nil
-}
-
 // Migrate runs migrations for this database engine
 func (db *SQLiteDatabase) Migrate() error {
 	sourceDriver, err := iofs.New(migrations, "migrations/sqlite")
@@ -52,7 +40,7 @@ func (db *SQLiteDatabase) Migrate() error {
 		return errors.WithStack(err)
 	}
 
-	dbDriver, err := sqlite3.WithInstance(db.DB.DB, &sqlite3.Config{})
+	dbDriver, err := sqlite.WithInstance(db.DB.DB, &sqlite.Config{})
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -60,7 +48,7 @@ func (db *SQLiteDatabase) Migrate() error {
 	migration, err := migrate.NewWithInstance(
 		"iofs",
 		sourceDriver,
-		"sqlite3",
+		"sqlite",
 		dbDriver,
 	)
 	if err != nil {

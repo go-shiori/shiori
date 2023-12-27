@@ -8,10 +8,8 @@ import (
 	"github.com/sirupsen/logrus"
 
 	// Database driver
-	_ "git.sr.ht/~emersion/go-sqlite3-fts5"
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/lib/pq"
-	_ "github.com/mattn/go-sqlite3"
 
 	// Add this to prevent it removed by go mod tidy
 	_ "github.com/shurcooL/vfsgen"
