@@ -73,7 +73,7 @@ func (h *Handler) PrepareTemplates() error {
 		`<div id="shiori-archive-header">
 		<p id="shiori-logo"><span>栞</span>shiori</p>
 		<div class="spacer"></div>
-		<a href="$$.URL$$" target="_blank">View Original</a>
+		<a href="$$.URL$$" target="_blank" rel="noopener noreferrer">View Original</a>
 		$$if .HasContent$$
 		<a href="/bookmark/$$.ID$$/content">View Readable</a>
 		$$end$$

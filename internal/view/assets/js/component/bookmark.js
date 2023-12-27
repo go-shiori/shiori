@@ -4,7 +4,7 @@ var template = `
 		v-if="editMode" 
 		@click="selectBookmark">
 	</a>
-	<a class="bookmark-link" :href="mainURL" target="_blank" rel="noopener">
+	<a class="bookmark-link" :href="mainURL" target="_blank" rel="noopener noreferrer">
 		<span class="thumbnail" v-if="thumbnailVisible" :style="thumbnailStyleURL"></span>
 		<p class="title" dir="auto">{{title}}
 			<i v-if="hasContent" class="fas fa-file-alt"></i>
@@ -19,7 +19,7 @@ var template = `
 	</div>
 	<div class="spacer"></div>
 	<div class="bookmark-menu">
-		<a class="url" :href="url" target="_blank" rel="noopener">
+		<a class="url" :href="url" target="_blank" rel="noopener noreferrer">
 			{{hostnameURL}}
 		</a>
 		<template v-if="!editMode && menuVisible">
