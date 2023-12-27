@@ -5,7 +5,7 @@ BASH ?= $(shell command -v bash 2> /dev/null)
 SHIORI_DIR ?= dev-data
 
 # Build
-CGO_ENABLED ?= 1
+CGO_ENABLED ?= 0
 BUILD_TIME := $(shell date -u +%Y%m%d.%H%M%S)
 BUILD_HASH := $(shell git describe --tags)
 BUILD_TAGS ?= osusergo,netgo,fts5
