@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-shiori/shiori/internal/config"
+	"github.com/go-shiori/shiori/internal/dependencies"
 	"github.com/go-shiori/shiori/internal/http/response"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/sirupsen/logrus"
@@ -12,7 +12,7 @@ import (
 
 type TagsAPIRoutes struct {
 	logger *logrus.Logger
-	deps   *config.Dependencies
+	deps   *dependencies.Dependencies
 }
 
 func (r *TagsAPIRoutes) Setup(g *gin.RouterGroup) model.Routes {
@@ -62,7 +62,7 @@ func (r *TagsAPIRoutes) createHandler(c *gin.Context) {
 	response.Send(c, http.StatusCreated, nil)
 }
 
-func NewTagsPIRoutes(logger *logrus.Logger, deps *config.Dependencies) *TagsAPIRoutes {
+func NewTagsPIRoutes(logger *logrus.Logger, deps *dependencies.Dependencies) *TagsAPIRoutes {
 	return &TagsAPIRoutes{
 		logger: logger,
 		deps:   deps,

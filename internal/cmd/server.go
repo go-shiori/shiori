@@ -37,7 +37,7 @@ func newServerCommandHandler() func(cmd *cobra.Command, args []string) {
 		rootPath, _ := cmd.Flags().GetString("webroot")
 		accessLog, _ := cmd.Flags().GetBool("access-log")
 		serveWebUI, _ := cmd.Flags().GetBool("serve-web-ui")
-		secretKey, _ := cmd.Flags().GetString("secret-key")
+		secretKey, _ := cmd.Flags().GetBytesHex("secret-key")
 
 		cfg, dependencies := initShiori(ctx, cmd)
 
@@ -66,7 +66,10 @@ func newServerCommandHandler() func(cmd *cobra.Command, args []string) {
 
 		dependencies.Log.Infof("Starting Shiori v%s", model.BuildVersion)
 
-		server := http.NewHttpServer(dependencies.Log).Setup(cfg, dependencies)
+		server, err := http.NewHttpServer(dependencies.Log).Setup(cfg, dependencies)
+		if err != nil {
+			dependencies.Log.WithError(err).Fatal("error setting up server")
+		}
 
 		if err := server.Start(ctx); err != nil {
 			dependencies.Log.WithError(err).Fatal("error starting server")

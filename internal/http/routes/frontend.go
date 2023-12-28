@@ -2,11 +2,9 @@ package routes
 
 import (
 	"embed"
-	"html/template"
 	"net/http"
 	"path/filepath"
 
-	"github.com/gin-contrib/gzip"
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
 	"github.com/go-shiori/shiori/internal/config"
@@ -48,21 +46,8 @@ type FrontendRoutes struct {
 	cfg    *config.Config
 }
 
-func (r *FrontendRoutes) loadTemplates(e *gin.Engine) {
-	tmpl, err := template.New("html").Delims("$$", "$$").ParseFS(views.Templates, "*.html")
-	if err != nil {
-		r.logger.WithError(err).Error("Failed to parse templates")
-		return
-	}
-	e.SetHTMLTemplate(tmpl)
-}
-
 func (r *FrontendRoutes) Setup(e *gin.Engine) {
 	group := e.Group("/")
-	e.Delims("$$", "$$")
-	r.loadTemplates(e)
-	// e.LoadHTMLGlob("internal/view/*.html")
-	group.Use(gzip.Gzip(gzip.DefaultCompression))
 	group.GET("/login", func(ctx *gin.Context) {
 		ctx.HTML(http.StatusOK, "login.html", gin.H{
 			"RootPath": r.cfg.Http.RootPath,

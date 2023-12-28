@@ -45,7 +45,7 @@ func testDatabase(t *testing.T, dbFactory testDatabaseFactory) {
 func testBookmarkAutoIncrement(t *testing.T, db DB) {
 	ctx := context.TODO()
 
-	book := model.Bookmark{
+	book := model.BookmarkDTO{
 		URL:   "https://github.com/go-shiori/shiori",
 		Title: "shiori",
 	}
@@ -54,7 +54,7 @@ func testBookmarkAutoIncrement(t *testing.T, db DB) {
 	assert.NoError(t, err, "Save bookmarks must not fail")
 	assert.Equal(t, 1, result[0].ID, "Saved bookmark must have ID %d", 1)
 
-	book = model.Bookmark{
+	book = model.BookmarkDTO{
 		URL:   "https://github.com/go-shiori/obelisk",
 		Title: "obelisk",
 	}
@@ -67,7 +67,7 @@ func testBookmarkAutoIncrement(t *testing.T, db DB) {
 func testCreateBookmark(t *testing.T, db DB) {
 	ctx := context.TODO()
 
-	book := model.Bookmark{
+	book := model.BookmarkDTO{
 		URL:   "https://github.com/go-shiori/obelisk",
 		Title: "shiori",
 	}
@@ -81,7 +81,7 @@ func testCreateBookmark(t *testing.T, db DB) {
 func testCreateBookmarkWithContent(t *testing.T, db DB) {
 	ctx := context.TODO()
 
-	book := model.Bookmark{
+	book := model.BookmarkDTO{
 		URL:     "https://github.com/go-shiori/obelisk",
 		Title:   "shiori",
 		Content: "Some content",
@@ -106,7 +106,7 @@ func testCreateBookmarkWithContent(t *testing.T, db DB) {
 func testCreateBookmarkWithTag(t *testing.T, db DB) {
 	ctx := context.TODO()
 
-	book := model.Bookmark{
+	book := model.BookmarkDTO{
 		URL:   "https://github.com/go-shiori/obelisk",
 		Title: "shiori",
 		Tags: []model.Tag{
@@ -126,7 +126,7 @@ func testCreateBookmarkWithTag(t *testing.T, db DB) {
 func testCreateBookmarkTwice(t *testing.T, db DB) {
 	ctx := context.TODO()
 
-	book := model.Bookmark{
+	book := model.BookmarkDTO{
 		URL:   "https://github.com/go-shiori/shiori",
 		Title: "shiori",
 	}
@@ -144,7 +144,7 @@ func testCreateBookmarkTwice(t *testing.T, db DB) {
 func testCreateTwoDifferentBookmarks(t *testing.T, db DB) {
 	ctx := context.TODO()
 
-	book := model.Bookmark{
+	book := model.BookmarkDTO{
 		URL:   "https://github.com/go-shiori/shiori",
 		Title: "shiori",
 	}
@@ -152,7 +152,7 @@ func testCreateTwoDifferentBookmarks(t *testing.T, db DB) {
 	_, err := db.SaveBookmarks(ctx, true, book)
 	assert.NoError(t, err, "Save first bookmark must not fail")
 
-	book = model.Bookmark{
+	book = model.BookmarkDTO{
 		URL:   "https://github.com/go-shiori/go-readability",
 		Title: "go-readability",
 	}
@@ -163,7 +163,7 @@ func testCreateTwoDifferentBookmarks(t *testing.T, db DB) {
 func testUpdateBookmark(t *testing.T, db DB) {
 	ctx := context.TODO()
 
-	book := model.Bookmark{
+	book := model.BookmarkDTO{
 		URL:   "https://github.com/go-shiori/shiori",
 		Title: "shiori",
 	}
@@ -184,7 +184,7 @@ func testUpdateBookmark(t *testing.T, db DB) {
 func testUpdateBookmarkWithContent(t *testing.T, db DB) {
 	ctx := context.TODO()
 
-	book := model.Bookmark{
+	book := model.BookmarkDTO{
 		URL:     "https://github.com/go-shiori/obelisk",
 		Title:   "shiori",
 		Content: "Some content",
@@ -216,7 +216,7 @@ func testUpdateBookmarkWithContent(t *testing.T, db DB) {
 func testGetBookmark(t *testing.T, db DB) {
 	ctx := context.TODO()
 
-	book := model.Bookmark{
+	book := model.BookmarkDTO{
 		URL:   "https://github.com/go-shiori/shiori",
 		Title: "shiori",
 	}
@@ -237,13 +237,13 @@ func testGetBookmarkNotExistent(t *testing.T, db DB) {
 	savedBookmark, exists, err := db.GetBookmark(ctx, 1, "")
 	assert.NoError(t, err, "Get bookmark should not fail")
 	assert.False(t, exists, "Bookmark should not exist")
-	assert.Equal(t, model.Bookmark{}, savedBookmark)
+	assert.Equal(t, model.BookmarkDTO{}, savedBookmark)
 }
 
 func testGetBookmarks(t *testing.T, db DB) {
 	ctx := context.TODO()
 
-	book := model.Bookmark{
+	book := model.BookmarkDTO{
 		URL:   "https://github.com/go-shiori/shiori",
 		Title: "shiori",
 	}
@@ -266,7 +266,7 @@ func testGetBookmarksWithSQLCharacters(t *testing.T, db DB) {
 	ctx := context.TODO()
 
 	// _ := 0
-	book := model.Bookmark{
+	book := model.BookmarkDTO{
 		URL:   "https://github.com/go-shiori/shiori",
 		Title: "shiori",
 	}
@@ -296,7 +296,7 @@ func testGetBookmarksCount(t *testing.T, db DB) {
 	ctx := context.TODO()
 
 	expectedCount := 1
-	book := model.Bookmark{
+	book := model.BookmarkDTO{
 		URL:   "https://github.com/go-shiori/shiori",
 		Title: "shiori",
 	}

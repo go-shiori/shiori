@@ -41,7 +41,7 @@ func isURLValid(s string) bool {
 	return err == nil && tmp.Scheme != "" && tmp.Hostname() != ""
 }
 
-func printBookmarks(bookmarks ...model.Bookmark) {
+func printBookmarks(bookmarks ...model.BookmarkDTO) {
 	for _, bookmark := range bookmarks {
 		// Create bookmark index
 		strBookmarkIndex := fmt.Sprintf("%d. ", bookmark.ID)

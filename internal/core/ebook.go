@@ -1,13 +1,13 @@
 package core
 
 import (
-	"fmt"
 	"os"
 	fp "path/filepath"
 	"strconv"
 	"strings"
 
 	epub "github.com/go-shiori/go-epub"
+	"github.com/go-shiori/shiori/internal/dependencies"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/pkg/errors"
 )
@@ -15,8 +15,7 @@ import (
 // GenerateEbook receives a `ProcessRequest` and generates an ebook file in the destination path specified.
 // The destination path `dstPath` should include file name with ".epub" extension
 // The bookmark model will be used to update the UI based on whether this function is successful or not.
-func GenerateEbook(req ProcessRequest, dstPath string) (book model.Bookmark, err error) {
-
+func GenerateEbook(deps *dependencies.Dependencies, req ProcessRequest, dstPath string) (book model.BookmarkDTO, err error) {
 	book = req.Bookmark
 
 	// Make sure bookmark ID is defined
@@ -27,14 +26,14 @@ func GenerateEbook(req ProcessRequest, dstPath string) (book model.Bookmark, err
 	// Get current state of bookmark cheak archive and thumb
 	strID := strconv.Itoa(book.ID)
 
-	imagePath := fp.Join(req.DataDir, "thumb", fmt.Sprintf("%d", book.ID))
-	archivePath := fp.Join(req.DataDir, "archive", fmt.Sprintf("%d", book.ID))
+	bookmarkThumbnailPath := model.GetThumbnailPath(&book)
+	bookmarkArchivePath := model.GetArchivePath(&book)
 
-	if _, err := os.Stat(imagePath); err == nil {
+	if deps.Domains.Storage.FileExists(bookmarkThumbnailPath) {
 		book.ImageURL = fp.Join("/", "bookmark", strID, "thumb")
 	}
 
-	if _, err := os.Stat(archivePath); err == nil {
+	if deps.Domains.Storage.FileExists(bookmarkArchivePath) {
 		book.HasArchive = true
 	}
 
@@ -77,7 +76,7 @@ func GenerateEbook(req ProcessRequest, dstPath string) (book model.Bookmark, err
 	defer tmpFile.Close()
 
 	// If everything go well we move ebook to dstPath
-	err = MoveFileToDestination(dstPath, tmpFile)
+	err = deps.Domains.Storage.WriteFile(dstPath, tmpFile)
 	if err != nil {
 		return book, errors.Wrap(err, "failed move ebook to destination")
 	}

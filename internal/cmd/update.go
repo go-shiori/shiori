@@ -147,7 +147,7 @@ func updateHandler(cmd *cobra.Command, args []string) {
 				book.URL = url
 			}
 
-			go func(i int, book model.Bookmark) {
+			go func(i int, book model.BookmarkDTO) {
 				// Make sure to finish the WG
 				defer wg.Done()
 
@@ -175,7 +175,7 @@ func updateHandler(cmd *cobra.Command, args []string) {
 					LogArchival: logArchival,
 				}
 
-				book, _, err = core.ProcessBookmark(request)
+				book, _, err = core.ProcessBookmark(deps, request)
 				content.Close()
 
 				if err != nil {

@@ -8,9 +8,11 @@ import (
 
 	"github.com/go-shiori/shiori/internal/config"
 	"github.com/go-shiori/shiori/internal/database"
+	"github.com/go-shiori/shiori/internal/dependencies"
 	"github.com/go-shiori/shiori/internal/domains"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"golang.org/x/net/context"
 )
@@ -47,7 +49,7 @@ func ShioriCmd() *cobra.Command {
 	return rootCmd
 }
 
-func initShiori(ctx context.Context, cmd *cobra.Command) (*config.Config, *config.Dependencies) {
+func initShiori(ctx context.Context, cmd *cobra.Command) (*config.Config, *dependencies.Dependencies) {
 	logger := logrus.New()
 
 	portableMode, _ := cmd.Flags().GetBool("portable")
@@ -96,9 +98,11 @@ func initShiori(ctx context.Context, cmd *cobra.Command) (*config.Config, *confi
 		logger.Warn("Development mode is ENABLED, this will enable some helpers for local development, unsuitable for production environments")
 	}
 
-	dependencies := config.NewDependencies(logger, db, cfg)
-	dependencies.Domains.Auth = domains.NewAccountsDomain(logger, cfg.Http.SecretKey, db)
-	dependencies.Domains.Archiver = domains.NewArchiverDomain(logger, cfg.Storage.DataDir)
+	dependencies := dependencies.NewDependencies(logger, db, cfg)
+	dependencies.Domains.Auth = domains.NewAccountsDomain(dependencies)
+	dependencies.Domains.Archiver = domains.NewArchiverDomain(dependencies)
+	dependencies.Domains.Bookmarks = domains.NewBookmarksDomain(dependencies)
+	dependencies.Domains.Storage = domains.NewStorageDomain(dependencies, afero.NewBasePathFs(afero.NewOsFs(), cfg.Storage.DataDir))
 
 	// Workaround: Get accounts to make sure at least one is present in the database.
 	// If there's no accounts in the database, create the shiori/gopher account the legacy api

@@ -76,8 +76,8 @@ func (db *SQLiteDatabase) Migrate() error {
 
 // SaveBookmarks saves new or updated bookmarks to database.
 // Returns the saved ID and error message if any happened.
-func (db *SQLiteDatabase) SaveBookmarks(ctx context.Context, create bool, bookmarks ...model.Bookmark) ([]model.Bookmark, error) {
-	var result []model.Bookmark
+func (db *SQLiteDatabase) SaveBookmarks(ctx context.Context, create bool, bookmarks ...model.BookmarkDTO) ([]model.BookmarkDTO, error) {
+	var result []model.BookmarkDTO
 
 	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
 		// Prepare statement
@@ -245,7 +245,7 @@ func (db *SQLiteDatabase) SaveBookmarks(ctx context.Context, create bool, bookma
 }
 
 // GetBookmarks fetch list of bookmarks based on submitted options.
-func (db *SQLiteDatabase) GetBookmarks(ctx context.Context, opts GetBookmarksOptions) ([]model.Bookmark, error) {
+func (db *SQLiteDatabase) GetBookmarks(ctx context.Context, opts GetBookmarksOptions) ([]model.BookmarkDTO, error) {
 	// Create initial query
 	query := `SELECT
 		b.id,
@@ -362,7 +362,7 @@ func (db *SQLiteDatabase) GetBookmarks(ctx context.Context, opts GetBookmarksOpt
 	}
 
 	// Fetch bookmarks
-	bookmarks := []model.Bookmark{}
+	bookmarks := []model.BookmarkDTO{}
 	err = db.SelectContext(ctx, &bookmarks, query, args...)
 	if err != nil && err != sql.ErrNoRows {
 		return nil, errors.WithStack(err)
@@ -622,7 +622,7 @@ func (db *SQLiteDatabase) DeleteBookmarks(ctx context.Context, ids ...int) error
 
 // GetBookmark fetches bookmark based on its ID or URL.
 // Returns the bookmark and boolean whether it's exist or not.
-func (db *SQLiteDatabase) GetBookmark(ctx context.Context, id int, url string) (model.Bookmark, bool, error) {
+func (db *SQLiteDatabase) GetBookmark(ctx context.Context, id int, url string) (model.BookmarkDTO, bool, error) {
 	args := []interface{}{id}
 	query := `SELECT
 		b.id, b.url, b.title, b.excerpt, b.author, b.public, b.modified,
@@ -636,7 +636,7 @@ func (db *SQLiteDatabase) GetBookmark(ctx context.Context, id int, url string) (
 		args = append(args, url)
 	}
 
-	book := model.Bookmark{}
+	book := model.BookmarkDTO{}
 	if err := db.GetContext(ctx, &book, query, args...); err != nil && err != sql.ErrNoRows {
 		return book, false, errors.WithStack(err)
 	}

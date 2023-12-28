@@ -67,8 +67,8 @@ func (db *MySQLDatabase) Migrate() error {
 
 // SaveBookmarks saves new or updated bookmarks to database.
 // Returns the saved ID and error message if any happened.
-func (db *MySQLDatabase) SaveBookmarks(ctx context.Context, create bool, bookmarks ...model.Bookmark) ([]model.Bookmark, error) {
-	var result []model.Bookmark
+func (db *MySQLDatabase) SaveBookmarks(ctx context.Context, create bool, bookmarks ...model.BookmarkDTO) ([]model.BookmarkDTO, error) {
+	var result []model.BookmarkDTO
 
 	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
 		// Prepare statement
@@ -218,7 +218,7 @@ func (db *MySQLDatabase) SaveBookmarks(ctx context.Context, create bool, bookmar
 }
 
 // GetBookmarks fetch list of bookmarks based on submitted options.
-func (db *MySQLDatabase) GetBookmarks(ctx context.Context, opts GetBookmarksOptions) ([]model.Bookmark, error) {
+func (db *MySQLDatabase) GetBookmarks(ctx context.Context, opts GetBookmarksOptions) ([]model.BookmarkDTO, error) {
 	// Create initial query
 	columns := []string{
 		`id`,
@@ -330,7 +330,7 @@ func (db *MySQLDatabase) GetBookmarks(ctx context.Context, opts GetBookmarksOpti
 	}
 
 	// Fetch bookmarks
-	bookmarks := []model.Bookmark{}
+	bookmarks := []model.BookmarkDTO{}
 	err = db.Select(&bookmarks, query, args...)
 	if err != nil && err != sql.ErrNoRows {
 		return nil, errors.WithStack(err)
@@ -502,7 +502,7 @@ func (db *MySQLDatabase) DeleteBookmarks(ctx context.Context, ids ...int) (err e
 
 // GetBookmark fetches bookmark based on its ID or URL.
 // Returns the bookmark and boolean whether it's exist or not.
-func (db *MySQLDatabase) GetBookmark(ctx context.Context, id int, url string) (model.Bookmark, bool, error) {
+func (db *MySQLDatabase) GetBookmark(ctx context.Context, id int, url string) (model.BookmarkDTO, bool, error) {
 	args := []interface{}{id}
 	query := `SELECT
 		id, url, title, excerpt, author, public,
@@ -514,7 +514,7 @@ func (db *MySQLDatabase) GetBookmark(ctx context.Context, id int, url string) (m
 		args = append(args, url)
 	}
 
-	book := model.Bookmark{}
+	book := model.BookmarkDTO{}
 	if err := db.GetContext(ctx, &book, query, args...); err != nil && err != sql.ErrNoRows {
 		return book, false, errors.WithStack(err)
 	}
