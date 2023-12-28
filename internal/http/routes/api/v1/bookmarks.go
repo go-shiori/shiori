@@ -202,7 +202,7 @@ func (r *BookmarksAPIRoutes) deleteHandler(c *gin.Context) {
 //	@securityDefinitions.apikey	ApiKeyAuth
 //	@Param						payload	body	updateCachePayload	true "Update Cache Payload"`
 //	@Produce					json
-//	@Success					200	{object}	model.Bookmark
+//	@Success					200	{object}	model.BookmarkDTO
 //	@Failure					403	{object}	nil	"Token not provided/invalid"
 //	@Router						/api/v1/bookmarks/cache [put]
 func (r *BookmarksAPIRoutes) updateCache(c *gin.Context) {
