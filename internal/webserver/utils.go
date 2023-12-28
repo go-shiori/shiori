@@ -4,27 +4,9 @@ import (
 	"html/template"
 	"io"
 	"net"
-	"net/http"
-	nurl "net/url"
 	"os"
 	"syscall"
 )
-
-func createRedirectURL(newPath, previousPath string) string {
-	urlQueries := nurl.Values{}
-	urlQueries.Set("dst", previousPath)
-
-	redirectURL, _ := nurl.Parse(newPath)
-	redirectURL.RawQuery = urlQueries.Encode()
-	return redirectURL.String()
-}
-
-func redirectPage(w http.ResponseWriter, r *http.Request, url string) {
-	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-	w.Header().Set("Pragma", "no-cache")
-	w.Header().Set("Expires", "0")
-	http.Redirect(w, r, url, http.StatusMovedPermanently)
-}
 
 func FileExists(filePath string) bool {
 	info, err := os.Stat(filePath)
