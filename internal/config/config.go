@@ -60,6 +60,19 @@ type HttpConfig struct {
 	DisablePreParseMultipartForm bool          `env:"HTTP_DISABLE_PARSE_MULTIPART_FORM,default=true"`
 }
 
+// SetDefaults sets the default values for the configuration
+func (c *HttpConfig) SetDefaults(logger *logrus.Logger) {
+	// Set a random secret key if not set
+	if len(c.SecretKey) == 0 {
+		logger.Warn("SHIORI_HTTP_SECRET_KEY is not set, using random value. This means that all sessions will be invalidated on server restart.")
+		randomUUID, err := uuid.NewV4()
+		if err != nil {
+			logger.WithError(err).Fatal("couldn't generate a random UUID")
+		}
+		c.SecretKey = []byte(randomUUID.String())
+	}
+}
+
 type DatabaseConfig struct {
 	DBMS string `env:"DBMS"` // Deprecated
 	// DBMS requires more environment variables. Check the database package for more information.
@@ -80,19 +93,6 @@ type Config struct {
 }
 
 // SetDefaults sets the default values for the configuration
-func (c *HttpConfig) SetDefaults(logger *logrus.Logger) {
-	// Set a random secret key if not set
-	if len(c.SecretKey) == 0 {
-		logger.Warn("SHIORI_HTTP_SECRET_KEY is not set, using random value. This means that all sessions will be invalidated on server restart.")
-		randomUUID, err := uuid.NewV4()
-		if err != nil {
-			logger.WithError(err).Fatal("couldn't generate a random UUID")
-		}
-		c.SecretKey = []byte(randomUUID.String())
-	}
-}
-
-// SetDefaults sets the default values for the configuration
 func (c Config) SetDefaults(logger *logrus.Logger, portableMode bool) {
 	// Set the default storage directory if not set, setting also the database url for
 	// sqlite3 if that engine is used
@@ -108,6 +108,8 @@ func (c Config) SetDefaults(logger *logrus.Logger, portableMode bool) {
 	if c.Database.DBMS == "" && c.Database.URL == "" {
 		c.Database.URL = fmt.Sprintf("sqlite:///%s", filepath.Join(c.Storage.DataDir, "shiori.db"))
 	}
+
+	c.Http.SetDefaults(logger)
 }
 
 func ParseServerConfiguration(ctx context.Context, logger *logrus.Logger) *Config {
