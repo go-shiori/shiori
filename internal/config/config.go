@@ -93,8 +93,7 @@ type Config struct {
 	Development bool   `env:"DEVELOPMENT,default=False"`
 	Database    *DatabaseConfig
 	Storage     *StorageConfig
-	// LogLevel string `env:"LOG_LEVEL,default=info"`
-	Http *HttpConfig
+	Http        *HttpConfig
 }
 
 // SetDefaults sets the default values for the configuration
