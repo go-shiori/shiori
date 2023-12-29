@@ -16,13 +16,13 @@ import (
 
 // readDotEnv reads the configuration from variables in a .env file (only for contributing)
 func readDotEnv(logger *logrus.Logger) map[string]string {
+	result := make(map[string]string)
+
 	file, err := os.Open(".env")
 	if err != nil {
-		return nil
+		return result
 	}
 	defer file.Close()
-
-	result := make(map[string]string)
 
 	scanner := bufio.NewScanner(file)
 
@@ -33,6 +33,11 @@ func readDotEnv(logger *logrus.Logger) map[string]string {
 		}
 
 		keyval := strings.SplitN(line, "=", 2)
+		if len(keyval) != 2 {
+			logger.WithField("line", line).Warn("invalid line in .env file")
+			continue
+		}
+
 		result[keyval[0]] = keyval[1]
 	}
 
@@ -112,6 +117,29 @@ func (c Config) SetDefaults(logger *logrus.Logger, portableMode bool) {
 	c.Http.SetDefaults(logger)
 }
 
+func (c *Config) DebugConfiguration(logger *logrus.Logger) {
+	logger.Debug("Configuration:")
+	logger.Debugf(" SHIORI_HOSTNAME: %s", c.Hostname)
+	logger.Debugf(" SHIORI_DEVELOPMENT: %t", c.Development)
+	logger.Debugf(" SHIORI_DATABASE_URL: %s", c.Database.URL)
+	logger.Debugf(" SHIORI_DBMS: %s", c.Database.DBMS)
+	logger.Debugf(" SHIORI_DIR: %s", c.Storage.DataDir)
+	logger.Debugf(" SHIORI_HTTP_ENABLED: %t", c.Http.Enabled)
+	logger.Debugf(" SHIORI_HTTP_PORT: %d", c.Http.Port)
+	logger.Debugf(" SHIORI_HTTP_ADDRESS: %s", c.Http.Address)
+	logger.Debugf(" SHIORI_HTTP_ROOT_PATH: %s", c.Http.RootPath)
+	logger.Debugf(" SHIORI_HTTP_ACCESS_LOG: %t", c.Http.AccessLog)
+	logger.Debugf(" SHIORI_HTTP_SERVE_WEB_UI: %t", c.Http.ServeWebUI)
+	logger.Debugf(" SHIORI_HTTP_SECRET_KEY: %d characters", len(c.Http.SecretKey))
+	logger.Debugf(" SHIORI_HTTP_BODY_LIMIT: %d", c.Http.BodyLimit)
+	logger.Debugf(" SHIORI_HTTP_READ_TIMEOUT: %s", c.Http.ReadTimeout)
+	logger.Debugf(" SHIORI_HTTP_WRITE_TIMEOUT: %s", c.Http.WriteTimeout)
+	logger.Debugf(" SHIORI_HTTP_IDLE_TIMEOUT: %s", c.Http.IDLETimeout)
+	logger.Debugf(" SHIORI_HTTP_DISABLE_KEEP_ALIVE: %t", c.Http.DisableKeepAlive)
+	logger.Debugf(" SHIORI_HTTP_DISABLE_PARSE_MULTIPART_FORM: %t", c.Http.DisablePreParseMultipartForm)
+}
+
+// ParseServerConfiguration parses the configuration from the enabled lookupers
 func ParseServerConfiguration(ctx context.Context, logger *logrus.Logger) *Config {
 	var cfg Config
 

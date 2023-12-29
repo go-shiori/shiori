@@ -125,6 +125,8 @@ func initShiori(ctx context.Context, cmd *cobra.Command) (*config.Config, *depen
 		}
 	}
 
+	cfg.DebugConfiguration(logger)
+
 	return cfg, dependencies
 }
 
