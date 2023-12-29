@@ -1,4 +1,4 @@
-FROM ghcr.io/ghcri/alpine:3.19
+FROM docker.io/alpine:3.19
 ARG TARGETARCH
 LABEL org.opencontainers.image.source https://github.com/go-shiori/shiori
 COPY etc /etc
