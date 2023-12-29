@@ -6,7 +6,7 @@ RUN go build -ldflags '-s -w'
 
 # server image
 
-FROM ghcr.io/ghcri/alpine:3.19
+FROM docker.io/alpine:3.19
 LABEL org.opencontainers.image.source https://github.com/go-shiori/shiori
 COPY --from=builder /src/shiori /usr/bin/
 RUN addgroup -g 1000 shiori \
