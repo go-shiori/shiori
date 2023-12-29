@@ -71,6 +71,7 @@ func initShiori(ctx context.Context, cmd *cobra.Command) (*config.Config, *depen
 	}
 
 	cfg := config.ParseServerConfiguration(ctx, logger)
+	cfg.LogLevel = logger.Level.String()
 
 	if storageDirectory != "" && cfg.Storage.DataDir != "" {
 		logger.Warn("--storage-directory is set, overriding SHIORI_DIR.")
@@ -124,6 +125,8 @@ func initShiori(ctx context.Context, cmd *cobra.Command) (*config.Config, *depen
 			logger.WithError(err).Fatal("error ensuring owner account")
 		}
 	}
+
+	cfg.DebugConfiguration(logger)
 
 	return cfg, dependencies
 }
