@@ -117,7 +117,6 @@ func ParseServerConfiguration(ctx context.Context, logger *logrus.Logger) *Confi
 		envconfig.MapLookuper(map[string]string{"HOSTNAME": os.Getenv("HOSTNAME")}),
 		envconfig.MapLookuper(readDotEnv(logger)),
 		envconfig.PrefixLookuper("SHIORI_", envconfig.OsLookuper()),
-		envconfig.OsLookuper(),
 	)
 	if err := envconfig.ProcessWith(ctx, &cfg, lookuper); err != nil {
 		logger.WithError(err).Fatal("Error parsing configuration")
