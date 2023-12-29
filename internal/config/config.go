@@ -91,6 +91,7 @@ type StorageConfig struct {
 type Config struct {
 	Hostname    string `env:"HOSTNAME,required"`
 	Development bool   `env:"DEVELOPMENT,default=False"`
+	LogLevel    string // Set only from the CLI flag
 	Database    *DatabaseConfig
 	Storage     *StorageConfig
 	Http        *HttpConfig
