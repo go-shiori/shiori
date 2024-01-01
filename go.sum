@@ -81,8 +81,8 @@ github.com/go-playground/validator/v10 v10.16.0/go.mod h1:9iXMNT7sEkjXb0I+enO7QX
 github.com/go-shiori/dom v0.0.0-20190930082056-9d974a4f8b25/go.mod h1:360KoNl36ftFYhjLHuEty78kWUGw8i1opEicvIDLfRk=
 github.com/go-shiori/dom v0.0.0-20230515143342-73569d674e1c h1:wpkoddUomPfHiOziHZixGO5ZBS73cKqVzZipfrLmO1w=
 github.com/go-shiori/dom v0.0.0-20230515143342-73569d674e1c/go.mod h1:oVDCh3qjJMLVUSILBRwrm+Bc6RNXGZYtoh9xdvf1ffM=
-github.com/go-shiori/go-epub v1.2.0 h1:c2b3DblHpNIiD8ISlQ+0Mc/tsRmn1mX1l6Q/0LzavN4=
-github.com/go-shiori/go-epub v1.2.0/go.mod h1:gQCqrK+dIMLA7JMd8GxdBvhn811wb7XCa733RxWfPYw=
+github.com/go-shiori/go-epub v1.2.1 h1:+K/WxrvmfFQY69cpryiObrT6X7WhkwpqhHY65AHs2Rg=
+github.com/go-shiori/go-epub v1.2.1/go.mod h1:3rCTODnigEgy2j3ksndClrGT9h/dcz3js9q4yPX7hf8=
 github.com/go-shiori/go-readability v0.0.0-20231029095239-6b97d5aba789 h1:G6wSuUyCoLB9jrUokipsmFuRi8aJozt3phw/g9Sl4Xs=
 github.com/go-shiori/go-readability v0.0.0-20231029095239-6b97d5aba789/go.mod h1:2DpZlTJO/ycxp/vsc/C11oUyveStOgIXB88SYV1lncI=
 github.com/go-shiori/warc v0.0.0-20200621032813-359908319d1d h1:+SEf4hYDaAt2eyq8Xu3YyWCpnMsK8sZfbYsDRFCUgBM=
