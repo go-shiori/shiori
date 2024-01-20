@@ -14,8 +14,10 @@ jobs:
     uses: ./.github/workflows/_golangci-lint.yml
   call-test:
     uses: ./.github/workflows/_test.yml
+  call-e2e:
+    uses: ./.github/workflows/_e2e.yml
   call-gorelease:
-    needs: [call-lint, call-test]
+    needs: [call-lint, call-test, call-e2e]
     uses: ./.github/workflows/_gorelease.yml
   call-buildx:
     needs: call-gorelease
