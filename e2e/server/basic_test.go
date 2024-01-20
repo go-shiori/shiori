@@ -9,19 +9,12 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
-	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
 )
 
 const version = "dev"
 
 func TestServerBasic(t *testing.T) {
-	pgContainer, err := postgres.RunContainer(context.Background())
-	require.NoError(t, err)
-	t.Cleanup(func() {
-		require.NoError(t, pgContainer.Terminate(context.Background()))
-	})
-
 	container, err := testcontainers.GenericContainer(context.Background(), testcontainers.GenericContainerRequest{
 		ContainerRequest: testcontainers.ContainerRequest{
 			Image:        "ghcr.io/go-shiori/shiori:" + version,
@@ -33,7 +26,6 @@ func TestServerBasic(t *testing.T) {
 			WaitingFor: wait.ForLog("started http server").WithStartupTimeout(60 * time.Second),
 		},
 		Started: true,
-		// Logger:  testcontainers.TestLogger(t),
 	})
 	require.NoError(t, err)
 	t.Cleanup(func() {

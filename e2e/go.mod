@@ -6,7 +6,6 @@ require (
 	github.com/docker/docker v24.0.7+incompatible
 	github.com/stretchr/testify v1.8.4
 	github.com/testcontainers/testcontainers-go v0.27.0
-	github.com/testcontainers/testcontainers-go/modules/postgres v0.27.0
 )
 
 require (
@@ -27,6 +26,7 @@ require (
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/uuid v1.4.0 // indirect
 	github.com/klauspost/compress v1.16.0 // indirect
+	github.com/kr/text v0.2.0 // indirect
 	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/moby/patternmatcher v0.6.0 // indirect
