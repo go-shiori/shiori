@@ -22,3 +22,6 @@ dist/
 
 # frontend
 node_modules
+
+# golang
+go.work*
