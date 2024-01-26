@@ -41,8 +41,6 @@ func newServerCommandHandler() func(cmd *cobra.Command, args []string) {
 
 		cfg, dependencies := initShiori(ctx, cmd)
 
-		cfg.Http.SetDefaults(dependencies.Log)
-
 		// Validate root path
 		if rootPath == "" {
 			rootPath = "/"
