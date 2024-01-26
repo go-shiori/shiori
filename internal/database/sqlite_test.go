@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -19,7 +20,9 @@ func init() {
 }
 
 func sqliteTestDatabaseFactory(ctx context.Context) (DB, error) {
-	os.Remove(sqliteDatabaseTestPath)
+	if err := os.Remove(sqliteDatabaseTestPath); err != nil && !os.IsNotExist(err) {
+		return nil, fmt.Errorf("error removing test database: %w", err)
+	}
 
 	db, err := OpenSQLiteDatabase(ctx, sqliteDatabaseTestPath)
 	if err != nil {
