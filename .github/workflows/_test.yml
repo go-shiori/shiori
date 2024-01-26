@@ -4,7 +4,10 @@ on: workflow_call
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    strategy:
+        matrix:
+            os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
     services:
       postgres:
         image: postgres:15
