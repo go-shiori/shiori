@@ -1,3 +1,6 @@
+//go:build !test_sqlite_only
+// +build !test_sqlite_only
+
 package database
 
 import (
