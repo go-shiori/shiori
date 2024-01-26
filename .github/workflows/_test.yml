@@ -27,7 +27,7 @@ jobs:
         ports:
         - 3306:3306
 
-    name: Go unit tests
+    name: Go unit tests (ubuntu-latest)
     steps:
     - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
@@ -62,8 +62,11 @@ jobs:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   test-windows-macos:
-    runs-on: [windows-latest, macos-latest]
-    name: Go unit tests
+    strategy:
+      matrix:
+        os: [windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    name: Go unit tests (${{ matrix.os }})
     steps:
     - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
