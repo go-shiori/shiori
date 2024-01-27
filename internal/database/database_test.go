@@ -30,6 +30,8 @@ func testDatabase(t *testing.T, dbFactory testDatabaseFactory) {
 		// Tags
 		"testCreateTag":  testCreateTag,
 		"testCreateTags": testCreateTags,
+		// Accoubnts
+		"testCreateAccount": testCreateAccount,
 	}
 
 	for testName, testCase := range tests {
@@ -311,6 +313,8 @@ func testGetBookmarksCount(t *testing.T, db DB) {
 	assert.Equal(t, count, expectedCount, "count should be %d", expectedCount)
 }
 
+// ----------------- TAGS -----------------
+
 func testCreateTag(t *testing.T, db DB) {
 	ctx := context.TODO()
 	tag := model.Tag{Name: "shiori"}
@@ -322,4 +326,20 @@ func testCreateTags(t *testing.T, db DB) {
 	ctx := context.TODO()
 	err := db.CreateTags(ctx, model.Tag{Name: "shiori"}, model.Tag{Name: "shiori2"})
 	assert.NoError(t, err, "Save tag must not fail")
+}
+
+// ----------------- ACCOUNTS -----------------
+func testCreateAccount(t *testing.T, db DB) {
+	ctx := context.TODO()
+	acc := model.Account{
+		Username: "testuser",
+		Password: "testpass",
+		Owner:    true,
+	}
+	insertedAccount, err := db.SaveAccount(ctx, acc)
+	assert.NoError(t, err, "Save account must not fail")
+	assert.Equal(t, acc.Username, insertedAccount.Username, "Saved account must have an username set")
+	assert.Equal(t, acc.Password, insertedAccount.Password, "Saved account must have a password set")
+	assert.Equal(t, acc.Owner, insertedAccount.Owner, "Saved account must have an owner set")
+	assert.NotEmpty(t, insertedAccount.ID, "Saved account must have an ID set")
 }

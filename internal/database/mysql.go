@@ -523,22 +523,33 @@ func (db *MySQLDatabase) GetBookmark(ctx context.Context, id int, url string) (m
 }
 
 // SaveAccount saves new account to database. Returns error if any happened.
-func (db *MySQLDatabase) SaveAccount(ctx context.Context, account model.Account) (err error) {
+func (db *MySQLDatabase) SaveAccount(ctx context.Context, account model.Account) (*model.Account, error) {
 	// Hash password with bcrypt
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(account.Password), 10)
 	if err != nil {
-		return errors.WithStack(err)
+		return nil, errors.WithStack(err)
 	}
 
 	// Insert account to database
-	_, err = db.ExecContext(ctx, `INSERT INTO account
+	result, insertErr := db.ExecContext(ctx, `INSERT INTO account
 		(username, password, owner, config) VALUES (?, ?, ?, ?)
 		ON DUPLICATE KEY UPDATE
 		password = VALUES(password),
 		owner = VALUES(owner)`,
 		account.Username, hashedPassword, account.Owner, account.Config)
+	if insertErr != nil {
+		return nil, errors.WithStack(insertErr)
+	}
 
-	return errors.WithStack(err)
+	var accountID int64
+	accountID, err = result.LastInsertId()
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	account.ID = int(accountID)
+
+	return &account, nil
 }
 
 // SaveAccountSettings update settings for specific account  in database. Returns error if any happened

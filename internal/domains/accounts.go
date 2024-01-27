@@ -3,81 +3,47 @@ package domains
 import (
 	"context"
 	"fmt"
-	"time"
 
+	"github.com/go-shiori/shiori/internal/database"
 	"github.com/go-shiori/shiori/internal/dependencies"
 	"github.com/go-shiori/shiori/internal/model"
-	"github.com/golang-jwt/jwt/v5"
-	"github.com/pkg/errors"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type AccountsDomain struct {
 	deps *dependencies.Dependencies
 }
 
-type JWTClaim struct {
-	jwt.RegisteredClaims
+func (d *AccountsDomain) ListAccounts(ctx context.Context) ([]model.AccountDTO, error) {
+	accounts, err := d.deps.Database.GetAccounts(ctx, database.GetAccountsOptions{})
+	if err != nil {
+		return nil, fmt.Errorf("error getting accounts: %v", err)
+	}
 
-	Account *model.Account
+	accountDTOs := []model.AccountDTO{}
+	for _, account := range accounts {
+		accountDTOs = append(accountDTOs, account.ToDTO())
+	}
+
+	return accountDTOs, nil
 }
 
-func (d *AccountsDomain) CheckToken(ctx context.Context, userJWT string) (*model.Account, error) {
-	token, err := jwt.ParseWithClaims(userJWT, &JWTClaim{}, func(token *jwt.Token) (interface{}, error) {
-		// Validate algorithm
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
-		}
-
-		return d.deps.Config.Http.SecretKey, nil
+func (d *AccountsDomain) CreateAccount(ctx context.Context, account model.Account) (*model.AccountDTO, error) {
+	storedAccount, err := d.deps.Database.SaveAccount(ctx, model.Account{
+		Username: account.Username,
+		Password: account.Password,
+		Owner:    account.Owner,
 	})
 	if err != nil {
-		return nil, errors.Wrap(err, "error parsing token")
+		return nil, fmt.Errorf("error creating account: %v", err)
 	}
 
-	if claims, ok := token.Claims.(*JWTClaim); ok && token.Valid {
-		if claims.Account.ID > 0 {
-			return claims.Account, nil
-		}
-		if err != nil {
-			return nil, err
-		}
+	// FIXME
+	result := storedAccount.ToDTO()
 
-		return claims.Account, nil
-	}
-	return nil, fmt.Errorf("error obtaining user from JWT claims")
+	return &result, nil
 }
 
-func (d *AccountsDomain) GetAccountFromCredentials(ctx context.Context, username, password string) (*model.Account, error) {
-	account, _, err := d.deps.Database.GetAccount(ctx, username)
-	if err != nil {
-		return nil, fmt.Errorf("username and password do not match")
-	}
-
-	if err := bcrypt.CompareHashAndPassword([]byte(account.Password), []byte(password)); err != nil {
-		return nil, fmt.Errorf("username and password do not match")
-	}
-
-	return &account, nil
-}
-
-func (d *AccountsDomain) CreateTokenForAccount(account *model.Account, expiration time.Time) (string, error) {
-	claims := jwt.MapClaims{
-		"account": account.ToDTO(),
-		"exp":     expiration.UTC().Unix(),
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-
-	t, err := token.SignedString(d.deps.Config.Http.SecretKey)
-	if err != nil {
-		d.deps.Log.WithError(err).Error("error signing token")
-	}
-
-	return t, err
-}
-
-func NewAccountsDomain(deps *dependencies.Dependencies) *AccountsDomain {
+func NewAccountsDomain(deps *dependencies.Dependencies) model.AccountsDomain {
 	return &AccountsDomain{
 		deps: deps,
 	}

@@ -22,6 +22,7 @@ func (r *APIRoutes) Setup(g *gin.RouterGroup) model.Routes {
 	g.Use(middleware.AuthenticationRequired())
 	r.handle(g, "/bookmarks", NewBookmarksPIRoutes(r.logger, r.deps))
 	r.handle(g, "/tags", NewTagsPIRoutes(r.logger, r.deps))
+	r.handle(g, "/accounts", NewAccountsAPIRoutes(r.logger, r.deps))
 
 	return r
 }

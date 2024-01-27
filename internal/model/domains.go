@@ -17,10 +17,17 @@ type BookmarksDomain interface {
 	GetBookmark(ctx context.Context, id DBID) (*BookmarkDTO, error)
 }
 
-type AccountsDomain interface {
+type AuthDomain interface {
 	CheckToken(ctx context.Context, userJWT string) (*Account, error)
 	GetAccountFromCredentials(ctx context.Context, username, password string) (*Account, error)
 	CreateTokenForAccount(account *Account, expiration time.Time) (string, error)
+}
+
+type AccountsDomain interface {
+	ListAccounts(ctx context.Context) ([]AccountDTO, error)
+	CreateAccount(ctx context.Context, account Account) (*AccountDTO, error)
+	// UpdateAccount(ctx context.Context, account AccountDTO) (*AccountDTO, error)
+	// DeleteAccount(ctx context.Context, account AccountDTO) error
 }
 
 type ArchiverDomain interface {

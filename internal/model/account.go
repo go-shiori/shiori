@@ -6,7 +6,7 @@ import (
 	"fmt"
 )
 
-// Account is the database model for account.
+// Account is the database representation for account.
 type Account struct {
 	ID       int        `db:"id"       json:"id"`
 	Username string     `db:"username" json:"username"`

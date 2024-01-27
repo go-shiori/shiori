@@ -2,7 +2,6 @@ package api_v1
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	fp "path/filepath"
@@ -89,8 +88,6 @@ func (payload *apiCreateBookmarkPayload) ToBookmark() (*model.BookmarkDTO, error
 		Public:        payload.MakePublic,
 		CreateArchive: payload.CreateArchive,
 	}
-
-	log.Println(bookmark.URL)
 
 	var err error
 	bookmark.URL, err = core.RemoveUTMParams(bookmark.URL)

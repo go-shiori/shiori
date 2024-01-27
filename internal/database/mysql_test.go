@@ -107,8 +107,12 @@ func TestGetAccountsMySql(t *testing.T) {
 		{Username: "foo_bar", Password: "foobar", Owner: true},
 	}
 	for _, acc := range testAccounts {
-		err := db.SaveAccount(ctx, acc)
+		account, err := db.SaveAccount(ctx, acc)
 		assert.Nil(t, err)
+		assert.Equal(t, acc.Username, account.Username)
+		assert.Equal(t, acc.Password, account.Password)
+		assert.Equal(t, acc.Owner, account.Owner)
+		assert.NotEmpty(t, account.ID)
 	}
 
 	// Successful case
@@ -160,7 +164,7 @@ func TestGetAccountMySql(t *testing.T) {
 		{Username: "foo_bar", Password: "foobar", Owner: true},
 	}
 	for _, acc := range testAccounts {
-		err := db.SaveAccount(ctx, acc)
+		_, err := db.SaveAccount(ctx, acc)
 		assert.Nil(t, err)
 
 		// Successful case

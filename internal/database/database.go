@@ -87,7 +87,7 @@ type DB interface {
 	GetBookmark(ctx context.Context, id int, url string) (model.BookmarkDTO, bool, error)
 
 	// SaveAccount saves new account in database
-	SaveAccount(ctx context.Context, a model.Account) error
+	SaveAccount(ctx context.Context, a model.Account) (*model.Account, error)
 
 	// SaveAccountSettings saves settings for specific user in database
 	SaveAccountSettings(ctx context.Context, a model.Account) error

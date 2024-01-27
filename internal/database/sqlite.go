@@ -645,7 +645,8 @@ func (db *SQLiteDatabase) GetBookmark(ctx context.Context, id int, url string) (
 }
 
 // SaveAccount saves new account to database. Returns error if any happened.
-func (db *SQLiteDatabase) SaveAccount(ctx context.Context, account model.Account) error {
+func (db *SQLiteDatabase) SaveAccount(ctx context.Context, account model.Account) (*model.Account, error) {
+	var accountID int64
 	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
 		// Hash password with bcrypt
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(account.Password), 10)
@@ -653,19 +654,30 @@ func (db *SQLiteDatabase) SaveAccount(ctx context.Context, account model.Account
 			return err
 		}
 
-		// Insert account to database
-		_, err = tx.Exec(`INSERT INTO account
-		(username, password, owner, config) VALUES (?, ?, ?, ?)
-		ON CONFLICT(username) DO UPDATE SET
-		password = ?, owner = ?`,
+		query, err := tx.PrepareContext(ctx, `INSERT INTO account
+			(username, password, owner, config) VALUES (?, ?, ?, ?)
+			ON CONFLICT(username) DO UPDATE SET
+			password = ?, owner = ?
+			RETURNING id`)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+
+		err = query.QueryRowContext(ctx,
 			account.Username, hashedPassword, account.Owner, account.Config,
-			hashedPassword, account.Owner, account.Config)
-		return errors.WithStack(err)
+			hashedPassword, account.Owner).Scan(&accountID)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+
+		return nil
 	}); err != nil {
-		return errors.WithStack(err)
+		return nil, errors.WithStack(err)
 	}
 
-	return nil
+	account.ID = int(accountID)
+
+	return &account, nil
 }
 
 // SaveAccountSettings update settings for specific account  in database. Returns error if any happened.

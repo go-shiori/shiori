@@ -57,6 +57,17 @@ definitions:
       username:
         type: string
     type: object
+  model.AccountDTO:
+    properties:
+      config:
+        $ref: '#/definitions/model.UserConfig'
+      id:
+        type: integer
+      owner:
+        type: boolean
+      username:
+        type: string
+    type: object
   model.BookmarkDTO:
     properties:
       author:
@@ -127,6 +138,46 @@ definitions:
 info:
   contact: {}
 paths:
+  /api/v1/accounts:
+    get:
+      description: List accounts
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.AccountDTO'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: List accounts
+      tags:
+      - accounts
+    post:
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            items:
+              $ref: '#/definitions/model.AccountDTO'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Create an account
+      tags:
+      - accounts
   /api/v1/auth/account:
     patch:
       parameters:

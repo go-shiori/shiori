@@ -112,7 +112,7 @@ func (r *LegacyAPIRoutes) Setup(g *gin.Engine) {
 	// router.PUT(jp("/api/accounts"), withLogging(hdl.apiUpdateAccount))
 	legacyGroup.PUT("/api/accounts", r.handle(r.legacyHandler.ApiUpdateAccount))
 	// router.POST(jp("/api/accounts"), withLogging(hdl.apiInsertAccount))
-	legacyGroup.POST("/api/accounts", r.handle(r.legacyHandler.ApiInsertAccount))
+	// legacyGroup.POST("/api/accounts", r.handle(r.legacyHandler.ApiInsertAccount))
 	// router.DELETE(jp("/api/accounts"), withLogging(hdl.apiDeleteAccount))
 	legacyGroup.DELETE("/api/accounts", r.handle(r.legacyHandler.ApiDeleteAccount))
 }

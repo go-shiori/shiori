@@ -464,26 +464,6 @@ func (h *Handler) ApiGetAccounts(w http.ResponseWriter, r *http.Request, ps http
 	checkError(err)
 }
 
-// ApiInsertAccount is handler for POST /api/accounts
-func (h *Handler) ApiInsertAccount(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	ctx := r.Context()
-
-	// Make sure session still valid
-	err := h.validateSession(r)
-	checkError(err)
-
-	// Decode request
-	var account model.Account
-	err = json.NewDecoder(r.Body).Decode(&account)
-	checkError(err)
-
-	// Save account to database
-	err = h.DB.SaveAccount(ctx, account)
-	checkError(err)
-
-	fmt.Fprint(w, 1)
-}
-
 // ApiUpdateAccount is handler for PUT /api/accounts
 func (h *Handler) ApiUpdateAccount(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	ctx := r.Context()
@@ -520,7 +500,7 @@ func (h *Handler) ApiUpdateAccount(w http.ResponseWriter, r *http.Request, ps ht
 	// Save new password to database
 	account.Password = request.NewPassword
 	account.Owner = request.Owner
-	err = h.DB.SaveAccount(ctx, account)
+	_, err = h.DB.SaveAccount(ctx, account)
 	checkError(err)
 
 	// Delete user's sessions
