@@ -67,7 +67,7 @@ func TestGenerateEbook(t *testing.T) {
 			defer file.Close()
 
 			bookmark, err = core.GenerateEbook(deps, mockRequest, model.GetEbookPath(&bookmark))
-			expectedImagePath := "/bookmark/2/thumb"
+			expectedImagePath := fp.Join("bookmark", "2", "thumb")
 			assert.NoError(t, err)
 			assert.True(t, bookmark.HasEbook)
 			assert.Equalf(t, expectedImagePath, bookmark.ImageURL, "Expected imageURL %s, but got %s", expectedImagePath, bookmark.ImageURL)
