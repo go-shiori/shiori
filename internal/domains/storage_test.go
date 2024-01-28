@@ -2,28 +2,33 @@ package domains_test
 
 import (
 	"context"
+	"io"
 	"os"
 	"testing"
+
+	"github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/require"
 
 	"github.com/go-shiori/shiori/internal/config"
 	"github.com/go-shiori/shiori/internal/dependencies"
 	"github.com/go-shiori/shiori/internal/domains"
-	"github.com/sirupsen/logrus"
-	"github.com/spf13/afero"
-	"github.com/stretchr/testify/require"
 )
 
 func TestDirExists(t *testing.T) {
-	fs := afero.NewMemMapFs()
-	fs.MkdirAll("foo", 0755)
+	path, err := os.MkdirTemp("", "")
+	require.NoError(t, err)
+
+	t.Log(path)
 
 	domain := domains.NewStorageDomain(
 		&dependencies.Dependencies{
 			Config: config.ParseServerConfiguration(context.TODO(), logrus.New()),
 			Log:    logrus.New(),
 		},
-		fs,
+		path,
 	)
+
+	require.NoError(t, domain.MkDirAll("foo", os.ModePerm))
 
 	require.True(t, domain.DirExists("foo"))
 	require.False(t, domain.DirExists("foo/file"))
@@ -31,75 +36,98 @@ func TestDirExists(t *testing.T) {
 }
 
 func TestFileExists(t *testing.T) {
-	fs := afero.NewMemMapFs()
-	fs.MkdirAll("foo", 0755)
-	fs.Create("foo/file")
+	tmpDir, err := os.MkdirTemp("", "")
+	require.NoError(t, err)
 
 	domain := domains.NewStorageDomain(
 		&dependencies.Dependencies{
 			Config: config.ParseServerConfiguration(context.TODO(), logrus.New()),
 			Log:    logrus.New(),
 		},
-		fs,
+		tmpDir,
 	)
+
+	require.NoError(t, domain.MkDirAll("foo", os.ModePerm))
+	tmpFile, err := domain.Create("foo/file")
+	require.NoError(t, err)
+	tmpFile.Close()
 
 	require.True(t, domain.FileExists("foo/file"))
 	require.False(t, domain.FileExists("bar"))
 }
 
-func TestWriteFile(t *testing.T) {
-	fs := afero.NewMemMapFs()
+func TestWriteData(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "")
+	require.NoError(t, err)
 
 	domain := domains.NewStorageDomain(
 		&dependencies.Dependencies{
 			Config: config.ParseServerConfiguration(context.TODO(), logrus.New()),
 			Log:    logrus.New(),
 		},
-		fs,
+		tmpDir,
 	)
 
-	err := domain.WriteData("foo/file.ext", []byte("foo"))
+	err = domain.WriteData("foo/file.ext", []byte("foo"))
 	require.NoError(t, err)
 	require.True(t, domain.FileExists("foo/file.ext"))
 	require.True(t, domain.DirExists("foo"))
-	handler, err := domain.FS().Open("foo/file.ext")
+	handler, err := domain.Open("foo/file.ext")
 	require.NoError(t, err)
 	defer handler.Close()
 
-	data, err := afero.ReadAll(handler)
+	data, err := io.ReadAll(handler)
+	require.NoError(t, err)
+	require.Equal(t, "foo", string(data))
+}
+
+func TestSaveFile(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "")
+	require.NoError(t, err)
+
+	domain := domains.NewStorageDomain(
+		&dependencies.Dependencies{
+			Config: config.ParseServerConfiguration(context.TODO(), logrus.New()),
+			Log:    logrus.New(),
+		},
+		tmpDir,
+	)
+
+	tmpFile, err := os.CreateTemp("", "")
+	require.NoError(t, err)
+	defer tmpFile.Close()
+
+	tmpFile.Write([]byte("foo"))
+	tmpFile.Seek(0, 0)
+
+	require.NoError(t, domain.WriteFile("foo/file.ext", tmpFile))
+	require.True(t, domain.FileExists("foo/file.ext"))
+	require.True(t, domain.DirExists("foo"))
+	handler, err := domain.Open("foo/file.ext")
+	require.NoError(t, err)
+	defer handler.Close()
+
+	data, err := io.ReadAll(handler)
 	require.NoError(t, err)
 
 	require.Equal(t, "foo", string(data))
 }
 
-func TestSaveFile(t *testing.T) {
-	fs := afero.NewMemMapFs()
+func TestRemoveFile(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "")
+	require.NoError(t, err)
 
 	domain := domains.NewStorageDomain(
 		&dependencies.Dependencies{
 			Config: config.ParseServerConfiguration(context.TODO(), logrus.New()),
 			Log:    logrus.New(),
 		},
-		fs,
+		tmpDir,
 	)
 
-	tempFile, err := os.CreateTemp("", "")
-	require.NoError(t, err)
-	defer os.Remove(tempFile.Name())
-
-	_, err = tempFile.WriteString("foo")
-	require.NoError(t, err)
-
-	err = domain.WriteFile("foo/file.ext", tempFile)
-	require.NoError(t, err)
+	require.NoError(t, domain.WriteData("foo/file.ext", []byte("foo")))
 	require.True(t, domain.FileExists("foo/file.ext"))
-	require.True(t, domain.DirExists("foo"))
-	handler, err := domain.FS().Open("foo/file.ext")
-	require.NoError(t, err)
-	defer handler.Close()
 
-	data, err := afero.ReadAll(handler)
-	require.NoError(t, err)
-
-	require.Equal(t, "foo", string(data))
+	require.NoError(t, domain.Remove("foo/file.ext"))
+	require.False(t, domain.FileExists("foo/file.ext"))
 }

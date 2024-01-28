@@ -9,11 +9,12 @@ import (
 	fp "path/filepath"
 	"testing"
 
+	"github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
+
 	"github.com/go-shiori/shiori/internal/core"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/go-shiori/shiori/internal/testutil"
-	"github.com/sirupsen/logrus"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestDownloadBookImage(t *testing.T) {
@@ -24,8 +25,7 @@ func TestDownloadBookImage(t *testing.T) {
 		t.Run("fails", func(t *testing.T) {
 			// images is too small with unsupported format with a valid URL
 			imageURL := "https://github.com/go-shiori/shiori/blob/master/internal/view/assets/res/apple-touch-icon-152x152.png"
-			tempDir := t.TempDir()
-			dstPath := fp.Join(tempDir, "1")
+			dstPath := fp.Join("image", "1")
 			defer os.Remove(dstPath)
 
 			// Act
@@ -38,8 +38,7 @@ func TestDownloadBookImage(t *testing.T) {
 		t.Run("successful download image", func(t *testing.T) {
 			// Arrange
 			imageURL := "https://raw.githubusercontent.com/go-shiori/shiori/master/docs/readme/cover.png"
-			tempDir := t.TempDir()
-			dstPath := fp.Join(tempDir, "1")
+			dstPath := fp.Join("image", "1")
 			defer os.Remove(dstPath)
 
 			// Act
@@ -59,8 +58,7 @@ func TestDownloadBookImage(t *testing.T) {
 
 			// Arrange
 			imageURL := server.URL + "/medium_image.png"
-			tempDir := t.TempDir()
-			dstPath := fp.Join(tempDir, "1")
+			dstPath := fp.Join("image", "1")
 			defer os.Remove(dstPath)
 
 			// Act

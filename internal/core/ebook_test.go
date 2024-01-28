@@ -6,13 +6,13 @@ import (
 	fp "path/filepath"
 	"testing"
 
+	"github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
+
 	"github.com/go-shiori/shiori/internal/core"
 	"github.com/go-shiori/shiori/internal/domains"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/go-shiori/shiori/internal/testutil"
-	"github.com/sirupsen/logrus"
-	"github.com/spf13/afero"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestGenerateEbook(t *testing.T) {
@@ -25,7 +25,7 @@ func TestGenerateEbook(t *testing.T) {
 			tempDir := t.TempDir()
 			dstDir := t.TempDir()
 
-			deps.Domains.Storage = domains.NewStorageDomain(deps, afero.NewBasePathFs(afero.NewOsFs(), dstDir))
+			deps.Domains.Storage = domains.NewStorageDomain(deps, dstDir)
 
 			mockRequest := core.ProcessRequest{
 				Bookmark: model.BookmarkDTO{
@@ -46,7 +46,7 @@ func TestGenerateEbook(t *testing.T) {
 		t.Run("ebook generate with valid BookmarkID EbookExist ImagePathExist ReturnWithHasEbookTrue", func(t *testing.T) {
 			dstDir := t.TempDir()
 
-			deps.Domains.Storage = domains.NewStorageDomain(deps, afero.NewBasePathFs(afero.NewOsFs(), dstDir))
+			deps.Domains.Storage = domains.NewStorageDomain(deps, dstDir)
 
 			bookmark := model.BookmarkDTO{
 				ID:       2,
@@ -59,8 +59,8 @@ func TestGenerateEbook(t *testing.T) {
 			}
 			// Create the thumbnail file
 			imagePath := model.GetThumbnailPath(&bookmark)
-			deps.Domains.Storage.FS().MkdirAll(fp.Dir(imagePath), os.ModePerm)
-			file, err := deps.Domains.Storage.FS().Create(imagePath)
+			deps.Domains.Storage.MkDirAll(fp.Dir(imagePath), os.ModePerm)
+			file, err := deps.Domains.Storage.Create(imagePath)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -76,7 +76,7 @@ func TestGenerateEbook(t *testing.T) {
 			tempDir := t.TempDir()
 			dstDir := t.TempDir()
 
-			deps.Domains.Storage = domains.NewStorageDomain(deps, afero.NewBasePathFs(afero.NewOsFs(), dstDir))
+			deps.Domains.Storage = domains.NewStorageDomain(deps, dstDir)
 
 			bookmark := model.BookmarkDTO{
 				ID:       3,
@@ -89,8 +89,8 @@ func TestGenerateEbook(t *testing.T) {
 			}
 			// Create the archive file
 			archivePath := model.GetArchivePath(&bookmark)
-			deps.Domains.Storage.FS().MkdirAll(fp.Dir(archivePath), os.ModePerm)
-			file, err := deps.Domains.Storage.FS().Create(archivePath)
+			deps.Domains.Storage.MkDirAll(fp.Dir(archivePath), os.ModePerm)
+			file, err := deps.Domains.Storage.Create(archivePath)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -124,7 +124,7 @@ func TestGenerateEbook(t *testing.T) {
 		t.Run("ebook exist return HasEbook true", func(t *testing.T) {
 			dstDir := t.TempDir()
 
-			deps.Domains.Storage = domains.NewStorageDomain(deps, afero.NewBasePathFs(afero.NewOsFs(), dstDir))
+			deps.Domains.Storage = domains.NewStorageDomain(deps, dstDir)
 
 			bookmark := model.BookmarkDTO{
 				ID:       1,
@@ -137,8 +137,8 @@ func TestGenerateEbook(t *testing.T) {
 			}
 			// Create the ebook file
 			ebookFilePath := model.GetEbookPath(&bookmark)
-			deps.Domains.Storage.FS().MkdirAll(fp.Dir(ebookFilePath), os.ModePerm)
-			file, err := deps.Domains.Storage.FS().Create(ebookFilePath)
+			deps.Domains.Storage.MkDirAll(fp.Dir(ebookFilePath), os.ModePerm)
+			file, err := deps.Domains.Storage.Create(ebookFilePath)
 			if err != nil {
 				t.Fatal(err)
 			}

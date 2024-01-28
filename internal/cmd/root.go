@@ -6,15 +6,15 @@ import (
 	fp "path/filepath"
 	"time"
 
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
+	"golang.org/x/net/context"
+
 	"github.com/go-shiori/shiori/internal/config"
 	"github.com/go-shiori/shiori/internal/database"
 	"github.com/go-shiori/shiori/internal/dependencies"
 	"github.com/go-shiori/shiori/internal/domains"
 	"github.com/go-shiori/shiori/internal/model"
-	"github.com/sirupsen/logrus"
-	"github.com/spf13/afero"
-	"github.com/spf13/cobra"
-	"golang.org/x/net/context"
 )
 
 // ShioriCmd returns the root command for shiori
@@ -103,7 +103,7 @@ func initShiori(ctx context.Context, cmd *cobra.Command) (*config.Config, *depen
 	dependencies.Domains.Auth = domains.NewAccountsDomain(dependencies)
 	dependencies.Domains.Archiver = domains.NewArchiverDomain(dependencies)
 	dependencies.Domains.Bookmarks = domains.NewBookmarksDomain(dependencies)
-	dependencies.Domains.Storage = domains.NewStorageDomain(dependencies, afero.NewBasePathFs(afero.NewOsFs(), cfg.Storage.DataDir))
+	dependencies.Domains.Storage = domains.NewStorageDomain(dependencies, cfg.Storage.DataDir)
 
 	// Workaround: Get accounts to make sure at least one is present in the database.
 	// If there's no accounts in the database, create the shiori/gopher account the legacy api

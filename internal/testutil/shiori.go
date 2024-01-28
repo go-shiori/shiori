@@ -5,15 +5,15 @@ import (
 	"os"
 	"testing"
 
+	"github.com/gofrs/uuid/v5"
+	"github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/require"
+
 	"github.com/go-shiori/shiori/internal/config"
 	"github.com/go-shiori/shiori/internal/database"
 	"github.com/go-shiori/shiori/internal/dependencies"
 	"github.com/go-shiori/shiori/internal/domains"
 	"github.com/go-shiori/shiori/internal/model"
-	"github.com/gofrs/uuid/v5"
-	"github.com/sirupsen/logrus"
-	"github.com/spf13/afero"
-	"github.com/stretchr/testify/require"
 )
 
 func GetTestConfigurationAndDependencies(t *testing.T, ctx context.Context, logger *logrus.Logger) (*config.Config, *dependencies.Dependencies) {
@@ -39,7 +39,7 @@ func GetTestConfigurationAndDependencies(t *testing.T, ctx context.Context, logg
 	deps.Domains.Auth = domains.NewAccountsDomain(deps)
 	deps.Domains.Archiver = domains.NewArchiverDomain(deps)
 	deps.Domains.Bookmarks = domains.NewBookmarksDomain(deps)
-	deps.Domains.Storage = domains.NewStorageDomain(deps, afero.NewBasePathFs(afero.NewOsFs(), cfg.Storage.DataDir))
+	deps.Domains.Storage = domains.NewStorageDomain(deps, cfg.Storage.DataDir)
 
 	return cfg, deps
 }

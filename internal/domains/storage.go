@@ -9,29 +9,47 @@ import (
 
 	"github.com/go-shiori/shiori/internal/dependencies"
 	"github.com/go-shiori/shiori/internal/model"
-	"github.com/spf13/afero"
 )
 
 type StorageDomain struct {
 	deps *dependencies.Dependencies
-	fs   afero.Fs
+	path string
 }
 
-func NewStorageDomain(deps *dependencies.Dependencies, fs afero.Fs) *StorageDomain {
+func NewStorageDomain(deps *dependencies.Dependencies, path string) *StorageDomain {
 	return &StorageDomain{
 		deps: deps,
-		fs:   fs,
+		path: path,
 	}
+}
+
+func (d *StorageDomain) generateFullPath(name string) string {
+	return filepath.Join(d.path, name)
 }
 
 // Stat returns the FileInfo structure describing file.
 func (d *StorageDomain) Stat(name string) (fs.FileInfo, error) {
-	return d.fs.Stat(name)
+	return os.Stat(d.generateFullPath(name))
 }
 
-// FS returns the filesystem used by this domain.
-func (d *StorageDomain) FS() afero.Fs {
-	return d.fs
+// Create creates a file in storage.
+func (d *StorageDomain) Create(name string) (fs.File, error) {
+	return os.Create(d.generateFullPath(name))
+}
+
+// Open opens a file in storage.
+func (d *StorageDomain) Open(name string) (fs.File, error) {
+	return os.Open(d.generateFullPath(name))
+}
+
+// MkDirAll creates a directory in storage.
+func (d *StorageDomain) MkDirAll(name string, mode os.FileMode) error {
+	return os.MkdirAll(d.generateFullPath(name), mode)
+}
+
+// Remove removes a file in storage.
+func (d *StorageDomain) Remove(name string) error {
+	return os.Remove(d.generateFullPath(name))
 }
 
 // FileExists checks if a file exists in storage.
@@ -51,15 +69,14 @@ func (d *StorageDomain) DirExists(name string) bool {
 func (d *StorageDomain) WriteData(dst string, data []byte) error {
 	// Create directory if not exist
 	dir := filepath.Dir(dst)
-	if !d.DirExists(dir) {
-		err := d.fs.MkdirAll(dir, os.ModePerm)
-		if err != nil {
+	if dir != "" && !d.DirExists(dir) {
+		if err := d.MkDirAll(dir, model.DataDirPerm); err != nil {
 			return err
 		}
 	}
 
 	// Create file
-	file, err := d.fs.OpenFile(dst, os.O_RDWR|os.O_CREATE|os.O_TRUNC, os.ModePerm)
+	file, err := os.Create(d.generateFullPath(dst))
 	if err != nil {
 		return err
 	}
@@ -72,14 +89,15 @@ func (d *StorageDomain) WriteData(dst string, data []byte) error {
 
 // WriteFile writes a file to storage.
 func (d *StorageDomain) WriteFile(dst string, tmpFile *os.File) error {
-	if dst != "" && !d.DirExists(dst) {
-		err := d.fs.MkdirAll(filepath.Dir(dst), model.DataDirPerm)
+	dir := filepath.Dir(dst)
+	if dir != "" && !d.DirExists(dir) {
+		err := d.MkDirAll(dir, model.DataDirPerm)
 		if err != nil {
 			return fmt.Errorf("failed to create destination dir: %v", err)
 		}
 	}
 
-	dstFile, err := d.fs.Create(dst)
+	dstFile, err := os.Create(d.generateFullPath(dst))
 	if err != nil {
 		return fmt.Errorf("failed to create destination file: %v", err)
 	}

@@ -2,7 +2,11 @@ package domains_test
 
 import (
 	"context"
+	"os"
 	"testing"
+
+	"github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/require"
 
 	"github.com/go-shiori/shiori/internal/config"
 	"github.com/go-shiori/shiori/internal/database"
@@ -10,13 +14,11 @@ import (
 	"github.com/go-shiori/shiori/internal/domains"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/go-shiori/shiori/internal/testutil"
-	"github.com/sirupsen/logrus"
-	"github.com/spf13/afero"
-	"github.com/stretchr/testify/require"
 )
 
 func TestBookmarkDomain(t *testing.T) {
-	fs := afero.NewMemMapFs()
+	tmpDir, err := os.MkdirTemp("", "")
+	require.NoError(t, err)
 
 	db, err := database.OpenSQLiteDatabase(context.TODO(), ":memory:")
 	require.NoError(t, err)
@@ -28,13 +30,15 @@ func TestBookmarkDomain(t *testing.T) {
 		Log:      logrus.New(),
 		Domains:  &dependencies.Domains{},
 	}
-	deps.Domains.Storage = domains.NewStorageDomain(deps, fs)
+	deps.Domains.Storage = domains.NewStorageDomain(deps, tmpDir)
 
-	fs.MkdirAll("thumb", 0755)
+	fs := deps.Domains.Storage
+
+	fs.MkDirAll("thumb", 0755)
 	fs.Create("thumb/1")
-	fs.MkdirAll("ebook", 0755)
+	fs.MkDirAll("ebook", 0755)
 	fs.Create("ebook/1.epub")
-	fs.MkdirAll("archive", 0755)
+	fs.MkDirAll("archive", 0755)
 	// TODO: write a valid archive file
 	fs.Create("archive/1")
 

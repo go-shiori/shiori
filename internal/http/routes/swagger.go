@@ -2,12 +2,12 @@ package routes
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/go-shiori/shiori/internal/model"
 	"github.com/sirupsen/logrus"
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 
 	_ "github.com/go-shiori/shiori/docs/swagger"
+	"github.com/go-shiori/shiori/internal/model"
 )
 
 type SwaggerAPIRoutes struct {

@@ -7,6 +7,7 @@ import (
 	"image/color"
 	"image/draw"
 	"image/jpeg"
+	_ "image/png"
 	"io"
 	"log"
 	"math"
@@ -18,14 +19,12 @@ import (
 
 	"github.com/disintegration/imaging"
 	"github.com/go-shiori/go-readability"
-	"github.com/go-shiori/shiori/internal/dependencies"
-	"github.com/go-shiori/shiori/internal/model"
 	"github.com/go-shiori/warc"
 	"github.com/pkg/errors"
 	_ "golang.org/x/image/webp"
 
-	// Add support for png
-	_ "image/png"
+	"github.com/go-shiori/shiori/internal/dependencies"
+	"github.com/go-shiori/shiori/internal/model"
 )
 
 // ProcessRequest is the request for processing bookmark.
@@ -108,7 +107,7 @@ func ProcessBookmark(deps *dependencies.Dependencies, req ProcessRequest) (book 
 		if article.Image != "" {
 			imageURLs = append(imageURLs, article.Image)
 		} else {
-			deps.Domains.Storage.FS().Remove(imgPath)
+			deps.Domains.Storage.Remove(imgPath)
 		}
 
 		if article.Favicon != "" {
@@ -128,7 +127,7 @@ func ProcessBookmark(deps *dependencies.Dependencies, req ProcessRequest) (book 
 		if err != nil && errors.Is(err, ErrNoSupportedImageType) {
 			log.Printf("%s: %s", err, imageURL)
 			if i == len(imageURLs)-1 {
-				deps.Domains.Storage.FS().Remove(imgPath)
+				deps.Domains.Storage.Remove(imgPath)
 			}
 		}
 		if err != nil {
@@ -163,7 +162,7 @@ func ProcessBookmark(deps *dependencies.Dependencies, req ProcessRequest) (book 
 		if err != nil {
 			return book, false, fmt.Errorf("failed to create temp archive: %v", err)
 		}
-		defer deps.Domains.Storage.FS().Remove(tmpFile.Name())
+		defer deps.Domains.Storage.Remove(tmpFile.Name())
 
 		archivalRequest := warc.ArchivalRequest{
 			URL:         book.URL,

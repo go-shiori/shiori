@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+
 	"github.com/go-shiori/shiori/internal/model"
 )
 
@@ -26,15 +27,14 @@ func SendFile(c *gin.Context, storageDomain model.StorageDomain, path string) {
 
 	c.Header("ETag", fmt.Sprintf("W/%x-%x", info.ModTime().Unix(), info.Size()))
 
-	// TODO: Find a better way to send the file to the client from the FS, probably making a
-	// conversion between afero.Fs and http.FileSystem to use c.FileFromFS.
-	fileContent, err := storageDomain.FS().Open(path)
+	fileHandler, err := storageDomain.Open(path)
 	if err != nil {
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
+	defer fileHandler.Close()
 
-	_, err = io.Copy(c.Writer, fileContent)
+	_, err = io.Copy(c.Writer, fileHandler)
 	if err != nil {
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return

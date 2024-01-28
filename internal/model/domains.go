@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/go-shiori/warc"
-	"github.com/spf13/afero"
 )
 
 type BookmarksDomain interface {
@@ -30,7 +29,10 @@ type ArchiverDomain interface {
 
 type StorageDomain interface {
 	Stat(name string) (fs.FileInfo, error)
-	FS() afero.Fs
+	Create(name string) (fs.File, error)
+	Open(name string) (fs.File, error)
+	Remove(name string) error
+	MkDirAll(name string, mode os.FileMode) error
 	FileExists(path string) bool
 	DirExists(path string) bool
 	WriteData(dst string, data []byte) error
