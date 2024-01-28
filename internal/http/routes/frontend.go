@@ -3,7 +3,7 @@ package routes
 import (
 	"embed"
 	"net/http"
-	"path/filepath"
+	"path"
 
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
@@ -27,7 +27,7 @@ func (fs assetsFS) Exists(prefix string, path string) bool {
 }
 
 func (fs assetsFS) Open(name string) (http.File, error) {
-	f, err := fs.FileSystem.Open(filepath.Join("assets", name))
+	f, err := fs.FileSystem.Open(path.Join("assets", name))
 	if err != nil {
 		logrus.WithError(err).WithField("path", name).Error("requested frontend file not found")
 	}
