@@ -23,7 +23,7 @@ func TestGenerateEbook(t *testing.T) {
 	t.Run("Successful ebook generate", func(t *testing.T) {
 		t.Run("valid bookmarkId that return HasEbook true", func(t *testing.T) {
 			dstFile := "/ebook/1.epub"
-			temp := "/tempdir"
+			temp := "/tmp/tempdir"
 
 			deps.Domains.Storage = domains.NewStorageDomain(deps, afero.NewBasePathFs(afero.NewOsFs(), temp))
 
@@ -45,7 +45,7 @@ func TestGenerateEbook(t *testing.T) {
 		t.Run("ebook generate with valid BookmarkID EbookExist ImagePathExist ReturnWithHasEbookTrue", func(t *testing.T) {
 			//dstDir := "/ebook/2"
 			dstFile := "/ebook/2.epub"
-			temp := "/tempdir"
+			temp := "/tmp/tempdir"
 
 			deps.Domains.Storage = domains.NewStorageDomain(deps, afero.NewBasePathFs(afero.NewOsFs(), temp))
 
@@ -78,7 +78,7 @@ func TestGenerateEbook(t *testing.T) {
 		})
 		t.Run("generate ebook valid BookmarkID EbookExist ReturnHasArchiveTrue", func(t *testing.T) {
 			dstFile := "/ebook/3.epub"
-			temp := "/tempdir"
+			temp := "/tmp/tempdir"
 
 			deps.Domains.Storage = domains.NewStorageDomain(deps, afero.NewBasePathFs(afero.NewOsFs(), temp))
 
@@ -109,7 +109,7 @@ func TestGenerateEbook(t *testing.T) {
 	t.Run("specific ebook generate case", func(t *testing.T) {
 		t.Run("invalid bookmarkId that return Error", func(t *testing.T) {
 			dstFile := "/ebook/0.epub"
-			temp := "/tempdir"
+			temp := "/temp/tempdir"
 			mockRequest := core.ProcessRequest{
 				Bookmark: model.BookmarkDTO{
 					ID:       0,
@@ -130,7 +130,7 @@ func TestGenerateEbook(t *testing.T) {
 		})
 		t.Run("ebook exist return HasEbook true", func(t *testing.T) {
 			dstFile := "/ebook/1.epub"
-			temp := "/tempdir"
+			temp := "/tmp/tempdir"
 
 			deps.Domains.Storage = domains.NewStorageDomain(deps, afero.NewBasePathFs(afero.NewOsFs(), temp))
 
@@ -160,7 +160,7 @@ func TestGenerateEbook(t *testing.T) {
 		})
 		t.Run("generate ebook valid BookmarkID RetuenError for PDF file", func(t *testing.T) {
 			dstFile := "/ebook/1.epub"
-			temp := "/tempdir"
+			temp := "/tmp/tempdir"
 
 			mockRequest := core.ProcessRequest{
 				Bookmark: model.BookmarkDTO{
