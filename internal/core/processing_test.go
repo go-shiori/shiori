@@ -5,8 +5,6 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
-	"os"
-	fp "path/filepath"
 	"testing"
 
 	"github.com/go-shiori/shiori/internal/core"
@@ -24,30 +22,26 @@ func TestDownloadBookImage(t *testing.T) {
 		t.Run("fails", func(t *testing.T) {
 			// images is too small with unsupported format with a valid URL
 			imageURL := "https://github.com/go-shiori/shiori/blob/master/internal/view/assets/res/apple-touch-icon-152x152.png"
-			tempDir := t.TempDir()
-			dstPath := fp.Join(tempDir, "1")
-			defer os.Remove(dstPath)
+			dstFile := "tempDir/image.png"
 
 			// Act
-			err := core.DownloadBookImage(deps, imageURL, dstPath)
+			err := core.DownloadBookImage(deps, imageURL, dstFile)
 
 			// Assert
 			assert.EqualError(t, err, "unsupported image type")
-			assert.False(t, deps.Domains.Storage.FileExists(dstPath))
+			assert.False(t, deps.Domains.Storage.FileExists(dstFile))
 		})
 		t.Run("successful download image", func(t *testing.T) {
 			// Arrange
 			imageURL := "https://raw.githubusercontent.com/go-shiori/shiori/master/docs/readme/cover.png"
-			tempDir := t.TempDir()
-			dstPath := fp.Join(tempDir, "1")
-			defer os.Remove(dstPath)
+			dstFile := "tempDir/image.png"
 
 			// Act
-			err := core.DownloadBookImage(deps, imageURL, dstPath)
+			err := core.DownloadBookImage(deps, imageURL, dstFile)
 
 			// Assert
 			assert.NoError(t, err)
-			assert.True(t, deps.Domains.Storage.FileExists(dstPath))
+			assert.True(t, deps.Domains.Storage.FileExists(dstFile))
 		})
 		t.Run("successful download medium size image", func(t *testing.T) {
 			// create a file server handler for the 'testdata' directory
@@ -59,16 +53,14 @@ func TestDownloadBookImage(t *testing.T) {
 
 			// Arrange
 			imageURL := server.URL + "/medium_image.png"
-			tempDir := t.TempDir()
-			dstPath := fp.Join(tempDir, "1")
-			defer os.Remove(dstPath)
+			dstFile := "tempDir/medium_image.png"
 
 			// Act
-			err := core.DownloadBookImage(deps, imageURL, dstPath)
+			err := core.DownloadBookImage(deps, imageURL, dstFile)
 
 			// Assert
 			assert.NoError(t, err)
-			assert.True(t, deps.Domains.Storage.FileExists(dstPath))
+			assert.True(t, deps.Domains.Storage.FileExists(dstFile))
 		})
 	})
 }
