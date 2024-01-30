@@ -22,7 +22,8 @@ func TestDownloadBookImage(t *testing.T) {
 		t.Run("fails", func(t *testing.T) {
 			// images is too small with unsupported format with a valid URL
 			imageURL := "https://github.com/go-shiori/shiori/blob/master/internal/view/assets/res/apple-touch-icon-152x152.png"
-			dstFile := "tempDir/image.png"
+			temp := t.TempDir()
+			dstFile := temp + "/image.png"
 
 			// Act
 			err := core.DownloadBookImage(deps, imageURL, dstFile)
@@ -70,6 +71,7 @@ func TestProcessBookmark(t *testing.T) {
 	_, deps := testutil.GetTestConfigurationAndDependencies(t, context.TODO(), logger)
 
 	t.Run("ProcessRequest with sucssesful result", func(t *testing.T) {
+		temp := t.TempDir()
 		t.Run("Normal without image", func(t *testing.T) {
 			bookmark := model.BookmarkDTO{
 				ID:            1,
@@ -84,7 +86,7 @@ func TestProcessBookmark(t *testing.T) {
 				Bookmark:    bookmark,
 				Content:     content,
 				ContentType: "text/html",
-				DataDir:     "/tmp",
+				DataDir:     temp,
 				KeepTitle:   true,
 				KeepExcerpt: true,
 			}
@@ -104,7 +106,7 @@ func TestProcessBookmark(t *testing.T) {
 			}
 		})
 		t.Run("Normal with multipleimage", func(t *testing.T) {
-
+			temp := t.TempDir()
 			html := `html<html>
 		  <head>
 		    <meta property="og:image" content="http://example.com/image1.jpg">
@@ -128,7 +130,7 @@ func TestProcessBookmark(t *testing.T) {
 				Bookmark:    bookmark,
 				Content:     content,
 				ContentType: "text/html",
-				DataDir:     "/tmp",
+				DataDir:     temp,
 				KeepTitle:   true,
 				KeepExcerpt: true,
 			}
@@ -148,6 +150,7 @@ func TestProcessBookmark(t *testing.T) {
 			}
 		})
 		t.Run("ProcessRequest sucssesful with multipleimage included favicon and Thumbnail ", func(t *testing.T) {
+			temp := t.TempDir()
 			// create a file server handler for the 'testdata' directory
 			fs := http.FileServer(http.Dir("../../testdata/"))
 
@@ -178,7 +181,7 @@ func TestProcessBookmark(t *testing.T) {
 				Bookmark:    bookmark,
 				Content:     content,
 				ContentType: "text/html",
-				DataDir:     "/tmp",
+				DataDir:     temp,
 				KeepTitle:   true,
 				KeepExcerpt: true,
 			}
@@ -198,6 +201,7 @@ func TestProcessBookmark(t *testing.T) {
 			}
 		})
 		t.Run("ProcessRequest sucssesful with empty title ", func(t *testing.T) {
+			temp := t.TempDir()
 			bookmark := model.BookmarkDTO{
 				ID:            1,
 				URL:           "https://example.com",
@@ -211,7 +215,7 @@ func TestProcessBookmark(t *testing.T) {
 				Bookmark:    bookmark,
 				Content:     content,
 				ContentType: "text/html",
-				DataDir:     "/tmp",
+				DataDir:     temp,
 				KeepTitle:   true,
 				KeepExcerpt: true,
 			}
@@ -231,6 +235,7 @@ func TestProcessBookmark(t *testing.T) {
 			}
 		})
 		t.Run("ProcessRequest sucssesful with empty Excerpt", func(t *testing.T) {
+			temp := t.TempDir()
 			bookmark := model.BookmarkDTO{
 				ID:            1,
 				URL:           "https://example.com",
@@ -244,7 +249,7 @@ func TestProcessBookmark(t *testing.T) {
 				Bookmark:    bookmark,
 				Content:     content,
 				ContentType: "text/html",
-				DataDir:     "/tmp",
+				DataDir:     temp,
 				KeepTitle:   true,
 				KeepExcerpt: false,
 			}
@@ -264,6 +269,7 @@ func TestProcessBookmark(t *testing.T) {
 			}
 		})
 		t.Run("Specific case", func(t *testing.T) {
+			temp := t.TempDir()
 			t.Run("ProcessRequest with ID zero", func(t *testing.T) {
 
 				bookmark := model.BookmarkDTO{
@@ -279,7 +285,7 @@ func TestProcessBookmark(t *testing.T) {
 					Bookmark:    bookmark,
 					Content:     content,
 					ContentType: "text/html",
-					DataDir:     "/tmp",
+					DataDir:     temp,
 					KeepTitle:   true,
 					KeepExcerpt: true,
 				}
@@ -290,7 +296,7 @@ func TestProcessBookmark(t *testing.T) {
 			})
 
 			t.Run("ProcessRequest that content type not zero", func(t *testing.T) {
-
+				temp := t.TempDir()
 				bookmark := model.BookmarkDTO{
 					ID:            1,
 					URL:           "https://example.com",
@@ -304,7 +310,7 @@ func TestProcessBookmark(t *testing.T) {
 					Bookmark:    bookmark,
 					Content:     content,
 					ContentType: "application/pdf",
-					DataDir:     "/tmp",
+					DataDir:     temp,
 					KeepTitle:   true,
 					KeepExcerpt: true,
 				}
