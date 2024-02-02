@@ -28,7 +28,8 @@ func GetTestConfigurationAndDependencies(t *testing.T, ctx context.Context, logg
 	cfg := config.ParseServerConfiguration(ctx, logger)
 	cfg.Http.SecretKey = []byte("test")
 
-	tempDir := t.TempDir()
+	tempDir, err := os.MkdirTemp("", "")
+	require.NoError(t, err)
 
 	db, err := database.OpenSQLiteDatabase(ctx, tmp.Name())
 	require.NoError(t, err)
