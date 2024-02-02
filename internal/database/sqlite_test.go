@@ -2,7 +2,6 @@ package database
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -19,12 +18,10 @@ func init() {
 	sqliteDatabaseTestPath = filepath.Join(os.TempDir(), "shiori.db")
 }
 
-func sqliteTestDatabaseFactory(ctx context.Context) (DB, error) {
-	if err := os.Remove(sqliteDatabaseTestPath); err != nil && !os.IsNotExist(err) {
-		return nil, fmt.Errorf("error removing test database: %w", err)
-	}
+func sqliteTestDatabaseFactory(t *testing.T, ctx context.Context) (DB, error) {
+	tmpDir := t.TempDir()
 
-	db, err := OpenSQLiteDatabase(ctx, sqliteDatabaseTestPath)
+	db, err := OpenSQLiteDatabase(ctx, filepath.Join(tmpDir, "shiori.db"))
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +47,7 @@ func TestSqliteDatabase(t *testing.T) {
 func testSqliteGetBookmarksWithDash(t *testing.T) {
 	ctx := context.TODO()
 
-	db, err := sqliteTestDatabaseFactory(ctx)
+	db, err := sqliteTestDatabaseFactory(t, ctx)
 	assert.NoError(t, err)
 
 	book := model.BookmarkDTO{
@@ -100,7 +97,7 @@ func TestSQLiteDatabase_SaveAccount(t *testing.T) {
 func TestSaveAccountSettings(t *testing.T) {
 	ctx := context.TODO()
 
-	db, err := sqliteTestDatabaseFactory(ctx)
+	db, err := sqliteTestDatabaseFactory(t, ctx)
 	assert.NoError(t, err)
 
 	// Mock data
@@ -132,7 +129,7 @@ func TestSaveAccountSettings(t *testing.T) {
 func TestGetAccounts(t *testing.T) {
 	ctx := context.TODO()
 
-	db, err := sqliteTestDatabaseFactory(ctx)
+	db, err := sqliteTestDatabaseFactory(t, ctx)
 	assert.NoError(t, err)
 
 	// Insert test accounts

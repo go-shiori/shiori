@@ -23,7 +23,7 @@ func init() {
 	}
 }
 
-func postgresqlTestDatabaseFactory(ctx context.Context) (DB, error) {
+func postgresqlTestDatabaseFactory(_ *testing.T, ctx context.Context) (DB, error) {
 	db, err := OpenPGDatabase(ctx, os.Getenv("SHIORI_TEST_PG_URL"))
 	if err != nil {
 		return nil, err
@@ -48,7 +48,7 @@ func TestPostgresDatabase(t *testing.T) {
 func TestSaveAccountSettingsPg(t *testing.T) {
 	ctx := context.TODO()
 
-	db, err := postgresqlTestDatabaseFactory(ctx)
+	db, err := postgresqlTestDatabaseFactory(t, ctx)
 	assert.NoError(t, err)
 
 	// Mock data
@@ -79,7 +79,7 @@ func TestSaveAccountSettingsPg(t *testing.T) {
 func TestGetAccountsPg(t *testing.T) {
 	ctx := context.TODO()
 
-	db, err := postgresqlTestDatabaseFactory(ctx)
+	db, err := postgresqlTestDatabaseFactory(t, ctx)
 	assert.NoError(t, err)
 
 	// Insert test accounts
@@ -132,7 +132,7 @@ func TestGetAccountsPg(t *testing.T) {
 func TestGetAccountPg(t *testing.T) {
 	ctx := context.TODO()
 
-	db, err := postgresqlTestDatabaseFactory(ctx)
+	db, err := postgresqlTestDatabaseFactory(t, ctx)
 	assert.NoError(t, err)
 
 	// Insert test accounts

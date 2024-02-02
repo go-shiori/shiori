@@ -24,7 +24,7 @@ func init() {
 	}
 }
 
-func mysqlTestDatabaseFactory(ctx context.Context) (DB, error) {
+func mysqlTestDatabaseFactory(_ *testing.T, ctx context.Context) (DB, error) {
 	connString := os.Getenv("SHIORI_TEST_MYSQL_URL")
 	db, err := OpenMySQLDatabase(ctx, connString)
 	if err != nil {
@@ -68,7 +68,7 @@ func TestMysqlsDatabase(t *testing.T) {
 func TestSaveAccountSettingsMySql(t *testing.T) {
 	ctx := context.TODO()
 
-	db, err := mysqlTestDatabaseFactory(ctx)
+	db, err := mysqlTestDatabaseFactory(t, ctx)
 	assert.NoError(t, err)
 
 	// Mock data
@@ -100,7 +100,7 @@ func TestSaveAccountSettingsMySql(t *testing.T) {
 func TestGetAccountsMySql(t *testing.T) {
 	ctx := context.TODO()
 
-	db, err := mysqlTestDatabaseFactory(ctx)
+	db, err := mysqlTestDatabaseFactory(t, ctx)
 	assert.NoError(t, err)
 
 	// Insert test accounts
@@ -153,7 +153,7 @@ func TestGetAccountsMySql(t *testing.T) {
 func TestGetAccountMySql(t *testing.T) {
 	ctx := context.TODO()
 
-	db, err := mysqlTestDatabaseFactory(ctx)
+	db, err := mysqlTestDatabaseFactory(t, ctx)
 	assert.NoError(t, err)
 
 	// Insert test accounts

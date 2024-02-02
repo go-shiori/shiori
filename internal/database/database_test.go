@@ -9,7 +9,7 @@ import (
 )
 
 type databaseTestCase func(t *testing.T, db DB)
-type testDatabaseFactory func(ctx context.Context) (DB, error)
+type testDatabaseFactory func(t *testing.T, ctx context.Context) (DB, error)
 
 func testDatabase(t *testing.T, dbFactory testDatabaseFactory) {
 	tests := map[string]databaseTestCase{
@@ -35,7 +35,7 @@ func testDatabase(t *testing.T, dbFactory testDatabaseFactory) {
 	for testName, testCase := range tests {
 		t.Run(testName, func(tInner *testing.T) {
 			ctx := context.TODO()
-			db, err := dbFactory(ctx)
+			db, err := dbFactory(t, ctx)
 			assert.NoError(tInner, err, "Error recreating database")
 			testCase(tInner, db)
 		})
