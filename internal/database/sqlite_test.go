@@ -2,7 +2,6 @@ package database
 
 import (
 	"context"
-	"io/fs"
 	"os"
 	"path/filepath"
 	"testing"
@@ -15,9 +14,12 @@ import (
 )
 
 func sqliteTestDatabaseFactory(t *testing.T, ctx context.Context) (DB, error) {
-	tmpDir := filepath.Join(t.TempDir(), "dbtest")
+	tmpDir, err := os.MkdirTemp("", "")
+	require.NoError(t, err)
 
-	require.NoError(t, os.MkdirAll(tmpDir, fs.ModeDir|0755))
+	t.Cleanup(func() {
+		os.RemoveAll(tmpDir)
+	})
 
 	db, err := OpenSQLiteDatabase(ctx, filepath.Join(tmpDir, "shiori.db"))
 	if err != nil {
