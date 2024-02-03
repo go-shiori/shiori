@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -9,10 +10,12 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func sqliteTestDatabaseFactory(t *testing.T, ctx context.Context) (DB, error) {
-	tmpDir := t.TempDir()
+	tmpDir, err := os.MkdirTemp("", "")
+	require.NoError(t, err)
 
 	db, err := OpenSQLiteDatabase(ctx, filepath.Join(tmpDir, "shiori.db"))
 	if err != nil {
