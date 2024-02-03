@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type databaseTestCase func(t *testing.T, db DB)
@@ -30,6 +31,11 @@ func testDatabase(t *testing.T, dbFactory testDatabaseFactory) {
 		// Tags
 		"testCreateTag":  testCreateTag,
 		"testCreateTags": testCreateTags,
+		// Accounts
+		"testSaveAccount":        testSaveAccount,
+		"testSaveAccountSetting": testSaveAccountSettings,
+		"testGetAccount":         testGetAccount,
+		"testGetAccounts":        testGetAccounts,
 	}
 
 	for testName, testCase := range tests {
@@ -322,4 +328,99 @@ func testCreateTags(t *testing.T, db DB) {
 	ctx := context.TODO()
 	err := db.CreateTags(ctx, model.Tag{Name: "shiori"}, model.Tag{Name: "shiori2"})
 	assert.NoError(t, err, "Save tag must not fail")
+}
+
+func testSaveAccount(t *testing.T, db DB) {
+	ctx := context.TODO()
+
+	t.Run("success", func(t *testing.T) {
+		acc := model.Account{
+			Username: "testuser",
+			Config:   model.UserConfig{},
+		}
+
+		err := db.SaveAccount(ctx, acc)
+		require.Nil(t, err)
+	})
+}
+
+func testSaveAccountSettings(t *testing.T, db DB) {
+	ctx := context.TODO()
+
+	t.Run("success", func(t *testing.T) {
+		acc := model.Account{
+			Username: "test",
+			Config:   model.UserConfig{},
+		}
+
+		err := db.SaveAccountSettings(ctx, acc)
+		require.Nil(t, err)
+	})
+}
+
+func testGetAccount(t *testing.T, db DB) {
+	ctx := context.TODO()
+
+	t.Run("success", func(t *testing.T) {
+		// Insert test accounts
+		testAccounts := []model.Account{
+			{Username: "foo", Password: "bar", Owner: false},
+			{Username: "hello", Password: "world", Owner: false},
+			{Username: "foo_bar", Password: "foobar", Owner: true},
+		}
+		for _, acc := range testAccounts {
+			err := db.SaveAccount(ctx, acc)
+			assert.Nil(t, err)
+
+			// Successful case
+			account, exists, err := db.GetAccount(ctx, acc.Username)
+			assert.Nil(t, err)
+			assert.True(t, exists, "Expected account to exist")
+			assert.Equal(t, acc.Username, account.Username)
+		}
+		// Falid case
+		account, exists, err := db.GetAccount(ctx, "foobar")
+		assert.NotNil(t, err)
+		assert.False(t, exists, "Expected account to exist")
+		assert.Empty(t, account.Username)
+	})
+}
+
+func testGetAccounts(t *testing.T, db DB) {
+	ctx := context.TODO()
+
+	t.Run("success", func(t *testing.T) {
+		// Insert test accounts
+		testAccounts := []model.Account{
+			{Username: "foo", Password: "bar", Owner: false},
+			{Username: "hello", Password: "world", Owner: false},
+			{Username: "foo_bar", Password: "foobar", Owner: true},
+		}
+		for _, acc := range testAccounts {
+			err := db.SaveAccount(ctx, acc)
+			assert.Nil(t, err)
+		}
+
+		// Successful case
+		// without opt
+		accounts, err := db.GetAccounts(ctx, GetAccountsOptions{})
+		assert.NoError(t, err)
+		assert.Equal(t, 3, len(accounts))
+		// with owner
+		accounts, err = db.GetAccounts(ctx, GetAccountsOptions{Owner: true})
+		assert.NoError(t, err)
+		assert.Equal(t, 1, len(accounts))
+		// with opt
+		accounts, err = db.GetAccounts(ctx, GetAccountsOptions{Keyword: "foo"})
+		assert.NoError(t, err)
+		assert.Equal(t, 2, len(accounts))
+		// with opt and owner
+		accounts, err = db.GetAccounts(ctx, GetAccountsOptions{Keyword: "hello", Owner: false})
+		assert.NoError(t, err)
+		assert.Equal(t, 1, len(accounts))
+		// with not result
+		accounts, err = db.GetAccounts(ctx, GetAccountsOptions{Keyword: "shiori"})
+		assert.NoError(t, err)
+		assert.Equal(t, 0, len(accounts))
+	})
 }
