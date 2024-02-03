@@ -6,14 +6,12 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/go-shiori/shiori/internal/config"
 	"github.com/go-shiori/shiori/internal/database"
+	"github.com/go-shiori/shiori/internal/dependencies"
 	"github.com/go-shiori/shiori/internal/model"
 	cch "github.com/patrickmn/go-cache"
 	"github.com/sirupsen/logrus"
 )
-
-var developmentMode = false
 
 // Handler is Handler for serving the web interface.
 type Handler struct {
@@ -25,7 +23,7 @@ type Handler struct {
 	ArchiveCache *cch.Cache
 	Log          bool
 
-	dependencies *config.Dependencies
+	dependencies *dependencies.Dependencies
 
 	templates map[string]*template.Template
 }

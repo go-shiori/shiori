@@ -72,10 +72,10 @@ type DB interface {
 	Migrate() error
 
 	// SaveBookmarks saves bookmarks data to database.
-	SaveBookmarks(ctx context.Context, create bool, bookmarks ...model.Bookmark) ([]model.Bookmark, error)
+	SaveBookmarks(ctx context.Context, create bool, bookmarks ...model.BookmarkDTO) ([]model.BookmarkDTO, error)
 
 	// GetBookmarks fetch list of bookmarks based on submitted options.
-	GetBookmarks(ctx context.Context, opts GetBookmarksOptions) ([]model.Bookmark, error)
+	GetBookmarks(ctx context.Context, opts GetBookmarksOptions) ([]model.BookmarkDTO, error)
 
 	// GetBookmarksCount get count of bookmarks in database.
 	GetBookmarksCount(ctx context.Context, opts GetBookmarksOptions) (int, error)
@@ -84,7 +84,7 @@ type DB interface {
 	DeleteBookmarks(ctx context.Context, ids ...int) error
 
 	// GetBookmark fetches bookmark based on its ID or URL.
-	GetBookmark(ctx context.Context, id int, url string) (model.Bookmark, bool, error)
+	GetBookmark(ctx context.Context, id int, url string) (model.BookmarkDTO, bool, error)
 
 	// SaveAccount saves new account in database
 	SaveAccount(ctx context.Context, a model.Account) error

@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-shiori/shiori/internal/http/templates"
 	"github.com/go-shiori/shiori/internal/testutil"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
@@ -18,6 +19,8 @@ func TestFrontendRoutes(t *testing.T) {
 	cfg, _ := testutil.GetTestConfigurationAndDependencies(t, context.Background(), logger)
 
 	g := gin.Default()
+	templates.SetupTemplates(g)
+
 	router := NewFrontendRoutes(logger, cfg)
 	router.Setup(g)
 

@@ -2,6 +2,7 @@ package core_test
 
 import (
 	"bytes"
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -10,43 +11,15 @@ import (
 
 	"github.com/go-shiori/shiori/internal/core"
 	"github.com/go-shiori/shiori/internal/model"
+	"github.com/go-shiori/shiori/internal/testutil"
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestMoveFileToDestination(t *testing.T) {
-	t.Run("create  fails", func(t *testing.T) {
-		t.Run("directory create fails", func(t *testing.T) {
-			// test if create dir fails
-			tmpFile, err := os.CreateTemp("", "image")
-
-			assert.NoError(t, err)
-			defer os.Remove(tmpFile.Name())
-
-			err = core.MoveFileToDestination("/destination/test", tmpFile)
-			assert.Error(t, err)
-			assert.Contains(t, err.Error(), "failed to create destination dir")
-		})
-		t.Run("file create fails", func(t *testing.T) {
-			// if create file failed
-			tmpFile, err := os.CreateTemp("", "image")
-			assert.NoError(t, err)
-			defer os.Remove(tmpFile.Name())
-
-			// Create a destination directory
-			dstDir := t.TempDir()
-			assert.NoError(t, err)
-			defer os.Remove(dstDir)
-
-			// Set destination path to an invalid file name to force os.Create to fail
-			dstPath := fp.Join(dstDir, "\000invalid\000")
-
-			err = core.MoveFileToDestination(dstPath, tmpFile)
-			assert.Error(t, err)
-			assert.Contains(t, err.Error(), "failed to create destination file")
-		})
-	})
-}
 func TestDownloadBookImage(t *testing.T) {
+	logger := logrus.New()
+	_, deps := testutil.GetTestConfigurationAndDependencies(t, context.TODO(), logger)
+
 	t.Run("Download Images", func(t *testing.T) {
 		t.Run("fails", func(t *testing.T) {
 			// images is too small with unsupported format with a valid URL
@@ -56,13 +29,13 @@ func TestDownloadBookImage(t *testing.T) {
 			defer os.Remove(dstPath)
 
 			// Act
-			err := core.DownloadBookImage(imageURL, dstPath)
+			err := core.DownloadBookImage(deps, imageURL, dstPath)
 
 			// Assert
 			assert.EqualError(t, err, "unsupported image type")
-			assert.NoFileExists(t, dstPath)
+			assert.False(t, deps.Domains.Storage.FileExists(dstPath))
 		})
-		t.Run("sucssesful downlosd image", func(t *testing.T) {
+		t.Run("successful download image", func(t *testing.T) {
 			// Arrange
 			imageURL := "https://raw.githubusercontent.com/go-shiori/shiori/master/docs/readme/cover.png"
 			tempDir := t.TempDir()
@@ -70,13 +43,13 @@ func TestDownloadBookImage(t *testing.T) {
 			defer os.Remove(dstPath)
 
 			// Act
-			err := core.DownloadBookImage(imageURL, dstPath)
+			err := core.DownloadBookImage(deps, imageURL, dstPath)
 
 			// Assert
 			assert.NoError(t, err)
-			assert.FileExists(t, dstPath)
+			assert.True(t, deps.Domains.Storage.FileExists(dstPath))
 		})
-		t.Run("sucssesful downlosd medium size image", func(t *testing.T) {
+		t.Run("successful download medium size image", func(t *testing.T) {
 			// create a file server handler for the 'testdata' directory
 			fs := http.FileServer(http.Dir("../../testdata/"))
 
@@ -91,20 +64,22 @@ func TestDownloadBookImage(t *testing.T) {
 			defer os.Remove(dstPath)
 
 			// Act
-			err := core.DownloadBookImage(imageURL, dstPath)
+			err := core.DownloadBookImage(deps, imageURL, dstPath)
 
 			// Assert
 			assert.NoError(t, err)
-			assert.FileExists(t, dstPath)
-
+			assert.True(t, deps.Domains.Storage.FileExists(dstPath))
 		})
 	})
 }
 
 func TestProcessBookmark(t *testing.T) {
+	logger := logrus.New()
+	_, deps := testutil.GetTestConfigurationAndDependencies(t, context.TODO(), logger)
+
 	t.Run("ProcessRequest with sucssesful result", func(t *testing.T) {
 		t.Run("Normal without image", func(t *testing.T) {
-			bookmark := model.Bookmark{
+			bookmark := model.BookmarkDTO{
 				ID:            1,
 				URL:           "https://example.com",
 				Title:         "Example",
@@ -121,7 +96,7 @@ func TestProcessBookmark(t *testing.T) {
 				KeepTitle:   true,
 				KeepExcerpt: true,
 			}
-			expected, _, _ := core.ProcessBookmark(request)
+			expected, _, _ := core.ProcessBookmark(deps, request)
 
 			if expected.ID != bookmark.ID {
 				t.Errorf("Unexpected ID: got %v, want %v", expected.ID, bookmark.ID)
@@ -148,7 +123,7 @@ func TestProcessBookmark(t *testing.T) {
 		    <p>This is an example article</p>
 		  </body>
 		</html>`
-			bookmark := model.Bookmark{
+			bookmark := model.BookmarkDTO{
 				ID:            1,
 				URL:           "https://example.com",
 				Title:         "Example",
@@ -165,7 +140,7 @@ func TestProcessBookmark(t *testing.T) {
 				KeepTitle:   true,
 				KeepExcerpt: true,
 			}
-			expected, _, _ := core.ProcessBookmark(request)
+			expected, _, _ := core.ProcessBookmark(deps, request)
 
 			if expected.ID != bookmark.ID {
 				t.Errorf("Unexpected ID: got %v, want %v", expected.ID, bookmark.ID)
@@ -198,7 +173,7 @@ func TestProcessBookmark(t *testing.T) {
     			<p>This is an example article</p>
   			</body>
 			</html>`
-			bookmark := model.Bookmark{
+			bookmark := model.BookmarkDTO{
 				ID:            1,
 				URL:           "https://example.com",
 				Title:         "Example",
@@ -215,7 +190,7 @@ func TestProcessBookmark(t *testing.T) {
 				KeepTitle:   true,
 				KeepExcerpt: true,
 			}
-			expected, _, _ := core.ProcessBookmark(request)
+			expected, _, _ := core.ProcessBookmark(deps, request)
 
 			if expected.ID != bookmark.ID {
 				t.Errorf("Unexpected ID: got %v, want %v", expected.ID, bookmark.ID)
@@ -231,7 +206,7 @@ func TestProcessBookmark(t *testing.T) {
 			}
 		})
 		t.Run("ProcessRequest sucssesful with empty title ", func(t *testing.T) {
-			bookmark := model.Bookmark{
+			bookmark := model.BookmarkDTO{
 				ID:            1,
 				URL:           "https://example.com",
 				Title:         "",
@@ -248,7 +223,7 @@ func TestProcessBookmark(t *testing.T) {
 				KeepTitle:   true,
 				KeepExcerpt: true,
 			}
-			expected, _, _ := core.ProcessBookmark(request)
+			expected, _, _ := core.ProcessBookmark(deps, request)
 
 			if expected.ID != bookmark.ID {
 				t.Errorf("Unexpected ID: got %v, want %v", expected.ID, bookmark.ID)
@@ -264,7 +239,7 @@ func TestProcessBookmark(t *testing.T) {
 			}
 		})
 		t.Run("ProcessRequest sucssesful with empty Excerpt", func(t *testing.T) {
-			bookmark := model.Bookmark{
+			bookmark := model.BookmarkDTO{
 				ID:            1,
 				URL:           "https://example.com",
 				Title:         "",
@@ -281,7 +256,7 @@ func TestProcessBookmark(t *testing.T) {
 				KeepTitle:   true,
 				KeepExcerpt: false,
 			}
-			expected, _, _ := core.ProcessBookmark(request)
+			expected, _, _ := core.ProcessBookmark(deps, request)
 
 			if expected.ID != bookmark.ID {
 				t.Errorf("Unexpected ID: got %v, want %v", expected.ID, bookmark.ID)
@@ -299,7 +274,7 @@ func TestProcessBookmark(t *testing.T) {
 		t.Run("Specific case", func(t *testing.T) {
 			t.Run("ProcessRequest with ID zero", func(t *testing.T) {
 
-				bookmark := model.Bookmark{
+				bookmark := model.BookmarkDTO{
 					ID:            0,
 					URL:           "https://example.com",
 					Title:         "Example",
@@ -316,7 +291,7 @@ func TestProcessBookmark(t *testing.T) {
 					KeepTitle:   true,
 					KeepExcerpt: true,
 				}
-				_, isFatal, err := core.ProcessBookmark(request)
+				_, isFatal, err := core.ProcessBookmark(deps, request)
 				assert.Error(t, err)
 				assert.Contains(t, err.Error(), "bookmark ID is not valid")
 				assert.True(t, isFatal)
@@ -324,7 +299,7 @@ func TestProcessBookmark(t *testing.T) {
 
 			t.Run("ProcessRequest that content type not zero", func(t *testing.T) {
 
-				bookmark := model.Bookmark{
+				bookmark := model.BookmarkDTO{
 					ID:            1,
 					URL:           "https://example.com",
 					Title:         "Example",
@@ -341,7 +316,7 @@ func TestProcessBookmark(t *testing.T) {
 					KeepTitle:   true,
 					KeepExcerpt: true,
 				}
-				_, _, err := core.ProcessBookmark(request)
+				_, _, err := core.ProcessBookmark(deps, request)
 				assert.NoError(t, err)
 			})
 		})

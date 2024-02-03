@@ -6,3 +6,8 @@ var (
 	BuildCommit  = "none"
 	BuildDate    = "unknown"
 )
+
+const (
+	// ShioriNamespace
+	ShioriURLNamespace = "https://github.com/go-shiori/shiori"
+)

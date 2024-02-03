@@ -150,7 +150,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/model.Bookmark"
+                            "$ref": "#/definitions/model.BookmarkDTO"
                         }
                     },
                     "403": {
@@ -294,16 +294,18 @@ const docTemplate = `{
                 }
             }
         },
-        "model.Bookmark": {
+        "model.BookmarkDTO": {
             "type": "object",
             "properties": {
                 "author": {
                     "type": "string"
                 },
                 "create_archive": {
+                    "description": "TODO: migrate outside the DTO",
                     "type": "boolean"
                 },
                 "create_ebook": {
+                    "description": "TODO: migrate outside the DTO",
                     "type": "boolean"
                 },
                 "excerpt": {

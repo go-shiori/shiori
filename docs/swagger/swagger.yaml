@@ -57,13 +57,15 @@ definitions:
       username:
         type: string
     type: object
-  model.Bookmark:
+  model.BookmarkDTO:
     properties:
       author:
         type: string
       create_archive:
+        description: 'TODO: migrate outside the DTO'
         type: boolean
       create_ebook:
+        description: 'TODO: migrate outside the DTO'
         type: boolean
       excerpt:
         type: string
@@ -210,7 +212,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/model.Bookmark'
+            $ref: '#/definitions/model.BookmarkDTO'
         "403":
           description: Token not provided/invalid
       summary: Update Cache and Ebook on server.

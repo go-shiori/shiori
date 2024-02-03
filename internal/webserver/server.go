@@ -3,8 +3,8 @@ package webserver
 import (
 	"time"
 
-	"github.com/go-shiori/shiori/internal/config"
 	"github.com/go-shiori/shiori/internal/database"
+	"github.com/go-shiori/shiori/internal/dependencies"
 	cch "github.com/patrickmn/go-cache"
 )
 
@@ -18,7 +18,7 @@ type Config struct {
 	Log           bool
 }
 
-func GetLegacyHandler(cfg Config, dependencies *config.Dependencies) *Handler {
+func GetLegacyHandler(cfg Config, dependencies *dependencies.Dependencies) *Handler {
 	return &Handler{
 		DB:           cfg.DB,
 		DataDir:      cfg.DataDir,

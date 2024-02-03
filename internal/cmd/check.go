@@ -76,7 +76,7 @@ func checkHandler(cmd *cobra.Command, args []string) {
 	for i, book := range bookmarks {
 		wg.Add(1)
 
-		go func(i int, book model.Bookmark) {
+		go func(i int, book model.BookmarkDTO) {
 			// Make sure to finish the WG
 			defer wg.Done()
 

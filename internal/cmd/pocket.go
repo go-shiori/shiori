@@ -36,7 +36,7 @@ func pocketHandler(cmd *cobra.Command, args []string) {
 	defer srcFile.Close()
 
 	// Parse pocket's file
-	bookmarks := []model.Bookmark{}
+	bookmarks := []model.BookmarkDTO{}
 	mapURL := make(map[string]struct{})
 
 	doc, err := goquery.NewDocumentFromReader(srcFile)
@@ -93,7 +93,7 @@ func pocketHandler(cmd *cobra.Command, args []string) {
 		}
 
 		// Add item to list
-		bookmark := model.Bookmark{
+		bookmark := model.BookmarkDTO{
 			URL:      url,
 			Title:    title,
 			Modified: modified.Format(model.DatabaseDateFormat),

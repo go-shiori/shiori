@@ -27,6 +27,23 @@ type UserConfig struct {
 	MakePublic    bool `json:"MakePublic"`
 }
 
+func (c *UserConfig) Scan(value interface{}) error {
+	switch v := value.(type) {
+	case []byte:
+		json.Unmarshal(v, &c)
+		return nil
+	case string:
+		json.Unmarshal([]byte(v), &c)
+		return nil
+	default:
+		return fmt.Errorf("unsupported type: %T", v)
+	}
+}
+
+func (c UserConfig) Value() (driver.Value, error) {
+	return json.Marshal(c)
+}
+
 // ToDTO converts Account to AccountDTO.
 func (a Account) ToDTO() AccountDTO {
 	return AccountDTO{
@@ -43,21 +60,4 @@ type AccountDTO struct {
 	Username string     `json:"username"`
 	Owner    bool       `json:"owner"`
 	Config   UserConfig `json:"config"`
-}
-
-func (c *UserConfig) Scan(value interface{}) error {
-	switch v := value.(type) {
-	case []byte:
-		json.Unmarshal(v, &c)
-		return nil
-	case string:
-		json.Unmarshal([]byte(v), &c)
-		return nil
-	default:
-		return fmt.Errorf("unsupported type: %T", v)
-	}
-}
-
-func (c UserConfig) Value() (driver.Value, error) {
-	return json.Marshal(c)
 }

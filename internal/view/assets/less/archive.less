@@ -14,73 +14,81 @@
 @screen-sm-max: 600px;
 @screen-sm-header-height: 50px;
 
-#shiori-archive-header {
-	top: 0;
-	left: 0;
-	right: 0;
-	height: @header-height;
-	box-sizing: border-box;
-	position: fixed;
-	padding: 0 16px;
-	display: flex;
-	flex-flow: row wrap;
-	align-items: center;
-	font-size: 16px;
-	border-bottom: 1px solid var(--border);
-	background-color: var(--archiveHeaderBg);
-	z-index: 9999999999;
-
-	* {
-		border-width: 0;
-		box-sizing: border-box;
-		font-family: "Source Sans Pro", sans-serif;
-		margin: 0;
-		padding: 0;
-	}
-
-	> *:not(:last-child) {
-		margin-right: 8px;
-	}
-
-	> .spacer {
-		flex: 1;
-	}
-
-	#shiori-logo {
-		font-size: 2em;
-		font-weight: 100;
-		color: var(--main);
-
-		span {
-			margin-right: 8px;
-		}
-	}
-
-	a {
-		display: block;
-		color: var(--colorLink);
-		text-decoration: underline;
-
-		&:hover,
-		&:focus {
-			color: var(--main);
-		}
-	}
-
-	@media (max-width: @screen-sm-max) {
-		font-size: 14px;
-		height: @screen-sm-header-height;
-
-		#shiori-logo {
-			font-size: 1.5em;
-		}
-	}
+body {
+	padding: 0;
+	margin: 0;
 }
 
-body.shiori-archive-content {
-	margin-top: @header-height !important;
+* {
+	box-sizing: border-box;
+}
 
-	@media (max-width: @screen-sm-max) {
-		margin-top: @screen-sm-header-height !important;
+body.archive {
+	display: grid;
+	grid-template-rows: minmax(1px, auto) 1fr;
+	height: 100vh;
+	width: 100vw;
+
+	.header {
+		display: flex;
+		flex-flow: row wrap;
+		height: @header-height;
+		box-sizing: border-box;
+		padding: 0 16px;
+		align-items: center;
+		font-size: 16px;
+		border-bottom: 1px solid var(--border);
+		background-color: var(--archiveHeaderBg);
+
+		* {
+			border-width: 0;
+			box-sizing: border-box;
+			font-family: "Source Sans Pro", sans-serif;
+			margin: 0;
+			padding: 0;
+		}
+
+		> *:not(:last-child) {
+			margin-right: 8px;
+		}
+
+		> .spacer {
+			flex: 1;
+		}
+
+		#shiori-logo {
+			font-size: 2em;
+			font-weight: 100;
+			color: var(--main);
+
+			span {
+				margin-right: 8px;
+			}
+		}
+
+		a {
+			display: block;
+			color: var(--colorLink);
+			text-decoration: underline;
+
+			&:hover,
+			&:focus {
+				color: var(--main);
+			}
+		}
+
+		@media (max-width: @screen-sm-max) {
+			font-size: 14px;
+			height: @screen-sm-header-height;
+
+			#shiori-logo {
+				font-size: 1.5em;
+			}
+		}
+	}
+
+	iframe {
+		width: 100%;
+		height: 100%;
 	}
 }

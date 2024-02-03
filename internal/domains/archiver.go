@@ -2,34 +2,32 @@ package domains
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
-	"strconv"
 
 	"github.com/go-shiori/shiori/internal/core"
+	"github.com/go-shiori/shiori/internal/dependencies"
 	"github.com/go-shiori/shiori/internal/model"
-	"github.com/sirupsen/logrus"
+	"github.com/go-shiori/warc"
 )
 
 type ArchiverDomain struct {
-	dataDir string
-	logger  *logrus.Logger
+	deps *dependencies.Dependencies
 }
 
-func (d *ArchiverDomain) DownloadBookmarkArchive(book model.Bookmark) (*model.Bookmark, error) {
+func (d *ArchiverDomain) DownloadBookmarkArchive(book model.BookmarkDTO) (*model.BookmarkDTO, error) {
 	content, contentType, err := core.DownloadBookmark(book.URL)
 	if err != nil {
 		return nil, fmt.Errorf("error downloading url: %s", err)
 	}
 
 	processRequest := core.ProcessRequest{
-		DataDir:     d.dataDir,
+		DataDir:     d.deps.Config.Storage.DataDir,
 		Bookmark:    book,
 		Content:     content,
 		ContentType: contentType,
 	}
 
-	result, isFatalErr, err := core.ProcessBookmark(processRequest)
+	result, isFatalErr, err := core.ProcessBookmark(d.deps, processRequest)
 	content.Close()
 
 	if err != nil && isFatalErr {
@@ -39,20 +37,19 @@ func (d *ArchiverDomain) DownloadBookmarkArchive(book model.Bookmark) (*model.Bo
 	return &result, nil
 }
 
-func (d *ArchiverDomain) GetBookmarkArchive(book model.Bookmark) error {
-	archivePath := filepath.Join(d.dataDir, "archive", strconv.Itoa(book.ID))
+func (d *ArchiverDomain) GetBookmarkArchive(book *model.BookmarkDTO) (*warc.Archive, error) {
+	archivePath := model.GetArchivePath(book)
 
-	info, err := os.Stat(archivePath)
-	if !os.IsNotExist(err) && !info.IsDir() {
-		return fmt.Errorf("archive not found")
+	if !d.deps.Domains.Storage.FileExists(archivePath) {
+		return nil, fmt.Errorf("archive for bookmark %d doesn't exist", book.ID)
 	}
 
-	return nil
+	// FIXME: This only works in local filesystem
+	return warc.Open(filepath.Join(d.deps.Config.Storage.DataDir, archivePath))
 }
 
-func NewArchiverDomain(logger *logrus.Logger, dataDir string) ArchiverDomain {
-	return ArchiverDomain{
-		dataDir: dataDir,
-		logger:  logger,
+func NewArchiverDomain(deps *dependencies.Dependencies) *ArchiverDomain {
+	return &ArchiverDomain{
+		deps: deps,
 	}
 }
