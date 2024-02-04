@@ -64,7 +64,7 @@ jobs:
   test-windows-macos:
     strategy:
       matrix:
-        os: [windows-lates, macos-latest]
+        os: [windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     env:
       CGO_ENABLED: 0
