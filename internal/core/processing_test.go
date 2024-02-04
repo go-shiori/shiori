@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"path/filepath"
 	fp "path/filepath"
 	"testing"
 
@@ -28,7 +27,7 @@ func TestDownloadBookImage(t *testing.T) {
 			imageURL := "https://github.com/go-shiori/shiori/blob/master/internal/view/assets/res/apple-touch-icon-152x152.png"
 			temp, err := os.MkdirTemp("", "")
 			require.NoError(t, err)
-			dstFile := filepath.Join(temp, "image.png")
+			dstFile := fp.Join(temp, "image.png")
 
 			// Act
 			err = core.DownloadBookImage(deps, imageURL, dstFile)
