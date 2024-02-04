@@ -63,7 +63,6 @@ func TestGenerateEbook(t *testing.T) {
 			imagedirPath := fp.Dir(imagePath)
 			deps.Domains.Storage.FS().MkdirAll(imagedirPath, os.ModePerm)
 			file, err := deps.Domains.Storage.FS().Create(imagePath)
-			log.Println(file.Name())
 			if err != nil {
 				t.Fatal(err)
 			}
