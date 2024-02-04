@@ -66,8 +66,6 @@ jobs:
       matrix:
         os: [windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
-    env:
-      CGO_ENABLED: 0
     name: Go unit tests (${{ matrix.os }})
     steps:
     - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
