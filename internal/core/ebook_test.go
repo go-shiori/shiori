@@ -43,7 +43,6 @@ func TestGenerateEbook(t *testing.T) {
 			assert.NoError(t, err)
 		})
 		t.Run("ebook generate with valid BookmarkID EbookExist ImagePathExist ReturnWithHasEbookTrue", func(t *testing.T) {
-			//dstDir := "/ebook/2"
 			dstFile := "/ebook/2.epub"
 			temp := t.TempDir()
 
