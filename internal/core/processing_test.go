@@ -5,6 +5,7 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -13,6 +14,7 @@ import (
 	"github.com/go-shiori/shiori/internal/testutil"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestDownloadBookImage(t *testing.T) {
@@ -23,31 +25,34 @@ func TestDownloadBookImage(t *testing.T) {
 		t.Run("fails", func(t *testing.T) {
 			// images is too small with unsupported format with a valid URL
 			imageURL := "https://github.com/go-shiori/shiori/blob/master/internal/view/assets/res/apple-touch-icon-152x152.png"
-			temp := t.TempDir()
+			temp, err := os.MkdirTemp("", "")
+			require.NoError(t, err)
 			dstFile := filepath.Join(temp + "image.png")
 
 			// Act
-			err := core.DownloadBookImage(deps, imageURL, dstFile)
+			err = core.DownloadBookImage(deps, imageURL, dstFile)
 
 			// Assert
 			assert.EqualError(t, err, "unsupported image type")
 			assert.False(t, deps.Domains.Storage.FileExists(dstFile))
 		})
 		t.Run("successful download image", func(t *testing.T) {
-			temp := t.TempDir()
+			temp, err := os.MkdirTemp("", "")
+			require.NoError(t, err)
 			// Arrange
 			imageURL := "https://raw.githubusercontent.com/go-shiori/shiori/master/docs/readme/cover.png"
 			dstFile := filepath.Join(temp + "image.png")
 
 			// Act
-			err := core.DownloadBookImage(deps, imageURL, dstFile)
+			err = core.DownloadBookImage(deps, imageURL, dstFile)
 
 			// Assert
 			assert.NoError(t, err)
 			assert.True(t, deps.Domains.Storage.FileExists(dstFile))
 		})
 		t.Run("successful download medium size image", func(t *testing.T) {
-			temp := t.TempDir()
+			temp, err := os.MkdirTemp("", "")
+			require.NoError(t, err)
 			// create a file server handler for the 'testdata' directory
 			fs := http.FileServer(http.Dir("../../testdata/"))
 
@@ -60,7 +65,7 @@ func TestDownloadBookImage(t *testing.T) {
 			dstFile := filepath.Join(temp + "medium_image.png")
 
 			// Act
-			err := core.DownloadBookImage(deps, imageURL, dstFile)
+			err = core.DownloadBookImage(deps, imageURL, dstFile)
 
 			// Assert
 			assert.NoError(t, err)
