@@ -3,8 +3,6 @@ package core_test
 import (
 	"bytes"
 	"context"
-	"net/http"
-	"net/http/httptest"
 	"os"
 	fp "path/filepath"
 	"testing"
@@ -155,20 +153,11 @@ func TestProcessBookmark(t *testing.T) {
 		})
 		t.Run("ProcessRequest sucssesful with multipleimage included favicon and Thumbnail ", func(t *testing.T) {
 			temp := t.TempDir()
-			// create a file server handler for the 'testdata' directory
-			absPath, err := fp.Abs("../../testdata/")
-			require.NoError(t, err)
-			fs := http.FileServer(http.Dir(absPath))
-
-			// start a test server with the file server handler
-			server := httptest.NewServer(fs)
-			defer server.Close()
-
 			html := `html<html>
   			<head>
     		<meta property="og:image" content="http://example.com/image1.jpg">
-    		<meta property="og:image" content="` + server.URL + `/big_image.png">
-    		<link rel="icon" type="image/svg" href="` + server.URL + `/favicon.svg">
+    		<meta property="og:image" content="https://raw.githubusercontent.com/go-shiori/shiori/master/testdata/big_image.png">
+    		<link rel="icon" type="image/svg" href="https://raw.githubusercontent.com/go-shiori/shiori/master/testdata/favicon.svg">
   			</head>
   			<body>
     			<p>This is an example article</p>
