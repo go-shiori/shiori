@@ -27,7 +27,7 @@ func TestDownloadBookImage(t *testing.T) {
 			imageURL := "https://github.com/go-shiori/shiori/blob/master/internal/view/assets/res/apple-touch-icon-152x152.png"
 			temp, err := os.MkdirTemp("", "")
 			require.NoError(t, err)
-			dstFile := filepath.Join(temp + "image.png")
+			dstFile := filepath.Join(temp, "image.png")
 
 			// Act
 			err = core.DownloadBookImage(deps, imageURL, dstFile)
@@ -41,7 +41,7 @@ func TestDownloadBookImage(t *testing.T) {
 			require.NoError(t, err)
 			// Arrange
 			imageURL := "https://raw.githubusercontent.com/go-shiori/shiori/master/docs/readme/cover.png"
-			dstFile := filepath.Join(temp + "image2.png")
+			dstFile := filepath.Join(temp, "image2.png")
 
 			// Act
 			err = core.DownloadBookImage(deps, imageURL, dstFile)
@@ -62,7 +62,7 @@ func TestDownloadBookImage(t *testing.T) {
 
 			// Arrange
 			imageURL := server.URL + "/medium_image.png"
-			dstFile := filepath.Join(temp + "medium_image.png")
+			dstFile := filepath.Join(temp, "medium_image.png")
 
 			// Act
 			err = core.DownloadBookImage(deps, imageURL, dstFile)
