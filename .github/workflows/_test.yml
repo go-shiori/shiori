@@ -61,7 +61,7 @@ jobs:
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
-  test-windows-macos:
+  test-windows:
     strategy:
       matrix:
         os: [windows-latest]
