@@ -41,7 +41,7 @@ func TestDownloadBookImage(t *testing.T) {
 			require.NoError(t, err)
 			// Arrange
 			imageURL := "https://raw.githubusercontent.com/go-shiori/shiori/master/docs/readme/cover.png"
-			dstFile := filepath.Join(temp + "image.png")
+			dstFile := filepath.Join(temp + "image2.png")
 
 			// Act
 			err = core.DownloadBookImage(deps, imageURL, dstFile)
