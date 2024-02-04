@@ -84,8 +84,6 @@ jobs:
         restore-keys: |
           golangci-lint.cache-{interval_number}-
           golangci-lint.cache-
-        env:
-          CGO_ENABLED=0
       env:
         CGO_ENABLED: 0
     - run: make unittest GO_TEST_FLAGS="-tags test_sqlite_only"
