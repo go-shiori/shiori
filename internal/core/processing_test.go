@@ -156,7 +156,9 @@ func TestProcessBookmark(t *testing.T) {
 		t.Run("ProcessRequest sucssesful with multipleimage included favicon and Thumbnail ", func(t *testing.T) {
 			temp := t.TempDir()
 			// create a file server handler for the 'testdata' directory
-			fs := http.FileServer(http.Dir("../../testdata/"))
+			absPath, err := fp.Abs("../../testdata/")
+			require.NoError(t, err)
+			fs := http.FileServer(http.Dir(absPath))
 
 			// start a test server with the file server handler
 			server := httptest.NewServer(fs)
