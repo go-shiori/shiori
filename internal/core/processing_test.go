@@ -57,16 +57,12 @@ func TestDownloadBookImage(t *testing.T) {
 		t.Run("successful download medium size image", func(t *testing.T) {
 			temp, err := os.MkdirTemp("", "")
 			require.NoError(t, err)
-			// create a file server handler for the 'testdata' directory
-			fs := http.FileServer(http.Dir("../../testdata/"))
-
-			// start a test server with the file server handler
-			server := httptest.NewServer(fs)
-			defer server.Close()
+			err = os.Chdir(temp)
+			require.NoError(t, err)
 
 			// Arrange
-			imageURL := server.URL + "/medium_image.png"
-			dstFile := filepath.Join(temp, "medium_image.png")
+			imageURL := "https://raw.githubusercontent.com/go-shiori/shiori/master/testdata/medium_image.png"
+			dstFile := "." + string(fp.Separator) + "medium_image.png"
 
 			// Act
 			err = core.DownloadBookImage(deps, imageURL, dstFile)
