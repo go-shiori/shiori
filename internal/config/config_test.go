@@ -67,8 +67,7 @@ func TestReadDotEnv(t *testing.T) {
 		t.Run(testCase.name, func(t *testing.T) {
 			tmpDir, err := os.MkdirTemp("", "")
 			require.NoError(t, err)
-			err = os.Chdir(tmpDir)
-			require.NoError(t, err)
+			require.NoError(t, os.Chdir(tmpDir))
 
 			// Write the .env file in the temporary directory
 			handler, err := os.OpenFile(".env", os.O_CREATE|os.O_WRONLY, 0655)
@@ -85,8 +84,7 @@ func TestReadDotEnv(t *testing.T) {
 	t.Run("no file", func(t *testing.T) {
 		tmpDir, err := os.MkdirTemp("", "")
 		require.NoError(t, err)
-		err = os.Chdir(tmpDir)
-		require.NoError(t, err)
+		require.NoError(t, os.Chdir(tmpDir))
 
 		e := readDotEnv(log)
 

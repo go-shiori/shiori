@@ -23,9 +23,9 @@ func TestGenerateEbook(t *testing.T) {
 	t.Run("Successful ebook generate", func(t *testing.T) {
 		t.Run("valid bookmarkId that return HasEbook true", func(t *testing.T) {
 			dstFile := "/ebook/1.epub"
-			temp := t.TempDir()
+			tmpDir := t.TempDir()
 
-			deps.Domains.Storage = domains.NewStorageDomain(deps, afero.NewBasePathFs(afero.NewOsFs(), temp))
+			deps.Domains.Storage = domains.NewStorageDomain(deps, afero.NewBasePathFs(afero.NewOsFs(), tmpDir))
 
 			mockRequest := core.ProcessRequest{
 				Bookmark: model.BookmarkDTO{
@@ -34,7 +34,7 @@ func TestGenerateEbook(t *testing.T) {
 					HTML:     "<html><body>Example HTML</body></html>",
 					HasEbook: false,
 				},
-				DataDir:     temp,
+				DataDir:     tmpDir,
 				ContentType: "text/html",
 			}
 			bookmark, err := core.GenerateEbook(deps, mockRequest, dstFile)
@@ -44,9 +44,9 @@ func TestGenerateEbook(t *testing.T) {
 		})
 		t.Run("ebook generate with valid BookmarkID EbookExist ImagePathExist ReturnWithHasEbookTrue", func(t *testing.T) {
 			dstFile := "/ebook/2.epub"
-			temp := t.TempDir()
+			tmpDir := t.TempDir()
 
-			deps.Domains.Storage = domains.NewStorageDomain(deps, afero.NewBasePathFs(afero.NewOsFs(), temp))
+			deps.Domains.Storage = domains.NewStorageDomain(deps, afero.NewBasePathFs(afero.NewOsFs(), tmpDir))
 
 			bookmark := model.BookmarkDTO{
 				ID:       2,
@@ -54,7 +54,7 @@ func TestGenerateEbook(t *testing.T) {
 			}
 			mockRequest := core.ProcessRequest{
 				Bookmark:    bookmark,
-				DataDir:     temp,
+				DataDir:     tmpDir,
 				ContentType: "text/html",
 			}
 			// Create the thumbnail file
@@ -76,9 +76,9 @@ func TestGenerateEbook(t *testing.T) {
 		})
 		t.Run("generate ebook valid BookmarkID EbookExist ReturnHasArchiveTrue", func(t *testing.T) {
 			dstFile := "/ebook/3.epub"
-			temp := t.TempDir()
+			tmpDir := t.TempDir()
 
-			deps.Domains.Storage = domains.NewStorageDomain(deps, afero.NewBasePathFs(afero.NewOsFs(), temp))
+			deps.Domains.Storage = domains.NewStorageDomain(deps, afero.NewBasePathFs(afero.NewOsFs(), tmpDir))
 
 			bookmark := model.BookmarkDTO{
 				ID:       3,
@@ -86,7 +86,7 @@ func TestGenerateEbook(t *testing.T) {
 			}
 			mockRequest := core.ProcessRequest{
 				Bookmark:    bookmark,
-				DataDir:     temp,
+				DataDir:     tmpDir,
 				ContentType: "text/html",
 			}
 			// Create the archive file
@@ -107,13 +107,13 @@ func TestGenerateEbook(t *testing.T) {
 	t.Run("specific ebook generate case", func(t *testing.T) {
 		t.Run("invalid bookmarkId that return Error", func(t *testing.T) {
 			dstFile := "/ebook/0.epub"
-			temp := t.TempDir()
+			tmpDir := t.TempDir()
 			mockRequest := core.ProcessRequest{
 				Bookmark: model.BookmarkDTO{
 					ID:       0,
 					HasEbook: false,
 				},
-				DataDir:     temp,
+				DataDir:     tmpDir,
 				ContentType: "text/html",
 			}
 
@@ -128,9 +128,9 @@ func TestGenerateEbook(t *testing.T) {
 		})
 		t.Run("ebook exist return HasEbook true", func(t *testing.T) {
 			dstFile := "/ebook/1.epub"
-			temp := t.TempDir()
+			tmpDir := t.TempDir()
 
-			deps.Domains.Storage = domains.NewStorageDomain(deps, afero.NewBasePathFs(afero.NewOsFs(), temp))
+			deps.Domains.Storage = domains.NewStorageDomain(deps, afero.NewBasePathFs(afero.NewOsFs(), tmpDir))
 
 			bookmark := model.BookmarkDTO{
 				ID:       1,
@@ -138,7 +138,7 @@ func TestGenerateEbook(t *testing.T) {
 			}
 			mockRequest := core.ProcessRequest{
 				Bookmark:    bookmark,
-				DataDir:     temp,
+				DataDir:     tmpDir,
 				ContentType: "text/html",
 			}
 			// Create the ebook file
@@ -158,14 +158,14 @@ func TestGenerateEbook(t *testing.T) {
 		})
 		t.Run("generate ebook valid BookmarkID RetuenError for PDF file", func(t *testing.T) {
 			dstFile := "/ebook/1.epub"
-			temp := t.TempDir()
+			tmpDir := t.TempDir()
 
 			mockRequest := core.ProcessRequest{
 				Bookmark: model.BookmarkDTO{
 					ID:       1,
 					HasEbook: false,
 				},
-				DataDir:     temp,
+				DataDir:     tmpDir,
 				ContentType: "application/pdf",
 			}
 

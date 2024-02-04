@@ -25,9 +25,9 @@ func TestDownloadBookImage(t *testing.T) {
 		t.Run("fails", func(t *testing.T) {
 			// images is too small with unsupported format with a valid URL
 			imageURL := "https://github.com/go-shiori/shiori/blob/master/internal/view/assets/res/apple-touch-icon-152x152.png"
-			temp, err := os.MkdirTemp("", "")
+			tmpDir, err := os.MkdirTemp("", "")
 			require.NoError(t, err)
-			dstFile := fp.Join(temp, "image.png")
+			dstFile := fp.Join(tmpDir, "image.png")
 
 			// Act
 			err = core.DownloadBookImage(deps, imageURL, dstFile)
@@ -37,11 +37,9 @@ func TestDownloadBookImage(t *testing.T) {
 			assert.False(t, deps.Domains.Storage.FileExists(dstFile))
 		})
 		t.Run("successful download image", func(t *testing.T) {
-			temp, err := os.MkdirTemp("", "")
+			tmpDir, err := os.MkdirTemp("", "")
 			require.NoError(t, err)
-			err = os.Chdir(temp)
-			require.NoError(t, err)
-
+			require.NoError(t, os.Chdir(tmpDir))
 			// Arrange
 			imageURL := "https://raw.githubusercontent.com/go-shiori/shiori/master/docs/readme/cover.png"
 			dstFile := "." + string(fp.Separator) + "cover.png"
@@ -54,10 +52,9 @@ func TestDownloadBookImage(t *testing.T) {
 			assert.True(t, deps.Domains.Storage.FileExists(dstFile))
 		})
 		t.Run("successful download medium size image", func(t *testing.T) {
-			temp, err := os.MkdirTemp("", "")
+			tmpDir, err := os.MkdirTemp("", "")
 			require.NoError(t, err)
-			err = os.Chdir(temp)
-			require.NoError(t, err)
+			require.NoError(t, os.Chdir(tmpDir))
 
 			// Arrange
 			imageURL := "https://raw.githubusercontent.com/go-shiori/shiori/master/testdata/medium_image.png"
