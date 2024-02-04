@@ -27,7 +27,7 @@ type AccountsDomain interface {
 	ListAccounts(ctx context.Context) ([]AccountDTO, error)
 	CreateAccount(ctx context.Context, account Account) (*AccountDTO, error)
 	// UpdateAccount(ctx context.Context, account AccountDTO) (*AccountDTO, error)
-	// DeleteAccount(ctx context.Context, account AccountDTO) error
+	DeleteAccount(ctx context.Context, username string) error
 }
 
 type ArchiverDomain interface {

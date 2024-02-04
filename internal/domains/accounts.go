@@ -2,6 +2,7 @@ package domains
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/go-shiori/shiori/internal/database"
@@ -41,6 +42,15 @@ func (d *AccountsDomain) CreateAccount(ctx context.Context, account model.Accoun
 	result := storedAccount.ToDTO()
 
 	return &result, nil
+}
+
+func (d *AccountsDomain) DeleteAccount(ctx context.Context, username string) error {
+	err := d.deps.Database.DeleteAccounts(ctx, username)
+	if err != nil && !errors.Is(err, database.ErrNotFound) {
+		return fmt.Errorf("error deleting account: %v", err)
+	}
+
+	return nil
 }
 
 func NewAccountsDomain(deps *dependencies.Dependencies) model.AccountsDomain {

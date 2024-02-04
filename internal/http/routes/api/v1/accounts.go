@@ -19,7 +19,7 @@ type AccountsAPIRoutes struct {
 func (r *AccountsAPIRoutes) Setup(g *gin.RouterGroup) model.Routes {
 	g.GET("/", r.listHandler)
 	g.POST("/", r.createHandler)
-	// g.DELETE("/:id", r.deleteHandler)
+	g.DELETE("/:id", r.deleteHandler)
 	// g.PUT("/:id", r.updateHandler)
 
 	return r
@@ -109,17 +109,25 @@ func (r *AccountsAPIRoutes) createHandler(c *gin.Context) {
 	response.Send(c, http.StatusCreated, account)
 }
 
-// func (r *AccountsAPIRoutes) deleteHandler(c *gin.Context) {
-// 	id := c.Param("id")
+// deleteHandler godoc
+//
+// @Summary Delete an account
+// @Tags accounts
+// @Produce json
+// @Success 204 {string} string "No content"
+// @Failure 500 {string} string "Internal Server Error"
+// @Router /api/v1/accounts/{id} [delete]
+func (r *AccountsAPIRoutes) deleteHandler(c *gin.Context) {
+	id := c.Param("id")
 
-// 	if err := r.deps.Domains.Accounts.DeleteAccount(c.Request.Context(), id); err != nil {
-// 		r.logger.WithError(err).Error("error deleting account")
-// 		c.AbortWithStatus(http.StatusInternalServerError)
-// 		return
-// 	}
+	if err := r.deps.Domains.Accounts.DeleteAccount(c.Request.Context(), id); err != nil {
+		r.logger.WithError(err).Error("error deleting account")
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
 
-// 	response.Send(c, http.StatusOK, nil)
-// }
+	response.Send(c, http.StatusNoContent, nil)
+}
 
 // func (r *AccountsAPIRoutes) updateHandler(c *gin.Context) {
 // 	id := c.Param("id")

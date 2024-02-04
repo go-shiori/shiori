@@ -6,9 +6,10 @@ import (
 
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-type databaseTestCase func(t *testing.T, db DB)
+type databaseTestCase func(t *testing.T, dbFactory testDatabaseFactory)
 type testDatabaseFactory func(ctx context.Context) (DB, error)
 
 func testDatabase(t *testing.T, dbFactory testDatabaseFactory) {
@@ -32,20 +33,20 @@ func testDatabase(t *testing.T, dbFactory testDatabaseFactory) {
 		"testCreateTags": testCreateTags,
 		// Accoubnts
 		"testCreateAccount": testCreateAccount,
+		"testDeleteAccount": testDeleteAccount,
 	}
 
 	for testName, testCase := range tests {
 		t.Run(testName, func(tInner *testing.T) {
-			ctx := context.TODO()
-			db, err := dbFactory(ctx)
-			assert.NoError(tInner, err, "Error recreating database")
-			testCase(tInner, db)
+			testCase(tInner, dbFactory)
 		})
 	}
 }
 
-func testBookmarkAutoIncrement(t *testing.T, db DB) {
+func testBookmarkAutoIncrement(t *testing.T, dbFactory testDatabaseFactory) {
 	ctx := context.TODO()
+	db, errDB := dbFactory(ctx)
+	require.NoError(t, errDB)
 
 	book := model.BookmarkDTO{
 		URL:   "https://github.com/go-shiori/shiori",
@@ -66,8 +67,10 @@ func testBookmarkAutoIncrement(t *testing.T, db DB) {
 	assert.Equal(t, 2, result[0].ID, "Saved bookmark must have ID %d", 2)
 }
 
-func testCreateBookmark(t *testing.T, db DB) {
+func testCreateBookmark(t *testing.T, dbFactory testDatabaseFactory) {
 	ctx := context.TODO()
+	db, errDB := dbFactory(ctx)
+	require.NoError(t, errDB)
 
 	book := model.BookmarkDTO{
 		URL:   "https://github.com/go-shiori/obelisk",
@@ -80,8 +83,10 @@ func testCreateBookmark(t *testing.T, db DB) {
 	assert.Equal(t, 1, result[0].ID, "Saved bookmark must have an ID set")
 }
 
-func testCreateBookmarkWithContent(t *testing.T, db DB) {
+func testCreateBookmarkWithContent(t *testing.T, dbFactory testDatabaseFactory) {
 	ctx := context.TODO()
+	db, errDB := dbFactory(ctx)
+	require.NoError(t, errDB)
 
 	book := model.BookmarkDTO{
 		URL:     "https://github.com/go-shiori/obelisk",
@@ -105,8 +110,10 @@ func testCreateBookmarkWithContent(t *testing.T, db DB) {
 	assert.Equal(t, book.HTML, books[0].HTML, "Saved bookmark must have HTML")
 }
 
-func testCreateBookmarkWithTag(t *testing.T, db DB) {
+func testCreateBookmarkWithTag(t *testing.T, dbFactory testDatabaseFactory) {
 	ctx := context.TODO()
+	db, errDB := dbFactory(ctx)
+	require.NoError(t, errDB)
 
 	book := model.BookmarkDTO{
 		URL:   "https://github.com/go-shiori/obelisk",
@@ -125,8 +132,10 @@ func testCreateBookmarkWithTag(t *testing.T, db DB) {
 	assert.Equal(t, book.Tags[0].Name, result[0].Tags[0].Name)
 }
 
-func testCreateBookmarkTwice(t *testing.T, db DB) {
+func testCreateBookmarkTwice(t *testing.T, dbFactory testDatabaseFactory) {
 	ctx := context.TODO()
+	db, errDB := dbFactory(ctx)
+	require.NoError(t, errDB)
 
 	book := model.BookmarkDTO{
 		URL:   "https://github.com/go-shiori/shiori",
@@ -143,8 +152,10 @@ func testCreateBookmarkTwice(t *testing.T, db DB) {
 	assert.Error(t, err, "Save bookmarks must fail")
 }
 
-func testCreateTwoDifferentBookmarks(t *testing.T, db DB) {
+func testCreateTwoDifferentBookmarks(t *testing.T, dbFactory testDatabaseFactory) {
 	ctx := context.TODO()
+	db, errDB := dbFactory(ctx)
+	require.NoError(t, errDB)
 
 	book := model.BookmarkDTO{
 		URL:   "https://github.com/go-shiori/shiori",
@@ -162,8 +173,10 @@ func testCreateTwoDifferentBookmarks(t *testing.T, db DB) {
 	assert.NoError(t, err, "Save second bookmark must not fail")
 }
 
-func testUpdateBookmark(t *testing.T, db DB) {
+func testUpdateBookmark(t *testing.T, dbFactory testDatabaseFactory) {
 	ctx := context.TODO()
+	db, errDB := dbFactory(ctx)
+	require.NoError(t, errDB)
 
 	book := model.BookmarkDTO{
 		URL:   "https://github.com/go-shiori/shiori",
@@ -183,8 +196,10 @@ func testUpdateBookmark(t *testing.T, db DB) {
 	assert.Equal(t, savedBookmark.ID, result[0].ID)
 }
 
-func testUpdateBookmarkWithContent(t *testing.T, db DB) {
+func testUpdateBookmarkWithContent(t *testing.T, dbFactory testDatabaseFactory) {
 	ctx := context.TODO()
+	db, errDB := dbFactory(ctx)
+	require.NoError(t, errDB)
 
 	book := model.BookmarkDTO{
 		URL:     "https://github.com/go-shiori/obelisk",
@@ -215,8 +230,10 @@ func testUpdateBookmarkWithContent(t *testing.T, db DB) {
 	assert.Equal(t, updatedBook.HTML, books[0].HTML, "Saved bookmark must have updated HTML")
 }
 
-func testGetBookmark(t *testing.T, db DB) {
+func testGetBookmark(t *testing.T, dbFactory testDatabaseFactory) {
 	ctx := context.TODO()
+	db, errDB := dbFactory(ctx)
+	require.NoError(t, errDB)
 
 	book := model.BookmarkDTO{
 		URL:   "https://github.com/go-shiori/shiori",
@@ -233,8 +250,10 @@ func testGetBookmark(t *testing.T, db DB) {
 	assert.Equal(t, book.URL, savedBookmark.URL, "Retrieved bookmark should be the same")
 }
 
-func testGetBookmarkNotExistent(t *testing.T, db DB) {
+func testGetBookmarkNotExistent(t *testing.T, dbFactory testDatabaseFactory) {
 	ctx := context.TODO()
+	db, errDB := dbFactory(ctx)
+	require.NoError(t, errDB)
 
 	savedBookmark, exists, err := db.GetBookmark(ctx, 1, "")
 	assert.NoError(t, err, "Get bookmark should not fail")
@@ -242,8 +261,10 @@ func testGetBookmarkNotExistent(t *testing.T, db DB) {
 	assert.Equal(t, model.BookmarkDTO{}, savedBookmark)
 }
 
-func testGetBookmarks(t *testing.T, db DB) {
+func testGetBookmarks(t *testing.T, dbFactory testDatabaseFactory) {
 	ctx := context.TODO()
+	db, errDB := dbFactory(ctx)
+	require.NoError(t, errDB)
 
 	book := model.BookmarkDTO{
 		URL:   "https://github.com/go-shiori/shiori",
@@ -264,10 +285,11 @@ func testGetBookmarks(t *testing.T, db DB) {
 	assert.Equal(t, savedBookmark.ID, results[0].ID, "bookmark should be the one saved")
 }
 
-func testGetBookmarksWithSQLCharacters(t *testing.T, db DB) {
+func testGetBookmarksWithSQLCharacters(t *testing.T, dbFactory testDatabaseFactory) {
 	ctx := context.TODO()
+	db, errDB := dbFactory(ctx)
+	require.NoError(t, errDB)
 
-	// _ := 0
 	book := model.BookmarkDTO{
 		URL:   "https://github.com/go-shiori/shiori",
 		Title: "shiori",
@@ -294,8 +316,10 @@ func testGetBookmarksWithSQLCharacters(t *testing.T, db DB) {
 	}
 }
 
-func testGetBookmarksCount(t *testing.T, db DB) {
+func testGetBookmarksCount(t *testing.T, dbFactory testDatabaseFactory) {
 	ctx := context.TODO()
+	db, errDB := dbFactory(ctx)
+	require.NoError(t, errDB)
 
 	expectedCount := 1
 	book := model.BookmarkDTO{
@@ -315,22 +339,31 @@ func testGetBookmarksCount(t *testing.T, db DB) {
 
 // ----------------- TAGS -----------------
 
-func testCreateTag(t *testing.T, db DB) {
+func testCreateTag(t *testing.T, dbFactory testDatabaseFactory) {
 	ctx := context.TODO()
+	db, errDB := dbFactory(ctx)
+	require.NoError(t, errDB)
+
 	tag := model.Tag{Name: "shiori"}
 	err := db.CreateTags(ctx, tag)
 	assert.NoError(t, err, "Save tag must not fail")
 }
 
-func testCreateTags(t *testing.T, db DB) {
+func testCreateTags(t *testing.T, dbFactory testDatabaseFactory) {
 	ctx := context.TODO()
+	db, errDB := dbFactory(ctx)
+	require.NoError(t, errDB)
+
 	err := db.CreateTags(ctx, model.Tag{Name: "shiori"}, model.Tag{Name: "shiori2"})
 	assert.NoError(t, err, "Save tag must not fail")
 }
 
 // ----------------- ACCOUNTS -----------------
-func testCreateAccount(t *testing.T, db DB) {
+func testCreateAccount(t *testing.T, dbFactory testDatabaseFactory) {
 	ctx := context.TODO()
+	db, errDB := dbFactory(ctx)
+	require.NoError(t, errDB)
+
 	acc := model.Account{
 		Username: "testuser",
 		Password: "testpass",
@@ -342,4 +375,36 @@ func testCreateAccount(t *testing.T, db DB) {
 	assert.Equal(t, acc.Password, insertedAccount.Password, "Saved account must have a password set")
 	assert.Equal(t, acc.Owner, insertedAccount.Owner, "Saved account must have an owner set")
 	assert.NotEmpty(t, insertedAccount.ID, "Saved account must have an ID set")
+}
+
+func testDeleteAccount(t *testing.T, dbFactory testDatabaseFactory) {
+	ctx := context.TODO()
+
+	t.Run("success", func(t *testing.T) {
+		db, errDB := dbFactory(ctx)
+		require.NoError(t, errDB)
+
+		acc := model.Account{
+			Username: "testuser",
+			Password: "testpass",
+			Owner:    true,
+		}
+		storedAccount, err := db.SaveAccount(ctx, acc)
+		assert.NoError(t, err, "Save account must not fail")
+
+		err = db.DeleteAccount(ctx, storedAccount.Username)
+		assert.NoError(t, err, "Delete account must not fail")
+
+		_, exists, err := db.GetAccount(ctx, storedAccount.Username)
+		assert.NoError(t, err, "Get account must not fail")
+		assert.False(t, exists, "Account must not exist")
+	})
+
+	t.Run("not existent", func(t *testing.T) {
+		db, errDB := dbFactory(ctx)
+		require.NoError(t, errDB)
+
+		err := db.DeleteAccount(ctx, "notexistent")
+		assert.ErrorIs(t, ErrNotFound, err, "Delete account must fail")
+	})
 }

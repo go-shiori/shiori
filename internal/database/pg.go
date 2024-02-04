@@ -639,6 +639,31 @@ func (db *PGDatabase) DeleteAccounts(ctx context.Context, usernames ...string) (
 	return nil
 }
 
+// DeleteAccount removes record with matching username.
+func (db *PGDatabase) DeleteAccount(ctx context.Context, username string) error {
+	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
+		result, err := tx.ExecContext(ctx, `DELETE FROM account WHERE username = $1`, username)
+		if err != nil {
+			return errors.WithStack(fmt.Errorf("error deleting account: %v", err))
+		}
+
+		rows, err := result.RowsAffected()
+		if err != nil {
+			return errors.WithStack(fmt.Errorf("error getting rows affected: %v", err))
+		}
+
+		if rows == 0 {
+			return ErrNotFound
+		}
+
+		return nil
+	}); err != nil {
+		return errors.WithStack(err)
+	}
+
+	return nil
+}
+
 // CreateTags creates new tags from submitted objects.
 func (db *PGDatabase) CreateTags(ctx context.Context, tags ...model.Tag) error {
 	query := `INSERT INTO tag (name) VALUES (:name)`

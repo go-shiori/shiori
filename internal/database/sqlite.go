@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"log"
 	"strings"
 	"time"
@@ -751,6 +752,31 @@ func (db *SQLiteDatabase) DeleteAccounts(ctx context.Context, usernames ...strin
 			if err != nil {
 				return errors.WithStack(err)
 			}
+		}
+
+		return nil
+	}); err != nil {
+		return errors.WithStack(err)
+	}
+
+	return nil
+}
+
+// DeleteAccount removes record with matching username.
+func (db *SQLiteDatabase) DeleteAccount(ctx context.Context, username string) error {
+	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
+		result, err := tx.ExecContext(ctx, `DELETE FROM account WHERE username = ?`, username)
+		if err != nil {
+			return errors.WithStack(fmt.Errorf("error deleting account: %v", err))
+		}
+
+		rows, err := result.RowsAffected()
+		if err != nil {
+			return errors.WithStack(fmt.Errorf("error getting rows affected: %v", err))
+		}
+
+		if rows == 0 {
+			return ErrNotFound
 		}
 
 		return nil
