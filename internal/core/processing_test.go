@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	fp "path/filepath"
 	"testing"
 
 	"github.com/go-shiori/shiori/internal/core"
@@ -39,9 +40,13 @@ func TestDownloadBookImage(t *testing.T) {
 		t.Run("successful download image", func(t *testing.T) {
 			temp, err := os.MkdirTemp("", "")
 			require.NoError(t, err)
+			err = os.Chdir(temp)
+			require.NoError(t, err)
+
 			// Arrange
 			imageURL := "https://raw.githubusercontent.com/go-shiori/shiori/master/docs/readme/cover.png"
-			dstFile := filepath.Join(temp, "image2.png")
+			//dstFile := "image2.png"
+			dstFile := "." + string(fp.Separator) + "image2"
 
 			// Act
 			err = core.DownloadBookImage(deps, imageURL, dstFile)
