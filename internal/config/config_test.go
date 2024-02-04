@@ -65,8 +65,10 @@ func TestReadDotEnv(t *testing.T) {
 		{"multiple variable", "SHIORI_HTTP_PORT=9999\nSHIORI_HTTP_SECRET_KEY=123123", map[string]string{"SHIORI_HTTP_PORT": "9999", "SHIORI_HTTP_SECRET_KEY": "123123"}},
 	} {
 		t.Run(testCase.name, func(t *testing.T) {
-			tmpDir := t.TempDir() + "/local"
-			os.Chdir(tmpDir)
+			tmpDir, err := os.MkdirTemp("", "")
+			require.NoError(t, err)
+			err = os.Chdir(tmpDir)
+			require.NoError(t, err)
 
 			// Write the .env file in the temporary directory
 			handler, err := os.OpenFile(".env", os.O_CREATE|os.O_WRONLY, 0655)
@@ -75,15 +77,16 @@ func TestReadDotEnv(t *testing.T) {
 			handler.Close()
 
 			e := readDotEnv(log)
-			os.RemoveAll(".env")
 
 			require.Equal(t, testCase.env, e)
 		})
 	}
 
 	t.Run("no file", func(t *testing.T) {
-		tmpDir := t.TempDir() + "/local"
-		os.Chdir(tmpDir)
+		tmpDir, err := os.MkdirTemp("", "")
+		require.NoError(t, err)
+		err = os.Chdir(tmpDir)
+		require.NoError(t, err)
 
 		e := readDotEnv(log)
 
