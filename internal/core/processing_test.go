@@ -5,6 +5,7 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"path/filepath"
 	"testing"
 
 	"github.com/go-shiori/shiori/internal/core"
@@ -23,7 +24,7 @@ func TestDownloadBookImage(t *testing.T) {
 			// images is too small with unsupported format with a valid URL
 			imageURL := "https://github.com/go-shiori/shiori/blob/master/internal/view/assets/res/apple-touch-icon-152x152.png"
 			temp := t.TempDir()
-			dstFile := temp + "/image.png"
+			dstFile := filepath.Join(temp + "image.png")
 
 			// Act
 			err := core.DownloadBookImage(deps, imageURL, dstFile)
@@ -33,9 +34,10 @@ func TestDownloadBookImage(t *testing.T) {
 			assert.False(t, deps.Domains.Storage.FileExists(dstFile))
 		})
 		t.Run("successful download image", func(t *testing.T) {
+			temp := t.TempDir()
 			// Arrange
 			imageURL := "https://raw.githubusercontent.com/go-shiori/shiori/master/docs/readme/cover.png"
-			dstFile := "tempDir/image.png"
+			dstFile := filepath.Join(temp + "image.png")
 
 			// Act
 			err := core.DownloadBookImage(deps, imageURL, dstFile)
@@ -45,6 +47,7 @@ func TestDownloadBookImage(t *testing.T) {
 			assert.True(t, deps.Domains.Storage.FileExists(dstFile))
 		})
 		t.Run("successful download medium size image", func(t *testing.T) {
+			temp := t.TempDir()
 			// create a file server handler for the 'testdata' directory
 			fs := http.FileServer(http.Dir("../../testdata/"))
 
@@ -54,7 +57,7 @@ func TestDownloadBookImage(t *testing.T) {
 
 			// Arrange
 			imageURL := server.URL + "/medium_image.png"
-			dstFile := "tempDir/medium_image.png"
+			dstFile := filepath.Join(temp + "medium_image.png")
 
 			// Act
 			err := core.DownloadBookImage(deps, imageURL, dstFile)
