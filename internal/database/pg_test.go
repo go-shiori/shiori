@@ -86,7 +86,7 @@ func TestGetAccountsPg(t *testing.T) {
 		{Username: "foo_bar", Password: "foobar", Owner: true},
 	}
 	for _, acc := range testAccounts {
-		err := db.SaveAccount(ctx, acc)
+		_, err := db.SaveAccount(ctx, acc)
 		assert.Nil(t, err)
 	}
 
@@ -139,7 +139,7 @@ func TestGetAccountPg(t *testing.T) {
 		{Username: "foo_bar", Password: "foobar", Owner: true},
 	}
 	for _, acc := range testAccounts {
-		err := db.SaveAccount(ctx, acc)
+		_, err := db.SaveAccount(ctx, acc)
 		assert.Nil(t, err)
 
 		// Successful case

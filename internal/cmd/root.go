@@ -100,7 +100,8 @@ func initShiori(ctx context.Context, cmd *cobra.Command) (*config.Config, *depen
 	}
 
 	dependencies := dependencies.NewDependencies(logger, db, cfg)
-	dependencies.Domains.Auth = domains.NewAccountsDomain(dependencies)
+	dependencies.Domains.Auth = domains.NewAuthDomain(dependencies)
+	dependencies.Domains.Accounts = domains.NewAccountsDomain(dependencies)
 	dependencies.Domains.Archiver = domains.NewArchiverDomain(dependencies)
 	dependencies.Domains.Bookmarks = domains.NewBookmarksDomain(dependencies)
 	dependencies.Domains.Storage = domains.NewStorageDomain(dependencies, afero.NewBasePathFs(afero.NewOsFs(), cfg.Storage.DataDir))
@@ -121,7 +122,7 @@ func initShiori(ctx context.Context, cmd *cobra.Command) (*config.Config, *depen
 			Owner:    true,
 		}
 
-		if err := db.SaveAccount(cmd.Context(), account); err != nil {
+		if _, err := db.SaveAccount(cmd.Context(), account); err != nil {
 			logger.WithError(err).Fatal("error ensuring owner account")
 		}
 	}

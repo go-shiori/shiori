@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"log"
 	"strings"
 	"time"
@@ -645,7 +646,8 @@ func (db *SQLiteDatabase) GetBookmark(ctx context.Context, id int, url string) (
 }
 
 // SaveAccount saves new account to database. Returns error if any happened.
-func (db *SQLiteDatabase) SaveAccount(ctx context.Context, account model.Account) error {
+func (db *SQLiteDatabase) SaveAccount(ctx context.Context, account model.Account) (*model.Account, error) {
+	var accountID int64
 	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
 		// Hash password with bcrypt
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(account.Password), 10)
@@ -653,19 +655,30 @@ func (db *SQLiteDatabase) SaveAccount(ctx context.Context, account model.Account
 			return err
 		}
 
-		// Insert account to database
-		_, err = tx.Exec(`INSERT INTO account
-		(username, password, owner, config) VALUES (?, ?, ?, ?)
-		ON CONFLICT(username) DO UPDATE SET
-		password = ?, owner = ?`,
+		query, err := tx.PrepareContext(ctx, `INSERT INTO account
+			(username, password, owner, config) VALUES (?, ?, ?, ?)
+			ON CONFLICT(username) DO UPDATE SET
+			password = ?, owner = ?
+			RETURNING id`)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+
+		err = query.QueryRowContext(ctx,
 			account.Username, hashedPassword, account.Owner, account.Config,
-			hashedPassword, account.Owner, account.Config)
-		return errors.WithStack(err)
+			hashedPassword, account.Owner).Scan(&accountID)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+
+		return nil
 	}); err != nil {
-		return errors.WithStack(err)
+		return nil, errors.WithStack(err)
 	}
 
-	return nil
+	account.ID = int(accountID)
+
+	return &account, nil
 }
 
 // SaveAccountSettings update settings for specific account  in database. Returns error if any happened.
@@ -739,6 +752,31 @@ func (db *SQLiteDatabase) DeleteAccounts(ctx context.Context, usernames ...strin
 			if err != nil {
 				return errors.WithStack(err)
 			}
+		}
+
+		return nil
+	}); err != nil {
+		return errors.WithStack(err)
+	}
+
+	return nil
+}
+
+// DeleteAccount removes record with matching username.
+func (db *SQLiteDatabase) DeleteAccount(ctx context.Context, username string) error {
+	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
+		result, err := tx.ExecContext(ctx, `DELETE FROM account WHERE username = ?`, username)
+		if err != nil {
+			return errors.WithStack(fmt.Errorf("error deleting account: %v", err))
+		}
+
+		rows, err := result.RowsAffected()
+		if err != nil {
+			return errors.WithStack(fmt.Errorf("error getting rows affected: %v", err))
+		}
+
+		if rows == 0 {
+			return ErrNotFound
 		}
 
 		return nil

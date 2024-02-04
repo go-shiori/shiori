@@ -532,22 +532,39 @@ func (db *PGDatabase) GetBookmark(ctx context.Context, id int, url string) (mode
 }
 
 // SaveAccount saves new account to database. Returns error if any happened.
-func (db *PGDatabase) SaveAccount(ctx context.Context, account model.Account) (err error) {
-	// Hash password with bcrypt
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(account.Password), 10)
-	if err != nil {
-		return err
+func (db *PGDatabase) SaveAccount(ctx context.Context, account model.Account) (*model.Account, error) {
+	var accountID int64
+	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
+		// Hash password with bcrypt
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(account.Password), 10)
+		if err != nil {
+			return err
+		}
+
+		query, err := tx.PrepareContext(ctx, `INSERT INTO account
+			(username, password, owner, config) VALUES ($1, $2, $3, $4)
+			ON CONFLICT(username) DO UPDATE SET
+			password = $2,
+			owner = $3
+			RETURNING id`)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+
+		err = query.QueryRowContext(ctx,
+			account.Username, hashedPassword, account.Owner, account.Config).Scan(&accountID)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+
+		return nil
+	}); err != nil {
+		return nil, errors.WithStack(err)
 	}
 
-	// Insert account to database
-	_, err = db.ExecContext(ctx, `INSERT INTO account
-		(username, password, owner, config) VALUES ($1, $2, $3, $4)
-		ON CONFLICT(username) DO UPDATE SET
-		password = $2,
-		owner = $3`,
-		account.Username, hashedPassword, account.Owner, account.Config)
+	account.ID = int(accountID)
 
-	return errors.WithStack(err)
+	return &account, nil
 }
 
 // SaveAccountSettings update settings for specific account  in database. Returns error if any happened
@@ -612,6 +629,31 @@ func (db *PGDatabase) DeleteAccounts(ctx context.Context, usernames ...string) (
 			if _, err := stmtDelete.ExecContext(ctx, username); err != nil {
 				return errors.WithStack(err)
 			}
+		}
+
+		return nil
+	}); err != nil {
+		return errors.WithStack(err)
+	}
+
+	return nil
+}
+
+// DeleteAccount removes record with matching username.
+func (db *PGDatabase) DeleteAccount(ctx context.Context, username string) error {
+	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
+		result, err := tx.ExecContext(ctx, `DELETE FROM account WHERE username = $1`, username)
+		if err != nil {
+			return errors.WithStack(fmt.Errorf("error deleting account: %v", err))
+		}
+
+		rows, err := result.RowsAffected()
+		if err != nil {
+			return errors.WithStack(fmt.Errorf("error getting rows affected: %v", err))
+		}
+
+		if rows == 0 {
+			return ErrNotFound
 		}
 
 		return nil

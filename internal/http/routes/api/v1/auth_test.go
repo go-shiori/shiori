@@ -62,7 +62,9 @@ func TestAccountsRoute(t *testing.T) {
 			Password: "gopher",
 			Owner:    true,
 		}
-		require.NoError(t, deps.Database.SaveAccount(ctx, account))
+
+		_, accountInsertErr := deps.Database.SaveAccount(ctx, account)
+		require.NoError(t, accountInsertErr)
 
 		w := httptest.NewRecorder()
 		body := []byte(`{"username": "shiori", "password": "gopher"}`)
@@ -87,7 +89,8 @@ func TestAccountsRoute(t *testing.T) {
 			Password: "gopher",
 			Owner:    true,
 		}
-		require.NoError(t, deps.Database.SaveAccount(ctx, account))
+		_, accountInsertErr := deps.Database.SaveAccount(ctx, account)
+		require.NoError(t, accountInsertErr)
 
 		token, err := deps.Domains.Auth.CreateTokenForAccount(&account, time.Now().Add(time.Minute))
 		require.NoError(t, err)
@@ -257,7 +260,8 @@ func TestSettingsHandler(t *testing.T) {
 				MakePublic:    true,
 			},
 		}
-		require.NoError(t, deps.Database.SaveAccount(ctx, account))
+		_, accountInsertErr := deps.Database.SaveAccount(ctx, account)
+		require.NoError(t, accountInsertErr)
 
 		// Get current user config
 		user, _, err := deps.Database.GetAccount(ctx, "shiori")
@@ -279,7 +283,7 @@ func TestSettingsHandler(t *testing.T) {
 			"UseArchive": false,
 			"CreateEbook": false,
 			"MakePublic": false
-			  }
+			}
 			}`)
 
 		w := httptest.NewRecorder()

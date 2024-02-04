@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"strings"
 	"time"
 
@@ -523,22 +524,33 @@ func (db *MySQLDatabase) GetBookmark(ctx context.Context, id int, url string) (m
 }
 
 // SaveAccount saves new account to database. Returns error if any happened.
-func (db *MySQLDatabase) SaveAccount(ctx context.Context, account model.Account) (err error) {
+func (db *MySQLDatabase) SaveAccount(ctx context.Context, account model.Account) (*model.Account, error) {
 	// Hash password with bcrypt
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(account.Password), 10)
 	if err != nil {
-		return errors.WithStack(err)
+		return nil, errors.WithStack(err)
 	}
 
 	// Insert account to database
-	_, err = db.ExecContext(ctx, `INSERT INTO account
+	result, insertErr := db.ExecContext(ctx, `INSERT INTO account
 		(username, password, owner, config) VALUES (?, ?, ?, ?)
 		ON DUPLICATE KEY UPDATE
 		password = VALUES(password),
 		owner = VALUES(owner)`,
 		account.Username, hashedPassword, account.Owner, account.Config)
+	if insertErr != nil {
+		return nil, errors.WithStack(insertErr)
+	}
 
-	return errors.WithStack(err)
+	var accountID int64
+	accountID, err = result.LastInsertId()
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	account.ID = int(accountID)
+
+	return &account, nil
 }
 
 // SaveAccountSettings update settings for specific account  in database. Returns error if any happened
@@ -603,6 +615,31 @@ func (db *MySQLDatabase) DeleteAccounts(ctx context.Context, usernames ...string
 			if err != nil {
 				return errors.WithStack(err)
 			}
+		}
+
+		return nil
+	}); err != nil {
+		return errors.WithStack(err)
+	}
+
+	return nil
+}
+
+// DeleteAccount removes record with matching username.
+func (db *MySQLDatabase) DeleteAccount(ctx context.Context, username string) error {
+	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
+		result, err := tx.ExecContext(ctx, `DELETE FROM account WHERE username = ?`, username)
+		if err != nil {
+			return errors.WithStack(fmt.Errorf("error deleting account: %v", err))
+		}
+
+		rows, err := result.RowsAffected()
+		if err != nil {
+			return errors.WithStack(fmt.Errorf("error getting rows affected: %v", err))
+		}
+
+		if rows == 0 {
+			return ErrNotFound
 		}
 
 		return nil

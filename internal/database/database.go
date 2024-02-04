@@ -16,6 +16,9 @@ import (
 //go:embed migrations/*
 var migrations embed.FS
 
+// ErrNotFound is error returned when record is not found in database.
+var ErrNotFound = errors.New("not found")
+
 // OrderMethod is the order method for getting bookmarks
 type OrderMethod int
 
@@ -87,7 +90,7 @@ type DB interface {
 	GetBookmark(ctx context.Context, id int, url string) (model.BookmarkDTO, bool, error)
 
 	// SaveAccount saves new account in database
-	SaveAccount(ctx context.Context, a model.Account) error
+	SaveAccount(ctx context.Context, a model.Account) (*model.Account, error)
 
 	// SaveAccountSettings saves settings for specific user in database
 	SaveAccountSettings(ctx context.Context, a model.Account) error
@@ -100,6 +103,9 @@ type DB interface {
 
 	// DeleteAccounts removes all record with matching usernames
 	DeleteAccounts(ctx context.Context, usernames ...string) error
+
+	// DeleteAccount removes account with matching username.
+	DeleteAccount(ctx context.Context, username string) error
 
 	// CreateTags creates new tags in database.
 	CreateTags(ctx context.Context, tags ...model.Tag) error

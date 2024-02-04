@@ -89,7 +89,7 @@ func TestSQLiteDatabase_SaveAccount(t *testing.T) {
 
 	// Test falid database
 	acc := model.Account{}
-	err = db.SaveAccount(ctx, acc)
+	_, err = db.SaveAccount(ctx, acc)
 	assert.Contains(t, err.Error(), "SQL logic error: no such table: account (1)")
 
 }
@@ -139,7 +139,7 @@ func TestGetAccounts(t *testing.T) {
 		{Username: "foo_bar", Password: "foobar", Owner: true},
 	}
 	for _, acc := range testAccounts {
-		err := db.SaveAccount(ctx, acc)
+		_, err := db.SaveAccount(ctx, acc)
 		assert.Nil(t, err)
 	}
 
