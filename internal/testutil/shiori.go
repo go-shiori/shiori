@@ -28,14 +28,14 @@ func GetTestConfigurationAndDependencies(t *testing.T, ctx context.Context, logg
 	cfg := config.ParseServerConfiguration(ctx, logger)
 	cfg.Http.SecretKey = []byte("test")
 
-	tempDir, err := os.MkdirTemp("", "")
+	tmpDir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 
 	db, err := database.OpenSQLiteDatabase(ctx, tmp.Name())
 	require.NoError(t, err)
 	require.NoError(t, db.Migrate())
 
-	cfg.Storage.DataDir = tempDir
+	cfg.Storage.DataDir = tmpDir
 
 	deps := dependencies.NewDependencies(logger, db, cfg)
 	deps.Database = db

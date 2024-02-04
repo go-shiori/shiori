@@ -73,7 +73,7 @@ func TestProcessBookmark(t *testing.T) {
 	_, deps := testutil.GetTestConfigurationAndDependencies(t, context.TODO(), logger)
 
 	t.Run("ProcessRequest with sucssesful result", func(t *testing.T) {
-		temp := t.TempDir()
+		tmpDir := t.TempDir()
 		t.Run("Normal without image", func(t *testing.T) {
 			bookmark := model.BookmarkDTO{
 				ID:            1,
@@ -88,7 +88,7 @@ func TestProcessBookmark(t *testing.T) {
 				Bookmark:    bookmark,
 				Content:     content,
 				ContentType: "text/html",
-				DataDir:     temp,
+				DataDir:     tmpDir,
 				KeepTitle:   true,
 				KeepExcerpt: true,
 			}
@@ -108,7 +108,7 @@ func TestProcessBookmark(t *testing.T) {
 			}
 		})
 		t.Run("Normal with multipleimage", func(t *testing.T) {
-			temp := t.TempDir()
+			tmpDir := t.TempDir()
 			html := `html<html>
 		  <head>
 		    <meta property="og:image" content="http://example.com/image1.jpg">
@@ -132,7 +132,7 @@ func TestProcessBookmark(t *testing.T) {
 				Bookmark:    bookmark,
 				Content:     content,
 				ContentType: "text/html",
-				DataDir:     temp,
+				DataDir:     tmpDir,
 				KeepTitle:   true,
 				KeepExcerpt: true,
 			}
@@ -152,7 +152,7 @@ func TestProcessBookmark(t *testing.T) {
 			}
 		})
 		t.Run("ProcessRequest sucssesful with multipleimage included favicon and Thumbnail ", func(t *testing.T) {
-			temp := t.TempDir()
+			tmpDir := t.TempDir()
 			html := `html<html>
   			<head>
     		<meta property="og:image" content="http://example.com/image1.jpg">
@@ -176,12 +176,12 @@ func TestProcessBookmark(t *testing.T) {
 				Bookmark:    bookmark,
 				Content:     content,
 				ContentType: "text/html",
-				DataDir:     temp,
+				DataDir:     tmpDir,
 				KeepTitle:   true,
 				KeepExcerpt: true,
 			}
 			expected, _, _ := core.ProcessBookmark(deps, request)
-
+			assert.True(t, deps.Domains.Storage.FileExists(fp.Join("thumb", "1")))
 			if expected.ID != bookmark.ID {
 				t.Errorf("Unexpected ID: got %v, want %v", expected.ID, bookmark.ID)
 			}
@@ -196,7 +196,7 @@ func TestProcessBookmark(t *testing.T) {
 			}
 		})
 		t.Run("ProcessRequest sucssesful with empty title ", func(t *testing.T) {
-			temp := t.TempDir()
+			tmpDir := t.TempDir()
 			bookmark := model.BookmarkDTO{
 				ID:            1,
 				URL:           "https://example.com",
@@ -210,7 +210,7 @@ func TestProcessBookmark(t *testing.T) {
 				Bookmark:    bookmark,
 				Content:     content,
 				ContentType: "text/html",
-				DataDir:     temp,
+				DataDir:     tmpDir,
 				KeepTitle:   true,
 				KeepExcerpt: true,
 			}
@@ -230,7 +230,7 @@ func TestProcessBookmark(t *testing.T) {
 			}
 		})
 		t.Run("ProcessRequest sucssesful with empty Excerpt", func(t *testing.T) {
-			temp := t.TempDir()
+			tmpDir := t.TempDir()
 			bookmark := model.BookmarkDTO{
 				ID:            1,
 				URL:           "https://example.com",
@@ -244,7 +244,7 @@ func TestProcessBookmark(t *testing.T) {
 				Bookmark:    bookmark,
 				Content:     content,
 				ContentType: "text/html",
-				DataDir:     temp,
+				DataDir:     tmpDir,
 				KeepTitle:   true,
 				KeepExcerpt: false,
 			}
@@ -264,7 +264,7 @@ func TestProcessBookmark(t *testing.T) {
 			}
 		})
 		t.Run("Specific case", func(t *testing.T) {
-			temp := t.TempDir()
+			tmpDir := t.TempDir()
 			t.Run("ProcessRequest with ID zero", func(t *testing.T) {
 
 				bookmark := model.BookmarkDTO{
@@ -280,7 +280,7 @@ func TestProcessBookmark(t *testing.T) {
 					Bookmark:    bookmark,
 					Content:     content,
 					ContentType: "text/html",
-					DataDir:     temp,
+					DataDir:     tmpDir,
 					KeepTitle:   true,
 					KeepExcerpt: true,
 				}
@@ -291,7 +291,7 @@ func TestProcessBookmark(t *testing.T) {
 			})
 
 			t.Run("ProcessRequest that content type not zero", func(t *testing.T) {
-				temp := t.TempDir()
+				tmpDir := t.TempDir()
 				bookmark := model.BookmarkDTO{
 					ID:            1,
 					URL:           "https://example.com",
@@ -305,7 +305,7 @@ func TestProcessBookmark(t *testing.T) {
 					Bookmark:    bookmark,
 					Content:     content,
 					ContentType: "application/pdf",
-					DataDir:     temp,
+					DataDir:     tmpDir,
 					KeepTitle:   true,
 					KeepExcerpt: true,
 				}
