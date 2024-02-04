@@ -64,7 +64,7 @@ jobs:
   test-windows-macos:
     strategy:
       matrix:
-        os: [windows-latest, macos-latest]
+        os: [windows-latest]
     runs-on: ${{ matrix.os }}
     name: Go unit tests (${{ matrix.os }})
     steps:
@@ -86,8 +86,34 @@ jobs:
           golangci-lint.cache-
         env:
           CGO_ENABLED=0
-    - run: $env:CGO_ENABLED = 0
-
     - run: make unittest GO_TEST_FLAGS="-tags test_sqlite_only"
-
+    - run: $env:CGO_ENABLED = 0
     - run: go build -tags osusergo,netgo -ldflags="-s -w -X main.version=$(git describe --tags) -X main.date=$(date --iso-8601=seconds)"
+
+  test-macos:
+    strategy:
+      matrix:
+        os: [macos-latest]
+    runs-on: ${{ matrix.os }}
+    name: Go unit tests (${{ matrix.os }})
+    steps:
+    - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+    - name: Setup go
+      uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
+      with:
+        go-version-file: ./go.mod
+
+    - uses: actions/cache@e12d46a63a90f2fae62d114769bbf2a179198b5c # 3.3.3
+      with:
+        path: |
+          ~/.cache/go-build
+          ~/go/pkg
+        key: golangci-lint.cache-{platform-arch}-{interval_number}-{go.mod_hash}
+        restore-keys: |
+          golangci-lint.cache-{interval_number}-
+          golangci-lint.cache-
+        env:
+          CGO_ENABLED=0
+    - run: make unittest GO_TEST_FLAGS="-tags test_sqlite_only"
+    - run: CGO_ENABLED=0 go build -tags osusergo,netgo -ldflags="-s -w -X main.version=$(git describe --tags) -X main.date=$(date --iso-8601=seconds)"
