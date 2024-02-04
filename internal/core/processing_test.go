@@ -45,8 +45,7 @@ func TestDownloadBookImage(t *testing.T) {
 
 			// Arrange
 			imageURL := "https://raw.githubusercontent.com/go-shiori/shiori/master/docs/readme/cover.png"
-			//dstFile := "image2.png"
-			dstFile := "." + string(fp.Separator) + "image2"
+			dstFile := "." + string(fp.Separator) + "cover.png"
 
 			// Act
 			err = core.DownloadBookImage(deps, imageURL, dstFile)
