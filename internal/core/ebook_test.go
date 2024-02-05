@@ -2,7 +2,6 @@ package core_test
 
 import (
 	"context"
-	"log"
 	"os"
 	fp "path/filepath"
 	"testing"
@@ -71,7 +70,6 @@ func TestGenerateEbook(t *testing.T) {
 			expectedImagePath := string(fp.Separator) + fp.Join("bookmark", "2", "thumb")
 			assert.NoError(t, err)
 			assert.True(t, bookmark.HasEbook)
-			log.Println(bookmark.ImageURL)
 			assert.Equalf(t, expectedImagePath, bookmark.ImageURL, "Expected imageURL %s, but got %s", expectedImagePath, bookmark.ImageURL)
 		})
 		t.Run("generate ebook valid BookmarkID EbookExist ReturnHasArchiveTrue", func(t *testing.T) {
@@ -123,7 +121,6 @@ func TestGenerateEbook(t *testing.T) {
 				ID:       0,
 				HasEbook: false,
 			}, bookmark)
-			log.Println(err)
 			assert.EqualError(t, err, "bookmark ID is not valid")
 		})
 		t.Run("ebook exist return HasEbook true", func(t *testing.T) {
