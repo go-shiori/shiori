@@ -3,8 +3,6 @@ package core_test
 import (
 	"bytes"
 	"context"
-	"net/http"
-	"net/http/httptest"
 	"os"
 	fp "path/filepath"
 	"testing"
@@ -14,6 +12,7 @@ import (
 	"github.com/go-shiori/shiori/internal/testutil"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestDownloadBookImage(t *testing.T) {
@@ -24,51 +23,47 @@ func TestDownloadBookImage(t *testing.T) {
 		t.Run("fails", func(t *testing.T) {
 			// images is too small with unsupported format with a valid URL
 			imageURL := "https://github.com/go-shiori/shiori/blob/master/internal/view/assets/res/apple-touch-icon-152x152.png"
-			tempDir := t.TempDir()
-			dstPath := fp.Join(tempDir, "1")
-			defer os.Remove(dstPath)
+			tmpDir, err := os.MkdirTemp("", "")
+			require.NoError(t, err)
+			dstFile := fp.Join(tmpDir, "image.png")
 
 			// Act
-			err := core.DownloadBookImage(deps, imageURL, dstPath)
+			err = core.DownloadBookImage(deps, imageURL, dstFile)
 
 			// Assert
 			assert.EqualError(t, err, "unsupported image type")
-			assert.False(t, deps.Domains.Storage.FileExists(dstPath))
+			assert.False(t, deps.Domains.Storage.FileExists(dstFile))
 		})
 		t.Run("successful download image", func(t *testing.T) {
+			tmpDir, err := os.MkdirTemp("", "")
+			require.NoError(t, err)
+			require.NoError(t, os.Chdir(tmpDir))
 			// Arrange
 			imageURL := "https://raw.githubusercontent.com/go-shiori/shiori/master/docs/readme/cover.png"
-			tempDir := t.TempDir()
-			dstPath := fp.Join(tempDir, "1")
-			defer os.Remove(dstPath)
+			dstFile := "." + string(fp.Separator) + "cover.png"
 
 			// Act
-			err := core.DownloadBookImage(deps, imageURL, dstPath)
+			err = core.DownloadBookImage(deps, imageURL, dstFile)
 
 			// Assert
 			assert.NoError(t, err)
-			assert.True(t, deps.Domains.Storage.FileExists(dstPath))
+			assert.True(t, deps.Domains.Storage.FileExists(dstFile))
 		})
 		t.Run("successful download medium size image", func(t *testing.T) {
-			// create a file server handler for the 'testdata' directory
-			fs := http.FileServer(http.Dir("../../testdata/"))
-
-			// start a test server with the file server handler
-			server := httptest.NewServer(fs)
-			defer server.Close()
+			tmpDir, err := os.MkdirTemp("", "")
+			require.NoError(t, err)
+			require.NoError(t, os.Chdir(tmpDir))
 
 			// Arrange
-			imageURL := server.URL + "/medium_image.png"
-			tempDir := t.TempDir()
-			dstPath := fp.Join(tempDir, "1")
-			defer os.Remove(dstPath)
+			imageURL := "https://raw.githubusercontent.com/go-shiori/shiori/master/testdata/medium_image.png"
+			dstFile := "." + string(fp.Separator) + "medium_image.png"
 
 			// Act
-			err := core.DownloadBookImage(deps, imageURL, dstPath)
+			err = core.DownloadBookImage(deps, imageURL, dstFile)
 
 			// Assert
 			assert.NoError(t, err)
-			assert.True(t, deps.Domains.Storage.FileExists(dstPath))
+			assert.True(t, deps.Domains.Storage.FileExists(dstFile))
 		})
 	})
 }
@@ -78,6 +73,7 @@ func TestProcessBookmark(t *testing.T) {
 	_, deps := testutil.GetTestConfigurationAndDependencies(t, context.TODO(), logger)
 
 	t.Run("ProcessRequest with sucssesful result", func(t *testing.T) {
+		tmpDir := t.TempDir()
 		t.Run("Normal without image", func(t *testing.T) {
 			bookmark := model.BookmarkDTO{
 				ID:            1,
@@ -92,7 +88,7 @@ func TestProcessBookmark(t *testing.T) {
 				Bookmark:    bookmark,
 				Content:     content,
 				ContentType: "text/html",
-				DataDir:     "/tmp",
+				DataDir:     tmpDir,
 				KeepTitle:   true,
 				KeepExcerpt: true,
 			}
@@ -112,7 +108,7 @@ func TestProcessBookmark(t *testing.T) {
 			}
 		})
 		t.Run("Normal with multipleimage", func(t *testing.T) {
-
+			tmpDir := t.TempDir()
 			html := `html<html>
 		  <head>
 		    <meta property="og:image" content="http://example.com/image1.jpg">
@@ -136,7 +132,7 @@ func TestProcessBookmark(t *testing.T) {
 				Bookmark:    bookmark,
 				Content:     content,
 				ContentType: "text/html",
-				DataDir:     "/tmp",
+				DataDir:     tmpDir,
 				KeepTitle:   true,
 				KeepExcerpt: true,
 			}
@@ -156,18 +152,12 @@ func TestProcessBookmark(t *testing.T) {
 			}
 		})
 		t.Run("ProcessRequest sucssesful with multipleimage included favicon and Thumbnail ", func(t *testing.T) {
-			// create a file server handler for the 'testdata' directory
-			fs := http.FileServer(http.Dir("../../testdata/"))
-
-			// start a test server with the file server handler
-			server := httptest.NewServer(fs)
-			defer server.Close()
-
+			tmpDir := t.TempDir()
 			html := `html<html>
   			<head>
     		<meta property="og:image" content="http://example.com/image1.jpg">
-    		<meta property="og:image" content="` + server.URL + `/big_image.png">
-    		<link rel="icon" type="image/svg" href="` + server.URL + `/favicon.svg">
+    		<meta property="og:image" content="https://raw.githubusercontent.com/go-shiori/shiori/master/testdata/big_image.png">
+    		<link rel="icon" type="image/svg" href="https://raw.githubusercontent.com/go-shiori/shiori/master/testdata/favicon.svg">
   			</head>
   			<body>
     			<p>This is an example article</p>
@@ -186,12 +176,12 @@ func TestProcessBookmark(t *testing.T) {
 				Bookmark:    bookmark,
 				Content:     content,
 				ContentType: "text/html",
-				DataDir:     "/tmp",
+				DataDir:     tmpDir,
 				KeepTitle:   true,
 				KeepExcerpt: true,
 			}
 			expected, _, _ := core.ProcessBookmark(deps, request)
-
+			assert.True(t, deps.Domains.Storage.FileExists(fp.Join("thumb", "1")))
 			if expected.ID != bookmark.ID {
 				t.Errorf("Unexpected ID: got %v, want %v", expected.ID, bookmark.ID)
 			}
@@ -206,6 +196,7 @@ func TestProcessBookmark(t *testing.T) {
 			}
 		})
 		t.Run("ProcessRequest sucssesful with empty title ", func(t *testing.T) {
+			tmpDir := t.TempDir()
 			bookmark := model.BookmarkDTO{
 				ID:            1,
 				URL:           "https://example.com",
@@ -219,7 +210,7 @@ func TestProcessBookmark(t *testing.T) {
 				Bookmark:    bookmark,
 				Content:     content,
 				ContentType: "text/html",
-				DataDir:     "/tmp",
+				DataDir:     tmpDir,
 				KeepTitle:   true,
 				KeepExcerpt: true,
 			}
@@ -239,6 +230,7 @@ func TestProcessBookmark(t *testing.T) {
 			}
 		})
 		t.Run("ProcessRequest sucssesful with empty Excerpt", func(t *testing.T) {
+			tmpDir := t.TempDir()
 			bookmark := model.BookmarkDTO{
 				ID:            1,
 				URL:           "https://example.com",
@@ -252,7 +244,7 @@ func TestProcessBookmark(t *testing.T) {
 				Bookmark:    bookmark,
 				Content:     content,
 				ContentType: "text/html",
-				DataDir:     "/tmp",
+				DataDir:     tmpDir,
 				KeepTitle:   true,
 				KeepExcerpt: false,
 			}
@@ -272,6 +264,7 @@ func TestProcessBookmark(t *testing.T) {
 			}
 		})
 		t.Run("Specific case", func(t *testing.T) {
+			tmpDir := t.TempDir()
 			t.Run("ProcessRequest with ID zero", func(t *testing.T) {
 
 				bookmark := model.BookmarkDTO{
@@ -287,7 +280,7 @@ func TestProcessBookmark(t *testing.T) {
 					Bookmark:    bookmark,
 					Content:     content,
 					ContentType: "text/html",
-					DataDir:     "/tmp",
+					DataDir:     tmpDir,
 					KeepTitle:   true,
 					KeepExcerpt: true,
 				}
@@ -298,7 +291,7 @@ func TestProcessBookmark(t *testing.T) {
 			})
 
 			t.Run("ProcessRequest that content type not zero", func(t *testing.T) {
-
+				tmpDir := t.TempDir()
 				bookmark := model.BookmarkDTO{
 					ID:            1,
 					URL:           "https://example.com",
@@ -312,7 +305,7 @@ func TestProcessBookmark(t *testing.T) {
 					Bookmark:    bookmark,
 					Content:     content,
 					ContentType: "application/pdf",
-					DataDir:     "/tmp",
+					DataDir:     tmpDir,
 					KeepTitle:   true,
 					KeepExcerpt: true,
 				}
