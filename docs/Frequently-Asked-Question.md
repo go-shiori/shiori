@@ -2,21 +2,17 @@
 
 <!-- TOC -->
 
-- [Frequently asked questions](#frequently-asked-questions)
-- [General](#general)
-    - [What is this project ?](#what-is-this-project-)
-    - [How does it compare to other bookmarks manager ?](#how-does-it-compare-to-other-bookmarks-manager-)
-    - [What are the system requirements ?](#what-are-the-system-requirements-)
-    - [What is the status for this app ?](#what-is-the-status-for-this-app-)
-    - [Is this app actively maintained ?](#is-this-app-actively-maintained-)
-    - [How to make a contribution ?](#how-to-make-a-contribution-)
-    - [How to make a donation ?](#how-to-make-a-donation-)
-- [Common Issues](#common-issues)
-    - [What is the default account to login at the first time ?](#what-is-the-default-account-to-login-at-the-first-time-)
-    - [Why my old accounts can't do anything after upgrading Shiori to v1.5.0 ?](#why-my-old-accounts-cant-do-anything-after-upgrading-shiori-to-v150-)
-    - [Failed to get bookmarks: failed to fetch data: no such module: fts4 ?](#failed-to-get-bookmarks-failed-to-fetch-data-no-such-module-fts4-)
-- [Advanced](#advanced)
-    - [How to run shiori on start up ?](#how-to-run-shiori-on-start-up-)
+- [What is this project ?](#what-is-this-project-)
+- [How does it compare to other bookmarks manager ?](#how-does-it-compare-to-other-bookmarks-manager-)
+- [What are the system requirements ?](#what-are-the-system-requirements-)
+- [What is the status for this app ?](#what-is-the-status-for-this-app-)
+- [Is this app actively maintained ?](#is-this-app-actively-maintained-)
+- [How to make a contribution ?](#how-to-make-a-contribution-)
+- [How to make a donation ?](#how-to-make-a-donation-)
+- [What is the default account to login at the first time ?](#what-is-the-default-account-to-login-at-the-first-time-)
+- [Why my old accounts can't do anything after upgrading Shiori to v1.5.0 ?](#why-my-old-accounts-cant-do-anything-after-upgrading-shiori-to-v150-)
+- [`Failed to get bookmarks: failed to fetch data: no such module: fts4` ?](#failed-to-get-bookmarks-failed-to-fetch-data-no-such-module-fts4-)
+- [How to run `shiori` on start up ?](#how-to-run-shiori-on-start-up-)
 
 <!-- /TOC -->
 
@@ -90,8 +86,10 @@ If you like this project, you can donate to maintainers via:
 
 ## What is the default account to login at the first time ?
 
-The default account is `shiori` with password `gopher`.
-It is removed once another 'owner' account is created.
+A default account is created with the credentials:
+
+- Username: `shiori`
+- Password: `gopher`
 
 ## Why my old accounts can't do anything after upgrading Shiori to v1.5.0 ?
 

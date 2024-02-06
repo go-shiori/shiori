@@ -7,9 +7,9 @@ Before using `shiori`, make sure it has been installed on your system. By defaul
   - [Search syntax](#search-syntax)
 - [Using Web Interface](#using-web-interface)
 - [Community contributions](#community-contributions)
-    - [Improved import from Pocket](#improved-import-from-pocket)
-    - [Import from Wallabag](#import-from-wallabag)
-    - [Add URL to Shiori from Android](#Add-URL-to-Shiori-from-Android)
+  - [Improved import from Pocket](#improved-import-from-pocket)
+  - [Import from Wallabag](#import-from-wallabag)
+  - [Add URL to Shiori from Android](#add-url-to-shiori-from-android)
 
 <!-- /TOC -->
 
@@ -77,10 +77,9 @@ Use "shiori [command] --help" for more information about a command.
 ```
 
 ### Search syntax
+
 With the `print` command line interface, you can use `-s` flag to submit keywords that will be searched either in url, title, excerpts or cached content.
 You may also use `-t` flag to include tags and `-e` flag to exclude tags.
-
-
 
 ## Using Web Interface
 
@@ -88,18 +87,16 @@ To access web interface run `shiori serve` or start Docker container following t
 
 ![Login screen](https://raw.githubusercontent.com/go-shiori/shiori/master/docs/screenshots/01-login.png)
 
-Since this is our first time, we don't have any account registered yet. With that said, we can use the default user to access web interface :
+Since this is our first time, we don't have any account registered yet. With that said, we can use the default user to access web interface:
 
 ```
 username: shiori
 password: gopher
 ```
 
-Once login succeed you will be able to use the web interface. To add the new account, open the settings page and add accounts as needed :
+Once login succeed you will be able to use the web interface. To add the new account, open the settings page and add accounts as needed:
 
 ![Options page](https://raw.githubusercontent.com/go-shiori/shiori/master/docs/screenshots/04-options.png)
-
-The first new account you add will become the owner and it will deactivate the "shiori:gopher" default user automatically.
 
 When searching for bookmarks, you may use `tag:tagname` to include tags and `-tag:tagname` to exclude tags in the search bar. You can also use tags dialog to do this :
 
@@ -157,8 +154,8 @@ inside the container.
     chmod +x wallabag2shiori
     ./wallabag2shiori 'path/to/to/wallabag_export_json_file'
   ```
-  
-  
+
+
 ###  Add URL to Shiori from Android
 
 
