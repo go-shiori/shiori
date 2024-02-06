@@ -7,7 +7,7 @@ assignees: ''
 ---
 
 ## Data
-- **Shiori version**: If unknown, run `shiori version` in your terminal or check your server logs.
+- **Shiori version**: If unknown, run `shiori version` in your terminal or check your server logs. If you don't have the command or information in your logs you are probably running an older version (1.5.4 or older).
 - **Database Engine**: If unknown, SQLite is the default.
 - **Operating system**:
 - **CLI/Web interface/Web Extension**:
