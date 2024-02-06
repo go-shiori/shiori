@@ -8,10 +8,10 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     name: Build Docker
     steps:
-      - uses: actions/checkout@24cb9080177205b6e8c946b17badbe402adc938f # v3.4.0
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           fetch-depth: 0
-      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # 3.0.2
+      - uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # 4.1.1
         with:
           name: dist
       - name: Prep binaries
@@ -23,19 +23,26 @@ jobs:
           mv binaries/shiori_linux_amd64_v1 binaries/shiori_linux_amd64
           gzip -d -S binaries/.gz__  -r .
           chmod 755 binaries/shiori_linux_*/shiori
+
       - name: Prepare master push tags
         if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         run: |
-          echo "tag_flags=--tag ${{ github.ref }}" >> $GITHUB_ENV
           REPO=ghcr.io/${{ github.repository }}
           TAG=$(git describe --tags)
-          if [ -z "$(git tag --points-at HEAD)" ]
+          if [ -z "$(git tag --points-at HEAD)" ] || [[ "$TAG" == *"rc"* ]]
           then
             TAG2="dev"
           else
             TAG2="latest"
           fi
           echo "tag_flags=--tag $REPO:$TAG --tag $REPO:$TAG2" >> $GITHUB_ENV
+
+      - name: Prepare version push tags
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+        run: |
+          REPO=ghcr.io/${{ github.repository }}
+          TAG=$(git describe --tags)
+          echo "tag_flags=--tag $REPO:$TAG --tag $REPO:dev" >> $GITHUB_ENV
 
       - name: Prepare pull request tags
         if: github.event_name == 'pull_request'

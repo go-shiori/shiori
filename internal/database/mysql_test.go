@@ -1,3 +1,6 @@
+//go:build !test_sqlite_only
+// +build !test_sqlite_only
+
 package database
 
 import (
@@ -18,7 +21,7 @@ func init() {
 	}
 }
 
-func mysqlTestDatabaseFactory(ctx context.Context) (DB, error) {
+func mysqlTestDatabaseFactory(_ *testing.T, ctx context.Context) (DB, error) {
 	connString := os.Getenv("SHIORI_TEST_MYSQL_URL")
 	db, err := OpenMySQLDatabase(ctx, connString)
 	if err != nil {

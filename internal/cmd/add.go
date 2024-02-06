@@ -45,7 +45,7 @@ func addHandler(cmd *cobra.Command, args []string) {
 	excerpt = normalizeSpace(excerpt)
 
 	// Create bookmark item
-	book := model.Bookmark{
+	book := model.BookmarkDTO{
 		URL:           url,
 		Title:         title,
 		Excerpt:       excerpt,
@@ -101,7 +101,7 @@ func addHandler(cmd *cobra.Command, args []string) {
 				KeepExcerpt: excerpt != "",
 			}
 
-			book, isFatalErr, err = core.ProcessBookmark(request)
+			book, isFatalErr, err = core.ProcessBookmark(deps, request)
 			content.Close()
 
 			if err != nil {

@@ -76,8 +76,8 @@ func (db *SQLiteDatabase) Migrate() error {
 
 // SaveBookmarks saves new or updated bookmarks to database.
 // Returns the saved ID and error message if any happened.
-func (db *SQLiteDatabase) SaveBookmarks(ctx context.Context, create bool, bookmarks ...model.Bookmark) ([]model.Bookmark, error) {
-	var result []model.Bookmark
+func (db *SQLiteDatabase) SaveBookmarks(ctx context.Context, create bool, bookmarks ...model.BookmarkDTO) ([]model.BookmarkDTO, error) {
+	var result []model.BookmarkDTO
 
 	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
 		// Prepare statement
@@ -245,7 +245,7 @@ func (db *SQLiteDatabase) SaveBookmarks(ctx context.Context, create bool, bookma
 }
 
 // GetBookmarks fetch list of bookmarks based on submitted options.
-func (db *SQLiteDatabase) GetBookmarks(ctx context.Context, opts GetBookmarksOptions) ([]model.Bookmark, error) {
+func (db *SQLiteDatabase) GetBookmarks(ctx context.Context, opts GetBookmarksOptions) ([]model.BookmarkDTO, error) {
 	// Create initial query
 	query := `SELECT
 		b.id,
@@ -270,19 +270,22 @@ func (db *SQLiteDatabase) GetBookmarks(ctx context.Context, opts GetBookmarksOpt
 
 	// Add where clause for search keyword
 	if opts.Keyword != "" {
-		query += ` AND (b.url LIKE ? OR b.excerpt LIKE ? OR b.id IN (
+		query += ` AND (b.url LIKE '%' || ? || '%' OR b.excerpt LIKE '%' || ? || '%' OR b.id IN (
 			SELECT docid id
 			FROM bookmark_content
 			WHERE title MATCH ? OR content MATCH ?))`
 
-		args = append(args,
-			"%"+opts.Keyword+"%",
-			"%"+opts.Keyword+"%")
-
-		// Replace dash with spaces since FTS5 uses `-name` as column identifier
-		opts.Keyword = strings.Replace(opts.Keyword, "-", " ", -1)
 		args = append(args, opts.Keyword, opts.Keyword)
 
+		// Replace dash with spaces since FTS5 uses `-name` as column identifier and double quote
+		// since FTS5 uses double quote as string identifier
+		// Reference: https://sqlite.org/fts5.html#fts5_strings
+		ftsKeyword := strings.ReplaceAll(opts.Keyword, "-", " ")
+
+		// Properly set double quotes for string literals in sqlite's fts
+		ftsKeyword = strings.ReplaceAll(ftsKeyword, "\"", "\"\"")
+
+		args = append(args, "\""+ftsKeyword+"\"", "\""+ftsKeyword+"\"")
 	}
 
 	// Add where clause for tags.
@@ -359,7 +362,7 @@ func (db *SQLiteDatabase) GetBookmarks(ctx context.Context, opts GetBookmarksOpt
 	}
 
 	// Fetch bookmarks
-	bookmarks := []model.Bookmark{}
+	bookmarks := []model.BookmarkDTO{}
 	err = db.SelectContext(ctx, &bookmarks, query, args...)
 	if err != nil && err != sql.ErrNoRows {
 		return nil, errors.WithStack(err)
@@ -461,19 +464,22 @@ func (db *SQLiteDatabase) GetBookmarksCount(ctx context.Context, opts GetBookmar
 
 	// Add where clause for search keyword
 	if opts.Keyword != "" {
-		query += ` AND (b.url LIKE ? OR b.excerpt LIKE ? OR b.id IN (
+		query += ` AND (b.url LIKE '%' || ? || '%' OR b.excerpt LIKE '%' || ? || '%' OR b.id IN (
 			SELECT docid id
 			FROM bookmark_content
 			WHERE title MATCH ? OR content MATCH ?))`
 
-		args = append(args,
-			"%"+opts.Keyword+"%",
-			"%"+opts.Keyword+"%",
-		)
-
-		// Replace dash with spaces since FTS5 uses `-name` as column identifier
-		opts.Keyword = strings.Replace(opts.Keyword, "-", " ", -1)
 		args = append(args, opts.Keyword, opts.Keyword)
+
+		// Replace dash with spaces since FTS5 uses `-name` as column identifier and double quote
+		// since FTS5 uses double quote as string identifier
+		// Reference: https://sqlite.org/fts5.html#fts5_strings
+		ftsKeyword := strings.ReplaceAll(opts.Keyword, "-", " ")
+
+		// Properly set double quotes for string literals in sqlite's fts
+		ftsKeyword = strings.ReplaceAll(ftsKeyword, "\"", "\"\"")
+
+		args = append(args, "\""+ftsKeyword+"\"", "\""+ftsKeyword+"\"")
 	}
 
 	// Add where clause for tags.
@@ -616,7 +622,7 @@ func (db *SQLiteDatabase) DeleteBookmarks(ctx context.Context, ids ...int) error
 
 // GetBookmark fetches bookmark based on its ID or URL.
 // Returns the bookmark and boolean whether it's exist or not.
-func (db *SQLiteDatabase) GetBookmark(ctx context.Context, id int, url string) (model.Bookmark, bool, error) {
+func (db *SQLiteDatabase) GetBookmark(ctx context.Context, id int, url string) (model.BookmarkDTO, bool, error) {
 	args := []interface{}{id}
 	query := `SELECT
 		b.id, b.url, b.title, b.excerpt, b.author, b.public, b.modified,
@@ -630,7 +636,7 @@ func (db *SQLiteDatabase) GetBookmark(ctx context.Context, id int, url string) (
 		args = append(args, url)
 	}
 
-	book := model.Bookmark{}
+	book := model.BookmarkDTO{}
 	if err := db.GetContext(ctx, &book, query, args...); err != nil && err != sql.ErrNoRows {
 		return book, false, errors.WithStack(err)
 	}
@@ -649,11 +655,27 @@ func (db *SQLiteDatabase) SaveAccount(ctx context.Context, account model.Account
 
 		// Insert account to database
 		_, err = tx.Exec(`INSERT INTO account
-		(username, password, owner) VALUES (?, ?, ?)
+		(username, password, owner, config) VALUES (?, ?, ?, ?)
 		ON CONFLICT(username) DO UPDATE SET
 		password = ?, owner = ?`,
-			account.Username, hashedPassword, account.Owner,
-			hashedPassword, account.Owner)
+			account.Username, hashedPassword, account.Owner, account.Config,
+			hashedPassword, account.Owner, account.Config)
+		return errors.WithStack(err)
+	}); err != nil {
+		return errors.WithStack(err)
+	}
+
+	return nil
+}
+
+// SaveAccountSettings update settings for specific account  in database. Returns error if any happened.
+func (db *SQLiteDatabase) SaveAccountSettings(ctx context.Context, account model.Account) error {
+	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
+		// Update account config in database for specific user
+		_, err := tx.Exec(`UPDATE account
+	   SET config = ?
+	   WHERE username = ?`,
+			account.Config, account.Username)
 		return errors.WithStack(err)
 	}); err != nil {
 		return errors.WithStack(err)
@@ -666,7 +688,7 @@ func (db *SQLiteDatabase) SaveAccount(ctx context.Context, account model.Account
 func (db *SQLiteDatabase) GetAccounts(ctx context.Context, opts GetAccountsOptions) ([]model.Account, error) {
 	// Create query
 	args := []interface{}{}
-	query := `SELECT id, username, owner FROM account WHERE 1`
+	query := `SELECT id, username, owner, config FROM account WHERE 1`
 
 	if opts.Keyword != "" {
 		query += " AND username LIKE ?"
@@ -694,7 +716,7 @@ func (db *SQLiteDatabase) GetAccounts(ctx context.Context, opts GetAccountsOptio
 func (db *SQLiteDatabase) GetAccount(ctx context.Context, username string) (model.Account, bool, error) {
 	account := model.Account{}
 	if err := db.GetContext(ctx, &account, `SELECT
-		id, username, password, owner FROM account WHERE username = ?`,
+		id, username, password, owner, config FROM account WHERE username = ?`,
 		username,
 	); err != nil {
 		return account, false, errors.WithStack(err)

@@ -52,7 +52,7 @@ func updateHandler(cmd *cobra.Command, args []string) {
 	skipConfirm, _ := cmd.Flags().GetBool("yes")
 	noArchival, _ := cmd.Flags().GetBool("no-archival")
 	logArchival, _ := cmd.Flags().GetBool("log-archival")
-	keepMetadata := cmd.Flags().Changed("keep-metadata")
+	keep_metadata := cmd.Flags().Changed("keep-metadata")
 
 	// If no arguments (i.e all bookmarks going to be updated), confirm to user
 	if len(args) == 0 && !skipConfirm {
@@ -147,7 +147,7 @@ func updateHandler(cmd *cobra.Command, args []string) {
 				book.URL = url
 			}
 
-			go func(i int, book model.Bookmark) {
+			go func(i int, book model.BookmarkDTO) {
 				// Make sure to finish the WG
 				defer wg.Done()
 
@@ -170,12 +170,12 @@ func updateHandler(cmd *cobra.Command, args []string) {
 					Bookmark:    book,
 					Content:     content,
 					ContentType: contentType,
-					KeepTitle:   keepMetadata,
-					KeepExcerpt: keepMetadata,
+					KeepTitle:   keep_metadata,
+					KeepExcerpt: keep_metadata,
 					LogArchival: logArchival,
 				}
 
-				book, _, err = core.ProcessBookmark(request)
+				book, _, err = core.ProcessBookmark(deps, request)
 				content.Close()
 
 				if err != nil {

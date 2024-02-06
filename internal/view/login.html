@@ -14,16 +14,14 @@
 	<link rel="icon" type="image/png" href="assets/res/favicon-16x16.png" sizes="16x16">
 	<link rel="icon" type="image/x-icon" href="assets/res/favicon.ico">
 
-	<link href="assets/css/source-sans-pro.min.css" rel="stylesheet">
-	<link href="assets/css/fontawesome.min.css" rel="stylesheet">
-	<link href="assets/css/stylesheet.css" rel="stylesheet">
+	<link href="assets/css/style.css" rel="stylesheet">
 
 	<script src="assets/js/vue.min.js"></script>
 	<script src="assets/js/url.min.js"></script>
 </head>
 
 <body>
-	<div id="login-scene" :class="{night: nightMode}">
+	<div id="login-scene" :class="{night: NightMode}">
 		<p class="error-message" v-if="error !== ''">{{error}}</p>
 		<div id="login-box">
 			<form @submit.prevent="login">
@@ -64,7 +62,7 @@
 				username: "",
 				password: "",
 				remember: false,
-				nightMode: false,
+				NightMode: false,
 			},
 			methods: {
 				async getErrorMessage(err) {
@@ -123,9 +121,10 @@
 					}).then(json => {
 						// Save session id
 						document.cookie = `session-id=${json.message.session}; Path=${new URL(document.baseURI).pathname}; Expires=${json.message.expires}`;
+						document.cookie = `token=${json.message.token}; Path=${new URL(document.baseURI).pathname}; Expires=${json.message.expires}`;
 
 						// Save account data
-						localStorage.setItem("shiori-token", JSON.stringify(json.message.token));
+						localStorage.setItem("shiori-token", json.message.token);
 						localStorage.setItem("shiori-account", JSON.stringify(parseJWT(json.message.token).account));
 
 						// Go to destination page
@@ -150,10 +149,10 @@
 					});
 				},
 				loadSetting() {
-					var opts = JSON.parse(localStorage.getItem("shiori-setting")) || {},
-						nightMode = (typeof opts.nightMode === "boolean") ? opts.nightMode : false;
+					var opts = JSON.parse(localStorage.getItem("shiori-account")) || {},
+						NightMode = (typeof opts.config.NightMode === "boolean") ? opts.configNightMode : false;
 
-					this.nightMode = nightMode;
+					this.NightMode = NightMode;
 				}
 			},
 			mounted() {

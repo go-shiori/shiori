@@ -8,9 +8,11 @@ import (
 
 	"github.com/go-shiori/shiori/internal/config"
 	"github.com/go-shiori/shiori/internal/database"
+	"github.com/go-shiori/shiori/internal/dependencies"
 	"github.com/go-shiori/shiori/internal/domains"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"golang.org/x/net/context"
 )
@@ -47,7 +49,7 @@ func ShioriCmd() *cobra.Command {
 	return rootCmd
 }
 
-func initShiori(ctx context.Context, cmd *cobra.Command) (*config.Config, *config.Dependencies) {
+func initShiori(ctx context.Context, cmd *cobra.Command) (*config.Config, *dependencies.Dependencies) {
 	logger := logrus.New()
 
 	portableMode, _ := cmd.Flags().GetBool("portable")
@@ -69,6 +71,7 @@ func initShiori(ctx context.Context, cmd *cobra.Command) (*config.Config, *confi
 	}
 
 	cfg := config.ParseServerConfiguration(ctx, logger)
+	cfg.LogLevel = logger.Level.String()
 
 	if storageDirectory != "" && cfg.Storage.DataDir != "" {
 		logger.Warn("--storage-directory is set, overriding SHIORI_DIR.")
@@ -82,7 +85,7 @@ func initShiori(ctx context.Context, cmd *cobra.Command) (*config.Config, *confi
 		logger.WithError(err).Fatal("error creating data directory")
 	}
 
-	db, err := openDatabase(ctx, cfg.Database.DBMS, cfg.Database.URL)
+	db, err := openDatabase(logger, ctx, cfg)
 	if err != nil {
 		logger.WithError(err).Fatal("error opening database")
 	}
@@ -96,9 +99,11 @@ func initShiori(ctx context.Context, cmd *cobra.Command) (*config.Config, *confi
 		logger.Warn("Development mode is ENABLED, this will enable some helpers for local development, unsuitable for production environments")
 	}
 
-	dependencies := config.NewDependencies(logger, db, cfg)
-	dependencies.Domains.Auth = domains.NewAccountsDomain(logger, cfg.Http.SecretKey, db)
-	dependencies.Domains.Archiver = domains.NewArchiverDomain(logger, cfg.Storage.DataDir)
+	dependencies := dependencies.NewDependencies(logger, db, cfg)
+	dependencies.Domains.Auth = domains.NewAccountsDomain(dependencies)
+	dependencies.Domains.Archiver = domains.NewArchiverDomain(dependencies)
+	dependencies.Domains.Bookmarks = domains.NewBookmarksDomain(dependencies)
+	dependencies.Domains.Storage = domains.NewStorageDomain(dependencies, afero.NewBasePathFs(afero.NewOsFs(), cfg.Storage.DataDir))
 
 	// Workaround: Get accounts to make sure at least one is present in the database.
 	// If there's no accounts in the database, create the shiori/gopher account the legacy api
@@ -121,26 +126,29 @@ func initShiori(ctx context.Context, cmd *cobra.Command) (*config.Config, *confi
 		}
 	}
 
+	cfg.DebugConfiguration(logger)
+
 	return cfg, dependencies
 }
 
-func openDatabase(ctx context.Context, dbms, dbURL string) (database.DB, error) {
-	if dbURL != "" {
-		return database.Connect(ctx, dbURL)
+func openDatabase(logger *logrus.Logger, ctx context.Context, cfg *config.Config) (database.DB, error) {
+	if cfg.Database.URL != "" {
+		return database.Connect(ctx, cfg.Database.URL)
 	}
-	if dbms == "mysql" {
+
+	if cfg.Database.DBMS != "" {
+		logger.Warnf("The use of SHIORI_DBMS is deprecated and will be removed in the future. Please migrate to SHIORI_DATABASE_URL instead.")
+	}
+
+	// TODO remove this the moment DBMS is deprecated
+	if cfg.Database.DBMS == "mysql" {
 		return openMySQLDatabase(ctx)
 	}
-	if dbms == "postgresql" {
+	if cfg.Database.DBMS == "postgresql" {
 		return openPostgreSQLDatabase(ctx)
 	}
-	return openSQLiteDatabase(ctx)
-}
 
-func openSQLiteDatabase(ctx context.Context) (database.DB, error) {
-	dataDir := os.Getenv("SHIORI_DIR")
-	dbPath := fp.Join(dataDir, "shiori.db")
-	return database.OpenSQLiteDatabase(ctx, dbPath)
+	return database.OpenSQLiteDatabase(ctx, fp.Join(cfg.Storage.DataDir, "shiori.db"))
 }
 
 func openMySQLDatabase(ctx context.Context) (database.DB, error) {

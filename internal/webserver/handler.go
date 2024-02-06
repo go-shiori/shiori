@@ -6,14 +6,12 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/go-shiori/shiori/internal/config"
 	"github.com/go-shiori/shiori/internal/database"
+	"github.com/go-shiori/shiori/internal/dependencies"
 	"github.com/go-shiori/shiori/internal/model"
 	cch "github.com/patrickmn/go-cache"
 	"github.com/sirupsen/logrus"
 )
-
-var developmentMode = false
 
 // Handler is Handler for serving the web interface.
 type Handler struct {
@@ -25,7 +23,7 @@ type Handler struct {
 	ArchiveCache *cch.Cache
 	Log          bool
 
-	depenencies *config.Dependencies
+	dependencies *dependencies.Dependencies
 
 	templates map[string]*template.Template
 }
@@ -75,7 +73,7 @@ func (h *Handler) PrepareTemplates() error {
 		`<div id="shiori-archive-header">
 		<p id="shiori-logo"><span>栞</span>shiori</p>
 		<div class="spacer"></div>
-		<a href="$$.URL$$" target="_blank">View Original</a>
+		<a href="$$.URL$$" target="_blank" rel="noopener noreferrer">View Original</a>
 		$$if .HasContent$$
 		<a href="/bookmark/$$.ID$$/content">View Readable</a>
 		$$end$$
@@ -113,16 +111,16 @@ func (h *Handler) validateSession(r *http.Request) error {
 			return fmt.Errorf("session has been expired")
 		}
 
-		account, err := h.depenencies.Domains.Auth.CheckToken(r.Context(), authParts[1])
+		account, err := h.dependencies.Domains.Auth.CheckToken(r.Context(), authParts[1])
 		if err != nil {
-			return err
+			return fmt.Errorf("session has been expired")
 		}
 
 		if r.Method != "" && r.Method != "GET" && !account.Owner {
 			return fmt.Errorf("account level is not sufficient")
 		}
 
-		h.depenencies.Log.WithFields(logrus.Fields{
+		h.dependencies.Log.WithFields(logrus.Fields{
 			"username": account.Username,
 			"method":   r.Method,
 			"path":     r.URL.Path,

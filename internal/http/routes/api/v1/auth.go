@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-shiori/shiori/internal/config"
+	"github.com/go-shiori/shiori/internal/dependencies"
 	"github.com/go-shiori/shiori/internal/http/context"
 	"github.com/go-shiori/shiori/internal/http/response"
 	"github.com/go-shiori/shiori/internal/model"
@@ -15,7 +15,7 @@ import (
 
 type AuthAPIRoutes struct {
 	logger             *logrus.Logger
-	deps               *config.Dependencies
+	deps               *dependencies.Dependencies
 	legacyLoginHandler model.LegacyLoginHandler
 }
 
@@ -23,6 +23,7 @@ func (r *AuthAPIRoutes) Setup(group *gin.RouterGroup) model.Routes {
 	group.GET("/me", r.meHandler)
 	group.POST("/login", r.loginHandler)
 	group.POST("/refresh", r.refreshHandler)
+	group.PATCH("/account", r.settingsHandler)
 	return r
 }
 
@@ -48,15 +49,20 @@ type loginResponseMessage struct {
 	Expiration int64  `json:"expires"` // Deprecated, used only for legacy APIs
 }
 
+type settingRequestPayload struct {
+	Config model.UserConfig `json:"config"`
+}
+
 // loginHandler godoc
-// @Summary      Login to an account using username and password
-// @Tags         Auth
-// @Accept       json
-// @Produce      json
-// @Param        payload   body    loginRequestPayload    false  "Login data"
-// @Success      200  {object}  loginResponseMessage  "Login successful"
-// @Failure      400  {object}  nil                   "Invalid login data"
-// @Router       /api/v1/auth/login [post]
+//
+//	@Summary	Login to an account using username and password
+//	@Tags		Auth
+//	@Accept		json
+//	@Produce	json
+//	@Param		payload	body		loginRequestPayload		false	"Login data"
+//	@Success	200		{object}	loginResponseMessage	"Login successful"
+//	@Failure	400		{object}	nil						"Invalid login data"
+//	@Router		/api/v1/auth/login [post]
 func (r *AuthAPIRoutes) loginHandler(c *gin.Context) {
 	var payload loginRequestPayload
 	if err := c.ShouldBindJSON(&payload); err != nil {
@@ -103,13 +109,14 @@ func (r *AuthAPIRoutes) loginHandler(c *gin.Context) {
 }
 
 // refreshHandler godoc
-// @Summary      Refresh a token for an account
-// @Tags         Auth
-// @securityDefinitions.apikey ApiKeyAuth
-// @Produce      json
-// @Success      200  {object}  loginResponseMessage  "Refresh successful"
-// @Failure      403  {object}  nil                   "Token not provided/invalid"
-// @Router       /api/v1/auth/refresh [post]
+//
+//	@Summary					Refresh a token for an account
+//	@Tags						Auth
+//	@securityDefinitions.apikey	ApiKeyAuth
+//	@Produce					json
+//	@Success					200	{object}	loginResponseMessage	"Refresh successful"
+//	@Failure					403	{object}	nil						"Token not provided/invalid"
+//	@Router						/api/v1/auth/refresh [post]
 func (r *AuthAPIRoutes) refreshHandler(c *gin.Context) {
 	ctx := context.NewContextFromGin(c)
 	if !ctx.UserIsLogged() {
@@ -133,13 +140,14 @@ func (r *AuthAPIRoutes) refreshHandler(c *gin.Context) {
 }
 
 // meHandler godoc
-// @Summary      Get information for the current logged in user
-// @Tags         Auth
-// @securityDefinitions.apikey ApiKeyAuth
-// @Produce      json
-// @Success      200  {object}  model.Account
-// @Failure      403  {object}  nil                   "Token not provided/invalid"
-// @Router       /api/v1/auth/me [get]
+//
+//	@Summary					Get information for the current logged in user
+//	@Tags						Auth
+//	@securityDefinitions.apikey	ApiKeyAuth
+//	@Produce					json
+//	@Success					200	{object}	model.Account
+//	@Failure					403	{object}	nil	"Token not provided/invalid"
+//	@Router						/api/v1/auth/me [get]
 func (r *AuthAPIRoutes) meHandler(c *gin.Context) {
 	ctx := context.NewContextFromGin(c)
 	if !ctx.UserIsLogged() {
@@ -150,7 +158,38 @@ func (r *AuthAPIRoutes) meHandler(c *gin.Context) {
 	response.Send(c, http.StatusOK, ctx.GetAccount())
 }
 
-func NewAuthAPIRoutes(logger *logrus.Logger, deps *config.Dependencies, loginHandler model.LegacyLoginHandler) *AuthAPIRoutes {
+// settingsHandler godoc
+//
+//	@Summary					Perform actions on the currently logged-in user.
+//	@Tags						Auth
+//	@securityDefinitions.apikey	ApiKeyAuth
+//	@Param						payload	body	settingRequestPayload	false	"Config data"
+//	@Produce					json
+//	@Success					200	{object}	model.Account
+//	@Failure					403	{object}	nil	"Token not provided/invalid"
+//	@Router						/api/v1/auth/account [patch]
+func (r *AuthAPIRoutes) settingsHandler(c *gin.Context) {
+	ctx := context.NewContextFromGin(c)
+	if !ctx.UserIsLogged() {
+		response.SendError(c, http.StatusForbidden, nil)
+	}
+	var payload settingRequestPayload
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		response.SendInternalServerError(c)
+	}
+
+	account := ctx.GetAccount()
+	account.Config = payload.Config
+
+	err := r.deps.Database.SaveAccountSettings(c, *account)
+	if err != nil {
+		response.SendInternalServerError(c)
+	}
+
+	response.Send(c, http.StatusOK, ctx.GetAccount())
+}
+
+func NewAuthAPIRoutes(logger *logrus.Logger, deps *dependencies.Dependencies, loginHandler model.LegacyLoginHandler) *AuthAPIRoutes {
 	return &AuthAPIRoutes{
 		logger:             logger,
 		deps:               deps,

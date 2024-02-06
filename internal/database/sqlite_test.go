@@ -10,18 +10,14 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-var sqliteDatabaseTestPath string
+func sqliteTestDatabaseFactory(t *testing.T, ctx context.Context) (DB, error) {
+	tmpDir, err := os.MkdirTemp("", "")
+	require.NoError(t, err)
 
-func init() {
-	sqliteDatabaseTestPath = filepath.Join(os.TempDir(), "shiori.db")
-}
-
-func sqliteTestDatabaseFactory(ctx context.Context) (DB, error) {
-	os.Remove(sqliteDatabaseTestPath)
-
-	db, err := OpenSQLiteDatabase(ctx, sqliteDatabaseTestPath)
+	db, err := OpenSQLiteDatabase(ctx, filepath.Join(tmpDir, "shiori.db"))
 	if err != nil {
 		return nil, err
 	}
@@ -47,10 +43,10 @@ func TestSqliteDatabase(t *testing.T) {
 func testSqliteGetBookmarksWithDash(t *testing.T) {
 	ctx := context.TODO()
 
-	db, err := sqliteTestDatabaseFactory(ctx)
+	db, err := sqliteTestDatabaseFactory(t, ctx)
 	assert.NoError(t, err)
 
-	book := model.Bookmark{
+	book := model.BookmarkDTO{
 		URL:   "https://github.com/go-shiori/shiori",
 		Title: "shiori",
 	}
@@ -58,7 +54,7 @@ func testSqliteGetBookmarksWithDash(t *testing.T) {
 	_, err = db.SaveBookmarks(ctx, true, book)
 	assert.NoError(t, err, "Save bookmarks must not fail")
 
-	book = model.Bookmark{
+	book = model.BookmarkDTO{
 		URL:   "https://github.com/jamiehannaford/what-happens-when-k8s",
 		Title: "what-happens-when-k8s",
 	}

@@ -52,7 +52,6 @@ func RemoveUTMParams(url string) (string, error) {
 		}
 	}
 
-	tmp.Fragment = ""
 	tmp.RawQuery = queryEncodeWithoutEmptyValues(queries)
 	return tmp.String(), nil
 }

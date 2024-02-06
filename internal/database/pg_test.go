@@ -1,3 +1,6 @@
+//go:build !test_sqlite_only
+// +build !test_sqlite_only
+
 package database
 
 import (
@@ -17,7 +20,7 @@ func init() {
 	}
 }
 
-func postgresqlTestDatabaseFactory(ctx context.Context) (DB, error) {
+func postgresqlTestDatabaseFactory(_ *testing.T, ctx context.Context) (DB, error) {
 	db, err := OpenPGDatabase(ctx, os.Getenv("SHIORI_TEST_PG_URL"))
 	if err != nil {
 		return nil, err

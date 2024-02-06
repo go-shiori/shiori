@@ -1,12 +1,12 @@
 # build stage
-FROM ghcr.io/ghcri/golang:1.19-alpine3.16 AS builder
+FROM ghcr.io/ghcri/golang:1.21-alpine3.19 AS builder
 WORKDIR /src
 COPY . .
 RUN go build -ldflags '-s -w'
 
 # server image
 
-FROM ghcr.io/ghcri/alpine:3.16
+FROM docker.io/alpine:3.19
 LABEL org.opencontainers.image.source https://github.com/go-shiori/shiori
 COPY --from=builder /src/shiori /usr/bin/
 RUN addgroup -g 1000 shiori \

@@ -32,3 +32,12 @@ func SendErrorWithParams(ctx *gin.Context, statusCode int, data interface{}, err
 func SendInternalServerError(ctx *gin.Context) {
 	SendError(ctx, http.StatusInternalServerError, internalServerErrorMessage)
 }
+
+// SendNotFound directly sends a not found response
+func RedirectToLogin(ctx *gin.Context, dst string) {
+	ctx.Redirect(http.StatusFound, "/login?dst="+dst)
+}
+
+func NotFound(ctx *gin.Context) {
+	ctx.AbortWithStatus(http.StatusNotFound)
+}

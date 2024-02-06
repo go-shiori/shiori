@@ -14,22 +14,19 @@
 	<link rel="icon" type="image/png" href="assets/res/favicon-16x16.png" sizes="16x16">
 	<link rel="icon" type="image/x-icon" href="assets/res/favicon.ico">
 
-	<link href="assets/css/source-sans-pro.min.css" rel="stylesheet">
-	<link href="assets/css/stylesheet.css" rel="stylesheet">
-	<link href="assets/css/custom-dialog.css" rel="stylesheet">
-	<link href="assets/css/bookmark-item.css" rel="stylesheet">
+	<link href="assets/css/style.css" rel="stylesheet">
 
 	<script src="assets/js/dayjs.min.js"></script>
 	<script src="assets/js/vue.min.js"></script>
 </head>
 
 <body class="night">
-	<div id="content-scene" :class="{night: appOptions.nightMode}">
+	<div id="content-scene" :class="{night: appOptions.NightMode}">
 		<div id="header">
 			<p id="metadata" v-cloak>Added {{localtime()}}</p>
 			<p id="title" dir="auto">$$.Book.Title$$</p>
 			<div id="links">
-				<a href="$$.Book.URL$$" target="_blank" rel="noopener">View Original</a>
+				<a href="$$.Book.URL$$" target="_blank" rel="noopener noreferrer">View Original</a>
 				$$if .Book.HasArchive$$
 				<a href="bookmark/$$.Book.ID$$/archive">View Archive</a>
 				$$end$$
@@ -39,7 +36,7 @@
 			</div>
 		</div>
 		<div id="content" dir="auto" v-pre>
-			$$html .Book.HTML$$
+			$$.HTML$$
 		</div>
 	</div>
 
@@ -62,20 +59,22 @@
 					return dayjs(strTime).format("D MMMM YYYY, HH:mm:ss");
 				},
 				loadSetting() {
-					var opts = JSON.parse(localStorage.getItem("shiori-setting")) || {},
-						showId = (typeof opts.showId === "boolean") ? opts.showId : false,
-						listMode = (typeof opts.listMode === "boolean") ? opts.listMode : false,
-						nightMode = (typeof opts.nightMode === "boolean") ? opts.nightMode : false,
-						useArchive = (typeof opts.useArchive === "boolean") ? opts.useArchive : false;
+					var opts = JSON.parse(localStorage.getItem("shiori-account")) || {},
+						ShowId = (typeof opts.config.ShowId === "boolean") ? opts.config.ShowId : false,
+						ListMode = (typeof opts.config.ListMode === "boolean") ? opts.config.ListMode : false,
+						NightMode = (typeof opts.config.NightMode === "boolean") ? opts.config.NightMode : false,
+						UseArchive = (typeof opts.config.UseArchive === "boolean") ? opts.config.UseArchive : false;
+						CreateEbook = (typeof opts.config.CreateEbook === "boolean") ? opts.config.CreateEbook : false;
 
 					this.appOptions = {
-						showId: showId,
-						listMode: listMode,
-						nightMode: nightMode,
-						useArchive: useArchive,
+						ShowId: ShowId,
+						ListMode: ListMode,
+						NightMode: NightMode,
+						UseArchive: UseArchive,
+						CreateEbook: CreateEbook,
 					};
 
-					document.body.className = nightMode ? "night" : "";
+					document.body.className = NightMode ? "night" : "";
 				}
 			},
 			mounted() {
@@ -83,7 +82,7 @@
 
 				document.querySelectorAll("#content a").forEach(elem => {
 					elem.setAttribute("target", "_blank");
-					elem.setAttribute("rel", "noopener");
+					elem.setAttribute("rel", "noopener noreferrer");
 				});
 			}
 		});

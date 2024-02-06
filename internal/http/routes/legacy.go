@@ -6,9 +6,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-shiori/shiori/internal/config"
+	"github.com/go-shiori/shiori/internal/dependencies"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/go-shiori/shiori/internal/webserver"
-	"github.com/gofrs/uuid"
+	"github.com/gofrs/uuid/v5"
 	"github.com/julienschmidt/httprouter"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -17,16 +18,13 @@ import (
 type LegacyAPIRoutes struct {
 	logger        *logrus.Logger
 	cfg           *config.Config
-	deps          *config.Dependencies
+	deps          *dependencies.Dependencies
 	legacyHandler *webserver.Handler
 }
 
 func (r *LegacyAPIRoutes) convertHttprouteParams(params gin.Params) httprouter.Params {
 	routerParams := httprouter.Params{}
 	for _, p := range params {
-		if p.Key == "filepath" {
-			r.logger.WithField("value", p.Value).Error("filepath")
-		}
 		routerParams = append(routerParams, httprouter.Param{
 			Key:   p.Key,
 			Value: p.Value,
@@ -83,14 +81,12 @@ func (r *LegacyAPIRoutes) Setup(g *gin.Engine) {
 	legacyGroup.POST("/api/logout", r.handle(r.legacyHandler.ApiLogout))
 
 	// router.GET(jp("/bookmark/:id/thumb"), withLogging(hdl.serveThumbnailImage))
-	legacyGroup.GET("/bookmark/:id/thumb", r.handle(r.legacyHandler.ServeThumbnailImage))
+	// legacyGroup.GET("/bookmark/:id/thumb", r.handle(r.legacyHandler.ServeThumbnailImage))
 	// router.GET(jp("/bookmark/:id/content"), withLogging(hdl.serveBookmarkContent))
-	legacyGroup.GET("/bookmark/:id/content", r.handle(r.legacyHandler.ServeBookmarkContent))
-	// router.GET(jp("/bookmark/:id/ebook"), withLogging(hdl.serveBookmarkEbook))
-	legacyGroup.GET("/bookmark/:id/ebook", r.handle(r.legacyHandler.ServeBookmarkEbook))
+	// legacyGroup.GET("/bookmark/:id/content", r.handle(r.legacyHandler.ServeBookmarkContent))
 	// router.GET(jp("/bookmark/:id/archive/*filepath"), withLogging(hdl.serveBookmarkArchive))
-	legacyGroup.GET("/bookmark/:id/archive/*filepath", r.handle(r.legacyHandler.ServeBookmarkArchive))
-	// legacyGroup.GET("/bookmark/:id/archive/", r.handle(r.legacyHandler.ServeBookmarkArchive))
+	// legacyGroup.GET("/legacy/:id/archive/", r.handle(r.legacyHandler.ServeBookmarkArchive))
+	// legacyGroup.GET("/legacy/:id/archive/*filepath", r.handle(r.legacyHandler.ServeBookmarkArchive))
 
 	// router.GET(jp("/api/tags"), withLogging(hdl.apiGetTags))
 	legacyGroup.GET("/api/tags", r.handle(r.legacyHandler.ApiGetTags))
@@ -104,10 +100,6 @@ func (r *LegacyAPIRoutes) Setup(g *gin.Engine) {
 	legacyGroup.DELETE("/api/bookmarks", r.handle(r.legacyHandler.ApiDeleteBookmark))
 	// router.PUT(jp("/api/bookmarks"), withLogging(hdl.apiUpdateBookmark))
 	legacyGroup.PUT("/api/bookmarks", r.handle(r.legacyHandler.ApiUpdateBookmark))
-	// router.PUT(jp("/api/cache"), withLogging(hdl.apiUpdateCache))
-	legacyGroup.PUT("/api/cache", r.handle(r.legacyHandler.ApiUpdateCache))
-	// router.PUT(jp("/api/ebook"), withLogging(hdl.apiDownloadEbook))
-	legacyGroup.PUT("/api/ebook", r.handle(r.legacyHandler.ApiDownloadEbook))
 	// router.PUT(jp("/api/bookmarks/tags"), withLogging(hdl.apiUpdateBookmarkTags))
 	legacyGroup.PUT("/api/bookmarks/tags", r.handle(r.legacyHandler.ApiUpdateBookmarkTags))
 	// router.POST(jp("/api/bookmarks/ext"), withLogging(hdl.apiInsertViaExtension))
@@ -125,7 +117,7 @@ func (r *LegacyAPIRoutes) Setup(g *gin.Engine) {
 	legacyGroup.DELETE("/api/accounts", r.handle(r.legacyHandler.ApiDeleteAccount))
 }
 
-func NewLegacyAPIRoutes(logger *logrus.Logger, deps *config.Dependencies, cfg *config.Config) *LegacyAPIRoutes {
+func NewLegacyAPIRoutes(logger *logrus.Logger, deps *dependencies.Dependencies, cfg *config.Config) *LegacyAPIRoutes {
 	return &LegacyAPIRoutes{
 		logger: logger,
 		cfg:    cfg,

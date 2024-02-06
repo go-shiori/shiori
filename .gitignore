@@ -1,5 +1,8 @@
-# Exclude config file
+# Exclude IDE
 .vscode/
+.idea/
+
+# Exclude config file
 *.toml
 
 # Exclude executable file
@@ -16,3 +19,6 @@ dist/
 
 # macOS trash files
 .DS_Store
+
+# frontend
+node_modules

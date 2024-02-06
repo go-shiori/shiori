@@ -5,18 +5,15 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/go-shiori/shiori/internal/database"
+	"github.com/go-shiori/shiori/internal/dependencies"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type AccountsDomain struct {
-	logger *logrus.Logger
-	db     database.DB
-	secret []byte
+	deps *dependencies.Dependencies
 }
 
 type JWTClaim struct {
@@ -32,7 +29,7 @@ func (d *AccountsDomain) CheckToken(ctx context.Context, userJWT string) (*model
 			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
 		}
 
-		return d.secret, nil
+		return d.deps.Config.Http.SecretKey, nil
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "error parsing token")
@@ -52,7 +49,7 @@ func (d *AccountsDomain) CheckToken(ctx context.Context, userJWT string) (*model
 }
 
 func (d *AccountsDomain) GetAccountFromCredentials(ctx context.Context, username, password string) (*model.Account, error) {
-	account, _, err := d.db.GetAccount(ctx, username)
+	account, _, err := d.deps.Database.GetAccount(ctx, username)
 	if err != nil {
 		return nil, fmt.Errorf("username and password do not match")
 	}
@@ -72,18 +69,16 @@ func (d *AccountsDomain) CreateTokenForAccount(account *model.Account, expiratio
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	t, err := token.SignedString(d.secret)
+	t, err := token.SignedString(d.deps.Config.Http.SecretKey)
 	if err != nil {
-		d.logger.WithError(err).Error("error signing token")
+		d.deps.Log.WithError(err).Error("error signing token")
 	}
 
 	return t, err
 }
 
-func NewAccountsDomain(logger *logrus.Logger, secretKey string, db database.DB) AccountsDomain {
-	return AccountsDomain{
-		logger: logger,
-		db:     db,
-		secret: []byte(secretKey),
+func NewAccountsDomain(deps *dependencies.Dependencies) *AccountsDomain {
+	return &AccountsDomain{
+		deps: deps,
 	}
 }
