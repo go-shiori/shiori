@@ -83,7 +83,7 @@ You may also use `-t` flag to include tags and `-e` flag to exclude tags.
 
 ## Using Web Interface
 
-To access web interface run `shiori serve` or start Docker container following tutorial above. If you want to use a different port instead of 8080, you can simply run `shiori serve -p <portnumber>`. Once started you can access the web interface in `http://localhost:8080` or `http://localhost:<portnumber>` if you customized it. You will be greeted with login screen like this :
+To access web interface run `shiori server` or start Docker container following tutorial above. If you want to use a different port instead of 8080, you can simply run `shiori server -p <portnumber>`. Once started you can access the web interface in `http://localhost:8080` or `http://localhost:<portnumber>` if you customized it. You will be greeted with login screen like this :
 
 ![Login screen](https://raw.githubusercontent.com/go-shiori/shiori/master/docs/screenshots/01-login.png)
 

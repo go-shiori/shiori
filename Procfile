@@ -1,1 +1,1 @@
-web: bin/shiori serve -p $PORT
+web: bin/shiori server -p $PORT

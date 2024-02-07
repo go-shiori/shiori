@@ -149,7 +149,7 @@ There are several methods to run `shiori` on start up, however the most recommen
     Description=Shiori service
 
     [Service]
-    ExecStart=/home/user/go/bin/shiori serve --portable
+    ExecStart=/home/user/go/bin/shiori server --portable
     Restart=always
 
     [Install]
@@ -166,7 +166,7 @@ There are several methods to run `shiori` on start up, however the most recommen
 
    [Service]
    Type=simple
-   ExecStart=/usr/bin/shiori serve
+   ExecStart=/usr/bin/shiori server
    Restart=always
    User=shiori
    Group=shiori
