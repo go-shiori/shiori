@@ -64,8 +64,7 @@ Available Commands:
   open        Open the saved bookmarks
   pocket      Import bookmarks from Pocket's exported HTML file
   print       Print the saved bookmarks
-  serve       Serve web interface for managing bookmarks
-  server      Run the Shiori webserver [alpha]
+  server      Run the Shiori webserver
   update      Update the saved bookmarks
   version     Output the shiori version
 
