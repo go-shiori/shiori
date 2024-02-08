@@ -143,12 +143,16 @@ func (c *Config) DebugConfiguration(logger *logrus.Logger) {
 func ParseServerConfiguration(ctx context.Context, logger *logrus.Logger) *Config {
 	var cfg Config
 
-	lookuper := envconfig.MultiLookuper(
+	lookupers := envconfig.MultiLookuper(
 		envconfig.MapLookuper(map[string]string{"HOSTNAME": os.Getenv("HOSTNAME")}),
 		envconfig.MapLookuper(readDotEnv(logger)),
 		envconfig.PrefixLookuper("SHIORI_", envconfig.OsLookuper()),
 	)
-	if err := envconfig.ProcessWith(ctx, &cfg, lookuper); err != nil {
+
+	if err := envconfig.ProcessWith(ctx, &envconfig.Config{
+		Target:   &cfg,
+		Lookuper: lookupers,
+	}); err != nil {
 		logger.WithError(err).Fatal("Error parsing configuration")
 	}
 

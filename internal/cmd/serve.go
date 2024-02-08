@@ -19,6 +19,7 @@ func serveCmd() *cobra.Command {
 	cmd.Flags().StringP("address", "a", "", "Address the server listens to")
 	cmd.Flags().StringP("webroot", "r", "/", "Root path that used by server")
 	cmd.Flags().Bool("log", true, "Print out a non-standard access log")
+	cmd.Flags().Bool("serve-web-ui", true, "Serve static files from the webroot path")
 
 	return cmd
 }
