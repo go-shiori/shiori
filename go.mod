@@ -105,4 +105,4 @@ require (
 	modernc.org/token v1.1.0 // indirect
 )
 
-replace github.com/go-shiori/go-epub => github.com/monirzadeh/go-epub v0.0.0-20240210103705-7080e4ddb3c7
+replace github.com/go-shiori/go-epub => github.com/monirzadeh/go-epub v0.0.0-20231231171206-2f668451ef95
