@@ -81,8 +81,6 @@ github.com/go-playground/validator/v10 v10.17.0/go.mod h1:9iXMNT7sEkjXb0I+enO7QX
 github.com/go-shiori/dom v0.0.0-20190930082056-9d974a4f8b25/go.mod h1:360KoNl36ftFYhjLHuEty78kWUGw8i1opEicvIDLfRk=
 github.com/go-shiori/dom v0.0.0-20230515143342-73569d674e1c h1:wpkoddUomPfHiOziHZixGO5ZBS73cKqVzZipfrLmO1w=
 github.com/go-shiori/dom v0.0.0-20230515143342-73569d674e1c/go.mod h1:oVDCh3qjJMLVUSILBRwrm+Bc6RNXGZYtoh9xdvf1ffM=
-github.com/go-shiori/go-epub v1.2.0 h1:c2b3DblHpNIiD8ISlQ+0Mc/tsRmn1mX1l6Q/0LzavN4=
-github.com/go-shiori/go-epub v1.2.0/go.mod h1:gQCqrK+dIMLA7JMd8GxdBvhn811wb7XCa733RxWfPYw=
 github.com/go-shiori/go-readability v0.0.0-20240204090920-819593fddc6b h1:Ob0i8iSJxsidQK41mP/NiAKyjqMWA/eD+lyyxgqIvQ8=
 github.com/go-shiori/go-readability v0.0.0-20240204090920-819593fddc6b/go.mod h1:2DpZlTJO/ycxp/vsc/C11oUyveStOgIXB88SYV1lncI=
 github.com/go-shiori/warc v0.0.0-20200621032813-359908319d1d h1:+SEf4hYDaAt2eyq8Xu3YyWCpnMsK8sZfbYsDRFCUgBM=
@@ -176,6 +174,8 @@ github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd/go.mod h1:6dJ
 github.com/modern-go/reflect2 v0.0.0-20180701023420-4b7aa43c6742/go.mod h1:bx2lNnkwVCuqBIxFjflWJWanXIb3RllmbCylyMrvgv0=
 github.com/modern-go/reflect2 v1.0.2 h1:xBagoLtFs94CBntxluKeaWgTMpvLxC4ur3nMaC9Gz0M=
 github.com/modern-go/reflect2 v1.0.2/go.mod h1:yWuevngMOJpCy52FWWMvUC8ws7m/LJsjYzDa0/r8luk=
+github.com/monirzadeh/go-epub v0.0.0-20231231171206-2f668451ef95 h1:ZWIbq+VNRjBtI3R+SKmr1BL65yytSNl4EBMyL86G7iQ=
+github.com/monirzadeh/go-epub v0.0.0-20231231171206-2f668451ef95/go.mod h1:3rCTODnigEgy2j3ksndClrGT9h/dcz3js9q4yPX7hf8=
 github.com/morikuni/aec v1.0.0 h1:nP9CBfwrvYnBRgY6qfDQkygYDmYwOilePFkwzv4dU8A=
 github.com/morikuni/aec v1.0.0/go.mod h1:BbKIizmSmc5MMPqRYbxO4ZU0S0+P200+tUnFx7PXmsc=
 github.com/muesli/go-app-paths v0.2.2 h1:NqG4EEZwNIhBq/pREgfBmgDmt3h1Smr1MjZiXbpZUnI=

@@ -104,3 +104,5 @@ require (
 	modernc.org/strutil v1.2.0 // indirect
 	modernc.org/token v1.1.0 // indirect
 )
+
+replace github.com/go-shiori/go-epub => github.com/monirzadeh/go-epub v0.0.0-20231231171206-2f668451ef95
