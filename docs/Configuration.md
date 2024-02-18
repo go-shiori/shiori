@@ -30,7 +30,7 @@ Most configuration can be set directly using environment variables or flags. The
 | Environment variable                       | Default | Required | Description                                           |
 | ------------------------------------------ | ------- | -------- | ----------------------------------------------------- |
 | `SHIORI_HTTP_ENABLED`                      | True    | No       | Enable HTTP service                                   |
-| `SHIORI_HTTP_PORT`                         | 8080    | No       | Port number for the HTTP service                      |
+| `SHIORI_HTTP_PORT` (deprecated)            | 8080    | No       | (Deprecated: Use the `-p` flag for HTTP service port) |
 | `SHIORI_HTTP_ADDRESS`                      | :       | No       | Address for the HTTP service                          |
 | `SHIORI_HTTP_ROOT_PATH`                    | /       | No       | Root path for the HTTP service                        |
 | `SHIORI_HTTP_ACCESS_LOG`                   | True    | No       | Logging accessibility for HTTP requests               |
@@ -42,6 +42,7 @@ Most configuration can be set directly using environment variables or flags. The
 | `SHIORI_HTTP_IDLE_TIMEOUT`                 | 10s     | No       | Maximum amount of time to wait for the next request   |
 | `SHIORI_HTTP_DISABLE_KEEP_ALIVE`           | true    | No       | Disable HTTP keep-alive connections                   |
 | `SHIORI_HTTP_DISABLE_PARSE_MULTIPART_FORM` | true    | No       | Disable pre-parsing of multipart form                 |
+> `SHIORI_HTTP_PORT` is deprecated and will be removed in a future release. Please use the `-p` option to [specify the custom port](https://github.com/go-shiori/shiori/discussions/360) you'd like while executing the Shiori binary.
 
 ### Storage Configuration
 
@@ -71,7 +72,7 @@ To specify a custom path, set the `SHIORI_DIR` environment variable.
 
 | Environment variable       | Default | Required | Description                                     |
 | -------------------------- | ------- | -------- | ----------------------------------------------- |
-| `SHIORI_DBMS` (deprecated) | `DBMS`  | No       | Deprecated (Use environment variables for DBMS) |
+| `SHIORI_DBMS` (deprecated) | `DBMS`  | No       | (Deprecated: Use environment variables for DBMS)|
 | `SHIORI_DATABASE_URL`      | `URL`   | No       | URL for the database (required)                 |
 
 > `SHIORI_DBMS` is deprecated and will be removed in a future release. Please use `SHIORI_DATABASE_URL` instead.
