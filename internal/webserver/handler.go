@@ -111,28 +111,33 @@ func (h *Handler) validateSession(r *http.Request) error {
 			return fmt.Errorf("session has been expired")
 		}
 
-		account, err := h.dependencies.Domains.Auth.CheckToken(r.Context(), authParts[1])
-		if err != nil {
-			return fmt.Errorf("session has been expired")
+		// authelia maybe return an null AuthorizationHeader header, ignore exception
+		if authParts[1] != "null" {
+
+			account, err := h.dependencies.Domains.Auth.CheckToken(r.Context(), authParts[1])
+			if err != nil {
+				return fmt.Errorf("session has been expired")
+			}
+
+			if r.Method != "" && r.Method != "GET" && !account.Owner {
+				return fmt.Errorf("account level is not sufficient")
+			}
+
+			h.dependencies.Log.WithFields(logrus.Fields{
+				"username": account.Username,
+				"method":   r.Method,
+				"path":     r.URL.Path,
+			}).Info("allowing legacy api access using JWT token")
+
+			return nil
 		}
-
-		if r.Method != "" && r.Method != "GET" && !account.Owner {
-			return fmt.Errorf("account level is not sufficient")
-		}
-
-		h.dependencies.Log.WithFields(logrus.Fields{
-			"username": account.Username,
-			"method":   r.Method,
-			"path":     r.URL.Path,
-		}).Info("allowing legacy api access using JWT token")
-
-		return nil
 	}
 
 	sessionID := h.GetSessionID(r)
 	if sessionID == "" {
 		return fmt.Errorf("session is not exist")
 	}
+	h.dependencies.Log.Debugf("get session id is %s", sessionID)
 
 	// Make sure session is not expired yet
 	val, found := h.SessionCache.Get(sessionID)

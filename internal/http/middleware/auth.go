@@ -3,6 +3,7 @@ package middleware
 import (
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-shiori/shiori/internal/dependencies"
@@ -19,6 +20,9 @@ func AuthMiddleware(deps *dependencies.Dependencies) gin.HandlerFunc {
 		token := getTokenFromHeader(c)
 		if token == "" {
 			token = getTokenFromCookie(c)
+		}
+		if token == "" {
+			token = getTokenFromAuthHeader(c, deps)
 		}
 
 		account, err := deps.Domains.Auth.CheckToken(c, token)
@@ -40,6 +44,59 @@ func AuthenticationRequired() gin.HandlerFunc {
 			return
 		}
 	}
+}
+
+// getAuth user from oauth proxy, if any
+func getTokenFromAuthHeader(c *gin.Context, deps *dependencies.Dependencies) string {
+	if deps.Config.Http.ReverseProxyAuthUser == "" {
+		deps.Log.Debugf("auth proxy: reverse-proxy-auth-user not set")
+		return ""
+	}
+	authUser := c.GetHeader(deps.Config.Http.ReverseProxyAuthUser)
+	if authUser == "" {
+		deps.Log.Debugf("auth proxy: can not get user header from proxy")
+		return ""
+	}
+	remoteAddr := c.ClientIP()
+	deps.Log.Debugf("auth proxy: got auth user (%s), client ip (%s)", authUser, remoteAddr)
+	cidrs, err := newCIDRs(deps.Config.Http.TrustedProxies)
+	if err != nil {
+		deps.Log.Errorf("auth proxy: trusted proxy config error (%v)", err)
+		return ""
+	}
+	canTrustProxy := false
+	if len(deps.Config.Http.TrustedProxies) == 0 || cidrs.ContainStringIP(remoteAddr) {
+		canTrustProxy = true
+	}
+	if canTrustProxy {
+		account, exit, err := deps.Database.GetAccount(c, authUser)
+		if err == nil && exit {
+			token, err := deps.Domains.Auth.CreateTokenForAccount(&account, time.Now().Add(time.Hour*24*365))
+			if err != nil {
+				deps.Log.Errorf("auth proxy: create token error %v", err)
+				return ""
+			}
+			sessionId, err := deps.Domains.LegacyLogin(account, time.Hour*24*30)
+			if err != nil {
+				deps.Log.Errorf("auth proxy: create session error %v", err)
+				return ""
+			}
+			deps.Log.Debugf("auth proxy: write session %s token %s", sessionId, token)
+			sessionCookie := &http.Cookie{Name: "session-id", Value: sessionId}
+			http.SetCookie(c.Writer, sessionCookie)
+			c.Request.AddCookie(sessionCookie)
+			tokenCookie := &http.Cookie{Name: "token", Value: token}
+			http.SetCookie(c.Writer, tokenCookie)
+			c.Request.AddCookie(tokenCookie)
+
+			return token
+		} else {
+			deps.Log.Warnf("auth proxy: no such user (%s) or error %v", authUser, err)
+		}
+	} else if authUser != "" {
+		deps.Log.Warnf("auth proxy: invalid auth request from %s", remoteAddr)
+	}
+	return ""
 }
 
 // getTokenFromHeader returns the token from the Authorization header, if any.
