@@ -23,8 +23,6 @@ func newServerCommand() *cobra.Command {
 	cmd.Flags().Bool("access-log", false, "Print out a non-standard access log")
 	cmd.Flags().Bool("serve-web-ui", true, "Serve static files from the webroot path")
 	cmd.Flags().String("secret-key", "", "Secret key used for encrypting session data")
-	cmd.Flags().StringSlice("trusted-proxies", []string{}, "list of trusted proxy IPs, empty means no proxy allowed")
-	cmd.Flags().String("reverse-proxy-auth-user", "", "http header name of proxy auth")
 
 	return cmd
 }
@@ -40,8 +38,6 @@ func newServerCommandHandler() func(cmd *cobra.Command, args []string) {
 		accessLog, _ := cmd.Flags().GetBool("access-log")
 		serveWebUI, _ := cmd.Flags().GetBool("serve-web-ui")
 		secretKey, _ := cmd.Flags().GetBytesHex("secret-key")
-		trustedProxies, _ := cmd.Flags().GetStringSlice("trusted-proxies")
-		reverseProxyAuthUser, _ := cmd.Flags().GetString("reverse-proxy-auth-user")
 
 		cfg, dependencies := initShiori(ctx, cmd)
 
@@ -65,8 +61,6 @@ func newServerCommandHandler() func(cmd *cobra.Command, args []string) {
 		cfg.Http.AccessLog = accessLog
 		cfg.Http.ServeWebUI = serveWebUI
 		cfg.Http.SecretKey = secretKey
-		cfg.Http.TrustedProxies = trustedProxies
-		cfg.Http.ReverseProxyAuthUser = reverseProxyAuthUser
 
 		dependencies.Log.Infof("Starting Shiori v%s", model.BuildVersion)
 
