@@ -32,7 +32,7 @@ jobs:
 
     name: Go unit tests (ubuntu-latest)
     steps:
-    - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+    - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
 
     - name: Setup go
       uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
@@ -40,9 +40,9 @@ jobs:
         go-version-file: ./go.mod
 
     - name: Set up gotestfmt
-      uses: gotesttools/gotestfmt-action@65f1d2228f06cc5e828b84597440fbd063d12ea2 # v2.1.0
+      uses: gotesttools/gotestfmt-action@8b4478c7019be847373babde9300210e7de34bfb # v2.2.0
 
-    - uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # 4.0.0
+    - uses: actions/cache@ab5e6d0c87105b4c9c2047343972218f562e4319 # 4.0.1
       with:
         path: |
           ~/.cache/go-build
@@ -61,7 +61,7 @@ jobs:
     - run: go build -tags osusergo,netgo -ldflags="-s -w -X main.version=$(git describe --tags) -X main.date=$(date --iso-8601=seconds)"
 
     - name: Upload coverage reports to Codecov
-      uses: codecov/codecov-action@4fe8c5f003fae66aa5ebb77cfd3e7bfbbda0b6b0 # 3.1.5
+      uses: codecov/codecov-action@54bcd8715eee62d40e33596ef5e8f0f48dbbccab # 4.1.0
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
@@ -72,14 +72,14 @@ jobs:
     runs-on: ${{ matrix.os }}
     name: Go unit tests (${{ matrix.os }})
     steps:
-    - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+    - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
 
     - name: Setup go
       uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
       with:
         go-version-file: ./go.mod
 
-    - uses: actions/cache@e12d46a63a90f2fae62d114769bbf2a179198b5c # 3.3.3
+    - uses: actions/cache@ab5e6d0c87105b4c9c2047343972218f562e4319 # 4.0.1
       with:
         path: |
           ~/.cache/go-build
