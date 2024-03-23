@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"bytes"
 	"context"
 	"strings"
 
@@ -54,13 +55,25 @@ func newServerCommandHandler() func(cmd *cobra.Command, args []string) {
 			rootPath += "/"
 		}
 
-		// Override configuration from flags
-		cfg.Http.Port = port
-		cfg.Http.Address = address + ":"
-		cfg.Http.RootPath = rootPath
-		cfg.Http.AccessLog = accessLog
-		cfg.Http.ServeWebUI = serveWebUI
-		cfg.Http.SecretKey = secretKey
+		// Override configuration from flags if needed
+		if cmd.Flags().Changed("port") && cfg.Http.Port != port {
+			cfg.Http.Port = port
+		}
+		if cmd.Flags().Changed("address") && cfg.Http.Address != address+":" {
+			cfg.Http.Address = address + ":"
+		}
+		if cmd.Flags().Changed("webroot") && cfg.Http.RootPath != rootPath {
+			cfg.Http.RootPath = rootPath
+		}
+		if cmd.Flags().Changed("access-log") && cfg.Http.AccessLog != accessLog {
+			cfg.Http.AccessLog = accessLog
+		}
+		if cmd.Flags().Changed("serve-web-ui") && cfg.Http.ServeWebUI != serveWebUI {
+			cfg.Http.ServeWebUI = serveWebUI
+		}
+		if cmd.Flags().Changed("secret-key") && !bytes.Equal(cfg.Http.SecretKey, secretKey) {
+			cfg.Http.SecretKey = secretKey
+		}
 
 		dependencies.Log.Infof("Starting Shiori v%s", model.BuildVersion)
 
