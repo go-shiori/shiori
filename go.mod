@@ -4,6 +4,7 @@ module github.com/go-shiori/shiori
 go 1.21
 
 require (
+	git.sr.ht/~emersion/go-sqlite3-fts5 v0.0.0-20230217131031-f2c8767594fc
 	github.com/PuerkitoBio/goquery v1.8.1
 	github.com/disintegration/imaging v1.6.2
 	github.com/fatih/color v1.16.0
@@ -20,6 +21,7 @@ require (
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/lib/pq v1.10.9
+	github.com/mattn/go-sqlite3 v1.14.16
 	github.com/muesli/go-app-paths v0.2.2
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1
@@ -101,6 +103,6 @@ require (
 	modernc.org/mathutil v1.6.0 // indirect
 	modernc.org/memory v1.7.2 // indirect
 	modernc.org/opt v0.1.3 // indirect
-	modernc.org/strutil v1.2.0 // indirect
+	modernc.org/strutil v1.1.3 // indirect
 	modernc.org/token v1.1.0 // indirect
 )

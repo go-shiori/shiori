@@ -12,8 +12,12 @@ GOTESTFMT_FLAGS ?=
 CGO_ENABLED ?= 0
 BUILD_TIME := $(shell date -u +%Y%m%d.%H%M%S)
 BUILD_HASH := $(shell git describe --tags)
-BUILD_TAGS ?= osusergo,netgo
+BUILD_TAGS ?= osusergo,netgo,fts5
 LDFLAGS += -s -w -X main.version=$(BUILD_HASH) -X main.date=$(BUILD_TIME)
+
+# Testing
+GO_TEST_FLAGS ?= -v -race -count=1 -tags $(BUILD_TAGS)
+GOTESTFMT_FLAGS ?=
 
 # Development
 GIN_MODE ?= debug
