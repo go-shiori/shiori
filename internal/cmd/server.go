@@ -1,13 +1,14 @@
 package cmd
 
 import (
-	"bytes"
 	"context"
 	"strings"
 
+	"github.com/go-shiori/shiori/internal/config"
 	"github.com/go-shiori/shiori/internal/http"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 )
 
 func newServerCommand() *cobra.Command {
@@ -26,6 +27,12 @@ func newServerCommand() *cobra.Command {
 	cmd.Flags().String("secret-key", "", "Secret key used for encrypting session data")
 
 	return cmd
+}
+
+func setIfFlagChanged(flagName string, flags *pflag.FlagSet, cfg *config.Config, fn func(cfg *config.Config)) {
+	if flags.Changed(flagName) {
+		fn(cfg)
+	}
 }
 
 func newServerCommandHandler() func(cmd *cobra.Command, args []string) {
@@ -56,24 +63,24 @@ func newServerCommandHandler() func(cmd *cobra.Command, args []string) {
 		}
 
 		// Override configuration from flags if needed
-		if cmd.Flags().Changed("port") && cfg.Http.Port != port {
+		setIfFlagChanged("port", cmd.Flags(), cfg, func(cfg *config.Config) {
 			cfg.Http.Port = port
-		}
-		if cmd.Flags().Changed("address") && cfg.Http.Address != address+":" {
+		})
+		setIfFlagChanged("address", cmd.Flags(), cfg, func(cfg *config.Config) {
 			cfg.Http.Address = address + ":"
-		}
-		if cmd.Flags().Changed("webroot") && cfg.Http.RootPath != rootPath {
+		})
+		setIfFlagChanged("webroot", cmd.Flags(), cfg, func(cfg *config.Config) {
 			cfg.Http.RootPath = rootPath
-		}
-		if cmd.Flags().Changed("access-log") && cfg.Http.AccessLog != accessLog {
+		})
+		setIfFlagChanged("access-log", cmd.Flags(), cfg, func(cfg *config.Config) {
 			cfg.Http.AccessLog = accessLog
-		}
-		if cmd.Flags().Changed("serve-web-ui") && cfg.Http.ServeWebUI != serveWebUI {
+		})
+		setIfFlagChanged("serve-web-ui", cmd.Flags(), cfg, func(cfg *config.Config) {
 			cfg.Http.ServeWebUI = serveWebUI
-		}
-		if cmd.Flags().Changed("secret-key") && !bytes.Equal(cfg.Http.SecretKey, secretKey) {
+		})
+		setIfFlagChanged("secret-key", cmd.Flags(), cfg, func(cfg *config.Config) {
 			cfg.Http.SecretKey = secretKey
-		}
+		})
 
 		dependencies.Log.Infof("Starting Shiori v%s", model.BuildVersion)
 
