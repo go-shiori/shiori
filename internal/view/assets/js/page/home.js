@@ -953,7 +953,7 @@ export default {
 					};
 
 					this.dialog.loading = true;
-					fetch(new URL("api/tag", document.baseURI), {
+					fetch(new URL("api/tags", document.baseURI), {
 						method: "PUT",
 						body: JSON.stringify(newData),
 						headers: {
