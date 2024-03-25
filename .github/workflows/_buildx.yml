@@ -29,20 +29,20 @@ jobs:
         run: |
           REPO=ghcr.io/${{ github.repository }}
           TAG=$(git describe --tags)
-          if [ -z "$(git tag --points-at HEAD)" ] || [[ "$TAG" == *"rc"* ]]
-          then
-            TAG2="dev"
-          else
-            TAG2="latest"
-          fi
-          echo "tag_flags=--tag $REPO:$TAG --tag $REPO:$TAG2" >> $GITHUB_ENV
+          echo "tag_flags=--tag $REPO:$TAG --tag $REPO:latest" >> $GITHUB_ENV
 
       - name: Prepare version push tags
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         run: |
           REPO=ghcr.io/${{ github.repository }}
           TAG=$(git describe --tags)
-          echo "tag_flags=--tag $REPO:$TAG --tag $REPO:dev" >> $GITHUB_ENV
+          if [[ "$TAG" == *"rc"* ]]
+          then
+            TAG2="dev"
+          else
+            TAG2="latest"
+          fi
+          echo "tag_flags=--tag $REPO:$TAG --tag $REPO:$TAG2" >> $GITHUB_ENV
 
       - name: Prepare pull request tags
         if: github.event_name == 'pull_request'
