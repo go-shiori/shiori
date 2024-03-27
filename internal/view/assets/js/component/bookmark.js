@@ -94,8 +94,9 @@ export default {
 			return this.excerpt !== "" && !this.thumbnailVisible && !this.HideExcerpt;
 		},
 		thumbnailStyleURL() {
+			var cacheBuster = new Date().getTime();
 			return {
-				backgroundImage: `url("${this.imageURL}")`,
+				backgroundImage: `url("${this.imageURL}?cache=${cacheBuster}")`,
 			};
 		},
 		eventItem() {
