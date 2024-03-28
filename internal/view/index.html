@@ -141,9 +141,32 @@
 						username: username,
 						owner: owner,
 					};
-				}
+				},
+                loadToken() {
+                    function parseJWT(token) {
+						try {
+							return JSON.parse(atob(token.split('.')[1]));
+						} catch (e) {
+							return null;
+						}
+					}
+                    function getCookie(cname){
+                        var name = cname + "=";
+                        var ca = document.cookie.split(';');
+                        for(var i=0; i<ca.length; i++) {
+                            var c = ca[i].trim();
+                            if (c.indexOf(name)==0) { return c.substring(name.length,c.length); }
+                        }
+                        return "";
+                    }
+                    // Save account data
+                    var token = getCookie("token");
+                    localStorage.setItem("shiori-token", token);
+                    localStorage.setItem("shiori-account", JSON.stringify(parseJWT(token).account));
+                }
 			},
 			mounted() {
+                this.loadToken();
 				// Load setting
 				this.loadSetting();
 				this.loadAccount();
