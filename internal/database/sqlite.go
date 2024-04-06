@@ -8,13 +8,19 @@ import (
 	"time"
 
 	"github.com/go-shiori/shiori/internal/model"
-	"github.com/golang-migrate/migrate/v4"
-	"github.com/golang-migrate/migrate/v4/database/sqlite"
-	"github.com/golang-migrate/migrate/v4/source/iofs"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/bcrypt"
+
+	_ "modernc.org/sqlite"
 )
+
+var sqliteMigrations = []migration{
+	newFileMigration("0.0.0", "0.1.0", "sqlite/0000_system"),
+	newFileMigration("0.1.0", "0.2.0", "sqlite/0001_initial"),
+	newFileMigration("0.2.0", "0.3.0", "sqlite/0002_denormalize_content"),
+	newFileMigration("0.3.0", "0.4.0", "sqlite/0003_config"),
+}
 
 // SQLiteDatabase is implementation of Database interface
 // for connecting to SQLite3 database.
@@ -45,33 +51,43 @@ func OpenSQLiteDatabase(ctx context.Context, databasePath string) (sqliteDB *SQL
 	return sqliteDB, nil
 }
 
+// DBX returns the underlying sqlx.DB object
+func (db *SQLiteDatabase) DBx() sqlx.DB {
+	return db.DB
+}
+
 // Migrate runs migrations for this database engine
-func (db *SQLiteDatabase) Migrate() error {
-	sourceDriver, err := iofs.New(migrations, "migrations/sqlite")
-	if err != nil {
+func (db *SQLiteDatabase) Migrate(ctx context.Context) error {
+	if err := runMigrations(ctx, db, sqliteMigrations); err != nil {
 		return errors.WithStack(err)
-	}
-
-	dbDriver, err := sqlite.WithInstance(db.DB.DB, &sqlite.Config{})
-	if err != nil {
-		return errors.WithStack(err)
-	}
-
-	migration, err := migrate.NewWithInstance(
-		"iofs",
-		sourceDriver,
-		"sqlite",
-		dbDriver,
-	)
-	if err != nil {
-		return errors.WithStack(err)
-	}
-
-	if err := migration.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
-		return err
 	}
 
 	return nil
+}
+
+// GetDatabaseVersion fetches the current migrations version of the database
+func (db *SQLiteDatabase) GetDatabaseVersion(ctx context.Context) (string, error) {
+	var version string
+
+	err := db.GetContext(ctx, &version, "SELECT database_version FROM shiori_system")
+	if err != nil {
+		return "", errors.WithStack(err)
+	}
+
+	return version, nil
+}
+
+// SetDatabaseVersion sets the current migrations version of the database
+func (db *SQLiteDatabase) SetDatabaseVersion(ctx context.Context, version string) error {
+	tx := db.MustBegin()
+	defer tx.Rollback()
+
+	_, err := tx.Exec("UPDATE shiori_system SET database_version = ?", version)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	return tx.Commit()
 }
 
 // SaveBookmarks saves new or updated bookmarks to database.

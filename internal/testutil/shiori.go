@@ -33,7 +33,7 @@ func GetTestConfigurationAndDependencies(t *testing.T, ctx context.Context, logg
 
 	db, err := database.OpenSQLiteDatabase(ctx, tmp.Name())
 	require.NoError(t, err)
-	require.NoError(t, db.Migrate())
+	require.NoError(t, db.Migrate(context.TODO()))
 
 	cfg.Storage.DataDir = tmpDir
 

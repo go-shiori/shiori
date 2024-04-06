@@ -7,13 +7,22 @@ import (
 	"time"
 
 	"github.com/go-shiori/shiori/internal/model"
-	"github.com/golang-migrate/migrate/v4"
-	"github.com/golang-migrate/migrate/v4/database/mysql"
-	"github.com/golang-migrate/migrate/v4/source/iofs"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/bcrypt"
+
+	_ "github.com/go-sql-driver/mysql"
 )
+
+var mysqlMigrations = []migration{
+	newFileMigration("0.0.0", "0.1.0", "mysql/0000_system_create"),
+	newFileMigration("0.1.0", "0.2.0", "mysql/0000_system_insert"),
+	newFileMigration("0.2.0", "0.3.0", "mysql/0001_initial"),
+	newFileMigration("0.3.0", "0.4.0", "mysql/0002_initial"),
+	newFileMigration("0.4.0", "0.5.0", "mysql/0003_initial"),
+	newFileMigration("0.5.0", "0.6.0", "mysql/0004_initial"),
+	newFileMigration("0.6.0", "0.7.0", "mysql/0005_config"),
+}
 
 // MySQLDatabase is implementation of Database interface
 // for connecting to MySQL or MariaDB database.
@@ -36,33 +45,43 @@ func OpenMySQLDatabase(ctx context.Context, connString string) (mysqlDB *MySQLDa
 	return mysqlDB, err
 }
 
+// DBX returns the underlying sqlx.DB object
+func (db *MySQLDatabase) DBx() sqlx.DB {
+	return db.DB
+}
+
 // Migrate runs migrations for this database engine
-func (db *MySQLDatabase) Migrate() error {
-	sourceDriver, err := iofs.New(migrations, "migrations/mysql")
-	if err != nil {
+func (db *MySQLDatabase) Migrate(ctx context.Context) error {
+	if err := runMigrations(ctx, db, mysqlMigrations); err != nil {
 		return errors.WithStack(err)
-	}
-
-	dbDriver, err := mysql.WithInstance(db.DB.DB, &mysql.Config{})
-	if err != nil {
-		return errors.WithStack(err)
-	}
-
-	migration, err := migrate.NewWithInstance(
-		"iofs",
-		sourceDriver,
-		"mysql",
-		dbDriver,
-	)
-	if err != nil {
-		return errors.WithStack(err)
-	}
-
-	if err := migration.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
-		return err
 	}
 
 	return nil
+}
+
+// GetDatabaseVersion fetches the current migrations version of the database
+func (db *MySQLDatabase) GetDatabaseVersion(ctx context.Context) (string, error) {
+	var version string
+
+	err := db.GetContext(ctx, &version, "SELECT database_version FROM shiori_system")
+	if err != nil {
+		return "", errors.WithStack(err)
+	}
+
+	return version, nil
+}
+
+// SetDatabaseVersion sets the current migrations version of the database
+func (db *MySQLDatabase) SetDatabaseVersion(ctx context.Context, version string) error {
+	tx := db.MustBegin()
+	defer tx.Rollback()
+
+	_, err := tx.Exec("UPDATE shiori_system SET database_version = ?", version)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	return tx.Commit()
 }
 
 // SaveBookmarks saves new or updated bookmarks to database.

@@ -7,8 +7,6 @@ import (
 	"testing"
 
 	"github.com/go-shiori/shiori/internal/model"
-	"github.com/golang-migrate/migrate/v4"
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -22,7 +20,7 @@ func sqliteTestDatabaseFactory(t *testing.T, ctx context.Context) (DB, error) {
 		return nil, err
 	}
 
-	if err := db.Migrate(); err != nil && !errors.Is(migrate.ErrNoChange, err) {
+	if err := db.Migrate(context.TODO()); err != nil {
 		return nil, err
 	}
 

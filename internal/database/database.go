@@ -2,7 +2,6 @@ package database
 
 import (
 	"context"
-	"embed"
 	"fmt"
 	"log"
 	"net/url"
@@ -12,9 +11,6 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 )
-
-//go:embed migrations/*
-var migrations embed.FS
 
 // OrderMethod is the order method for getting bookmarks
 type OrderMethod int
@@ -68,8 +64,17 @@ func Connect(ctx context.Context, dbURL string) (DB, error) {
 
 // DB is interface for accessing and manipulating data in database.
 type DB interface {
+	// DBx is the underlying sqlx.DB
+	DBx() sqlx.DB
+
 	// Migrate runs migrations for this database
-	Migrate() error
+	Migrate(ctx context.Context) error
+
+	// GetDatabaseVersion gets the version of the database
+	GetDatabaseVersion(ctx context.Context) (string, error)
+
+	// SetDatabaseVersion sets the version of the database
+	SetDatabaseVersion(ctx context.Context, version string) error
 
 	// SaveBookmarks saves bookmarks data to database.
 	SaveBookmarks(ctx context.Context, create bool, bookmarks ...model.BookmarkDTO) ([]model.BookmarkDTO, error)

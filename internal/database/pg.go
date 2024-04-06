@@ -8,13 +8,18 @@ import (
 	"time"
 
 	"github.com/go-shiori/shiori/internal/model"
-	"github.com/golang-migrate/migrate/v4"
-	"github.com/golang-migrate/migrate/v4/database/postgres"
-	"github.com/golang-migrate/migrate/v4/source/iofs"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/bcrypt"
+
+	_ "github.com/lib/pq"
 )
+
+var postgresMigrations = []migration{
+	newFileMigration("0.0.0", "0.1.0", "postgres/0000_system"),
+	newFileMigration("0.1.0", "0.2.0", "postgres/0001_initial"),
+	newFileMigration("0.2.0", "0.3.0", "postgres/0002_config"),
+}
 
 // PGDatabase is implementation of Database interface
 // for connecting to PostgreSQL database.
@@ -37,33 +42,45 @@ func OpenPGDatabase(ctx context.Context, connString string) (pgDB *PGDatabase, e
 	return pgDB, err
 }
 
+// DBX returns the underlying sqlx.DB object
+func (db *PGDatabase) DBx() sqlx.DB {
+	return db.DB
+}
+
 // Migrate runs migrations for this database engine
-func (db *PGDatabase) Migrate() error {
-	sourceDriver, err := iofs.New(migrations, "migrations/postgres")
-	if err != nil {
+func (db *PGDatabase) Migrate(ctx context.Context) error {
+	if err := runMigrations(ctx, db, postgresMigrations); err != nil {
 		return errors.WithStack(err)
-	}
-
-	dbDriver, err := postgres.WithInstance(db.DB.DB, &postgres.Config{})
-	if err != nil {
-		return errors.WithStack(err)
-	}
-
-	migration, err := migrate.NewWithInstance(
-		"iofs",
-		sourceDriver,
-		"postgres",
-		dbDriver,
-	)
-	if err != nil {
-		return errors.WithStack(err)
-	}
-
-	if err := migration.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
-		return err
 	}
 
 	return nil
+}
+
+// GetDatabaseVersion fetches the current migrations version of the database
+func (db *PGDatabase) GetDatabaseVersion(ctx context.Context) (string, error) {
+	var version string
+
+	err := db.GetContext(ctx, &version, "SELECT database_version FROM shiori_system")
+	if err != nil {
+		return "", errors.WithStack(err)
+	}
+
+	return version, nil
+}
+
+// SetDatabaseVersion sets the current migrations version of the database
+func (db *PGDatabase) SetDatabaseVersion(ctx context.Context, version string) error {
+	tx := db.MustBegin()
+	defer tx.Rollback()
+
+	return db.withTx(ctx, func(tx *sqlx.Tx) error {
+		_, err := tx.Exec("UPDATE shiori_system SET database_version = $1", version)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+
+		return tx.Commit()
+	})
 }
 
 // SaveBookmarks saves new or updated bookmarks to database.
