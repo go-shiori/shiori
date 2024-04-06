@@ -28,22 +28,18 @@ func newFuncMigration(fromVersion, toVersion string, migrationFunc func(tx *sql.
 }
 
 func newFileMigration(fromVersion, toVersion, filename string) migration {
-	return migration{
-		fromVersion: semver.MustParse(fromVersion),
-		toVersion:   semver.MustParse(toVersion),
-		migrationFunc: func(tx *sql.Tx) error {
-			migrationSQL, err := migrationFiles.ReadFile(filepath.Join("migrations", filename+".up.sql"))
-			if err != nil {
-				return fmt.Errorf("failed to read migration file: %w", err)
-			}
+	return newFuncMigration(fromVersion, toVersion, func(tx *sql.Tx) error {
+		migrationSQL, err := migrationFiles.ReadFile(filepath.Join("migrations", filename+".up.sql"))
+		if err != nil {
+			return fmt.Errorf("failed to read migration file: %w", err)
+		}
 
-			if _, err := tx.Exec(string(migrationSQL)); err != nil {
-				return fmt.Errorf("failed to execute migration %s to %s: %w", fromVersion, toVersion, err)
-			}
+		if _, err := tx.Exec(string(migrationSQL)); err != nil {
+			return fmt.Errorf("failed to execute migration %s to %s: %w", fromVersion, toVersion, err)
+		}
 
-			return nil
-		},
-	}
+		return nil
+	})
 }
 
 func runMigrations(ctx context.Context, db DB, migrations []migration) error {
