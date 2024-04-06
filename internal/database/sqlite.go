@@ -65,8 +65,8 @@ func (db *SQLiteDatabase) Migrate(ctx context.Context) error {
 	return nil
 }
 
-// GetDatabaseVersion fetches the current migrations version of the database
-func (db *SQLiteDatabase) GetDatabaseVersion(ctx context.Context) (string, error) {
+// GetDatabaseSchemaVersion fetches the current migrations version of the database
+func (db *SQLiteDatabase) GetDatabaseSchemaVersion(ctx context.Context) (string, error) {
 	var version string
 
 	err := db.GetContext(ctx, &version, "SELECT database_version FROM shiori_system")
@@ -77,8 +77,8 @@ func (db *SQLiteDatabase) GetDatabaseVersion(ctx context.Context) (string, error
 	return version, nil
 }
 
-// SetDatabaseVersion sets the current migrations version of the database
-func (db *SQLiteDatabase) SetDatabaseVersion(ctx context.Context, version string) error {
+// SetDatabaseSchemaVersion sets the current migrations version of the database
+func (db *SQLiteDatabase) SetDatabaseSchemaVersion(ctx context.Context, version string) error {
 	tx := db.MustBegin()
 	defer tx.Rollback()
 

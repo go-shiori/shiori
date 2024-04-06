@@ -46,7 +46,7 @@ func runMigrations(ctx context.Context, db DB, migrations []migration) error {
 	currentVersion := semver.Version{}
 
 	// Get current database version
-	dbVersion, err := db.GetDatabaseVersion(ctx)
+	dbVersion, err := db.GetDatabaseSchemaVersion(ctx)
 	if err == nil && dbVersion != "" {
 		currentVersion = semver.MustParse(dbVersion)
 	}
@@ -73,7 +73,7 @@ func runMigrations(ctx context.Context, db DB, migrations []migration) error {
 
 		currentVersion = migration.toVersion
 
-		if err := db.SetDatabaseVersion(ctx, currentVersion.String()); err != nil {
+		if err := db.SetDatabaseSchemaVersion(ctx, currentVersion.String()); err != nil {
 			return fmt.Errorf("failed to store database version %s from %s to %s: %w", currentVersion.String(), migration.fromVersion, migration.toVersion, err)
 		}
 	}

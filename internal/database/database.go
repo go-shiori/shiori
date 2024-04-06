@@ -70,11 +70,11 @@ type DB interface {
 	// Migrate runs migrations for this database
 	Migrate(ctx context.Context) error
 
-	// GetDatabaseVersion gets the version of the database
-	GetDatabaseVersion(ctx context.Context) (string, error)
+	// GetDatabaseSchemaVersion gets the version of the database
+	GetDatabaseSchemaVersion(ctx context.Context) (string, error)
 
-	// SetDatabaseVersion sets the version of the database
-	SetDatabaseVersion(ctx context.Context, version string) error
+	// SetDatabaseSchemaVersion sets the version of the database
+	SetDatabaseSchemaVersion(ctx context.Context, version string) error
 
 	// SaveBookmarks saves bookmarks data to database.
 	SaveBookmarks(ctx context.Context, create bool, bookmarks ...model.BookmarkDTO) ([]model.BookmarkDTO, error)
