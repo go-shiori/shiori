@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"embed"
 	"fmt"
-	"path/filepath"
+	"path"
 
 	"github.com/blang/semver"
 )
@@ -29,7 +29,7 @@ func newFuncMigration(fromVersion, toVersion string, migrationFunc func(tx *sql.
 
 func newFileMigration(fromVersion, toVersion, filename string) migration {
 	return newFuncMigration(fromVersion, toVersion, func(tx *sql.Tx) error {
-		migrationSQL, err := migrationFiles.ReadFile(filepath.Join("migrations", filename+".up.sql"))
+		migrationSQL, err := migrationFiles.ReadFile(path.Join("migrations", filename+".up.sql"))
 		if err != nil {
 			return fmt.Errorf("failed to read migration file: %w", err)
 		}
