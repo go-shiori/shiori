@@ -69,7 +69,7 @@ func (db *SQLiteDatabase) Migrate(ctx context.Context) error {
 func (db *SQLiteDatabase) GetDatabaseSchemaVersion(ctx context.Context) (string, error) {
 	var version string
 
-	err := db.GetContext(ctx, &version, "SELECT database_version FROM shiori_system")
+	err := db.GetContext(ctx, &version, "SELECT database_schema_version FROM shiori_system")
 	if err != nil {
 		return "", errors.WithStack(err)
 	}
@@ -82,7 +82,7 @@ func (db *SQLiteDatabase) SetDatabaseSchemaVersion(ctx context.Context, version 
 	tx := db.MustBegin()
 	defer tx.Rollback()
 
-	_, err := tx.Exec("UPDATE shiori_system SET database_version = ?", version)
+	_, err := tx.Exec("UPDATE shiori_system SET database_schema_version = ?", version)
 	if err != nil {
 		return errors.WithStack(err)
 	}

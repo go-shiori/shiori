@@ -60,7 +60,7 @@ func (db *PGDatabase) Migrate(ctx context.Context) error {
 func (db *PGDatabase) GetDatabaseSchemaVersion(ctx context.Context) (string, error) {
 	var version string
 
-	err := db.GetContext(ctx, &version, "SELECT database_version FROM shiori_system")
+	err := db.GetContext(ctx, &version, "SELECT database_schema_version FROM shiori_system")
 	if err != nil {
 		return "", errors.WithStack(err)
 	}
@@ -74,7 +74,7 @@ func (db *PGDatabase) SetDatabaseSchemaVersion(ctx context.Context, version stri
 	defer tx.Rollback()
 
 	return db.withTx(ctx, func(tx *sqlx.Tx) error {
-		_, err := tx.Exec("UPDATE shiori_system SET database_version = $1", version)
+		_, err := tx.Exec("UPDATE shiori_system SET database_schema_version = $1", version)
 		if err != nil {
 			return errors.WithStack(err)
 		}
