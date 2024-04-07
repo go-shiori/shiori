@@ -1,21 +1,23 @@
 CREATE TABLE IF NOT EXISTS account(
 		id       SERIAL,
 		username VARCHAR(250) NOT NULL,
-		password BYTEA    NOT NULL,
-		owner    BOOLEAN  NOT NULL DEFAULT FALSE,
+		password BYTEA        NOT NULL,
+		owner    BOOLEAN      NOT NULL DEFAULT FALSE,
+		config   JSONB        NOT NULL DEFAULT '{}',
 		PRIMARY KEY (id),
 		CONSTRAINT account_username_UNIQUE UNIQUE (username));
 
 CREATE TABLE IF NOT EXISTS bookmark(
-		id       SERIAL,
-		url      TEXT       NOT NULL,
-		title    TEXT       NOT NULL,
-		excerpt  TEXT       NOT NULL DEFAULT '',
-		author   TEXT       NOT NULL DEFAULT '',
-		public   SMALLINT   NOT NULL DEFAULT 0,
-		content  TEXT       NOT NULL DEFAULT '',
-		html     TEXT       NOT NULL DEFAULT '',
-		modified TIMESTAMP(0) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		id          SERIAL,
+		url         TEXT       NOT NULL,
+		title       TEXT       NOT NULL,
+		excerpt     TEXT       NOT NULL DEFAULT '',
+		author      TEXT       NOT NULL DEFAULT '',
+		public      SMALLINT   NOT NULL DEFAULT 0,
+		content     TEXT       NOT NULL DEFAULT '',
+		html        TEXT       NOT NULL DEFAULT '',
+		modified    TIMESTAMP(0) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		has_content BOOLEAN NOT NULL DEFAULT FALSE,
 		PRIMARY KEY(id),
 		CONSTRAINT bookmark_url_UNIQUE UNIQUE (url));
 

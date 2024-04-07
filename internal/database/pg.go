@@ -18,7 +18,45 @@ import (
 var postgresMigrations = []migration{
 	newFileMigration("0.0.0", "0.1.0", "postgres/0000_system"),
 	newFileMigration("0.1.0", "0.2.0", "postgres/0001_initial"),
-	newFileMigration("0.2.0", "0.3.0", "postgres/0002_config"),
+	newFuncMigration("0.2.0", "0.3.0", func(db *sql.DB) error {
+		// Ensure that bookmark table has `has_content` column and account table has `config` column
+		// for users upgrading from <1.5.4 directly into this version.
+		tx, err := db.Begin()
+		if err != nil {
+			return fmt.Errorf("failed to start transaction: %w", err)
+		}
+		defer tx.Rollback()
+
+		_, err = tx.Exec(`ALTER TABLE bookmark ADD COLUMN has_content BOOLEAN DEFAULT FALSE NOT NULL`)
+		if strings.Contains(err.Error(), `column "has_content" of relation "bookmark" already exists`) {
+			tx.Rollback()
+		} else if err != nil {
+			return fmt.Errorf("failed to add has_content column to bookmark table: %w", err)
+		} else if err == nil {
+			if errCommit := tx.Commit(); errCommit != nil {
+				return fmt.Errorf("failed to commit transaction: %w", errCommit)
+			}
+		}
+
+		tx, err = db.Begin()
+		if err != nil {
+			return fmt.Errorf("failed to start transaction: %w", err)
+		}
+		defer tx.Rollback()
+
+		_, err = tx.Exec(`ALTER TABLE account ADD COLUMN config JSONB NOT NULL DEFAULT '{}'`)
+		if strings.Contains(err.Error(), `column "config" of relation "account" already exists`) {
+			tx.Rollback()
+		} else if err != nil {
+			return fmt.Errorf("failed to add config column to account table: %w", err)
+		} else if err == nil {
+			if errCommit := tx.Commit(); errCommit != nil {
+				return fmt.Errorf("failed to commit transaction: %w", errCommit)
+			}
+		}
+
+		return nil
+	}),
 }
 
 // PGDatabase is implementation of Database interface

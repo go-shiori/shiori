@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"strings"
 	"time"
 
@@ -17,11 +18,49 @@ import (
 var mysqlMigrations = []migration{
 	newFileMigration("0.0.0", "0.1.0", "mysql/0000_system_create"),
 	newFileMigration("0.1.0", "0.2.0", "mysql/0000_system_insert"),
-	newFileMigration("0.2.0", "0.3.0", "mysql/0001_initial"),
-	newFileMigration("0.3.0", "0.4.0", "mysql/0002_initial"),
-	newFileMigration("0.4.0", "0.5.0", "mysql/0003_initial"),
-	newFileMigration("0.5.0", "0.6.0", "mysql/0004_initial"),
-	newFileMigration("0.6.0", "0.7.0", "mysql/0005_config"),
+	newFileMigration("0.2.0", "0.3.0", "mysql/0001_initial_account"),
+	newFileMigration("0.3.0", "0.4.0", "mysql/0002_initial_bookmark"),
+	newFileMigration("0.4.0", "0.5.0", "mysql/0003_initial_tag"),
+	newFileMigration("0.5.0", "0.6.0", "mysql/0004_initial_bookmark_tag"),
+	newFuncMigration("0.6.0", "0.7.0", func(db *sql.DB) error {
+		// Ensure that bookmark table has `has_content` column and account table has `config` column
+		// for users upgrading from <1.5.4 directly into this version.
+		tx, err := db.Begin()
+		if err != nil {
+			return fmt.Errorf("failed to start transaction: %w", err)
+		}
+		defer tx.Rollback()
+
+		_, err = tx.Exec(`ALTER TABLE bookmark ADD COLUMN has_content BOOLEAN DEFAULT 0`)
+		if strings.Contains(err.Error(), `Duplicate column name`) {
+			tx.Rollback()
+		} else if err != nil {
+			return fmt.Errorf("failed to add has_content column to bookmark table: %w", err)
+		} else if err == nil {
+			if errCommit := tx.Commit(); errCommit != nil {
+				return fmt.Errorf("failed to commit transaction: %w", errCommit)
+			}
+		}
+
+		tx, err = db.Begin()
+		if err != nil {
+			return fmt.Errorf("failed to start transaction: %w", err)
+		}
+		defer tx.Rollback()
+
+		_, err = tx.Exec(`ALTER TABLE account ADD COLUMN config JSON  NOT NULL DEFAULT '{}'`)
+		if strings.Contains(err.Error(), `Duplicate column name`) {
+			tx.Rollback()
+		} else if err != nil {
+			return fmt.Errorf("failed to add config column to account table: %w", err)
+		} else if err == nil {
+			if errCommit := tx.Commit(); errCommit != nil {
+				return fmt.Errorf("failed to commit transaction: %w", errCommit)
+			}
+		}
+
+		return nil
+	}),
 }
 
 // MySQLDatabase is implementation of Database interface
