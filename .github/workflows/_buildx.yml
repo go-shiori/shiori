@@ -24,13 +24,15 @@ jobs:
           gzip -d -S binaries/.gz__  -r .
           chmod 755 binaries/shiori_linux_*/shiori
 
+      # Every pull request that goes into master
       - name: Prepare master push tags
         if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         run: |
           REPO=ghcr.io/${{ github.repository }}
           TAG=$(git describe --tags)
-          echo "tag_flags=--tag $REPO:$TAG --tag $REPO:latest" >> $GITHUB_ENV
+          echo "tag_flags=--tag $REPO:$TAG" >> $GITHUB_ENV
 
+      # New tagged version
       - name: Prepare version push tags
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         run: |
@@ -44,6 +46,7 @@ jobs:
           fi
           echo "tag_flags=--tag $REPO:$TAG --tag $REPO:$TAG2" >> $GITHUB_ENV
 
+      # Every pull request
       - name: Prepare pull request tags
         if: github.event_name == 'pull_request'
         run: |
