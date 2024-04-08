@@ -25,6 +25,7 @@ type BookmarksAPIRoutes struct {
 
 func (r *BookmarksAPIRoutes) Setup(g *gin.RouterGroup) model.Routes {
 	g.PUT("/cache", r.updateCache)
+	g.GET("/:id/readable", r.bookmarkReadable)
 	return r
 }
 
@@ -53,6 +54,68 @@ func (p *updateCachePayload) IsValid() error {
 		}
 	}
 	return nil
+}
+
+type contentResponseMessage struct {
+	Content string `json:"content"`
+	Html    string `json:"html"`
+}
+
+func (r *BookmarksAPIRoutes) getBookmark(c *context.Context) (*model.BookmarkDTO, error) {
+	bookmarkIDParam, present := c.Params.Get("id")
+	if !present {
+		response.SendError(c.Context, http.StatusBadRequest, "Invalid bookmark ID")
+		return nil, model.ErrBookmarkInvalidID
+	}
+
+	bookmarkID, err := strconv.Atoi(bookmarkIDParam)
+	if err != nil {
+		r.logger.WithError(err).Error("error parsing bookmark ID parameter")
+		response.SendInternalServerError(c.Context)
+		return nil, err
+	}
+
+	if bookmarkID == 0 {
+		response.SendError(c.Context, http.StatusNotFound, nil)
+		return nil, model.ErrBookmarkNotFound
+	}
+
+	bookmark, err := r.deps.Domains.Bookmarks.GetBookmark(c.Context, model.DBID(bookmarkID))
+	if err != nil {
+		response.SendError(c.Context, http.StatusNotFound, nil)
+		return nil, model.ErrBookmarkNotFound
+	}
+
+	if bookmark.Public != 1 && !c.UserIsLogged() {
+		response.RedirectToLogin(c.Context, c.Request.URL.String())
+		return nil, model.ErrUnauthorized
+	}
+
+	return bookmark, nil
+}
+
+// Bookmark Readable godoc
+//
+//	@Summary					Get readable version on server.
+//	@Tags						Auth
+//	@securityDefinitions.apikey	ApiKeyAuth
+//	@Produce					json
+//	@Success					200	{object}    contentResponseMessage
+//	@Failure					403	{object}	nil	"Token not provided/invalid"
+//	@Router						/api/v1/bookmarks/id/readable [get]
+func (r *BookmarksAPIRoutes) bookmarkReadable(c *gin.Context) {
+	ctx := context.NewContextFromGin(c)
+
+	bookmark, err := r.getBookmark(ctx)
+	if err != nil {
+		return
+	}
+	responseMessage := contentResponseMessage{
+		Content: bookmark.Content,
+		Html:    bookmark.HTML,
+	}
+
+	response.Send(c, 200, responseMessage)
 }
 
 // updateCache godoc

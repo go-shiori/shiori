@@ -1,4 +1,11 @@
 definitions:
+  api_v1.contentResponseMessage:
+    properties:
+      content:
+        type: string
+      html:
+        type: string
+    type: object
   api_v1.loginRequestPayload:
     properties:
       password:
@@ -216,6 +223,20 @@ paths:
         "403":
           description: Token not provided/invalid
       summary: Update Cache and Ebook on server.
+      tags:
+      - Auth
+  /api/v1/bookmarks/id/readable:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api_v1.contentResponseMessage'
+        "403":
+          description: Token not provided/invalid
+      summary: Get readable version on server.
       tags:
       - Auth
   /api/v1/tags:

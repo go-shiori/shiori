@@ -159,6 +159,28 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/bookmarks/id/readable": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Get readable version on server.",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api_v1.contentResponseMessage"
+                        }
+                    },
+                    "403": {
+                        "description": "Token not provided/invalid"
+                    }
+                }
+            }
+        },
         "/api/v1/tags": {
             "get": {
                 "produces": [
@@ -206,6 +228,17 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "api_v1.contentResponseMessage": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "html": {
+                    "type": "string"
+                }
+            }
+        },
         "api_v1.loginRequestPayload": {
             "type": "object",
             "required": [
