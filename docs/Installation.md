@@ -174,6 +174,6 @@ If you don't manage your own server, the below providers will host Shiori for yo
 
 ### PikaPods
 
-Offers Shiori hosting from $1/month with $5 free welcome credit. EU and US regions available. Updates are applied weekly and user data backed up daily.
+[PikaPods](https://www.pikapods.com/) offers Shiori hosting from $1/month with $5 free welcome credit. EU and US regions available. Updates are applied weekly and user data backed up daily.
 
 [![Run on PikaPods](https://www.pikapods.com/static/run-button.svg)](https://www.pikapods.com/pods?run=shiori)
