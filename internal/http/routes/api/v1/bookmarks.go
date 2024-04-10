@@ -57,10 +57,8 @@ func (p *updateCachePayload) IsValid() error {
 }
 
 type contentResponseMessage struct {
-	Id       int    `json:"id"`
-	Modified string `json:"modified"`
-	Content  string `json:"content"`
-	Html     string `json:"html"`
+	Content string `json:"content"`
+	Html    string `json:"html"`
 }
 
 func (r *BookmarksAPIRoutes) getBookmark(c *context.Context) (*model.BookmarkDTO, error) {
@@ -113,10 +111,8 @@ func (r *BookmarksAPIRoutes) bookmarkReadable(c *gin.Context) {
 		return
 	}
 	responseMessage := contentResponseMessage{
-		Id:       bookmark.ID,
-		Modified: bookmark.Modified,
-		Content:  bookmark.Content,
-		Html:     bookmark.HTML,
+		Content: bookmark.Content,
+		Html:    bookmark.HTML,
 	}
 
 	response.Send(c, 200, responseMessage)
