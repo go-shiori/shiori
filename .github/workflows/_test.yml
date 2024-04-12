@@ -42,7 +42,7 @@ jobs:
     - name: Set up gotestfmt
       uses: gotesttools/gotestfmt-action@8b4478c7019be847373babde9300210e7de34bfb # v2.2.0
 
-    - uses: actions/cache@ab5e6d0c87105b4c9c2047343972218f562e4319 # 4.0.1
+    - uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # 4.0.2
       with:
         path: |
           ~/.cache/go-build
@@ -61,7 +61,7 @@ jobs:
     - run: go build -tags osusergo,netgo -ldflags="-s -w -X main.version=$(git describe --tags) -X main.date=$(date --iso-8601=seconds)"
 
     - name: Upload coverage reports to Codecov
-      uses: codecov/codecov-action@54bcd8715eee62d40e33596ef5e8f0f48dbbccab # 4.1.0
+      uses: codecov/codecov-action@c16abc29c95fcf9174b58eb7e1abf4c866893bc8 # 4.1.1
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
@@ -79,7 +79,7 @@ jobs:
       with:
         go-version-file: ./go.mod
 
-    - uses: actions/cache@ab5e6d0c87105b4c9c2047343972218f562e4319 # 4.0.1
+    - uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # 4.0.2
       with:
         path: |
           ~/.cache/go-build
