@@ -167,7 +167,7 @@ const docTemplate = `{
                 "tags": [
                     "Auth"
                 ],
-                "summary": "Get readable version on server.",
+                "summary": "Get readable version of bookmark.",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -175,7 +175,7 @@ const docTemplate = `{
                             "$ref": "#/definitions/api_v1.contentResponseMessage"
                         }
                     },
-                    "403": {
+                    "401": {
                         "description": "Token not provided/invalid"
                     }
                 }

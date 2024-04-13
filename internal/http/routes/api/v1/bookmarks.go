@@ -88,22 +88,17 @@ func (r *BookmarksAPIRoutes) getBookmark(c *context.Context) (*model.BookmarkDTO
 		return nil, model.ErrBookmarkNotFound
 	}
 
-	if bookmark.Public != 1 && !c.UserIsLogged() {
-		response.RedirectToLogin(c.Context, c.Request.URL.String())
-		return nil, model.ErrUnauthorized
-	}
-
 	return bookmark, nil
 }
 
 // Bookmark Readable godoc
 //
-//	@Summary					Get readable version on server.
+//	@Summary					Get readable version of bookmark.
 //	@Tags						Auth
 //	@securityDefinitions.apikey	ApiKeyAuth
 //	@Produce					json
 //	@Success					200	{object}    contentResponseMessage
-//	@Failure					403	{object}	nil	"Token not provided/invalid"
+//	@Failure					401	{object}	nil	"Token not provided/invalid"
 //	@Router						/api/v1/bookmarks/id/readable [get]
 func (r *BookmarksAPIRoutes) bookmarkReadable(c *gin.Context) {
 	ctx := context.NewContextFromGin(c)
