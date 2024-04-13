@@ -5,13 +5,13 @@ import (
 	"io"
 	"testing"
 
-	"github.com/go-shiori/shiori/internal/model"
+	"github.com/go-shiori/shiori/internal/http/response"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 )
 
 type testResponse struct {
-	Response model.HttpResponse
+	Response response.Response
 }
 
 func (r *testResponse) AssertMessageIsEmptyList(t *testing.T) {
