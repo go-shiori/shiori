@@ -12,6 +12,7 @@ import (
 	"github.com/go-shiori/shiori/internal/core"
 	"github.com/go-shiori/shiori/internal/database"
 	"github.com/go-shiori/shiori/internal/dependencies"
+	"github.com/go-shiori/shiori/internal/http/context"
 	"github.com/go-shiori/shiori/internal/http/middleware"
 	"github.com/go-shiori/shiori/internal/http/response"
 	"github.com/go-shiori/shiori/internal/model"
@@ -67,6 +68,12 @@ func (p *updateCachePayload) IsValid() error {
 //	@Failure					403	{object}	nil	"Token not provided/invalid"
 //	@Router						/api/v1/bookmarks/cache [put]
 func (r *BookmarksAPIRoutes) updateCache(c *gin.Context) {
+	ctx := context.NewContextFromGin(c)
+	if !ctx.GetAccount().Owner {
+		response.SendError(c, http.StatusForbidden, nil)
+		return
+	}
+
 	var payload updateCachePayload
 	if err := c.ShouldBindJSON(&payload); err != nil {
 		response.SendInternalServerError(c)
