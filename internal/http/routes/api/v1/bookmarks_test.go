@@ -67,6 +67,11 @@ func TestReadableeBookmarkContent(t *testing.T) {
 	token, err := deps.Domains.Auth.CreateTokenForAccount(&account, time.Now().Add(time.Minute))
 	require.NoError(t, err)
 
+	bookmark := testutil.GetValidBookmark()
+	_, err = deps.Database.SaveBookmarks(ctx, true, *bookmark)
+	require.NoError(t, err)
+	response := `{"ok":true,"message":{"content":"","html":""}}`
+
 	t.Run("require authentication", func(t *testing.T) {
 		w := testutil.PerformRequest(g, "GET", "/1/readable")
 		require.Equal(t, http.StatusUnauthorized, w.Code)
@@ -82,6 +87,11 @@ func TestReadableeBookmarkContent(t *testing.T) {
 	t.Run("get content but not exist", func(t *testing.T) {
 		w := testutil.PerformRequest(g, "GET", "/2/readable", testutil.WithHeader(model.AuthorizationHeader, model.AuthorizationTokenType+" "+token))
 		require.Equal(t, http.StatusNotFound, w.Code)
+	})
+	t.Run("get content", func(t *testing.T) {
+		w := testutil.PerformRequest(g, "GET", "/1/readable", testutil.WithHeader(model.AuthorizationHeader, model.AuthorizationTokenType+" "+token))
+		require.Equal(t, response, w.Body.String())
+		require.Equal(t, http.StatusOK, w.Code)
 	})
 
 }
