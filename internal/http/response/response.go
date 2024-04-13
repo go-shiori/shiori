@@ -20,7 +20,7 @@ type Response struct {
 }
 
 func (m *Response) IsError() bool {
-	return m.Ok
+	return !m.Ok
 }
 
 func (m *Response) GetMessage() any {
