@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-shiori/shiori/internal/http/response"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/go-shiori/shiori/internal/testutil"
 	"github.com/sirupsen/logrus"
@@ -18,8 +19,13 @@ func TestAuthenticationRequiredMiddleware(t *testing.T) {
 	t.Run("test unauthorized", func(t *testing.T) {
 		g := testutil.NewGin()
 		g.Use(AuthenticationRequired())
+		g.Handle("GET", "/", func(c *gin.Context) {
+			response.Send(c, http.StatusOK, nil)
+		})
 		w := testutil.PerformRequest(g, "GET", "/")
 		require.Equal(t, http.StatusUnauthorized, w.Code)
+		// This ensures we are aborting the request and not sending more data
+		require.Equal(t, `{"ok":false,"message":null}`, w.Body.String())
 	})
 
 	t.Run("test authorized", func(t *testing.T) {
