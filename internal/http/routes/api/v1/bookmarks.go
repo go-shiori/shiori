@@ -98,7 +98,7 @@ func (r *BookmarksAPIRoutes) getBookmark(c *context.Context) (*model.BookmarkDTO
 //	@securityDefinitions.apikey	ApiKeyAuth
 //	@Produce					json
 //	@Success					200	{object}    contentResponseMessage
-//	@Failure					401	{object}	nil	"Token not provided/invalid"
+//	@Failure					403	{object}	nil	"Token not provided/invalid"
 //	@Router						/api/v1/bookmarks/id/readable [get]
 func (r *BookmarksAPIRoutes) bookmarkReadable(c *gin.Context) {
 	ctx := context.NewContextFromGin(c)

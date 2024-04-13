@@ -234,7 +234,7 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/api_v1.contentResponseMessage'
-        "401":
+        "403":
           description: Token not provided/invalid
       summary: Get readable version of bookmark.
       tags:

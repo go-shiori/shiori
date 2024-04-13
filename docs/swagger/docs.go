@@ -175,7 +175,7 @@ const docTemplate = `{
                             "$ref": "#/definitions/api_v1.contentResponseMessage"
                         }
                     },
-                    "401": {
+                    "403": {
                         "description": "Token not provided/invalid"
                     }
                 }
