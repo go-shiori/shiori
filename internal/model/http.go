@@ -15,3 +15,9 @@ const (
 type Routes interface {
 	Setup(group *gin.RouterGroup) Routes
 }
+
+type HttpResponse interface {
+	IsError() bool
+	Send(c *gin.Context)
+	GetMessage() any
+}

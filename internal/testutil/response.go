@@ -5,33 +5,33 @@ import (
 	"io"
 	"testing"
 
-	"github.com/go-shiori/shiori/internal/http/response"
+	"github.com/go-shiori/shiori/internal/model"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 )
 
 type testResponse struct {
-	Response *response.Response
+	Response model.HttpResponse
 }
 
 func (r *testResponse) AssertMessageIsEmptyList(t *testing.T) {
-	require.Equal(t, []interface{}{}, r.Response.Message)
+	require.Equal(t, []interface{}{}, r.Response.GetMessage())
 }
 
 func (r *testResponse) AssertNilMessage(t *testing.T) {
-	require.Equal(t, nil, r.Response.Message)
+	require.Equal(t, nil, r.Response.GetMessage())
 }
 
 func (r testResponse) AssertMessageEquals(t *testing.T, expected interface{}) {
-	require.Equal(t, expected, r.Response.Message)
+	require.Equal(t, expected, r.Response.GetMessage())
 }
 
 func (r *testResponse) AssertOk(t *testing.T) {
-	require.True(t, r.Response.Ok)
+	require.True(t, !r.Response.IsError())
 }
 
 func (r *testResponse) AssertNotOk(t *testing.T) {
-	require.False(t, r.Response.Ok)
+	require.False(t, r.Response.IsError())
 }
 
 func NewTestResponseFromBytes(b []byte) (*testResponse, error) {

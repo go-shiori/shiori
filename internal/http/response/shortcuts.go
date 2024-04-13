@@ -21,6 +21,7 @@ func Send(ctx *gin.Context, statusCode int, data interface{}) {
 // SendError provides a shortcut to send an unsuccessful response
 func SendError(ctx *gin.Context, statusCode int, data interface{}) {
 	New(false, statusCode, data).Send(ctx)
+	ctx.Abort()
 }
 
 // SendErrorWithParams the same as above but for errors that require error parameters
