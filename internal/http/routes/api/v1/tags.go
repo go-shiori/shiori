@@ -5,6 +5,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-shiori/shiori/internal/dependencies"
+	"github.com/go-shiori/shiori/internal/http/context"
+	"github.com/go-shiori/shiori/internal/http/middleware"
 	"github.com/go-shiori/shiori/internal/http/response"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/sirupsen/logrus"
@@ -16,6 +18,7 @@ type TagsAPIRoutes struct {
 }
 
 func (r *TagsAPIRoutes) Setup(g *gin.RouterGroup) model.Routes {
+	g.Use(middleware.AuthenticationRequired())
 	g.GET("/", r.listHandler)
 	g.POST("/", r.createHandler)
 	return r
@@ -47,6 +50,12 @@ func (r *TagsAPIRoutes) listHandler(c *gin.Context) {
 // @Failure					403	{object}	nil			"Token not provided/invalid"
 // @Router						/api/v1/tags [post]
 func (r *TagsAPIRoutes) createHandler(c *gin.Context) {
+	ctx := context.NewContextFromGin(c)
+	if !ctx.GetAccount().Owner {
+		response.SendError(c, http.StatusForbidden, nil)
+		return
+	}
+
 	var tag model.Tag
 	if err := c.BindJSON(&tag); err != nil {
 		response.SendError(c, http.StatusBadRequest, nil)

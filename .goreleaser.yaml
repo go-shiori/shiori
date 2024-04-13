@@ -32,6 +32,9 @@ archives:
       {{ .ProjectName }}_
       {{- if eq .Os "darwin" }}Darwin{{- else if eq .Os "linux" }}Linux{{- else if eq .Os "windows" }}Windows{{- else }}{{ .Os }}{{ end }}_
       {{- if eq .Arch "amd64" }}x86_64{{- else if eq .Arch "arm64" }}aarch64{{- else }}{{ .Arch }}{{ end }}
+    format_overrides:
+    - goos: windows
+      format: zip
 
 checksum:
   name_template: 'checksums.txt'

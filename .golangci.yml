@@ -2,12 +2,12 @@
 
 run:
   timeout: 5m
-  skip-dirs:
-    - internal/mocks
 
 issues:
   max-issues-per-linter: 0
   max-same-issues: 0
+  exclude-dirs:
+    - internal/mocks
 
 linters-settings:
   gofmt:
