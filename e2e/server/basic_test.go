@@ -11,7 +11,7 @@ import (
 const version = "dev"
 
 func TestServerBasic(t *testing.T) {
-	container := e2eutil.NewShioriContainer(t, version)
+	container := e2eutil.NewShioriContainer(t, "")
 
 	t.Run("liveness endpoint", func(t *testing.T) {
 		req, err := http.Get("http://localhost:" + container.GetPort() + "/system/liveness")

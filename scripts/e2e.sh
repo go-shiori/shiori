@@ -8,4 +8,6 @@ TIMEOUT=30m
 echo "Running e2e tests..."
 cd e2e
 
+export CONTEXT_PATH=$(pwd)/../
+
 go test ./... -count=1 -v -timeout=${TIMEOUT}
