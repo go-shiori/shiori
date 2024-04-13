@@ -16,7 +16,7 @@ type APIRoutes struct {
 func (r *APIRoutes) Setup(g *gin.RouterGroup) model.Routes {
 	// Account API handles authentication in each route
 	r.handle(g, "/auth", NewAuthAPIRoutes(r.logger, r.deps, r.loginHandler))
-	r.handle(g, "/bookmarks", NewBookmarksPIRoutes(r.logger, r.deps))
+	r.handle(g, "/bookmarks", NewBookmarksAPIRoutes(r.logger, r.deps))
 	r.handle(g, "/tags", NewTagsPIRoutes(r.logger, r.deps))
 
 	return r

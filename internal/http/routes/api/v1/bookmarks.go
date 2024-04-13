@@ -12,7 +12,6 @@ import (
 	"github.com/go-shiori/shiori/internal/core"
 	"github.com/go-shiori/shiori/internal/database"
 	"github.com/go-shiori/shiori/internal/dependencies"
-	"github.com/go-shiori/shiori/internal/http/context"
 	"github.com/go-shiori/shiori/internal/http/middleware"
 	"github.com/go-shiori/shiori/internal/http/response"
 	"github.com/go-shiori/shiori/internal/model"
@@ -30,7 +29,7 @@ func (r *BookmarksAPIRoutes) Setup(g *gin.RouterGroup) model.Routes {
 	return r
 }
 
-func NewBookmarksPIRoutes(logger *logrus.Logger, deps *dependencies.Dependencies) *BookmarksAPIRoutes {
+func NewBookmarksAPIRoutes(logger *logrus.Logger, deps *dependencies.Dependencies) *BookmarksAPIRoutes {
 	return &BookmarksAPIRoutes{
 		logger: logger,
 		deps:   deps,
@@ -68,12 +67,6 @@ func (p *updateCachePayload) IsValid() error {
 //	@Failure					403	{object}	nil	"Token not provided/invalid"
 //	@Router						/api/v1/bookmarks/cache [put]
 func (r *BookmarksAPIRoutes) updateCache(c *gin.Context) {
-	ctx := context.NewContextFromGin(c)
-	if !ctx.UserIsLogged() {
-		response.SendError(c, http.StatusForbidden, nil)
-		return
-	}
-
 	var payload updateCachePayload
 	if err := c.ShouldBindJSON(&payload); err != nil {
 		response.SendInternalServerError(c)
@@ -187,7 +180,7 @@ func (r *BookmarksAPIRoutes) updateCache(c *gin.Context) {
 	close(chDone)
 
 	// Update database
-	_, err = r.deps.Database.SaveBookmarks(ctx, false, bookmarks...)
+	_, err = r.deps.Database.SaveBookmarks(c, false, bookmarks...)
 	if err != nil {
 		r.logger.WithError(err).Error("error update bookmakrs on deatabas")
 		response.SendInternalServerError(c)
