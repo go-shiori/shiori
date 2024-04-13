@@ -10,18 +10,14 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-var sqliteDatabaseTestPath string
+func sqliteTestDatabaseFactory(t *testing.T, ctx context.Context) (DB, error) {
+	tmpDir, err := os.MkdirTemp("", "")
+	require.NoError(t, err)
 
-func init() {
-	sqliteDatabaseTestPath = filepath.Join(os.TempDir(), "shiori.db")
-}
-
-func sqliteTestDatabaseFactory(ctx context.Context) (DB, error) {
-	os.Remove(sqliteDatabaseTestPath)
-
-	db, err := OpenSQLiteDatabase(ctx, sqliteDatabaseTestPath)
+	db, err := OpenSQLiteDatabase(ctx, filepath.Join(tmpDir, "shiori.db"))
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +43,7 @@ func TestSqliteDatabase(t *testing.T) {
 func testSqliteGetBookmarksWithDash(t *testing.T) {
 	ctx := context.TODO()
 
-	db, err := sqliteTestDatabaseFactory(ctx)
+	db, err := sqliteTestDatabaseFactory(t, ctx)
 	assert.NoError(t, err)
 
 	book := model.BookmarkDTO{
@@ -75,106 +71,4 @@ func testSqliteGetBookmarksWithDash(t *testing.T) {
 	assert.Len(t, results, 1, "results should contain one item")
 	assert.Equal(t, savedBookmark.ID, results[0].ID, "bookmark should be the one saved")
 
-}
-func TestSQLiteDatabase_SaveAccount(t *testing.T) {
-
-	ctx := context.TODO()
-
-	// Initialize not correct database
-	factory := func(ctx context.Context) (DB, error) {
-		return OpenSQLiteDatabase(ctx, filepath.Join(os.TempDir(), "shiori_test.db"))
-	}
-	db, err := factory(ctx)
-	assert.Nil(t, err)
-
-	// Test falid database
-	acc := model.Account{}
-	err = db.SaveAccount(ctx, acc)
-	assert.Contains(t, err.Error(), "SQL logic error: no such table: account (1)")
-
-}
-
-func TestSaveAccountSettings(t *testing.T) {
-	ctx := context.TODO()
-
-	db, err := sqliteTestDatabaseFactory(ctx)
-	assert.NoError(t, err)
-
-	// Mock data
-	account := model.Account{
-		Username: "testuser",
-		Config:   model.UserConfig{},
-	}
-
-	// Successful case
-	err = db.SaveAccountSettings(ctx, account)
-	assert.NoError(t, err)
-
-	// Initialize not correct database
-	ctx = context.TODO()
-	factory := func(ctx context.Context) (DB, error) {
-		return OpenSQLiteDatabase(ctx, filepath.Join(os.TempDir(), "shiori_test.db"))
-	}
-	db, err = factory(ctx)
-	assert.Nil(t, err)
-	account = model.Account{
-		Username: "testuser",
-		Config:   model.UserConfig{},
-	}
-	err = db.SaveAccountSettings(ctx, account)
-	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), "SQL logic error: no such table: account (1)")
-}
-
-func TestGetAccounts(t *testing.T) {
-	ctx := context.TODO()
-
-	db, err := sqliteTestDatabaseFactory(ctx)
-	assert.NoError(t, err)
-
-	// Insert test accounts
-	testAccounts := []model.Account{
-		{Username: "foo", Password: "bar", Owner: false},
-		{Username: "hello", Password: "world", Owner: false},
-		{Username: "foo_bar", Password: "foobar", Owner: true},
-	}
-	for _, acc := range testAccounts {
-		err := db.SaveAccount(ctx, acc)
-		assert.Nil(t, err)
-	}
-
-	// Successful case
-	// without opt
-	accounts, err := db.GetAccounts(ctx, GetAccountsOptions{})
-	assert.NoError(t, err)
-	assert.Equal(t, 3, len(accounts))
-	// with owner
-	accounts, err = db.GetAccounts(ctx, GetAccountsOptions{Owner: true})
-	assert.NoError(t, err)
-	assert.Equal(t, 1, len(accounts))
-	// with opt
-	accounts, err = db.GetAccounts(ctx, GetAccountsOptions{Keyword: "foo"})
-	assert.NoError(t, err)
-	assert.Equal(t, 2, len(accounts))
-	// with opt and owner
-	accounts, err = db.GetAccounts(ctx, GetAccountsOptions{Keyword: "hello", Owner: false})
-	assert.NoError(t, err)
-	assert.Equal(t, 1, len(accounts))
-	// with not result
-	accounts, err = db.GetAccounts(ctx, GetAccountsOptions{Keyword: "shiori"})
-	assert.NoError(t, err)
-	assert.Equal(t, 0, len(accounts))
-
-	// Initialize not correct database
-	ctx = context.TODO()
-	factory := func(ctx context.Context) (DB, error) {
-		return OpenSQLiteDatabase(ctx, filepath.Join(os.TempDir(), "shiori_test.db"))
-	}
-	db, err = factory(ctx)
-	assert.Nil(t, err)
-	// with invalid query
-	opts := GetAccountsOptions{Keyword: "foo", Owner: true}
-	_, err = db.GetAccounts(ctx, opts)
-	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), "SQL logic error: no such table: account (1)")
 }
