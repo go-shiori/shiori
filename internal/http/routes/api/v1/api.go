@@ -3,7 +3,6 @@ package api_v1
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-shiori/shiori/internal/dependencies"
-	"github.com/go-shiori/shiori/internal/http/middleware"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/sirupsen/logrus"
 )
@@ -17,9 +16,6 @@ type APIRoutes struct {
 func (r *APIRoutes) Setup(g *gin.RouterGroup) model.Routes {
 	// Account API handles authentication in each route
 	r.handle(g, "/auth", NewAuthAPIRoutes(r.logger, r.deps, r.loginHandler))
-
-	// From here on, all routes require authentication
-	g.Use(middleware.AuthenticationRequired())
 	r.handle(g, "/bookmarks", NewBookmarksPIRoutes(r.logger, r.deps))
 	r.handle(g, "/tags", NewTagsPIRoutes(r.logger, r.deps))
 
