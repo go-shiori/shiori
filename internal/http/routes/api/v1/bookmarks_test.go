@@ -45,3 +45,43 @@ func TestUpdateBookmarkCache(t *testing.T) {
 		require.Equal(t, http.StatusForbidden, w.Code)
 	})
 }
+
+func TestReadableeBookmarkContent(t *testing.T) {
+	logger := logrus.New()
+	ctx := context.TODO()
+
+	g := gin.New()
+
+	_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+	g.Use(middleware.AuthMiddleware(deps))
+
+	router := NewBookmarksAPIRoutes(logger, deps)
+	router.Setup(g.Group("/"))
+
+	account := model.Account{
+		Username: "test",
+		Password: "test",
+		Owner:    false,
+	}
+	require.NoError(t, deps.Database.SaveAccount(ctx, account))
+	token, err := deps.Domains.Auth.CreateTokenForAccount(&account, time.Now().Add(time.Minute))
+	require.NoError(t, err)
+
+	t.Run("require authentication", func(t *testing.T) {
+		w := testutil.PerformRequest(g, "GET", "/1/readable")
+		require.Equal(t, http.StatusUnauthorized, w.Code)
+	})
+	t.Run("get content but invalid id", func(t *testing.T) {
+		w := testutil.PerformRequest(g, "GET", "/invalidId/readable", testutil.WithHeader(model.AuthorizationHeader, model.AuthorizationTokenType+" "+token))
+		require.Equal(t, http.StatusInternalServerError, w.Code)
+	})
+	t.Run("get content but 0 id", func(t *testing.T) {
+		w := testutil.PerformRequest(g, "GET", "/0/readable", testutil.WithHeader(model.AuthorizationHeader, model.AuthorizationTokenType+" "+token))
+		require.Equal(t, http.StatusNotFound, w.Code)
+	})
+	t.Run("get content but not exist", func(t *testing.T) {
+		w := testutil.PerformRequest(g, "GET", "/2/readable", testutil.WithHeader(model.AuthorizationHeader, model.AuthorizationTokenType+" "+token))
+		require.Equal(t, http.StatusNotFound, w.Code)
+	})
+
+}
