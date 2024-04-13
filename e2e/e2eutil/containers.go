@@ -2,8 +2,6 @@ package e2eutil
 
 import (
 	"context"
-	"os"
-	"path/filepath"
 	"testing"
 	"time"
 
@@ -33,9 +31,6 @@ func (sc *ShioriContainer) GetPort() string {
 // NewShioriContainer creates a new ShioriContainer which is a wrapper around a testcontainers.Container
 // with some helpers for using while running Shiori E2E tests.
 func NewShioriContainer(t *testing.T, tag string) ShioriContainer {
-	contextPath, err := filepath.Abs(os.Getenv("CONTEXT_PATH"))
-	require.NoError(t, err)
-
 	containerDefinition := testcontainers.GenericContainerRequest{
 		ContainerRequest: testcontainers.ContainerRequest{
 			Cmd:          []string{"server", "--log-level", "debug"},
@@ -50,7 +45,7 @@ func NewShioriContainer(t *testing.T, tag string) ShioriContainer {
 		containerDefinition.Image = "gchr.io/go-shiori/shiori:v" + tag
 	} else {
 		containerDefinition.FromDockerfile = testcontainers.FromDockerfile{
-			Context:   contextPath,
+			Context:   ".",
 			KeepImage: true,
 		}
 	}

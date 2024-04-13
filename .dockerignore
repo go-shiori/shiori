@@ -4,3 +4,5 @@ Dockerfile
 .githooks
 .github
 .goreleaser.yaml
+.golangci.yml
+.gitignore
