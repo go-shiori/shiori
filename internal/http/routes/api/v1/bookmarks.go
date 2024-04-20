@@ -58,11 +58,6 @@ func (p *updateCachePayload) IsValid() error {
 	return nil
 }
 
-type contentResponseMessage struct {
-	Content string `json:"content"`
-	Html    string `json:"html"`
-}
-
 func (r *BookmarksAPIRoutes) getBookmark(c *context.Context) (*model.BookmarkDTO, error) {
 	bookmarkIDParam, present := c.Params.Get("id")
 	if !present {
@@ -91,6 +86,11 @@ func (r *BookmarksAPIRoutes) getBookmark(c *context.Context) (*model.BookmarkDTO
 	return bookmark, nil
 }
 
+type readableResponseMessage struct {
+	Content string `json:"content"`
+	Html    string `json:"html"`
+}
+
 // Bookmark Readable godoc
 //
 //	@Summary					Get readable version of bookmark.
@@ -107,7 +107,7 @@ func (r *BookmarksAPIRoutes) bookmarkReadable(c *gin.Context) {
 	if err != nil {
 		return
 	}
-	responseMessage := contentResponseMessage{
+	responseMessage := readableResponseMessage{
 		Content: bookmark.Content,
 		Html:    bookmark.HTML,
 	}
