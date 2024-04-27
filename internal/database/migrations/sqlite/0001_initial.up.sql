@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS account(
     username TEXT NOT NULL,
     password TEXT NOT NULL,
     owner INTEGER NOT NULL DEFAULT 0,
+    config JSON NOT NULL DEFAULT '{}',
     CONSTRAINT account_PK PRIMARY KEY(id),
     CONSTRAINT account_username_UNIQUE UNIQUE(username)
 );
@@ -15,6 +16,7 @@ CREATE TABLE IF NOT EXISTS bookmark(
     author TEXT NOT NULL DEFAULT "",
     public INTEGER NOT NULL DEFAULT 0,
     modified TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    has_content BOOLEAN DEFAULT FALSE NOT NULL,
     CONSTRAINT bookmark_PK PRIMARY KEY(id),
     CONSTRAINT bookmark_url_UNIQUE UNIQUE(url)
 );
