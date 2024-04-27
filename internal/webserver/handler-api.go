@@ -63,6 +63,16 @@ func (h *Handler) ApiGetBookmarks(w http.ResponseWriter, r *http.Request, ps htt
 
 	// Make sure session still valid
 	err := h.validateSession(r)
+	if err != nil {
+		c := &http.Cookie{
+			Name:     "token",
+			Value:    "",
+			Path:     "/",
+			MaxAge:   -1,
+			HttpOnly: true,
+		}
+		http.SetCookie(w, c)
+	}
 	checkError(err)
 
 	// Get URL queries
