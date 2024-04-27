@@ -20,7 +20,7 @@ func TestBookmarkDomain(t *testing.T) {
 
 	db, err := database.OpenSQLiteDatabase(context.TODO(), ":memory:")
 	require.NoError(t, err)
-	require.NoError(t, db.Migrate())
+	require.NoError(t, db.Migrate(context.TODO()))
 
 	deps := &dependencies.Dependencies{
 		Database: db,

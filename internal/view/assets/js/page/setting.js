@@ -107,7 +107,7 @@ export default {
 
 			this.$emit("setting-changed", options);
 			//request
-			fetch(new URL("/api/v1/auth/account", document.baseURI), {
+			fetch(new URL("api/v1/auth/account", document.baseURI), {
 				method: "PATCH",
 				body: JSON.stringify({
 					config: this.appOptions,
@@ -337,7 +337,7 @@ export default {
 				secondText: "No",
 				mainClick: () => {
 					this.dialog.loading = true;
-					fetch(`/api/accounts`, {
+					fetch(`api/accounts`, {
 						method: "delete",
 						body: JSON.stringify([account.username]),
 						headers: {

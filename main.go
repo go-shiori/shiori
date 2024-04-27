@@ -5,10 +5,6 @@ import (
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/sirupsen/logrus"
 
-	// Database driver
-	_ "github.com/go-sql-driver/mysql"
-	_ "github.com/lib/pq"
-
 	// Add this to prevent it removed by go mod tidy
 	_ "github.com/shurcooL/vfsgen"
 )

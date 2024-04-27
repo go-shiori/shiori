@@ -4,9 +4,11 @@ import (
 	"context"
 	"strings"
 
+	"github.com/go-shiori/shiori/internal/config"
 	"github.com/go-shiori/shiori/internal/http"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 )
 
 func newServerCommand() *cobra.Command {
@@ -25,6 +27,12 @@ func newServerCommand() *cobra.Command {
 	cmd.Flags().String("secret-key", "", "Secret key used for encrypting session data")
 
 	return cmd
+}
+
+func setIfFlagChanged(flagName string, flags *pflag.FlagSet, cfg *config.Config, fn func(cfg *config.Config)) {
+	if flags.Changed(flagName) {
+		fn(cfg)
+	}
 }
 
 func newServerCommandHandler() func(cmd *cobra.Command, args []string) {
@@ -54,13 +62,25 @@ func newServerCommandHandler() func(cmd *cobra.Command, args []string) {
 			rootPath += "/"
 		}
 
-		// Override configuration from flags
-		cfg.Http.Port = port
-		cfg.Http.Address = address + ":"
-		cfg.Http.RootPath = rootPath
-		cfg.Http.AccessLog = accessLog
-		cfg.Http.ServeWebUI = serveWebUI
-		cfg.Http.SecretKey = secretKey
+		// Override configuration from flags if needed
+		setIfFlagChanged("port", cmd.Flags(), cfg, func(cfg *config.Config) {
+			cfg.Http.Port = port
+		})
+		setIfFlagChanged("address", cmd.Flags(), cfg, func(cfg *config.Config) {
+			cfg.Http.Address = address + ":"
+		})
+		setIfFlagChanged("webroot", cmd.Flags(), cfg, func(cfg *config.Config) {
+			cfg.Http.RootPath = rootPath
+		})
+		setIfFlagChanged("access-log", cmd.Flags(), cfg, func(cfg *config.Config) {
+			cfg.Http.AccessLog = accessLog
+		})
+		setIfFlagChanged("serve-web-ui", cmd.Flags(), cfg, func(cfg *config.Config) {
+			cfg.Http.ServeWebUI = serveWebUI
+		})
+		setIfFlagChanged("secret-key", cmd.Flags(), cfg, func(cfg *config.Config) {
+			cfg.Http.SecretKey = secretKey
+		})
 
 		dependencies.Log.Infof("Starting Shiori v%s", model.BuildVersion)
 
