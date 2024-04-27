@@ -5,6 +5,7 @@ go 1.22.2
 
 require (
 	github.com/PuerkitoBio/goquery v1.9.1
+	github.com/blang/semver v3.5.1+incompatible
 	github.com/disintegration/imaging v1.6.2
 	github.com/fatih/color v1.16.0
 	github.com/gin-contrib/requestid v1.0.0
@@ -16,7 +17,6 @@ require (
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/gofrs/uuid/v5 v5.1.0
 	github.com/golang-jwt/jwt/v5 v5.2.1
-	github.com/golang-migrate/migrate/v4 v4.17.0
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/lib/pq v1.10.9
@@ -28,6 +28,7 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/afero v1.11.0
 	github.com/spf13/cobra v1.8.0
+	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.9.0
 	github.com/swaggo/files v1.0.1
 	github.com/swaggo/gin-swagger v1.6.0
@@ -62,15 +63,11 @@ require (
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/gogs/chardet v0.0.0-20211120154057-b7413eaefb8f // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/hashicorp/errwrap v1.1.0 // indirect
-	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
-	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.7 // indirect
-	github.com/knz/go-libedit v1.10.1 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
@@ -83,33 +80,21 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/shurcooL/httpfs v0.0.0-20230704072500-f1e31cf0ba5c // indirect
-	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/tdewolff/parse v2.3.4+incompatible // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.12 // indirect
 	github.com/vincent-petithory/dataurl v1.0.0 // indirect
 	go.etcd.io/bbolt v1.3.9 // indirect
-	go.uber.org/atomic v1.11.0 // indirect
 	golang.org/x/arch v0.7.0 // indirect
-	golang.org/x/mod v0.17.0 // indirect
-	golang.org/x/sync v0.7.0 // indirect
 	golang.org/x/sys v0.19.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/tools v0.20.0 // indirect
 	google.golang.org/protobuf v1.33.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	lukechampine.com/uint128 v1.3.0 // indirect
-	modernc.org/cc/v3 v3.41.0 // indirect
-	modernc.org/cc/v4 v4.20.0 // indirect
-	modernc.org/ccgo/v3 v3.17.0 // indirect
-	modernc.org/ccgo/v4 v4.16.0 // indirect
-	modernc.org/gc/v2 v2.4.1 // indirect
 	modernc.org/gc/v3 v3.0.0-20240107210532-573471604cb6 // indirect
 	modernc.org/libc v1.49.3 // indirect
 	modernc.org/mathutil v1.6.0 // indirect
 	modernc.org/memory v1.8.0 // indirect
-	modernc.org/opt v0.1.3 // indirect
-	modernc.org/sortutil v1.2.0 // indirect
 	modernc.org/strutil v1.2.0 // indirect
 	modernc.org/token v1.1.0 // indirect
 )
