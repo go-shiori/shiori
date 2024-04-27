@@ -59,6 +59,7 @@ var sqliteMigrations = []migration{
 		return nil
 	}),
 	newFileMigration("0.3.0", "0.4.0", "sqlite/0002_denormalize_content"),
+	newFileMigration("0.4.0", "0.5.0", "sqlite/0003_uniq_id"),
 }
 
 // SQLiteDatabase is implementation of Database interface
