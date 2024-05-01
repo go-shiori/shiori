@@ -4,7 +4,7 @@ module github.com/go-shiori/shiori
 go 1.22.2
 
 require (
-	github.com/PuerkitoBio/goquery v1.9.1
+	github.com/PuerkitoBio/goquery v1.9.2
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/disintegration/imaging v1.6.2
 	github.com/fatih/color v1.16.0
@@ -17,7 +17,7 @@ require (
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/gofrs/uuid/v5 v5.1.0
 	github.com/golang-jwt/jwt/v5 v5.2.1
-	github.com/jmoiron/sqlx v1.3.5
+	github.com/jmoiron/sqlx v1.4.0
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/lib/pq v1.10.9
 	github.com/muesli/go-app-paths v0.2.2
@@ -38,7 +38,7 @@ require (
 	golang.org/x/image v0.15.0
 	golang.org/x/net v0.24.0
 	golang.org/x/term v0.19.0
-	modernc.org/sqlite v1.29.6
+	modernc.org/sqlite v1.29.8
 )
 
 require (
