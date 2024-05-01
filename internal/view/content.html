@@ -48,11 +48,11 @@
 			el: '#content-scene',
 			mixins: [basePage],
 			data: {
-				modified: "$$.Book.Modified$$"
+				created: "$$.Book.Created$$"
 			},
 			methods: {
 				localtime() {
-					var strTime = this.modified.replace(" ", "T");
+					var strTime = this.created.replace(" ", "T");
 					if (!strTime.endsWith("Z")) {
 						strTime += "Z";
 					}

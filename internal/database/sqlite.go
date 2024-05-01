@@ -59,6 +59,7 @@ var sqliteMigrations = []migration{
 		return nil
 	}),
 	newFileMigration("0.3.0", "0.4.0", "sqlite/0002_denormalize_content"),
+	newFileMigration("0.4.0", "0.5.0", "sqlite/0003_created_time"),
 }
 
 // SQLiteDatabase is implementation of Database interface
@@ -138,8 +139,8 @@ func (db *SQLiteDatabase) SaveBookmarks(ctx context.Context, create bool, bookma
 		// Prepare statement
 
 		stmtInsertBook, err := tx.PreparexContext(ctx, `INSERT INTO bookmark
-			(url, title, excerpt, author, public, modified, has_content)
-			VALUES(?, ?, ?, ?, ?, ?, ?) RETURNING id`)
+			(url, title, excerpt, author, public, modified, has_content, created)
+			VALUES(?, ?, ?, ?, ?, ?, ?, ?) RETURNING id`)
 		if err != nil {
 			return errors.WithStack(err)
 		}
@@ -213,8 +214,9 @@ func (db *SQLiteDatabase) SaveBookmarks(ctx context.Context, create bool, bookma
 			// Create or update bookmark
 			var err error
 			if create {
+				book.Created = modifiedTime
 				err = stmtInsertBook.QueryRowContext(ctx,
-					book.URL, book.Title, book.Excerpt, book.Author, book.Public, book.Modified, hasContent).Scan(&book.ID)
+					book.URL, book.Title, book.Excerpt, book.Author, book.Public, book.Modified, hasContent, book.Created).Scan(&book.ID)
 			} else {
 				_, err = stmtUpdateBook.ExecContext(ctx,
 					book.URL, book.Title, book.Excerpt, book.Author, book.Public, book.Modified, hasContent, book.ID)
@@ -309,6 +311,7 @@ func (db *SQLiteDatabase) GetBookmarks(ctx context.Context, opts GetBookmarksOpt
 		b.excerpt,
 		b.author,
 		b.public,
+		b.created,
 		b.modified,
 		b.has_content
 		FROM bookmark b
@@ -681,7 +684,7 @@ func (db *SQLiteDatabase) GetBookmark(ctx context.Context, id int, url string) (
 	args := []interface{}{id}
 	query := `SELECT
 		b.id, b.url, b.title, b.excerpt, b.author, b.public, b.modified,
-		bc.content, bc.html, b.has_content
+		bc.content, bc.html, b.has_content, b.created
 		FROM bookmark b
 		LEFT JOIN bookmark_content bc ON bc.docid = b.id
 		WHERE b.id = ?`
