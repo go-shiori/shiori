@@ -23,7 +23,6 @@
 <body class="night">
 	<div id="content-scene" :class="{night: appOptions.NightMode}">
 		<div id="header">
-			<p id="metadata" v-cloak>Added {{localtime()}}</p>
 			<p id="title" dir="auto">$$.Book.Title$$</p>
 			<div id="links">
 				<a href="$$.Book.URL$$" target="_blank" rel="noopener noreferrer">View Original</a>
@@ -38,6 +37,9 @@
 		<div id="content" dir="auto" v-pre>
 			$$.HTML$$
 		</div>
+        <div id="footer">
+            <p id=metadata> {{ createdtime() === modifidetime() ? `Added ` +  createdtime() : `Added ` + createdtime() + '  |  Last Modified ' + modifidetime() }} </p>
+        </div>
 	</div>
 
 	<script type="module">
@@ -51,12 +53,23 @@
 				created: "$$.Book.Created$$"
 			},
 			methods: {
-				localtime() {
-					var strTime = this.created.replace(" ", "T");
-					if (!strTime.endsWith("Z")) {
-						strTime += "Z";
+				createdtime() {
+					var strCreatedTime = "$$.Book.Created$$".replace(" ", "T");
+                    var strModifiedTime = "$$.Book.Modified$$".replace(" ", "T");
+					if (!strCreatedTime.endsWith("Z")) {
+						strCreatedTime += "Z";
 					}
-					return dayjs(strTime).format("D MMMM YYYY, HH:mm:ss");
+					if (!strModifiedTime.endsWith("Z")) {
+						strModifiedTime += "Z";
+					}
+                    return `${dayjs(strCreatedTime).format("D MMMM YYYY")}`;
+				},
+				modifidetime() {
+                    var strModifiedTime = "$$.Book.Modified$$".replace(" ", "T");
+					if (!strModifiedTime.endsWith("Z")) {
+						strModifiedTime += "Z";
+					}
+                    return `${dayjs(strModifiedTime).format("D MMMM YYYY")}`;
 				},
 				loadSetting() {
 					var opts = JSON.parse(localStorage.getItem("shiori-account")) || {},
