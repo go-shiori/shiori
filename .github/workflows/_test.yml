@@ -89,8 +89,41 @@ jobs:
           golangci-lint.cache-{interval_number}-
           golangci-lint.cache-
 
-    - run: make unittest GO_TEST_FLAGS="-tags test_sqlite_only"
+    - run: make unittest GO_TEST_FLAGS="-tags test_sqlite_only -race -v -count=1"
       env:
         CGO_ENABLED: 1 # go test -race requires cgo
 
     - run: go build -tags osusergo,netgo -ldflags="-s -w -X main.version=$(git describe --tags) -X main.date=$(date --iso-8601=seconds)"
+
+  # Please note BSD support is offered on a best-effort basis, this check is not blocking but for us to be aware of issues.
+  # This test also does not take into consideration the go version specified in the go.mod file and just uses the
+  # latest version available in the openbsd package repository.
+  test-bsd:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os:
+          - name: openbsd
+            architecture: x86-64
+            version: '7.5'
+
+          - name: openbsd
+            architecture: arm64
+            version: '7.5'
+    steps:
+      - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
+
+      - name: Test on ${{ matrix.os.name }}
+        uses: cross-platform-actions/action@b2e15da1e667187766fff4945d20b98ac7055576 # v0.24.0
+        with:
+          environment_variables: GO_VERSION
+          operating_system: ${{ matrix.os.name }}
+          architecture: ${{ matrix.os.architecture }}
+          version: ${{ matrix.os.version }}
+          shell: bash
+          memory: 1G
+          cpu_count: 1
+          run: |
+            sudo pkg_add -u
+            sudo pkg_add gmake git go
+            gmake unittest GO_TEST_FLAGS="-tags test_sqlite_only -v -count=1"

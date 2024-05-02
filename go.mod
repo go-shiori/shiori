@@ -4,6 +4,7 @@ module github.com/go-shiori/shiori
 go 1.22.2
 
 require (
+	git.sr.ht/~emersion/go-sqlite3-fts5 v0.0.0-20230217131031-f2c8767594fc
 	github.com/PuerkitoBio/goquery v1.9.1
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/disintegration/imaging v1.6.2
@@ -20,6 +21,7 @@ require (
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/lib/pq v1.10.9
+	github.com/mattn/go-sqlite3 v1.14.22
 	github.com/muesli/go-app-paths v0.2.2
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1
