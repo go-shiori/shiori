@@ -129,8 +129,8 @@ func (db *PGDatabase) SaveBookmarks(ctx context.Context, create bool, bookmarks 
 	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
 		// Prepare statement
 		stmtInsertBook, err := tx.Preparex(`INSERT INTO bookmark
-			(url, title, excerpt, author, public, content, html, modified)
-			VALUES($1, $2, $3, $4, $5, $6, $7, $8)
+			(url, title, excerpt, author, public, content, html, modified, created)
+			VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9)
 		RETURNING id`)
 		if err != nil {
 			return errors.WithStack(err)
@@ -195,9 +195,10 @@ func (db *PGDatabase) SaveBookmarks(ctx context.Context, create bool, bookmarks 
 			// Save bookmark
 			var err error
 			if create {
+				book.Created = modifiedTime
 				err = stmtInsertBook.QueryRowContext(ctx,
 					book.URL, book.Title, book.Excerpt, book.Author,
-					book.Public, book.Content, book.HTML, book.Modified).Scan(&book.ID)
+					book.Public, book.Content, book.HTML, book.Modified, book.Created).Scan(&book.ID)
 			} else {
 				_, err = stmtUpdateBook.ExecContext(ctx,
 					book.URL, book.Title, book.Excerpt, book.Author,
@@ -271,6 +272,7 @@ func (db *PGDatabase) GetBookmarks(ctx context.Context, opts GetBookmarksOptions
 		`excerpt`,
 		`author`,
 		`public`,
+		`created`,
 		`modified`,
 		`content <> '' has_content`}
 
@@ -571,7 +573,7 @@ func (db *PGDatabase) GetBookmark(ctx context.Context, id int, url string) (mode
 	args := []interface{}{id}
 	query := `SELECT
 		id, url, title, excerpt, author, public,
-		content, html, modified, content <> '' has_content
+		content, html, modified, created, content <> '' has_content
 		FROM bookmark WHERE id = $1`
 
 	if url != "" {
