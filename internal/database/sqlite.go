@@ -79,18 +79,6 @@ type tagContent struct {
 	model.Tag
 }
 
-// OpenSQLiteDatabase creates and open connection to new SQLite3 database.
-func OpenSQLiteDatabase(ctx context.Context, databasePath string) (sqliteDB *SQLiteDatabase, err error) {
-	// Open database
-	db, err := sqlx.ConnectContext(ctx, "sqlite", databasePath)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-
-	sqliteDB = &SQLiteDatabase{dbbase: dbbase{*db}}
-	return sqliteDB, nil
-}
-
 // DBX returns the underlying sqlx.DB object
 func (db *SQLiteDatabase) DBx() sqlx.DB {
 	return db.DB
