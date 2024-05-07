@@ -61,6 +61,10 @@ var mysqlMigrations = []migration{
 
 		return nil
 	}),
+	newFileMigration("0.7.0", "0.8.0", "mysql/0005_rename_to_created_at"),
+	newFileMigration("0.8.0", "0.8.1", "mysql/0006_change_created_at_settings"),
+	newFileMigration("0.8.1", "0.8.2", "mysql/0007_add_modified_at"),
+	newFileMigration("0.8.2", "0.8.3", "mysql/0008_set_modified_at_equal_created_at"),
 }
 
 // MySQLDatabase is implementation of Database interface
@@ -131,8 +135,8 @@ func (db *MySQLDatabase) SaveBookmarks(ctx context.Context, create bool, bookmar
 	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
 		// Prepare statement
 		stmtInsertBook, err := tx.Preparex(`INSERT INTO bookmark
-			(url, title, excerpt, author, public, content, html, modified)
-			VALUES(?, ?, ?, ?, ?, ?, ?, ?)`)
+			(url, title, excerpt, author, public, content, html, modified_at, created_at)
+			VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)`)
 		if err != nil {
 			return errors.WithStack(err)
 		}
@@ -145,7 +149,7 @@ func (db *MySQLDatabase) SaveBookmarks(ctx context.Context, create bool, bookmar
 			public   = ?,
 			content  = ?,
 			html     = ?,
-			modified = ?
+			modified_at = ?
 		WHERE id = ?`)
 		if err != nil {
 			return errors.WithStack(err)
@@ -196,10 +200,11 @@ func (db *MySQLDatabase) SaveBookmarks(ctx context.Context, create bool, bookmar
 			// Save bookmark
 			var err error
 			if create {
+				book.Created = modifiedTime
 				var res sql.Result
 				res, err = stmtInsertBook.ExecContext(ctx,
 					book.URL, book.Title, book.Excerpt, book.Author,
-					book.Public, book.Content, book.HTML, book.Modified)
+					book.Public, book.Content, book.HTML, book.Modified, book.Created)
 				if err != nil {
 					return errors.WithStack(err)
 				}
@@ -285,7 +290,8 @@ func (db *MySQLDatabase) GetBookmarks(ctx context.Context, opts GetBookmarksOpti
 		`excerpt`,
 		`author`,
 		`public`,
-		`modified`,
+		`created_at`,
+		`modified_at`,
 		`content <> "" has_content`}
 
 	if opts.WithContent {
@@ -371,7 +377,7 @@ func (db *MySQLDatabase) GetBookmarks(ctx context.Context, opts GetBookmarksOpti
 	case ByLastAdded:
 		query += ` ORDER BY id DESC`
 	case ByLastModified:
-		query += ` ORDER BY modified DESC`
+		query += ` ORDER BY modified_at DESC`
 	default:
 		query += ` ORDER BY id`
 	}
@@ -564,7 +570,7 @@ func (db *MySQLDatabase) GetBookmark(ctx context.Context, id int, url string) (m
 	args := []interface{}{id}
 	query := `SELECT
 		id, url, title, excerpt, author, public,
-		content, html, modified, content <> '' has_content
+		content, html, modified_at, created_at, content <> '' has_content
 		FROM bookmark WHERE id = ?`
 
 	if url != "" {
