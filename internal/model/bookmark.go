@@ -14,8 +14,8 @@ type BookmarkDTO struct {
 	Excerpt       string `db:"excerpt"       json:"excerpt"`
 	Author        string `db:"author"        json:"author"`
 	Public        int    `db:"public"        json:"public"`
-	Created       string `db:"created"       json:"created"`
-	Modified      string `db:"modified"      json:"modified"`
+	Created       string `db:"created_at"    json:"created"`
+	Modified      string `db:"modified_at"   json:"modified"`
 	Content       string `db:"content"       json:"-"`
 	HTML          string `db:"html"          json:"html,omitempty"`
 	ImageURL      string `db:"image_url"     json:"imageURL"`

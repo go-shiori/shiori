@@ -1,7 +1,9 @@
 ALTER TABLE bookmark
-ADD COLUMN created TEXT;
+RENAME COLUMN modified to created_at;
 
+ALTER TABLE bookmark
+ADD COLUMN modified_at TEXT NULL;
 
 UPDATE bookmark
-SET created = bookmark.modified
-WHERE modified IS NOT NULL;
+SET modified_at = bookmark.created_at
+WHERE created_at IS NOT NULL;
