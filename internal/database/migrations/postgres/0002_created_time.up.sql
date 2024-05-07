@@ -1,8 +1,12 @@
--- Add the "created" column to the bookmark table
+-- Rename "modified" column to "created_at"
 ALTER TABLE bookmark
-ADD COLUMN created TIMESTAMP(0) NOT NULL DEFAULT CURRENT_TIMESTAMP;
+RENAME COLUMN modified to created_at;
 
--- Update the "created" column with the value from the "modified" column if it is not null
+-- Add the "modified_at" column to the bookmark table
+ALTER TABLE bookmark
+ADD COLUMN modified_at TIMESTAMP(0) NOT NULL DEFAULT CURRENT_TIMESTAMP;
+
+-- Update the "modified_at" column with the value from the "created_at" column if it is not null
 UPDATE bookmark
-SET created = COALESCE(modified, CURRENT_TIMESTAMP)
-WHERE modified IS NOT NULL;
+SET modified_at = COALESCE(created_at, CURRENT_TIMESTAMP)
+WHERE created_at IS NOT NULL;
