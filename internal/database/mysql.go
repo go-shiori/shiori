@@ -61,6 +61,7 @@ var mysqlMigrations = []migration{
 
 		return nil
 	}),
+	newFileMigration("0.7.0", "0.8.0", "mysql/0005_deleted_at"),
 }
 
 // MySQLDatabase is implementation of Database interface
@@ -518,6 +519,7 @@ func (db *MySQLDatabase) DeleteBookmarks(ctx context.Context, ids ...int) (err e
 		// Prepare queries
 		delBookmark := `DELETE FROM bookmark`
 		delBookmarkTag := `DELETE FROM bookmark_tag`
+		delBookmarkTime := `INSERT INTO deleted (id, deleted_at) VALUES(?,?)`
 
 		// Delete bookmark(s)
 		if len(ids) == 0 {
@@ -530,9 +532,15 @@ func (db *MySQLDatabase) DeleteBookmarks(ctx context.Context, ids ...int) (err e
 			if err != nil {
 				return errors.WithStack(err)
 			}
+			deletedTime := time.Now().UTC().Format(model.DatabaseDateFormat)
+			_, err = tx.ExecContext(ctx, delBookmarkTime, ids, deletedTime)
+			if err != nil {
+				return errors.WithStack(err)
+			}
 		} else {
 			delBookmark += ` WHERE id = ?`
 			delBookmarkTag += ` WHERE bookmark_id = ?`
+			delBookmarkTime := `INSERT INTO deleted (id, deleted_at) VALUES(?,?)`
 
 			stmtDelBookmark, _ := tx.Preparex(delBookmark)
 			stmtDelBookmarkTag, _ := tx.Preparex(delBookmarkTag)
@@ -544,6 +552,11 @@ func (db *MySQLDatabase) DeleteBookmarks(ctx context.Context, ids ...int) (err e
 				}
 
 				_, err = stmtDelBookmark.ExecContext(ctx, id)
+				if err != nil {
+					return errors.WithStack(err)
+				}
+				deletedTime := time.Now().UTC().Format(model.DatabaseDateFormat)
+				_, err = tx.ExecContext(ctx, delBookmarkTime, id, deletedTime)
 				if err != nil {
 					return errors.WithStack(err)
 				}
