@@ -59,6 +59,7 @@ var sqliteMigrations = []migration{
 		return nil
 	}),
 	newFileMigration("0.3.0", "0.4.0", "sqlite/0002_denormalize_content"),
+	newFileMigration("0.4.0", "0.5.0", "sqlite/0003_deleted_at"),
 }
 
 // SQLiteDatabase is implementation of Database interface
@@ -600,6 +601,7 @@ func (db *SQLiteDatabase) DeleteBookmarks(ctx context.Context, ids ...int) error
 		delBookmark := `DELETE FROM bookmark`
 		delBookmarkTag := `DELETE FROM bookmark_tag`
 		delBookmarkContent := `DELETE FROM bookmark_content`
+		delBookmarktime := `INSERT INTO deleted (id, deleted_at) VALUES(?,?)`
 
 		// Delete bookmark(s)
 		if len(ids) == 0 {
@@ -617,10 +619,16 @@ func (db *SQLiteDatabase) DeleteBookmarks(ctx context.Context, ids ...int) error
 			if err != nil {
 				return errors.WithStack(err)
 			}
+			deletedTime := time.Now().UTC().Format(model.DatabaseDateFormat)
+			_, err = tx.ExecContext(ctx, delBookmarktime, ids, deletedTime)
+			if err != nil {
+				return errors.WithStack(err)
+			}
 		} else {
 			delBookmark += ` WHERE id = ?`
 			delBookmarkTag += ` WHERE bookmark_id = ?`
 			delBookmarkContent += ` WHERE docid = ?`
+			delBookmarktime := `INSERT INTO deleted (id, deleted_at) VALUES(?,?)`
 
 			stmtDelBookmark, err := tx.Preparex(delBookmark)
 			if err != nil {
@@ -649,6 +657,11 @@ func (db *SQLiteDatabase) DeleteBookmarks(ctx context.Context, ids ...int) error
 				}
 
 				_, err = stmtDelBookmark.ExecContext(ctx, id)
+				if err != nil {
+					return errors.WithStack(err)
+				}
+				deletedTime := time.Now().UTC().Format(model.DatabaseDateFormat)
+				_, err = tx.ExecContext(ctx, delBookmarktime, id, deletedTime)
 				if err != nil {
 					return errors.WithStack(err)
 				}
