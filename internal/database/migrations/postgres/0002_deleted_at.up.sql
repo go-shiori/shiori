@@ -1,0 +1,4 @@
+CREATE TABLE IF NOT EXISTS deleted(
+    id            INTEGER      NOT NULL,
+	deleted_at    TIMESTAMP(0) NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
