@@ -122,7 +122,7 @@ jobs:
           version: ${{ matrix.os.version }}
           shell: bash
           memory: 1G
-          cpu_count: 1
+          cpu_count: 2
           run: |
             sudo pkg_add -u
             sudo pkg_add gmake git go
