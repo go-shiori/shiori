@@ -38,7 +38,7 @@
 			$$.HTML$$
 		</div>
         <div id="footer">
-            <p id=metadata> {{ createdtime() === modifidetime() ? `Added ` +  createdtime() : `Added ` + createdtime() + '  |  Last Modified ' + modifidetime() }} </p>
+            <p id=metadata>Added {{ createdTime() }} {{ createdTime() !== modifiedTime() ? ` | Last Modified ${modifiedTime()}` : '' }}</p>
         </div>
 	</div>
 
@@ -53,7 +53,7 @@
 				created: "$$.Book.Created$$"
 			},
 			methods: {
-				createdtime() {
+				createdTime() {
 					var strCreatedTime = "$$.Book.Created$$".replace(" ", "T");
                     var strModifiedTime = "$$.Book.Modified$$".replace(" ", "T");
 					if (!strCreatedTime.endsWith("Z")) {
@@ -64,7 +64,7 @@
 					}
                     return `${dayjs(strCreatedTime).format("D MMMM YYYY")}`;
 				},
-				modifidetime() {
+				modifiedTime() {
                     var strModifiedTime = "$$.Book.Modified$$".replace(" ", "T");
 					if (!strModifiedTime.endsWith("Z")) {
 						strModifiedTime += "Z";

@@ -360,7 +360,7 @@ func (h *Handler) ApiUpdateBookmark(w http.ResponseWriter, r *http.Request, ps h
 		}
 	}
 
-	// Set bookmark modifide
+	// Set bookmark modified
 	book.Modified = ""
 
 	// Update database
