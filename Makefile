@@ -107,11 +107,6 @@ styles-check:
 build: clean
 	GIN_MODE=$(GIN_MODE) goreleaser build --clean --snapshot
 
-## Build docker image
-.PHONY: build-image
-build-image:
-	docker build -t shiori:localdev .
-
 ## Build docker image using Buildx
 .PHONY: buildx
 buildx:
