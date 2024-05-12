@@ -29,7 +29,7 @@ var sqliteMigrations = []migration{
 		defer tx.Rollback()
 
 		_, err = tx.Exec(`ALTER TABLE bookmark ADD COLUMN has_content BOOLEAN DEFAULT FALSE NOT NULL`)
-		if strings.Contains(err.Error(), `duplicate column name`) {
+		if err != nil && strings.Contains(err.Error(), `duplicate column name`) {
 			tx.Rollback()
 		} else if err != nil {
 			return fmt.Errorf("failed to add has_content column to bookmark table: %w", err)
@@ -46,7 +46,7 @@ var sqliteMigrations = []migration{
 		defer tx.Rollback()
 
 		_, err = tx.Exec(`ALTER TABLE account ADD COLUMN config JSON NOT NULL DEFAULT '{}'`)
-		if strings.Contains(err.Error(), `duplicate column name`) {
+		if err != nil && strings.Contains(err.Error(), `duplicate column name`) {
 			tx.Rollback()
 		} else if err != nil {
 			return fmt.Errorf("failed to add config column to account table: %w", err)
