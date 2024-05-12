@@ -14,15 +14,6 @@ jobs:
       - uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e # 4.1.7
         with:
           name: dist
-      - name: Prep binaries
-        working-directory: .github/workflows/docker
-        run: |
-          mkdir binaries
-          cp -r ../../../shiori_linux_* binaries/
-          mv binaries/shiori_linux_arm_7 binaries/shiori_linux_arm
-          mv binaries/shiori_linux_amd64_v1 binaries/shiori_linux_amd64
-          gzip -d -S binaries/.gz__  -r .
-          chmod 755 binaries/shiori_linux_*/shiori
 
       # Every pull request that goes into master
       - name: Prepare master push tags
@@ -55,9 +46,7 @@ jobs:
           echo "tag_flags=--tag $REPO:pr-${{ github.event.pull_request.number }}" >> $GITHUB_ENV
 
       - name: Buildx
-        working-directory: .github/workflows/docker
         run: |
           set -x
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login -u "${{ github.repository_owner }}" --password-stdin ghcr.io
-          docker buildx create --use --name builder
-          docker buildx build -f Dockerfile.ci --platform=linux/amd64,arm64,linux/arm/v7 --push ${{ env.tag_flags }} .
+          make buildx CONTAINER_BUILDX_OPTIONS="--push ${{ env.tag_flags }}"
