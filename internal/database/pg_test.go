@@ -5,12 +5,9 @@ package database
 
 import (
 	"context"
-	"errors"
 	"log"
 	"os"
 	"testing"
-
-	"github.com/golang-migrate/migrate/v4"
 )
 
 func init() {
@@ -31,7 +28,7 @@ func postgresqlTestDatabaseFactory(_ *testing.T, ctx context.Context) (DB, error
 		return nil, err
 	}
 
-	if err := db.Migrate(); err != nil && !errors.Is(migrate.ErrNoChange, err) {
+	if err := db.Migrate(context.TODO()); err != nil {
 		return nil, err
 	}
 
