@@ -45,6 +45,9 @@ jobs:
           REPO=ghcr.io/${{ github.repository }}
           echo "tag_flags=--tag $REPO:pr-${{ github.event.pull_request.number }}" >> $GITHUB_ENV
 
+      - name: ls
+        run: ls -la
+
       - name: Buildx
         run: |
           set -x
