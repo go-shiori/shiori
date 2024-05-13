@@ -9,8 +9,13 @@ if [ "$CONTAINER_RUNTIME" == "docker" ]; then
     fi
 fi
 
-cp -r dist/shiori_linux_arm_7 dist/shiori_linux_armv7
-cp -r dist/shiori_linux_amd64_v1 dist/shiori_linux_amd64
+if [ -d dist/shiori_linux_arm_7 ]; then
+    cp -r dist/shiori_linux_arm_7 dist/shiori_linux_armv7
+fi
+
+if [ -d dist/shiori_linux_amd64_v1 ]; then
+    cp -r dist/shiori_linux_amd64_v1 dist/shiori_linux_amd64
+fi
 
 $CONTAINER_RUNTIME buildx build \
     -f ${CONTAINERFILE_NAME} \

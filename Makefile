@@ -107,14 +107,18 @@ styles-check:
 build: clean
 	GIN_MODE=$(GIN_MODE) goreleaser build --clean --snapshot
 
+## Build binary for current targer
+build-local:
+	GIN_MODE=$(GIN_MODE) goreleaser build --clean --snapshot --single-target
+
 ## Build docker image using Buildx
 .PHONY: buildx
-buildx:
+buildx: clean
 	$(info: Make: Buildx)
 	@bash scripts/buildx.sh
 
 ## Build docker image for local development
-buildx-local:
+buildx-local: build-local
 	$(info: Make: Build image locally)
 	CONTAINER_BUILDX_OPTIONS="-t shiori:localdev --output type=docker" BUILDX_PLATFORMS=$(LOCAL_BUILD_PLATFORM) scripts/buildx.sh
 
