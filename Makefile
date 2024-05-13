@@ -4,6 +4,7 @@ GOLANG_VERSION := $(shell head -n 4 go.mod | tail -n 1 | cut -d " " -f 2)
 
 # Development
 SHIORI_DIR ?= dev-data
+SOURCE_FILES ?=./internal/...
 
 # Build
 CGO_ENABLED ?= 0
@@ -43,6 +44,8 @@ export CONTAINER_RUNTIME
 export CONTAINERFILE_NAME
 export CONTAINER_ALPINE_VERSION
 export BUILDX_PLATFORMS
+
+export SOURCE_FILES
 
 # Help documentatin à la https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 .PHONY: help
@@ -127,7 +130,7 @@ buildx-local: build-local
 ## Creates a coverage report
 .PHONY: coverage
 coverage:
-	$(GO) test $(GO_TEST_FLAGS) -coverprofile=coverage.txt ./...
+	$(GO) test $(GO_TEST_FLAGS) -coverprofile=coverage.txt $(SOURCE_FILES)
 	$(GO) tool cover -html=coverage.txt
 
 ## Run generate accross the project
