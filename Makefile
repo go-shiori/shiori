@@ -108,12 +108,14 @@ build: clean
 	GIN_MODE=$(GIN_MODE) goreleaser build --clean --snapshot
 
 ## Build binary for current targer
-build-local:
+build-local: clean
 	GIN_MODE=$(GIN_MODE) goreleaser build --clean --snapshot --single-target
 
-## Build docker image using Buildx
+## Build docker image using Buildx.
+# used for multi-arch builds suing mainly the CI, that's why the task does not
+# build the binaries using a dependency task.
 .PHONY: buildx
-buildx: clean
+buildx:
 	$(info: Make: Buildx)
 	@bash scripts/buildx.sh
 
