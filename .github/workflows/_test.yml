@@ -107,9 +107,6 @@ jobs:
             architecture: x86-64
             version: '7.5'
 
-          - name: openbsd
-            architecture: arm64
-            version: '7.5'
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
 

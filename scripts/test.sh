@@ -8,7 +8,7 @@ fi
 # if gotestfmt is installed, run with it
 if [ -x "$(command -v gotestfmt)" ]; then
     set -o pipefail
-    go test ./... ${GO_TEST_FLAGS} -json | gotestfmt ${GOTESTFMT_FLAGS}
+    go test ${SOURCE_FILES} ${GO_TEST_FLAGS} -json | gotestfmt ${GOTESTFMT_FLAGS}
 else
-    go test ./... ${GO_TEST_FLAGS}
+    go test ${SOURCE_FILES} ${GO_TEST_FLAGS}
 fi
