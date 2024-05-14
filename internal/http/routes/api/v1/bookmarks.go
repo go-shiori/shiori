@@ -13,6 +13,7 @@ import (
 	"github.com/go-shiori/shiori/internal/database"
 	"github.com/go-shiori/shiori/internal/dependencies"
 	"github.com/go-shiori/shiori/internal/http/context"
+	"github.com/go-shiori/shiori/internal/http/middleware"
 	"github.com/go-shiori/shiori/internal/http/response"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/sirupsen/logrus"
@@ -24,11 +25,13 @@ type BookmarksAPIRoutes struct {
 }
 
 func (r *BookmarksAPIRoutes) Setup(g *gin.RouterGroup) model.Routes {
+	g.Use(middleware.AuthenticationRequired())
 	g.PUT("/cache", r.updateCache)
+	g.GET("/:id/readable", r.bookmarkReadable)
 	return r
 }
 
-func NewBookmarksPIRoutes(logger *logrus.Logger, deps *dependencies.Dependencies) *BookmarksAPIRoutes {
+func NewBookmarksAPIRoutes(logger *logrus.Logger, deps *dependencies.Dependencies) *BookmarksAPIRoutes {
 	return &BookmarksAPIRoutes{
 		logger: logger,
 		deps:   deps,
@@ -55,6 +58,63 @@ func (p *updateCachePayload) IsValid() error {
 	return nil
 }
 
+func (r *BookmarksAPIRoutes) getBookmark(c *context.Context) (*model.BookmarkDTO, error) {
+	bookmarkIDParam, present := c.Params.Get("id")
+	if !present {
+		response.SendError(c.Context, http.StatusBadRequest, "Invalid bookmark ID")
+		return nil, model.ErrBookmarkInvalidID
+	}
+
+	bookmarkID, err := strconv.Atoi(bookmarkIDParam)
+	if err != nil {
+		r.logger.WithError(err).Error("error parsing bookmark ID parameter")
+		response.SendInternalServerError(c.Context)
+		return nil, err
+	}
+
+	if bookmarkID == 0 {
+		response.SendError(c.Context, http.StatusNotFound, nil)
+		return nil, model.ErrBookmarkNotFound
+	}
+
+	bookmark, err := r.deps.Domains.Bookmarks.GetBookmark(c.Context, model.DBID(bookmarkID))
+	if err != nil {
+		response.SendError(c.Context, http.StatusNotFound, nil)
+		return nil, model.ErrBookmarkNotFound
+	}
+
+	return bookmark, nil
+}
+
+type readableResponseMessage struct {
+	Content string `json:"content"`
+	Html    string `json:"html"`
+}
+
+// Bookmark Readable godoc
+//
+//	@Summary					Get readable version of bookmark.
+//	@Tags						Auth
+//	@securityDefinitions.apikey	ApiKeyAuth
+//	@Produce					json
+//	@Success					200	{object}    contentResponseMessage
+//	@Failure					403	{object}	nil	"Token not provided/invalid"
+//	@Router						/api/v1/bookmarks/id/readable [get]
+func (r *BookmarksAPIRoutes) bookmarkReadable(c *gin.Context) {
+	ctx := context.NewContextFromGin(c)
+
+	bookmark, err := r.getBookmark(ctx)
+	if err != nil {
+		return
+	}
+	responseMessage := readableResponseMessage{
+		Content: bookmark.Content,
+		Html:    bookmark.HTML,
+	}
+
+	response.Send(c, 200, responseMessage)
+}
+
 // updateCache godoc
 //
 //	@Summary					Update Cache and Ebook on server.
@@ -67,7 +127,7 @@ func (p *updateCachePayload) IsValid() error {
 //	@Router						/api/v1/bookmarks/cache [put]
 func (r *BookmarksAPIRoutes) updateCache(c *gin.Context) {
 	ctx := context.NewContextFromGin(c)
-	if !ctx.UserIsLogged() {
+	if !ctx.GetAccount().Owner {
 		response.SendError(c, http.StatusForbidden, nil)
 		return
 	}
@@ -185,7 +245,7 @@ func (r *BookmarksAPIRoutes) updateCache(c *gin.Context) {
 	close(chDone)
 
 	// Update database
-	_, err = r.deps.Database.SaveBookmarks(ctx, false, bookmarks...)
+	_, err = r.deps.Database.SaveBookmarks(c, false, bookmarks...)
 	if err != nil {
 		r.logger.WithError(err).Error("error update bookmakrs on deatabas")
 		response.SendInternalServerError(c)

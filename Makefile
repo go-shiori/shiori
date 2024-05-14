@@ -1,19 +1,31 @@
 GO ?= $(shell command -v go 2> /dev/null)
 BASH ?= $(shell command -v bash 2> /dev/null)
+GOLANG_VERSION := $(shell head -n 4 go.mod | tail -n 1 | cut -d " " -f 2)
 
 # Development
 SHIORI_DIR ?= dev-data
-
-# Testing
-override GO_TEST_FLAGS += -v -race -count=1 -covermode=atomic -coverprofile=coverage.out
-GOTESTFMT_FLAGS ?=
+SOURCE_FILES ?=./internal/...
 
 # Build
 CGO_ENABLED ?= 0
 BUILD_TIME := $(shell date -u +%Y%m%d.%H%M%S)
 BUILD_HASH := $(shell git describe --tags)
-BUILD_TAGS ?= osusergo,netgo
+BUILD_TAGS ?= osusergo,netgo,fts5
 LDFLAGS += -s -w -X main.version=$(BUILD_HASH) -X main.date=$(BUILD_TIME)
+
+# Build (container)
+CONTAINER_RUNTIME := docker
+CONTAINERFILE_NAME := Dockerfile
+CONTAINER_ALPINE_VERSION := 3.19
+BUILDX_PLATFORMS := linux/amd64,linux/arm64,linux/arm/v7
+
+# This is used for local development only, forcing linux to create linux only images but with the arch
+# of the running machine. Far from perfect but works.
+LOCAL_BUILD_PLATFORM = linux/$(shell go env GOARCH)
+
+# Testing
+GO_TEST_FLAGS ?= -v -race -count=1 -tags $(BUILD_TAGS) -covermode=atomic -coverprofile=coverage.out
+GOTESTFMT_FLAGS ?=
 
 # Development
 GIN_MODE ?= debug
@@ -25,6 +37,15 @@ SWAGGER_DOCS_PATH ?= ./docs/swagger
 
 # Frontend
 CLEANCSS_OPTS ?= --with-rebase
+
+# Common exports
+export GOLANG_VERSION
+export CONTAINER_RUNTIME
+export CONTAINERFILE_NAME
+export CONTAINER_ALPINE_VERSION
+export BUILDX_PLATFORMS
+
+export SOURCE_FILES
 
 # Help documentatin à la https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 .PHONY: help
@@ -92,12 +113,29 @@ styles-check:
 ## Build binary
 .PHONY: build
 build: clean
-	GIN_MODE=$(GIN_MODE) goreleaser build --rm-dist --snapshot
+	GIN_MODE=$(GIN_MODE) goreleaser build --clean --snapshot
+
+## Build binary for current targer
+build-local: clean
+	GIN_MODE=$(GIN_MODE) goreleaser build --clean --snapshot --single-target
+
+## Build docker image using Buildx.
+# used for multi-arch builds suing mainly the CI, that's why the task does not
+# build the binaries using a dependency task.
+.PHONY: buildx
+buildx:
+	$(info: Make: Buildx)
+	@bash scripts/buildx.sh
+
+## Build docker image for local development
+buildx-local: build-local
+	$(info: Make: Build image locally)
+	CONTAINER_BUILDX_OPTIONS="-t shiori:localdev --output type=docker" BUILDX_PLATFORMS=$(LOCAL_BUILD_PLATFORM) scripts/buildx.sh
 
 ## Creates a coverage report
 .PHONY: coverage
 coverage:
-	$(GO) test $(GO_TEST_FLAGS) -coverprofile=coverage.txt ./...
+	$(GO) test $(GO_TEST_FLAGS) -coverprofile=coverage.txt $(SOURCE_FILES)
 	$(GO) tool cover -html=coverage.txt
 
 ## Run generate accross the project
