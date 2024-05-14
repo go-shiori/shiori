@@ -22,3 +22,6 @@ dist/
 
 # frontend
 node_modules
+
+# workaround for buildx using podman
+type=docker
