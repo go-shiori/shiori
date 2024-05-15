@@ -10,3 +10,7 @@ ADD COLUMN modified_at TIMESTAMP(0) NOT NULL DEFAULT CURRENT_TIMESTAMP;
 UPDATE bookmark
 SET modified_at = COALESCE(created_at, CURRENT_TIMESTAMP)
 WHERE created_at IS NOT NULL;
+
+-- Index for "created_at" "modified_at""
+CREATE INDEX idx_created_at ON bookmark(created_at);
+CREATE INDEX idx_modified_at ON bookmark(modified_at);
