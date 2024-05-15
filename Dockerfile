@@ -8,7 +8,8 @@ ARG TARGETOS
 ARG TARGETVARIANT
 COPY dist/shiori_${TARGETOS}_${TARGETARCH}${TARGETVARIANT}/shiori /usr/bin/shiori
 RUN apk add --no-cache ca-certificates tzdata && \
-    chmod +x /usr/bin/shiori
+    chmod +x /usr/bin/shiori && \
+    rm -rf /tmp/*
 
 # Server image
 FROM scratch
@@ -20,6 +21,7 @@ WORKDIR ${SHIORI_DIR}
 LABEL org.opencontainers.image.source="https://github.com/go-shiori/shiori"
 LABEL maintainer="Felipe Martin <github@fmartingr.com>"
 
+COPY --from=builder /tmp /tmp
 COPY --from=builder /usr/bin/shiori /usr/bin/shiori
 COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt

@@ -217,6 +217,11 @@ func (r *BookmarksAPIRoutes) updateCache(c *gin.Context) {
 			content.Close()
 
 			if err != nil {
+				r.logger.WithFields(logrus.Fields{
+					"bookmark_id": book.ID,
+					"url":         book.URL,
+					"error":       err,
+				}).Error("error downloading bookmark cache")
 				chProblem <- book.ID
 				return
 			}
