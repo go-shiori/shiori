@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/stretchr/testify/assert"
@@ -22,6 +23,7 @@ func testDatabase(t *testing.T, dbFactory testDatabaseFactory) {
 		"testCreateBookmarkWithTag":         testCreateBookmarkWithTag,
 		"testCreateTwoDifferentBookmarks":   testCreateTwoDifferentBookmarks,
 		"testUpdateBookmark":                testUpdateBookmark,
+		"testModifiedTimeUpdate":            testModifiedTimeUpdate,
 		"testUpdateBookmarkWithContent":     testUpdateBookmarkWithContent,
 		"testGetBookmark":                   testGetBookmark,
 		"testGetBookmarkNotExistent":        testGetBookmarkNotExistent,
@@ -423,4 +425,31 @@ func testGetAccounts(t *testing.T, db DB) {
 		assert.NoError(t, err)
 		assert.Equal(t, 0, len(accounts))
 	})
+}
+
+func testModifiedTimeUpdate(t *testing.T, db DB) {
+	ctx := context.TODO()
+
+	book := model.BookmarkDTO{
+		URL:   "https://github.com/go-shiori/shiori",
+		Title: "shiori",
+	}
+
+	resultBook, err := db.SaveBookmarks(ctx, true, book)
+	assert.NoError(t, err, "Save bookmarks must not fail")
+
+	updatedBook := resultBook[0]
+	updatedBook.Title = "modified"
+	updatedBook.Modified = ""
+
+	time.Sleep(1 * time.Second)
+	resultUpdatedBooks, err := db.SaveBookmarks(ctx, false, updatedBook)
+	assert.NoError(t, err, "Save bookmarks must not fail")
+
+	assert.NotEqual(t, resultBook[0].Modified, resultUpdatedBooks[0].Modified)
+	assert.Equal(t, resultBook[0].Created, resultUpdatedBooks[0].Created)
+	assert.Equal(t, resultBook[0].Created, resultBook[0].Modified)
+	assert.NoError(t, err, "Get bookmarks must not fail")
+
+	assert.Equal(t, updatedBook.Title, resultUpdatedBooks[0].Title, "Saved bookmark must have updated Title")
 }
