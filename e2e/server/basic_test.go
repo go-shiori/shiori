@@ -8,8 +8,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const version = "dev"
-
 func TestServerBasic(t *testing.T) {
 	container := e2eutil.NewShioriContainer(t, "")
 
