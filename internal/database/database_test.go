@@ -24,6 +24,7 @@ func testDatabase(t *testing.T, dbFactory testDatabaseFactory) {
 		"testCreateTwoDifferentBookmarks":   testCreateTwoDifferentBookmarks,
 		"testUpdateBookmark":                testUpdateBookmark,
 		"testModifiedTimeUpdate":            testModifiedTimeUpdate,
+		"testModifiedAndCreateTimeFilter":   testModifiedAndCreateTimeFilter,
 		"testUpdateBookmarkWithContent":     testUpdateBookmarkWithContent,
 		"testGetBookmark":                   testGetBookmark,
 		"testGetBookmarkNotExistent":        testGetBookmarkNotExistent,
@@ -452,4 +453,64 @@ func testModifiedTimeUpdate(t *testing.T, db DB) {
 	assert.NoError(t, err, "Get bookmarks must not fail")
 
 	assert.Equal(t, updatedBook.Title, resultUpdatedBooks[0].Title, "Saved bookmark must have updated Title")
+}
+
+func testModifiedAndCreateTimeFilter(t *testing.T, db DB) {
+	ctx := context.TODO()
+
+	book1 := model.BookmarkDTO{
+		URL:   "https://github.com/go-shiori/shiori",
+		Title: "Added First but Modified Last",
+	}
+	book2 := model.BookmarkDTO{
+		URL:   "https://github.com/go-shiori/shiori/second",
+		Title: "Added Last but Modified First",
+	}
+
+	// create two new bookmark
+	resultBook1, err := db.SaveBookmarks(ctx, true, book1)
+	assert.NoError(t, err, "Save bookmarks must not fail")
+	time.Sleep(1 * time.Second)
+	resultBook2, err := db.SaveBookmarks(ctx, true, book2)
+	assert.NoError(t, err, "Save bookmarks must not fail")
+
+	// update those bookmarks
+	updatedBook1 := resultBook1[0]
+	updatedBook1.Title = "Added First but Modified Last Updated Title"
+	updatedBook1.Modified = ""
+
+	updatedBook2 := resultBook2[0]
+	updatedBook2.Title = "Last Added but modified First Updated Title"
+	updatedBook2.Modified = ""
+
+	// modified bookmark2 first after one second modified bookmark1
+	resultUpdatedBook2, err := db.SaveBookmarks(ctx, false, updatedBook2)
+	assert.NoError(t, err, "Save bookmarks must not fail")
+	time.Sleep(1 * time.Second)
+	resultUpdatedBook1, err := db.SaveBookmarks(ctx, false, updatedBook1)
+	assert.NoError(t, err, "Save bookmarks must not fail")
+
+	// get diffrent filteter combination
+	booksOrderByLastAdded, err := db.GetBookmarks(ctx, GetBookmarksOptions{
+		IDs:         []int{resultUpdatedBook1[0].ID, resultUpdatedBook2[0].ID},
+		OrderMethod: 1,
+	})
+	assert.NoError(t, err, "Get bookmarks must not fail")
+	booksOrderByLastModified, err := db.GetBookmarks(ctx, GetBookmarksOptions{
+		IDs:         []int{resultUpdatedBook1[0].ID, resultUpdatedBook2[0].ID},
+		OrderMethod: 2,
+	})
+	assert.NoError(t, err, "Get bookmarks must not fail")
+	booksOrderById, err := db.GetBookmarks(ctx, GetBookmarksOptions{
+		IDs:         []int{resultUpdatedBook1[0].ID, resultUpdatedBook2[0].ID},
+		OrderMethod: 0,
+	})
+	assert.NoError(t, err, "Get bookmarks must not fail")
+
+	// Check Last Added
+	assert.Equal(t, booksOrderByLastAdded[0].Title, updatedBook2.Title)
+	// Check Last Modified
+	assert.Equal(t, booksOrderByLastModified[0].Title, updatedBook1.Title)
+	// Second id should be 2 if order them by id
+	assert.Equal(t, booksOrderById[1].ID, 2)
 }
