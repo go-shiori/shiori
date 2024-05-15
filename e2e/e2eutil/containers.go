@@ -2,6 +2,7 @@ package e2eutil
 
 import (
 	"context"
+	"os"
 	"testing"
 	"time"
 
@@ -15,6 +16,10 @@ const (
 	shioriExpectedStartupMessage = "started http server"
 	shioriExpectedStartupSeconds = 5
 )
+
+func newBuildArg(value string) *string {
+	return &value
+}
 
 type ShioriContainer struct {
 	t *testing.T
@@ -42,11 +47,16 @@ func NewShioriContainer(t *testing.T, tag string) ShioriContainer {
 
 	if tag != "" {
 		containerDefinition.ContainerRequest.FromDockerfile = testcontainers.FromDockerfile{}
-		containerDefinition.Image = "gchr.io/go-shiori/shiori:v" + tag
+		containerDefinition.Image = "gchr.io/go-shiori/shiori:" + tag
 	} else {
 		containerDefinition.FromDockerfile = testcontainers.FromDockerfile{
-			Context:   ".",
-			KeepImage: true,
+			Context:    "../..",
+			Dockerfile: "Dockerfile.e2e",
+			KeepImage:  true,
+			BuildArgs: map[string]*string{
+				"ALPINE_VERSION": newBuildArg(os.Getenv("ALPINE_VERSION")),
+				"GOLANG_VERSION": newBuildArg(os.Getenv("GOLANG_VERSION")),
+			},
 		}
 	}
 

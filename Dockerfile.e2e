@@ -1,0 +1,14 @@
+ARG ALPINE_VERSION
+ARG GOLANG_VERSION
+
+FROM docker.io/golang:${GOLANG_VERSION}-alpine${ALPINE_VERSION}
+
+WORKDIR /src/shiori
+
+COPY . /src/shiori
+
+RUN apk --update add git && \
+    go run main.go version # Using this to force go dep download by running the main command.
+
+ENTRYPOINT ["go", "run", "main.go"]
+CMD ["server"]

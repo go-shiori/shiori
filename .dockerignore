@@ -1,5 +1,6 @@
 dev-data*
 docs
+!docs/swagger
 Dockerfile
 *.md
 /.*
