@@ -1,8 +1,5 @@
+dev-data*
 docs
 Dockerfile
 *.md
-.githooks
-.github
-.goreleaser.yaml
-.golangci.yml
-.gitignore
+/.*
