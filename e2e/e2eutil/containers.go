@@ -17,6 +17,19 @@ const (
 	shioriExpectedStartupSeconds = 5
 )
 
+var testContainersProviderType testcontainers.ProviderType = testcontainers.ProviderDocker
+
+func init() {
+	// If TESTCONTAINERS_PROVIDER is set to podman, use podman
+	// NOTE: This is EXPERIMENTAL since there are some issues running the e2e tests using podman,
+	// testcontainers implies that it supports podman but I couldn't make it run in my tests.
+	// YMMV.
+	// More info: https://golang.testcontainers.org/system_requirements/using_podman/
+	if os.Getenv("TESTCONTAINERS_PROVIDER") == "podman" {
+		testContainersProviderType = testcontainers.ProviderPodman
+	}
+}
+
 func newBuildArg(value string) *string {
 	return &value
 }
@@ -37,6 +50,7 @@ func (sc *ShioriContainer) GetPort() string {
 // with some helpers for using while running Shiori E2E tests.
 func NewShioriContainer(t *testing.T, tag string) ShioriContainer {
 	containerDefinition := testcontainers.GenericContainerRequest{
+		ProviderType: testContainersProviderType,
 		ContainerRequest: testcontainers.ContainerRequest{
 			Cmd:          []string{"server", "--log-level", "debug"},
 			ExposedPorts: []string{shioriPort},
