@@ -68,7 +68,7 @@ func NewShioriContainer(t *testing.T, tag string) ShioriContainer {
 			Dockerfile: "Dockerfile.e2e",
 			KeepImage:  true,
 			BuildArgs: map[string]*string{
-				"ALPINE_VERSION": newBuildArg(os.Getenv("ALPINE_VERSION")),
+				"ALPINE_VERSION": newBuildArg(os.Getenv("CONTAINER_ALPINE_VERSION")),
 				"GOLANG_VERSION": newBuildArg(os.Getenv("GOLANG_VERSION")),
 			},
 		}
