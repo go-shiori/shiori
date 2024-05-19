@@ -42,6 +42,8 @@
 		import pageHome from "./assets/js/page/home.js";
 		import pageSetting from "./assets/js/page/setting.js";
 		import customDialog from "./assets/js/component/dialog.js";
+        import EventBus from "../assets/js/component/eventBus.js";
+        Vue.prototype.$bus = EventBus;
 
 		var app = new Vue({
 			el: '#main-scene',
@@ -71,6 +73,9 @@
 
 					url.hash = pageName;
 					this.activePage = page;
+                    if (pageName === 'home') {
+                    Vue.prototype.$bus.$emit('clearHomePage', {});
+                        }
 					history.pushState(state, page, url);
 				},
 				logout() {

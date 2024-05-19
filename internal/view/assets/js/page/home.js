@@ -90,6 +90,9 @@ import paginationBox from "../component/pagination.js";
 import bookmarkItem from "../component/bookmark.js";
 import customDialog from "../component/dialog.js";
 import basePage from "./base.js";
+import EventBus from "../component/eventBus.js";
+
+Vue.prototype.$bus = EventBus;
 
 export default {
 	template: template,
@@ -153,6 +156,12 @@ export default {
 		},
 	},
 	methods: {
+		clearHomePage() {
+			this.$bus.$on("clearHomePage", () => {
+				this.search = "";
+				this.searchBookmarks();
+			});
+		},
 		reloadData() {
 			if (this.loading) return;
 			this.page = 1;
@@ -161,6 +170,7 @@ export default {
 		},
 		loadData(saveState, fetchTags) {
 			if (this.loading) return;
+			this.clearHomePage();
 
 			// Set default args
 			saveState = typeof saveState === "boolean" ? saveState : true;
