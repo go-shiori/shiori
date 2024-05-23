@@ -36,6 +36,15 @@ archives:
     - goos: windows
       format: zip
 
+# TODO:
+# upx:
+#   - enabled: true
+#     ids:
+#       - shiori
+#     goos: [linux, darwin]
+#     goarch: [amd64, arm, arm64]
+#     goarm: ["7"]
+
 checksum:
   name_template: 'checksums.txt'
 snapshot:
