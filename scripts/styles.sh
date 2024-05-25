@@ -13,7 +13,7 @@ if [ -x "$(command -v bun)" ]; then
         BUN="bun"
     else
         BUN="sde -chip-check-disable -- bun"
-        echo "Your cpu not support avx2 so We use sde for more information please lookat https://github.com/oven-sh/bun/issues/762#issuecomment-1186505847"
+        echo "Your CPU does not support avx2 so we use sde, for more information please look at https://github.com/oven-sh/bun/issues/762#issuecomment-1186505847"
     fi
 fi
 
