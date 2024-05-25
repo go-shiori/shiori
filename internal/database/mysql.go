@@ -32,7 +32,7 @@ var mysqlMigrations = []migration{
 		defer tx.Rollback()
 
 		_, err = tx.Exec(`ALTER TABLE bookmark ADD COLUMN has_content BOOLEAN DEFAULT 0`)
-		if strings.Contains(err.Error(), `Duplicate column name`) {
+		if err != nil && strings.Contains(err.Error(), `Duplicate column name`) {
 			tx.Rollback()
 		} else if err != nil {
 			return fmt.Errorf("failed to add has_content column to bookmark table: %w", err)
@@ -49,7 +49,7 @@ var mysqlMigrations = []migration{
 		defer tx.Rollback()
 
 		_, err = tx.Exec(`ALTER TABLE account ADD COLUMN config JSON  NOT NULL DEFAULT '{}'`)
-		if strings.Contains(err.Error(), `Duplicate column name`) {
+		if err != nil && strings.Contains(err.Error(), `Duplicate column name`) {
 			tx.Rollback()
 		} else if err != nil {
 			return fmt.Errorf("failed to add config column to account table: %w", err)
