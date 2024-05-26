@@ -170,7 +170,6 @@ export default {
 		},
 		loadData(saveState, fetchTags) {
 			if (this.loading) return;
-			this.clearHomePage();
 
 			// Set default args
 			saveState = typeof saveState === "boolean" ? saveState : true;
@@ -1009,6 +1008,7 @@ export default {
 		},
 	},
 	mounted() {
+		this.clearHomePage();
 		// Prepare history state watcher
 		var stateWatcher = (e) => {
 			var state = e.state || {},
