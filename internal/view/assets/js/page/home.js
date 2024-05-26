@@ -157,10 +157,8 @@ export default {
 	},
 	methods: {
 		clearHomePage() {
-			this.$bus.$on("clearHomePage", () => {
 				this.search = "";
 				this.searchBookmarks();
-			});
 		},
 		reloadData() {
 			if (this.loading) return;
@@ -1008,7 +1006,9 @@ export default {
 		},
 	},
 	mounted() {
-		this.clearHomePage();
+		this.$bus.$on("clearHomePage", () => {
+		    this.clearHomePage();
+		});
 		// Prepare history state watcher
 		var stateWatcher = (e) => {
 			var state = e.state || {},
