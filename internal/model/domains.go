@@ -17,6 +17,13 @@ type BookmarksDomain interface {
 	GetBookmark(ctx context.Context, id DBID) (*BookmarkDTO, error)
 }
 
+type TagsDomain interface {
+	GetTags(ctx context.Context) ([]TagDTO, error)
+	CreateTags(ctx context.Context, tags ...TagDTO) (TagDTO, error)
+	UpdateTag(ctx context.Context, tag TagDTO) (TagDTO, error)
+	DeleteTag(ctx context.Context, tagID DBID) error
+}
+
 type AccountsDomain interface {
 	CheckToken(ctx context.Context, userJWT string) (*Account, error)
 	GetAccountFromCredentials(ctx context.Context, username, password string) (*Account, error)
