@@ -71,7 +71,7 @@
 						state = { activePage: page },
 						url = new Url;
 
-                    if (page == 'page-home'  && this.activePage === 'page-home') {
+                    if (page === 'page-home'  && this.activePage === 'page-home') {
                     Vue.prototype.$bus.$emit('clearHomePage', {});
                         }
 					url.hash = pageName;
