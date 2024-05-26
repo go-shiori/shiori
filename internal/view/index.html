@@ -71,11 +71,11 @@
 						state = { activePage: page },
 						url = new Url;
 
-					url.hash = pageName;
-					this.activePage = page;
-                    if (pageName === 'home') {
+                    if (page == 'page-home'  && this.activePage === 'page-home') {
                     Vue.prototype.$bus.$emit('clearHomePage', {});
                         }
+					url.hash = pageName;
+					this.activePage = page;
 					history.pushState(state, page, url);
 				},
 				logout() {
