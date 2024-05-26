@@ -7,14 +7,10 @@ INPUT_ARCHIVECSS=internal/view/assets/less/archive.less
 OUTPUT_ARCHIVECSS=internal/view/assets/css/archive.css
 
 # Detect support of avx2
-
-if [ -x "$(command -v bun)" ]; then
-    if grep -q avx2 /proc/cpuinfo; then
-        BUN="bun"
-    else
-        BUN="sde -chip-check-disable -- bun"
-        echo "Your CPU does not support avx2 so we use sde, for more information please look at https://github.com/oven-sh/bun/issues/762#issuecomment-1186505847"
-    fi
+BUN="bun"
+if grep -q avx2 /proc/cpuinfo; then
+    BUN="sde -chip-check-disable -- bun"
+    echo "Your CPU does not support avx2 so we use sde, for more information please look at https://github.com/oven-sh/bun/issues/762#issuecomment-1186505847"
 fi
 
 # Use bun is installled
