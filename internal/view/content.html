@@ -63,18 +63,34 @@
 						ShowId = (typeof opts.config.ShowId === "boolean") ? opts.config.ShowId : false,
 						ListMode = (typeof opts.config.ListMode === "boolean") ? opts.config.ListMode : false,
 						NightMode = (typeof opts.config.NightMode === "boolean") ? opts.config.NightMode : false,
-						UseArchive = (typeof opts.config.UseArchive === "boolean") ? opts.config.UseArchive : false;
+                        Theme = (typeof opts.config.Theme === "string" && opts.config.Theme !== "") ? opts.config.Theme : "follow",
+						UseArchive = (typeof opts.config.UseArchive === "boolean") ? opts.config.UseArchive : false,
 						CreateEbook = (typeof opts.config.CreateEbook === "boolean") ? opts.config.CreateEbook : false;
 
 					this.appOptions = {
 						ShowId: ShowId,
 						ListMode: ListMode,
 						NightMode: NightMode,
+						Theme: Theme,
 						UseArchive: UseArchive,
 						CreateEbook: CreateEbook,
 					};
 
-					document.body.className = NightMode ? "night" : "";
+					//document.body.className = NightMode ? "night" : "";
+                    switch(Theme){
+                    case "light":
+                        document.body.className = "";
+                        this.appOptions.NightMode = false;
+                        break;
+                    case "night":
+                        document.body.className = "night";
+                        this.appOptions.NightMode = true;
+                        break;
+                    case "follow":
+                        document.body.className = window.matchMedia('(prefers-color-scheme: dark)').matches ? "night" : "";
+                        this.appOptions.NightMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                        break;
+                    }
 				}
 			},
 			mounted() {
