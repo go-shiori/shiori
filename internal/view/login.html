@@ -150,8 +150,7 @@
 				},
 				loadSetting() {
 					var opts = JSON.parse(localStorage.getItem("shiori-account")) || {},
-						NightMode = (typeof opts.config.NightMode === "boolean") ? opts.configNightMode : false;
-
+						NightMode =  window.matchMedia('(prefers-color-scheme: dark)').matches ;
 					this.NightMode = NightMode;
 				}
 			},
