@@ -61,7 +61,7 @@ jobs:
     - run: go build -tags osusergo,netgo -ldflags="-s -w -X main.version=$(git describe --tags) -X main.date=$(date --iso-8601=seconds)"
 
     - name: Upload coverage reports to Codecov
-      uses: codecov/codecov-action@6d798873df2b1b8e5846dba6fb86631229fbcb17 # 4.4.0
+      uses: codecov/codecov-action@125fc84a9a348dbcf27191600683ec096ec9021c # 4.4.1
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
