@@ -107,7 +107,20 @@
 				},
 				saveSetting(opts) {
 					this.appOptions = opts;
-					document.body.className = opts.config.NightMode ? "night" : "";
+                    switch(opts.Theme){
+                    case "light":
+                        document.body.className = "";
+                        this.appOptions.NightMode = false;
+                        break;
+                    case "night":
+                        document.body.className = "night";
+                        this.appOptions.NightMode = true;
+                        break;
+                    case "follow":
+                        document.body.className = window.matchMedia('(prefers-color-scheme: dark)').matches ? "night" : "";
+                        this.appOptions.NightMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                        break;
+                    }
 				},
 				loadSetting() {
 					var opts = JSON.parse(localStorage.getItem("shiori-account")) || {},
@@ -116,6 +129,7 @@
 						HideThumbnail = (typeof opts.config.HideThumbnail === "boolean") ? opts.config.HideThumbnail : false,
 						HideExcerpt = (typeof opts.config.HideExcerpt === "boolean") ? opts.config.HideExcerpt : false,
 						NightMode = (typeof opts.config.NightMode === "boolean") ? opts.config.NightMode : false,
+                        Theme = (typeof opts.config.Theme === "string" && opts.config.Theme !== "") ? opts.config.Theme : "follow",
 						KeepMetadata = (typeof opts.config.KeepMetadata === "boolean") ? opts.config.KeepMetadata : false,
 						UseArchive = (typeof opts.config.UseArchive === "boolean") ? opts.config.UseArchive : false,
 						CreateEbook = (typeof opts.config.CreateEbook === "boolean") ? opts.config.CreateEbook : false,
@@ -127,13 +141,27 @@
 						HideThumbnail: HideThumbnail,
 						HideExcerpt: HideExcerpt,
 						NightMode: NightMode,
+						Theme: Theme,
 						KeepMetadata: KeepMetadata,
 						UseArchive: UseArchive,
 						CreateEbook: CreateEbook,
 						MakePublic: MakePublic,
 					};
+                    switch(Theme){
+                    case "light":
+                        document.body.className = "";
+                        this.appOptions.NightMode = false;
+                        break;
+                    case "night":
+                        document.body.className = "night";
+                        this.appOptions.NightMode = true;
+                        break;
+                    case "follow":
+                        document.body.className = window.matchMedia('(prefers-color-scheme: dark)').matches ? "night" : "";
+                        this.appOptions.NightMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                        break;
+                    }
 
-					document.body.className = NightMode ? "night" : "";
 				},
 				loadAccount() {
 					var account = JSON.parse(localStorage.getItem("shiori-account")) || {},

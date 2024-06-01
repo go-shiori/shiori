@@ -21,9 +21,13 @@ var template = `
                 Hide bookmark's excerpt
             </label>
             <label>
-                <input type="checkbox" v-model="appOptions.NightMode" @change="saveSetting">
-                Use dark theme
-            </label>
+                Theme &nbsp;
+                <select v-model="appOptions.Theme" @change="saveSetting">
+                <option value="follow">Follow system</option>
+                <option value="light">Light theme</option>
+                <option value="night">Dark theme</option>
+                </select>
+            </lable>
         </details>
         <details v-if="activeAccount.owner" open class="setting-group" id="setting-bookmarks">
             <summary>Bookmarks</summary>
@@ -93,6 +97,7 @@ export default {
 				HideThumbnail: this.appOptions.HideThumbnail,
 				HideExcerpt: this.appOptions.HideExcerpt,
 				NightMode: this.appOptions.NightMode,
+				Theme: this.appOptions.Theme,
 			};
 
 			if (this.activeAccount.owner) {
