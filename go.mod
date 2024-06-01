@@ -25,7 +25,7 @@ require (
 	github.com/muesli/go-app-paths v0.2.2
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1
-	github.com/sethvargo/go-envconfig v1.0.2
+	github.com/sethvargo/go-envconfig v1.0.3
 	github.com/shurcooL/vfsgen v0.0.0-20230704071429-0000e147ea92
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/afero v1.11.0
@@ -40,7 +40,7 @@ require (
 	golang.org/x/image v0.16.0
 	golang.org/x/net v0.25.0
 	golang.org/x/term v0.20.0
-	modernc.org/sqlite v1.29.9
+	modernc.org/sqlite v1.29.10
 )
 
 require (
