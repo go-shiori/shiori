@@ -55,20 +55,15 @@ export default {
 			};
 		},
 		showDialog(cfg) {
-			const base = this.defaultDialog();
-			base.visible = true;
-			if (cfg.loading) base.loading = cfg.loading;
-			if (cfg.title) base.title = cfg.title;
-			if (cfg.content) base.content = cfg.content;
-			if (cfg.fields) base.fields = cfg.fields;
-			if (cfg.showLabel) base.showLabel = cfg.showLabel;
-			if (cfg.mainText) base.mainText = cfg.mainText;
-			if (cfg.secondText) base.secondText = cfg.secondText;
-			if (cfg.mainClick) base.mainClick = cfg.mainClick;
-			if (cfg.secondClick) base.secondClick = cfg.secondClick;
-			if (cfg.escPressed) base.escPressed = cfg.escPressed;
-			this.dialog = base;
-		},
+            const base = this.defaultDialog();
+            base.visible = true;
+            for (const key in cfg) {
+                if (Object.prototype.hasOwnProperty.call(cfg, key)) {
+                    base[key] = cfg[key];
+                }
+            }
+            this.dialog = base;
+        },
 		async getErrorMessage(err) {
 			switch (err.constructor) {
 				case Error:
