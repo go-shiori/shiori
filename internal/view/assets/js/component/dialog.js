@@ -117,7 +117,7 @@ export default {
 			immediate: true,
 			handler() {
 				this.formFields = this.fields.map((field) => {
-					if (typeof field === "string")
+					if (typeof field === "string"){
 						return {
 							name: field,
 							label: field,
@@ -127,8 +127,9 @@ export default {
 							separator: " ",
 							suggestion: undefined,
 						};
+                    }
 
-					if (typeof field === "object")
+					if (typeof field === "object"){
 						return {
 							name: field.name || "",
 							label: field.label || "",
@@ -139,6 +140,7 @@ export default {
 							separator: field.separator || " ",
 							suggestion: undefined,
 						};
+                    }
 				});
 			},
 		},
@@ -162,9 +164,17 @@ export default {
 			const data = {};
 			this.formFields.forEach((field) => {
 				let value = field.value;
-				if (field.type === "number") value = parseInt(value, 10) || 0;
-				else if (field.type === "float") value = parseFloat(value) || 0.0;
-				else if (field.type === "check") value = Boolean(value);
+                switch (field.type){
+                    case "number":
+                        value = parseInt(value, 10) || 0;
+                        break;
+                    case "float":
+                        value = parseFloat(value) || 0.0;
+                        break;
+                    case "check":
+                        value = Boolean(value);
+                        break;
+                }
 				data[field.name] = value;
 			});
 
@@ -178,16 +188,16 @@ export default {
 		},
 		handleInput(index) {
 			// Create initial variable
-			const field = this.formFields[index],
-				dictionary = field.dictionary;
+			const field = this.formFields[index];
+            const dictionary = field.dictionary;
 
 			// Make sure dictionary is not empty
 			if (dictionary.length === 0) return;
 
 			// Fetch suggestion from dictionary
 			const words = field.value.split(field.separator);
-			lastWord = words[words.length - 1].toLowerCase();
-			suggestion;
+			const lastWord = words[words.length - 1].toLowerCase();
+			let suggestion = null;
 
 			if (lastWord !== "") {
 				suggestion = dictionary.find((word) => {
@@ -202,9 +212,9 @@ export default {
 
 			// Display suggestion
 			this.$nextTick(() => {
-				const input = this.$refs.input[index],
-					suggestionNode = this.$refs["suggestion-" + index][0],
-					inputRect = input.getBoundingClientRect();
+				const input = this.$refs.input[index];
+				const suggestionNode = this.$refs["suggestion-" + index][0];
+				const inputRect = input.getBoundingClientRect();
 
 				suggestionNode.style.top = inputRect.bottom - 1 + "px";
 				suggestionNode.style.left = inputRect.left + "px";
@@ -218,8 +228,8 @@ export default {
 				return;
 			}
 
-			const separator = this.formFields[index].separator,
-				words = this.formFields[index].value.split(separator);
+			const separator = this.formFields[index].separator;
+			const words = this.formFields[index].value.split(separator);
 
 			words.pop();
 			words.push(suggestion);
@@ -233,9 +243,9 @@ export default {
 			this.$nextTick(() => {
 				if (!this.visible) return;
 
-				const fields = this.$refs.input,
-					otherInput = this.$el.querySelectorAll("input"),
-					button = this.$refs.mainButton;
+				const fields = this.$refs.input;
+				const otherInput = this.$el.querySelectorAll("input");
+				const button = this.$refs.mainButton;
 
 				if (fields && fields.length > 0) {
 					this.$refs.input[0].focus();
