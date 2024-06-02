@@ -55,15 +55,15 @@ export default {
 			};
 		},
 		showDialog(cfg) {
-            const base = this.defaultDialog();
-            base.visible = true;
-            for (const key in cfg) {
-                if (Object.prototype.hasOwnProperty.call(cfg, key)) {
-                    base[key] = cfg[key];
-                }
-            }
-            this.dialog = base;
-        },
+			const base = this.defaultDialog();
+			base.visible = true;
+			for (const key in cfg) {
+				if (Object.prototype.hasOwnProperty.call(cfg, key)) {
+					base[key] = cfg[key];
+				}
+			}
+			this.dialog = base;
+		},
 		async getErrorMessage(err) {
 			switch (err.constructor) {
 				case Error:

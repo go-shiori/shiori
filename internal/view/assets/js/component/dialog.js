@@ -117,7 +117,7 @@ export default {
 			immediate: true,
 			handler() {
 				this.formFields = this.fields.map((field) => {
-					if (typeof field === "string"){
+					if (typeof field === "string") {
 						return {
 							name: field,
 							label: field,
@@ -127,9 +127,9 @@ export default {
 							separator: " ",
 							suggestion: undefined,
 						};
-                    }
+					}
 
-					if (typeof field === "object"){
+					if (typeof field === "object") {
 						return {
 							name: field.name || "",
 							label: field.label || "",
@@ -140,7 +140,7 @@ export default {
 							separator: field.separator || " ",
 							suggestion: undefined,
 						};
-                    }
+					}
 				});
 			},
 		},
@@ -164,17 +164,17 @@ export default {
 			const data = {};
 			this.formFields.forEach((field) => {
 				let value = field.value;
-                switch (field.type){
-                    case "number":
-                        value = parseInt(value, 10) || 0;
-                        break;
-                    case "float":
-                        value = parseFloat(value) || 0.0;
-                        break;
-                    case "check":
-                        value = Boolean(value);
-                        break;
-                }
+				switch (field.type) {
+					case "number":
+						value = parseInt(value, 10) || 0;
+						break;
+					case "float":
+						value = parseFloat(value) || 0.0;
+						break;
+					case "check":
+						value = Boolean(value);
+						break;
+				}
 				data[field.name] = value;
 			});
 
@@ -189,7 +189,7 @@ export default {
 		handleInput(index) {
 			// Create initial variable
 			const field = this.formFields[index];
-            const dictionary = field.dictionary;
+			const dictionary = field.dictionary;
 
 			// Make sure dictionary is not empty
 			if (dictionary.length === 0) return;
