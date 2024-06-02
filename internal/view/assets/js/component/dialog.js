@@ -1,4 +1,4 @@
-var template = `
+const template = `
 <div v-if="visible" class="custom-dialog-overlay" @keyup.esc="handleEscPressed">
 	<div class="custom-dialog">
 		<p class="custom-dialog-header">{{title}}</p>
@@ -154,14 +154,14 @@ export default {
 	},
 	methods: {
 		fieldType(f) {
-			var type = f.type || "text";
+			const type = f.type || "text";
 			if (type !== "text" && type !== "password") return "text";
 			else return type;
 		},
 		handleMainClick() {
-			var data = {};
+			const data = {};
 			this.formFields.forEach((field) => {
-				var value = field.value;
+				let value = field.value;
 				if (field.type === "number") value = parseInt(value, 10) || 0;
 				else if (field.type === "float") value = parseFloat(value) || 0.0;
 				else if (field.type === "check") value = Boolean(value);
@@ -178,16 +178,16 @@ export default {
 		},
 		handleInput(index) {
 			// Create initial variable
-			var field = this.formFields[index],
+			const field = this.formFields[index],
 				dictionary = field.dictionary;
 
 			// Make sure dictionary is not empty
 			if (dictionary.length === 0) return;
 
 			// Fetch suggestion from dictionary
-			var words = field.value.split(field.separator),
-				lastWord = words[words.length - 1].toLowerCase(),
-				suggestion;
+			const words = field.value.split(field.separator);
+			lastWord = words[words.length - 1].toLowerCase();
+			suggestion;
 
 			if (lastWord !== "") {
 				suggestion = dictionary.find((word) => {
@@ -202,7 +202,7 @@ export default {
 
 			// Display suggestion
 			this.$nextTick(() => {
-				var input = this.$refs.input[index],
+				const input = this.$refs.input[index],
 					suggestionNode = this.$refs["suggestion-" + index][0],
 					inputRect = input.getBoundingClientRect();
 
@@ -211,14 +211,14 @@ export default {
 			});
 		},
 		handleInputEnter(index) {
-			var suggestion = this.formFields[index].suggestion;
+			const suggestion = this.formFields[index].suggestion;
 
 			if (suggestion == null) {
 				this.handleMainClick();
 				return;
 			}
 
-			var separator = this.formFields[index].separator,
+			const separator = this.formFields[index].separator,
 				words = this.formFields[index].value.split(separator);
 
 			words.pop();
@@ -233,7 +233,7 @@ export default {
 			this.$nextTick(() => {
 				if (!this.visible) return;
 
-				var fields = this.$refs.input,
+				const fields = this.$refs.input,
 					otherInput = this.$el.querySelectorAll("input"),
 					button = this.$refs.mainButton;
 

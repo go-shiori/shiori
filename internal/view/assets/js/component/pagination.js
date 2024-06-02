@@ -1,4 +1,4 @@
-var template = `
+const template = `
 <div class="pagination-box">
 	<p>Page</p>
 	<input type="text" 

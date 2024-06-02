@@ -1,4 +1,4 @@
-var template = `
+const template = `
 <div id="page-setting">
     <h1 class="page-header">Settings</h1>
     <div class="setting-container">
@@ -203,7 +203,7 @@ export default {
 						return;
 					}
 
-					var request = {
+					const request = {
 						username: data.username,
 						password: data.password,
 						owner: !data.visitor,
@@ -231,8 +231,8 @@ export default {
 								owner: !data.visitor,
 							});
 							this.accounts.sort((a, b) => {
-								var nameA = a.username.toLowerCase(),
-									nameB = b.username.toLowerCase();
+								const nameA = a.username.toLowerCase();
+								const nameB = b.username.toLowerCase();
 
 								if (nameA < nameB) {
 									return -1;
@@ -296,7 +296,7 @@ export default {
 						return;
 					}
 
-					var request = {
+					const request = {
 						username: account.username,
 						oldPassword: data.oldPassword,
 						newPassword: data.password,

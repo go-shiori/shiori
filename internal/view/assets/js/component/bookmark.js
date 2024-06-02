@@ -1,4 +1,4 @@
-var template = `
+const template = `
 <div class="bookmark" :class="{list: ListMode, 'no-thumbnail': HideThumbnail, selected: selected}">
 	<a class="bookmark-selector" 
 		v-if="editMode" 
@@ -84,7 +84,7 @@ export default {
 			}
 		},
 		hostnameURL() {
-			var url = new URL(this.url);
+			const url = new URL(this.url);
 			return url.hostname.replace(/^www\./, "");
 		},
 		thumbnailVisible() {

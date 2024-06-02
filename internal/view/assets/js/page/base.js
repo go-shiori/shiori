@@ -55,7 +55,7 @@ export default {
 			};
 		},
 		showDialog(cfg) {
-			var base = this.defaultDialog();
+			const base = this.defaultDialog();
 			base.visible = true;
 			if (cfg.loading) base.loading = cfg.loading;
 			if (cfg.title) base.title = cfg.title;
@@ -73,9 +73,10 @@ export default {
 			switch (err.constructor) {
 				case Error:
 					return err.message;
-				case Response:
-					var text = await err.text();
+				case Response: {
+					const text = await err.text();
 					return `${text} (${err.status})`;
+				}
 				default:
 					return err;
 			}
@@ -96,7 +97,7 @@ export default {
 			}
 		},
 		showErrorDialog(msg) {
-			var sessionError = this.isSessionError(msg),
+			const sessionError = this.isSessionError(msg),
 				dialogContent = sessionError
 					? "Session has expired, please login again."
 					: msg;
@@ -109,7 +110,7 @@ export default {
 				mainClick: () => {
 					this.dialog.visible = false;
 					if (sessionError) {
-						var loginUrl = new Url("login", document.baseURI);
+						const loginUrl = new Url("login", document.baseURI);
 						loginUrl.query.dst = window.location.href;
 
 						document.cookie = `session-id=; Path=${

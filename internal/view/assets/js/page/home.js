@@ -1,4 +1,4 @@
-var template = `
+const template = `
 <div id="page-home">
     <div class="page-header">
         <input type="text" placeholder="Search url, keyword or tags" v-model.trim="search" @focus="$event.target.select()" @keyup.enter="searchBookmarks"/>
@@ -174,14 +174,14 @@ export default {
 			fetchTags = typeof fetchTags === "boolean" ? fetchTags : false;
 
 			// Parse search query
-			var keyword = this.search,
-				rxExcludeTagA = /(^|\s)-tag:["']([^"']+)["']/i, // -tag:"with space"
-				rxExcludeTagB = /(^|\s)-tag:(\S+)/i, // -tag:without-space
-				rxIncludeTagA = /(^|\s)tag:["']([^"']+)["']/i, // tag:"with space"
-				rxIncludeTagB = /(^|\s)tag:(\S+)/i, // tag:without-space
-				tags = [],
-				excludedTags = [],
-				rxResult;
+			let keyword = this.search;
+			const rxExcludeTagA = /(^|\s)-tag:["']([^"']+)["']/i; // -tag:"with space"
+			const rxExcludeTagB = /(^|\s)-tag:(\S+)/i; // -tag:without-space
+			const rxIncludeTagA = /(^|\s)tag:["']([^"']+)["']/i; // tag:"with space"
+			const rxIncludeTagB = /(^|\s)tag:(\S+)/i; // tag:without-space
+			const tags = [];
+			const excludedTags = [];
+			let rxResult;
 
 			// Get excluded tag first, while also removing it from keyword
 			while ((rxResult = rxExcludeTagA.exec(keyword))) {
@@ -209,7 +209,7 @@ export default {
 			keyword = keyword.trim().replace(/\s+/g, " ");
 
 			// Prepare URL for API
-			var url = new URL("api/bookmarks", document.baseURI);
+			const url = new URL("api/bookmarks", document.baseURI);
 			url.search = new URLSearchParams({
 				keyword: keyword,
 				tags: tags.join(","),
@@ -218,7 +218,7 @@ export default {
 			});
 
 			// Fetch data from API
-			var skipFetchTags = Error("skip fetching tags");
+			const skipFetchTags = Error("skip fetching tags");
 
 			this.loading = true;
 			fetch(url, {
@@ -239,13 +239,13 @@ export default {
 
 					// Save state and change URL if needed
 					if (saveState) {
-						var history = {
+						const history = {
 							activePage: "page-home",
 							search: this.search,
 							page: this.page,
 						};
 
-						var url = new Url(document.baseURI);
+						const url = new Url(document.baseURI);
 						url.hash = "home";
 						url.clearQuery();
 						if (this.page > 1) url.query.page = this.page;
@@ -299,7 +299,7 @@ export default {
 			this.editMode = !this.editMode;
 		},
 		toggleSelection(item) {
-			var idx = this.selection.findIndex((el) => el.id === item.id);
+			const idx = this.selection.findIndex((el) => el.id === item.id);
 			if (idx === -1) this.selection.push(item);
 			else this.selection.splice(idx, 1);
 		},
@@ -332,14 +332,14 @@ export default {
 				return;
 			}
 
-			var rxSpace = /\s+/g,
-				includeTag = rxSpace.test(tagName)
-					? `tag:"${tagName}"`
-					: `tag:${tagName}`,
-				excludeTag = "-" + includeTag,
-				rxIncludeTag = new RegExp(`(^|\\s)${includeTag}`, "ig"),
-				rxExcludeTag = new RegExp(`(^|\\s)${excludeTag}`, "ig"),
-				search = this.search;
+			const rxSpace = /\s+/g;
+			const includeTag = rxSpace.test(tagName)
+				? `tag:"${tagName}"`
+				: `tag:${tagName}`;
+			const excludeTag = "-" + includeTag;
+			const rxIncludeTag = new RegExp(`(^|\\s)${includeTag}`, "ig");
+			const rxExcludeTag = new RegExp(`(^|\\s)${excludeTag}`, "ig");
+			let search = this.search;
 
 			search = search.replace("-tag:*", "");
 			search = search.replace("tag:*", "");
@@ -425,7 +425,7 @@ export default {
 					}
 
 					// Prepare tags
-					var tags = data.tags
+					const tags = data.tags
 						.toLowerCase()
 						.replace(/\s+/g, " ")
 						.split(/\s*,\s*/g)
@@ -437,7 +437,7 @@ export default {
 						});
 
 					// Send data
-					var data = {
+					const datatosend = {
 						url: data.url.trim(),
 						title: data.title.trim(),
 						excerpt: data.excerpt.trim(),
@@ -450,7 +450,7 @@ export default {
 					this.dialog.loading = true;
 					fetch(new URL("api/bookmarks", document.baseURI), {
 						method: "post",
-						body: JSON.stringify(data),
+						body: JSON.stringify(datatosend),
 						headers: {
 							"Content-Type": "application/json",
 							Authorization: "Bearer " + localStorage.getItem("shiori-token"),
@@ -478,13 +478,13 @@ export default {
 			// Check the item
 			if (typeof item !== "object") return;
 
-			var id = typeof item.id === "number" ? item.id : 0,
+			const id = typeof item.id === "number" ? item.id : 0,
 				index = typeof item.index === "number" ? item.index : -1;
 
 			if (id < 1 || index < 0) return;
 
 			// Get the existing bookmark value
-			var book = JSON.parse(JSON.stringify(this.bookmarks[index])),
+			const book = JSON.parse(JSON.stringify(this.bookmarks[index])),
 				strTags = book.tags.map((tag) => tag.name).join(", ");
 
 			this.showDialog({
@@ -529,7 +529,7 @@ export default {
 					if (data.title.trim() === "") return;
 
 					// Prepare tags
-					var tags = data.tags
+					const tags = data.tags
 						.toLowerCase()
 						.replace(/\s+/g, " ")
 						.split(/\s*,\s*/g)
@@ -581,7 +581,7 @@ export default {
 			if (!Array.isArray(items)) items = [items];
 
 			items = items.filter((item) => {
-				var id = typeof item.id === "number" ? item.id : 0,
+				const id = typeof item.id === "number" ? item.id : 0,
 					index = typeof item.index === "number" ? item.index : -1;
 
 				return id > 0 && index > -1;
@@ -590,11 +590,11 @@ export default {
 			if (items.length === 0) return;
 
 			// Split ids and indices
-			var ids = items.map((item) => item.id),
+			const ids = items.map((item) => item.id),
 				indices = items.map((item) => item.index).sort((a, b) => b - a);
 
 			// Create title and content
-			var title = "Delete Bookmarks",
+			const title = "Delete Bookmarks",
 				content =
 					"Delete the selected bookmarks ? This action is irreversible.";
 
@@ -652,7 +652,7 @@ export default {
 			if (!Array.isArray(items)) items = [items];
 
 			items = items.filter((item) => {
-				var id = typeof item.id === "number" ? item.id : 0,
+				const id = typeof item.id === "number" ? item.id : 0,
 					index = typeof item.index === "number" ? item.index : -1;
 
 				return id > 0 && index > -1;
@@ -661,8 +661,8 @@ export default {
 			if (items.length === 0) return;
 
 			// define variable and send request
-			var ids = items.map((item) => item.id);
-			var data = {
+			const ids = items.map((item) => item.id);
+			const data = {
 				ids: ids,
 				create_archive: false,
 				keep_metadata: true,
@@ -699,7 +699,7 @@ export default {
 							downloadLink.click();
 						}
 
-						var item = items.find((el) => el.id === book.id);
+						const item = items.find((el) => el.id === book.id);
 						this.bookmarks.splice(item.index, 1, book);
 					});
 				})
@@ -720,7 +720,7 @@ export default {
 			if (!Array.isArray(items)) items = [items];
 
 			items = items.filter((item) => {
-				var id = typeof item.id === "number" ? item.id : 0,
+				const id = typeof item.id === "number" ? item.id : 0,
 					index = typeof item.index === "number" ? item.index : -1;
 
 				return id > 0 && index > -1;
@@ -729,7 +729,7 @@ export default {
 			if (items.length === 0) return;
 
 			// Show dialog
-			var ids = items.map((item) => item.id);
+			const ids = items.map((item) => item.id);
 
 			this.showDialog({
 				title: "Update Cache",
@@ -758,7 +758,7 @@ export default {
 				mainText: "Yes",
 				secondText: "No",
 				mainClick: (data) => {
-					var data = {
+					const datatosend = {
 						ids: ids,
 						create_archive: data.create_archive,
 						keep_metadata: data.keep_metadata,
@@ -769,7 +769,7 @@ export default {
 					this.dialog.loading = true;
 					fetch(new URL("api/v1/bookmarks/cache", document.baseURI), {
 						method: "put",
-						body: JSON.stringify(data),
+						body: JSON.stringify(datatosend),
 						headers: {
 							"Content-Type": "application/json",
 							Authorization: "Bearer " + localStorage.getItem("shiori-token"),
@@ -785,10 +785,10 @@ export default {
 							this.dialog.loading = false;
 							this.dialog.visible = false;
 
-							let faildedUpdateArchives = [];
-							let faildedCreateEbook = [];
+							const faildedUpdateArchives = [];
+							const faildedCreateEbook = [];
 							json.message.forEach((book) => {
-								var item = items.find((el) => el.id === book.id);
+								const item = items.find((el) => el.id === book.id);
 								this.bookmarks.splice(item.index, 1, book);
 
 								if (data.create_archive && !book.hasArchive) {
@@ -835,7 +835,7 @@ export default {
 			if (!Array.isArray(items)) items = [items];
 
 			items = items.filter((item) => {
-				var id = typeof item.id === "number" ? item.id : 0,
+				const id = typeof item.id === "number" ? item.id : 0,
 					index = typeof item.index === "number" ? item.index : -1;
 
 				return id > 0 && index > -1;
@@ -860,7 +860,7 @@ export default {
 				secondText: "Cancel",
 				mainClick: (data) => {
 					// Validate input
-					var tags = data.tags
+					const tags = data.tags
 						.toLowerCase()
 						.replace(/\s+/g, " ")
 						.split(/\s*,\s*/g)
@@ -874,7 +874,7 @@ export default {
 					if (tags.length === 0) return;
 
 					// Send data
-					var request = {
+					const request = {
 						ids: items.map((item) => item.id),
 						tags: tags,
 					};
@@ -899,7 +899,7 @@ export default {
 							this.dialog.visible = false;
 
 							json.forEach((book) => {
-								var item = items.find((el) => el.id === book.id);
+								const item = items.find((el) => el.id === book.id);
 								this.bookmarks.splice(item.index, 1, book);
 							});
 						})
@@ -945,7 +945,7 @@ export default {
 				},
 				mainClick: (data) => {
 					// Save the old query
-					var rxSpace = /\s+/g,
+					const rxSpace = /\s+/g,
 						oldTagQuery = rxSpace.test(tag.name)
 							? `"#${tag.name}"`
 							: `#${tag.name}`,
@@ -954,7 +954,7 @@ export default {
 							: `#${data.newName}`;
 
 					// Send data
-					var newData = {
+					const newData = {
 						id: tag.id,
 						name: data.newName,
 					};
@@ -980,7 +980,7 @@ export default {
 							this.dialogTags.visible = true;
 							this.dialogTags.editMode = false;
 							this.tags.sort((a, b) => {
-								var aName = a.name.toLowerCase(),
+								const aName = a.name.toLowerCase(),
 									bName = b.name.toLowerCase();
 
 								if (aName < bName) return -1;
@@ -1010,11 +1010,11 @@ export default {
 			this.clearHomePage();
 		});
 		// Prepare history state watcher
-		var stateWatcher = (e) => {
-			var state = e.state || {},
-				activePage = state.activePage || "page-home",
-				search = state.search || "",
-				page = state.page || 1;
+		const stateWatcher = (e) => {
+			const state = e.state || {};
+			const activePage = state.activePage || "page-home";
+			const search = state.search || "";
+			const page = state.page || 1;
 
 			if (activePage !== "page-home") return;
 
@@ -1023,13 +1023,13 @@ export default {
 			this.loadData(false);
 		};
 
-		window.addEventListener("popstate", stateWatcher);
+		self.addEventListener("popstate", stateWatcher);
 		this.$once("hook:beforeDestroy", () => {
-			window.removeEventListener("popstate", stateWatcher);
+			self.removeEventListener("popstate", stateWatcher);
 		});
 
 		// Set initial parameter
-		var url = new Url();
+		const url = new Url();
 		this.search = url.query.search || "";
 		this.page = url.query.page || 1;
 
