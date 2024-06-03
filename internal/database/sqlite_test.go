@@ -84,6 +84,5 @@ func TestSQLiteDatabaseSaveAccountFail(t *testing.T) {
 	// Test falid database
 	acc := model.Account{}
 	_, err = db.SaveAccount(ctx, acc)
-	assert.Contains(t, err.Error(), "SQL logic error: no such table: account (1)")
-
+	assert.Contains(t, err.Error(), "no such table: account")
 }
