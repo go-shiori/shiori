@@ -8,7 +8,7 @@ import (
 
 // Account is the database representation for account.
 type Account struct {
-	ID       int        `db:"id"       json:"id"`
+	ID       DBID       `db:"id"       json:"id"`
 	Username string     `db:"username" json:"username"`
 	Password string     `db:"password" json:"password,omitempty"`
 	Owner    bool       `db:"owner"    json:"owner"`
@@ -56,8 +56,9 @@ func (a Account) ToDTO() AccountDTO {
 
 // AccountDTO is data transfer object for Account.
 type AccountDTO struct {
-	ID       int        `json:"id"`
+	ID       DBID       `json:"id"`
 	Username string     `json:"username"`
+	Password string     `json:"-"` // Used only to store, not to retrieve
 	Owner    bool       `json:"owner"`
 	Config   UserConfig `json:"config"`
 }

@@ -38,7 +38,8 @@ func testDatabase(t *testing.T, dbFactory testDatabaseFactory) {
 		"testSaveAccount":              testSaveAccount,
 		"testSaveAccountSetting":       testSaveAccountSettings,
 		"testGetAccount":               testGetAccount,
-		"testGetAccounts":              testGetAccounts,
+		"testGetAccounts":              testListAccounts,
+		"testListAccountsWithPassword": testListAccountsWithPassword,
 	}
 
 	for testName, testCase := range tests {
@@ -361,17 +362,17 @@ func testDeleteAccount(t *testing.T, db DB) {
 	storedAccount, err := db.SaveAccount(ctx, acc)
 	assert.NoError(t, err, "Save account must not fail")
 
-	err = db.DeleteAccount(ctx, storedAccount.Username)
+	err = db.DeleteAccount(ctx, storedAccount.ID)
 	assert.NoError(t, err, "Delete account must not fail")
 
-	_, exists, err := db.GetAccount(ctx, storedAccount.Username)
+	_, exists, err := db.GetAccount(ctx, storedAccount.ID)
 	assert.False(t, exists, "Account must not exist")
 	assert.ErrorIs(t, err, ErrNotFound, "Get account must return not found error")
 }
 
 func testDeleteNonExistantAccount(t *testing.T, db DB) {
 	ctx := context.TODO()
-	err := db.DeleteAccount(ctx, "notexistent")
+	err := db.DeleteAccount(ctx, model.DBID(99))
 	assert.ErrorIs(t, err, ErrNotFound, "Delete account must fail")
 }
 
@@ -406,66 +407,80 @@ func testSaveAccountSettings(t *testing.T, db DB) {
 func testGetAccount(t *testing.T, db DB) {
 	ctx := context.TODO()
 
-	t.Run("success", func(t *testing.T) {
-		// Insert test accounts
-		testAccounts := []model.Account{
-			{Username: "foo", Password: "bar", Owner: false},
-			{Username: "hello", Password: "world", Owner: false},
-			{Username: "foo_bar", Password: "foobar", Owner: true},
-		}
-		for _, acc := range testAccounts {
-			_, err := db.SaveAccount(ctx, acc)
-			assert.Nil(t, err)
+	// Insert test accounts
+	testAccounts := []model.Account{
+		{Username: "foo", Password: "bar", Owner: false},
+		{Username: "hello", Password: "world", Owner: false},
+		{Username: "foo_bar", Password: "foobar", Owner: true},
+	}
 
-			// Successful case
-			account, exists, err := db.GetAccount(ctx, acc.Username)
-			assert.Nil(t, err)
-			assert.True(t, exists, "Expected account to exist")
-			assert.Equal(t, acc.Username, account.Username)
-		}
-		// Falid case
-		account, exists, err := db.GetAccount(ctx, "foobar")
-		assert.NotNil(t, err)
-		assert.False(t, exists, "Expected account to exist")
-		assert.Empty(t, account.Username)
-	})
-}
-
-func testGetAccounts(t *testing.T, db DB) {
-	ctx := context.TODO()
-
-	t.Run("success", func(t *testing.T) {
-		// Insert test accounts
-		testAccounts := []model.Account{
-			{Username: "foo", Password: "bar", Owner: false},
-			{Username: "hello", Password: "world", Owner: false},
-			{Username: "foo_bar", Password: "foobar", Owner: true},
-		}
-		for _, acc := range testAccounts {
-			_, err := db.SaveAccount(ctx, acc)
-			assert.Nil(t, err)
-		}
+	for _, acc := range testAccounts {
+		storedAcc, err := db.SaveAccount(ctx, acc)
+		assert.Nil(t, err)
 
 		// Successful case
-		// without opt
-		accounts, err := db.GetAccounts(ctx, GetAccountsOptions{})
-		assert.NoError(t, err)
-		assert.Equal(t, 3, len(accounts))
-		// with owner
-		accounts, err = db.GetAccounts(ctx, GetAccountsOptions{Owner: true})
-		assert.NoError(t, err)
-		assert.Equal(t, 1, len(accounts))
-		// with opt
-		accounts, err = db.GetAccounts(ctx, GetAccountsOptions{Keyword: "foo"})
-		assert.NoError(t, err)
-		assert.Equal(t, 2, len(accounts))
-		// with opt and owner
-		accounts, err = db.GetAccounts(ctx, GetAccountsOptions{Keyword: "hello", Owner: false})
-		assert.NoError(t, err)
-		assert.Equal(t, 1, len(accounts))
-		// with not result
-		accounts, err = db.GetAccounts(ctx, GetAccountsOptions{Keyword: "shiori"})
-		assert.NoError(t, err)
-		assert.Equal(t, 0, len(accounts))
+		account, exists, err := db.GetAccount(ctx, storedAcc.ID)
+		assert.Nil(t, err)
+		assert.True(t, exists, "Expected account to exist")
+		assert.Equal(t, storedAcc.Username, account.Username)
+	}
+
+	// Failed case
+	account, exists, err := db.GetAccount(ctx, 99)
+	assert.NotNil(t, err)
+	assert.False(t, exists, "Expected account to exist")
+	assert.Empty(t, account.Username)
+}
+
+func testListAccounts(t *testing.T, db DB) {
+	ctx := context.TODO()
+
+	// prepare database
+	testAccounts := []model.Account{
+		{Username: "foo", Password: "bar", Owner: false},
+		{Username: "hello", Password: "world", Owner: false},
+		{Username: "foo_bar", Password: "foobar", Owner: true},
+	}
+	for _, acc := range testAccounts {
+		_, err := db.SaveAccount(ctx, acc)
+		assert.Nil(t, err)
+	}
+
+	tests := []struct {
+		name     string
+		options  ListAccountsOptions
+		expected int
+	}{
+		{"default", ListAccountsOptions{}, 3},
+		{"with owner", ListAccountsOptions{Owner: true}, 1},
+		{"with keyword", ListAccountsOptions{Keyword: "foo"}, 2},
+		{"with keyword and owner", ListAccountsOptions{Keyword: "hello", Owner: false}, 1},
+		{"with no result", ListAccountsOptions{Keyword: "shiori"}, 0},
+		{"with username", ListAccountsOptions{Username: "foo"}, 1},
+		{"with non-existent username", ListAccountsOptions{Username: "non-existant"}, 0},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			accounts, err := db.ListAccounts(ctx, tt.options)
+			assert.NoError(t, err)
+			assert.Equal(t, tt.expected, len(accounts))
+		})
+	}
+}
+
+func testListAccountsWithPassword(t *testing.T, db DB) {
+	ctx := context.TODO()
+	_, err := db.SaveAccount(ctx, model.Account{
+		Username: "gopher",
+		Password: "shiori",
 	})
+	assert.Nil(t, err)
+
+	storedAccounts, err := db.ListAccounts(ctx, ListAccountsOptions{
+		WithPassword: true,
+	})
+	for _, acc := range storedAccounts {
+		require.NotEmpty(t, acc.Password)
+	}
 }

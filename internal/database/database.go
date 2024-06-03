@@ -39,10 +39,16 @@ type GetBookmarksOptions struct {
 	Offset       int
 }
 
-// GetAccountsOptions is options for fetching accounts from database.
-type GetAccountsOptions struct {
+// ListAccountsOptions is options for fetching accounts from database.
+type ListAccountsOptions struct {
+	// Filter accounts by a keyword
 	Keyword string
-	Owner   bool
+	// Filter accounts by exact useranme
+	Username string
+	// Return owner accounts only
+	Owner bool
+	// Retrieve password content
+	WithPassword bool
 }
 
 // Connect connects to database based on submitted database URL.
@@ -100,14 +106,14 @@ type DB interface {
 	// SaveAccountSettings saves settings for specific user in database
 	SaveAccountSettings(ctx context.Context, a model.Account) error
 
-	// GetAccounts fetch list of account (without its password) with matching keyword.
-	GetAccounts(ctx context.Context, opts GetAccountsOptions) ([]model.Account, error)
+	// ListAccounts fetch list of account (without its password) with matching keyword.
+	ListAccounts(ctx context.Context, opts ListAccountsOptions) ([]model.Account, error)
 
 	// GetAccount fetch account with matching username.
-	GetAccount(ctx context.Context, username string) (model.Account, bool, error)
+	GetAccount(ctx context.Context, id model.DBID) (model.Account, bool, error)
 
-	// DeleteAccount removes account with matching username.
-	DeleteAccount(ctx context.Context, username string) error
+	// DeleteAccount removes account with matching id
+	DeleteAccount(ctx context.Context, id model.DBID) error
 
 	// CreateTags creates new tags in database.
 	CreateTags(ctx context.Context, tags ...model.Tag) error

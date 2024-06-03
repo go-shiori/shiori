@@ -37,7 +37,7 @@ func TestAccountList(t *testing.T) {
 		g := gin.New()
 		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
 
-		_, err := deps.Domains.Accounts.CreateAccount(ctx, model.Account{
+		_, err := deps.Domains.Accounts.CreateAccount(ctx, model.AccountDTO{
 			Username: "gopher",
 			Password: "shiori",
 		})
@@ -124,7 +124,7 @@ func TestAccountDelete(t *testing.T) {
 		g := gin.New()
 		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
 
-		account, err := deps.Domains.Accounts.CreateAccount(ctx, model.Account{
+		account, err := deps.Domains.Accounts.CreateAccount(ctx, model.AccountDTO{
 			Username: "gopher",
 			Password: "shiori",
 		})
@@ -132,7 +132,7 @@ func TestAccountDelete(t *testing.T) {
 
 		router := NewAccountsAPIRoutes(logger, deps)
 		router.Setup(g.Group("/"))
-		w := testutil.PerformRequest(g, "DELETE", "/"+strconv.Itoa(account.ID))
+		w := testutil.PerformRequest(g, "DELETE", "/"+strconv.Itoa(int(account.ID)))
 		require.Equal(t, http.StatusNoContent, w.Code)
 	})
 

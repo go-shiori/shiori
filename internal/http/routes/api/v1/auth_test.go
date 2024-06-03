@@ -57,13 +57,13 @@ func TestAccountsRoute(t *testing.T) {
 		router.Setup(g.Group("/"))
 
 		// Create an account manually to test
-		account := model.Account{
+		account := model.AccountDTO{
 			Username: "shiori",
 			Password: "gopher",
 			Owner:    true,
 		}
 
-		_, accountInsertErr := deps.Database.SaveAccount(ctx, account)
+		_, accountInsertErr := deps.Domains.Accounts.CreateAccount(ctx, account)
 		require.NoError(t, accountInsertErr)
 
 		w := httptest.NewRecorder()
@@ -260,11 +260,11 @@ func TestSettingsHandler(t *testing.T) {
 				MakePublic:    true,
 			},
 		}
-		_, accountInsertErr := deps.Database.SaveAccount(ctx, account)
+		acc, accountInsertErr := deps.Database.SaveAccount(ctx, account)
 		require.NoError(t, accountInsertErr)
 
 		// Get current user config
-		user, _, err := deps.Database.GetAccount(ctx, "shiori")
+		user, _, err := deps.Database.GetAccount(ctx, acc.ID)
 		require.NoError(t, err)
 		require.Equal(t, user.Config, account.Config)
 
@@ -293,7 +293,7 @@ func TestSettingsHandler(t *testing.T) {
 		g.ServeHTTP(w, req)
 
 		require.Equal(t, 200, w.Code)
-		user, _, err = deps.Database.GetAccount(ctx, "shiori")
+		user, _, err = deps.Database.GetAccount(ctx, acc.ID)
 
 		require.NoError(t, err)
 		require.NotEqual(t, user.Config, account.Config)

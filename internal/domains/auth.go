@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/go-shiori/shiori/internal/database"
 	"github.com/go-shiori/shiori/internal/dependencies"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/golang-jwt/jwt/v5"
@@ -39,9 +40,6 @@ func (d *AuthDomain) CheckToken(ctx context.Context, userJWT string) (*model.Acc
 		if claims.Account.ID > 0 {
 			return claims.Account, nil
 		}
-		if err != nil {
-			return nil, err
-		}
 
 		return claims.Account, nil
 	}
@@ -49,10 +47,19 @@ func (d *AuthDomain) CheckToken(ctx context.Context, userJWT string) (*model.Acc
 }
 
 func (d *AuthDomain) GetAccountFromCredentials(ctx context.Context, username, password string) (*model.Account, error) {
-	account, _, err := d.deps.Database.GetAccount(ctx, username)
+	accounts, err := d.deps.Database.ListAccounts(ctx, database.ListAccountsOptions{
+		Username:     username,
+		WithPassword: true,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("username and password do not match")
 	}
+
+	if len(accounts) != 1 {
+		return nil, fmt.Errorf("username and password do not match")
+	}
+
+	account := accounts[0]
 
 	if err := bcrypt.CompareHashAndPassword([]byte(account.Password), []byte(password)); err != nil {
 		return nil, fmt.Errorf("username and password do not match")

@@ -109,20 +109,20 @@ func initShiori(ctx context.Context, cmd *cobra.Command) (*config.Config, *depen
 	// Workaround: Get accounts to make sure at least one is present in the database.
 	// If there's no accounts in the database, create the shiori/gopher account the legacy api
 	// hardcoded in the login handler.
-	accounts, err := db.GetAccounts(cmd.Context(), database.GetAccountsOptions{})
+	accounts, err := db.ListAccounts(cmd.Context(), database.ListAccountsOptions{})
 	if err != nil {
 		cError.Printf("Failed to get owner account: %v\n", err)
 		os.Exit(1)
 	}
 
 	if len(accounts) == 0 {
-		account := model.Account{
+		account := model.AccountDTO{
 			Username: "shiori",
 			Password: "gopher",
 			Owner:    true,
 		}
 
-		if _, err := db.SaveAccount(cmd.Context(), account); err != nil {
+		if _, err := dependencies.Domains.Accounts.CreateAccount(cmd.Context(), account); err != nil {
 			logger.WithError(err).Fatal("error ensuring owner account")
 		}
 	}

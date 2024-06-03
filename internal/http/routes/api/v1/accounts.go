@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-shiori/shiori/internal/dependencies"
@@ -69,8 +70,8 @@ func (p *createAccountPayload) IsValid() error {
 	return nil
 }
 
-func (p *createAccountPayload) ToDatabase() model.Account {
-	return model.Account{
+func (p *createAccountPayload) ToAccountDTO() model.AccountDTO {
+	return model.AccountDTO{
 		Username: p.Username,
 		Password: p.Password,
 		Owner:    !p.IsVisitor,
@@ -100,7 +101,7 @@ func (r *AccountsAPIRoutes) createHandler(c *gin.Context) {
 		return
 	}
 
-	account, err := r.deps.Domains.Accounts.CreateAccount(c.Request.Context(), payload.ToDatabase())
+	account, err := r.deps.Domains.Accounts.CreateAccount(c.Request.Context(), payload.ToAccountDTO())
 	if err != nil {
 		r.logger.WithError(err).Error("error creating account")
 		c.AbortWithStatus(http.StatusInternalServerError)
@@ -119,9 +120,16 @@ func (r *AccountsAPIRoutes) createHandler(c *gin.Context) {
 // @Failure 500 {string} string "Internal Server Error"
 // @Router /api/v1/accounts/{id} [delete]
 func (r *AccountsAPIRoutes) deleteHandler(c *gin.Context) {
-	id := c.Param("id")
+	idParam := c.Param("id")
 
-	err := r.deps.Domains.Accounts.DeleteAccount(c.Request.Context(), id)
+	id, err := strconv.Atoi(idParam)
+	if err != nil {
+		r.logger.WithError(err).Error("error parsing id")
+		response.SendError(c, http.StatusBadRequest, "invalid id")
+		return
+	}
+
+	err = r.deps.Domains.Accounts.DeleteAccount(c.Request.Context(), id)
 	if errors.Is(err, model.ErrNotFound) {
 		response.SendError(c, http.StatusNotFound, "account not found")
 		return

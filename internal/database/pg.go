@@ -4,13 +4,13 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
-	"golang.org/x/crypto/bcrypt"
 
 	_ "github.com/lib/pq"
 )
@@ -590,12 +590,6 @@ func (db *PGDatabase) GetBookmark(ctx context.Context, id int, url string) (mode
 func (db *PGDatabase) SaveAccount(ctx context.Context, account model.Account) (*model.Account, error) {
 	var accountID int64
 	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
-		// Hash password with bcrypt
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(account.Password), 10)
-		if err != nil {
-			return err
-		}
-
 		query, err := tx.PrepareContext(ctx, `INSERT INTO account
 			(username, password, owner, config) VALUES ($1, $2, $3, $4)
 			ON CONFLICT(username) DO UPDATE SET
@@ -607,7 +601,7 @@ func (db *PGDatabase) SaveAccount(ctx context.Context, account model.Account) (*
 		}
 
 		err = query.QueryRowContext(ctx,
-			account.Username, hashedPassword, account.Owner, account.Config).Scan(&accountID)
+			account.Username, account.Password, account.Owner, account.Config).Scan(&accountID)
 		if err != nil {
 			return errors.WithStack(err)
 		}
@@ -617,7 +611,7 @@ func (db *PGDatabase) SaveAccount(ctx context.Context, account model.Account) (*
 		return nil, errors.WithStack(err)
 	}
 
-	account.ID = int(accountID)
+	account.ID = model.DBID(accountID)
 
 	return &account, nil
 }
@@ -634,22 +628,30 @@ func (db *PGDatabase) SaveAccountSettings(ctx context.Context, account model.Acc
 	return errors.WithStack(err)
 }
 
-// GetAccounts fetch list of account (without its password) based on submitted options.
-func (db *PGDatabase) GetAccounts(ctx context.Context, opts GetAccountsOptions) ([]model.Account, error) {
+// ListAccounts fetch list of account (without its password) based on submitted options.
+func (db *PGDatabase) ListAccounts(ctx context.Context, opts ListAccountsOptions) ([]model.Account, error) {
 	// Create query
 	args := []interface{}{}
-	query := `SELECT id, username, owner, config FROM account WHERE TRUE`
+	fields := []string{"id", "username", "owner", "config"}
+	if opts.WithPassword {
+		fields = append(fields, "password")
+	}
+
+	query := fmt.Sprintf(`SELECT %s FROM account WHERE TRUE`, strings.Join(fields, ", "))
 
 	if opts.Keyword != "" {
-		query += " AND username LIKE $1"
+		query += " AND username LIKE $" + strconv.Itoa(len(args)+1)
 		args = append(args, "%"+opts.Keyword+"%")
+	}
+
+	if opts.Username != "" {
+		query += " AND username = $" + strconv.Itoa(len(args)+1)
+		args = append(args, opts.Username)
 	}
 
 	if opts.Owner {
 		query += " AND owner = TRUE"
 	}
-
-	query += ` ORDER BY username`
 
 	// Fetch list account
 	accounts := []model.Account{}
@@ -663,11 +665,11 @@ func (db *PGDatabase) GetAccounts(ctx context.Context, opts GetAccountsOptions) 
 
 // GetAccount fetch account with matching username.
 // Returns the account and boolean whether it's exist or not.
-func (db *PGDatabase) GetAccount(ctx context.Context, username string) (model.Account, bool, error) {
+func (db *PGDatabase) GetAccount(ctx context.Context, id model.DBID) (model.Account, bool, error) {
 	account := model.Account{}
 	err := db.GetContext(ctx, &account, `SELECT
-		id, username, password, owner, config FROM account WHERE username = $1`,
-		username,
+		id, username, password, owner, config FROM account WHERE id = $1`,
+		id,
 	)
 	if err != nil && err != sql.ErrNoRows {
 		return account, false, errors.WithStack(err)
@@ -682,9 +684,9 @@ func (db *PGDatabase) GetAccount(ctx context.Context, username string) (model.Ac
 }
 
 // DeleteAccount removes record with matching username.
-func (db *PGDatabase) DeleteAccount(ctx context.Context, username string) error {
+func (db *PGDatabase) DeleteAccount(ctx context.Context, id model.DBID) error {
 	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
-		result, err := tx.ExecContext(ctx, `DELETE FROM account WHERE id = $1`, username)
+		result, err := tx.ExecContext(ctx, `DELETE FROM account WHERE id = $1`, id)
 		if err != nil {
 			return errors.WithStack(fmt.Errorf("error deleting account: %v", err))
 		}
