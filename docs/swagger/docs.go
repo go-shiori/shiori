@@ -172,11 +172,34 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/api_v1.contentResponseMessage"
+                            "$ref": "#/definitions/api_v1.readableResponseMessage"
                         }
                     },
                     "403": {
                         "description": "Token not provided/invalid"
+                    }
+                }
+            }
+        },
+        "/api/v1/system/info": {
+            "get": {
+                "description": "Get general system information like Shiori version, database, and OS",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "system"
+                ],
+                "summary": "Get general system information",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api_v1.infoResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Only owners can access this endpoint"
                     }
                 }
             }
@@ -228,14 +251,28 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "api_v1.contentResponseMessage": {
+        "api_v1.infoResponse": {
             "type": "object",
             "properties": {
-                "content": {
+                "database": {
                     "type": "string"
                 },
-                "html": {
+                "os": {
                     "type": "string"
+                },
+                "version": {
+                    "type": "object",
+                    "properties": {
+                        "commit": {
+                            "type": "string"
+                        },
+                        "date": {
+                            "type": "string"
+                        },
+                        "tag": {
+                            "type": "string"
+                        }
+                    }
                 }
             }
         },
@@ -269,6 +306,17 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "token": {
+                    "type": "string"
+                }
+            }
+        },
+        "api_v1.readableResponseMessage": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "html": {
                     "type": "string"
                 }
             }
