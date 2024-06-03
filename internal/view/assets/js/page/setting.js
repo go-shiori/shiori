@@ -5,6 +5,14 @@ var template = `
         <details open class="setting-group" id="setting-display">
             <summary>Display</summary>
             <label>
+                Theme &nbsp;
+                <select v-model="appOptions.Theme" @change="saveSetting">
+                <option value="follow">Follow system</option>
+                <option value="light">Light theme</option>
+                <option value="night">Dark theme</option>
+                </select>
+            </label>
+            <label>
                 <input type="checkbox" v-model="appOptions.ShowId" @change="saveSetting">
                 Show bookmark's ID
             </label>
@@ -20,14 +28,6 @@ var template = `
                 <input type="checkbox" v-model="appOptions.HideExcerpt" @change="saveSetting">
                 Hide bookmark's excerpt
             </label>
-            <label>
-                Theme &nbsp;
-                <select v-model="appOptions.Theme" @change="saveSetting">
-                <option value="follow">Follow system</option>
-                <option value="light">Light theme</option>
-                <option value="night">Dark theme</option>
-                </select>
-            </lable>
         </details>
         <details v-if="activeAccount.owner" open class="setting-group" id="setting-bookmarks">
             <summary>Bookmarks</summary>
