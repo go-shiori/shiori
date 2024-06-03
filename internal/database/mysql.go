@@ -603,6 +603,27 @@ func (db *MySQLDatabase) SaveAccount(ctx context.Context, account model.Account)
 	return &account, nil
 }
 
+// UpdateAccount update account in database
+func (db *MySQLDatabase) UpdateAccount(ctx context.Context, account model.Account) error {
+	if account.ID == 0 {
+		return ErrNotFound
+	}
+
+	db.withTx(ctx, func(tx *sqlx.Tx) error {
+		_, err := tx.ExecContext(ctx, `UPDATE account
+			SET username = ?, password = ?, owner = ?, config = ?
+			WHERE id = ?`,
+			account.Username, account.Password, account.Owner, account.Config, account.ID)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+
+		return nil
+	})
+
+	return nil
+}
+
 // SaveAccountSettings update settings for specific account  in database. Returns error if any happened
 func (db *MySQLDatabase) SaveAccountSettings(ctx context.Context, account model.Account) (err error) {
 	// Update account config in database for specific user
@@ -651,14 +672,14 @@ func (db *MySQLDatabase) ListAccounts(ctx context.Context, opts ListAccountsOpti
 
 // GetAccount fetch account with matching username.
 // Returns the account and boolean whether it's exist or not.
-func (db *MySQLDatabase) GetAccount(ctx context.Context, id model.DBID) (model.Account, bool, error) {
+func (db *MySQLDatabase) GetAccount(ctx context.Context, id model.DBID) (*model.Account, bool, error) {
 	account := model.Account{}
 	err := db.GetContext(ctx, &account, `SELECT
 		id, username, password, owner, config FROM account WHERE id = ?`,
 		id,
 	)
 	if err != nil && err != sql.ErrNoRows {
-		return account, false, errors.WithStack(err)
+		return &account, false, errors.WithStack(err)
 	}
 
 	// Use custom not found error if that's the result of the query
@@ -666,7 +687,7 @@ func (db *MySQLDatabase) GetAccount(ctx context.Context, id model.DBID) (model.A
 		err = ErrNotFound
 	}
 
-	return account, account.ID != 0, err
+	return &account, account.ID != 0, err
 }
 
 // DeleteAccount removes record with matching username.

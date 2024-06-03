@@ -60,7 +60,7 @@ func TestAccountsRoute(t *testing.T) {
 		account := model.AccountDTO{
 			Username: "shiori",
 			Password: "gopher",
-			Owner:    true,
+			Owner:    model.Ptr(true),
 		}
 
 		_, accountInsertErr := deps.Domains.Accounts.CreateAccount(ctx, account)
@@ -269,7 +269,7 @@ func TestSettingsHandler(t *testing.T) {
 		require.Equal(t, user.Config, account.Config)
 
 		// Send Request to update config for user
-		token, err := deps.Domains.Auth.CreateTokenForAccount(&user, time.Now().Add(time.Minute))
+		token, err := deps.Domains.Auth.CreateTokenForAccount(user, time.Now().Add(time.Minute))
 		require.NoError(t, err)
 
 		payloadJSON := []byte(`{

@@ -22,7 +22,7 @@ func (r *AccountsAPIRoutes) Setup(g *gin.RouterGroup) model.Routes {
 	g.GET("/", r.listHandler)
 	g.POST("/", r.createHandler)
 	g.DELETE("/:id", r.deleteHandler)
-	// g.PUT("/:id", r.updateHandler)
+	g.PUT("/:id", r.updateHandler)
 
 	return r
 }
@@ -74,7 +74,7 @@ func (p *createAccountPayload) ToAccountDTO() model.AccountDTO {
 	return model.AccountDTO{
 		Username: p.Username,
 		Password: p.Password,
-		Owner:    !p.IsVisitor,
+		Owner:    model.Ptr[bool](!p.IsVisitor),
 	}
 }
 
@@ -144,22 +144,37 @@ func (r *AccountsAPIRoutes) deleteHandler(c *gin.Context) {
 	response.Send(c, http.StatusNoContent, nil)
 }
 
-// func (r *AccountsAPIRoutes) updateHandler(c *gin.Context) {
-// 	id := c.Param("id")
+// updateHandler godoc
+//
+//	@Summary	Update an account
+//	@Tags		accounts
+//	@Produce	json
+//	@Success	200	{array}		model.AccountDTO
+//	@Failure	400	{string}	string	"Bad Request"
+//	@Failure	500	{string}	string	"Internal Server Error"
+//	@Router		/api/v1/accounts/{id} [put,patch]
+func (r *AccountsAPIRoutes) updateHandler(c *gin.Context) {
+	accountID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		r.logger.WithError(err).Error("error parsing id")
+		response.SendError(c, http.StatusBadRequest, "invalid id")
+		return
+	}
 
-// 	var payload model.AccountDTO
-// 	if err := c.ShouldBindJSON(&payload); err != nil {
-// 		r.logger.WithError(err).Error("error binding json")
-// 		c.AbortWithStatus(http.StatusBadRequest)
-// 		return
-// 	}
+	var payload model.AccountDTO
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		r.logger.WithError(err).Error("error binding json")
+		c.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+	payload.ID = model.DBID(accountID)
 
-// 	account, err := r.deps.Domains.Accounts.UpdateAccount(c.Request.Context(), id, payload)
-// 	if err != nil {
-// 		r.logger.WithError(err).Error("error updating account")
-// 		c.AbortWithStatus(http.StatusInternalServerError)
-// 		return
-// 	}
+	account, err := r.deps.Domains.Accounts.UpdateAccount(c.Request.Context(), payload)
+	if err != nil {
+		r.logger.WithError(err).Error("error updating account")
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
 
-// 	response.Send(c, http.StatusOK, account)
-// }
+	response.Send(c, http.StatusOK, account)
+}

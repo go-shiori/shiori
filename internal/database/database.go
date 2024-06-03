@@ -103,6 +103,9 @@ type DB interface {
 	// SaveAccount saves new account in database
 	SaveAccount(ctx context.Context, a model.Account) (*model.Account, error)
 
+	// UpdateAccount updates account in database
+	UpdateAccount(ctx context.Context, a model.Account) error
+
 	// SaveAccountSettings saves settings for specific user in database
 	SaveAccountSettings(ctx context.Context, a model.Account) error
 
@@ -110,7 +113,7 @@ type DB interface {
 	ListAccounts(ctx context.Context, opts ListAccountsOptions) ([]model.Account, error)
 
 	// GetAccount fetch account with matching username.
-	GetAccount(ctx context.Context, id model.DBID) (model.Account, bool, error)
+	GetAccount(ctx context.Context, id model.DBID) (*model.Account, bool, error)
 
 	// DeleteAccount removes account with matching id
 	DeleteAccount(ctx context.Context, id model.DBID) error

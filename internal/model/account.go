@@ -46,19 +46,22 @@ func (c UserConfig) Value() (driver.Value, error) {
 
 // ToDTO converts Account to AccountDTO.
 func (a Account) ToDTO() AccountDTO {
+	owner := a.Owner
+	config := a.Config
+
 	return AccountDTO{
 		ID:       a.ID,
 		Username: a.Username,
-		Owner:    a.Owner,
-		Config:   a.Config,
+		Owner:    &owner,
+		Config:   &config,
 	}
 }
 
 // AccountDTO is data transfer object for Account.
 type AccountDTO struct {
-	ID       DBID       `json:"id"`
-	Username string     `json:"username"`
-	Password string     `json:"-"` // Used only to store, not to retrieve
-	Owner    bool       `json:"owner"`
-	Config   UserConfig `json:"config"`
+	ID       DBID        `json:"id"`
+	Username string      `json:"username"`
+	Password string      `json:"-"` // Used only to store, not to retrieve
+	Owner    *bool       `json:"owner"`
+	Config   *UserConfig `json:"config"`
 }

@@ -26,7 +26,7 @@ type AuthDomain interface {
 type AccountsDomain interface {
 	ListAccounts(ctx context.Context) ([]AccountDTO, error)
 	CreateAccount(ctx context.Context, account AccountDTO) (*AccountDTO, error)
-	// UpdateAccount(ctx context.Context, account AccountDTO) (*AccountDTO, error)
+	UpdateAccount(ctx context.Context, account AccountDTO) (*AccountDTO, error)
 	DeleteAccount(ctx context.Context, id int) error
 }
 

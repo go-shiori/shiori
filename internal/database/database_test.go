@@ -36,6 +36,7 @@ func testDatabase(t *testing.T, dbFactory testDatabaseFactory) {
 		"testDeleteAccount":            testDeleteAccount,
 		"testDeleteNonExistantAccount": testDeleteNonExistantAccount,
 		"testSaveAccount":              testSaveAccount,
+		"testUpdateAccount":            testUpdateAccount,
 		"testSaveAccountSetting":       testSaveAccountSettings,
 		"testGetAccount":               testGetAccount,
 		"testListAccounts":             testListAccounts,
@@ -388,6 +389,50 @@ func testSaveAccount(t *testing.T, db DB) {
 	require.Nil(t, err)
 	require.NotNil(t, account)
 	require.NotEmpty(t, account.ID)
+}
+
+func testUpdateAccount(t *testing.T, db DB) {
+	ctx := context.TODO()
+
+	acc := model.Account{
+		Username: "testuser",
+		Password: "testpass",
+		Owner:    true,
+		Config: model.UserConfig{
+			ShowId: true,
+		},
+	}
+
+	account, err := db.SaveAccount(ctx, acc)
+	require.Nil(t, err)
+	require.NotNil(t, account)
+	require.NotEmpty(t, account.ID)
+
+	account, _, err = db.GetAccount(ctx, account.ID)
+	require.Nil(t, err)
+
+	t.Run("update", func(t *testing.T) {
+		acc := model.Account{
+			ID:       account.ID,
+			Username: "asdlasd",
+			Owner:    false,
+			Password: "another",
+			Config: model.UserConfig{
+				ShowId: false,
+			},
+		}
+
+		err := db.UpdateAccount(ctx, acc)
+		require.Nil(t, err)
+
+		updatedAccount, exists, err := db.GetAccount(ctx, account.ID)
+		require.NoError(t, err)
+		require.True(t, exists)
+		require.Equal(t, acc.Username, updatedAccount.Username)
+		require.Equal(t, acc.Owner, updatedAccount.Owner)
+		require.Equal(t, acc.Config, updatedAccount.Config)
+		require.NotEqual(t, acc.Password, account.Password)
+	})
 }
 
 func testSaveAccountSettings(t *testing.T, db DB) {

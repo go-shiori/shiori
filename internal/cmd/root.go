@@ -119,7 +119,7 @@ func initShiori(ctx context.Context, cmd *cobra.Command) (*config.Config, *depen
 		account := model.AccountDTO{
 			Username: "shiori",
 			Password: "gopher",
-			Owner:    true,
+			Owner:    model.Ptr[bool](true),
 		}
 
 		if _, err := dependencies.Domains.Accounts.CreateAccount(cmd.Context(), account); err != nil {

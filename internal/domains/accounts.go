@@ -36,11 +36,18 @@ func (d *AccountsDomain) CreateAccount(ctx context.Context, account model.Accoun
 		return nil, fmt.Errorf("error hashing provided password: %w", err)
 	}
 
-	storedAccount, err := d.deps.Database.SaveAccount(ctx, model.Account{
+	acc := model.Account{
 		Username: account.Username,
 		Password: string(hashedPassword),
-		Owner:    account.Owner,
-	})
+	}
+	if account.Owner != nil {
+		acc.Owner = *account.Owner
+	}
+	if account.Config != nil {
+		acc.Config = *account.Config
+	}
+
+	storedAccount, err := d.deps.Database.SaveAccount(ctx, acc)
 	if err != nil {
 		return nil, fmt.Errorf("error creating account: %v", err)
 	}
@@ -64,23 +71,51 @@ func (d *AccountsDomain) DeleteAccount(ctx context.Context, id int) error {
 }
 
 func (d *AccountsDomain) UpdateAccount(ctx context.Context, account model.AccountDTO) (*model.AccountDTO, error) {
-	updatedAccount := model.Account{
-		ID: account.ID,
+	// Get account from database
+	storedAccount, _, err := d.deps.Database.GetAccount(ctx, account.ID)
+	if errors.Is(err, database.ErrNotFound) {
+		return nil, model.ErrNotFound
+	}
+	if err != nil {
+		return nil, fmt.Errorf("error getting account for update: %w", err)
 	}
 
-	// Update password as well
 	if account.Password != "" {
 		// Hash password with bcrypt
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(account.Password), 10)
 		if err != nil {
 			return nil, fmt.Errorf("error hashing provided password: %w", err)
 		}
-		updatedAccount.Password = string(hashedPassword)
+		storedAccount.Password = string(hashedPassword)
 	}
 
-	// TODO
+	if account.Username != "" {
+		storedAccount.Username = account.Username
+	}
 
-	return nil, nil
+	if account.Owner != nil {
+		storedAccount.Owner = *account.Owner
+	}
+
+	if account.Config != nil {
+		storedAccount.Config = *account.Config
+	}
+
+	// Save updated account
+	err = d.deps.Database.UpdateAccount(ctx, *storedAccount)
+	if err != nil {
+		return nil, fmt.Errorf("error updating account: %w", err)
+	}
+
+	// Get updated account from database
+	updatedAccount, _, err := d.deps.Database.GetAccount(ctx, account.ID)
+	if err != nil {
+		return nil, fmt.Errorf("error getting updated account: %w", err)
+	}
+
+	account = updatedAccount.ToDTO()
+
+	return &account, nil
 }
 
 func NewAccountsDomain(deps *dependencies.Dependencies) model.AccountsDomain {

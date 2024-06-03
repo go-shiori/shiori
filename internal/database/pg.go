@@ -616,6 +616,29 @@ func (db *PGDatabase) SaveAccount(ctx context.Context, account model.Account) (*
 	return &account, nil
 }
 
+// UpdateAccount updates account in database.
+func (db *PGDatabase) UpdateAccount(ctx context.Context, account model.Account) error {
+	if account.ID == 0 {
+		return ErrNotFound
+	}
+
+	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
+		_, err := tx.ExecContext(ctx, `UPDATE account
+			SET username = $1, password = $2, owner = $3, config = $4
+			WHERE id = $5`,
+			account.Username, account.Password, account.Owner, account.Config, account.ID)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+
+		return nil
+	}); err != nil {
+		return errors.WithStack(err)
+	}
+
+	return nil
+}
+
 // SaveAccountSettings update settings for specific account  in database. Returns error if any happened
 func (db *PGDatabase) SaveAccountSettings(ctx context.Context, account model.Account) (err error) {
 
@@ -665,14 +688,14 @@ func (db *PGDatabase) ListAccounts(ctx context.Context, opts ListAccountsOptions
 
 // GetAccount fetch account with matching username.
 // Returns the account and boolean whether it's exist or not.
-func (db *PGDatabase) GetAccount(ctx context.Context, id model.DBID) (model.Account, bool, error) {
+func (db *PGDatabase) GetAccount(ctx context.Context, id model.DBID) (*model.Account, bool, error) {
 	account := model.Account{}
 	err := db.GetContext(ctx, &account, `SELECT
 		id, username, password, owner, config FROM account WHERE id = $1`,
 		id,
 	)
 	if err != nil && err != sql.ErrNoRows {
-		return account, false, errors.WithStack(err)
+		return &account, false, errors.WithStack(err)
 	}
 
 	// Use custom not found error if that's the result of the query
@@ -680,7 +703,7 @@ func (db *PGDatabase) GetAccount(ctx context.Context, id model.DBID) (model.Acco
 		err = ErrNotFound
 	}
 
-	return account, account.ID != 0, err
+	return &account, account.ID != 0, err
 }
 
 // DeleteAccount removes record with matching username.

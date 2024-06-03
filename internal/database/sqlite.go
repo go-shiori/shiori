@@ -733,6 +733,32 @@ func (db *SQLiteDatabase) SaveAccountSettings(ctx context.Context, account model
 	return nil
 }
 
+func (db *SQLiteDatabase) UpdateAccount(ctx context.Context, account model.Account) error {
+	if account.ID == 0 {
+		return ErrNotFound
+	}
+
+	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
+		queryString := "UPDATE account SET username = ?, password = ?, owner = ?, config = ? WHERE id = ?"
+
+		updateQuery, err := tx.PrepareContext(ctx, queryString)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+
+		_, err = updateQuery.ExecContext(ctx, account.Username, account.Password, account.Owner, account.Config, account.ID)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+
+		return nil
+	}); err != nil {
+		return errors.WithStack(err)
+	}
+
+	return nil
+}
+
 // ListAccounts fetch list of account (without its password) based on submitted options.
 func (db *SQLiteDatabase) ListAccounts(ctx context.Context, opts ListAccountsOptions) ([]model.Account, error) {
 	// Create query
@@ -770,14 +796,14 @@ func (db *SQLiteDatabase) ListAccounts(ctx context.Context, opts ListAccountsOpt
 
 // GetAccount fetch account with matching username.
 // Returns the account and boolean whether it's exist or not.
-func (db *SQLiteDatabase) GetAccount(ctx context.Context, id model.DBID) (model.Account, bool, error) {
+func (db *SQLiteDatabase) GetAccount(ctx context.Context, id model.DBID) (*model.Account, bool, error) {
 	account := model.Account{}
 	err := db.GetContext(ctx, &account, `SELECT
 		id, username, password, owner, config FROM account WHERE id = ?`,
 		id,
 	)
 	if err != nil && err != sql.ErrNoRows {
-		return account, false, errors.WithStack(err)
+		return &account, false, errors.WithStack(err)
 	}
 
 	// Use custom not found error if that's the result of the query
@@ -785,7 +811,7 @@ func (db *SQLiteDatabase) GetAccount(ctx context.Context, id model.DBID) (model.
 		err = ErrNotFound
 	}
 
-	return account, account.ID != 0, err
+	return &account, account.ID != 0, err
 }
 
 // DeleteAccount removes record with matching username.
