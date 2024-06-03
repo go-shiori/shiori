@@ -36,13 +36,13 @@ func NewAccountsAPIRoutes(logger *logrus.Logger, deps *dependencies.Dependencies
 
 // listHandler godoc
 //
-// @Summary List accounts
-// @Description List accounts
-// @Tags accounts
-// @Produce json
-// @Success 200 {array} model.AccountDTO
-// @Failure 500 {string} string "Internal Server Error"
-// @Router /api/v1/accounts [get]
+//	@Summary		List accounts
+//	@Description	List accounts
+//	@Tags			accounts
+//	@Produce		json
+//	@Success		200	{array}		model.AccountDTO
+//	@Failure		500	{string}	string	"Internal Server Error"
+//	@Router			/api/v1/accounts [get]
 func (r *AccountsAPIRoutes) listHandler(c *gin.Context) {
 	accounts, err := r.deps.Domains.Accounts.ListAccounts(c.Request.Context())
 	if err != nil {
@@ -80,13 +80,13 @@ func (p *createAccountPayload) ToAccountDTO() model.AccountDTO {
 
 // createHandler godoc
 //
-// @Summary Create an account
-// @Tags accounts
-// @Produce json
-// @Success 201 {array} model.AccountDTO
-// @Failure 400 {string} string "Bad Request"
-// @Failure 500 {string} string "Internal Server Error"
-// @Router /api/v1/accounts [post]
+//	@Summary	Create an account
+//	@Tags		accounts
+//	@Produce	json
+//	@Success	201	{array}		model.AccountDTO
+//	@Failure	400	{string}	string	"Bad Request"
+//	@Failure	500	{string}	string	"Internal Server Error"
+//	@Router		/api/v1/accounts [post]
 func (r *AccountsAPIRoutes) createHandler(c *gin.Context) {
 	var payload createAccountPayload
 	if err := c.ShouldBindJSON(&payload); err != nil {
@@ -113,12 +113,12 @@ func (r *AccountsAPIRoutes) createHandler(c *gin.Context) {
 
 // deleteHandler godoc
 //
-// @Summary Delete an account
-// @Tags accounts
-// @Produce json
-// @Success 204 {string} string "No content"
-// @Failure 500 {string} string "Internal Server Error"
-// @Router /api/v1/accounts/{id} [delete]
+//	@Summary	Delete an account
+//	@Tags		accounts
+//	@Produce	json
+//	@Success	204	{string}	string	"No content"
+//	@Failure	500	{string}	string	"Internal Server Error"
+//	@Router		/api/v1/accounts/{id} [delete]
 func (r *AccountsAPIRoutes) deleteHandler(c *gin.Context) {
 	idParam := c.Param("id")
 

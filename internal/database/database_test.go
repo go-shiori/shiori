@@ -480,6 +480,7 @@ func testListAccountsWithPassword(t *testing.T, db DB) {
 	storedAccounts, err := db.ListAccounts(ctx, ListAccountsOptions{
 		WithPassword: true,
 	})
+	require.NoError(t, err)
 	for _, acc := range storedAccounts {
 		require.NotEmpty(t, acc.Password)
 	}

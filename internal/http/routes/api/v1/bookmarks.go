@@ -96,7 +96,7 @@ type readableResponseMessage struct {
 //	@Tags						Auth
 //	@securityDefinitions.apikey	ApiKeyAuth
 //	@Produce					json
-//	@Success					200	{object}    contentResponseMessage
+//	@Success					200	{object}	readableResponseMessage
 //	@Failure					403	{object}	nil	"Token not provided/invalid"
 //	@Router						/api/v1/bookmarks/id/readable [get]
 func (r *BookmarksAPIRoutes) bookmarkReadable(c *gin.Context) {
@@ -119,7 +119,7 @@ func (r *BookmarksAPIRoutes) bookmarkReadable(c *gin.Context) {
 //	@Summary					Update Cache and Ebook on server.
 //	@Tags						Auth
 //	@securityDefinitions.apikey	ApiKeyAuth
-//	@Param						payload	body	updateCachePayload	true "Update Cache Payload"`
+//	@Param						payload	body	updateCachePayload	true	"Update Cache Payload"`
 //	@Produce					json
 //	@Success					200	{object}	model.BookmarkDTO
 //	@Failure					403	{object}	nil	"Token not provided/invalid"
