@@ -38,7 +38,7 @@ func testDatabase(t *testing.T, dbFactory testDatabaseFactory) {
 		"testSaveAccount":              testSaveAccount,
 		"testSaveAccountSetting":       testSaveAccountSettings,
 		"testGetAccount":               testGetAccount,
-		"testGetAccounts":              testListAccounts,
+		"testListAccounts":             testListAccounts,
 		"testListAccountsWithPassword": testListAccountsWithPassword,
 	}
 
