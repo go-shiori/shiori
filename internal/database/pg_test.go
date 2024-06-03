@@ -1,15 +1,16 @@
+//go:build !test_sqlite_only
+// +build !test_sqlite_only
+
 package database
 
 import (
 	"context"
-	"errors"
 	"log"
 	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/go-shiori/shiori/internal/model"
-	"github.com/golang-migrate/migrate/v4"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -20,7 +21,7 @@ func init() {
 	}
 }
 
-func postgresqlTestDatabaseFactory(ctx context.Context) (DB, error) {
+func postgresqlTestDatabaseFactory(_ *testing.T, ctx context.Context) (DB, error) {
 	db, err := OpenPGDatabase(ctx, os.Getenv("SHIORI_TEST_PG_URL"))
 	if err != nil {
 		return nil, err
@@ -31,7 +32,7 @@ func postgresqlTestDatabaseFactory(ctx context.Context) (DB, error) {
 		return nil, err
 	}
 
-	if err := db.Migrate(); err != nil && !errors.Is(migrate.ErrNoChange, err) {
+	if err := db.Migrate(context.TODO()); err != nil {
 		return nil, err
 	}
 
@@ -45,7 +46,7 @@ func TestPostgresDatabase(t *testing.T) {
 func TestSaveAccountSettingsPg(t *testing.T) {
 	ctx := context.TODO()
 
-	db, err := postgresqlTestDatabaseFactory(ctx)
+	db, err := postgresqlTestDatabaseFactory(t, ctx)
 	assert.NoError(t, err)
 
 	// Mock data
@@ -76,7 +77,7 @@ func TestSaveAccountSettingsPg(t *testing.T) {
 func TestGetAccountsPg(t *testing.T) {
 	ctx := context.TODO()
 
-	db, err := postgresqlTestDatabaseFactory(ctx)
+	db, err := postgresqlTestDatabaseFactory(t, ctx)
 	assert.NoError(t, err)
 
 	// Insert test accounts
@@ -129,7 +130,7 @@ func TestGetAccountsPg(t *testing.T) {
 func TestGetAccountPg(t *testing.T) {
 	ctx := context.TODO()
 
-	db, err := postgresqlTestDatabaseFactory(ctx)
+	db, err := postgresqlTestDatabaseFactory(t, ctx)
 	assert.NoError(t, err)
 
 	// Insert test accounts

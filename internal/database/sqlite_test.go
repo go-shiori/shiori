@@ -7,26 +7,20 @@ import (
 	"testing"
 
 	"github.com/go-shiori/shiori/internal/model"
-	"github.com/golang-migrate/migrate/v4"
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-var sqliteDatabaseTestPath string
+func sqliteTestDatabaseFactory(t *testing.T, ctx context.Context) (DB, error) {
+	tmpDir, err := os.MkdirTemp("", "")
+	require.NoError(t, err)
 
-func init() {
-	sqliteDatabaseTestPath = filepath.Join(os.TempDir(), "shiori.db")
-}
-
-func sqliteTestDatabaseFactory(ctx context.Context) (DB, error) {
-	os.Remove(sqliteDatabaseTestPath)
-
-	db, err := OpenSQLiteDatabase(ctx, sqliteDatabaseTestPath)
+	db, err := OpenSQLiteDatabase(ctx, filepath.Join(tmpDir, "shiori.db"))
 	if err != nil {
 		return nil, err
 	}
 
-	if err := db.Migrate(); err != nil && !errors.Is(migrate.ErrNoChange, err) {
+	if err := db.Migrate(context.TODO()); err != nil {
 		return nil, err
 	}
 
@@ -47,7 +41,7 @@ func TestSqliteDatabase(t *testing.T) {
 func testSqliteGetBookmarksWithDash(t *testing.T) {
 	ctx := context.TODO()
 
-	db, err := sqliteTestDatabaseFactory(ctx)
+	db, err := sqliteTestDatabaseFactory(t, ctx)
 	assert.NoError(t, err)
 
 	book := model.BookmarkDTO{
@@ -76,6 +70,7 @@ func testSqliteGetBookmarksWithDash(t *testing.T) {
 	assert.Equal(t, savedBookmark.ID, results[0].ID, "bookmark should be the one saved")
 
 }
+
 func TestSQLiteDatabase_SaveAccount(t *testing.T) {
 
 	ctx := context.TODO()
@@ -97,7 +92,7 @@ func TestSQLiteDatabase_SaveAccount(t *testing.T) {
 func TestSaveAccountSettings(t *testing.T) {
 	ctx := context.TODO()
 
-	db, err := sqliteTestDatabaseFactory(ctx)
+	db, err := sqliteTestDatabaseFactory(t, ctx)
 	assert.NoError(t, err)
 
 	// Mock data
@@ -129,7 +124,7 @@ func TestSaveAccountSettings(t *testing.T) {
 func TestGetAccounts(t *testing.T) {
 	ctx := context.TODO()
 
-	db, err := sqliteTestDatabaseFactory(ctx)
+	db, err := sqliteTestDatabaseFactory(t, ctx)
 	assert.NoError(t, err)
 
 	// Insert test accounts

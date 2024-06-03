@@ -80,14 +80,6 @@ func (r *LegacyAPIRoutes) Setup(g *gin.Engine) {
 
 	legacyGroup.POST("/api/logout", r.handle(r.legacyHandler.ApiLogout))
 
-	// router.GET(jp("/bookmark/:id/thumb"), withLogging(hdl.serveThumbnailImage))
-	// legacyGroup.GET("/bookmark/:id/thumb", r.handle(r.legacyHandler.ServeThumbnailImage))
-	// router.GET(jp("/bookmark/:id/content"), withLogging(hdl.serveBookmarkContent))
-	// legacyGroup.GET("/bookmark/:id/content", r.handle(r.legacyHandler.ServeBookmarkContent))
-	// router.GET(jp("/bookmark/:id/archive/*filepath"), withLogging(hdl.serveBookmarkArchive))
-	// legacyGroup.GET("/legacy/:id/archive/", r.handle(r.legacyHandler.ServeBookmarkArchive))
-	// legacyGroup.GET("/legacy/:id/archive/*filepath", r.handle(r.legacyHandler.ServeBookmarkArchive))
-
 	// router.GET(jp("/api/tags"), withLogging(hdl.apiGetTags))
 	legacyGroup.GET("/api/tags", r.handle(r.legacyHandler.ApiGetTags))
 	// router.PUT(jp("/api/tag"), withLogging(hdl.apiRenameTag))

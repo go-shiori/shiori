@@ -4,7 +4,6 @@ about: PLEASE READ ISSUE
 title: ''
 labels: ''
 assignees: ''
-
 ---
 
 Please report feature requests in the [discussions section](https://github.com/go-shiori/shiori/discussions/categories/feature-requests).

@@ -10,7 +10,7 @@ type Response struct {
 	Ok bool `json:"ok"`
 
 	// Message the payload of the response, depending on the endpoint/response status
-	Message interface{} `json:"message"`
+	Message any `json:"message"`
 
 	// ErrorParams parameters defined if the response is not successful to help client's debugging
 	ErrorParams map[string]string `json:"error_params,omitempty"`
@@ -20,7 +20,11 @@ type Response struct {
 }
 
 func (m *Response) IsError() bool {
-	return m.Ok
+	return !m.Ok
+}
+
+func (m *Response) GetMessage() any {
+	return m.Message
 }
 
 func (m *Response) Send(c *gin.Context) {
@@ -28,7 +32,7 @@ func (m *Response) Send(c *gin.Context) {
 	c.JSON(m.statusCode, m)
 }
 
-func NewResponse(ok bool, message interface{}, errorParams map[string]string, statusCode int) *Response {
+func NewResponse(ok bool, message any, errorParams map[string]string, statusCode int) *Response {
 	return &Response{
 		Ok:          ok,
 		Message:     message,

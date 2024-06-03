@@ -91,7 +91,7 @@ func initShiori(ctx context.Context, cmd *cobra.Command) (*config.Config, *depen
 	}
 
 	// Migrate
-	if err := db.Migrate(); err != nil {
+	if err := db.Migrate(ctx); err != nil {
 		logger.WithError(err).Fatalf("Error running migration")
 	}
 

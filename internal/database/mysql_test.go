@@ -1,3 +1,6 @@
+//go:build !test_sqlite_only
+// +build !test_sqlite_only
+
 package database
 
 import (
@@ -8,9 +11,7 @@ import (
 	"testing"
 
 	"github.com/go-shiori/shiori/internal/model"
-	"github.com/golang-migrate/migrate/v4"
 	"github.com/jmoiron/sqlx"
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -21,7 +22,7 @@ func init() {
 	}
 }
 
-func mysqlTestDatabaseFactory(ctx context.Context) (DB, error) {
+func mysqlTestDatabaseFactory(_ *testing.T, ctx context.Context) (DB, error) {
 	connString := os.Getenv("SHIORI_TEST_MYSQL_URL")
 	db, err := OpenMySQLDatabase(ctx, connString)
 	if err != nil {
@@ -51,7 +52,7 @@ func mysqlTestDatabaseFactory(ctx context.Context) (DB, error) {
 		return nil, err
 	}
 
-	if err = db.Migrate(); err != nil && !errors.Is(migrate.ErrNoChange, err) {
+	if err = db.Migrate(context.TODO()); err != nil {
 		return nil, err
 	}
 
@@ -65,7 +66,7 @@ func TestMysqlsDatabase(t *testing.T) {
 func TestSaveAccountSettingsMySql(t *testing.T) {
 	ctx := context.TODO()
 
-	db, err := mysqlTestDatabaseFactory(ctx)
+	db, err := mysqlTestDatabaseFactory(t, ctx)
 	assert.NoError(t, err)
 
 	// Mock data
@@ -97,7 +98,7 @@ func TestSaveAccountSettingsMySql(t *testing.T) {
 func TestGetAccountsMySql(t *testing.T) {
 	ctx := context.TODO()
 
-	db, err := mysqlTestDatabaseFactory(ctx)
+	db, err := mysqlTestDatabaseFactory(t, ctx)
 	assert.NoError(t, err)
 
 	// Insert test accounts
@@ -154,7 +155,7 @@ func TestGetAccountsMySql(t *testing.T) {
 func TestGetAccountMySql(t *testing.T) {
 	ctx := context.TODO()
 
-	db, err := mysqlTestDatabaseFactory(ctx)
+	db, err := mysqlTestDatabaseFactory(t, ctx)
 	assert.NoError(t, err)
 
 	// Insert test accounts
