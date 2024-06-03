@@ -703,8 +703,20 @@ a {
 			&[open] summary {
 				border-bottom: 1px solid var(--border);
 
-				::after {
-					content: "-";
+				&::after {
+					content: "-" !important;
+				}
+			}
+
+			ul {
+				list-style: none;
+
+				li {
+					padding: 4px 8px;
+					color: var(--color);
+					display: flex;
+					flex-flow: row nowrap;
+					align-items: center;
 				}
 			}
 
@@ -803,6 +815,19 @@ a {
 					&:hover {
 						color: var(--main);
 					}
+				}
+			}
+		}
+	}
+
+	#setting-system-info {
+		ul {
+			padding-top: 4px;
+			padding-bottom: 4px;
+
+			li {
+				span {
+					margin-left: 8px;
 				}
 			}
 		}
