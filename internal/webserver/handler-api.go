@@ -18,7 +18,6 @@ import (
 	"github.com/go-shiori/shiori/internal/dependencies"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/julienschmidt/httprouter"
-	"golang.org/x/crypto/bcrypt"
 )
 
 func downloadBookmarkContent(deps *dependencies.Dependencies, book *model.BookmarkDTO, dataDir string, request *http.Request, keepTitle, keepExcerpt bool) (*model.BookmarkDTO, error) {
@@ -445,106 +444,4 @@ func (h *Handler) ApiUpdateBookmarkTags(w http.ResponseWriter, r *http.Request, 
 	// Return new saved result
 	err = json.NewEncoder(w).Encode(&bookmarks)
 	checkError(err)
-}
-
-// ApiGetAccounts is handler for GET /api/accounts
-func (h *Handler) ApiGetAccounts(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	ctx := r.Context()
-
-	// Make sure session still valid
-	err := h.validateSession(r)
-	checkError(err)
-
-	// Get list of usernames from database
-	accounts, err := h.DB.GetAccounts(ctx, database.GetAccountsOptions{})
-	checkError(err)
-
-	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(&accounts)
-	checkError(err)
-}
-
-// ApiUpdateAccount is handler for PUT /api/accounts
-func (h *Handler) ApiUpdateAccount(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	ctx := r.Context()
-
-	// Make sure session still valid
-	err := h.validateSession(r)
-	checkError(err)
-
-	// Decode request
-	request := struct {
-		Username    string `json:"username"`
-		OldPassword string `json:"oldPassword"`
-		NewPassword string `json:"newPassword"`
-		Owner       bool   `json:"owner"`
-	}{}
-
-	err = json.NewDecoder(r.Body).Decode(&request)
-	checkError(err)
-
-	// Get existing account data from database
-	account, exist, err := h.DB.GetAccount(ctx, request.Username)
-	checkError(err)
-
-	if !exist {
-		panic(fmt.Errorf("username doesn't exist"))
-	}
-
-	// Compare old password with database
-	err = bcrypt.CompareHashAndPassword([]byte(account.Password), []byte(request.OldPassword))
-	if err != nil {
-		panic(fmt.Errorf("old password doesn't match"))
-	}
-
-	// Save new password to database
-	account.Password = request.NewPassword
-	account.Owner = request.Owner
-	_, err = h.DB.SaveAccount(ctx, account)
-	checkError(err)
-
-	// Delete user's sessions
-	if val, found := h.UserCache.Get(request.Username); found {
-		userSessions := val.([]string)
-		for _, session := range userSessions {
-			h.SessionCache.Delete(session)
-		}
-
-		h.UserCache.Delete(request.Username)
-	}
-
-	fmt.Fprint(w, 1)
-}
-
-// ApiDeleteAccount is handler for DELETE /api/accounts
-func (h *Handler) ApiDeleteAccount(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	ctx := r.Context()
-
-	// Make sure session still valid
-	err := h.validateSession(r)
-	checkError(err)
-
-	// Decode request
-	usernames := []string{}
-	err = json.NewDecoder(r.Body).Decode(&usernames)
-	checkError(err)
-
-	// Delete accounts
-	err = h.DB.DeleteAccounts(ctx, usernames...)
-	checkError(err)
-
-	// Delete user's sessions
-	var userSessions []string
-	for _, username := range usernames {
-		if val, found := h.UserCache.Get(username); found {
-			userSessions = val.([]string)
-			for _, session := range userSessions {
-				h.SessionCache.Delete(session)
-			}
-
-			h.UserCache.Delete(username)
-		}
-	}
-
-	fmt.Fprint(w, 1)
 }
