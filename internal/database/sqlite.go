@@ -771,50 +771,32 @@ func (db *SQLiteDatabase) GetAccounts(ctx context.Context, opts GetAccountsOptio
 // Returns the account and boolean whether it's exist or not.
 func (db *SQLiteDatabase) GetAccount(ctx context.Context, username string) (model.Account, bool, error) {
 	account := model.Account{}
-	if err := db.GetContext(ctx, &account, `SELECT
+	err := db.GetContext(ctx, &account, `SELECT
 		id, username, password, owner, config FROM account WHERE username = ?`,
 		username,
-	); err != nil {
+	)
+	if err != nil && err != sql.ErrNoRows {
 		return account, false, errors.WithStack(err)
 	}
 
-	return account, account.ID != 0, nil
-}
-
-// DeleteAccounts removes all record with matching usernames.
-func (db *SQLiteDatabase) DeleteAccounts(ctx context.Context, usernames ...string) error {
-	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
-		// Delete account
-		stmtDelete, err := tx.Preparex(`DELETE FROM account WHERE username = ?`)
-		if err != nil {
-			return errors.WithStack(err)
-		}
-
-		for _, username := range usernames {
-			_, err := stmtDelete.ExecContext(ctx, username)
-			if err != nil {
-				return errors.WithStack(err)
-			}
-		}
-
-		return nil
-	}); err != nil {
-		return errors.WithStack(err)
+	// Use custom not found error if that's the result of the query
+	if err == sql.ErrNoRows {
+		err = ErrNotFound
 	}
 
-	return nil
+	return account, account.ID != 0, err
 }
 
 // DeleteAccount removes record with matching username.
 func (db *SQLiteDatabase) DeleteAccount(ctx context.Context, username string) error {
 	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
-		result, err := tx.ExecContext(ctx, `DELETE FROM account WHERE username = ?`, username)
+		result, err := tx.ExecContext(ctx, `DELETE FROM account WHERE id = ?`, username)
 		if err != nil {
 			return errors.WithStack(fmt.Errorf("error deleting account: %v", err))
 		}
 
 		rows, err := result.RowsAffected()
-		if err != nil {
+		if err != nil && err != sql.ErrNoRows {
 			return errors.WithStack(fmt.Errorf("error getting rows affected: %v", err))
 		}
 

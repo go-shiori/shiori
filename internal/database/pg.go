@@ -665,45 +665,32 @@ func (db *PGDatabase) GetAccounts(ctx context.Context, opts GetAccountsOptions) 
 // Returns the account and boolean whether it's exist or not.
 func (db *PGDatabase) GetAccount(ctx context.Context, username string) (model.Account, bool, error) {
 	account := model.Account{}
-	if err := db.GetContext(ctx, &account, `SELECT
+	err := db.GetContext(ctx, &account, `SELECT
 		id, username, password, owner, config FROM account WHERE username = $1`,
 		username,
-	); err != nil {
+	)
+	if err != nil && err != sql.ErrNoRows {
 		return account, false, errors.WithStack(err)
 	}
 
-	return account, account.ID != 0, nil
-}
-
-// DeleteAccounts removes all record with matching usernames.
-func (db *PGDatabase) DeleteAccounts(ctx context.Context, usernames ...string) (err error) {
-	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
-		// Delete account
-		stmtDelete, _ := tx.Preparex(`DELETE FROM account WHERE username = $1`)
-		for _, username := range usernames {
-			if _, err := stmtDelete.ExecContext(ctx, username); err != nil {
-				return errors.WithStack(err)
-			}
-		}
-
-		return nil
-	}); err != nil {
-		return errors.WithStack(err)
+	// Use custom not found error if that's the result of the query
+	if err == sql.ErrNoRows {
+		err = ErrNotFound
 	}
 
-	return nil
+	return account, account.ID != 0, err
 }
 
 // DeleteAccount removes record with matching username.
 func (db *PGDatabase) DeleteAccount(ctx context.Context, username string) error {
 	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
-		result, err := tx.ExecContext(ctx, `DELETE FROM account WHERE username = $1`, username)
+		result, err := tx.ExecContext(ctx, `DELETE FROM account WHERE id = $1`, username)
 		if err != nil {
 			return errors.WithStack(fmt.Errorf("error deleting account: %v", err))
 		}
 
 		rows, err := result.RowsAffected()
-		if err != nil {
+		if err != nil && err != sql.ErrNoRows {
 			return errors.WithStack(fmt.Errorf("error getting rows affected: %v", err))
 		}
 

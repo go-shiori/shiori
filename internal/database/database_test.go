@@ -31,14 +31,14 @@ func testDatabase(t *testing.T, dbFactory testDatabaseFactory) {
 		// Tags
 		"testCreateTag":  testCreateTag,
 		"testCreateTags": testCreateTags,
-		// Accoubnts
-		"testCreateAccount": testCreateAccount,
-		"testDeleteAccount": testDeleteAccount,
 		// Accounts
-		"testSaveAccount":        testSaveAccount,
-		"testSaveAccountSetting": testSaveAccountSettings,
-		"testGetAccount":         testGetAccount,
-		"testGetAccounts":        testGetAccounts,
+		"testCreateAccount":            testCreateAccount,
+		"testDeleteAccount":            testDeleteAccount,
+		"testDeleteNonExistantAccount": testDeleteNonExistantAccount,
+		"testSaveAccount":              testSaveAccount,
+		"testSaveAccountSetting":       testSaveAccountSettings,
+		"testGetAccount":               testGetAccount,
+		"testGetAccounts":              testGetAccounts,
 	}
 
 	for testName, testCase := range tests {
@@ -365,14 +365,14 @@ func testDeleteAccount(t *testing.T, db DB) {
 	assert.NoError(t, err, "Delete account must not fail")
 
 	_, exists, err := db.GetAccount(ctx, storedAccount.Username)
-	assert.NoError(t, err, "Get account must not fail")
 	assert.False(t, exists, "Account must not exist")
+	assert.ErrorIs(t, err, ErrNotFound, "Get account must return not found error")
 }
 
 func testDeleteNonExistantAccount(t *testing.T, db DB) {
 	ctx := context.TODO()
 	err := db.DeleteAccount(ctx, "notexistent")
-	assert.ErrorIs(t, ErrNotFound, err, "Delete account must fail")
+	assert.ErrorIs(t, err, ErrNotFound, "Delete account must fail")
 }
 
 func testSaveAccount(t *testing.T, db DB) {
@@ -386,6 +386,7 @@ func testSaveAccount(t *testing.T, db DB) {
 	account, err := db.SaveAccount(ctx, acc)
 	require.Nil(t, err)
 	require.NotNil(t, account)
+	require.NotEmpty(t, account.ID)
 }
 
 func testSaveAccountSettings(t *testing.T, db DB) {

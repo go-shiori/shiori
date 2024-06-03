@@ -1,6 +1,7 @@
 package api_v1
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -120,7 +121,13 @@ func (r *AccountsAPIRoutes) createHandler(c *gin.Context) {
 func (r *AccountsAPIRoutes) deleteHandler(c *gin.Context) {
 	id := c.Param("id")
 
-	if err := r.deps.Domains.Accounts.DeleteAccount(c.Request.Context(), id); err != nil {
+	err := r.deps.Domains.Accounts.DeleteAccount(c.Request.Context(), id)
+	if errors.Is(err, model.ErrNotFound) {
+		response.SendError(c, http.StatusNotFound, "account not found")
+		return
+	}
+
+	if err != nil {
 		r.logger.WithError(err).Error("error deleting account")
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return

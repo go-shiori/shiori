@@ -2,7 +2,6 @@ package database
 
 import (
 	"context"
-	"embed"
 	"fmt"
 	"log"
 	"net/url"
@@ -12,9 +11,6 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 )
-
-//go:embed migrations/*
-var migrations embed.FS
 
 // ErrNotFound is error returned when record is not found in database.
 var ErrNotFound = errors.New("not found")
@@ -109,9 +105,6 @@ type DB interface {
 
 	// GetAccount fetch account with matching username.
 	GetAccount(ctx context.Context, username string) (model.Account, bool, error)
-
-	// DeleteAccounts removes all record with matching usernames
-	DeleteAccounts(ctx context.Context, usernames ...string) error
 
 	// DeleteAccount removes account with matching username.
 	DeleteAccount(ctx context.Context, username string) error

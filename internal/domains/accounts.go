@@ -44,9 +44,13 @@ func (d *AccountsDomain) CreateAccount(ctx context.Context, account model.Accoun
 	return &result, nil
 }
 
-func (d *AccountsDomain) DeleteAccount(ctx context.Context, username string) error {
-	err := d.deps.Database.DeleteAccounts(ctx, username)
-	if err != nil && !errors.Is(err, database.ErrNotFound) {
+func (d *AccountsDomain) DeleteAccount(ctx context.Context, id string) error {
+	err := d.deps.Database.DeleteAccount(ctx, id)
+	if errors.Is(err, database.ErrNotFound) {
+		return model.ErrNotFound
+	}
+
+	if err != nil {
 		return fmt.Errorf("error deleting account: %v", err)
 	}
 
