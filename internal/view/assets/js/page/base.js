@@ -95,6 +95,28 @@ export default {
 					return false;
 			}
 		},
+		themeSwitch(theme) {
+			switch (theme) {
+				case "light":
+					document.body.className = "";
+					this.appOptions.NightMode = false;
+					break;
+				case "night":
+					document.body.className = "night";
+					this.appOptions.NightMode = true;
+					break;
+				case "follow":
+					document.body.className = self.matchMedia(
+						"(prefers-color-scheme: dark)",
+					).matches
+						? "night"
+						: "";
+					this.appOptions.NightMode = self.matchMedia(
+						"(prefers-color-scheme: dark)",
+					).matches;
+					break;
+			}
+		},
 		showErrorDialog(msg) {
 			var sessionError = this.isSessionError(msg),
 				dialogContent = sessionError

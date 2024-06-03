@@ -75,22 +75,7 @@
 						UseArchive: UseArchive,
 						CreateEbook: CreateEbook,
 					};
-
-					//document.body.className = NightMode ? "night" : "";
-                    switch(Theme){
-                    case "light":
-                        document.body.className = "";
-                        this.appOptions.NightMode = false;
-                        break;
-                    case "night":
-                        document.body.className = "night";
-                        this.appOptions.NightMode = true;
-                        break;
-                    case "follow":
-                        document.body.className = window.matchMedia('(prefers-color-scheme: dark)').matches ? "night" : "";
-                        this.appOptions.NightMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                        break;
-                    }
+                    this.themeSwitch(Theme)
 				}
 			},
 			mounted() {

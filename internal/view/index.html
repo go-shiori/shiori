@@ -107,20 +107,7 @@
 				},
 				saveSetting(opts) {
 					this.appOptions = opts;
-                    switch(opts.Theme){
-                    case "light":
-                        document.body.className = "";
-                        this.appOptions.NightMode = false;
-                        break;
-                    case "night":
-                        document.body.className = "night";
-                        this.appOptions.NightMode = true;
-                        break;
-                    case "follow":
-                        document.body.className = window.matchMedia('(prefers-color-scheme: dark)').matches ? "night" : "";
-                        this.appOptions.NightMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                        break;
-                    }
+                    this.themeSwitch(opts.Theme)
 				},
 				loadSetting() {
 					var opts = JSON.parse(localStorage.getItem("shiori-account")) || {},
@@ -147,20 +134,7 @@
 						CreateEbook: CreateEbook,
 						MakePublic: MakePublic,
 					};
-                    switch(Theme){
-                    case "light":
-                        document.body.className = "";
-                        this.appOptions.NightMode = false;
-                        break;
-                    case "night":
-                        document.body.className = "night";
-                        this.appOptions.NightMode = true;
-                        break;
-                    case "follow":
-                        document.body.className = window.matchMedia('(prefers-color-scheme: dark)').matches ? "night" : "";
-                        this.appOptions.NightMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                        break;
-                    }
+                    this.themeSwitch(Theme)
 
 				},
 				loadAccount() {
