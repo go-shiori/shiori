@@ -51,10 +51,6 @@ type loginResponseMessage struct {
 	Expiration int64  `json:"expires"` // Deprecated, used only for legacy APIs
 }
 
-type settingRequestPayload struct {
-	Config model.UserConfig `json:"config"`
-}
-
 // loginHandler godoc
 //
 //	@Summary	Login to an account using username and password

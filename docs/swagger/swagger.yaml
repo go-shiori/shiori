@@ -29,11 +29,6 @@ definitions:
       html:
         type: string
     type: object
-  api_v1.settingRequestPayload:
-    properties:
-      config:
-        $ref: '#/definitions/model.UserConfig'
-    type: object
   api_v1.updateCachePayload:
     properties:
       create_archive:
@@ -201,14 +196,35 @@ paths:
       summary: Delete an account
       tags:
       - accounts
+    patch:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.AccountDTO'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Update an account
+      tags:
+      - accounts
   /api/v1/auth/account:
     patch:
       parameters:
-      - description: Config data
+      - description: Account data
         in: body
         name: payload
         schema:
-          $ref: '#/definitions/api_v1.settingRequestPayload'
+          $ref: '#/definitions/model.AccountDTO'
       produces:
       - application/json
       responses:
@@ -218,7 +234,7 @@ paths:
             $ref: '#/definitions/model.Account'
         "403":
           description: Token not provided/invalid
-      summary: Perform actions on the currently logged-in user.
+      summary: Update account information
       tags:
       - Auth
   /api/v1/auth/login:

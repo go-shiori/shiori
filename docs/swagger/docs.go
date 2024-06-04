@@ -99,6 +99,38 @@ const docTemplate = `{
                         }
                     }
                 }
+            },
+            "patch": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "accounts"
+                ],
+                "summary": "Update an account",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.AccountDTO"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
             }
         },
         "/api/v1/auth/account": {
@@ -109,14 +141,14 @@ const docTemplate = `{
                 "tags": [
                     "Auth"
                 ],
-                "summary": "Perform actions on the currently logged-in user.",
+                "summary": "Update account information",
                 "parameters": [
                     {
-                        "description": "Config data",
+                        "description": "Account data",
                         "name": "payload",
                         "in": "body",
                         "schema": {
-                            "$ref": "#/definitions/api_v1.settingRequestPayload"
+                            "$ref": "#/definitions/model.AccountDTO"
                         }
                     }
                 ],
@@ -356,14 +388,6 @@ const docTemplate = `{
                 },
                 "html": {
                     "type": "string"
-                }
-            }
-        },
-        "api_v1.settingRequestPayload": {
-            "type": "object",
-            "properties": {
-                "config": {
-                    "$ref": "#/definitions/model.UserConfig"
                 }
             }
         },

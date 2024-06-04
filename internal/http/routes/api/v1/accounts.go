@@ -24,7 +24,6 @@ func (r *AccountsAPIRoutes) Setup(g *gin.RouterGroup) model.Routes {
 	g.GET("/", r.listHandler)
 	g.POST("/", r.createHandler)
 	g.DELETE("/:id", r.deleteHandler)
-	g.PUT("/:id", r.updateHandler)
 	g.PATCH("/:id", r.updateHandler)
 
 	return r
@@ -155,7 +154,7 @@ func (r *AccountsAPIRoutes) deleteHandler(c *gin.Context) {
 //	@Success	200	{array}		model.AccountDTO
 //	@Failure	400	{string}	string	"Bad Request"
 //	@Failure	500	{string}	string	"Internal Server Error"
-//	@Router		/api/v1/accounts/{id} [put,patch]
+//	@Router		/api/v1/accounts/{id} [patch]
 func (r *AccountsAPIRoutes) updateHandler(c *gin.Context) {
 	accountID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
