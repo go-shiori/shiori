@@ -135,7 +135,7 @@ export default {
 			if (this.loading) return;
 
 			this.loading = true;
-			fetch(new URL("api/accounts", document.baseURI), {
+			fetch(new URL("api/v1/accounts", document.baseURI), {
 				headers: {
 					"Content-Type": "application/json",
 					Authorization: "Bearer " + localStorage.getItem("shiori-token"),
@@ -147,7 +147,7 @@ export default {
 				})
 				.then((json) => {
 					this.loading = false;
-					this.accounts = json;
+					this.accounts = json.message;
 				})
 				.catch((err) => {
 					this.loading = false;
@@ -210,7 +210,7 @@ export default {
 					};
 
 					this.dialog.loading = true;
-					fetch(new URL("api/accounts", document.baseURI), {
+					fetch(new URL("api/v1/accounts", document.baseURI), {
 						method: "post",
 						body: JSON.stringify(request),
 						headers: {
@@ -220,16 +220,13 @@ export default {
 					})
 						.then((response) => {
 							if (!response.ok) throw response;
-							return response;
+							return response.json();
 						})
-						.then(() => {
+						.then((json) => {
 							this.dialog.loading = false;
 							this.dialog.visible = false;
 
-							this.accounts.push({
-								username: data.username,
-								owner: !data.visitor,
-							});
+							this.accounts.push(json.message);
 							this.accounts.sort((a, b) => {
 								var nameA = a.username.toLowerCase(),
 									nameB = b.username.toLowerCase();
@@ -260,12 +257,6 @@ export default {
 				content: "Input new password :",
 				fields: [
 					{
-						name: "oldPassword",
-						label: "Old password",
-						type: "password",
-						value: "",
-					},
-					{
 						name: "password",
 						label: "New password",
 						type: "password",
@@ -276,16 +267,11 @@ export default {
 						label: "Repeat password",
 						type: "password",
 						value: "",
-					},
+					}
 				],
 				mainText: "OK",
 				secondText: "Cancel",
 				mainClick: (data) => {
-					if (data.oldPassword === "") {
-						this.showErrorDialog("Old password must not empty");
-						return;
-					}
-
 					if (data.password === "") {
 						this.showErrorDialog("New password must not empty");
 						return;
@@ -297,6 +283,7 @@ export default {
 					}
 
 					var request = {
+						id: account.id,
 						username: account.username,
 						oldPassword: data.oldPassword,
 						newPassword: data.password,
@@ -304,7 +291,7 @@ export default {
 					};
 
 					this.dialog.loading = true;
-					fetch(new URL("api/accounts", document.baseURI), {
+					fetch(new URL("api/v1/accounts/" + account.id, document.baseURI), {
 						method: "put",
 						body: JSON.stringify(request),
 						headers: {
