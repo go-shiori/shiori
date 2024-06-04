@@ -42,6 +42,22 @@ func AuthenticationRequired() gin.HandlerFunc {
 	}
 }
 
+func AdminRequired() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		c := context.NewContextFromGin(ctx)
+		if !c.UserIsLogged() {
+			response.SendError(ctx, http.StatusUnauthorized, nil)
+			return
+		}
+
+		account := c.GetAccount()
+		if !account.Owner {
+			response.SendError(ctx, http.StatusForbidden, nil)
+			return
+		}
+	}
+}
+
 // getTokenFromHeader returns the token from the Authorization header, if any.
 func getTokenFromHeader(c *gin.Context) string {
 	authorization := c.GetHeader(model.AuthorizationHeader)

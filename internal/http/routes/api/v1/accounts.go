@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-shiori/shiori/internal/dependencies"
+	"github.com/go-shiori/shiori/internal/http/middleware"
 	"github.com/go-shiori/shiori/internal/http/response"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/sirupsen/logrus"
@@ -19,6 +20,7 @@ type AccountsAPIRoutes struct {
 }
 
 func (r *AccountsAPIRoutes) Setup(g *gin.RouterGroup) model.Routes {
+	g.Use(middleware.AdminRequired())
 	g.GET("/", r.listHandler)
 	g.POST("/", r.createHandler)
 	g.DELETE("/:id", r.deleteHandler)
