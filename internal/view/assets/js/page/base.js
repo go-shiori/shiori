@@ -107,6 +107,14 @@ export default {
 					break;
 				case "follow":
 					{
+						document.body.className = self.matchMedia(
+							"(prefers-color-scheme: dark)",
+						).matches
+							? "night"
+							: "";
+						this.appOptions.NightMode = self.matchMedia(
+							"(prefers-color-scheme: dark)",
+						).matches;
 						const darkModePreference = self.matchMedia(
 							"(prefers-color-scheme: dark)",
 						);
