@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-shiori/shiori/internal/model"
 )
 
 // NewGin returns a new gin engine with test mode enabled.
@@ -27,6 +28,12 @@ func WithBody(body string) Option {
 func WithHeader(name, value string) Option {
 	return func(request *http.Request) {
 		request.Header.Add(name, value)
+	}
+}
+
+func WithAuthToken(token string) Option {
+	return func(request *http.Request) {
+		request.Header.Add(model.AuthorizationHeader, model.AuthorizationTokenType+" "+token)
 	}
 }
 

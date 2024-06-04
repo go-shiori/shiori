@@ -283,16 +283,12 @@ export default {
 					}
 
 					var request = {
-						id: account.id,
-						username: account.username,
-						oldPassword: data.oldPassword,
-						newPassword: data.password,
-						owner: account.owner,
+						password: data.password,
 					};
 
 					this.dialog.loading = true;
-					fetch(new URL("api/v1/accounts/" + account.id, document.baseURI), {
-						method: "put",
+					fetch(new URL(`api/v1/accounts/${account.id}`, document.baseURI), {
+						method: "patch",
 						body: JSON.stringify(request),
 						headers: {
 							"Content-Type": "application/json",
@@ -324,9 +320,8 @@ export default {
 				secondText: "No",
 				mainClick: () => {
 					this.dialog.loading = true;
-					fetch(`api/accounts`, {
+					fetch(`api/v1/accounts/${account.id}`, {
 						method: "delete",
-						body: JSON.stringify([account.username]),
 						headers: {
 							"Content-Type": "application/json",
 							Authorization: "Bearer " + localStorage.getItem("shiori-token"),

@@ -33,7 +33,7 @@ func TestUpdateBookmarkCache(t *testing.T) {
 	}
 	_, err := deps.Database.SaveAccount(ctx, account)
 	require.NoError(t, err)
-	token, err := deps.Domains.Auth.CreateTokenForAccount(&account, time.Now().Add(time.Minute))
+	token, err := deps.Domains.Auth.CreateTokenForAccount(model.Ptr(account.ToDTO()), time.Now().Add(time.Minute))
 	require.NoError(t, err)
 
 	t.Run("require authentication", func(t *testing.T) {
@@ -66,7 +66,7 @@ func TestReadableeBookmarkContent(t *testing.T) {
 	}
 	_, err := deps.Database.SaveAccount(ctx, account)
 	require.NoError(t, err)
-	token, err := deps.Domains.Auth.CreateTokenForAccount(&account, time.Now().Add(time.Minute))
+	token, err := deps.Domains.Auth.CreateTokenForAccount(model.Ptr(account.ToDTO()), time.Now().Add(time.Minute))
 	require.NoError(t, err)
 
 	bookmark := testutil.GetValidBookmark()

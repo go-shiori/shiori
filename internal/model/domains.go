@@ -18,9 +18,9 @@ type BookmarksDomain interface {
 }
 
 type AuthDomain interface {
-	CheckToken(ctx context.Context, userJWT string) (*Account, error)
-	GetAccountFromCredentials(ctx context.Context, username, password string) (*Account, error)
-	CreateTokenForAccount(account *Account, expiration time.Time) (string, error)
+	CheckToken(ctx context.Context, userJWT string) (*AccountDTO, error)
+	GetAccountFromCredentials(ctx context.Context, username, password string) (*AccountDTO, error)
+	CreateTokenForAccount(account *AccountDTO, expiration time.Time) (string, error)
 }
 
 type AccountsDomain interface {

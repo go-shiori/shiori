@@ -39,7 +39,7 @@ func (r *LegacyAPIRoutes) handle(handler func(w http.ResponseWriter, r *http.Req
 	}
 }
 
-func (r *LegacyAPIRoutes) HandleLogin(account model.Account, expTime time.Duration) (string, error) {
+func (r *LegacyAPIRoutes) HandleLogin(account *model.AccountDTO, expTime time.Duration) (string, error) {
 	// Create session ID
 	sessionID, err := uuid.NewV4()
 	if err != nil {

@@ -126,7 +126,7 @@ func (r *BookmarksAPIRoutes) bookmarkReadable(c *gin.Context) {
 //	@Router						/api/v1/bookmarks/cache [put]
 func (r *BookmarksAPIRoutes) updateCache(c *gin.Context) {
 	ctx := context.NewContextFromGin(c)
-	if !ctx.GetAccount().Owner {
+	if !ctx.GetAccount().IsOwner() {
 		response.SendError(c, http.StatusForbidden, nil)
 		return
 	}

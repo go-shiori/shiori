@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-shiori/shiori/internal/dependencies"
 	"github.com/go-shiori/shiori/internal/http/context"
+	"github.com/go-shiori/shiori/internal/http/middleware"
 	"github.com/go-shiori/shiori/internal/http/response"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/sirupsen/logrus"
@@ -20,10 +21,11 @@ type AuthAPIRoutes struct {
 }
 
 func (r *AuthAPIRoutes) Setup(group *gin.RouterGroup) model.Routes {
-	group.GET("/me", r.meHandler)
 	group.POST("/login", r.loginHandler)
+	group.Use(middleware.AuthenticationRequired())
+	group.GET("/me", r.meHandler)
 	group.POST("/refresh", r.refreshHandler)
-	group.PATCH("/account", r.settingsHandler)
+	group.PATCH("/account", r.updateHandler)
 	return r
 }
 
@@ -92,7 +94,7 @@ func (r *AuthAPIRoutes) loginHandler(c *gin.Context) {
 		return
 	}
 
-	sessionID, err := r.legacyLoginHandler(*account, time.Hour*24*30)
+	sessionID, err := r.legacyLoginHandler(account, time.Hour*24*30)
 	if err != nil {
 		r.logger.WithError(err).Error("failed execute legacy login handler")
 		response.SendInternalServerError(c)
@@ -119,14 +121,10 @@ func (r *AuthAPIRoutes) loginHandler(c *gin.Context) {
 //	@Router						/api/v1/auth/refresh [post]
 func (r *AuthAPIRoutes) refreshHandler(c *gin.Context) {
 	ctx := context.NewContextFromGin(c)
-	if !ctx.UserIsLogged() {
-		response.SendError(c, http.StatusForbidden, nil)
-		return
-	}
 
 	expiration := time.Now().Add(time.Hour * 72)
-	account, _ := c.Get(model.ContextAccountKey)
-	token, err := r.deps.Domains.Auth.CreateTokenForAccount(account.(*model.Account), expiration)
+	account := ctx.GetAccount()
+	token, err := r.deps.Domains.Auth.CreateTokenForAccount(account, expiration)
 	if err != nil {
 		response.SendInternalServerError(c)
 		return
@@ -150,43 +148,40 @@ func (r *AuthAPIRoutes) refreshHandler(c *gin.Context) {
 //	@Router						/api/v1/auth/me [get]
 func (r *AuthAPIRoutes) meHandler(c *gin.Context) {
 	ctx := context.NewContextFromGin(c)
-	if !ctx.UserIsLogged() {
-		response.SendError(c, http.StatusForbidden, nil)
-		return
-	}
-
 	response.Send(c, http.StatusOK, ctx.GetAccount())
 }
 
-// settingsHandler godoc
+// updateHandler godoc
 //
-//	@Summary					Perform actions on the currently logged-in user.
+//	@Summary					Update account information
 //	@Tags						Auth
 //	@securityDefinitions.apikey	ApiKeyAuth
-//	@Param						payload	body	settingRequestPayload	false	"Config data"
+//	@Param						payload	body	model.AccountDTO	false	"Account data"
 //	@Produce					json
 //	@Success					200	{object}	model.Account
 //	@Failure					403	{object}	nil	"Token not provided/invalid"
 //	@Router						/api/v1/auth/account [patch]
-func (r *AuthAPIRoutes) settingsHandler(c *gin.Context) {
+func (r *AuthAPIRoutes) updateHandler(c *gin.Context) {
 	ctx := context.NewContextFromGin(c)
-	if !ctx.UserIsLogged() {
-		response.SendError(c, http.StatusForbidden, nil)
-	}
-	var payload settingRequestPayload
+
+	var payload model.AccountDTO
 	if err := c.ShouldBindJSON(&payload); err != nil {
 		response.SendInternalServerError(c)
 	}
 
-	account := ctx.GetAccount()
-	account.Config = payload.Config
+	// TODO: Check old password?
 
-	err := r.deps.Database.SaveAccountSettings(c, *account)
+	account := ctx.GetAccount()
+	payload.ID = account.ID
+
+	account, err := r.deps.Domains.Accounts.UpdateAccount(c, payload)
 	if err != nil {
+		r.deps.Log.WithError(err).Error("failed to update account")
 		response.SendInternalServerError(c)
+		return
 	}
 
-	response.Send(c, http.StatusOK, ctx.GetAccount())
+	response.Send(c, http.StatusOK, account)
 }
 
 func NewAuthAPIRoutes(logger *logrus.Logger, deps *dependencies.Dependencies, loginHandler model.LegacyLoginHandler) *AuthAPIRoutes {

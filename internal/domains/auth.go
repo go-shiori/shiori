@@ -20,10 +20,10 @@ type AuthDomain struct {
 type JWTClaim struct {
 	jwt.RegisteredClaims
 
-	Account *model.Account
+	Account *model.AccountDTO
 }
 
-func (d *AuthDomain) CheckToken(ctx context.Context, userJWT string) (*model.Account, error) {
+func (d *AuthDomain) CheckToken(ctx context.Context, userJWT string) (*model.AccountDTO, error) {
 	token, err := jwt.ParseWithClaims(userJWT, &JWTClaim{}, func(token *jwt.Token) (interface{}, error) {
 		// Validate algorithm
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -46,7 +46,7 @@ func (d *AuthDomain) CheckToken(ctx context.Context, userJWT string) (*model.Acc
 	return nil, fmt.Errorf("error obtaining user from JWT claims")
 }
 
-func (d *AuthDomain) GetAccountFromCredentials(ctx context.Context, username, password string) (*model.Account, error) {
+func (d *AuthDomain) GetAccountFromCredentials(ctx context.Context, username, password string) (*model.AccountDTO, error) {
 	accounts, err := d.deps.Database.ListAccounts(ctx, database.ListAccountsOptions{
 		Username:     username,
 		WithPassword: true,
@@ -65,12 +65,12 @@ func (d *AuthDomain) GetAccountFromCredentials(ctx context.Context, username, pa
 		return nil, fmt.Errorf("username and password do not match")
 	}
 
-	return &account, nil
+	return model.Ptr(account.ToDTO()), nil
 }
 
-func (d *AuthDomain) CreateTokenForAccount(account *model.Account, expiration time.Time) (string, error) {
+func (d *AuthDomain) CreateTokenForAccount(account *model.AccountDTO, expiration time.Time) (string, error) {
 	claims := jwt.MapClaims{
-		"account": account.ToDTO(),
+		"account": account,
 		"exp":     expiration.UTC().Unix(),
 	}
 

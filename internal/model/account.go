@@ -65,3 +65,7 @@ type AccountDTO struct {
 	Owner    *bool       `json:"owner"`
 	Config   *UserConfig `json:"config"`
 }
+
+func (adto *AccountDTO) IsOwner() bool {
+	return adto.Owner != nil && *adto.Owner
+}

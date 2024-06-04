@@ -25,6 +25,7 @@ func (r *AccountsAPIRoutes) Setup(g *gin.RouterGroup) model.Routes {
 	g.POST("/", r.createHandler)
 	g.DELETE("/:id", r.deleteHandler)
 	g.PUT("/:id", r.updateHandler)
+	g.PATCH("/:id", r.updateHandler)
 
 	return r
 }
@@ -76,7 +77,7 @@ func (p *createAccountPayload) ToAccountDTO() model.AccountDTO {
 	return model.AccountDTO{
 		Username: p.Username,
 		Password: p.Password,
-		Owner:    model.Ptr[bool](!p.IsVisitor),
+		Owner:    model.Ptr(!p.IsVisitor),
 	}
 }
 
