@@ -267,7 +267,7 @@ export default {
 						label: "Repeat password",
 						type: "password",
 						value: "",
-					}
+					},
 				],
 				mainText: "OK",
 				secondText: "Cancel",
