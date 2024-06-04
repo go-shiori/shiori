@@ -106,14 +106,20 @@ export default {
 					this.appOptions.NightMode = true;
 					break;
 				case "follow":
-					document.body.className = self.matchMedia(
-						"(prefers-color-scheme: dark)",
-					).matches
-						? "night"
-						: "";
-					this.appOptions.NightMode = self.matchMedia(
-						"(prefers-color-scheme: dark)",
-					).matches;
+					{
+						const darkModePreference = self.matchMedia(
+							"(prefers-color-scheme: dark)",
+						);
+						darkModePreference.addEventListener("change", (e) => {
+							if (e.matches) {
+								document.body.className = "night";
+								this.appOptions.NightMode = true;
+							} else {
+								document.body.className = "";
+								this.appOptions.NightMode = false;
+							}
+						});
+					}
 					break;
 			}
 		},
