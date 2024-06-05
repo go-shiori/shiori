@@ -9,7 +9,7 @@ var template = `
                 <select v-model="appOptions.Theme" @change="saveSetting">
                 <option value="follow">Follow system</option>
                 <option value="light">Light theme</option>
-                <option value="night">Dark theme</option>
+                <option value="dark">Dark theme</option>
                 </select>
             </label>
             <label>

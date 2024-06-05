@@ -20,8 +20,8 @@
 	<script src="assets/js/url.min.js"></script>
 </head>
 
-<body class="night">
-	<div id="main-scene" :class="{night: appOptions.NightMode}">
+<body>
+	<div id="main-scene">
 		<div id="main-sidebar">
 			<a v-for="item in sidebarItems" :title="item.title" :class="{active: activePage === item.page}" @click="switchPage(item.page)">
 				<i class="fas fa-fw" :class="item.icon"></i>
