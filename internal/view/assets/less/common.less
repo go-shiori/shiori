@@ -19,17 +19,24 @@ select {
 	border-radius: 4px;
 	color: var(--color);
 }
+
 footer {
 	color: var(--color);
 }
 
-&.night {
+.night {
 	--bg: #1f1f1f;
 	--headerBg: #292929;
 	--contentBg: #292929;
 	--border: #191919;
 	--color: #fff;
 	--selectedBg: #261918;
+}
+
+@media (prefers-color-scheme: dark) and (body: not(light)) {
+	:root {
+		.night();
+	}
 }
 
 * {

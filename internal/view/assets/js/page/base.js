@@ -30,9 +30,19 @@ export default {
 	data() {
 		return {
 			dialog: {},
+			darkModePreference: self.matchMedia("(prefers-color-scheme: dark)"),
 		};
 	},
 	methods: {
+		darkModeHandler(e) {
+			if (e.matches) {
+				document.body.className = "night";
+				this.appOptions.NightMode = true;
+			} else {
+				document.body.className = "light";
+				this.appOptions.NightMode = false;
+			}
+		},
 		defaultDialog() {
 			return {
 				visible: false,
@@ -96,9 +106,14 @@ export default {
 			}
 		},
 		themeSwitch(theme) {
+			this.darkModePreference.removeEventListener(
+				"change",
+				this.darkModeHandler,
+			);
+
 			switch (theme) {
 				case "light":
-					document.body.className = "";
+					document.body.className = "light";
 					this.appOptions.NightMode = false;
 					break;
 				case "night":
@@ -111,24 +126,19 @@ export default {
 							"(prefers-color-scheme: dark)",
 						).matches
 							? "night"
-							: "";
+							: "light";
 						this.appOptions.NightMode = self.matchMedia(
 							"(prefers-color-scheme: dark)",
 						).matches;
-						const darkModePreference = self.matchMedia(
-							"(prefers-color-scheme: dark)",
+
+						this.darkModePreference.addEventListener(
+							"change",
+							this.darkModeHandler,
 						);
-						darkModePreference.addEventListener("change", (e) => {
-							if (e.matches) {
-								document.body.className = "night";
-								this.appOptions.NightMode = true;
-							} else {
-								document.body.className = "";
-								this.appOptions.NightMode = false;
-							}
-						});
 					}
 					break;
+				default:
+					console.log("Invalid theme selected");
 			}
 		},
 		showErrorDialog(msg) {
