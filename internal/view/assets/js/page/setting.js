@@ -96,7 +96,6 @@ export default {
 				ListMode: this.appOptions.ListMode,
 				HideThumbnail: this.appOptions.HideThumbnail,
 				HideExcerpt: this.appOptions.HideExcerpt,
-				NightMode: this.appOptions.NightMode,
 				Theme: this.appOptions.Theme,
 			};
 

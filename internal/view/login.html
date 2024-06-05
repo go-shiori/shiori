@@ -21,7 +21,7 @@
 </head>
 
 <body>
-	<div id="login-scene" :class="{night: NightMode}">
+	<div id="login-scene">
 		<p class="error-message" v-if="error !== ''">{{error}}</p>
 		<div id="login-box">
 			<form @submit.prevent="login">
@@ -62,7 +62,6 @@
 				username: "",
 				password: "",
 				remember: false,
-				NightMode: false,
 			},
 			methods: {
 				async getErrorMessage(err) {
@@ -149,9 +148,7 @@
 					});
 				},
 				loadSetting() {
-					var opts = JSON.parse(localStorage.getItem("shiori-account")) || {},
-						NightMode =  self.matchMedia('(prefers-color-scheme: dark)').matches ;
-					this.NightMode = NightMode;
+                    document.body.classList.remove("light", "dark");
 				}
 			},
 			mounted() {

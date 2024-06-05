@@ -20,7 +20,6 @@ type UserConfig struct {
 	ListMode      bool   `json:"ListMode"`
 	HideThumbnail bool   `json:"HideThumbnail"`
 	HideExcerpt   bool   `json:"HideExcerpt"`
-	NightMode     bool   `json:"NightMode"`
 	Theme         string `json:"Theme"`
 	KeepMetadata  bool   `json:"KeepMetadata"`
 	UseArchive    bool   `json:"UseArchive"`

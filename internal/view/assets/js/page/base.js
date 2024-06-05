@@ -16,7 +16,6 @@ export default {
 				return {
 					ShowId: false,
 					ListMode: false,
-					NightMode: false,
 					HideThumbnail: false,
 					HideExcerpt: false,
 					KeepMetadata: false,

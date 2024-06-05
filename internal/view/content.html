@@ -20,8 +20,8 @@
 	<script src="assets/js/vue.min.js"></script>
 </head>
 
-<body class="night">
-	<div id="content-scene" :class="{night: appOptions.NightMode}">
+<body>
+	<div id="content-scene">
 		<div id="header">
 			<p id="metadata" v-cloak>Added {{localtime()}}</p>
 			<p id="title" dir="auto">$$.Book.Title$$</p>
@@ -62,7 +62,6 @@
 					var opts = JSON.parse(localStorage.getItem("shiori-account")) || {},
 						ShowId = (typeof opts.config.ShowId === "boolean") ? opts.config.ShowId : false,
 						ListMode = (typeof opts.config.ListMode === "boolean") ? opts.config.ListMode : false,
-						NightMode = (typeof opts.config.NightMode === "boolean") ? opts.config.NightMode : false,
 						Theme = (typeof opts.config.Theme === "string" && opts.config.Theme !== "") ? opts.config.Theme : "follow",
 						UseArchive = (typeof opts.config.UseArchive === "boolean") ? opts.config.UseArchive : false,
 						CreateEbook = (typeof opts.config.CreateEbook === "boolean") ? opts.config.CreateEbook : false;
@@ -70,7 +69,6 @@
 					this.appOptions = {
 						ShowId: ShowId,
 						ListMode: ListMode,
-						NightMode: NightMode,
 						Theme: Theme,
 						UseArchive: UseArchive,
 						CreateEbook: CreateEbook,
