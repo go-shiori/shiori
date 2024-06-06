@@ -228,7 +228,7 @@ func TestSettingsHandler(t *testing.T) {
 			"ListMode": false,
 			"HideThumbnail": false,
 			"HideExcerpt": false,
-			"NightMode": false,
+			"Theme": "follow",
 			"KeepMetadata": false,
 			"UseArchive": false,
 			"CreateEbook": false,
