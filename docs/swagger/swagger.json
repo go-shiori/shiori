@@ -161,7 +161,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/api_v1.contentResponseMessage"
+                            "$ref": "#/definitions/api_v1.readableResponseMessage"
                         }
                     },
                     "403": {
@@ -217,17 +217,6 @@
         }
     },
     "definitions": {
-        "api_v1.contentResponseMessage": {
-            "type": "object",
-            "properties": {
-                "content": {
-                    "type": "string"
-                },
-                "html": {
-                    "type": "string"
-                }
-            }
-        },
         "api_v1.loginRequestPayload": {
             "type": "object",
             "required": [
@@ -258,6 +247,17 @@
                     "type": "string"
                 },
                 "token": {
+                    "type": "string"
+                }
+            }
+        },
+        "api_v1.readableResponseMessage": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "html": {
                     "type": "string"
                 }
             }
