@@ -417,11 +417,11 @@ const docTemplate = `{
                 "MakePublic": {
                     "type": "boolean"
                 },
-                "NightMode": {
-                    "type": "boolean"
-                },
                 "ShowId": {
                     "type": "boolean"
+                },
+                "Theme": {
+                    "type": "string"
                 },
                 "UseArchive": {
                     "type": "boolean"

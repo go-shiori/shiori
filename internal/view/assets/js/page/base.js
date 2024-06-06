@@ -29,7 +29,6 @@ export default {
 	data() {
 		return {
 			dialog: {},
-			darkModePreference: self.matchMedia("(prefers-color-scheme: dark)"),
 		};
 	},
 	methods: {
