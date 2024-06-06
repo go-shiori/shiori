@@ -109,7 +109,7 @@ export default {
 					document.body.classList.remove("light", "dark");
 					break;
 				default:
-					console.log("Invalid theme selected");
+					console.error("Invalid theme selected");
 			}
 		},
 		showErrorDialog(msg) {
