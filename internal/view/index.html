@@ -20,8 +20,8 @@
 	<script src="assets/js/url.min.js"></script>
 </head>
 
-<body class="night">
-	<div id="main-scene" :class="{night: appOptions.NightMode}">
+<body>
+	<div id="main-scene">
 		<div id="main-sidebar">
 			<a v-for="item in sidebarItems" :title="item.title" :class="{active: activePage === item.page}" @click="switchPage(item.page)">
 				<i class="fas fa-fw" :class="item.icon"></i>
@@ -107,7 +107,7 @@
 				},
 				saveSetting(opts) {
 					this.appOptions = opts;
-					document.body.className = opts.config.NightMode ? "night" : "";
+                    this.themeSwitch(opts.Theme)
 				},
 				loadSetting() {
 					var opts = JSON.parse(localStorage.getItem("shiori-account")) || {},
@@ -115,7 +115,7 @@
 						ListMode = (typeof opts.config.ListMode === "boolean") ? opts.config.ListMode : false,
 						HideThumbnail = (typeof opts.config.HideThumbnail === "boolean") ? opts.config.HideThumbnail : false,
 						HideExcerpt = (typeof opts.config.HideExcerpt === "boolean") ? opts.config.HideExcerpt : false,
-						NightMode = (typeof opts.config.NightMode === "boolean") ? opts.config.NightMode : false,
+                        Theme = (typeof opts.config.Theme === "string" && opts.config.Theme !== "") ? opts.config.Theme : "follow",
 						KeepMetadata = (typeof opts.config.KeepMetadata === "boolean") ? opts.config.KeepMetadata : false,
 						UseArchive = (typeof opts.config.UseArchive === "boolean") ? opts.config.UseArchive : false,
 						CreateEbook = (typeof opts.config.CreateEbook === "boolean") ? opts.config.CreateEbook : false,
@@ -126,14 +126,14 @@
 						ListMode: ListMode,
 						HideThumbnail: HideThumbnail,
 						HideExcerpt: HideExcerpt,
-						NightMode: NightMode,
+						Theme: Theme,
 						KeepMetadata: KeepMetadata,
 						UseArchive: UseArchive,
 						CreateEbook: CreateEbook,
 						MakePublic: MakePublic,
 					};
+                    this.themeSwitch(Theme)
 
-					document.body.className = NightMode ? "night" : "";
 				},
 				loadAccount() {
 					var account = JSON.parse(localStorage.getItem("shiori-account")) || {},
