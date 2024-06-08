@@ -107,12 +107,11 @@ func (r *BookmarksAPIRoutes) bookmarkReadable(c *gin.Context) {
 	if err != nil {
 		return
 	}
-	responseMessage := readableResponseMessage{
+
+	response.Send(c, 200, readableResponseMessage{
 		Content: bookmark.Content,
 		Html:    bookmark.HTML,
-	}
-
-	response.Send(c, 200, responseMessage)
+	})
 }
 
 // updateCache godoc
