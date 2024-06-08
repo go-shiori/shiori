@@ -31,7 +31,7 @@ func TestUpdateBookmarkCache(t *testing.T) {
 		Password: "test",
 		Owner:    false,
 	}
-	_, err := deps.Database.SaveAccount(ctx, account)
+	_, err := deps.Database.CreateAccount(ctx, account)
 	require.NoError(t, err)
 	token, err := deps.Domains.Auth.CreateTokenForAccount(model.Ptr(account.ToDTO()), time.Now().Add(time.Minute))
 	require.NoError(t, err)
@@ -64,7 +64,7 @@ func TestReadableeBookmarkContent(t *testing.T) {
 		Password: "test",
 		Owner:    false,
 	}
-	_, err := deps.Database.SaveAccount(ctx, account)
+	_, err := deps.Database.CreateAccount(ctx, account)
 	require.NoError(t, err)
 	token, err := deps.Domains.Auth.CreateTokenForAccount(model.Ptr(account.ToDTO()), time.Now().Add(time.Minute))
 	require.NoError(t, err)

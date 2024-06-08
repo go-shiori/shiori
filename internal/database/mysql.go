@@ -579,8 +579,8 @@ func (db *MySQLDatabase) GetBookmark(ctx context.Context, id int, url string) (m
 	return book, book.ID != 0, nil
 }
 
-// SaveAccount saves new account to database. Returns error if any happened.
-func (db *MySQLDatabase) SaveAccount(ctx context.Context, account model.Account) (*model.Account, error) {
+// CreateAccount saves new account to database. Returns error if any happened.
+func (db *MySQLDatabase) CreateAccount(ctx context.Context, account model.Account) (*model.Account, error) {
 	// Insert account to database
 	result, insertErr := db.ExecContext(ctx, `INSERT INTO account
 		(username, password, owner, config) VALUES (?, ?, ?, ?)

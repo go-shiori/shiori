@@ -586,8 +586,8 @@ func (db *PGDatabase) GetBookmark(ctx context.Context, id int, url string) (mode
 	return book, book.ID != 0, nil
 }
 
-// SaveAccount saves new account to database. Returns error if any happened.
-func (db *PGDatabase) SaveAccount(ctx context.Context, account model.Account) (*model.Account, error) {
+// CreateAccount saves new account to database. Returns error if any happened.
+func (db *PGDatabase) CreateAccount(ctx context.Context, account model.Account) (*model.Account, error) {
 	var accountID int64
 	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
 		query, err := tx.PrepareContext(ctx, `INSERT INTO account

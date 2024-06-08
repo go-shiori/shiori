@@ -100,14 +100,11 @@ type DB interface {
 	// GetBookmark fetches bookmark based on its ID or URL.
 	GetBookmark(ctx context.Context, id int, url string) (model.BookmarkDTO, bool, error)
 
-	// SaveAccount saves new account in database
-	SaveAccount(ctx context.Context, a model.Account) (*model.Account, error)
+	// CreateAccount saves new account in database
+	CreateAccount(ctx context.Context, a model.Account) (*model.Account, error)
 
 	// UpdateAccount updates account in database
 	UpdateAccount(ctx context.Context, a model.Account) error
-
-	// SaveAccountSettings saves settings for specific user in database
-	SaveAccountSettings(ctx context.Context, a model.Account) error
 
 	// ListAccounts fetch list of account (without its password) with matching keyword.
 	ListAccounts(ctx context.Context, opts ListAccountsOptions) ([]model.Account, error)

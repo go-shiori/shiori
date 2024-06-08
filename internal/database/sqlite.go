@@ -687,8 +687,8 @@ func (db *SQLiteDatabase) GetBookmark(ctx context.Context, id int, url string) (
 	return book, book.ID != 0, nil
 }
 
-// SaveAccount saves new account to database. Returns error if any happened.
-func (db *SQLiteDatabase) SaveAccount(ctx context.Context, account model.Account) (*model.Account, error) {
+// CreateAccount saves new account to database. Returns error if any happened.
+func (db *SQLiteDatabase) CreateAccount(ctx context.Context, account model.Account) (*model.Account, error) {
 	var accountID int64
 	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
 		query, err := tx.PrepareContext(ctx, `INSERT INTO account

@@ -78,7 +78,7 @@ func TestAccountsRoute(t *testing.T) {
 			Password: "gopher",
 			Owner:    true,
 		}
-		_, accountInsertErr := deps.Database.SaveAccount(ctx, account)
+		_, accountInsertErr := deps.Database.CreateAccount(ctx, account)
 		require.NoError(t, accountInsertErr)
 
 		token, err := deps.Domains.Auth.CreateTokenForAccount(model.Ptr(account.ToDTO()), time.Now().Add(time.Minute))

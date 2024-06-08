@@ -37,7 +37,6 @@ func testDatabase(t *testing.T, dbFactory testDatabaseFactory) {
 		"testDeleteNonExistantAccount": testDeleteNonExistantAccount,
 		"testSaveAccount":              testSaveAccount,
 		"testUpdateAccount":            testUpdateAccount,
-		"testSaveAccountSetting":       testSaveAccountSettings,
 		"testGetAccount":               testGetAccount,
 		"testListAccounts":             testListAccounts,
 		"testListAccountsWithPassword": testListAccountsWithPassword,
@@ -344,7 +343,7 @@ func testCreateAccount(t *testing.T, db DB) {
 		Password: "testpass",
 		Owner:    true,
 	}
-	insertedAccount, err := db.SaveAccount(ctx, acc)
+	insertedAccount, err := db.CreateAccount(ctx, acc)
 	assert.NoError(t, err, "Save account must not fail")
 	assert.Equal(t, acc.Username, insertedAccount.Username, "Saved account must have an username set")
 	assert.Equal(t, acc.Password, insertedAccount.Password, "Saved account must have a password set")
@@ -360,7 +359,7 @@ func testDeleteAccount(t *testing.T, db DB) {
 		Password: "testpass",
 		Owner:    true,
 	}
-	storedAccount, err := db.SaveAccount(ctx, acc)
+	storedAccount, err := db.CreateAccount(ctx, acc)
 	assert.NoError(t, err, "Save account must not fail")
 
 	err = db.DeleteAccount(ctx, storedAccount.ID)
@@ -385,7 +384,7 @@ func testSaveAccount(t *testing.T, db DB) {
 		Config:   model.UserConfig{},
 	}
 
-	account, err := db.SaveAccount(ctx, acc)
+	account, err := db.CreateAccount(ctx, acc)
 	require.Nil(t, err)
 	require.NotNil(t, account)
 	require.NotEmpty(t, account.ID)
@@ -403,7 +402,7 @@ func testUpdateAccount(t *testing.T, db DB) {
 		},
 	}
 
-	account, err := db.SaveAccount(ctx, acc)
+	account, err := db.CreateAccount(ctx, acc)
 	require.Nil(t, err)
 	require.NotNil(t, account)
 	require.NotEmpty(t, account.ID)
@@ -435,20 +434,6 @@ func testUpdateAccount(t *testing.T, db DB) {
 	})
 }
 
-func testSaveAccountSettings(t *testing.T, db DB) {
-	ctx := context.TODO()
-
-	t.Run("success", func(t *testing.T) {
-		acc := model.Account{
-			Username: "test",
-			Config:   model.UserConfig{},
-		}
-
-		err := db.SaveAccountSettings(ctx, acc)
-		require.Nil(t, err)
-	})
-}
-
 func testGetAccount(t *testing.T, db DB) {
 	ctx := context.TODO()
 
@@ -460,7 +445,7 @@ func testGetAccount(t *testing.T, db DB) {
 	}
 
 	for _, acc := range testAccounts {
-		storedAcc, err := db.SaveAccount(ctx, acc)
+		storedAcc, err := db.CreateAccount(ctx, acc)
 		assert.Nil(t, err)
 
 		// Successful case
@@ -487,7 +472,7 @@ func testListAccounts(t *testing.T, db DB) {
 		{Username: "foo_bar", Password: "foobar", Owner: true},
 	}
 	for _, acc := range testAccounts {
-		_, err := db.SaveAccount(ctx, acc)
+		_, err := db.CreateAccount(ctx, acc)
 		assert.Nil(t, err)
 	}
 
@@ -516,7 +501,7 @@ func testListAccounts(t *testing.T, db DB) {
 
 func testListAccountsWithPassword(t *testing.T, db DB) {
 	ctx := context.TODO()
-	_, err := db.SaveAccount(ctx, model.Account{
+	_, err := db.CreateAccount(ctx, model.Account{
 		Username: "gopher",
 		Password: "shiori",
 	})

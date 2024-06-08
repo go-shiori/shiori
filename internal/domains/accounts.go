@@ -50,7 +50,7 @@ func (d *AccountsDomain) CreateAccount(ctx context.Context, account model.Accoun
 		acc.Config = *account.Config
 	}
 
-	storedAccount, err := d.deps.Database.SaveAccount(ctx, acc)
+	storedAccount, err := d.deps.Database.CreateAccount(ctx, acc)
 	if err != nil {
 		return nil, fmt.Errorf("error creating account: %v", err)
 	}

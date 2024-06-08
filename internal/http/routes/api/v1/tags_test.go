@@ -28,7 +28,7 @@ func TestTagList(t *testing.T) {
 		Password: "test",
 		Owner:    true,
 	}
-	_, err := deps.Database.SaveAccount(ctx, account)
+	_, err := deps.Database.CreateAccount(ctx, account)
 	require.NoError(t, err)
 	token, err := deps.Domains.Auth.CreateTokenForAccount(model.Ptr(account.ToDTO()), time.Now().Add(time.Minute))
 	require.NoError(t, err)
@@ -79,7 +79,7 @@ func TestTagCreate(t *testing.T) {
 		Password: "test",
 		Owner:    true,
 	}
-	_, err := deps.Database.SaveAccount(ctx, account)
+	_, err := deps.Database.CreateAccount(ctx, account)
 	require.NoError(t, err)
 	// token, err := deps.Domains.Auth.CreateTokenForAccount(&account, time.Now().Add(time.Minute))
 	// require.NoError(t, err)
