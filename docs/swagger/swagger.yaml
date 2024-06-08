@@ -1,11 +1,4 @@
 definitions:
-  api_v1.contentResponseMessage:
-    properties:
-      content:
-        type: string
-      html:
-        type: string
-    type: object
   api_v1.loginRequestPayload:
     properties:
       password:
@@ -27,6 +20,13 @@ definitions:
         description: Deprecated, used only for legacy APIs
         type: string
       token:
+        type: string
+    type: object
+  api_v1.readableResponseMessage:
+    properties:
+      content:
+        type: string
+      html:
         type: string
     type: object
   api_v1.settingRequestPayload:
@@ -124,10 +124,10 @@ definitions:
         type: boolean
       MakePublic:
         type: boolean
-      NightMode:
-        type: boolean
       ShowId:
         type: boolean
+      Theme:
+        type: string
       UseArchive:
         type: boolean
     type: object
@@ -233,7 +233,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/api_v1.contentResponseMessage'
+            $ref: '#/definitions/api_v1.readableResponseMessage'
         "403":
           description: Token not provided/invalid
       summary: Get readable version of bookmark.

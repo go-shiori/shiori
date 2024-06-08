@@ -172,7 +172,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/api_v1.contentResponseMessage"
+                            "$ref": "#/definitions/api_v1.readableResponseMessage"
                         }
                     },
                     "403": {
@@ -228,17 +228,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "api_v1.contentResponseMessage": {
-            "type": "object",
-            "properties": {
-                "content": {
-                    "type": "string"
-                },
-                "html": {
-                    "type": "string"
-                }
-            }
-        },
         "api_v1.loginRequestPayload": {
             "type": "object",
             "required": [
@@ -269,6 +258,17 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "token": {
+                    "type": "string"
+                }
+            }
+        },
+        "api_v1.readableResponseMessage": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "html": {
                     "type": "string"
                 }
             }
@@ -417,11 +417,11 @@ const docTemplate = `{
                 "MakePublic": {
                     "type": "boolean"
                 },
-                "NightMode": {
-                    "type": "boolean"
-                },
                 "ShowId": {
                     "type": "boolean"
+                },
+                "Theme": {
+                    "type": "string"
                 },
                 "UseArchive": {
                     "type": "boolean"
