@@ -449,6 +449,10 @@ const docTemplate = `{
                 "owner": {
                     "type": "boolean"
                 },
+                "passowrd": {
+                    "description": "Used only to store, not to retrieve",
+                    "type": "string"
+                },
                 "username": {
                     "type": "string"
                 }
