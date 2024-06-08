@@ -57,6 +57,7 @@ var postgresMigrations = []migration{
 
 		return nil
 	}),
+	newFileMigration("0.3.0", "0.4.0", "postgres/0002_deleted_at"),
 }
 
 // PGDatabase is implementation of Database interface
@@ -518,6 +519,7 @@ func (db *PGDatabase) DeleteBookmarks(ctx context.Context, ids ...int) (err erro
 		// Prepare queries
 		delBookmark := `DELETE FROM bookmark`
 		delBookmarkTag := `DELETE FROM bookmark_tag`
+		delBookmarktime := `INSERT INTO deleted (id, deleted_at) VALUES ($1, $2) `
 
 		// Delete bookmark(s)
 		if len(ids) == 0 {
@@ -530,9 +532,15 @@ func (db *PGDatabase) DeleteBookmarks(ctx context.Context, ids ...int) (err erro
 			if err != nil {
 				return errors.WithStack(err)
 			}
+			deletedTime := time.Now().UTC().Format(model.DatabaseDateFormat)
+			_, err = tx.ExecContext(ctx, delBookmarktime, ids, deletedTime)
+			if err != nil {
+				return errors.WithStack(err)
+			}
 		} else {
 			delBookmark += ` WHERE id = $1`
 			delBookmarkTag += ` WHERE bookmark_id = $1`
+			delBookmarktime := `INSERT INTO deleted (id, deleted_at) VALUES ($1, $2) `
 
 			stmtDelBookmark, err := tx.Preparex(delBookmark)
 			if err != nil {
@@ -550,6 +558,11 @@ func (db *PGDatabase) DeleteBookmarks(ctx context.Context, ids ...int) (err erro
 				}
 
 				_, err = stmtDelBookmark.ExecContext(ctx, id)
+				if err != nil {
+					return errors.WithStack(err)
+				}
+				deletedTime := time.Now().UTC().Format(model.DatabaseDateFormat)
+				_, err = tx.ExecContext(ctx, delBookmarktime, id, deletedTime)
 				if err != nil {
 					return errors.WithStack(err)
 				}
