@@ -341,6 +341,9 @@ const docTemplate = `{
                     "description": "TODO: migrate outside the DTO",
                     "type": "boolean"
                 },
+                "created": {
+                    "type": "string"
+                },
                 "excerpt": {
                     "type": "string"
                 },
