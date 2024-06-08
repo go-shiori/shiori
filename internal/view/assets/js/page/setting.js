@@ -5,6 +5,14 @@ var template = `
         <details open class="setting-group" id="setting-display">
             <summary>Display</summary>
             <label>
+                Theme &nbsp;
+                <select v-model="appOptions.Theme" @change="saveSetting">
+                <option value="follow">Follow system</option>
+                <option value="light">Light theme</option>
+                <option value="dark">Dark theme</option>
+                </select>
+            </label>
+            <label>
                 <input type="checkbox" v-model="appOptions.ShowId" @change="saveSetting">
                 Show bookmark's ID
             </label>
@@ -19,10 +27,6 @@ var template = `
             <label>
                 <input type="checkbox" v-model="appOptions.HideExcerpt" @change="saveSetting">
                 Hide bookmark's excerpt
-            </label>
-            <label>
-                <input type="checkbox" v-model="appOptions.NightMode" @change="saveSetting">
-                Use dark theme
             </label>
         </details>
         <details v-if="activeAccount.owner" open class="setting-group" id="setting-bookmarks">
@@ -65,6 +69,14 @@ var template = `
                 <a v-if="activeAccount.owner" @click="showDialogNewAccount">Add new account</a>
             </div>
         </details>
+		<details v-if="activeAccount.owner" class="setting-group" id="setting-system-info">
+			<summary>System info</summary>
+			<ul>
+				<li><b>Shiori version:</b> <span>{{system.version?.tag}}<span></li>
+				<li><b>Database engine:</b> <span>{{system.database}}</span></li>
+				<li><b>Operating system:</b> <span>{{system.os}}</span></li>
+			</ul>
+		</details>
     </div>
     <div class="loading-overlay" v-if="loading"><i class="fas fa-fw fa-spin fa-spinner"></i></div>
     <custom-dialog v-bind="dialog"/>
@@ -83,6 +95,7 @@ export default {
 		return {
 			loading: false,
 			accounts: [],
+			system: {},
 		};
 	},
 	methods: {
@@ -92,7 +105,7 @@ export default {
 				ListMode: this.appOptions.ListMode,
 				HideThumbnail: this.appOptions.HideThumbnail,
 				HideExcerpt: this.appOptions.HideExcerpt,
-				NightMode: this.appOptions.NightMode,
+				Theme: this.appOptions.Theme,
 			};
 
 			if (this.activeAccount.owner) {
@@ -151,6 +164,28 @@ export default {
 				})
 				.catch((err) => {
 					this.loading = false;
+					this.getErrorMessage(err).then((msg) => {
+						this.showErrorDialog(msg);
+					});
+				});
+		},
+		loadSystemInfo() {
+			if (this.system.version !== undefined) return;
+
+			fetch(new URL("api/v1/system/info", document.baseURI), {
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: "Bearer " + localStorage.getItem("shiori-token"),
+				},
+			})
+				.then((response) => {
+					if (!response.ok) throw response;
+					return response.json();
+				})
+				.then((json) => {
+					this.system = json.message;
+				})
+				.catch((err) => {
 					this.getErrorMessage(err).then((msg) => {
 						this.showErrorDialog(msg);
 					});
@@ -365,6 +400,9 @@ export default {
 		},
 	},
 	mounted() {
-		this.loadAccounts();
+		if (this.activeAccount.owner) {
+			this.loadAccounts();
+			this.loadSystemInfo();
+		}
 	},
 };

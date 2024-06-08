@@ -1,6 +1,11 @@
 before:
   hooks:
     - go mod tidy
+
+git:
+  ignore_tags:
+    - "{{ if not .IsNightly }}*-rc*{{ end }}"
+
 builds:
   - binary: shiori
     env:
@@ -26,12 +31,13 @@ builds:
         goarch: arm
       - goos: windows
         goarch: arm64
+
 archives:
   - id: shiori
     name_template: >-
       {{ .ProjectName }}_
       {{- if eq .Os "darwin" }}Darwin{{- else if eq .Os "linux" }}Linux{{- else if eq .Os "windows" }}Windows{{- else }}{{ .Os }}{{ end }}_
-      {{- if eq .Arch "amd64" }}x86_64{{- else if eq .Arch "arm64" }}aarch64{{- else }}{{ .Arch }}{{ end }}
+      {{- if eq .Arch "amd64" }}x86_64{{- else if eq .Arch "arm64" }}aarch64{{- else }}{{ .Arch }}{{ end }}_{{ .Version }}
     format_overrides:
     - goos: windows
       format: zip
@@ -47,8 +53,10 @@ archives:
 
 checksum:
   name_template: 'checksums.txt'
+
 snapshot:
   name_template: "{{ incpatch .Version }}-next"
+
 changelog:
   sort: asc
   groups:
@@ -79,5 +87,6 @@ changelog:
     exclude:
       - "^deps:"
       - "^chore\\(deps\\):"
+
 release:
   prerelease: auto

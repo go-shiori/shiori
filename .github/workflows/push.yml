@@ -14,6 +14,8 @@ jobs:
     uses: ./.github/workflows/_golangci-lint.yml
   call-test:
     uses: ./.github/workflows/_test.yml
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN}}
   call-e2e:
     uses: ./.github/workflows/_e2e.yml
   call-gorelease:
