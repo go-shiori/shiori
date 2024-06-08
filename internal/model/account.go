@@ -61,11 +61,31 @@ func (a Account) ToDTO() AccountDTO {
 type AccountDTO struct {
 	ID       DBID        `json:"id"`
 	Username string      `json:"username"`
-	Password string      `json:"-"` // Used only to store, not to retrieve
+	Password string      `json:"passowrd,omitempty"` // Used only to store, not to retrieve
 	Owner    *bool       `json:"owner"`
 	Config   *UserConfig `json:"config"`
 }
 
 func (adto *AccountDTO) IsOwner() bool {
 	return adto.Owner != nil && *adto.Owner
+}
+
+func (adto *AccountDTO) IsValidCreate() error {
+	if adto.Username == "" {
+		return NewValidationError("username", "username should not be empty")
+	}
+
+	if adto.Password == "" {
+		return NewValidationError("password", "password should not be empty")
+	}
+
+	return nil
+}
+
+func (adto *AccountDTO) IsValidUpdate() error {
+	if adto.Username == "" && adto.Password == "" && adto.Owner == nil && adto.Config == nil {
+		return NewValidationError("account", "no fields to update")
+	}
+
+	return nil
 }

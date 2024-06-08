@@ -30,7 +30,10 @@ func (d *AccountsDomain) ListAccounts(ctx context.Context) ([]model.AccountDTO, 
 }
 
 func (d *AccountsDomain) CreateAccount(ctx context.Context, account model.AccountDTO) (*model.AccountDTO, error) {
-	// Hash password with bcrypt
+	if err := account.IsValidCreate(); err != nil {
+		return nil, err
+	}
+
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(account.Password), 10)
 	if err != nil {
 		return nil, fmt.Errorf("error hashing provided password: %w", err)
@@ -71,6 +74,10 @@ func (d *AccountsDomain) DeleteAccount(ctx context.Context, id int) error {
 }
 
 func (d *AccountsDomain) UpdateAccount(ctx context.Context, account model.AccountDTO) (*model.AccountDTO, error) {
+	if err := account.IsValidUpdate(); err != nil {
+		return nil, err
+	}
+
 	// Get account from database
 	storedAccount, _, err := d.deps.Database.GetAccount(ctx, account.ID)
 	if errors.Is(err, database.ErrNotFound) {

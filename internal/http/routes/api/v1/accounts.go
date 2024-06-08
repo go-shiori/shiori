@@ -2,7 +2,6 @@ package api_v1
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -57,19 +56,9 @@ func (r *AccountsAPIRoutes) listHandler(c *gin.Context) {
 }
 
 type createAccountPayload struct {
-	Username  string `json:"username" validate:"required"`
-	Password  string `json:"password" validate:"required"`
+	Username  string `json:"username"`
+	Password  string `json:"password"`
 	IsVisitor bool   `json:"is_visitor"`
-}
-
-func (p *createAccountPayload) IsValid() error {
-	if p.Username == "" {
-		return fmt.Errorf("username should not be empty")
-	}
-	if p.Password == "" {
-		return fmt.Errorf("password should not be empty")
-	}
-	return nil
 }
 
 func (p *createAccountPayload) ToAccountDTO() model.AccountDTO {
@@ -97,13 +86,12 @@ func (r *AccountsAPIRoutes) createHandler(c *gin.Context) {
 		return
 	}
 
-	if err := payload.IsValid(); err != nil {
-		r.logger.WithError(err).Error("error validating payload")
+	account, err := r.deps.Domains.Accounts.CreateAccount(c.Request.Context(), payload.ToAccountDTO())
+	if err, isValidationErr := err.(model.ValidationError); isValidationErr {
 		response.SendError(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	account, err := r.deps.Domains.Accounts.CreateAccount(c.Request.Context(), payload.ToAccountDTO())
 	if err != nil {
 		r.logger.WithError(err).Error("error creating account")
 		c.AbortWithStatus(http.StatusInternalServerError)
@@ -172,6 +160,11 @@ func (r *AccountsAPIRoutes) updateHandler(c *gin.Context) {
 	payload.ID = model.DBID(accountID)
 
 	account, err := r.deps.Domains.Accounts.UpdateAccount(c.Request.Context(), payload)
+	if err, isValidationErr := err.(model.ValidationError); isValidationErr {
+		response.SendError(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
 	if err != nil {
 		r.logger.WithError(err).Error("error updating account")
 		c.AbortWithStatus(http.StatusInternalServerError)
