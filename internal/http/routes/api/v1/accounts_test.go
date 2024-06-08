@@ -116,6 +116,25 @@ func TestAccountCreate(t *testing.T) {
 	logger := logrus.New()
 	ctx := context.TODO()
 
+	t.Run("invalid payload", func(t *testing.T) {
+		g := gin.New()
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+		g.Use(middleware.AuthMiddleware(deps))
+
+		_, token, err := testutil.NewAdminUser(deps)
+		require.NoError(t, err)
+		router := NewAccountsAPIRoutes(logger, deps)
+		router.Setup(g.Group("/"))
+
+		w := testutil.PerformRequest(g, "POST", "/", testutil.WithBody(`invalid`), testutil.WithAuthToken(token))
+		require.Equal(t, http.StatusBadRequest, w.Code)
+
+		response, err := testutil.NewTestResponseFromReader(w.Body)
+		require.NoError(t, err)
+
+		response.AssertNotOk(t)
+	})
+
 	t.Run("create account ok", func(t *testing.T) {
 		g := gin.New()
 		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
@@ -219,6 +238,18 @@ func TestAccountDelete(t *testing.T) {
 		w := testutil.PerformRequest(g, "DELETE", "/99", testutil.WithAuthToken(token))
 		require.Equal(t, http.StatusNotFound, w.Code)
 	})
+
+	t.Run("invalid id", func(t *testing.T) {
+		g := gin.New()
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+		g.Use(middleware.AuthMiddleware(deps))
+		_, token, err := testutil.NewAdminUser(deps)
+		require.NoError(t, err)
+		router := NewAccountsAPIRoutes(logger, deps)
+		router.Setup(g.Group("/"))
+		w := testutil.PerformRequest(g, "DELETE", "/invalid", testutil.WithAuthToken(token))
+		require.Equal(t, http.StatusBadRequest, w.Code)
+	})
 }
 
 func TestAccountUpdate(t *testing.T) {
@@ -275,6 +306,12 @@ func TestAccountUpdate(t *testing.T) {
 				require.Equal(t, *payload.Owner, storedAccount.Owner)
 			},
 		},
+		{
+			name:    "invalid update",
+			payload: model.AccountDTO{},
+			code:    http.StatusBadRequest,
+			cmp:     func(t *testing.T, initial, payload model.AccountDTO, storedAccount model.Account) {},
+		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			g := gin.New()
@@ -305,4 +342,49 @@ func TestAccountUpdate(t *testing.T) {
 			tc.cmp(t, *account, tc.payload, *storedAccount)
 		})
 	}
+
+	t.Run("invalid payload", func(t *testing.T) {
+		g := gin.New()
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+		g.Use(middleware.AuthMiddleware(deps))
+
+		_, token, err := testutil.NewAdminUser(deps)
+		require.NoError(t, err)
+
+		account, err := deps.Domains.Accounts.CreateAccount(ctx, model.AccountDTO{
+			Username: "gopher",
+			Password: "shiori",
+		})
+		require.NoError(t, err)
+
+		router := NewAccountsAPIRoutes(logger, deps)
+		router.Setup(g.Group("/"))
+
+		w := testutil.PerformRequest(g, "PATCH", "/"+strconv.Itoa(int(account.ID)), testutil.WithBody(`invalid`), testutil.WithAuthToken(token))
+		require.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("account not found", func(t *testing.T) {
+		g := gin.New()
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+		g.Use(middleware.AuthMiddleware(deps))
+		_, token, err := testutil.NewAdminUser(deps)
+		require.NoError(t, err)
+		router := NewAccountsAPIRoutes(logger, deps)
+		router.Setup(g.Group("/"))
+		w := testutil.PerformRequest(g, "PATCH", "/99", testutil.WithAuthToken(token), testutil.WithBody(`{"username":"gopher"}`))
+		require.Equal(t, http.StatusNotFound, w.Code)
+	})
+
+	t.Run("invalid id", func(t *testing.T) {
+		g := gin.New()
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+		g.Use(middleware.AuthMiddleware(deps))
+		_, token, err := testutil.NewAdminUser(deps)
+		require.NoError(t, err)
+		router := NewAccountsAPIRoutes(logger, deps)
+		router.Setup(g.Group("/"))
+		w := testutil.PerformRequest(g, "PATCH", "/invalid", testutil.WithAuthToken(token))
+		require.Equal(t, http.StatusBadRequest, w.Code)
+	})
 }

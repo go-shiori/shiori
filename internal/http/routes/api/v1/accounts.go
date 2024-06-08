@@ -81,8 +81,8 @@ func (p *createAccountPayload) ToAccountDTO() model.AccountDTO {
 func (r *AccountsAPIRoutes) createHandler(c *gin.Context) {
 	var payload createAccountPayload
 	if err := c.ShouldBindJSON(&payload); err != nil {
-		r.logger.WithError(err).Error("error binding json")
-		c.AbortWithStatus(http.StatusBadRequest)
+		r.logger.WithError(err).Error("error parsing json")
+		response.SendError(c, http.StatusBadRequest, "invalid json")
 		return
 	}
 
@@ -160,6 +160,10 @@ func (r *AccountsAPIRoutes) updateHandler(c *gin.Context) {
 	payload.ID = model.DBID(accountID)
 
 	account, err := r.deps.Domains.Accounts.UpdateAccount(c.Request.Context(), payload)
+	if errors.Is(err, model.ErrNotFound) {
+		response.SendError(c, http.StatusNotFound, "account not found")
+		return
+	}
 	if err, isValidationErr := err.(model.ValidationError); isValidationErr {
 		response.SendError(c, http.StatusBadRequest, err.Error())
 		return
