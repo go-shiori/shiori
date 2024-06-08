@@ -77,12 +77,12 @@ func OpenPGDatabase(ctx context.Context, connString string) (pgDB *PGDatabase, e
 	db.SetMaxOpenConns(100)
 	db.SetConnMaxLifetime(time.Second)
 
-	pgDB = &PGDatabase{dbbase: dbbase{*db}}
+	pgDB = &PGDatabase{dbbase: dbbase{db}}
 	return pgDB, err
 }
 
 // DBX returns the underlying sqlx.DB object
-func (db *PGDatabase) DBx() sqlx.DB {
+func (db *PGDatabase) DBx() *sqlx.DB {
 	return db.DB
 }
 

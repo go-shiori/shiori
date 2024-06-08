@@ -81,7 +81,7 @@ type tagContent struct {
 }
 
 // DBX returns the underlying sqlx.DB object
-func (db *SQLiteDatabase) DBx() sqlx.DB {
+func (db *SQLiteDatabase) DBx() *sqlx.DB {
 	return db.DB
 }
 

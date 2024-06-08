@@ -86,12 +86,12 @@ func OpenMySQLDatabase(ctx context.Context, connString string) (mysqlDB *MySQLDa
 	db.SetMaxOpenConns(100)
 	db.SetConnMaxLifetime(time.Second) // in case mysql client has longer timeout (driver issue #674)
 
-	mysqlDB = &MySQLDatabase{dbbase: dbbase{*db}}
+	mysqlDB = &MySQLDatabase{dbbase: dbbase{db}}
 	return mysqlDB, err
 }
 
 // DBX returns the underlying sqlx.DB object
-func (db *MySQLDatabase) DBx() sqlx.DB {
+func (db *MySQLDatabase) DBx() *sqlx.DB {
 	return db.DB
 }
 
