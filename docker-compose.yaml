@@ -1,4 +1,5 @@
-# Docker compose for development purposes only
+# Docker compose for development purposes only.
+# Edit it to fit your current development needs.
 version: "3"
 services:
   shiori:
