@@ -72,7 +72,7 @@ var template = `
 		<details v-if="activeAccount.owner" class="setting-group" id="setting-system-info">
 			<summary>System info</summary>
 			<ul>
-				<li><b>Shiori version:</b> <span>{{system.version.tag}}<span></li>
+				<li><b>Shiori version:</b> <span>{{system.version?.tag}}<span></li>
 				<li><b>Database engine:</b> <span>{{system.database}}</span></li>
 				<li><b>Operating system:</b> <span>{{system.os}}</span></li>
 			</ul>
@@ -170,6 +170,8 @@ export default {
 				});
 		},
 		loadSystemInfo() {
+			if (this.system.version !== undefined) return;
+
 			fetch(new URL("api/v1/system/info", document.baseURI), {
 				headers: {
 					"Content-Type": "application/json",
@@ -398,7 +400,9 @@ export default {
 		},
 	},
 	mounted() {
-		this.loadAccounts();
-		this.loadSystemInfo();
+		if (this.activeAccount.owner) {
+			this.loadAccounts();
+			this.loadSystemInfo();
+		}
 	},
 };
