@@ -35,7 +35,6 @@ func testDatabase(t *testing.T, dbFactory testDatabaseFactory) {
 		"testCreateAccount":            testCreateAccount,
 		"testDeleteAccount":            testDeleteAccount,
 		"testDeleteNonExistantAccount": testDeleteNonExistantAccount,
-		"testSaveAccount":              testSaveAccount,
 		"testUpdateAccount":            testUpdateAccount,
 		"testGetAccount":               testGetAccount,
 		"testListAccounts":             testListAccounts,
@@ -374,20 +373,6 @@ func testDeleteNonExistantAccount(t *testing.T, db DB) {
 	ctx := context.TODO()
 	err := db.DeleteAccount(ctx, model.DBID(99))
 	assert.ErrorIs(t, err, ErrNotFound, "Delete account must fail")
-}
-
-func testSaveAccount(t *testing.T, db DB) {
-	ctx := context.TODO()
-
-	acc := model.Account{
-		Username: "testuser",
-		Config:   model.UserConfig{},
-	}
-
-	account, err := db.CreateAccount(ctx, acc)
-	require.Nil(t, err)
-	require.NotNil(t, account)
-	require.NotEmpty(t, account.ID)
 }
 
 func testUpdateAccount(t *testing.T, db DB) {

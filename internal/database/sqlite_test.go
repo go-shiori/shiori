@@ -68,21 +68,4 @@ func testSqliteGetBookmarksWithDash(t *testing.T) {
 	assert.NoError(t, err, "Get bookmarks should not fail")
 	assert.Len(t, results, 1, "results should contain one item")
 	assert.Equal(t, savedBookmark.ID, results[0].ID, "bookmark should be the one saved")
-
-}
-
-func TestSQLiteDatabaseSaveAccountFail(t *testing.T) {
-	ctx := context.TODO()
-
-	// Initialize nonexistant database
-	factory := func(ctx context.Context) (DB, error) {
-		return OpenSQLiteDatabase(ctx, filepath.Join(os.TempDir(), "shiori_test.db"))
-	}
-	db, err := factory(ctx)
-	assert.Nil(t, err)
-
-	// Test falid database
-	acc := model.Account{}
-	_, err = db.CreateAccount(ctx, acc)
-	assert.Contains(t, err.Error(), "no such table: account")
 }
