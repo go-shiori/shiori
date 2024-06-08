@@ -189,7 +189,6 @@ func TestSettingsHandler(t *testing.T) {
 			ListMode:      true,
 			HideThumbnail: true,
 			HideExcerpt:   true,
-			NightMode:     true,
 			KeepMetadata:  true,
 			UseArchive:    true,
 			CreateEbook:   true,
