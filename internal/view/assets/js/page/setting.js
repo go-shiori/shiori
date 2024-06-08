@@ -69,6 +69,14 @@ var template = `
                 <a v-if="activeAccount.owner" @click="showDialogNewAccount">Add new account</a>
             </div>
         </details>
+		<details v-if="activeAccount.owner" class="setting-group" id="setting-system-info">
+			<summary>System info</summary>
+			<ul>
+				<li><b>Shiori version:</b> <span>{{system.version?.tag}}<span></li>
+				<li><b>Database engine:</b> <span>{{system.database}}</span></li>
+				<li><b>Operating system:</b> <span>{{system.os}}</span></li>
+			</ul>
+		</details>
     </div>
     <div class="loading-overlay" v-if="loading"><i class="fas fa-fw fa-spin fa-spinner"></i></div>
     <custom-dialog v-bind="dialog"/>
@@ -87,6 +95,7 @@ export default {
 		return {
 			loading: false,
 			accounts: [],
+			system: {},
 		};
 	},
 	methods: {
@@ -155,6 +164,28 @@ export default {
 				})
 				.catch((err) => {
 					this.loading = false;
+					this.getErrorMessage(err).then((msg) => {
+						this.showErrorDialog(msg);
+					});
+				});
+		},
+		loadSystemInfo() {
+			if (this.system.version !== undefined) return;
+
+			fetch(new URL("api/v1/system/info", document.baseURI), {
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: "Bearer " + localStorage.getItem("shiori-token"),
+				},
+			})
+				.then((response) => {
+					if (!response.ok) throw response;
+					return response.json();
+				})
+				.then((json) => {
+					this.system = json.message;
+				})
+				.catch((err) => {
 					this.getErrorMessage(err).then((msg) => {
 						this.showErrorDialog(msg);
 					});
@@ -351,6 +382,9 @@ export default {
 		},
 	},
 	mounted() {
-		this.loadAccounts();
+		if (this.activeAccount.owner) {
+			this.loadAccounts();
+			this.loadSystemInfo();
+		}
 	},
 };

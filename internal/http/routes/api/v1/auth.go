@@ -97,13 +97,11 @@ func (r *AuthAPIRoutes) loginHandler(c *gin.Context) {
 		return
 	}
 
-	responseMessage := loginResponseMessage{
+	response.Send(c, http.StatusOK, loginResponseMessage{
 		Token:      token,
 		SessionID:  sessionID,
 		Expiration: expiration.Unix(),
-	}
-
-	response.Send(c, http.StatusOK, responseMessage)
+	})
 }
 
 // refreshHandler godoc
@@ -126,11 +124,9 @@ func (r *AuthAPIRoutes) refreshHandler(c *gin.Context) {
 		return
 	}
 
-	responseMessage := loginResponseMessage{
+	response.Send(c, http.StatusAccepted, loginResponseMessage{
 		Token: token,
-	}
-
-	response.Send(c, http.StatusAccepted, responseMessage)
+	})
 }
 
 // meHandler godoc

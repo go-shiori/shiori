@@ -53,3 +53,33 @@ func PerformRequestWithRecorder(recorder *httptest.ResponseRecorder, r http.Hand
 	r.ServeHTTP(recorder, request)
 	return recorder
 }
+
+// FakeUserLoggedInMiddlewware is a middleware that sets a fake user account to context.
+// Keep in mind that this users is not saved in database so any tests that use this middleware
+// should not rely on database.
+func FakeUserLoggedInMiddlewware(ctx *gin.Context) {
+	ctx.Set("account", &model.Account{
+		ID:       1,
+		Username: "user",
+		Owner:    false,
+	})
+}
+
+// FakeAdminLoggedInMiddlewware is a middleware that sets a fake admin account to context.
+// Keep in mind that this users is not saved in database so any tests that use this middleware
+// should not rely on database.
+func FakeAdminLoggedInMiddlewware(ctx *gin.Context) {
+	ctx.Set("account", &model.Account{
+		ID:       1,
+		Username: "admin",
+		Owner:    true,
+	})
+}
+
+// AuthUserMiddleware is a middleware that manually sets an user as authenticated in the context
+// to be used in tests.
+func AuthUserMiddleware(user *model.AccountDTO) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		ctx.Set("account", user)
+	}
+}
