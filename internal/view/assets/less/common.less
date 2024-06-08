@@ -1,36 +1,12 @@
-:root {
-	--bg: #eee;
-	--sidebarBg: #292929;
-	--sidebarHoverBg: #232323;
-	--headerBg: #fff;
-	--contentBg: #fff;
-	--border: #e5e5e5;
-	--color: #232323;
-	--colorLink: #999;
-	--colorSidebar: #fff;
-	--main: #f44336;
-	--errorColor: #f44336;
-	--selectedBg: #ffe7e5;
-
-	@media (prefers-color-scheme: dark) {
-		&:root {
-			--bg: #1f1f1f;
-			--headerBg: #292929;
-			--contentBg: #292929;
-			--border: #191919;
-			--color: #fff;
-			--selectedBg: #261918;
-		}
-	}
+select {
+	background: var(--contentBg);
+	border: 1px solid var(--border);
+	border-radius: 4px;
+	color: var(--color);
 }
 
-&.night {
-	--bg: #1f1f1f;
-	--headerBg: #292929;
-	--contentBg: #292929;
-	--border: #191919;
-	--color: #fff;
-	--selectedBg: #261918;
+footer {
+	color: var(--color);
 }
 
 * {
