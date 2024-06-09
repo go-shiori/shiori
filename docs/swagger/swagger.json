@@ -378,7 +378,7 @@
                     "description": "TODO: migrate outside the DTO",
                     "type": "boolean"
                 },
-                "created": {
+                "createdat": {
                     "type": "string"
                 },
                 "excerpt": {
@@ -402,7 +402,7 @@
                 "imageURL": {
                     "type": "string"
                 },
-                "modified": {
+                "modifiedat": {
                     "type": "string"
                 },
                 "public": {
