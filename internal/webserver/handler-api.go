@@ -361,7 +361,7 @@ func (h *Handler) ApiUpdateBookmark(w http.ResponseWriter, r *http.Request, ps h
 	}
 
 	// Set bookmark modified
-	book.Modified = ""
+	book.ModifiedAt = ""
 
 	// Update database
 	res, err := h.DB.SaveBookmarks(ctx, false, book)

@@ -195,18 +195,18 @@ func (db *MySQLDatabase) SaveBookmarks(ctx context.Context, create bool, bookmar
 			}
 
 			// Set modified time
-			if book.Modified == "" {
-				book.Modified = modifiedTime
+			if book.ModifiedAt == "" {
+				book.ModifiedAt = modifiedTime
 			}
 
 			// Save bookmark
 			var err error
 			if create {
-				book.Created = modifiedTime
+				book.CreatedAt = modifiedTime
 				var res sql.Result
 				res, err = stmtInsertBook.ExecContext(ctx,
 					book.URL, book.Title, book.Excerpt, book.Author,
-					book.Public, book.Content, book.HTML, book.Modified, book.Created)
+					book.Public, book.Content, book.HTML, book.ModifiedAt, book.CreatedAt)
 				if err != nil {
 					return errors.WithStack(err)
 				}
@@ -218,7 +218,7 @@ func (db *MySQLDatabase) SaveBookmarks(ctx context.Context, create bool, bookmar
 			} else {
 				_, err = stmtUpdateBook.ExecContext(ctx,
 					book.URL, book.Title, book.Excerpt, book.Author,
-					book.Public, book.Content, book.HTML, book.Modified, book.ID)
+					book.Public, book.Content, book.HTML, book.ModifiedAt, book.ID)
 			}
 			if err != nil {
 				return errors.WithStack(err)

@@ -50,12 +50,12 @@
 			el: '#content-scene',
 			mixins: [basePage],
 			data: {
-				created: "$$.Book.Created$$"
+				created: "$$.Book.CreatedAt$$"
 			},
 			methods: {
 				createdTime() {
-					var strCreatedTime = "$$.Book.Created$$".replace(" ", "T");
-                    var strModifiedTime = "$$.Book.Modified$$".replace(" ", "T");
+					var strCreatedTime = "$$.Book.CreatedAt$$".replace(" ", "T");
+                    var strModifiedTime = "$$.Book.ModifiedAt$$".replace(" ", "T");
 					if (!strCreatedTime.endsWith("Z")) {
 						strCreatedTime += "Z";
 					}
@@ -65,7 +65,7 @@
                     return `${dayjs(strCreatedTime).format("D MMMM YYYY")}`;
 				},
 				modifiedTime() {
-                    var strModifiedTime = "$$.Book.Modified$$".replace(" ", "T");
+                    var strModifiedTime = "$$.Book.ModifiedAt$$".replace(" ", "T");
 					if (!strModifiedTime.endsWith("Z")) {
 						strModifiedTime += "Z";
 					}

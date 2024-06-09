@@ -441,15 +441,15 @@ func testModifiedTimeUpdate(t *testing.T, db DB) {
 
 	updatedBook := resultBook[0]
 	updatedBook.Title = "modified"
-	updatedBook.Modified = ""
+	updatedBook.ModifiedAt = ""
 
 	time.Sleep(1 * time.Second)
 	resultUpdatedBooks, err := db.SaveBookmarks(ctx, false, updatedBook)
 	assert.NoError(t, err, "Save bookmarks must not fail")
 
-	assert.NotEqual(t, resultBook[0].Modified, resultUpdatedBooks[0].Modified)
-	assert.Equal(t, resultBook[0].Created, resultUpdatedBooks[0].Created)
-	assert.Equal(t, resultBook[0].Created, resultBook[0].Modified)
+	assert.NotEqual(t, resultBook[0].ModifiedAt, resultUpdatedBooks[0].ModifiedAt)
+	assert.Equal(t, resultBook[0].CreatedAt, resultUpdatedBooks[0].CreatedAt)
+	assert.Equal(t, resultBook[0].CreatedAt, resultBook[0].ModifiedAt)
 	assert.NoError(t, err, "Get bookmarks must not fail")
 
 	assert.Equal(t, updatedBook.Title, resultUpdatedBooks[0].Title, "Saved bookmark must have updated Title")
@@ -477,11 +477,11 @@ func testModifiedAndCreateTimeFilter(t *testing.T, db DB) {
 	// update those bookmarks
 	updatedBook1 := resultBook1[0]
 	updatedBook1.Title = "Added First but Modified Last Updated Title"
-	updatedBook1.Modified = ""
+	updatedBook1.ModifiedAt = ""
 
 	updatedBook2 := resultBook2[0]
 	updatedBook2.Title = "Last Added but modified First Updated Title"
-	updatedBook2.Modified = ""
+	updatedBook2.ModifiedAt = ""
 
 	// modified bookmark2 first after one second modified bookmark1
 	resultUpdatedBook2, err := db.SaveBookmarks(ctx, false, updatedBook2)
