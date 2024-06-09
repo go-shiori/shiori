@@ -203,7 +203,7 @@ func (db *SQLiteDatabase) SaveBookmarks(ctx context.Context, create bool, bookma
 			// Create or update bookmark
 			var err error
 			if create {
-				book.CreatedAT = modifiedTime
+				book.CreatedAt = modifiedTime
 				err = stmtInsertBook.QueryRowContext(ctx,
 					book.URL, book.Title, book.Excerpt, book.Author, book.Public, book.ModifiedAt, hasContent, book.CreatedAt).Scan(&book.ID)
 			} else {
