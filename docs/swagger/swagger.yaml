@@ -1,4 +1,20 @@
 definitions:
+  api_v1.infoResponse:
+    properties:
+      database:
+        type: string
+      os:
+        type: string
+      version:
+        properties:
+          commit:
+            type: string
+          date:
+            type: string
+          tag:
+            type: string
+        type: object
+    type: object
   api_v1.loginRequestPayload:
     properties:
       password:
@@ -239,6 +255,22 @@ paths:
       summary: Get readable version of bookmark.
       tags:
       - Auth
+  /api/v1/system/info:
+    get:
+      description: Get general system information like Shiori version, database, and
+        OS
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api_v1.infoResponse'
+        "403":
+          description: Only owners can access this endpoint
+      summary: Get general system information
+      tags:
+      - system
   /api/v1/tags:
     get:
       produces:
