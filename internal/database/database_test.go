@@ -16,21 +16,21 @@ type testDatabaseFactory func(t *testing.T, ctx context.Context) (DB, error)
 func testDatabase(t *testing.T, dbFactory testDatabaseFactory) {
 	tests := map[string]databaseTestCase{
 		// Bookmarks
-		"testBookmarkAutoIncrement":         testBookmarkAutoIncrement,
-		"testCreateBookmark":                testCreateBookmark,
-		"testCreateBookmarkWithContent":     testCreateBookmarkWithContent,
-		"testCreateBookmarkTwice":           testCreateBookmarkTwice,
-		"testCreateBookmarkWithTag":         testCreateBookmarkWithTag,
-		"testCreateTwoDifferentBookmarks":   testCreateTwoDifferentBookmarks,
-		"testUpdateBookmark":                testUpdateBookmark,
-		"testModifiedTimeUpdate":            testModifiedTimeUpdate,
-		"testModifiedAndCreateTimeFilter":   testModifiedAndCreateTimeFilter,
-		"testUpdateBookmarkWithContent":     testUpdateBookmarkWithContent,
-		"testGetBookmark":                   testGetBookmark,
-		"testGetBookmarkNotExistent":        testGetBookmarkNotExistent,
-		"testGetBookmarks":                  testGetBookmarks,
-		"testGetBookmarksWithSQLCharacters": testGetBookmarksWithSQLCharacters,
-		"testGetBookmarksCount":             testGetBookmarksCount,
+		"testBookmarkAutoIncrement":             testBookmarkAutoIncrement,
+		"testCreateBookmark":                    testCreateBookmark,
+		"testCreateBookmarkWithContent":         testCreateBookmarkWithContent,
+		"testCreateBookmarkTwice":               testCreateBookmarkTwice,
+		"testCreateBookmarkWithTag":             testCreateBookmarkWithTag,
+		"testCreateTwoDifferentBookmarks":       testCreateTwoDifferentBookmarks,
+		"testUpdateBookmark":                    testUpdateBookmark,
+		"testUpdateBookmarkUpdatesModifiedTime": testModifiedTimeUpdate,
+		"testGetBoomarksWithTimeFilters":        testGetBoomarksWithTimeFilters,
+		"testUpdateBookmarkWithContent":         testUpdateBookmarkWithContent,
+		"testGetBookmark":                       testGetBookmark,
+		"testGetBookmarkNotExistent":            testGetBookmarkNotExistent,
+		"testGetBookmarks":                      testGetBookmarks,
+		"testGetBookmarksWithSQLCharacters":     testGetBookmarksWithSQLCharacters,
+		"testGetBookmarksCount":                 testGetBookmarksCount,
 		// Tags
 		"testCreateTag":  testCreateTag,
 		"testCreateTags": testCreateTags,
@@ -428,7 +428,7 @@ func testGetAccounts(t *testing.T, db DB) {
 	})
 }
 
-func testModifiedTimeUpdate(t *testing.T, db DB) {
+func testUpdateBookmarkUpdatesModifiedTime(t *testing.T, db DB) {
 	ctx := context.TODO()
 
 	book := model.BookmarkDTO{
@@ -455,7 +455,7 @@ func testModifiedTimeUpdate(t *testing.T, db DB) {
 	assert.Equal(t, updatedBook.Title, resultUpdatedBooks[0].Title, "Saved bookmark must have updated Title")
 }
 
-func testModifiedAndCreateTimeFilter(t *testing.T, db DB) {
+func testGetBoomarksWithTimeFilters(t *testing.T, db DB) {
 	ctx := context.TODO()
 
 	book1 := model.BookmarkDTO{
