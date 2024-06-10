@@ -16,7 +16,6 @@
 
 	<link href="assets/css/style.css" rel="stylesheet">
 
-	<script src="assets/js/dayjs.min.js"></script>
 	<script src="assets/js/vue.min.js"></script>
 </head>
 
@@ -38,7 +37,7 @@
 			$$.HTML$$
 		</div>
         <div id="footer">
-            <p id=metadata>Added {{ createdTime() }} {{ createdTime() !== modifiedTime() ? ` | Last Modified ${modifiedTime()}` : '' }}</p>
+            <p id=metadata>{{ createdModifiedTime() }} </p>
         </div>
 	</div>
 
@@ -53,23 +52,18 @@
 				created: "$$.Book.CreatedAt$$"
 			},
 			methods: {
-				createdTime() {
-					var strCreatedTime = "$$.Book.CreatedAt$$".replace(" ", "T");
-                    var strModifiedTime = "$$.Book.ModifiedAt$$".replace(" ", "T");
-					if (!strCreatedTime.endsWith("Z")) {
-						strCreatedTime += "Z";
-					}
-					if (!strModifiedTime.endsWith("Z")) {
-						strModifiedTime += "Z";
-					}
-                    return `${dayjs(strCreatedTime).format("D MMMM YYYY")}`;
-				},
-				modifiedTime() {
-                    var strModifiedTime = "$$.Book.ModifiedAt$$".replace(" ", "T");
-					if (!strModifiedTime.endsWith("Z")) {
-						strModifiedTime += "Z";
-					}
-                    return `${dayjs(strModifiedTime).format("D MMMM YYYY")}`;
+				createdModifiedTime() {
+          const strCreatedTime = "$$.Book.CreatedAt$$".replace(" ", "T") + ("$$.Book.CreatedAt$$".endsWith("Z") ? "" : "Z");
+          const strModifiedTime = "$$.Book.ModifiedAt$$".replace(" ", "T") + ("$$.Book.ModifiedAt$$".endsWith("Z") ? "" : "Z");
+
+          const createdDate = new Date(strCreatedTime);
+          const modifiedDate = new Date(strModifiedTime);
+
+          if (createdDate.toDateString() === modifiedDate.toDateString()) {
+            return `Added ${createdDate.getDate()} ${createdDate.toLocaleString('default', { month: 'long' })} ${createdDate.getFullYear()}`;
+          } else {
+            return `Added ${createdDate.getDate()} ${createdDate.toLocaleString('default', { month: 'long' })}  ${createdDate.getFullYear()}  | Last Modified ${modifiedDate.getDate()} ${modifiedDate.toLocaleString('default', {month: 'long'})} ${modifiedDate.getFullYear()}`;
+        }
 				},
 				loadSetting() {
 					var opts = JSON.parse(localStorage.getItem("shiori-account")) || {},
