@@ -461,7 +461,7 @@ func testGetBoomarksWithTimeFilters(t *testing.T, db DB) {
 	ctx := context.TODO()
 
 	book1 := model.BookmarkDTO{
-		URL:   "https://github.com/go-shiori/shiori",
+		URL:   "https://github.com/go-shiori/shiori/one",
 		Title: "Added First but Modified Last",
 	}
 	book2 := model.BookmarkDTO{
