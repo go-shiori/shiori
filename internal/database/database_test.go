@@ -429,6 +429,7 @@ func testGetAccounts(t *testing.T, db DB) {
 }
 
 func testUpdateBookmarkUpdatesModifiedTime(t *testing.T, db DB) {
+	t.Parallel()
 	ctx := context.TODO()
 
 	book := model.BookmarkDTO{
@@ -456,6 +457,7 @@ func testUpdateBookmarkUpdatesModifiedTime(t *testing.T, db DB) {
 }
 
 func testGetBoomarksWithTimeFilters(t *testing.T, db DB) {
+	t.Parallel()
 	ctx := context.TODO()
 
 	book1 := model.BookmarkDTO{
