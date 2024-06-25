@@ -186,6 +186,8 @@ func ProcessBookmark(deps *dependencies.Dependencies, req ProcessRequest) (book 
 		}
 
 		book.HasArchive = true
+		book.ArchivePath = dstPath
+		book.Archiver = model.ArchiverWARC
 	}
 
 	return book, false, nil

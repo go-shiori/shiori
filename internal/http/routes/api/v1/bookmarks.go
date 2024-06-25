@@ -3,13 +3,10 @@ package api_v1
 import (
 	"fmt"
 	"net/http"
-	"os"
-	fp "path/filepath"
 	"strconv"
 	"sync"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-shiori/shiori/internal/core"
 	"github.com/go-shiori/shiori/internal/database"
 	"github.com/go-shiori/shiori/internal/dependencies"
 	"github.com/go-shiori/shiori/internal/http/context"
@@ -186,35 +183,7 @@ func (r *BookmarksAPIRoutes) updateCache(c *gin.Context) {
 				<-semaphore
 			}()
 
-			// Download data from internet
-			content, contentType, err := core.DownloadBookmark(book.URL)
-			if err != nil {
-				chProblem <- book.ID
-				return
-			}
-
-			request := core.ProcessRequest{
-				DataDir:     r.deps.Config.Storage.DataDir,
-				Bookmark:    book,
-				Content:     content,
-				ContentType: contentType,
-				KeepTitle:   keep_metadata,
-				KeepExcerpt: keep_metadata,
-			}
-
-			if payload.SkipExist && book.CreateEbook {
-				strID := strconv.Itoa(book.ID)
-				ebookPath := fp.Join(request.DataDir, "ebook", strID+".epub")
-				_, err = os.Stat(ebookPath)
-				if err == nil {
-					request.Bookmark.CreateEbook = false
-					request.Bookmark.HasEbook = true
-				}
-			}
-
-			book, _, err = core.ProcessBookmark(r.deps, request)
-			content.Close()
-
+			result, err := r.deps.Domains.Archiver.DownloadBookmarkArchive(book)
 			if err != nil {
 				r.logger.WithFields(logrus.Fields{
 					"bookmark_id": book.ID,
@@ -224,6 +193,15 @@ func (r *BookmarksAPIRoutes) updateCache(c *gin.Context) {
 				chProblem <- book.ID
 				return
 			}
+
+			// If user want to keep metadata, restore it
+			if keep_metadata {
+				result.Title = book.Title
+				result.Excerpt = book.Excerpt
+			}
+
+			// Create ebook if needed
+			// TODO
 
 			// Update list of bookmarks
 			mx.Lock()

@@ -2,6 +2,7 @@ package domains
 
 import (
 	"fmt"
+	"io"
 	"path/filepath"
 
 	"github.com/go-shiori/shiori/internal/archiver"
@@ -22,6 +23,10 @@ func (d *ArchiverDomain) DownloadBookmarkArchive(book model.BookmarkDTO) (*model
 		return nil, fmt.Errorf("error downloading url: %s", err)
 	}
 
+	return d.ProcessBookmarkArchive(content, contentType, book)
+}
+
+func (d *ArchiverDomain) ProcessBookmarkArchive(content io.ReadCloser, contentType string, book model.BookmarkDTO) (*model.BookmarkDTO, error) {
 	for _, archiver := range d.archivers {
 		if archiver.Matches(contentType) {
 			return archiver.Archive(content, contentType, book)

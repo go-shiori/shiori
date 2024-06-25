@@ -29,7 +29,7 @@ func addCmd() *cobra.Command {
 }
 
 func addHandler(cmd *cobra.Command, args []string) {
-	cfg, deps := initShiori(cmd.Context(), cmd)
+	_, deps := initShiori(cmd.Context(), cmd)
 
 	// Read flag and arguments
 	url := args[0]
@@ -38,7 +38,6 @@ func addHandler(cmd *cobra.Command, args []string) {
 	tags, _ := cmd.Flags().GetStringSlice("tags")
 	offline, _ := cmd.Flags().GetBool("offline")
 	noArchival, _ := cmd.Flags().GetBool("no-archival")
-	logArchival, _ := cmd.Flags().GetBool("log-archival")
 
 	// Normalize input
 	title = validateTitle(title, "")
@@ -84,37 +83,22 @@ func addHandler(cmd *cobra.Command, args []string) {
 	if !offline {
 		cInfo.Println("Downloading article...")
 
-		var isFatalErr bool
-		content, contentType, err := core.DownloadBookmark(book.URL)
+		result, err := deps.Domains.Archiver.DownloadBookmarkArchive(book)
 		if err != nil {
-			cError.Printf("Failed to download: %v\n", err)
+			cError.Printf("Failed to download article: %v\n", err)
+			os.Exit(1)
 		}
 
-		if err == nil && content != nil {
-			request := core.ProcessRequest{
-				DataDir:     cfg.Storage.DataDir,
-				Bookmark:    book,
-				Content:     content,
-				ContentType: contentType,
-				LogArchival: logArchival,
-				KeepTitle:   title != "",
-				KeepExcerpt: excerpt != "",
-			}
+		if title != "" {
+			result.Title = title
+		}
 
-			book, isFatalErr, err = core.ProcessBookmark(deps, request)
-			content.Close()
-
-			if err != nil {
-				cError.Printf("Failed: %v\n", err)
-			}
-
-			if isFatalErr {
-				os.Exit(1)
-			}
+		if excerpt != "" {
+			result.Excerpt = excerpt
 		}
 
 		// Save bookmark to database
-		_, err = deps.Database.SaveBookmarks(cmd.Context(), false, book)
+		_, err = deps.Database.SaveBookmarks(cmd.Context(), false, *result)
 		if err != nil {
 			cError.Printf("Failed to save bookmark with content: %v\n", err)
 			os.Exit(1)
