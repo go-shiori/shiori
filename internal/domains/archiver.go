@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"github.com/go-shiori/shiori/internal/archiver"
 	"github.com/go-shiori/shiori/internal/core"
 	"github.com/go-shiori/shiori/internal/dependencies"
 	"github.com/go-shiori/shiori/internal/model"
@@ -11,7 +12,8 @@ import (
 )
 
 type ArchiverDomain struct {
-	deps *dependencies.Dependencies
+	deps      *dependencies.Dependencies
+	archivers []model.Archiver
 }
 
 func (d *ArchiverDomain) DownloadBookmarkArchive(book model.BookmarkDTO) (*model.BookmarkDTO, error) {
@@ -20,21 +22,13 @@ func (d *ArchiverDomain) DownloadBookmarkArchive(book model.BookmarkDTO) (*model
 		return nil, fmt.Errorf("error downloading url: %s", err)
 	}
 
-	processRequest := core.ProcessRequest{
-		DataDir:     d.deps.Config.Storage.DataDir,
-		Bookmark:    book,
-		Content:     content,
-		ContentType: contentType,
+	for _, archiver := range d.archivers {
+		if archiver.Matches(contentType) {
+			return archiver.Archive(content, contentType, book)
+		}
 	}
 
-	result, isFatalErr, err := core.ProcessBookmark(d.deps, processRequest)
-	content.Close()
-
-	if err != nil && isFatalErr {
-		return nil, fmt.Errorf("failed to process: %v", err)
-	}
-
-	return &result, nil
+	return nil, fmt.Errorf("no archiver found for content type: %s", contentType)
 }
 
 func (d *ArchiverDomain) GetBookmarkArchive(book *model.BookmarkDTO) (*warc.Archive, error) {
@@ -49,7 +43,12 @@ func (d *ArchiverDomain) GetBookmarkArchive(book *model.BookmarkDTO) (*warc.Arch
 }
 
 func NewArchiverDomain(deps *dependencies.Dependencies) *ArchiverDomain {
+	archivers := []model.Archiver{
+		archiver.NewPDFArchiver(deps),
+		archiver.NewWARCArchiver(deps),
+	}
 	return &ArchiverDomain{
-		deps: deps,
+		deps:      deps,
+		archivers: archivers,
 	}
 }
