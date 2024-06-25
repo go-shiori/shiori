@@ -3,6 +3,7 @@ package routes
 import (
 	"fmt"
 	"html/template"
+	"io"
 	"net/http"
 	"strconv"
 	"strings"
@@ -123,32 +124,62 @@ func (r *BookmarkRoutes) bookmarkArchiveFileHandler(c *gin.Context) {
 	resourcePath, _ := c.Params.Get("filepath")
 	resourcePath = strings.TrimPrefix(resourcePath, "/")
 
-	archive, err := r.deps.Domains.Archiver.GetBookmarkArchive(bookmark)
-	if err != nil {
-		r.logger.WithError(err).Error("error opening archive")
-		response.SendInternalServerError(c)
-		return
-	}
-	defer archive.Close()
+	var content []byte
+	var resourceContentType string
 
-	if !archive.HasResource(resourcePath) {
-		response.NotFound(c)
-		return
-	}
+	r.logger.Error(bookmark.Archiver)
 
-	content, resourceContentType, err := archive.Read(resourcePath)
-	if err != nil {
-		r.logger.WithError(err).Error("error reading archive file")
-		response.SendInternalServerError(c)
-		return
+	switch bookmark.Archiver {
+	case model.ArchiverPDF:
+		if !r.deps.Domains.Storage.FileExists(bookmark.ArchivePath) {
+			response.NotFound(c)
+			return
+		}
+
+		archive, err := r.deps.Domains.Storage.FS().Open(bookmark.ArchivePath)
+		if err != nil {
+			r.logger.WithError(err).Error("error opening pdf archive")
+			response.SendInternalServerError(c)
+			return
+		}
+		defer archive.Close()
+
+		content, err = io.ReadAll(archive)
+		if err != nil {
+			r.logger.WithError(err).Error("error reading archive file")
+			response.SendInternalServerError(c)
+			return
+		}
+
+		resourceContentType = "application/pdf"
+	case model.ArchiverWARC:
+		archive, err := r.deps.Domains.Archiver.GetBookmarkArchive(bookmark)
+		if err != nil {
+			r.logger.WithError(err).Error("error opening warc archive")
+			response.SendInternalServerError(c)
+			return
+		}
+		defer archive.Close()
+
+		if !archive.HasResource(resourcePath) {
+			response.NotFound(c)
+			return
+		}
+
+		content, resourceContentType, err = archive.Read(resourcePath)
+		if err != nil {
+			r.logger.WithError(err).Error("error reading archive file")
+			response.SendInternalServerError(c)
+			return
+		}
+
+		c.Header("Content-Encoding", "gzip")
 	}
 
 	// Generate weak ETAG
 	shioriUUID := uuid.NewV5(uuid.NamespaceURL, model.ShioriURLNamespace)
 	c.Header("Etag", fmt.Sprintf("W/%s", uuid.NewV5(shioriUUID, fmt.Sprintf("%x-%x-%x", bookmark.ID, resourcePath, len(content)))))
 	c.Header("Cache-Control", "max-age=31536000")
-
-	c.Header("Content-Encoding", "gzip")
 	c.Data(http.StatusOK, resourceContentType, content)
 }
 
