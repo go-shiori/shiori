@@ -29,7 +29,12 @@ func (d *ArchiverDomain) DownloadBookmarkArchive(book model.BookmarkDTO) (*model
 func (d *ArchiverDomain) ProcessBookmarkArchive(content io.ReadCloser, contentType string, book model.BookmarkDTO) (*model.BookmarkDTO, error) {
 	for _, archiver := range d.archivers {
 		if archiver.Matches(contentType) {
-			return archiver.Archive(content, contentType, book)
+			_, err := archiver.Archive(content, contentType, book)
+			if err != nil {
+				d.deps.Log.Errorf("Error archiving bookmark with archviver: %s", err)
+				continue
+			}
+			return &book, nil
 		}
 	}
 
