@@ -710,7 +710,7 @@ func (db *SQLiteDatabase) GetBookmark(ctx context.Context, id int, url string) (
 	args := []interface{}{id}
 	query := `SELECT
 		b.id, b.url, b.title, b.excerpt, b.author, b.public, b.modified,
-		bc.content, bc.html, b.has_content
+		bc.content, bc.html, b.has_content, b.archiver, b.archive_path
 		FROM bookmark b
 		LEFT JOIN bookmark_content bc ON bc.docid = b.id
 		WHERE b.id = ?`
