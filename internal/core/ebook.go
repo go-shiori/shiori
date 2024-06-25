@@ -62,6 +62,11 @@ func GenerateEbook(deps *dependencies.Dependencies, req ProcessRequest, dstPath 
 
 	ebook.SetTitle(book.Title)
 	ebook.SetAuthor(book.Author)
+	if deps.Domains.Storage.FileExists(bookmarkThumbnailPath) {
+		absoluteCoverPath := fp.Join(deps.Config.Storage.DataDir, bookmarkThumbnailPath)
+		coverPath, _ := ebook.AddImage(absoluteCoverPath, "cover.jpg")
+		ebook.SetCover(coverPath, "")
+	}
 	ebook.SetDescription(book.Excerpt)
 	_, err = ebook.AddSection(`<h1 style="text-align:center"> `+book.Title+` </h1>`+book.HTML+lastline, book.Title, "", "")
 	if err != nil {
