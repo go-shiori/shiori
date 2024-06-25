@@ -61,6 +61,31 @@ var mysqlMigrations = []migration{
 
 		return nil
 	}),
+	// Adds archiver and archive_path columns to bookmark table
+	newFuncMigration("0.7.0", "0.8.0", func(db *sql.DB) error {
+		tx, err := db.Begin()
+		if err != nil {
+			return fmt.Errorf("failed to start transaction: %w", err)
+		}
+
+		defer tx.Rollback()
+
+		_, err = tx.Exec(`ALTER TABLE bookmark ADD COLUMN archiver TEXT NOT NULL DEFAULT ''`)
+		if err != nil {
+			return fmt.Errorf("failed to add archiver column to bookmark_tag table: %w", err)
+		}
+
+		_, err = tx.Exec(`ALTER TABLE bookmark ADD COLUMN archive_path TEXT NOT NULL DEFAULT ''`)
+		if err != nil {
+			return fmt.Errorf("failed to add archiver column to bookmark_tag table: %w", err)
+		}
+
+		if err := tx.Commit(); err != nil {
+			return fmt.Errorf("failed to commit transaction: %w", err)
+		}
+
+		return nil
+	}),
 }
 
 // MySQLDatabase is implementation of Database interface
@@ -131,8 +156,8 @@ func (db *MySQLDatabase) SaveBookmarks(ctx context.Context, create bool, bookmar
 	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
 		// Prepare statement
 		stmtInsertBook, err := tx.Preparex(`INSERT INTO bookmark
-			(url, title, excerpt, author, public, content, html, modified)
-			VALUES(?, ?, ?, ?, ?, ?, ?, ?)`)
+			(url, title, excerpt, author, public, content, html, modified, archiver, archive_path)
+			VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
 		if err != nil {
 			return errors.WithStack(err)
 		}
@@ -145,7 +170,9 @@ func (db *MySQLDatabase) SaveBookmarks(ctx context.Context, create bool, bookmar
 			public   = ?,
 			content  = ?,
 			html     = ?,
-			modified = ?
+			modified = ?,
+			archiver = ?,
+			archive_path = ?
 		WHERE id = ?`)
 		if err != nil {
 			return errors.WithStack(err)
@@ -199,7 +226,8 @@ func (db *MySQLDatabase) SaveBookmarks(ctx context.Context, create bool, bookmar
 				var res sql.Result
 				res, err = stmtInsertBook.ExecContext(ctx,
 					book.URL, book.Title, book.Excerpt, book.Author,
-					book.Public, book.Content, book.HTML, book.Modified)
+					book.Public, book.Content, book.HTML, book.Modified,
+					book.Archiver, book.ArchivePath)
 				if err != nil {
 					return errors.WithStack(err)
 				}
@@ -211,7 +239,8 @@ func (db *MySQLDatabase) SaveBookmarks(ctx context.Context, create bool, bookmar
 			} else {
 				_, err = stmtUpdateBook.ExecContext(ctx,
 					book.URL, book.Title, book.Excerpt, book.Author,
-					book.Public, book.Content, book.HTML, book.Modified, book.ID)
+					book.Public, book.Content, book.HTML, book.Modified,
+					book.Archiver, book.ArchivePath, book.ID)
 			}
 			if err != nil {
 				return errors.WithStack(err)
@@ -286,7 +315,9 @@ func (db *MySQLDatabase) GetBookmarks(ctx context.Context, opts GetBookmarksOpti
 		`author`,
 		`public`,
 		`modified`,
-		`content <> "" has_content`}
+		`content <> "" has_content`,
+		`archiver`,
+		`archive_path`}
 
 	if opts.WithContent {
 		columns = append(columns, `content`, `html`)

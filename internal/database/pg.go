@@ -57,6 +57,7 @@ var postgresMigrations = []migration{
 
 		return nil
 	}),
+	newFileMigration("0.3.0", "0.4.0", "postgres/0002_bookmark_archiver"),
 }
 
 // PGDatabase is implementation of Database interface
@@ -128,8 +129,8 @@ func (db *PGDatabase) SaveBookmarks(ctx context.Context, create bool, bookmarks 
 	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
 		// Prepare statement
 		stmtInsertBook, err := tx.Preparex(`INSERT INTO bookmark
-			(url, title, excerpt, author, public, content, html, modified)
-			VALUES($1, $2, $3, $4, $5, $6, $7, $8)
+			(url, title, excerpt, author, public, content, html, modified, archiver, archive_path)
+			VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 		RETURNING id`)
 		if err != nil {
 			return errors.WithStack(err)
@@ -143,8 +144,10 @@ func (db *PGDatabase) SaveBookmarks(ctx context.Context, create bool, bookmarks 
 			public   = $5,
 			content  = $6,
 			html     = $7,
-			modified = $8
-			WHERE id = $9`)
+			modified = $8,
+			archiver = $9,
+			archive_path = $10
+			WHERE id = $11`)
 		if err != nil {
 			return errors.WithStack(err)
 		}
@@ -196,11 +199,14 @@ func (db *PGDatabase) SaveBookmarks(ctx context.Context, create bool, bookmarks 
 			if create {
 				err = stmtInsertBook.QueryRowContext(ctx,
 					book.URL, book.Title, book.Excerpt, book.Author,
-					book.Public, book.Content, book.HTML, book.Modified).Scan(&book.ID)
+					book.Public, book.Content, book.HTML, book.Modified,
+					book.Archiver, book.ArchivePath).Scan(&book.ID)
 			} else {
 				_, err = stmtUpdateBook.ExecContext(ctx,
 					book.URL, book.Title, book.Excerpt, book.Author,
-					book.Public, book.Content, book.HTML, book.Modified, book.ID)
+					book.Public, book.Content, book.HTML, book.Modified,
+					book.Archiver, book.ArchivePath,
+					book.ID)
 			}
 			if err != nil {
 				return errors.WithStack(err)
@@ -271,7 +277,9 @@ func (db *PGDatabase) GetBookmarks(ctx context.Context, opts GetBookmarksOptions
 		`author`,
 		`public`,
 		`modified`,
-		`content <> '' has_content`}
+		`content <> '' has_content,
+		archiver,
+		archive_path`}
 
 	if opts.WithContent {
 		columns = append(columns, `content`, `html`)
