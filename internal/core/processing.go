@@ -120,6 +120,7 @@ func ProcessBookmark(deps *dependencies.Dependencies, req ProcessRequest) (book 
 		}
 
 		book.HasContent = book.Content != ""
+		book.ModifiedAt = ""
 	}
 
 	// Save article image to local disk
@@ -137,6 +138,7 @@ func ProcessBookmark(deps *dependencies.Dependencies, req ProcessRequest) (book 
 		}
 		if err == nil {
 			book.ImageURL = fp.Join("/", "bookmark", strID, "thumb")
+			book.ModifiedAt = ""
 			break
 		}
 	}
@@ -153,6 +155,7 @@ func ProcessBookmark(deps *dependencies.Dependencies, req ProcessRequest) (book 
 				return book, true, errors.Wrap(err, "failed to create ebook")
 			}
 			book.HasEbook = true
+			book.ModifiedAt = ""
 		}
 	}
 
@@ -185,6 +188,7 @@ func ProcessBookmark(deps *dependencies.Dependencies, req ProcessRequest) (book 
 		}
 
 		book.HasArchive = true
+		book.ModifiedAt = ""
 		book.ArchivePath = dstPath
 		book.Archiver = model.ArchiverWARC
 	}

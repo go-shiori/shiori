@@ -57,7 +57,8 @@ var postgresMigrations = []migration{
 
 		return nil
 	}),
-	newFileMigration("0.3.0", "0.4.0", "postgres/0002_bookmark_archiver"),
+	newFileMigration("0.3.0", "0.4.0", "postgres/0002_created_time"),
+	newFileMigration("0.4.0", "0.5.0", "postgres/0003_bookmark_archiver"),
 }
 
 // PGDatabase is implementation of Database interface
@@ -129,8 +130,8 @@ func (db *PGDatabase) SaveBookmarks(ctx context.Context, create bool, bookmarks 
 	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
 		// Prepare statement
 		stmtInsertBook, err := tx.Preparex(`INSERT INTO bookmark
-			(url, title, excerpt, author, public, content, html, modified, archiver, archive_path)
-			VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+			(url, title, excerpt, author, public, content, html, modified_at, created_at, archiver, archive_path)
+			VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
 		RETURNING id`)
 		if err != nil {
 			return errors.WithStack(err)
@@ -144,7 +145,7 @@ func (db *PGDatabase) SaveBookmarks(ctx context.Context, create bool, bookmarks 
 			public   = $5,
 			content  = $6,
 			html     = $7,
-			modified = $8,
+			modified_at = $8
 			archiver = $9,
 			archive_path = $10
 			WHERE id = $11`)
@@ -190,21 +191,22 @@ func (db *PGDatabase) SaveBookmarks(ctx context.Context, create bool, bookmarks 
 			}
 
 			// Set modified time
-			if book.Modified == "" {
-				book.Modified = modifiedTime
+			if book.ModifiedAt == "" {
+				book.ModifiedAt = modifiedTime
 			}
 
 			// Save bookmark
 			var err error
 			if create {
+				book.CreatedAt = modifiedTime
 				err = stmtInsertBook.QueryRowContext(ctx,
 					book.URL, book.Title, book.Excerpt, book.Author,
-					book.Public, book.Content, book.HTML, book.Modified,
+					book.Public, book.Content, book.HTML, book.ModifiedAt, book.CreatedAt,
 					book.Archiver, book.ArchivePath).Scan(&book.ID)
 			} else {
 				_, err = stmtUpdateBook.ExecContext(ctx,
 					book.URL, book.Title, book.Excerpt, book.Author,
-					book.Public, book.Content, book.HTML, book.Modified,
+					book.Public, book.Content, book.HTML, book.ModifiedAt,
 					book.Archiver, book.ArchivePath,
 					book.ID)
 			}
@@ -276,7 +278,8 @@ func (db *PGDatabase) GetBookmarks(ctx context.Context, opts GetBookmarksOptions
 		`excerpt`,
 		`author`,
 		`public`,
-		`modified`,
+		`modified_at`,
+		`created_at`,
 		`content <> '' has_content,
 		archiver,
 		archive_path`}
@@ -367,7 +370,7 @@ func (db *PGDatabase) GetBookmarks(ctx context.Context, opts GetBookmarksOptions
 	case ByLastAdded:
 		query += ` ORDER BY id DESC`
 	case ByLastModified:
-		query += ` ORDER BY modified DESC`
+		query += ` ORDER BY modified_at DESC`
 	default:
 		query += ` ORDER BY id`
 	}
@@ -578,7 +581,7 @@ func (db *PGDatabase) GetBookmark(ctx context.Context, id int, url string) (mode
 	args := []interface{}{id}
 	query := `SELECT
 		id, url, title, excerpt, author, public,
-		content, html, modified, content <> '' has_content,
+		content, html, modified_at, created_at, content <> '' has_content
 		archiver, archive_path
 		FROM bookmark WHERE id = $1`
 
