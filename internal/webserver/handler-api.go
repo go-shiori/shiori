@@ -1,7 +1,6 @@
 package webserver
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -232,14 +231,12 @@ func (h *Handler) ApiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 
 	if payload.Async {
 		go func() {
-			bookmark, err := downloadBookmarkContent(h.dependencies, book, userHasDefinedTitle, book.Excerpt != "")
+			book, err = downloadBookmarkContent(h.dependencies, book, userHasDefinedTitle, book.Excerpt != "")
 			if err != nil {
 				log.Printf("error downloading boorkmark: %s", err)
 				return
 			}
-			if _, err := h.DB.SaveBookmarks(context.Background(), false, *bookmark); err != nil {
-				log.Printf("failed to save bookmark: %s", err)
-			}
+
 		}()
 	} else {
 		// Workaround. Download content after saving the bookmark so we have the proper database
@@ -247,14 +244,12 @@ func (h *Handler) ApiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 		book, err = downloadBookmarkContent(h.dependencies, book, userHasDefinedTitle, book.Excerpt != "")
 		if err != nil {
 			log.Printf("error downloading boorkmark: %s", err)
-		} else if _, err := h.DB.SaveBookmarks(ctx, false, *book); err != nil {
-			log.Printf("failed to save bookmark: %s", err)
 		}
 	}
 
 	// Return the new bookmark
 	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(results[0])
+	err = json.NewEncoder(w).Encode(book)
 	checkError(err)
 }
 

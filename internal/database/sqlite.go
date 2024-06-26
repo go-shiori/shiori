@@ -137,7 +137,7 @@ func (db *SQLiteDatabase) SaveBookmarks(ctx context.Context, create bool, bookma
 
 		stmtUpdateBook, err := tx.PreparexContext(ctx, `UPDATE bookmark SET
 			url = ?, title = ?,	excerpt = ?, author = ?,
-			public = ?, modified_at = ?, has_content = ?
+			public = ?, modified_at = ?, has_content = ?,
 			archiver = ?, archive_path = ?
 			WHERE id = ?`)
 		if err != nil {
@@ -304,7 +304,7 @@ func (db *SQLiteDatabase) GetBookmarks(ctx context.Context, opts GetBookmarksOpt
 		b.public,
 		b.created_at,
 		b.modified_at,
-		b.has_content
+		b.has_content,
 		b.archiver,
 		b.archive_path
 		FROM bookmark b

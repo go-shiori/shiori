@@ -176,7 +176,7 @@ func (db *MySQLDatabase) SaveBookmarks(ctx context.Context, create bool, bookmar
 			public   = ?,
 			content  = ?,
 			html     = ?,
-			modified_at = ?
+			modified_at = ?,
 			archiver = ?,
 			archive_path = ?
 		WHERE id = ?`)
@@ -603,7 +603,7 @@ func (db *MySQLDatabase) GetBookmark(ctx context.Context, id int, url string) (m
 	args := []interface{}{id}
 	query := `SELECT
 		id, url, title, excerpt, author, public,
-		content, html, modified_at, created_at, content <> '' has_content
+		content, html, modified_at, created_at, content <> '' has_content,
 		archiver, archive_path
 		FROM bookmark WHERE id = ?`
 

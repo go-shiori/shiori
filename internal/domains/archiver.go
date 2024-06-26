@@ -1,6 +1,7 @@
 package domains
 
 import (
+	"context"
 	"fmt"
 	"io"
 
@@ -21,7 +22,17 @@ func (d *ArchiverDomain) GenerateBookmarkArchive(book model.BookmarkDTO) (*model
 		return nil, fmt.Errorf("error downloading url: %s", err)
 	}
 
-	return d.ProcessBookmarkArchive(content, contentType, book)
+	processedBookmark, err := d.ProcessBookmarkArchive(content, contentType, book)
+	if err != nil {
+		return nil, fmt.Errorf("error processing bookmark archive: %w", err)
+	}
+
+	saved, err := d.deps.Database.SaveBookmarks(context.Background(), false, *processedBookmark)
+	if err != nil {
+		return nil, fmt.Errorf("error saving bookmark: %w", err)
+	}
+
+	return &saved[0], nil
 }
 
 func (d *ArchiverDomain) GenerateBookmarkEbook(request model.EbookProcessRequest) error {
@@ -36,12 +47,12 @@ func (d *ArchiverDomain) GenerateBookmarkEbook(request model.EbookProcessRequest
 func (d *ArchiverDomain) ProcessBookmarkArchive(content io.ReadCloser, contentType string, book model.BookmarkDTO) (*model.BookmarkDTO, error) {
 	for _, archiver := range d.archivers {
 		if archiver.Matches(contentType) {
-			_, err := archiver.Archive(content, contentType, book)
+			book, err := archiver.Archive(content, contentType, book)
 			if err != nil {
 				d.deps.Log.Errorf("Error archiving bookmark with archviver: %s", err)
 				continue
 			}
-			return &book, nil
+			return book, nil
 		}
 	}
 

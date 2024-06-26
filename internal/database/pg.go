@@ -145,7 +145,7 @@ func (db *PGDatabase) SaveBookmarks(ctx context.Context, create bool, bookmarks 
 			public   = $5,
 			content  = $6,
 			html     = $7,
-			modified_at = $8
+			modified_at = $8,
 			archiver = $9,
 			archive_path = $10
 			WHERE id = $11`)
@@ -581,7 +581,7 @@ func (db *PGDatabase) GetBookmark(ctx context.Context, id int, url string) (mode
 	args := []interface{}{id}
 	query := `SELECT
 		id, url, title, excerpt, author, public,
-		content, html, modified_at, created_at, content <> '' has_content
+		content, html, modified_at, created_at, content <> '' has_content,
 		archiver, archive_path
 		FROM bookmark WHERE id = $1`
 
