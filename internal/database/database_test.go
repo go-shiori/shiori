@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/stretchr/testify/assert"
@@ -15,19 +16,21 @@ type testDatabaseFactory func(t *testing.T, ctx context.Context) (DB, error)
 func testDatabase(t *testing.T, dbFactory testDatabaseFactory) {
 	tests := map[string]databaseTestCase{
 		// Bookmarks
-		"testBookmarkAutoIncrement":         testBookmarkAutoIncrement,
-		"testCreateBookmark":                testCreateBookmark,
-		"testCreateBookmarkWithContent":     testCreateBookmarkWithContent,
-		"testCreateBookmarkTwice":           testCreateBookmarkTwice,
-		"testCreateBookmarkWithTag":         testCreateBookmarkWithTag,
-		"testCreateTwoDifferentBookmarks":   testCreateTwoDifferentBookmarks,
-		"testUpdateBookmark":                testUpdateBookmark,
-		"testUpdateBookmarkWithContent":     testUpdateBookmarkWithContent,
-		"testGetBookmark":                   testGetBookmark,
-		"testGetBookmarkNotExistent":        testGetBookmarkNotExistent,
-		"testGetBookmarks":                  testGetBookmarks,
-		"testGetBookmarksWithSQLCharacters": testGetBookmarksWithSQLCharacters,
-		"testGetBookmarksCount":             testGetBookmarksCount,
+		"testBookmarkAutoIncrement":             testBookmarkAutoIncrement,
+		"testCreateBookmark":                    testCreateBookmark,
+		"testCreateBookmarkWithContent":         testCreateBookmarkWithContent,
+		"testCreateBookmarkTwice":               testCreateBookmarkTwice,
+		"testCreateBookmarkWithTag":             testCreateBookmarkWithTag,
+		"testCreateTwoDifferentBookmarks":       testCreateTwoDifferentBookmarks,
+		"testUpdateBookmark":                    testUpdateBookmark,
+		"testUpdateBookmarkUpdatesModifiedTime": testUpdateBookmarkUpdatesModifiedTime,
+		"testGetBoomarksWithTimeFilters":        testGetBoomarksWithTimeFilters,
+		"testUpdateBookmarkWithContent":         testUpdateBookmarkWithContent,
+		"testGetBookmark":                       testGetBookmark,
+		"testGetBookmarkNotExistent":            testGetBookmarkNotExistent,
+		"testGetBookmarks":                      testGetBookmarks,
+		"testGetBookmarksWithSQLCharacters":     testGetBookmarksWithSQLCharacters,
+		"testGetBookmarksCount":                 testGetBookmarksCount,
 		// Tags
 		"testCreateTag":  testCreateTag,
 		"testCreateTags": testCreateTags,
@@ -423,4 +426,93 @@ func testGetAccounts(t *testing.T, db DB) {
 		assert.NoError(t, err)
 		assert.Equal(t, 0, len(accounts))
 	})
+}
+
+// TODO: Consider using `t.Parallel()` once we have automated database tests spawning databases using testcontainers.
+func testUpdateBookmarkUpdatesModifiedTime(t *testing.T, db DB) {
+	ctx := context.TODO()
+
+	book := model.BookmarkDTO{
+		URL:   "https://github.com/go-shiori/shiori",
+		Title: "shiori",
+	}
+
+	resultBook, err := db.SaveBookmarks(ctx, true, book)
+	assert.NoError(t, err, "Save bookmarks must not fail")
+
+	updatedBook := resultBook[0]
+	updatedBook.Title = "modified"
+	updatedBook.ModifiedAt = ""
+
+	time.Sleep(1 * time.Second)
+	resultUpdatedBooks, err := db.SaveBookmarks(ctx, false, updatedBook)
+	assert.NoError(t, err, "Save bookmarks must not fail")
+
+	assert.NotEqual(t, resultBook[0].ModifiedAt, resultUpdatedBooks[0].ModifiedAt)
+	assert.Equal(t, resultBook[0].CreatedAt, resultUpdatedBooks[0].CreatedAt)
+	assert.Equal(t, resultBook[0].CreatedAt, resultBook[0].ModifiedAt)
+	assert.NoError(t, err, "Get bookmarks must not fail")
+
+	assert.Equal(t, updatedBook.Title, resultUpdatedBooks[0].Title, "Saved bookmark must have updated Title")
+}
+
+// TODO: Consider using `t.Parallel()` once we have automated database tests spawning databases using testcontainers.
+func testGetBoomarksWithTimeFilters(t *testing.T, db DB) {
+	ctx := context.TODO()
+
+	book1 := model.BookmarkDTO{
+		URL:   "https://github.com/go-shiori/shiori/one",
+		Title: "Added First but Modified Last",
+	}
+	book2 := model.BookmarkDTO{
+		URL:   "https://github.com/go-shiori/shiori/second",
+		Title: "Added Last but Modified First",
+	}
+
+	// create two new bookmark
+	resultBook1, err := db.SaveBookmarks(ctx, true, book1)
+	assert.NoError(t, err, "Save bookmarks must not fail")
+	time.Sleep(1 * time.Second)
+	resultBook2, err := db.SaveBookmarks(ctx, true, book2)
+	assert.NoError(t, err, "Save bookmarks must not fail")
+
+	// update those bookmarks
+	updatedBook1 := resultBook1[0]
+	updatedBook1.Title = "Added First but Modified Last Updated Title"
+	updatedBook1.ModifiedAt = ""
+
+	updatedBook2 := resultBook2[0]
+	updatedBook2.Title = "Last Added but modified First Updated Title"
+	updatedBook2.ModifiedAt = ""
+
+	// modified bookmark2 first after one second modified bookmark1
+	resultUpdatedBook2, err := db.SaveBookmarks(ctx, false, updatedBook2)
+	assert.NoError(t, err, "Save bookmarks must not fail")
+	time.Sleep(1 * time.Second)
+	resultUpdatedBook1, err := db.SaveBookmarks(ctx, false, updatedBook1)
+	assert.NoError(t, err, "Save bookmarks must not fail")
+
+	// get diffrent filteter combination
+	booksOrderByLastAdded, err := db.GetBookmarks(ctx, GetBookmarksOptions{
+		IDs:         []int{resultUpdatedBook1[0].ID, resultUpdatedBook2[0].ID},
+		OrderMethod: 1,
+	})
+	assert.NoError(t, err, "Get bookmarks must not fail")
+	booksOrderByLastModified, err := db.GetBookmarks(ctx, GetBookmarksOptions{
+		IDs:         []int{resultUpdatedBook1[0].ID, resultUpdatedBook2[0].ID},
+		OrderMethod: 2,
+	})
+	assert.NoError(t, err, "Get bookmarks must not fail")
+	booksOrderById, err := db.GetBookmarks(ctx, GetBookmarksOptions{
+		IDs:         []int{resultUpdatedBook1[0].ID, resultUpdatedBook2[0].ID},
+		OrderMethod: 0,
+	})
+	assert.NoError(t, err, "Get bookmarks must not fail")
+
+	// Check Last Added
+	assert.Equal(t, booksOrderByLastAdded[0].Title, updatedBook2.Title)
+	// Check Last Modified
+	assert.Equal(t, booksOrderByLastModified[0].Title, updatedBook1.Title)
+	// Second id should be 2 if order them by id
+	assert.Equal(t, booksOrderById[1].ID, 2)
 }

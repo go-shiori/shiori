@@ -60,6 +60,7 @@ var sqliteMigrations = []migration{
 	}),
 	newFileMigration("0.3.0", "0.4.0", "sqlite/0002_denormalize_content"),
 	newFileMigration("0.4.0", "0.5.0", "sqlite/0003_uniq_id"),
+	newFileMigration("0.5.0", "0.6.0", "sqlite/0004_created_time"),
 }
 
 // SQLiteDatabase is implementation of Database interface
@@ -80,7 +81,7 @@ type tagContent struct {
 }
 
 // DBX returns the underlying sqlx.DB object
-func (db *SQLiteDatabase) DBx() sqlx.DB {
+func (db *SQLiteDatabase) DBx() *sqlx.DB {
 	return db.DB
 }
 
@@ -127,15 +128,15 @@ func (db *SQLiteDatabase) SaveBookmarks(ctx context.Context, create bool, bookma
 		// Prepare statement
 
 		stmtInsertBook, err := tx.PreparexContext(ctx, `INSERT INTO bookmark
-			(url, title, excerpt, author, public, modified, has_content)
-			VALUES(?, ?, ?, ?, ?, ?, ?) RETURNING id`)
+			(url, title, excerpt, author, public, modified_at, has_content, created_at)
+			VALUES(?, ?, ?, ?, ?, ?, ?, ?) RETURNING id`)
 		if err != nil {
 			return errors.WithStack(err)
 		}
 
 		stmtUpdateBook, err := tx.PreparexContext(ctx, `UPDATE bookmark SET
 			url = ?, title = ?,	excerpt = ?, author = ?,
-			public = ?, modified = ?, has_content = ?
+			public = ?, modified_at = ?, has_content = ?
 			WHERE id = ?`)
 		if err != nil {
 			return errors.WithStack(err)
@@ -193,8 +194,8 @@ func (db *SQLiteDatabase) SaveBookmarks(ctx context.Context, create bool, bookma
 			}
 
 			// Set modified time
-			if book.Modified == "" {
-				book.Modified = modifiedTime
+			if book.ModifiedAt == "" {
+				book.ModifiedAt = modifiedTime
 			}
 
 			hasContent := book.Content != ""
@@ -202,11 +203,12 @@ func (db *SQLiteDatabase) SaveBookmarks(ctx context.Context, create bool, bookma
 			// Create or update bookmark
 			var err error
 			if create {
+				book.CreatedAt = modifiedTime
 				err = stmtInsertBook.QueryRowContext(ctx,
-					book.URL, book.Title, book.Excerpt, book.Author, book.Public, book.Modified, hasContent).Scan(&book.ID)
+					book.URL, book.Title, book.Excerpt, book.Author, book.Public, book.ModifiedAt, hasContent, book.CreatedAt).Scan(&book.ID)
 			} else {
 				_, err = stmtUpdateBook.ExecContext(ctx,
-					book.URL, book.Title, book.Excerpt, book.Author, book.Public, book.Modified, hasContent, book.ID)
+					book.URL, book.Title, book.Excerpt, book.Author, book.Public, book.ModifiedAt, hasContent, book.ID)
 			}
 			if err != nil {
 				return errors.WithStack(err)
@@ -298,7 +300,8 @@ func (db *SQLiteDatabase) GetBookmarks(ctx context.Context, opts GetBookmarksOpt
 		b.excerpt,
 		b.author,
 		b.public,
-		b.modified,
+		b.created_at,
+		b.modified_at,
 		b.has_content
 		FROM bookmark b
 		WHERE 1`
@@ -389,7 +392,7 @@ func (db *SQLiteDatabase) GetBookmarks(ctx context.Context, opts GetBookmarksOpt
 	case ByLastAdded:
 		query += ` ORDER BY b.id DESC`
 	case ByLastModified:
-		query += ` ORDER BY b.modified DESC`
+		query += ` ORDER BY b.modified_at DESC`
 	default:
 		query += ` ORDER BY b.id`
 	}
@@ -669,8 +672,8 @@ func (db *SQLiteDatabase) DeleteBookmarks(ctx context.Context, ids ...int) error
 func (db *SQLiteDatabase) GetBookmark(ctx context.Context, id int, url string) (model.BookmarkDTO, bool, error) {
 	args := []interface{}{id}
 	query := `SELECT
-		b.id, b.url, b.title, b.excerpt, b.author, b.public, b.modified,
-		bc.content, bc.html, b.has_content
+		b.id, b.url, b.title, b.excerpt, b.author, b.public, b.modified_at,
+		bc.content, bc.html, b.has_content, b.created_at
 		FROM bookmark b
 		LEFT JOIN bookmark_content bc ON bc.docid = b.id
 		WHERE b.id = ?`

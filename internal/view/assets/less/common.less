@@ -5,8 +5,55 @@ select {
 	color: var(--color);
 }
 
-footer {
+.login-footer {
 	color: var(--color);
+}
+
+.content-footer {
+	width: 100%;
+	padding: 20px;
+	max-width: 840px;
+	margin-bottom: 16px;
+	background-color: var(--contentBg);
+	border: 1px solid var(--border);
+	display: flex;
+	flex-flow: column;
+	align-items: center;
+}
+
+.metadata {
+	display: flex;
+	flex-flow: row wrap;
+	text-align: center;
+	font-size: 16px;
+	color: var(--colorLink);
+	&:nth-child(1) {
+		justify-content: flex-start;
+	}
+
+	&:nth-child(2) {
+		justify-content: flex-end;
+	}
+
+	&[v-cloak] {
+		visibility: hidden;
+	}
+}
+
+.links {
+	display: flex;
+	flex-flow: row wrap;
+
+	a {
+		padding: 0 4px;
+		color: var(--color);
+		text-decoration: underline;
+
+		&:hover,
+		&:focus {
+			color: var(--main);
+		}
+	}
 }
 
 * {
@@ -384,18 +431,6 @@ a {
 		flex-flow: column;
 		align-items: center;
 
-		#metadata {
-			display: flex;
-			flex-flow: row wrap;
-			text-align: center;
-			font-size: 16px;
-			color: var(--colorLink);
-
-			&[v-cloak] {
-				visibility: hidden;
-			}
-		}
-
 		#title {
 			padding: 8px 0;
 			grid-column-start: 1;
@@ -405,22 +440,6 @@ a {
 			word-break: break-word;
 			hyphens: none;
 			text-align: center;
-		}
-
-		#links {
-			display: flex;
-			flex-flow: row wrap;
-
-			a {
-				padding: 0 4px;
-				color: var(--color);
-				text-decoration: underline;
-
-				&:hover,
-				&:focus {
-					color: var(--main);
-				}
-			}
 		}
 	}
 
@@ -491,7 +510,6 @@ a {
 
 #page-home {
 	> .empty-message {
-		width: 100%;
 		max-width: 400px;
 		font-size: 1em;
 		background-color: var(--contentBg);
@@ -679,8 +697,20 @@ a {
 			&[open] summary {
 				border-bottom: 1px solid var(--border);
 
-				::after {
-					content: "-";
+				&::after {
+					content: "-" !important;
+				}
+			}
+
+			ul {
+				list-style: none;
+
+				li {
+					padding: 4px 8px;
+					color: var(--color);
+					display: flex;
+					flex-flow: row nowrap;
+					align-items: center;
 				}
 			}
 
@@ -779,6 +809,19 @@ a {
 					&:hover {
 						color: var(--main);
 					}
+				}
+			}
+		}
+	}
+
+	#setting-system-info {
+		ul {
+			padding-top: 4px;
+			padding-bottom: 4px;
+
+			li {
+				span {
+					margin-left: 8px;
 				}
 			}
 		}
