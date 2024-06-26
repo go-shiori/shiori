@@ -378,6 +378,12 @@ const docTemplate = `{
         "model.BookmarkDTO": {
             "type": "object",
             "properties": {
+                "archivePath": {
+                    "type": "string"
+                },
+                "archiver": {
+                    "type": "string"
+                },
                 "author": {
                     "type": "string"
                 },
