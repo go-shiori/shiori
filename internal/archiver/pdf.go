@@ -29,6 +29,26 @@ func (a *PDFArchiver) Archive(content io.ReadCloser, contentType string, bookmar
 	return &bookmark, nil
 }
 
+func (a *PDFArchiver) GetArchiveFile(bookmark model.BookmarkDTO, resourcePath string) (*model.ArchiveFile, error) {
+	archivePath := model.GetArchivePath(&bookmark)
+
+	if !a.deps.Domains.Storage.FileExists(archivePath) {
+		return nil, fmt.Errorf("archive for bookmark %d doesn't exist", bookmark.ID)
+	}
+
+	archiveFile, err := a.deps.Domains.Storage.FS().Open(archivePath)
+	if err != nil {
+		return nil, fmt.Errorf("error opening pdf archive: %w", err)
+	}
+
+	info, err := archiveFile.Stat()
+	if err != nil {
+		return nil, fmt.Errorf("error getting pdf archive info: %w", err)
+	}
+
+	return model.NewArchiveFile(archiveFile, "application/pdf", "", info.Size()), nil
+}
+
 func NewPDFArchiver(deps *dependencies.Dependencies) *PDFArchiver {
 	return &PDFArchiver{
 		deps: deps,

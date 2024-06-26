@@ -3,18 +3,16 @@ package domains
 import (
 	"fmt"
 	"io"
-	"path/filepath"
 
 	"github.com/go-shiori/shiori/internal/archiver"
 	"github.com/go-shiori/shiori/internal/core"
 	"github.com/go-shiori/shiori/internal/dependencies"
 	"github.com/go-shiori/shiori/internal/model"
-	"github.com/go-shiori/warc"
 )
 
 type ArchiverDomain struct {
 	deps      *dependencies.Dependencies
-	archivers []model.Archiver
+	archivers map[string]model.Archiver
 }
 
 func (d *ArchiverDomain) DownloadBookmarkArchive(book model.BookmarkDTO) (*model.BookmarkDTO, error) {
@@ -41,21 +39,32 @@ func (d *ArchiverDomain) ProcessBookmarkArchive(content io.ReadCloser, contentTy
 	return nil, fmt.Errorf("no archiver found for content type: %s", contentType)
 }
 
-func (d *ArchiverDomain) GetBookmarkArchive(book *model.BookmarkDTO) (*warc.Archive, error) {
-	archivePath := model.GetArchivePath(book)
-
-	if !d.deps.Domains.Storage.FileExists(archivePath) {
-		return nil, fmt.Errorf("archive for bookmark %d doesn't exist", book.ID)
+func (d *ArchiverDomain) GetBookmarkArchiveFile(book *model.BookmarkDTO, resourcePath string) (*model.ArchiveFile, error) {
+	archiver, err := d.GetArchiver(book.Archiver)
+	if err != nil {
+		return nil, err
 	}
 
-	// FIXME: This only works in local filesystem
-	return warc.Open(filepath.Join(d.deps.Config.Storage.DataDir, archivePath))
+	archiveFile, err := archiver.GetArchiveFile(*book, resourcePath)
+	if err != nil {
+		return nil, fmt.Errorf("error getting archive file: %w", err)
+	}
+
+	return archiveFile, nil
+}
+
+func (d *ArchiverDomain) GetArchiver(name string) (model.Archiver, error) {
+	archiver, ok := d.archivers[name]
+	if !ok {
+		return nil, fmt.Errorf("archiver %s not found", name)
+	}
+	return archiver, nil
 }
 
 func NewArchiverDomain(deps *dependencies.Dependencies) *ArchiverDomain {
-	archivers := []model.Archiver{
-		archiver.NewPDFArchiver(deps),
-		archiver.NewWARCArchiver(deps),
+	archivers := map[string]model.Archiver{
+		model.ArchiverPDF:  archiver.NewPDFArchiver(deps),
+		model.ArchiverWARC: archiver.NewWARCArchiver(deps),
 	}
 	return &ArchiverDomain{
 		deps:      deps,
