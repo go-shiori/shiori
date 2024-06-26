@@ -428,8 +428,8 @@ func testGetAccounts(t *testing.T, db DB) {
 	})
 }
 
+// TODO: Consider using `t.Parallel()` once we have automated database tests spawning databases using testcontainers.
 func testUpdateBookmarkUpdatesModifiedTime(t *testing.T, db DB) {
-	t.Parallel()
 	ctx := context.TODO()
 
 	book := model.BookmarkDTO{
@@ -456,8 +456,8 @@ func testUpdateBookmarkUpdatesModifiedTime(t *testing.T, db DB) {
 	assert.Equal(t, updatedBook.Title, resultUpdatedBooks[0].Title, "Saved bookmark must have updated Title")
 }
 
+// TODO: Consider using `t.Parallel()` once we have automated database tests spawning databases using testcontainers.
 func testGetBoomarksWithTimeFilters(t *testing.T, db DB) {
-	t.Parallel()
 	ctx := context.TODO()
 
 	book1 := model.BookmarkDTO{
