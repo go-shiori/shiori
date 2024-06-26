@@ -58,6 +58,18 @@ func NewArchiveFile(reader io.Reader, contentType, encoding string, size int64) 
 	}
 }
 
+type ArchiveProcessRequest struct {
+	Bookmark     BookmarkDTO
+	Content      io.Reader
+	ContentType  string
+	SkipExisting bool
+}
+
+type EbookProcessRequest struct {
+	Bookmark     BookmarkDTO
+	SkipExisting bool
+}
+
 type Archiver interface {
 	Archive(content io.ReadCloser, contentType string, bookmark BookmarkDTO) (*BookmarkDTO, error)
 	Matches(contentType string) bool

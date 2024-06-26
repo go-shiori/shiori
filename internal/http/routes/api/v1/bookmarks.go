@@ -183,7 +183,7 @@ func (r *BookmarksAPIRoutes) updateCache(c *gin.Context) {
 				<-semaphore
 			}()
 
-			result, err := r.deps.Domains.Archiver.DownloadBookmarkArchive(book)
+			result, err := r.deps.Domains.Archiver.GenerateBookmarkArchive(book)
 			if err != nil {
 				r.logger.WithFields(logrus.Fields{
 					"bookmark_id": book.ID,
@@ -201,7 +201,21 @@ func (r *BookmarksAPIRoutes) updateCache(c *gin.Context) {
 			}
 
 			// Create ebook if needed
-			// TODO
+			if payload.CreateEbook {
+				err = r.deps.Domains.Archiver.GenerateBookmarkEbook(model.EbookProcessRequest{
+					Bookmark:     *result,
+					SkipExisting: payload.SkipExist,
+				})
+				if err != nil {
+					r.logger.WithFields(logrus.Fields{
+						"bookmark_id": book.ID,
+						"url":         book.URL,
+						"error":       err,
+					}).Error("error generating ebook")
+					chProblem <- book.ID
+					return
+				}
+			}
 
 			// Update list of bookmarks
 			mx.Lock()

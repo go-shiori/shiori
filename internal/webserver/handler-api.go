@@ -22,7 +22,7 @@ import (
 )
 
 func downloadBookmarkContent(deps *dependencies.Dependencies, book *model.BookmarkDTO, keepTitle, keepExcerpt bool) (*model.BookmarkDTO, error) {
-	result, err := deps.Domains.Archiver.DownloadBookmarkArchive(*book)
+	result, err := deps.Domains.Archiver.GenerateBookmarkArchive(*book)
 	if err != nil {
 		return nil, fmt.Errorf("error archiving url: %s", err)
 	}

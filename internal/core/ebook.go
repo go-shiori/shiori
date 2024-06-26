@@ -1,6 +1,7 @@
 package core
 
 import (
+	"fmt"
 	"os"
 	fp "path/filepath"
 	"strconv"
@@ -15,32 +16,38 @@ import (
 // GenerateEbook receives a `ProcessRequest` and generates an ebook file in the destination path specified.
 // The destination path `dstPath` should include file name with ".epub" extension
 // The bookmark model will be used to update the UI based on whether this function is successful or not.
-func GenerateEbook(deps *dependencies.Dependencies, req ProcessRequest, dstPath string) (book model.BookmarkDTO, err error) {
+func GenerateEbook(deps *dependencies.Dependencies, req model.EbookProcessRequest) (book model.BookmarkDTO, err error) {
 	book = req.Bookmark
+	dstPath := model.GetEbookPath(&book)
 
 	// Make sure bookmark ID is defined
 	if book.ID == 0 {
 		return book, errors.New("bookmark ID is not valid")
 	}
 
-	// Get current state of bookmark cheak archive and thumb
-	strID := strconv.Itoa(book.ID)
+	if deps.Domains.Storage.FileExists(dstPath) && req.SkipExisting {
+		return book, nil
+	}
 
+	strID := strconv.Itoa(book.ID)
 	bookmarkThumbnailPath := model.GetThumbnailPath(&book)
-	bookmarkArchivePath := model.GetArchivePath(&book)
 
 	if deps.Domains.Storage.FileExists(bookmarkThumbnailPath) {
 		book.ImageURL = fp.Join("/", "bookmark", strID, "thumb")
 	}
 
-	if deps.Domains.Storage.FileExists(bookmarkArchivePath) {
-		book.HasArchive = true
+	if book.ArchivePath == "" {
+		return book, errors.New("bookmark doesn't have archive")
+	}
+
+	archiveFile, err := deps.Domains.Archiver.GetBookmarkArchiveFile(&book, "")
+	if err != nil {
+		return book, fmt.Errorf("error getting archive file: %w", err)
 	}
 
 	// This function create ebook from reader mode of bookmark so
 	// we can't create ebook from PDF so we return error here if bookmark is a pdf
-	contentType := req.ContentType
-	if strings.Contains(contentType, "application/pdf") {
+	if strings.Contains(archiveFile.ContentType(), "application/pdf") {
 		return book, errors.New("can't create ebook for pdf")
 	}
 

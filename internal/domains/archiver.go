@@ -15,13 +15,22 @@ type ArchiverDomain struct {
 	archivers map[string]model.Archiver
 }
 
-func (d *ArchiverDomain) DownloadBookmarkArchive(book model.BookmarkDTO) (*model.BookmarkDTO, error) {
+func (d *ArchiverDomain) GenerateBookmarkArchive(book model.BookmarkDTO) (*model.BookmarkDTO, error) {
 	content, contentType, err := core.DownloadBookmark(book.URL)
 	if err != nil {
 		return nil, fmt.Errorf("error downloading url: %s", err)
 	}
 
 	return d.ProcessBookmarkArchive(content, contentType, book)
+}
+
+func (d *ArchiverDomain) GenerateBookmarkEbook(request model.EbookProcessRequest) error {
+	_, err := core.GenerateEbook(d.deps, request)
+	if err != nil {
+		return fmt.Errorf("error generating ebook: %s", err)
+	}
+
+	return nil
 }
 
 func (d *ArchiverDomain) ProcessBookmarkArchive(content io.ReadCloser, contentType string, book model.BookmarkDTO) (*model.BookmarkDTO, error) {

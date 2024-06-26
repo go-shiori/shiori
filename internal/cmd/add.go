@@ -83,7 +83,7 @@ func addHandler(cmd *cobra.Command, args []string) {
 	if !offline {
 		cInfo.Println("Downloading article...")
 
-		result, err := deps.Domains.Archiver.DownloadBookmarkArchive(book)
+		result, err := deps.Domains.Archiver.GenerateBookmarkArchive(book)
 		if err != nil {
 			cError.Printf("Failed to download article: %v\n", err)
 			os.Exit(1)

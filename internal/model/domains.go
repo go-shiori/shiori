@@ -24,7 +24,8 @@ type AccountsDomain interface {
 }
 
 type ArchiverDomain interface {
-	DownloadBookmarkArchive(book BookmarkDTO) (*BookmarkDTO, error)
+	GenerateBookmarkArchive(book BookmarkDTO) (*BookmarkDTO, error)
+	GenerateBookmarkEbook(book EbookProcessRequest) error
 	ProcessBookmarkArchive(content io.ReadCloser, contentType string, book BookmarkDTO) (*BookmarkDTO, error)
 	GetBookmarkArchiveFile(book *BookmarkDTO, archivePath string) (*ArchiveFile, error)
 }

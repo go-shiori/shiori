@@ -86,7 +86,7 @@ func (h *Handler) ApiInsertViaExtension(w http.ResponseWriter, r *http.Request, 
 		contentType := "text/html; charset=UTF-8"
 		result, errArchiver = h.dependencies.Domains.Archiver.ProcessBookmarkArchive(io.NopCloser(strings.NewReader(request.HTML)), contentType, book)
 	} else {
-		result, errArchiver = h.dependencies.Domains.Archiver.DownloadBookmarkArchive(book)
+		result, errArchiver = h.dependencies.Domains.Archiver.GenerateBookmarkArchive(book)
 	}
 	if errArchiver != nil {
 		log.Printf("error downloading bookmark cache: %s", errArchiver)
