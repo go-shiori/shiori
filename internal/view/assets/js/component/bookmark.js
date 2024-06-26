@@ -51,6 +51,7 @@ export default {
 		hasContent: Boolean,
 		hasArchive: Boolean,
 		hasEbook: Boolean,
+		modifiedAt: String,
 		index: Number,
 		ShowId: Boolean,
 		editMode: Boolean,
@@ -94,9 +95,8 @@ export default {
 			return this.excerpt !== "" && !this.thumbnailVisible && !this.HideExcerpt;
 		},
 		thumbnailStyleURL() {
-			var cacheBuster = new Date().getTime();
 			return {
-				backgroundImage: `url("${this.imageURL}?cache=${cacheBuster}")`,
+				backgroundImage: `url("${this.imageURL}?cache=${this.modifiedAt}")`,
 			};
 		},
 		eventItem() {
