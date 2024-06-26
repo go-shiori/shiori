@@ -1,11 +1,9 @@
 package core
 
 import (
-	"fmt"
 	"os"
 	fp "path/filepath"
 	"strconv"
-	"strings"
 
 	epub "github.com/go-shiori/go-epub"
 	"github.com/go-shiori/shiori/internal/dependencies"
@@ -29,26 +27,13 @@ func GenerateEbook(deps *dependencies.Dependencies, req model.EbookProcessReques
 		return book, nil
 	}
 
+	// Get current state of bookmark cheak archive and thumb
 	strID := strconv.Itoa(book.ID)
+
 	bookmarkThumbnailPath := model.GetThumbnailPath(&book)
 
 	if deps.Domains.Storage.FileExists(bookmarkThumbnailPath) {
 		book.ImageURL = fp.Join("/", "bookmark", strID, "thumb")
-	}
-
-	if book.ArchivePath == "" {
-		return book, errors.New("bookmark doesn't have archive")
-	}
-
-	archiveFile, err := deps.Domains.Archiver.GetBookmarkArchiveFile(&book, "")
-	if err != nil {
-		return book, fmt.Errorf("error getting archive file: %w", err)
-	}
-
-	// This function create ebook from reader mode of bookmark so
-	// we can't create ebook from PDF so we return error here if bookmark is a pdf
-	if strings.Contains(archiveFile.ContentType(), "application/pdf") {
-		return book, errors.New("can't create ebook for pdf")
 	}
 
 	// Create temporary epub file
