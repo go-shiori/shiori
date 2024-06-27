@@ -116,7 +116,7 @@ func (h *Handler) validateSession(r *http.Request) error {
 			return fmt.Errorf("session has been expired")
 		}
 
-		if r.Method != "" && r.Method != "GET" && !account.Owner {
+		if r.Method != "" && r.Method != "GET" && account.Owner != nil && !*account.Owner {
 			return fmt.Errorf("account level is not sufficient")
 		}
 

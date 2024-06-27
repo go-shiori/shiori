@@ -11,7 +11,6 @@ import (
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
-	"golang.org/x/crypto/bcrypt"
 
 	_ "modernc.org/sqlite"
 )
@@ -691,28 +690,34 @@ func (db *SQLiteDatabase) GetBookmark(ctx context.Context, id int, url string) (
 	return book, book.ID != 0, nil
 }
 
-// SaveAccount saves new account to database. Returns error if any happened.
-func (db *SQLiteDatabase) SaveAccount(ctx context.Context, account model.Account) error {
+// CreateAccount saves new account to database. Returns error if any happened.
+func (db *SQLiteDatabase) CreateAccount(ctx context.Context, account model.Account) (*model.Account, error) {
+	var accountID int64
 	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
-		// Hash password with bcrypt
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(account.Password), 10)
+		query, err := tx.PrepareContext(ctx, `INSERT INTO account
+			(username, password, owner, config) VALUES (?, ?, ?, ?)
+			ON CONFLICT(username) DO UPDATE SET
+			password = ?, owner = ?
+			RETURNING id`)
 		if err != nil {
-			return err
+			return errors.WithStack(err)
 		}
 
-		// Insert account to database
-		_, err = tx.Exec(`INSERT INTO account
-		(username, password, owner, config) VALUES (?, ?, ?, ?)
-		ON CONFLICT(username) DO UPDATE SET
-		password = ?, owner = ?`,
-			account.Username, hashedPassword, account.Owner, account.Config,
-			hashedPassword, account.Owner, account.Config)
-		return errors.WithStack(err)
+		err = query.QueryRowContext(ctx,
+			account.Username, account.Password, account.Owner, account.Config,
+			account.Password, account.Owner).Scan(&accountID)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+
+		return nil
 	}); err != nil {
-		return errors.WithStack(err)
+		return nil, errors.WithStack(err)
 	}
 
-	return nil
+	account.ID = model.DBID(accountID)
+
+	return &account, nil
 }
 
 // SaveAccountSettings update settings for specific account  in database. Returns error if any happened.
@@ -731,22 +736,56 @@ func (db *SQLiteDatabase) SaveAccountSettings(ctx context.Context, account model
 	return nil
 }
 
-// GetAccounts fetch list of account (without its password) based on submitted options.
-func (db *SQLiteDatabase) GetAccounts(ctx context.Context, opts GetAccountsOptions) ([]model.Account, error) {
+func (db *SQLiteDatabase) UpdateAccount(ctx context.Context, account model.Account) error {
+	if account.ID == 0 {
+		return ErrNotFound
+	}
+
+	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
+		queryString := "UPDATE account SET username = ?, password = ?, owner = ?, config = ? WHERE id = ?"
+
+		updateQuery, err := tx.PrepareContext(ctx, queryString)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+
+		_, err = updateQuery.ExecContext(ctx, account.Username, account.Password, account.Owner, account.Config, account.ID)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+
+		return nil
+	}); err != nil {
+		return errors.WithStack(err)
+	}
+
+	return nil
+}
+
+// ListAccounts fetch list of account (without its password) based on submitted options.
+func (db *SQLiteDatabase) ListAccounts(ctx context.Context, opts ListAccountsOptions) ([]model.Account, error) {
 	// Create query
 	args := []interface{}{}
-	query := `SELECT id, username, owner, config FROM account WHERE 1`
+	fields := []string{"id", "username", "owner", "config"}
+	if opts.WithPassword {
+		fields = append(fields, "password")
+	}
+
+	query := fmt.Sprintf(`SELECT %s FROM account WHERE 1`, strings.Join(fields, ", "))
 
 	if opts.Keyword != "" {
 		query += " AND username LIKE ?"
 		args = append(args, "%"+opts.Keyword+"%")
 	}
 
+	if opts.Username != "" {
+		query += " AND username = ?"
+		args = append(args, opts.Username)
+	}
+
 	if opts.Owner {
 		query += " AND owner = 1"
 	}
-
-	query += ` ORDER BY username`
 
 	// Fetch list account
 	accounts := []model.Account{}
@@ -760,32 +799,39 @@ func (db *SQLiteDatabase) GetAccounts(ctx context.Context, opts GetAccountsOptio
 
 // GetAccount fetch account with matching username.
 // Returns the account and boolean whether it's exist or not.
-func (db *SQLiteDatabase) GetAccount(ctx context.Context, username string) (model.Account, bool, error) {
+func (db *SQLiteDatabase) GetAccount(ctx context.Context, id model.DBID) (*model.Account, bool, error) {
 	account := model.Account{}
-	if err := db.GetContext(ctx, &account, `SELECT
-		id, username, password, owner, config FROM account WHERE username = ?`,
-		username,
-	); err != nil {
-		return account, false, errors.WithStack(err)
+	err := db.GetContext(ctx, &account, `SELECT
+		id, username, password, owner, config FROM account WHERE id = ?`,
+		id,
+	)
+	if err != nil && err != sql.ErrNoRows {
+		return &account, false, errors.WithStack(err)
 	}
 
-	return account, account.ID != 0, nil
+	// Use custom not found error if that's the result of the query
+	if err == sql.ErrNoRows {
+		err = ErrNotFound
+	}
+
+	return &account, account.ID != 0, err
 }
 
-// DeleteAccounts removes all record with matching usernames.
-func (db *SQLiteDatabase) DeleteAccounts(ctx context.Context, usernames ...string) error {
+// DeleteAccount removes record with matching username.
+func (db *SQLiteDatabase) DeleteAccount(ctx context.Context, id model.DBID) error {
 	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
-		// Delete account
-		stmtDelete, err := tx.Preparex(`DELETE FROM account WHERE username = ?`)
+		result, err := tx.ExecContext(ctx, `DELETE FROM account WHERE id = ?`, id)
 		if err != nil {
-			return errors.WithStack(err)
+			return errors.WithStack(fmt.Errorf("error deleting account: %v", err))
 		}
 
-		for _, username := range usernames {
-			_, err := stmtDelete.ExecContext(ctx, username)
-			if err != nil {
-				return errors.WithStack(err)
-			}
+		rows, err := result.RowsAffected()
+		if err != nil && err != sql.ErrNoRows {
+			return errors.WithStack(fmt.Errorf("error getting rows affected: %v", err))
+		}
+
+		if rows == 0 {
+			return ErrNotFound
 		}
 
 		return nil
