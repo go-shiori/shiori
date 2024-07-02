@@ -165,7 +165,14 @@ func (r *BookmarkRoutes) bookmarkThumbnailHandler(c *gin.Context) {
 		return
 	}
 
-	response.SendFile(c, r.deps.Domains.Storage, model.GetThumbnailPath(bookmark))
+	options := &response.SendFileOptions{
+		Headers: []http.Header{
+			{"Last-Modified": {bookmark.ModifiedAt}},
+			{"ETag": {"w/" + model.GetThumbnailPath(bookmark) + "-" + bookmark.ModifiedAt}},
+		},
+	}
+
+	response.SendFile(c, r.deps.Domains.Storage, model.GetThumbnailPath(bookmark), options)
 }
 
 func (r *BookmarkRoutes) bookmarkEbookHandler(c *gin.Context) {
@@ -185,5 +192,5 @@ func (r *BookmarkRoutes) bookmarkEbookHandler(c *gin.Context) {
 
 	// TODO: Potentially improve this
 	c.Header("Content-Disposition", `attachment; filename="`+bookmark.Title+`.epub"`)
-	response.SendFile(c, r.deps.Domains.Storage, model.GetEbookPath(bookmark))
+	response.SendFile(c, r.deps.Domains.Storage, model.GetEbookPath(bookmark), nil)
 }
