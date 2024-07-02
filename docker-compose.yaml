@@ -13,8 +13,9 @@ services:
       - ".:/src/shiori"
     restart: unless-stopped
     links:
+    # Comment/Uncomment the postgres mariadb sections depending on the database you choose.
       - "postgres"
-      - "mariadb"
+      #- "mariadb"
     environment:
       SHIORI_DIR: /srv/shiori
       #SHIORI_DATABASE_URL: mysql://shiori:shiori@(mariadb)/shiori?charset=utf8mb4
@@ -27,13 +28,18 @@ services:
       POSTGRES_USER: shiori
     ports:
       - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
 
-  mariadb:
-    image: mariadb:11
-    environment:
-      MYSQL_ROOT_PASSWORD: toor
-      MYSQL_DATABASE: shiori
-      MYSQL_USER: shiori
-      MYSQL_PASSWORD: shiori
-    ports:
-      - "3306:3306"
+  #mariadb:
+    #image: mariadb:11
+    #environment:
+      #MYSQL_ROOT_PASSWORD: toor
+      #MYSQL_DATABASE: shiori
+      #MYSQL_USER: shiori
+      #MYSQL_PASSWORD: shiori
+    #ports:
+      #- "3306:3306"
+
+volumes: 
+  postgres_data: 
