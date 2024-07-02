@@ -165,10 +165,19 @@ func (r *BookmarkRoutes) bookmarkThumbnailHandler(c *gin.Context) {
 		return
 	}
 
+	etag := "w/" + model.GetThumbnailPath(bookmark) + "-" + bookmark.ModifiedAt
+
+	// Check if the client's ETag matches the current ETag
+	if c.GetHeader("If-None-Match") == etag {
+		c.Status(http.StatusNotModified)
+		return
+	}
+
 	options := &response.SendFileOptions{
 		Headers: []http.Header{
+			{"Cache-Control": {"no-cache , must-revalidate"}},
 			{"Last-Modified": {bookmark.ModifiedAt}},
-			{"ETag": {"w/" + model.GetThumbnailPath(bookmark) + "-" + bookmark.ModifiedAt}},
+			{"ETag": {etag}},
 		},
 	}
 
