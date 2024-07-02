@@ -1,7 +1,6 @@
 package webserver
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -21,29 +20,21 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func downloadBookmarkContent(deps *dependencies.Dependencies, book *model.BookmarkDTO, dataDir string, request *http.Request, keepTitle, keepExcerpt bool) (*model.BookmarkDTO, error) {
-	content, contentType, err := core.DownloadBookmark(book.URL)
+func downloadBookmarkContent(deps *dependencies.Dependencies, book *model.BookmarkDTO, keepTitle, keepExcerpt bool) (*model.BookmarkDTO, error) {
+	result, err := deps.Domains.Archiver.GenerateBookmarkArchive(*book)
 	if err != nil {
-		return nil, fmt.Errorf("error downloading url: %s", err)
+		return nil, fmt.Errorf("error archiving url: %s", err)
 	}
 
-	processRequest := core.ProcessRequest{
-		DataDir:     dataDir,
-		Bookmark:    *book,
-		Content:     content,
-		ContentType: contentType,
-		KeepTitle:   keepTitle,
-		KeepExcerpt: keepExcerpt,
+	if keepTitle {
+		result.Title = book.Title
 	}
 
-	result, isFatalErr, err := core.ProcessBookmark(deps, processRequest)
-	content.Close()
-
-	if err != nil && isFatalErr {
-		return nil, fmt.Errorf("failed to process: %v", err)
+	if keepExcerpt {
+		result.Excerpt = book.Excerpt
 	}
 
-	return &result, err
+	return result, err
 }
 
 // ApiLogout is handler for POST /api/logout
@@ -240,29 +231,25 @@ func (h *Handler) ApiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 
 	if payload.Async {
 		go func() {
-			bookmark, err := downloadBookmarkContent(h.dependencies, book, h.DataDir, r, userHasDefinedTitle, book.Excerpt != "")
+			book, err = downloadBookmarkContent(h.dependencies, book, userHasDefinedTitle, book.Excerpt != "")
 			if err != nil {
 				log.Printf("error downloading boorkmark: %s", err)
 				return
 			}
-			if _, err := h.DB.SaveBookmarks(context.Background(), false, *bookmark); err != nil {
-				log.Printf("failed to save bookmark: %s", err)
-			}
+
 		}()
 	} else {
 		// Workaround. Download content after saving the bookmark so we have the proper database
 		// id already set in the object regardless of the database engine.
-		book, err = downloadBookmarkContent(h.dependencies, book, h.DataDir, r, userHasDefinedTitle, book.Excerpt != "")
+		book, err = downloadBookmarkContent(h.dependencies, book, userHasDefinedTitle, book.Excerpt != "")
 		if err != nil {
 			log.Printf("error downloading boorkmark: %s", err)
-		} else if _, err := h.DB.SaveBookmarks(ctx, false, *book); err != nil {
-			log.Printf("failed to save bookmark: %s", err)
 		}
 	}
 
 	// Return the new bookmark
 	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(results[0])
+	err = json.NewEncoder(w).Encode(book)
 	checkError(err)
 }
 
