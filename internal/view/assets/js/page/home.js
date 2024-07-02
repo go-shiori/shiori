@@ -48,7 +48,6 @@ var template = `
             :excerpt="book.excerpt"
             :public="book.public"
             :imageURL="book.imageURL"
-            :modifiedAt="book.modifiedAt"
             :hasContent="book.hasContent"
             :hasArchive="book.hasArchive"
             :hasEbook="book.hasEbook"
