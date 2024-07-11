@@ -12,7 +12,7 @@ case `uname -o` in
     GNU/Linux)
     # Detect support of avx2 in linux hosts
     if ! grep -q avx2 /proc/cpuinfo; then
-        echo "Your CPU does not support avx2 be sure thaty you use baseline builds of bun, for more information please look at https://github.com/oven-sh/bun/issues/67"
+        echo "It seems that your CPU does not support AVX2, if you experience long build times (>1m) ensure that you use bun's baseline builds. More information at https://github.com/oven-sh/bun/issues/67"
     fi
     ;;
 esac
