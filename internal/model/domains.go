@@ -2,11 +2,11 @@ package model
 
 import (
 	"context"
+	"io"
 	"io/fs"
 	"os"
 	"time"
 
-	"github.com/go-shiori/warc"
 	"github.com/spf13/afero"
 )
 
@@ -24,15 +24,19 @@ type AccountsDomain interface {
 }
 
 type ArchiverDomain interface {
-	DownloadBookmarkArchive(book BookmarkDTO) (*BookmarkDTO, error)
-	GetBookmarkArchive(book *BookmarkDTO) (*warc.Archive, error)
+	GenerateBookmarkArchive(book BookmarkDTO) (*BookmarkDTO, error)
+	GenerateBookmarkEbook(book EbookProcessRequest) error
+	ProcessBookmarkArchive(content io.ReadCloser, contentType string, book BookmarkDTO) (*BookmarkDTO, error)
+	GetBookmarkArchiveFile(book *BookmarkDTO, archivePath string) (*ArchiveFile, error)
 }
 
 type StorageDomain interface {
+	// Open(name string) (os.File, error)
 	Stat(name string) (fs.FileInfo, error)
 	FS() afero.Fs
 	FileExists(path string) bool
 	DirExists(path string) bool
 	WriteData(dst string, data []byte) error
 	WriteFile(dst string, src *os.File) error
+	WriteReader(dst string, src io.Reader) error
 }
