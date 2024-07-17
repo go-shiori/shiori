@@ -1,4 +1,4 @@
-FROM docker.io/golang:1.21-alpine3.19
+FROM docker.io/golang:1.23rc2-alpine3.19
 
 WORKDIR /src/shiori
 
