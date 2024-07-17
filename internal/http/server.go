@@ -57,6 +57,8 @@ func (s *HttpServer) Setup(cfg *config.Config, deps *dependencies.Dependencies) 
 	// package.
 	legacyRoutes := routes.NewLegacyAPIRoutes(s.logger, deps, cfg)
 	legacyRoutes.Setup(s.engine)
+	// used for auth header save session
+	deps.Domains.LegacyLogin = legacyRoutes.HandleLogin
 
 	s.handle("/system", routes.NewSystemRoutes(s.logger))
 	s.handle("/bookmark", routes.NewBookmarkRoutes(s.logger, deps))
