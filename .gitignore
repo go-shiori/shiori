@@ -23,5 +23,8 @@ dist/
 # frontend
 node_modules
 
+# golang
+go.work*
+
 # workaround for buildx using podman
 type=docker

@@ -1,4 +1,9 @@
-FROM docker.io/golang:1.21-alpine3.19
+# This Dockerfile is intented for Development purposes only to use
+# with the provided docker-compose.yaml file.
+# Please do not run this Dockerfile in any environment that is not
+# a local development scenario as this is not throroughly updated nor
+# tested.
+FROM docker.io/golang:1.22-alpine
 
 WORKDIR /src/shiori
 
