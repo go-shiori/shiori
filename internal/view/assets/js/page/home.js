@@ -410,7 +410,7 @@ export default {
 					},
 					{
 						name: "makePublic",
-						label: "Make archive publicly available",
+						label: "Make bookmark publicly available",
 						type: "check",
 						value: this.appOptions.MakePublic,
 					},
@@ -517,7 +517,7 @@ export default {
 					},
 					{
 						name: "makePublic",
-						label: "Make archive publicly available",
+						label: "Make bookmark publicly available",
 						type: "check",
 						value: book.public >= 1,
 					},
