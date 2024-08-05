@@ -10,24 +10,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
         with:
           fetch-depth: 0
       - if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
         run: echo "flags=--snapshot" >> $GITHUB_ENV
       - name: Setup Go
-        uses:  actions/setup-go@cdcb36043654635271a94b9a6d1392de5bb323a7 # v5.0.1
+        uses:  actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
         with:
           go-version-file: 'go.mod'
       - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@5742e2a039330cbb23ebf35f046f814d4c6ff811 # 5.1.0
+        uses: goreleaser/goreleaser-action@286f3b13b1b49da4ac219696163fb8c1c93e1200 # 6.0.0
         with:
           distribution: goreleaser
           version: latest
           args: release --clean ${{ env.flags }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # 4.3.3
+      - uses: actions/upload-artifact@89ef406dd8d7e03cfd12d9e0a4a378f454709029 # 4.3.5
         with:
           name: dist
           path: ./dist/*
