@@ -42,6 +42,19 @@ func AuthenticationRequired() gin.HandlerFunc {
 	}
 }
 
+// AdminRequired provides a middleware that checks if the user is logged in and is an admin, returning
+// a 403 error if not.
+func AdminRequired() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		c := context.NewContextFromGin(ctx)
+		account := c.GetAccount()
+		if account == nil || !account.IsOwner() {
+			response.SendError(ctx, http.StatusForbidden, nil)
+			return
+		}
+	}
+}
+
 // getTokenFromHeader returns the token from the Authorization header, if any.
 func getTokenFromHeader(c *gin.Context) string {
 	authorization := c.GetHeader(model.AuthorizationHeader)
