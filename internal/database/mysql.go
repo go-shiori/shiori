@@ -282,6 +282,11 @@ func (db *MySQLDatabase) SaveBookmarks(ctx context.Context, create bool, bookmar
 	return result, nil
 }
 
+func (db *MySQLDatabase) GetDeletedBookmarks(ctx context.Context, opts GetBookmarksOptions) ([]int, error) {
+	var missingIDs []int
+	return missingIDs, nil
+}
+
 // GetBookmarks fetch list of bookmarks based on submitted options.
 func (db *MySQLDatabase) GetBookmarks(ctx context.Context, opts GetBookmarksOptions) ([]model.BookmarkDTO, error) {
 	// Create initial query

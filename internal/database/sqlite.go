@@ -290,6 +290,43 @@ func (db *SQLiteDatabase) SaveBookmarks(ctx context.Context, create bool, bookma
 	return result, nil
 }
 
+// GetDeletedBookmarks fetch list of bookmark that deleted from database.
+func (db *SQLiteDatabase) GetDeletedBookmarks(ctx context.Context, opts GetBookmarksOptions) ([]int, error) {
+	var missingIDs []int
+
+	// Construct the query using UNION ALL to create a temporary table of IDs
+	var unionQueries []string
+	for _, id := range opts.IsDeleted {
+		unionQueries = append(unionQueries, fmt.Sprintf("SELECT %d AS id", id))
+	}
+	unionQuery := strings.Join(unionQueries, " UNION ALL ")
+
+	query := fmt.Sprintf("SELECT temp.id FROM (%s) AS temp LEFT JOIN bookmark ON temp.id = bookmark.id WHERE bookmark.id IS NULL", unionQuery)
+
+	// Execute the query
+	rows, err := db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	// Scan the results into missingIDs
+	for rows.Next() {
+		var id int
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		missingIDs = append(missingIDs, id)
+	}
+
+	// Check for errors from iterating over rows
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return missingIDs, nil
+}
+
 // GetBookmarks fetch list of bookmarks based on submitted options.
 func (db *SQLiteDatabase) GetBookmarks(ctx context.Context, opts GetBookmarksOptions) ([]model.BookmarkDTO, error) {
 	// Create initial query

@@ -134,6 +134,11 @@ func (p *syncPayload) IsValid() error {
 	return nil
 }
 
+type syncResponseMessage struct {
+	Deleted  []int               `json:"deleted"`
+	Modified []model.BookmarkDTO `json:"modified"`
+}
+
 // Bookmark Sync godoc
 //
 //	@Summary					Get List of bookmark and last time of sync response bookmark change after that time and deleted bookmark.
@@ -160,7 +165,8 @@ func (r *BookmarksAPIRoutes) sync(c *gin.Context) {
 	lastsyncformat := time.Unix(payload.LastSync, 0).UTC().Format(model.DatabaseDateFormat)
 
 	filter := database.GetBookmarksOptions{
-		LastSync: lastsyncformat,
+		LastSync:  lastsyncformat,
+		IsDeleted: payload.Ids,
 	}
 
 	bookmarks, err := r.deps.Database.GetBookmarks(c, filter)
@@ -169,7 +175,19 @@ func (r *BookmarksAPIRoutes) sync(c *gin.Context) {
 		response.SendInternalServerError(c)
 		return
 	}
-	response.Send(c, 200, bookmarks)
+
+	dbookmarks, err := r.deps.Database.GetDeletedBookmarks(c, filter)
+	if err != nil {
+		r.logger.WithError(err).Error("error getting bookmakrs")
+		response.SendInternalServerError(c)
+		return
+	}
+	//response.Send(c, 200, dbookmarks)
+
+	response.Send(c, 200, syncResponseMessage{
+		Deleted:  dbookmarks,
+		Modified: bookmarks,
+	})
 }
 
 // updateCache godoc

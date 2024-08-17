@@ -262,6 +262,12 @@ func (db *PGDatabase) SaveBookmarks(ctx context.Context, create bool, bookmarks 
 	return result, nil
 }
 
+// GetDeletedBookmarks fetch list of bookmark that deleted from database.
+func (db *PGDatabase) GetDeletedBookmarks(ctx context.Context, opts GetBookmarksOptions) ([]int, error) {
+	var missingIDs []int
+	return missingIDs, nil
+}
+
 // GetBookmarks fetch list of bookmarks based on submitted options.
 func (db *PGDatabase) GetBookmarks(ctx context.Context, opts GetBookmarksOptions) ([]model.BookmarkDTO, error) {
 	// Create initial query

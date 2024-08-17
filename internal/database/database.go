@@ -29,6 +29,7 @@ type GetBookmarksOptions struct {
 	IDs          []int
 	Tags         []string
 	ExcludedTags []string
+	IsDeleted    []int
 	Keyword      string
 	LastSync     string
 	WithContent  bool
@@ -79,6 +80,9 @@ type DB interface {
 
 	// SaveBookmarks saves bookmarks data to database.
 	SaveBookmarks(ctx context.Context, create bool, bookmarks ...model.BookmarkDTO) ([]model.BookmarkDTO, error)
+
+	// GetDeletedBookmarks fetch list of bookmarks based on submitted options.
+	GetDeletedBookmarks(ctx context.Context, opts GetBookmarksOptions) ([]int, error)
 
 	// GetBookmarks fetch list of bookmarks based on submitted options.
 	GetBookmarks(ctx context.Context, opts GetBookmarksOptions) ([]model.BookmarkDTO, error)
