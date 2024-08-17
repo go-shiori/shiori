@@ -315,6 +315,12 @@ func (db *SQLiteDatabase) GetBookmarks(ctx context.Context, opts GetBookmarksOpt
 		args = append(args, opts.IDs)
 	}
 
+	// Add where clause for LastSync
+	if opts.LastSync != "" {
+		query += ` AND b.modified_at >= ?`
+		args = append(args, opts.LastSync)
+	}
+
 	// Add where clause for search keyword
 	if opts.Keyword != "" {
 		query += ` AND (b.url LIKE '%' || ? || '%' OR b.excerpt LIKE '%' || ? || '%' OR b.id IN (

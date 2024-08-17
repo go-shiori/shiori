@@ -30,6 +30,7 @@ type GetBookmarksOptions struct {
 	Tags         []string
 	ExcludedTags []string
 	Keyword      string
+	LastSync     string
 	WithContent  bool
 	OrderMethod  OrderMethod
 	Limit        int

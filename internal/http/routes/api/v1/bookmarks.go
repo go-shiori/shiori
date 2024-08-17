@@ -7,6 +7,7 @@ import (
 	fp "path/filepath"
 	"strconv"
 	"sync"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-shiori/shiori/internal/core"
@@ -28,6 +29,8 @@ func (r *BookmarksAPIRoutes) Setup(g *gin.RouterGroup) model.Routes {
 	g.Use(middleware.AuthenticationRequired())
 	g.PUT("/cache", r.updateCache)
 	g.GET("/:id/readable", r.bookmarkReadable)
+	g.POST("/sync", r.sync)
+
 	return r
 }
 
@@ -112,6 +115,61 @@ func (r *BookmarksAPIRoutes) bookmarkReadable(c *gin.Context) {
 		Content: bookmark.Content,
 		Html:    bookmark.HTML,
 	})
+}
+
+type syncPayload struct {
+	Ids      []int `json:"ids"          validate:"required"`
+	LastSync int64 `json:"last_sync"`
+}
+
+func (p *syncPayload) IsValid() error {
+	if len(p.Ids) == 0 {
+		return fmt.Errorf("id should not be empty")
+	}
+	for _, id := range p.Ids {
+		if id <= 0 {
+			return fmt.Errorf("id should not be 0 or negative")
+		}
+	}
+	return nil
+}
+
+// Bookmark Sync godoc
+//
+//	@Summary					Get List of bookmark and last time of sync response bookmark change after that time and deleted bookmark.
+//	@Tags						  Auth
+//	@securityDefinitions.apikey	ApiKeyAuth
+//	@Produce					json
+//	@Success					200	{object}	readableResponseMessage
+//	@Failure					403	{object}	nil	"Token not provided/invalid"
+//	@Router						/api/v1/bookmarks/sync [post]
+func (r *BookmarksAPIRoutes) sync(c *gin.Context) {
+
+	var payload syncPayload
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		response.SendInternalServerError(c)
+		return
+	}
+
+	if err := payload.IsValid(); err != nil {
+		response.SendError(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	//modifiedTime := time.Now().UTC().Format(model.DatabaseDateFormat)
+	lastsyncformat := time.Unix(payload.LastSync, 0).UTC().Format(model.DatabaseDateFormat)
+
+	filter := database.GetBookmarksOptions{
+		LastSync: lastsyncformat,
+	}
+
+	bookmarks, err := r.deps.Database.GetBookmarks(c, filter)
+	if err != nil {
+		r.logger.WithError(err).Error("error getting bookmakrs")
+		response.SendInternalServerError(c)
+		return
+	}
+	response.Send(c, 200, bookmarks)
 }
 
 // updateCache godoc
