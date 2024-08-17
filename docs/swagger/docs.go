@@ -181,6 +181,28 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/bookmarks/sync": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Get List of bookmark and last time of sync response bookmark change after that time and deleted bookmark.",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api_v1.readableResponseMessage"
+                        }
+                    },
+                    "403": {
+                        "description": "Token not provided/invalid"
+                    }
+                }
+            }
+        },
         "/api/v1/system/info": {
             "get": {
                 "description": "Get general system information like Shiori version, database, and OS",
