@@ -175,7 +175,6 @@ func ProcessBookmark(deps *dependencies.Dependencies, req ProcessRequest) (book 
 
 		err = warc.NewArchive(archivalRequest, tmpFile.Name())
 		if err != nil {
-			defer os.Remove(tmpFile.Name())
 			return book, false, fmt.Errorf("failed to create archive: %v", err)
 		}
 
