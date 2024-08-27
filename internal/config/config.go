@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
 
@@ -86,6 +87,7 @@ type DatabaseConfig struct {
 
 type StorageConfig struct {
 	DataDir string `env:"DIR"` // Using DIR to be backwards compatible with the old config
+	MaxParDl int `env:"MAX_PAR_DL,default=-1"`
 }
 
 type Config struct {
@@ -109,6 +111,10 @@ func (c Config) SetDefaults(logger *logrus.Logger, portableMode bool) {
 		}
 	}
 
+	if c.Storage.MaxParDl == -1 {
+		c.Storage.MaxParDl = runtime.NumCPU()
+	}
+
 	// Set default database url if not set
 	if c.Database.DBMS == "" && c.Database.URL == "" {
 		c.Database.URL = fmt.Sprintf("sqlite:///%s", filepath.Join(c.Storage.DataDir, "shiori.db"))
@@ -124,6 +130,7 @@ func (c *Config) DebugConfiguration(logger *logrus.Logger) {
 	logger.Debugf(" SHIORI_DATABASE_URL: %s", c.Database.URL)
 	logger.Debugf(" SHIORI_DBMS: %s", c.Database.DBMS)
 	logger.Debugf(" SHIORI_DIR: %s", c.Storage.DataDir)
+	logger.Debugf(" SHIORI_MAX_PAR_DL: %d", c.Storage.MaxParDl)
 	logger.Debugf(" SHIORI_HTTP_ENABLED: %t", c.Http.Enabled)
 	logger.Debugf(" SHIORI_HTTP_PORT: %d", c.Http.Port)
 	logger.Debugf(" SHIORI_HTTP_ADDRESS: %s", c.Http.Address)

@@ -29,7 +29,7 @@ func checkCmd() *cobra.Command {
 }
 
 func checkHandler(cmd *cobra.Command, args []string) {
-	_, deps := initShiori(cmd.Context(), cmd)
+	cfg, deps := initShiori(cmd.Context(), cmd)
 
 	// Parse flags
 	skipConfirm, _ := cmd.Flags().GetBool("yes")
@@ -69,9 +69,9 @@ func checkHandler(cmd *cobra.Command, args []string) {
 
 	wg := sync.WaitGroup{}
 	chDone := make(chan struct{})
-	chProblem := make(chan int, 10)
-	chMessage := make(chan interface{}, 10)
-	semaphore := make(chan struct{}, 10)
+	chProblem := make(chan int, cfg.Storage.MaxParDl)
+	chMessage := make(chan interface{}, cfg.Storage.MaxParDl)
+	semaphore := make(chan struct{}, cfg.Storage.MaxParDl)
 
 	for i, book := range bookmarks {
 		wg.Add(1)

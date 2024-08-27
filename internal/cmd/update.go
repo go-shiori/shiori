@@ -130,9 +130,9 @@ func updateHandler(cmd *cobra.Command, args []string) {
 		mx := sync.RWMutex{}
 		wg := sync.WaitGroup{}
 		chDone := make(chan struct{})
-		chProblem := make(chan int, 10)
-		chMessage := make(chan interface{}, 10)
-		semaphore := make(chan struct{}, 10)
+		chProblem := make(chan int, cfg.Storage.MaxParDl)
+		chMessage := make(chan interface{}, cfg.Storage.MaxParDl)
+		semaphore := make(chan struct{}, cfg.Storage.MaxParDl)
 
 		cInfo.Println("Downloading article(s)...")
 
