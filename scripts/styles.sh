@@ -12,8 +12,7 @@ case `uname -o` in
     GNU/Linux)
     # Detect support of avx2 in linux hosts
     if ! grep -q avx2 /proc/cpuinfo; then
-        BUN="sde -chip-check-disable -- bun"
-        echo "Your CPU does not support avx2 so we use sde, for more information please look at https://github.com/oven-sh/bun/issues/762#issuecomment-1186505847"
+        echo "It seems that your CPU does not support AVX2, if you experience long build times (>1m) ensure that you use bun's baseline builds. More information at https://github.com/oven-sh/bun/issues/67"
     fi
     ;;
 esac

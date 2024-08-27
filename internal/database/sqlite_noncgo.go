@@ -1,5 +1,5 @@
-//go:build linux || windows || darwin
-// +build linux windows darwin
+//go:build linux || windows || darwin || freebsd
+// +build linux windows darwin freebsd
 
 package database
 
@@ -20,6 +20,6 @@ func OpenSQLiteDatabase(ctx context.Context, databasePath string) (sqliteDB *SQL
 		return nil, errors.WithStack(err)
 	}
 
-	sqliteDB = &SQLiteDatabase{dbbase: dbbase{*db}}
+	sqliteDB = &SQLiteDatabase{dbbase: dbbase{db}}
 	return sqliteDB, nil
 }

@@ -170,6 +170,29 @@
                 }
             }
         },
+        "/api/v1/system/info": {
+            "get": {
+                "description": "Get general system information like Shiori version, database, and OS",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "system"
+                ],
+                "summary": "Get general system information",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api_v1.infoResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Only owners can access this endpoint"
+                    }
+                }
+            }
+        },
         "/api/v1/tags": {
             "get": {
                 "produces": [
@@ -217,6 +240,31 @@
         }
     },
     "definitions": {
+        "api_v1.infoResponse": {
+            "type": "object",
+            "properties": {
+                "database": {
+                    "type": "string"
+                },
+                "os": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "object",
+                    "properties": {
+                        "commit": {
+                            "type": "string"
+                        },
+                        "date": {
+                            "type": "string"
+                        },
+                        "tag": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "api_v1.loginRequestPayload": {
             "type": "object",
             "required": [
@@ -330,6 +378,9 @@
                     "description": "TODO: migrate outside the DTO",
                     "type": "boolean"
                 },
+                "createdAt": {
+                    "type": "string"
+                },
                 "excerpt": {
                     "type": "string"
                 },
@@ -351,7 +402,7 @@
                 "imageURL": {
                     "type": "string"
                 },
-                "modified": {
+                "modifiedAt": {
                     "type": "string"
                 },
                 "public": {
