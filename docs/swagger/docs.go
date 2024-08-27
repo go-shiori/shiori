@@ -520,6 +520,9 @@ const docTemplate = `{
                     "description": "TODO: migrate outside the DTO",
                     "type": "boolean"
                 },
+                "createdAt": {
+                    "type": "string"
+                },
                 "excerpt": {
                     "type": "string"
                 },
@@ -541,7 +544,7 @@ const docTemplate = `{
                 "imageURL": {
                     "type": "string"
                 },
-                "modified": {
+                "modifiedAt": {
                     "type": "string"
                 },
                 "public": {
