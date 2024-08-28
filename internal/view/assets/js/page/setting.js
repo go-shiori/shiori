@@ -45,7 +45,7 @@ var template = `
             </label>
             <label>
                 <input type="checkbox" v-model="appOptions.MakePublic" @change="saveSetting">
-                Make archive publicly available by default
+                Make bookmark publicly available by default
             </label>
         </details>
         <details v-if="activeAccount.owner" open class="setting-group" id="setting-accounts">
