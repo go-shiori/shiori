@@ -715,7 +715,7 @@ func (db *MySQLDatabase) GetTags(ctx context.Context) ([]model.Tag, error) {
 	query := `SELECT bt.tag_id id, t.name, COUNT(bt.tag_id) n_bookmarks
 		FROM bookmark_tag bt
 		LEFT JOIN tag t ON bt.tag_id = t.id
-		GROUP BY bt.tag_id ORDER BY t.name`
+		GROUP BY bt.tag_id, t.name ORDER BY t.name`
 
 	err := db.SelectContext(ctx, &tags, query)
 	if err != nil && err != sql.ErrNoRows {
