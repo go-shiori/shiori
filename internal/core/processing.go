@@ -166,7 +166,7 @@ func ProcessBookmark(deps *dependencies.Dependencies, req ProcessRequest) (book 
 		if err != nil {
 			return book, false, fmt.Errorf("failed to create temp archive: %v", err)
 		}
-		defer deps.Domains.Storage.FS().Remove(tmpFile.Name())
+		defer os.Remove(tmpFile.Name())
 
 		archivalRequest := warc.ArchivalRequest{
 			URL:         book.URL,
@@ -178,7 +178,6 @@ func ProcessBookmark(deps *dependencies.Dependencies, req ProcessRequest) (book 
 
 		err = warc.NewArchive(archivalRequest, tmpFile.Name())
 		if err != nil {
-			defer os.Remove(tmpFile.Name())
 			return book, false, fmt.Errorf("failed to create archive: %v", err)
 		}
 
