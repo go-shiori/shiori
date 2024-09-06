@@ -51,6 +51,7 @@ export default {
 		hasContent: Boolean,
 		hasArchive: Boolean,
 		hasEbook: Boolean,
+		modifiedAt: String,
 		index: Number,
 		ShowId: Boolean,
 		editMode: Boolean,
@@ -95,7 +96,7 @@ export default {
 		},
 		thumbnailStyleURL() {
 			return {
-				backgroundImage: `url("${this.imageURL}")`,
+				backgroundImage: `url("${this.imageURL}?modifiedAt=${this.modifiedAt}")`,
 			};
 		},
 		eventItem() {
