@@ -121,7 +121,7 @@ func TestSync(t *testing.T) {
 		LastSync: 0,
 		Page:     1,
 	}
-	payloadJSON, err := json.Marshal(payloadInvalidID)
+	payloadJSONInvalidID, err := json.Marshal(payloadInvalidID)
 	if err != nil {
 		logrus.Printf("can't create a valid json")
 	}
@@ -135,8 +135,8 @@ func TestSync(t *testing.T) {
 		require.Equal(t, http.StatusUnauthorized, w.Code)
 	})
 
-	t.Run("get content but invalid id", func(t *testing.T) {
-		w := testutil.PerformRequest(g, "POST", "/sync", testutil.WithHeader(model.AuthorizationHeader, model.AuthorizationTokenType+" "+token), testutil.WithBody(string(payloadJSON)))
+	t.Run("invalid id", func(t *testing.T) {
+		w := testutil.PerformRequest(g, "POST", "/sync", testutil.WithHeader(model.AuthorizationHeader, model.AuthorizationTokenType+" "+token), testutil.WithBody(string(payloadJSONInvalidID)))
 		require.Equal(t, http.StatusBadRequest, w.Code)
 
 		// Check the response body
