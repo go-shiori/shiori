@@ -459,7 +459,7 @@ func (db *SQLiteDatabase) GetBookmarks(ctx context.Context, opts GetBookmarksOpt
 	}
 
 	// store bookmark IDs for further enrichment
-	var bookmarkIds = make([]int, 0, len(bookmarks))
+	bookmarkIds := make([]int, 0, len(bookmarks))
 	for _, book := range bookmarks {
 		bookmarkIds = append(bookmarkIds, book.ID)
 	}
@@ -550,6 +550,12 @@ func (db *SQLiteDatabase) GetBookmarksCount(ctx context.Context, opts GetBookmar
 	if len(opts.IDs) > 0 {
 		query += ` AND b.id IN (?)`
 		args = append(args, opts.IDs)
+	}
+
+	// Add where clause for LastSync
+	if opts.LastSync != "" {
+		query += ` AND b.modified_at >= ?`
+		args = append(args, opts.LastSync)
 	}
 
 	// Add where clause for search keyword
