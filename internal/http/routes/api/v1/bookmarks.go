@@ -199,7 +199,7 @@ func (r *BookmarksAPIRoutes) sync(c *gin.Context) {
 	// Get Deleted Bookmarks
 	var deletedBookmarks []int
 
-	if len(payload.Ids) > 0 {
+	if len(payload.Ids) > 0 && page == 1 {
 		deletedBookmarks, err = r.deps.Database.GetDeletedBookmarks(c, filter)
 		if err != nil {
 			r.logger.WithError(err).Error("error getting bookmakrs")
