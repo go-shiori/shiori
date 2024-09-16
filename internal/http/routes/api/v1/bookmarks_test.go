@@ -93,5 +93,33 @@ func TestReadableeBookmarkContent(t *testing.T) {
 		require.Equal(t, response, w.Body.String())
 		require.Equal(t, http.StatusOK, w.Code)
 	})
+}
 
+func TestSync(t *testing.T) {
+	logger := logrus.New()
+	ctx := context.TODO()
+
+	g := gin.New()
+
+	_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+	g.Use(middleware.AuthMiddleware(deps))
+
+	router := NewBookmarksAPIRoutes(logger, deps)
+	router.Setup(g.Group("/"))
+
+	account := model.Account{
+		Username: "test",
+		Password: "test",
+		Owner:    false,
+	}
+	require.NoError(t, deps.Database.SaveAccount(ctx, account))
+
+	bookmark := testutil.GetValidBookmark()
+	_, err := deps.Database.SaveBookmarks(ctx, true, *bookmark)
+	require.NoError(t, err)
+
+	t.Run("require authentication", func(t *testing.T) {
+		w := testutil.PerformRequest(g, "PUT", "/sync")
+		require.Equal(t, http.StatusUnauthorized, w.Code)
+	})
 }
