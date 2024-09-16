@@ -119,7 +119,7 @@ func TestSync(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("require authentication", func(t *testing.T) {
-		w := testutil.PerformRequest(g, "PUT", "/sync")
+		w := testutil.PerformRequest(g, "POST", "/sync")
 		require.Equal(t, http.StatusUnauthorized, w.Code)
 	})
 }
