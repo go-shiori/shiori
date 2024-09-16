@@ -194,7 +194,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/api_v1.readableResponseMessage"
+                            "$ref": "#/definitions/api_v1.syncResponseMessage"
                         }
                     },
                     "403": {
@@ -273,6 +273,23 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "api_v1.bookmarksModifiedResponse": {
+            "type": "object",
+            "properties": {
+                "bookmarks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.BookmarkDTO"
+                    }
+                },
+                "maxPage": {
+                    "type": "integer"
+                },
+                "page": {
+                    "type": "integer"
+                }
+            }
+        },
         "api_v1.infoResponse": {
             "type": "object",
             "properties": {
@@ -348,6 +365,20 @@ const docTemplate = `{
             "properties": {
                 "config": {
                     "$ref": "#/definitions/model.UserConfig"
+                }
+            }
+        },
+        "api_v1.syncResponseMessage": {
+            "type": "object",
+            "properties": {
+                "deleted": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "modified": {
+                    "$ref": "#/definitions/api_v1.bookmarksModifiedResponse"
                 }
             }
         },

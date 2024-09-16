@@ -1,4 +1,15 @@
 definitions:
+  api_v1.bookmarksModifiedResponse:
+    properties:
+      bookmarks:
+        items:
+          $ref: '#/definitions/model.BookmarkDTO'
+        type: array
+      maxPage:
+        type: integer
+      page:
+        type: integer
+    type: object
   api_v1.infoResponse:
     properties:
       database:
@@ -49,6 +60,15 @@ definitions:
     properties:
       config:
         $ref: '#/definitions/model.UserConfig'
+    type: object
+  api_v1.syncResponseMessage:
+    properties:
+      deleted:
+        items:
+          type: integer
+        type: array
+      modified:
+        $ref: '#/definitions/api_v1.bookmarksModifiedResponse'
     type: object
   api_v1.updateCachePayload:
     properties:
@@ -265,7 +285,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/api_v1.readableResponseMessage'
+            $ref: '#/definitions/api_v1.syncResponseMessage'
         "403":
           description: Token not provided/invalid
       summary: Get List of bookmark and last time of sync response bookmark change
