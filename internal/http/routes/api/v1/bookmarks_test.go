@@ -2,6 +2,7 @@ package api_v1
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"testing"
 	"time"
@@ -113,13 +114,37 @@ func TestSync(t *testing.T) {
 		Owner:    false,
 	}
 	require.NoError(t, deps.Database.SaveAccount(ctx, account))
+	token, err := deps.Domains.Auth.CreateTokenForAccount(&account, time.Now().Add(time.Minute))
+	require.NoError(t, err)
+	payloadInvalidID := syncPayload{
+		Ids:      []int{0, -1},
+		LastSync: 0,
+		Page:     1,
+	}
+	payloadJSON, err := json.Marshal(payloadInvalidID)
+	if err != nil {
+		logrus.Printf("can't create a valid json")
+	}
 
 	bookmark := testutil.GetValidBookmark()
-	_, err := deps.Database.SaveBookmarks(ctx, true, *bookmark)
+	_, err = deps.Database.SaveBookmarks(ctx, true, *bookmark)
 	require.NoError(t, err)
 
 	t.Run("require authentication", func(t *testing.T) {
 		w := testutil.PerformRequest(g, "POST", "/sync")
 		require.Equal(t, http.StatusUnauthorized, w.Code)
+	})
+
+	t.Run("get content but invalid id", func(t *testing.T) {
+		w := testutil.PerformRequest(g, "POST", "/sync", testutil.WithHeader(model.AuthorizationHeader, model.AuthorizationTokenType+" "+token), testutil.WithBody(string(payloadJSON)))
+		require.Equal(t, http.StatusBadRequest, w.Code)
+
+		// Check the response body
+		var response map[string]interface{}
+		err := json.Unmarshal(w.Body.Bytes(), &response)
+		require.NoError(t, err, "failed to unmarshal response body")
+
+		// Assert that the response message is as expected for 0 or negative id
+		require.Equal(t, "id should not be 0 or negative", response["message"])
 	})
 }
