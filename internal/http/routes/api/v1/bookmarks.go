@@ -125,9 +125,6 @@ type syncPayload struct {
 }
 
 func (p *syncPayload) IsValid() error {
-	if len(p.Ids) == 0 {
-		return fmt.Errorf("id should not be empty")
-	}
 	for _, id := range p.Ids {
 		if id <= 0 {
 			return fmt.Errorf("id should not be 0 or negative")
@@ -200,11 +197,15 @@ func (r *BookmarksAPIRoutes) sync(c *gin.Context) {
 	}
 
 	// Get Deleted Bookmarks
-	deletedBookmarks, err := r.deps.Database.GetDeletedBookmarks(c, filter)
-	if err != nil {
-		r.logger.WithError(err).Error("error getting bookmakrs")
-		response.SendInternalServerError(c)
-		return
+	var deletedBookmarks []int
+
+	if len(payload.Ids) > 0 {
+		deletedBookmarks, err = r.deps.Database.GetDeletedBookmarks(c, filter)
+		if err != nil {
+			r.logger.WithError(err).Error("error getting bookmakrs")
+			response.SendInternalServerError(c)
+			return
+		}
 	}
 
 	// Create response using syncResponseMessage struct
