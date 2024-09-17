@@ -124,18 +124,8 @@ func TestSync(t *testing.T) {
 		Page:     1,
 	}
 
-	payloadValid := syncPayload{
-		Ids:      []int{},
-		LastSync: 0,
-		Page:     1,
-	}
-
 	// Json format of payloads
 	payloadJSONInvalidID, err := json.Marshal(payloadInvalidID)
-	if err != nil {
-		logrus.Printf("can't create a valid json")
-	}
-	payloadJSONValid, err := json.Marshal(payloadValid)
 	if err != nil {
 		logrus.Printf("can't create a valid json")
 	}
@@ -146,10 +136,22 @@ func TestSync(t *testing.T) {
 	require.NoError(t, err)
 
 	bookmarkSecond := testutil.GetValidBookmark()
+	bookmarkSecond.Title = "second bookmark"
+	unixTimestampOneSecondLater := time.Now().UTC().Add(1 * time.Second).Unix()
+	bookmarkSecond.ModifiedAt = time.Unix(unixTimestampOneSecondLater, 0).UTC().Format(model.DatabaseDateFormat)
 	_, err = deps.Database.SaveBookmarks(ctx, true, *bookmarkSecond)
 	require.NoError(t, err)
-	bookmarkSecond.Title = "second bookmark"
 
+	payloadValid := syncPayload{
+		Ids:      []int{},
+		LastSync: unixTimestampOneSecondLater,
+		Page:     1,
+	}
+
+	payloadJSONValid, err := json.Marshal(payloadValid)
+	if err != nil {
+		logrus.Printf("can't create a valid json")
+	}
 	t.Run("require authentication", func(t *testing.T) {
 		w := testutil.PerformRequest(g, "POST", "/sync")
 		require.Equal(t, http.StatusUnauthorized, w.Code)
@@ -194,7 +196,7 @@ func TestSync(t *testing.T) {
 		}
 
 		// Assert that the IDs are as expected
-		expectedIDs := []int{1, 2}
+		expectedIDs := []int{2}
 		require.ElementsMatch(t, expectedIDs, ids, "bookmark IDs do not match")
 	})
 }
