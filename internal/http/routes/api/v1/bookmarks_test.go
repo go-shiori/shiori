@@ -116,19 +116,39 @@ func TestSync(t *testing.T) {
 	require.NoError(t, deps.Database.SaveAccount(ctx, account))
 	token, err := deps.Domains.Auth.CreateTokenForAccount(&account, time.Now().Add(time.Minute))
 	require.NoError(t, err)
+
+	// all payloads need
 	payloadInvalidID := syncPayload{
 		Ids:      []int{0, -1},
 		LastSync: 0,
 		Page:     1,
 	}
+
+	payloadValid := syncPayload{
+		Ids:      []int{},
+		LastSync: 0,
+		Page:     1,
+	}
+
+	// Json format of payloads
 	payloadJSONInvalidID, err := json.Marshal(payloadInvalidID)
 	if err != nil {
 		logrus.Printf("can't create a valid json")
 	}
+	payloadJSONValid, err := json.Marshal(payloadValid)
+	if err != nil {
+		logrus.Printf("can't create a valid json")
+	}
 
-	bookmark := testutil.GetValidBookmark()
-	_, err = deps.Database.SaveBookmarks(ctx, true, *bookmark)
+	// Add bookmarks to the database
+	bookmarkFirst := testutil.GetValidBookmark()
+	_, err = deps.Database.SaveBookmarks(ctx, true, *bookmarkFirst)
 	require.NoError(t, err)
+
+	bookmarkSecond := testutil.GetValidBookmark()
+	_, err = deps.Database.SaveBookmarks(ctx, true, *bookmarkSecond)
+	require.NoError(t, err)
+	bookmarkSecond.Title = "second bookmark"
 
 	t.Run("require authentication", func(t *testing.T) {
 		w := testutil.PerformRequest(g, "POST", "/sync")
@@ -146,5 +166,35 @@ func TestSync(t *testing.T) {
 
 		// Assert that the response message is as expected for 0 or negative id
 		require.Equal(t, "id should not be 0 or negative", response["message"])
+	})
+
+	t.Run("retun both bookmark with sync api", func(t *testing.T) {
+		w := testutil.PerformRequest(g, "POST", "/sync", testutil.WithHeader(model.AuthorizationHeader, model.AuthorizationTokenType+" "+token), testutil.WithBody(string(payloadJSONValid)))
+		require.Equal(t, http.StatusOK, w.Code)
+
+		// Check the response body
+		var response map[string]interface{}
+		err := json.Unmarshal(w.Body.Bytes(), &response)
+		require.NoError(t, err, "failed to unmarshal response body")
+
+		// Assert that the response message is as expected
+		require.Equal(t, true, response["ok"])
+
+		// Access the bookmarks
+		message := response["message"].(map[string]interface{})
+		modified := message["modified"].(map[string]interface{})
+		bookmarks := modified["bookmarks"].([]interface{})
+
+		// Check the IDs of the bookmarks
+		var ids []int
+		for _, bookmark := range bookmarks {
+			bookmarkMap := bookmark.(map[string]interface{})
+			id := int(bookmarkMap["id"].(float64))
+			ids = append(ids, id)
+		}
+
+		// Assert that the IDs are as expected
+		expectedIDs := []int{1, 2}
+		require.ElementsMatch(t, expectedIDs, ids, "bookmark IDs do not match")
 	})
 }
