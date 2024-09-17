@@ -170,7 +170,7 @@ func TestSync(t *testing.T) {
 		require.Equal(t, "id should not be 0 or negative", response["message"])
 	})
 
-	t.Run("retun both bookmark with sync api", func(t *testing.T) {
+	t.Run("retun just second bookmark with LastSync option sync api", func(t *testing.T) {
 		w := testutil.PerformRequest(g, "POST", "/sync", testutil.WithHeader(model.AuthorizationHeader, model.AuthorizationTokenType+" "+token), testutil.WithBody(string(payloadJSONValid)))
 		require.Equal(t, http.StatusOK, w.Code)
 
