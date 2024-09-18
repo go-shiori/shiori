@@ -39,6 +39,8 @@ func testDatabase(t *testing.T, dbFactory testDatabaseFactory) {
 		"testSaveAccountSetting": testSaveAccountSettings,
 		"testGetAccount":         testGetAccount,
 		"testGetAccounts":        testGetAccounts,
+		// Sync
+		"testSync": testSync,
 	}
 
 	for testName, testCase := range tests {
@@ -515,4 +517,37 @@ func testGetBoomarksWithTimeFilters(t *testing.T, db DB) {
 	assert.Equal(t, booksOrderByLastModified[0].Title, updatedBook1.Title)
 	// Second id should be 2 if order them by id
 	assert.Equal(t, booksOrderById[1].ID, 2)
+}
+
+func testSync(t *testing.T, db DB) {
+	ctx := context.TODO()
+
+	// First Bookmark
+	book1 := model.BookmarkDTO{
+		URL:   "https://github.com/go-shiori/shiori/one",
+		Title: "first bookmark",
+	}
+
+	_, err := db.SaveBookmarks(ctx, true, book1)
+	assert.NoError(t, err, "Save bookmarks must not fail")
+
+	// Second bookmark
+	unixTimestampOneSecondLater := time.Now().UTC().Add(2 * time.Second).Unix()
+	book2 := model.BookmarkDTO{
+		URL:        "https://github.com/go-shiori/shiori/second",
+		Title:      "second bookmark",
+		ModifiedAt: time.Unix(unixTimestampOneSecondLater, 0).UTC().Format(model.DatabaseDateFormat),
+	}
+
+	_, err = db.SaveBookmarks(ctx, true, book2)
+	assert.NoError(t, err, "Save bookmarks must not fail")
+
+	t.Run("get correct bookmarks based on LastSync", func(t *testing.T) {
+		booksAfterSpecificDate, err := db.GetBookmarks(ctx, GetBookmarksOptions{
+			LastSync: book2.ModifiedAt,
+		})
+		assert.NoError(t, err, "Get bookmarks must not fail")
+		assert.Equal(t, booksAfterSpecificDate[0].ID, 2)
+		assert.Len(t, booksAfterSpecificDate, 1)
+	})
 }
