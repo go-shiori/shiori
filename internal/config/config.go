@@ -87,7 +87,7 @@ type DatabaseConfig struct {
 
 type StorageConfig struct {
 	DataDir string `env:"DIR"` // Using DIR to be backwards compatible with the old config
-	MaxParDl int `env:"MAX_PAR_DL,default=-1"`
+	MaxParDl int `env:"MAX_PAR_DL"`
 }
 
 type Config struct {
@@ -111,7 +111,7 @@ func (c Config) SetDefaults(logger *logrus.Logger, portableMode bool) {
 		}
 	}
 
-	if c.Storage.MaxParDl == -1 {
+	if c.Storage.MaxParDl == 0 {
 		c.Storage.MaxParDl = runtime.NumCPU()
 	}
 
