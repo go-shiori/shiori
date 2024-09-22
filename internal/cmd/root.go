@@ -73,7 +73,7 @@ func initShiori(ctx context.Context, cmd *cobra.Command) (*config.Config, *depen
 	cfg := config.ParseServerConfiguration(ctx, logger)
 	cfg.LogLevel = logger.Level.String()
 
-	if storageDirectory != "" && cfg.Storage.DataDir != "" {
+	if storageDirectory != "" {
 		logger.Warn("--storage-directory is set, overriding SHIORI_DIR.")
 		cfg.Storage.DataDir = storageDirectory
 	}
