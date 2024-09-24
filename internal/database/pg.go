@@ -659,6 +659,7 @@ func (db *PGDatabase) SaveAccount(ctx context.Context, account model.Account) (e
 
 // SaveAccountSettings update settings for specific account  in database. Returns error if any happened
 func (db *PGDatabase) SaveAccountSettings(ctx context.Context, account model.Account) (err error) {
+
 	// Insert account to database
 	_, err = db.ExecContext(ctx, `UPDATE account
    		SET config = $1
