@@ -550,4 +550,13 @@ func testSync(t *testing.T, db DB) {
 		assert.Equal(t, booksAfterSpecificDate[0].ID, 2)
 		assert.Len(t, booksAfterSpecificDate, 1)
 	})
+
+	t.Run("get deleted bookmarks id", func(t *testing.T) {
+		deletedBookarksIDs, err := db.GetDeletedBookmarks(ctx, GetBookmarksOptions{
+			IsDeleted: []int{1, 5, 10},
+		})
+		assert.NoError(t, err, "Get deleted bookmarks must not fail")
+		assert.Equal(t, deletedBookarksIDs, []int{5, 10})
+		assert.Len(t, deletedBookarksIDs, 2)
+	})
 }
