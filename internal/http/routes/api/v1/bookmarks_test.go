@@ -214,7 +214,7 @@ func TestSync(t *testing.T) {
 	})
 
 	t.Run("retun deleted bookmark", func(t *testing.T) {
-		w := testutil.PerformRequest(g, "POST", "/sync", testutil.WithHeader(model.AuthorizationHeader, model.AuthorizationTokenType+" "+token), testutil.WithBody(string(payloadJSONValid)))
+		w := testutil.PerformRequest(g, "POST", "/sync", testutil.WithHeader(model.AuthorizationHeader, model.AuthorizationTokenType+" "+token), testutil.WithBody(string(payloadJSONValidWithIDs)))
 		require.Equal(t, http.StatusOK, w.Code)
 
 		// Check the response body
