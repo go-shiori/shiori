@@ -149,7 +149,7 @@ func TestSync(t *testing.T) {
 	}
 
 	payloadValidWithIDs := syncPayload{
-		Ids:      []int{3, 2},
+		Ids:      []int{3, 2, 7},
 		LastSync: unixTimestampOneSecondLater,
 		Page:     1,
 	}
@@ -227,7 +227,7 @@ func TestSync(t *testing.T) {
 
 		// Access the bookmarks
 		message := response["message"].(map[string]interface{})
-		deleted := message["deleted"]
+		deleted := message["deleted"].([]interface{})
 		modified := message["modified"].(map[string]interface{})
 		bookmarks := modified["bookmarks"].([]interface{})
 
@@ -238,11 +238,17 @@ func TestSync(t *testing.T) {
 			id := int(bookmarkMap["id"].(float64))
 			ids = append(ids, id)
 		}
+		// Convert deleted IDs to int
+		var deletedIDs []int
+		for _, del := range deleted {
+			deletedID := int(del.(float64)) // Convert each deleted ID to int
+			deletedIDs = append(deletedIDs, deletedID)
+		}
 
 		// Assert that the IDs are as expected
 		expectedIDs := []int{2}
-		deletedIDs := []int{3}
+		expectedDeletedIDs := []int{3, 7}
 		require.ElementsMatch(t, expectedIDs, ids, "bookmark IDs do not match")
-		require.ElementsMatch(t, deletedIDs, deleted, "deleted bookmark IDs do not match")
+		require.ElementsMatch(t, expectedDeletedIDs, deletedIDs, "deleted bookmark IDs do not match")
 	})
 }
