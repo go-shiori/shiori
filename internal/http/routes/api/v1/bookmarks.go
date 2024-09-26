@@ -149,6 +149,7 @@ type syncResponseMessage struct {
 //	@Summary					Get List of bookmark and last time of sync response bookmark change after that time and deleted bookmark.
 //	@Tags						  Auth
 //	@securityDefinitions.apikey	ApiKeyAuth
+//	@Param						payload	body	syncPayload	true	"Bookmarks id in client side and last sync timestamp and page for pagination"`
 //	@Produce					json
 //	@Success					200	{object}	syncResponseMessage
 //	@Failure					403	{object}	nil	"Token not provided/invalid"

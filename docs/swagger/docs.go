@@ -190,6 +190,17 @@ const docTemplate = `{
                     "Auth"
                 ],
                 "summary": "Get List of bookmark and last time of sync response bookmark change after that time and deleted bookmark.",
+                "parameters": [
+                    {
+                        "description": "Bookmarks id in client side and last sync timestamp and page for pagination",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api_v1.syncPayload"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -365,6 +376,26 @@ const docTemplate = `{
             "properties": {
                 "config": {
                     "$ref": "#/definitions/model.UserConfig"
+                }
+            }
+        },
+        "api_v1.syncPayload": {
+            "type": "object",
+            "required": [
+                "ids"
+            ],
+            "properties": {
+                "ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "last_sync": {
+                    "type": "integer"
+                },
+                "page": {
+                    "type": "integer"
                 }
             }
         },
