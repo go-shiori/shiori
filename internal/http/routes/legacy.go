@@ -39,7 +39,7 @@ func (r *LegacyAPIRoutes) handle(handler func(w http.ResponseWriter, r *http.Req
 	}
 }
 
-func (r *LegacyAPIRoutes) HandleLogin(account model.Account, expTime time.Duration) (string, error) {
+func (r *LegacyAPIRoutes) HandleLogin(account *model.AccountDTO, expTime time.Duration) (string, error) {
 	// Create session ID
 	sessionID, err := uuid.NewV4()
 	if err != nil {
@@ -98,15 +98,6 @@ func (r *LegacyAPIRoutes) Setup(g *gin.Engine) {
 	legacyGroup.POST("/api/bookmarks/ext", r.handle(r.legacyHandler.ApiInsertViaExtension))
 	// router.DELETE(jp("/api/bookmarks/ext"), withLogging(hdl.apiDeleteViaExtension))
 	legacyGroup.DELETE("/api/bookmarks/ext", r.handle(r.legacyHandler.ApiDeleteViaExtension))
-
-	// router.GET(jp("/api/accounts"), withLogging(hdl.apiGetAccounts))
-	legacyGroup.GET("/api/accounts", r.handle(r.legacyHandler.ApiGetAccounts))
-	// router.PUT(jp("/api/accounts"), withLogging(hdl.apiUpdateAccount))
-	legacyGroup.PUT("/api/accounts", r.handle(r.legacyHandler.ApiUpdateAccount))
-	// router.POST(jp("/api/accounts"), withLogging(hdl.apiInsertAccount))
-	legacyGroup.POST("/api/accounts", r.handle(r.legacyHandler.ApiInsertAccount))
-	// router.DELETE(jp("/api/accounts"), withLogging(hdl.apiDeleteAccount))
-	legacyGroup.DELETE("/api/accounts", r.handle(r.legacyHandler.ApiDeleteAccount))
 }
 
 func NewLegacyAPIRoutes(logger *logrus.Logger, deps *dependencies.Dependencies, cfg *config.Config) *LegacyAPIRoutes {

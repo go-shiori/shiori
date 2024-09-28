@@ -22,7 +22,7 @@ func TestUserIsLogged(t *testing.T) {
 
 func TestGetAccount(t *testing.T) {
 	t.Run("test get account (logged in)", func(t *testing.T) {
-		account := model.Account{
+		account := model.AccountDTO{
 			Username: "shiori",
 		}
 		c := New()
