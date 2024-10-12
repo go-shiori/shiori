@@ -56,6 +56,6 @@ func mysqlTestDatabaseFactory(_ *testing.T, ctx context.Context) (DB, error) {
 	return db, err
 }
 
-func TestMysqlsDatabase(t *testing.T) {
+func TestMySQLDatabase(t *testing.T) {
 	testDatabase(t, mysqlTestDatabaseFactory)
 }
