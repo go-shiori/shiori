@@ -61,8 +61,8 @@ func TestAuthMiddleware(t *testing.T) {
 	})
 
 	t.Run("test authorization header", func(t *testing.T) {
-		account := model.Account{Username: "shiori"}
-		token, err := deps.Domains.Auth.CreateTokenForAccount(&account, time.Now().Add(time.Minute))
+		account := testutil.GetValidAccount()
+		token, err := deps.Domains.Auth.CreateTokenForAccount(account, time.Now().Add(time.Minute))
 		require.NoError(t, err)
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
@@ -74,8 +74,8 @@ func TestAuthMiddleware(t *testing.T) {
 	})
 
 	t.Run("test authorization cookie", func(t *testing.T) {
-		account := model.Account{Username: "shiori"}
-		token, err := deps.Domains.Auth.CreateTokenForAccount(&account, time.Now().Add(time.Minute))
+		account := testutil.GetValidAccount()
+		token, err := deps.Domains.Auth.CreateTokenForAccount(account, time.Now().Add(time.Minute))
 		require.NoError(t, err)
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
