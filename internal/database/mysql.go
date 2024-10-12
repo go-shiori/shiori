@@ -92,6 +92,7 @@ var mysqlMigrations = []migration{
 
 		return nil
 	}),
+	newFileMigration("0.9.0", "0.9.1", "mysql/0011_bookmark_archiver"),
 }
 
 // MySQLDatabase is implementation of Database interface
