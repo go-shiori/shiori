@@ -22,30 +22,38 @@ type JWTClaim struct {
 	Account *model.Account
 }
 
-func (d *AccountsDomain) CheckToken(ctx context.Context, userJWT string) (*model.Account, error) {
+func (d *AccountsDomain) ParseToken(userJWT string) (*JWTClaim, error) {
 	token, err := jwt.ParseWithClaims(userJWT, &JWTClaim{}, func(token *jwt.Token) (interface{}, error) {
 		// Validate algorithm
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
 		}
-
 		return d.deps.Config.Http.SecretKey, nil
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "error parsing token")
 	}
 
-	if claims, ok := token.Claims.(*JWTClaim); ok && token.Valid {
-		if claims.Account.ID > 0 {
-			return claims.Account, nil
-		}
-		if err != nil {
-			return nil, err
-		}
+	if !token.Valid {
+		return nil, fmt.Errorf("invalid token")
+	}
 
-		return claims.Account, nil
+	if claims, ok := token.Claims.(*JWTClaim); ok {
+		return claims, nil
 	}
 	return nil, fmt.Errorf("error obtaining user from JWT claims")
+}
+
+func (d *AccountsDomain) CheckToken(ctx context.Context, userJWT string) (*model.Account, error) {
+	claims, err := d.ParseToken(userJWT)
+	if err != nil {
+		return nil, fmt.Errorf("error parsing token: %w", err)
+	}
+
+	if claims.Account.ID > 0 {
+		return claims.Account, nil
+	}
+	return nil, fmt.Errorf("error obtaining user from JWT claims: %w", err)
 }
 
 func (d *AccountsDomain) GetAccountFromCredentials(ctx context.Context, username, password string) (*model.Account, error) {
@@ -62,6 +70,10 @@ func (d *AccountsDomain) GetAccountFromCredentials(ctx context.Context, username
 }
 
 func (d *AccountsDomain) CreateTokenForAccount(account *model.Account, expiration time.Time) (string, error) {
+	if account == nil {
+		return "", fmt.Errorf("account is nil")
+	}
+
 	claims := jwt.MapClaims{
 		"account": account.ToDTO(),
 		"exp":     expiration.UTC().Unix(),
