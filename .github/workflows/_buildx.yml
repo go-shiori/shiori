@@ -1,6 +1,19 @@
 name: "Build Docker"
 
-on: workflow_call
+on:
+  workflow_call:
+    inputs:
+      tag_prefix:
+        description: 'The tag prefix to use'
+        required: false
+        type: string
+        default: ''
+      dockerfile:
+        description: 'The Dockerfile to use'
+        required: false
+        type: string
+        default: 'Dockerfile'
+
 jobs:
   buildx:
     runs-on: ubuntu-latest
@@ -22,7 +35,7 @@ jobs:
         run: |
           REPO=ghcr.io/${{ github.repository }}
           TAG=$(git describe --tags)
-          echo "tag_flags=--tag $REPO:$TAG" >> $GITHUB_ENV
+          echo "tag_flags=--tag $REPO:${{ inputs.tag_prefix }}$TAG" >> $GITHUB_ENV
 
       # New tagged version
       - name: Prepare version push tags
@@ -36,7 +49,7 @@ jobs:
           else
             TAG2="latest"
           fi
-          echo "tag_flags=--tag $REPO:$TAG --tag $REPO:$TAG2" >> $GITHUB_ENV
+          echo "tag_flags=--tag $REPO:${{ inputs.tag_prefix }}$TAG --tag $REPO:${{ inputs.tag_prefix }}$TAG2" >> $GITHUB_ENV
 
       # Every pull request
       - name: Prepare pull request tags
@@ -44,10 +57,10 @@ jobs:
         run: |
           echo "tag_flags=--tag ${{ github.ref }}" >> $GITHUB_ENV
           REPO=ghcr.io/${{ github.repository }}
-          echo "tag_flags=--tag $REPO:pr-${{ github.event.pull_request.number }}" >> $GITHUB_ENV
+          echo "tag_flags=--tag $REPO:${{ inputs.tag_prefix }}pr-${{ github.event.pull_request.number }}" >> $GITHUB_ENV
 
       - name: Buildx
         run: |
           set -x
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login -u "${{ github.repository_owner }}" --password-stdin ghcr.io
-          make buildx CONTAINER_BUILDX_OPTIONS="--push ${{ env.tag_flags }}"
+          make buildx CONTAINERFILE_NAME=${{ inputs.dockerfile }} CONTAINER_BUILDX_OPTIONS="--push ${{ env.tag_flags }}"
