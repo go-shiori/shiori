@@ -505,6 +505,12 @@ a {
 				border: 1px solid var(--border);
 			}
 		}
+		blockquote {
+			margin: 15px;
+			padding: 15px;
+			font-style: italic;
+			background: var(--bgqoute);
+		}
 	}
 }
 
@@ -580,7 +586,7 @@ a {
 		&.list {
 			grid-gap: 0;
 			padding-bottom: 0;
-			grid-template-columns: minmax(0, 1000px);
+			grid-template-columns: auto;
 
 			.pagination-box {
 				padding: 16px 0;

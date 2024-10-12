@@ -158,7 +158,23 @@ func (r *BookmarkRoutes) bookmarkThumbnailHandler(c *gin.Context) {
 		return
 	}
 
-	response.SendFile(c, r.deps.Domains.Storage, model.GetThumbnailPath(bookmark))
+	etag := "w/" + model.GetThumbnailPath(bookmark) + "-" + bookmark.ModifiedAt
+
+	// Check if the client's ETag matches the current ETag
+	if c.GetHeader("If-None-Match") == etag {
+		c.Status(http.StatusNotModified)
+		return
+	}
+
+	options := &response.SendFileOptions{
+		Headers: []http.Header{
+			{"Cache-Control": {"no-cache , must-revalidate"}},
+			{"Last-Modified": {bookmark.ModifiedAt}},
+			{"ETag": {etag}},
+		},
+	}
+
+	response.SendFile(c, r.deps.Domains.Storage, model.GetThumbnailPath(bookmark), options)
 }
 
 func (r *BookmarkRoutes) bookmarkEbookHandler(c *gin.Context) {
@@ -178,5 +194,5 @@ func (r *BookmarkRoutes) bookmarkEbookHandler(c *gin.Context) {
 
 	// TODO: Potentially improve this
 	c.Header("Content-Disposition", `attachment; filename="`+bookmark.Title+`.epub"`)
-	response.SendFile(c, r.deps.Domains.Storage, model.GetEbookPath(bookmark))
+	response.SendFile(c, r.deps.Domains.Storage, model.GetEbookPath(bookmark), nil)
 }
