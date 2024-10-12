@@ -16,14 +16,8 @@ type AccountsDomain struct {
 	deps *dependencies.Dependencies
 }
 
-type JWTClaim struct {
-	jwt.RegisteredClaims
-
-	Account *model.Account
-}
-
-func (d *AccountsDomain) ParseToken(userJWT string) (*JWTClaim, error) {
-	token, err := jwt.ParseWithClaims(userJWT, &JWTClaim{}, func(token *jwt.Token) (interface{}, error) {
+func (d *AccountsDomain) ParseToken(userJWT string) (*model.JWTClaim, error) {
+	token, err := jwt.ParseWithClaims(userJWT, &model.JWTClaim{}, func(token *jwt.Token) (interface{}, error) {
 		// Validate algorithm
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
@@ -38,7 +32,7 @@ func (d *AccountsDomain) ParseToken(userJWT string) (*JWTClaim, error) {
 		return nil, fmt.Errorf("invalid token")
 	}
 
-	if claims, ok := token.Claims.(*JWTClaim); ok {
+	if claims, ok := token.Claims.(*model.JWTClaim); ok {
 		return claims, nil
 	}
 	return nil, fmt.Errorf("error obtaining user from JWT claims")
