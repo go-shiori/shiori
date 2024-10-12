@@ -94,10 +94,10 @@ func pocketHandler(cmd *cobra.Command, args []string) {
 
 		// Add item to list
 		bookmark := model.BookmarkDTO{
-			URL:      url,
-			Title:    title,
-			Modified: modified.Format(model.DatabaseDateFormat),
-			Tags:     tags,
+			URL:        url,
+			Title:      title,
+			ModifiedAt: modified.Format(model.DatabaseDateFormat),
+			Tags:       tags,
 		}
 
 		mapURL[url] = struct{}{}

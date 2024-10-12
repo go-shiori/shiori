@@ -90,6 +90,8 @@ definitions:
       create_ebook:
         description: 'TODO: migrate outside the DTO'
         type: boolean
+      createdAt:
+        type: string
       excerpt:
         type: string
       hasArchive:
@@ -104,7 +106,7 @@ definitions:
         type: integer
       imageURL:
         type: string
-      modified:
+      modifiedAt:
         type: string
       public:
         type: integer

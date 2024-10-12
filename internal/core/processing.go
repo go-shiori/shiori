@@ -120,6 +120,7 @@ func ProcessBookmark(deps *dependencies.Dependencies, req ProcessRequest) (book 
 		}
 
 		book.HasContent = book.Content != ""
+		book.ModifiedAt = ""
 	}
 
 	// Save article image to local disk
@@ -137,6 +138,7 @@ func ProcessBookmark(deps *dependencies.Dependencies, req ProcessRequest) (book 
 		}
 		if err == nil {
 			book.ImageURL = fp.Join("/", "bookmark", strID, "thumb")
+			book.ModifiedAt = ""
 			break
 		}
 	}
@@ -154,6 +156,7 @@ func ProcessBookmark(deps *dependencies.Dependencies, req ProcessRequest) (book 
 				return book, true, errors.Wrap(err, "failed to create ebook")
 			}
 			book.HasEbook = true
+			book.ModifiedAt = ""
 		}
 	}
 
@@ -163,7 +166,7 @@ func ProcessBookmark(deps *dependencies.Dependencies, req ProcessRequest) (book 
 		if err != nil {
 			return book, false, fmt.Errorf("failed to create temp archive: %v", err)
 		}
-		defer deps.Domains.Storage.FS().Remove(tmpFile.Name())
+		defer os.Remove(tmpFile.Name())
 
 		archivalRequest := warc.ArchivalRequest{
 			URL:         book.URL,
@@ -175,7 +178,6 @@ func ProcessBookmark(deps *dependencies.Dependencies, req ProcessRequest) (book 
 
 		err = warc.NewArchive(archivalRequest, tmpFile.Name())
 		if err != nil {
-			defer os.Remove(tmpFile.Name())
 			return book, false, fmt.Errorf("failed to create archive: %v", err)
 		}
 
@@ -186,6 +188,7 @@ func ProcessBookmark(deps *dependencies.Dependencies, req ProcessRequest) (book 
 		}
 
 		book.HasArchive = true
+		book.ModifiedAt = ""
 	}
 
 	return book, false, nil
