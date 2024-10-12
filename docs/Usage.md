@@ -34,6 +34,8 @@ The above command will :
 
 After you've run the container in background, you can access console of the container:
 
+> In order to be able to access the container and execute commands you need to use the `alpine-` prefixed images.
+
 ```
 docker exec -it shiori ash
 ```
