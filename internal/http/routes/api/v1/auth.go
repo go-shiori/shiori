@@ -23,7 +23,7 @@ func (r *AuthAPIRoutes) Setup(group *gin.RouterGroup) model.Routes {
 	group.GET("/me", r.meHandler)
 	group.POST("/login", r.loginHandler)
 	group.POST("/refresh", r.refreshHandler)
-	group.PATCH("/account", r.settingsHandler)
+	group.PATCH("/account", r.updateHandler)
 	return r
 }
 
@@ -156,7 +156,7 @@ func (r *AuthAPIRoutes) meHandler(c *gin.Context) {
 	response.Send(c, http.StatusOK, ctx.GetAccount())
 }
 
-// settingsHandler godoc
+// updateHandler godoc
 //
 //	@Summary					Perform actions on the currently logged-in user.
 //	@Tags						Auth
@@ -166,7 +166,7 @@ func (r *AuthAPIRoutes) meHandler(c *gin.Context) {
 //	@Success					200	{object}	model.Account
 //	@Failure					403	{object}	nil	"Token not provided/invalid"
 //	@Router						/api/v1/auth/account [patch]
-func (r *AuthAPIRoutes) settingsHandler(c *gin.Context) {
+func (r *AuthAPIRoutes) updateHandler(c *gin.Context) {
 	ctx := context.NewContextFromGin(c)
 	if !ctx.UserIsLogged() {
 		response.SendError(c, http.StatusForbidden, nil)
@@ -177,6 +177,10 @@ func (r *AuthAPIRoutes) settingsHandler(c *gin.Context) {
 	}
 
 	account := ctx.GetAccount()
+	if account == nil {
+		response.SendError(c, http.StatusUnauthorized, nil)
+		return
+	}
 	account.Config = payload.Config
 
 	err := r.deps.Database.SaveAccountSettings(c, *account)

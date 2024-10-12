@@ -21,10 +21,7 @@ func TestAccountsDomainParseToken(t *testing.T) {
 	t.Run("valid token", func(t *testing.T) {
 		// Create a valid token
 		token, err := domain.CreateTokenForAccount(
-			&model.Account{
-				ID:       99,
-				Username: "test",
-			},
+			testutil.GetValidAccount(),
 			time.Now().Add(time.Hour*1),
 		)
 		require.NoError(t, err)
@@ -51,10 +48,7 @@ func TestAccountsDomainCheckToken(t *testing.T) {
 	t.Run("valid token", func(t *testing.T) {
 		// Create a valid token
 		token, err := domain.CreateTokenForAccount(
-			&model.Account{
-				ID:       99,
-				Username: "test",
-			},
+			testutil.GetValidAccount(),
 			time.Now().Add(time.Hour*1),
 		)
 		require.NoError(t, err)
@@ -68,10 +62,7 @@ func TestAccountsDomainCheckToken(t *testing.T) {
 	t.Run("expired token", func(t *testing.T) {
 		// Create an expired token
 		token, err := domain.CreateTokenForAccount(
-			&model.Account{
-				ID:       99,
-				Username: "test",
-			},
+			testutil.GetValidAccount(),
 			time.Now().Add(time.Hour*-1),
 		)
 		require.NoError(t, err)
@@ -122,10 +113,7 @@ func TestAccountsDomainCreateTokenForAccount(t *testing.T) {
 
 	t.Run("valid account", func(t *testing.T) {
 		token, err := domain.CreateTokenForAccount(
-			&model.Account{
-				ID:       99,
-				Username: "test",
-			},
+			testutil.GetValidAccount(),
 			time.Now().Add(time.Hour*1),
 		)
 		require.NoError(t, err)
@@ -144,10 +132,7 @@ func TestAccountsDomainCreateTokenForAccount(t *testing.T) {
 	t.Run("token expiration is valid", func(t *testing.T) {
 		expiration := time.Now().Add(time.Hour * 9)
 		token, err := domain.CreateTokenForAccount(
-			&model.Account{
-				ID:       99,
-				Username: "test",
-			},
+			testutil.GetValidAccount(),
 			expiration,
 		)
 		require.NoError(t, err)

@@ -28,13 +28,10 @@ func (d *AccountsDomain) ParseToken(userJWT string) (*model.JWTClaim, error) {
 		return nil, errors.Wrap(err, "error parsing token")
 	}
 
-	if !token.Valid {
-		return nil, fmt.Errorf("invalid token")
-	}
-
-	if claims, ok := token.Claims.(*model.JWTClaim); ok {
+	if claims, ok := token.Claims.(*model.JWTClaim); ok && token.Valid {
 		return claims, nil
 	}
+
 	return nil, fmt.Errorf("error obtaining user from JWT claims")
 }
 

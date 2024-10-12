@@ -26,13 +26,9 @@ func TestUpdateBookmarkCache(t *testing.T) {
 	router := NewBookmarksAPIRoutes(logger, deps)
 	router.Setup(g.Group("/"))
 
-	account := model.Account{
-		Username: "test",
-		Password: "test",
-		Owner:    false,
-	}
-	require.NoError(t, deps.Database.SaveAccount(ctx, account))
-	token, err := deps.Domains.Auth.CreateTokenForAccount(&account, time.Now().Add(time.Minute))
+	account := testutil.GetValidAccount()
+	require.NoError(t, deps.Database.SaveAccount(ctx, *account))
+	token, err := deps.Domains.Auth.CreateTokenForAccount(account, time.Now().Add(time.Minute))
 	require.NoError(t, err)
 
 	t.Run("require authentication", func(t *testing.T) {
@@ -58,13 +54,9 @@ func TestReadableeBookmarkContent(t *testing.T) {
 	router := NewBookmarksAPIRoutes(logger, deps)
 	router.Setup(g.Group("/"))
 
-	account := model.Account{
-		Username: "test",
-		Password: "test",
-		Owner:    false,
-	}
-	require.NoError(t, deps.Database.SaveAccount(ctx, account))
-	token, err := deps.Domains.Auth.CreateTokenForAccount(&account, time.Now().Add(time.Minute))
+	account := testutil.GetValidAccount()
+	require.NoError(t, deps.Database.SaveAccount(ctx, *account))
+	token, err := deps.Domains.Auth.CreateTokenForAccount(account, time.Now().Add(time.Minute))
 	require.NoError(t, err)
 
 	bookmark := testutil.GetValidBookmark()
