@@ -1,2 +1,3 @@
-ALTER TABLE bookmark ADD COLUMN archiver TEXT NOT NULL DEFAULT '';
-ALTER TABLE bookmark ADD COLUMN archive_path TEXT NOT NULL DEFAULT '';
+ALTER TABLE bookmark
+    ADD COLUMN archiver TEXT NOT NULL DEFAULT '',
+    ADD COLUMN archive_path TEXT NOT NULL DEFAULT '';
