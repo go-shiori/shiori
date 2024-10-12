@@ -35,7 +35,7 @@ The above command will :
 After you've run the container in background, you can access console of the container:
 
 ```
-docker exec -it shiori sh
+docker exec -it shiori ash
 ```
 
 Now you can use `shiori` like normal. If you've finished, you can stop and remove the container by running :
