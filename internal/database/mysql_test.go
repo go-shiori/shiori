@@ -39,6 +39,7 @@ func mysqlTestDatabaseFactory(_ *testing.T, ctx context.Context) (DB, error) {
 		}
 
 		_, err = tx.ExecContext(ctx, "CREATE DATABASE "+dbname)
+
 		return err
 	})
 	if err != nil {
@@ -53,7 +54,7 @@ func mysqlTestDatabaseFactory(_ *testing.T, ctx context.Context) (DB, error) {
 		return nil, err
 	}
 
-	return db, err
+	return db, nil
 }
 
 func TestMySQLDatabase(t *testing.T) {

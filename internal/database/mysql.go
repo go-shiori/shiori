@@ -67,32 +67,7 @@ var mysqlMigrations = []migration{
 	newFileMigration("0.8.2", "0.8.3", "mysql/0008_set_modified_at_equal_created_at"),
 	newFileMigration("0.8.3", "0.8.4", "mysql/0009_index_for_created_at"),
 	newFileMigration("0.8.4", "0.8.5", "mysql/0010_index_for_modified_at"),
-	// Adds archiver and archive_path columns to bookmark table
-	newFuncMigration("0.8.4", "0.9.0", func(db *sql.DB) error {
-		tx, err := db.Begin()
-		if err != nil {
-			return fmt.Errorf("failed to start transaction: %w", err)
-		}
-
-		defer tx.Rollback()
-
-		_, err = tx.Exec(`ALTER TABLE bookmark ADD COLUMN archiver TEXT NOT NULL DEFAULT ''`)
-		if err != nil {
-			return fmt.Errorf("failed to add archiver column to bookmark_tag table: %w", err)
-		}
-
-		_, err = tx.Exec(`ALTER TABLE bookmark ADD COLUMN archive_path TEXT NOT NULL DEFAULT ''`)
-		if err != nil {
-			return fmt.Errorf("failed to add archiver column to bookmark_tag table: %w", err)
-		}
-
-		if err := tx.Commit(); err != nil {
-			return fmt.Errorf("failed to commit transaction: %w", err)
-		}
-
-		return nil
-	}),
-	newFileMigration("0.9.0", "0.9.1", "mysql/0011_bookmark_archiver"),
+	newFileMigration("0.8.5", "0.9.0", "mysql/0011_bookmark_archiver"),
 }
 
 // MySQLDatabase is implementation of Database interface
