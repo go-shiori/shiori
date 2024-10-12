@@ -1,5 +1,5 @@
-//go:build linux || windows || darwin
-// +build linux windows darwin
+//go:build linux || windows || darwin || freebsd
+// +build linux windows darwin freebsd
 
 package database
 
