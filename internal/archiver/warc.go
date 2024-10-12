@@ -1,8 +1,8 @@
 package archiver
 
 import (
+	"bytes"
 	"fmt"
-	"io"
 	"path/filepath"
 	"strings"
 
@@ -20,20 +20,20 @@ type WARCArchiver struct {
 	deps *dependencies.Dependencies
 }
 
-func (a *WARCArchiver) Matches(contentType string) bool {
+func (a *WARCArchiver) Matches(archiverReq *model.ArchiverRequest) bool {
+	// TODO: set to true for now as catch-all but we will remove this archiver soon
 	return true
 }
 
-func (a *WARCArchiver) Archive(content io.ReadCloser, contentType string, bookmark model.BookmarkDTO) (*model.BookmarkDTO, error) {
+func (a *WARCArchiver) Archive(archiverReq *model.ArchiverRequest) (*model.BookmarkDTO, error) {
 	processRequest := core.ProcessRequest{
 		DataDir:     a.deps.Config.Storage.DataDir,
-		Bookmark:    bookmark,
-		Content:     content,
-		ContentType: contentType,
+		Bookmark:    archiverReq.Bookmark,
+		Content:     bytes.NewReader(archiverReq.Content),
+		ContentType: archiverReq.ContentType,
 	}
 
 	result, isFatalErr, err := core.ProcessBookmark(a.deps, processRequest)
-	content.Close()
 
 	if err != nil && isFatalErr {
 		return nil, fmt.Errorf("failed to process: %v", err)

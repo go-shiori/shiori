@@ -3,13 +3,11 @@ package webserver
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"os"
 	fp "path/filepath"
 	"strconv"
-	"strings"
 
 	"github.com/go-shiori/shiori/internal/core"
 	"github.com/go-shiori/shiori/internal/model"
@@ -83,8 +81,8 @@ func (h *Handler) ApiInsertViaExtension(w http.ResponseWriter, r *http.Request, 
 	var result *model.BookmarkDTO
 	var errArchiver error
 	if request.HTML != "" {
-		contentType := "text/html; charset=UTF-8"
-		result, errArchiver = h.dependencies.Domains.Archiver.ProcessBookmarkArchive(io.NopCloser(strings.NewReader(request.HTML)), contentType, book)
+		archiverReq := model.NewArchiverRequest(book, "text/html; charset=UTF-8", []byte(request.HTML))
+		result, errArchiver = h.dependencies.Domains.Archiver.ProcessBookmarkArchive(archiverReq)
 	} else {
 		result, errArchiver = h.dependencies.Domains.Archiver.GenerateBookmarkArchive(book)
 	}

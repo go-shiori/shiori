@@ -22,7 +22,15 @@ func (d *ArchiverDomain) GenerateBookmarkArchive(book model.BookmarkDTO) (*model
 		return nil, fmt.Errorf("error downloading url: %s", err)
 	}
 
-	processedBookmark, err := d.ProcessBookmarkArchive(content, contentType, book)
+	contentBytes, err := io.ReadAll(content)
+	if err != nil {
+		return nil, fmt.Errorf("error reading content: %s", err)
+	}
+	content.Close()
+
+	archiverReq := model.NewArchiverRequest(book, contentType, contentBytes)
+
+	processedBookmark, err := d.ProcessBookmarkArchive(archiverReq)
 	if err != nil {
 		return nil, fmt.Errorf("error processing bookmark archive: %w", err)
 	}
@@ -44,10 +52,10 @@ func (d *ArchiverDomain) GenerateBookmarkEbook(request model.EbookProcessRequest
 	return nil
 }
 
-func (d *ArchiverDomain) ProcessBookmarkArchive(content io.ReadCloser, contentType string, book model.BookmarkDTO) (*model.BookmarkDTO, error) {
+func (d *ArchiverDomain) ProcessBookmarkArchive(archiverRequest *model.ArchiverRequest) (*model.BookmarkDTO, error) {
 	for _, archiver := range d.archivers {
-		if archiver.Matches(contentType) {
-			book, err := archiver.Archive(content, contentType, book)
+		if archiver.Matches(archiverRequest) {
+			book, err := archiver.Archive(archiverRequest)
 			if err != nil {
 				d.deps.Log.Errorf("Error archiving bookmark with archviver: %s", err)
 				continue
@@ -56,7 +64,7 @@ func (d *ArchiverDomain) ProcessBookmarkArchive(content io.ReadCloser, contentTy
 		}
 	}
 
-	return nil, fmt.Errorf("no archiver found for content type: %s", contentType)
+	return nil, fmt.Errorf("no archiver found for request: %s", archiverRequest.String())
 }
 
 func (d *ArchiverDomain) GetBookmarkArchiveFile(book *model.BookmarkDTO, resourcePath string) (*model.ArchiveFile, error) {

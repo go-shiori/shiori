@@ -2,7 +2,6 @@ package archiver
 
 import (
 	"fmt"
-	"io"
 	"strings"
 
 	"github.com/go-shiori/shiori/internal/dependencies"
@@ -13,20 +12,22 @@ type PDFArchiver struct {
 	deps *dependencies.Dependencies
 }
 
-func (a *PDFArchiver) Matches(contentType string) bool {
-	return strings.Contains(contentType, "application/pdf")
+func (a *PDFArchiver) Matches(archiverReq *model.ArchiverRequest) bool {
+	return strings.Contains(archiverReq.ContentType, "application/pdf")
 }
 
-func (a *PDFArchiver) Archive(content io.ReadCloser, contentType string, bookmark model.BookmarkDTO) (*model.BookmarkDTO, error) {
-	if err := a.deps.Domains.Storage.WriteReader(model.GetArchivePath(&bookmark), content); err != nil {
+func (a *PDFArchiver) Archive(archiverReq *model.ArchiverRequest) (*model.BookmarkDTO, error) {
+	bookmark := &archiverReq.Bookmark
+
+	if err := a.deps.Domains.Storage.WriteData(model.GetArchivePath(bookmark), archiverReq.Content); err != nil {
 		return nil, fmt.Errorf("error saving pdf archive: %v", err)
 	}
 
-	bookmark.ArchivePath = model.GetArchivePath(&bookmark)
+	bookmark.ArchivePath = model.GetArchivePath(bookmark)
 	bookmark.HasArchive = true
 	bookmark.Archiver = model.ArchiverPDF
 
-	return &bookmark, nil
+	return bookmark, nil
 }
 
 func (a *PDFArchiver) GetArchiveFile(bookmark model.BookmarkDTO, resourcePath string) (*model.ArchiveFile, error) {

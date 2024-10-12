@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	"io"
 	"strconv"
 )
@@ -9,6 +10,24 @@ const (
 	ArchiverPDF  = "pdf"
 	ArchiverWARC = "warc"
 )
+
+type ArchiverRequest struct {
+	Bookmark    BookmarkDTO
+	Content     []byte
+	ContentType string
+}
+
+func (a *ArchiverRequest) String() string {
+	return fmt.Sprintf("ArchiverRequest{ContentType: %s}", a.ContentType)
+}
+
+func NewArchiverRequest(bookmark BookmarkDTO, contentType string, content []byte) *ArchiverRequest {
+	return &ArchiverRequest{
+		Bookmark:    bookmark,
+		Content:     content,
+		ContentType: contentType,
+	}
+}
 
 type ArchiveFile struct {
 	reader      io.Reader
@@ -58,20 +77,13 @@ func NewArchiveFile(reader io.Reader, contentType, encoding string, size int64) 
 	}
 }
 
-type ArchiveProcessRequest struct {
-	Bookmark     BookmarkDTO
-	Content      io.Reader
-	ContentType  string
-	SkipExisting bool
-}
-
 type EbookProcessRequest struct {
 	Bookmark     BookmarkDTO
 	SkipExisting bool
 }
 
 type Archiver interface {
-	Archive(content io.ReadCloser, contentType string, bookmark BookmarkDTO) (*BookmarkDTO, error)
-	Matches(contentType string) bool
+	Archive(*ArchiverRequest) (*BookmarkDTO, error)
+	Matches(*ArchiverRequest) bool
 	GetArchiveFile(bookmark BookmarkDTO, resourcePath string) (*ArchiveFile, error)
 }
