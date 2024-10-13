@@ -13,10 +13,12 @@ import (
 //go:embed migrations/*
 var migrationFiles embed.FS
 
+type migrationFunc func(db *sql.DB) error
+
 type migration struct {
 	fromVersion   semver.Version
 	toVersion     semver.Version
-	migrationFunc func(db *sql.DB) error
+	migrationFunc migrationFunc
 }
 
 // txFunc is a function that runs in a transaction.
@@ -42,7 +44,7 @@ func runInTransaction(db *sql.DB, fn txFn) error {
 }
 
 // newFuncMigration creates a new migration from a function.
-func newFuncMigration(fromVersion, toVersion string, migrationFunc func(db *sql.DB) error) migration {
+func newFuncMigration(fromVersion, toVersion string, migrationFunc migrationFunc) migration {
 	return migration{
 		fromVersion:   semver.MustParse(fromVersion),
 		toVersion:     semver.MustParse(toVersion),

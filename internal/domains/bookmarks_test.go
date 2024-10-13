@@ -4,9 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/go-shiori/shiori/internal/config"
-	"github.com/go-shiori/shiori/internal/database"
-	"github.com/go-shiori/shiori/internal/dependencies"
 	"github.com/go-shiori/shiori/internal/domains"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/go-shiori/shiori/internal/testutil"
@@ -17,17 +14,10 @@ import (
 
 func TestBookmarkDomain(t *testing.T) {
 	fs := afero.NewMemMapFs()
+	ctx := context.Background()
+	logger := logrus.New()
 
-	db, err := database.OpenSQLiteDatabase(context.TODO(), ":memory:")
-	require.NoError(t, err)
-	require.NoError(t, db.Migrate(context.TODO()))
-
-	deps := &dependencies.Dependencies{
-		Database: db,
-		Config:   config.ParseServerConfiguration(context.TODO(), logrus.New()),
-		Log:      logrus.New(),
-		Domains:  &dependencies.Domains{},
-	}
+	_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
 	deps.Domains.Storage = domains.NewStorageDomain(deps, fs)
 
 	fs.MkdirAll("thumb", 0755)

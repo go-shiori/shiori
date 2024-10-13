@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-shiori/shiori/internal/database/migrations"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
@@ -59,12 +60,19 @@ var postgresMigrations = []migration{
 	}),
 	newFileMigration("0.3.0", "0.4.0", "postgres/0002_created_time"),
 	newFileMigration("0.4.0", "0.5.0", "postgres/0003_bookmark_archiver"),
+	newFuncMigration("0.5.0", "0.5.1", func(db *sql.DB) error {
+		return migrations.MigrateArchiverMigration(db, "postgres")
+	}),
 }
 
 // PGDatabase is implementation of Database interface
 // for connecting to PostgreSQL database.
 type PGDatabase struct {
 	dbbase
+}
+
+func postgresDatabaseFromDB(db *sqlx.DB) *PGDatabase {
+	return &PGDatabase{dbbase: dbbase{db}}
 }
 
 // OpenPGDatabase creates and opens connection to a PostgreSQL Database.
@@ -78,8 +86,7 @@ func OpenPGDatabase(ctx context.Context, connString string) (pgDB *PGDatabase, e
 	db.SetMaxOpenConns(100)
 	db.SetConnMaxLifetime(time.Second)
 
-	pgDB = &PGDatabase{dbbase: dbbase{db}}
-	return pgDB, err
+	return postgresDatabaseFromDB(db), err
 }
 
 // DBX returns the underlying sqlx.DB object

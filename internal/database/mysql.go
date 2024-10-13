@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-shiori/shiori/internal/database/migrations"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
@@ -68,12 +69,19 @@ var mysqlMigrations = []migration{
 	newFileMigration("0.8.3", "0.8.4", "mysql/0009_index_for_created_at"),
 	newFileMigration("0.8.4", "0.8.5", "mysql/0010_index_for_modified_at"),
 	newFileMigration("0.8.5", "0.9.0", "mysql/0011_bookmark_archiver"),
+	newFuncMigration("0.9.0", "0.9.1", func(db *sql.DB) error {
+		return migrations.MigrateArchiverMigration(db, "mysql")
+	}),
 }
 
 // MySQLDatabase is implementation of Database interface
 // for connecting to MySQL or MariaDB database.
 type MySQLDatabase struct {
 	dbbase
+}
+
+func mysqlDatabaseFromDB(db *sqlx.DB) *MySQLDatabase {
+	return &MySQLDatabase{dbbase: dbbase{db}}
 }
 
 // OpenMySQLDatabase creates and opens connection to a MySQL Database.
@@ -87,8 +95,7 @@ func OpenMySQLDatabase(ctx context.Context, connString string) (mysqlDB *MySQLDa
 	db.SetMaxOpenConns(100)
 	db.SetConnMaxLifetime(time.Second) // in case mysql client has longer timeout (driver issue #674)
 
-	mysqlDB = &MySQLDatabase{dbbase: dbbase{db}}
-	return mysqlDB, err
+	return mysqlDatabaseFromDB(db), err
 }
 
 // DBX returns the underlying sqlx.DB object

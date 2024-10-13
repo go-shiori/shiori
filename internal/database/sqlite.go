@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-shiori/shiori/internal/database/migrations"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
@@ -62,6 +63,13 @@ var sqliteMigrations = []migration{
 	newFileMigration("0.4.0", "0.5.0", "sqlite/0003_uniq_id"),
 	newFileMigration("0.5.0", "0.6.0", "sqlite/0004_created_time"),
 	newFileMigration("0.6.0", "0.7.0", "sqlite/0005_bookmark_archiver"),
+	newFuncMigration("0.7.0", "0.8.0", func(db *sql.DB) error {
+		return migrations.MigrateArchiverMigration(db, "sqlite")
+	}),
+}
+
+func sqliteDatabaseFromDB(db *sqlx.DB) *SQLiteDatabase {
+	return &SQLiteDatabase{dbbase: dbbase{db}}
 }
 
 // SQLiteDatabase is implementation of Database interface
