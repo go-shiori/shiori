@@ -8,10 +8,11 @@ import (
 )
 
 type Domains struct {
-	Archiver  model.ArchiverDomain
-	Auth      model.AccountsDomain
-	Bookmarks model.BookmarksDomain
-	Storage   model.StorageDomain
+	Archiver    model.ArchiverDomain
+	Auth        model.AccountsDomain
+	Bookmarks   model.BookmarksDomain
+	Storage     model.StorageDomain
+	LegacyLogin model.LegacyLoginHandler
 }
 
 type Dependencies struct {
