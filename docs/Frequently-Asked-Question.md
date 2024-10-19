@@ -236,3 +236,34 @@ There are several methods to run `shiori` on start up, however the most recommen
     ```sh
     systemctl enable --now shiori
     ```
+
+If you are using Mac, create `local.app.shiori.plist` file in `~/Library/LaunchAgents` and use the template below. Add your own secret key and paths. The filename can be anything but it's a good practice to start it with `local`:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>local.app.shiori</string>
+  <key>EnvironmentVariables</key>
+  <dict>
+      <key>SHIORI_HTTP_SECRET_KEY</key>
+      <string>somerandomvalue123489</string>
+  </dict>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/absolute/path/to/shiori/binary</string>
+    <string>server</string>
+    <string>--storage-directory</string>
+    <string>/absolute/path/to/shiori/storage/directory</string>
+    </array>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>ServiceDescription</key>
+  <string>Shiori Bookmarking Service</string>
+</dict>
+</plist>
+```
+
+You also need to update your Mac's `System Settings > General > Login Items & Extensions > Allow in the background`. Next time you log in to your Mac, the Shiori server will automatically start and the Shiori login state will persist. To remove the service, delete the `plist` file.
