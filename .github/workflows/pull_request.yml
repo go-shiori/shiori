@@ -20,8 +20,11 @@ jobs:
     uses: ./.github/workflows/_swagger-check.yml
   call-styles-check:
     uses: ./.github/workflows/_styles-check.yml
-  call-gorelease:
+  call-e2e:
     needs: [call-lint, call-test, call-swagger-check, call-styles-check]
+    uses: ./.github/workflows/_e2e.yml
+  call-gorelease:
+    needs: [call-e2e]
     uses: ./.github/workflows/_gorelease.yml
   call-buildx:
     needs: call-gorelease
