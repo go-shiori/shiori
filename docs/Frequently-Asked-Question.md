@@ -16,6 +16,7 @@
   - [`Failed to get bookmarks: failed to fetch data: no such module: fts4` ?](#failed-to-get-bookmarks-failed-to-fetch-data-no-such-module-fts4-)
 - [Advanced](#advanced)
   - [How to run `shiori` on start up ?](#how-to-run-shiori-on-start-up-)
+  - [How to run `shiori` on start up (macOS)?](#how-to-run-shiori-on-start-up-macos)
 
 <!-- /TOC -->
 
@@ -237,7 +238,9 @@ There are several methods to run `shiori` on start up, however the most recommen
     systemctl enable --now shiori
     ```
 
-If you are using Mac, create `local.app.shiori.plist` file in `~/Library/LaunchAgents` and use the template below. Add your own secret key and paths. The filename can be anything but it's a good practice to start it with `local`:
+### How to run `shiori` on start up (macOS)?
+
+Create `local.app.shiori.plist` file in `~/Library/LaunchAgents` and use the template below. Add your own secret key and paths. The filename can be anything but it's a good practice to start it with `local`:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
