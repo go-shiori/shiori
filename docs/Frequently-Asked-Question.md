@@ -15,7 +15,7 @@
   - [Why my old accounts can't do anything after upgrading Shiori to v1.5.0 ?](#why-my-old-accounts-cant-do-anything-after-upgrading-shiori-to-v150-)
   - [`Failed to get bookmarks: failed to fetch data: no such module: fts4` ?](#failed-to-get-bookmarks-failed-to-fetch-data-no-such-module-fts4-)
 - [Advanced](#advanced)
-  - [How to run `shiori` on start up ?](#how-to-run-shiori-on-start-up-)
+  - [How to run `shiori` on start up (Linux)?](#how-to-run-shiori-on-start-up-linux)
   - [How to run `shiori` on start up (macOS)?](#how-to-run-shiori-on-start-up-macos)
 
 <!-- /TOC -->
@@ -116,7 +116,7 @@ This happens to SQLite users that upgrade from 1.5.0 to 1.5.1 because of a break
 
 ## Advanced
 
-### How to run `shiori` on start up ?
+### How to run `shiori` on start up (Linux)?
 
 There are several methods to run `shiori` on start up, however the most recommended is running it as a service.
 
