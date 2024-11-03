@@ -31,3 +31,11 @@ jobs:
     # only build on pull requests from the same repo for now
     if: github.event.pull_request.head.repo.full_name == github.repository
     uses: ./.github/workflows/_buildx.yml
+  call-buildx-alpine:
+    needs: call-gorelease
+    # only build on pull requests from the same repo for now
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    uses: ./.github/workflows/_buildx.yml
+    with:
+      tag_prefix: alpine-
+      dockerfile: Dockerfile.alpine
