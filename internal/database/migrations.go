@@ -6,9 +6,19 @@ import (
 	"embed"
 	"fmt"
 	"path"
+	"regexp"
+	"strings"
 
 	"github.com/blang/semver"
 )
+
+// compareWordsInString is a helper function to compare words in two strings without special characters.
+func compareWordsInString(input, expected string) bool {
+	re := regexp.MustCompile(`\b\w+\b`)
+	cleaned := strings.Join(re.FindAllString(input, -1), " ")
+	fmt.Println(cleaned)
+	return strings.Contains(expected, cleaned)
+}
 
 //go:embed migrations/*
 var migrationFiles embed.FS
