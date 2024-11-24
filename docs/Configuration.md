@@ -42,6 +42,8 @@ Most configuration can be set directly using environment variables or flags. The
 | `SHIORI_HTTP_IDLE_TIMEOUT`                 | 10s     | No       | Maximum amount of time to wait for the next request   |
 | `SHIORI_HTTP_DISABLE_KEEP_ALIVE`           | true    | No       | Disable HTTP keep-alive connections                   |
 | `SHIORI_HTTP_DISABLE_PARSE_MULTIPART_FORM` | true    | No       | Disable pre-parsing of multipart form                 |
+| `SHIORI_TRUSTED_PROXIES`                   | ""      | No       | oidc trust proxy ip address                           |
+| `SHIORI_REVERSE_PROXY_AUTH_USER`           | ""      | No       | user id key of oidc auth header, ie. Remote-User      |
 
 ### Storage Configuration
 
