@@ -59,7 +59,7 @@
 				'login-view': LoginComponent
 			},
 			data: {
-				isLoggedIn: true,
+				isLoggedIn: false,
 				activePage: "page-home",
 				sidebarItems: [{
 					title: "Home",
@@ -161,7 +161,11 @@
 
 				async validateSession() {
 					const token = localStorage.getItem("shiori-token");
-					if (!token) return false;
+					const account = localStorage.getItem("shiori-account");
+					
+					if (!(token && account)) {
+						return false;
+					}
 
 					try {
 						const response = await fetch(new URL("api/v1/auth/check", document.baseURI), {
@@ -169,30 +173,30 @@
 								"Authorization": `Bearer ${token}`
 							}
 						});
-						return response.ok;
+						
+						if (!response.ok) {
+							throw new Error('Invalid session');
+						}
+						
+						return true;
 					} catch (err) {
+						// Clear invalid session data
+						localStorage.removeItem("shiori-account");
+						localStorage.removeItem("shiori-token");
+						document.cookie = `session-id=; Path=${new URL(document.baseURI).pathname}; Expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
+						document.cookie = `token=; Path=${new URL(document.baseURI).pathname}; Expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
 						return false;
 					}
 				},
 
 				async checkLoginStatus() {
-					const account = localStorage.getItem("shiori-account");
-					const token = localStorage.getItem("shiori-token");
-					
-					if (!(account && token)) {
-						this.isLoggedIn = false;
-						return;
-					}
-
 					const isValid = await this.validateSession();
-					if (!isValid) {
-						// Clear invalid session data
-						localStorage.removeItem("shiori-account");
-						localStorage.removeItem("shiori-token");
-						document.cookie = `session-id=; Path=${new URL(document.baseURI).pathname}; Expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
-					}
-					
 					this.isLoggedIn = isValid;
+					
+					if (isValid) {
+						this.loadSetting();
+						this.loadAccount();
+					}
 				}
 			},
 			async mounted() {
