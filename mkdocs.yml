@@ -4,14 +4,18 @@ repo_url: https://github.com/go-shiori/shiori
 theme:
   name: material
   palette:
-    - scheme: default
-      toggle:
-        icon: material/brightness-7
-        name: Switch to dark mode
-    - scheme: slate
-      toggle:
-        icon: material/brightness-4
-        name: Switch to light mode
+  # Light mode
+  - scheme: shiori
+    media: "(prefers-color-scheme: light)"
+    toggle:
+      icon: material/brightness-7
+      name: Switch to dark mode
+  # Dark mode
+  - scheme: slate
+    media: "(prefers-color-scheme: dark)"
+    toggle:
+      icon: material/brightness-4
+      name: Switch to light mode
   features:
     - navigation.instant
     - navigation.tracking
@@ -22,7 +26,8 @@ theme:
     - search.suggest
     - search.highlight
     - content.tabs.link
-
+extra_css:
+  - assets/css/style.css
 nav:
   - Home: index.md
   - Getting Started:
