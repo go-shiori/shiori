@@ -23,7 +23,7 @@ jobs:
         uses: goreleaser/goreleaser-action@286f3b13b1b49da4ac219696163fb8c1c93e1200 # 6.0.0
         with:
           distribution: goreleaser
-          version: latest
+          version: v2.4.8
           args: release --clean ${{ env.flags }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
