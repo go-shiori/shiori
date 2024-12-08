@@ -21,7 +21,9 @@
 </head>
 
 <body>
-	<div id="main-scene">
+	<div id="app">
+		<login-view v-if="!isLoggedIn" @login-success="onLoginSuccess"></login-view>
+		<div id="main-scene" v-else>
 		<div id="main-sidebar">
 			<a v-for="item in sidebarItems" :title="item.title" :class="{active: activePage === item.page}" @click="switchPage(item.page)">
 				<i class="fas fa-fw" :class="item.icon"></i>
@@ -35,10 +37,12 @@
 			<component :is="activePage" :active-account="activeAccount" :app-options="appOptions" @setting-changed="saveSetting"></component>
 		</keep-alive>
 		<custom-dialog v-bind="dialog" />
+		</div>
 	</div>
 
 	<script type="module">
 		import basePage from "./assets/js/page/base.js";
+		import LoginComponent from "./assets/js/component/login.js";
 		import pageHome from "./assets/js/page/home.js";
 		import pageSetting from "./assets/js/page/setting.js";
 		import customDialog from "./assets/js/component/dialog.js";
@@ -51,9 +55,11 @@
 			components: {
 				pageHome,
 				pageSetting,
-				customDialog
+				customDialog,
+				'login-view': LoginComponent
 			},
 			data: {
+				isLoggedIn: false,
 				activePage: "page-home",
 				sidebarItems: [{
 					title: "Home",
@@ -148,10 +154,27 @@
 					};
 				}
 			},
+			methods: {
+				// ... existing methods ...
+				
+				onLoginSuccess() {
+					this.loadSetting();
+					this.loadAccount();
+					this.isLoggedIn = true;
+				},
+
+				checkLoginStatus() {
+					const account = localStorage.getItem("shiori-account");
+					const token = localStorage.getItem("shiori-token");
+					this.isLoggedIn = !!(account && token);
+				}
+			},
 			mounted() {
-				// Load setting
-				this.loadSetting();
-				this.loadAccount();
+				this.checkLoginStatus();
+				if (this.isLoggedIn) {
+					this.loadSetting();
+					this.loadAccount();
+				}
 
 				// Prepare history state watcher
 				var stateWatcher = (e) => {

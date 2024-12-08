@@ -1,4 +1,5 @@
 export default {
+    name: 'login-view',
     data() {
         return {
             error: "",
@@ -6,8 +7,10 @@ export default {
             username: "",
             password: "",
             remember: false,
+            visible: true
         }
     },
+    emits: ['login-success'],
     methods: {
         async getErrorMessage(err) {
             switch (err.constructor) {
@@ -71,20 +74,8 @@ export default {
                 localStorage.setItem("shiori-token", json.message.token);
                 localStorage.setItem("shiori-account", JSON.stringify(this.parseJWT(json.message.token).account));
 
-                // Go to destination page
-                var currentUrl = new Url(),
-                    dstUrl = currentUrl.query.dst,
-                    dstPage = currentUrl.hash || "home";
-
-                if (dstPage !== "home" && dstPage !== "setting") {
-                    dstPage = "";
-                }
-
-                // TODO: Improve this redirect logic
-                var newUrl = new Url(dstUrl || document.baseURI);
-                newUrl.hash = dstPage;
-
-                location.href = newUrl;
+                this.visible = false;
+                this.$emit('login-success');
             }).catch(err => {
                 this.loading = false;
                 this.getErrorMessage(err).then(msg => {
