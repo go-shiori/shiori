@@ -798,42 +798,63 @@ func (db *SQLiteDatabase) DeleteAccounts(ctx context.Context, usernames ...strin
 	return nil
 }
 
-// CreateTags creates new tags from submitted objects.
-func (db *SQLiteDatabase) CreateTags(ctx context.Context, tags ...model.Tag) error {
+// CreateTags creates new tags from submitted objects and returns the created tags with their IDs.
+func (db *SQLiteDatabase) CreateTags(ctx context.Context, tags ...model.Tag) ([]model.Tag, error) {
 	if len(tags) == 0 {
-		return nil
+		return nil, nil
 	}
 
-	// Create insert builder
-	ib := sqlbuilder.SQLite.NewInsertBuilder()
-	ib.InsertInto("tag")
-	ib.Cols("name")
-
-	// Add values for each tag
-	for _, tag := range tags {
-		ib.Values(tag.Name)
-	}
-
-	// Generate query and args
-	query, args := ib.Build()
+	var createdTags []model.Tag
 
 	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
+		// Create insert builder
+		ib := sqlbuilder.SQLite.NewInsertBuilder()
+		ib.InsertInto("tag")
+		ib.Cols("name")
+
+		// Add values for each tag
+		for _, tag := range tags {
+			ib.Values(tag.Name)
+		}
+
+		// Generate query and args
+		query, args := ib.Build()
+
+		// Modify query to return inserted IDs
+		query = query + " RETURNING id, name"
+
+		// Prepare and execute the statement
 		stmt, err := tx.Preparex(query)
 		if err != nil {
 			return fmt.Errorf("error preparing query: %w", err)
 		}
 
-		_, err = stmt.ExecContext(ctx, args...)
+		// Execute and scan results
+		rows, err := stmt.QueryxContext(ctx, args...)
 		if err != nil {
 			return fmt.Errorf("error executing query: %w", err)
+		}
+		defer rows.Close()
+
+		// Scan the returned rows into tags
+		for rows.Next() {
+			var tag model.Tag
+			if err := rows.StructScan(&tag); err != nil {
+				return fmt.Errorf("error scanning tag: %w", err)
+			}
+			createdTags = append(createdTags, tag)
+		}
+
+		if err = rows.Err(); err != nil {
+			return fmt.Errorf("error iterating rows: %w", err)
 		}
 
 		return nil
 	}); err != nil {
-		return fmt.Errorf("error running transaction: %w", err)
+		return nil, fmt.Errorf("error running transaction: %w", err)
 	}
 
-	return nil
+	return createdTags, nil
 }
 
 // GetTags fetch list of tags and their frequency.
