@@ -27,7 +27,7 @@ func TestTagsDomainGetTags(t *testing.T) {
 		// Create some test tags first
 		tag1 := model.TagDTO{Name: "test1"}
 		tag2 := model.TagDTO{Name: "test2"}
-		
+
 		_, err := domain.CreateTag(ctx, tag1)
 		require.NoError(t, err)
 		_, err = domain.CreateTag(ctx, tag2)
@@ -74,10 +74,10 @@ func TestTagsDomainCreateTags(t *testing.T) {
 			{Name: "test2"},
 			{Name: "test3"},
 		}
-		
+
 		created, err := domain.CreateTags(ctx, tags...)
 		require.NoError(t, err)
-		require.Equal(t, tags[0].Name, created.Name)
+		require.Equal(t, tags[0].Name, created[0].Name)
 
 		// Verify all exist
 		allTags, err := domain.GetTags(ctx)

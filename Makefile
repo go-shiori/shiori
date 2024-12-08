@@ -26,6 +26,8 @@ LOCAL_BUILD_PLATFORM = linux/$(shell go env GOARCH)
 # Testing
 GO_TEST_FLAGS ?= -v -race -count=1 -tags $(BUILD_TAGS) -covermode=atomic -coverprofile=coverage.out
 GOTESTFMT_FLAGS ?=
+SHIORI_TEST_MYSQL_URL ?= shiori:shiori@tcp(127.0.0.1:3306)/shiori
+SHIORI_TEST_PG_URL ?= postgres://shiori:shiori@127.0.0.1:5432/shiori?sslmode=disable
 
 # Development
 GIN_MODE ?= debug
@@ -46,6 +48,9 @@ export CONTAINER_ALPINE_VERSION
 export BUILDX_PLATFORMS
 
 export SOURCE_FILES
+
+export SHIORI_TEST_MYSQL_URL
+export SHIORI_TEST_PG_URL
 
 # Help documentatin à la https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 .PHONY: help

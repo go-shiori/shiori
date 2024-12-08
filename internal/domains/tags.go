@@ -39,7 +39,7 @@ func (d *TagsDomain) CreateTag(ctx context.Context, tag model.TagDTO) (model.Tag
 		return model.TagDTO{}, fmt.Errorf("error creating tag: %w", err)
 	}
 
-	if len(tags) > 0 {
+	if len(tags) == 1 {
 		return tags[0].ToDTO(), nil
 	}
 	return model.TagDTO{}, fmt.Errorf("no tag was created")

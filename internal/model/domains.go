@@ -20,7 +20,7 @@ type BookmarksDomain interface {
 type TagsDomain interface {
 	GetTags(ctx context.Context) ([]TagDTO, error)
 	CreateTag(ctx context.Context, tag TagDTO) (TagDTO, error)
-	CreateTags(ctx context.Context, tags ...TagDTO) (TagDTO, error)
+	CreateTags(ctx context.Context, tags ...TagDTO) ([]TagDTO, error)
 	UpdateTag(ctx context.Context, tag TagDTO) (TagDTO, error)
 	DeleteTag(ctx context.Context, tagID DBID) error
 }

@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"fmt"
 	"strings"
 	"time"
 
