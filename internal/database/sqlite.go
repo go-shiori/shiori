@@ -5,10 +5,12 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"fmt"
 	"strings"
 	"time"
 
 	"github.com/go-shiori/shiori/internal/model"
+	"github.com/huandu/go-sqlbuilder"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/bcrypt"
@@ -798,29 +800,37 @@ func (db *SQLiteDatabase) DeleteAccounts(ctx context.Context, usernames ...strin
 
 // CreateTags creates new tags from submitted objects.
 func (db *SQLiteDatabase) CreateTags(ctx context.Context, tags ...model.Tag) error {
-	query := `INSERT INTO tag (name) VALUES `
-	values := []interface{}{}
-
-	for _, t := range tags {
-		query += "(?),"
-		values = append(values, t.Name)
+	if len(tags) == 0 {
+		return nil
 	}
-	query = query[0 : len(query)-1]
+
+	// Create insert builder
+	ib := sqlbuilder.SQLite.NewInsertBuilder()
+	ib.InsertInto("tag")
+	ib.Cols("name")
+
+	// Add values for each tag
+	for _, tag := range tags {
+		ib.Values(tag.Name)
+	}
+
+	// Generate query and args
+	query, args := ib.Build()
 
 	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
 		stmt, err := tx.Preparex(query)
 		if err != nil {
-			return errors.Wrap(errors.WithStack(err), "error preparing query")
+			return fmt.Errorf("error preparing query: %w", err)
 		}
 
-		_, err = stmt.ExecContext(ctx, values...)
+		_, err = stmt.ExecContext(ctx, args...)
 		if err != nil {
-			return errors.Wrap(errors.WithStack(err), "error executing query")
+			return fmt.Errorf("error executing query: %w", err)
 		}
 
 		return nil
 	}); err != nil {
-		return errors.Wrap(errors.WithStack(err), "error running transaction")
+		return fmt.Errorf("error running transaction: %w", err)
 	}
 
 	return nil
