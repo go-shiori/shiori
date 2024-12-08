@@ -724,3 +724,11 @@ func (db *PGDatabase) RenameTag(ctx context.Context, id int, newName string) err
 
 	return nil
 }
+
+// DeleteTag removes tag with matching id from database.
+func (db *PGDatabase) DeleteTag(ctx context.Context, id model.DBID) error {
+	return db.withTx(ctx, func(tx *sqlx.Tx) error {
+		_, err := tx.ExecContext(ctx, `DELETE FROM tag WHERE id = $1`, id)
+		return errors.WithStack(err)
+	})
+}

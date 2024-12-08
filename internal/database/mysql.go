@@ -734,3 +734,11 @@ func (db *MySQLDatabase) RenameTag(ctx context.Context, id int, newName string) 
 
 	return errors.WithStack(err)
 }
+
+// DeleteTag removes tag with matching id from database.
+func (db *MySQLDatabase) DeleteTag(ctx context.Context, id model.DBID) error {
+	return db.withTx(ctx, func(tx *sqlx.Tx) error {
+		_, err := tx.ExecContext(ctx, `DELETE FROM tag WHERE id = ?`, id)
+		return errors.WithStack(err)
+	})
+}
