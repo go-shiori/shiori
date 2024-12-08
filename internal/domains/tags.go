@@ -39,12 +39,11 @@ func (d *TagsDomain) CreateTag(ctx context.Context, tag model.TagDTO) (model.Tag
 		return model.TagDTO{}, fmt.Errorf("error creating tag: %w", err)
 	}
 
-	// Since we can't get the created tag directly,
-	// return the input tag as is
+	// TODO: Since we can't get the created tag directly return the input tag as is for now
 	return tag, nil
 }
 
-func (d *TagsDomain) CreateTags(ctx context.Context, tags ...model.TagDTO) (model.TagDTO, error) {
+func (d *TagsDomain) CreateTags(ctx context.Context, tags ...model.TagDTO) ([]model.TagDTO, error) {
 	// Convert DTOs to Tags
 	modelTags := make([]model.Tag, len(tags))
 	for i, tag := range tags {
@@ -54,11 +53,10 @@ func (d *TagsDomain) CreateTags(ctx context.Context, tags ...model.TagDTO) (mode
 	// Create tags
 	err := d.deps.Database.CreateTags(ctx, modelTags...)
 	if err != nil {
-		return model.TagDTO{}, fmt.Errorf("error creating tags: %w", err)
+		return nil, fmt.Errorf("error creating tags: %w", err)
 	}
 
-	// Return the first tag as per interface definition
-	return tags[0], nil
+	return tags, nil
 }
 
 func (d *TagsDomain) UpdateTag(ctx context.Context, tag model.TagDTO) (model.TagDTO, error) {
