@@ -31,13 +31,6 @@ func TestFrontendRoutes(t *testing.T) {
 		require.Equal(t, 200, w.Code)
 	})
 
-	t.Run("/login", func(t *testing.T) {
-		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("GET", "/login", nil)
-		g.ServeHTTP(w, req)
-		require.Equal(t, 200, w.Code)
-	})
-
 	t.Run("/css/style.css", func(t *testing.T) {
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest("GET", "/assets/css/style.css", nil)

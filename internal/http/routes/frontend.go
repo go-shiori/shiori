@@ -48,12 +48,6 @@ type FrontendRoutes struct {
 
 func (r *FrontendRoutes) Setup(e *gin.Engine) {
 	group := e.Group("/")
-	group.GET("/login", func(ctx *gin.Context) {
-		ctx.HTML(http.StatusOK, "login.html", gin.H{
-			"RootPath": r.cfg.Http.RootPath,
-			"Version":  model.BuildVersion,
-		})
-	})
 	group.GET("/", func(ctx *gin.Context) {
 		ctx.HTML(http.StatusOK, "index.html", gin.H{
 			"RootPath": r.cfg.Http.RootPath,
