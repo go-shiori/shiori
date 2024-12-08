@@ -1,24 +1,34 @@
 const template = `
 <div id="login-scene">
-    <div id="login-content">
-        <div id="login-logo">
-            <img src="assets/res/logo.png" alt="logo">
-            <h1>Shiori</h1>
-        </div>
-        <p id="login-error" v-if="error">{{error}}</p>
-        <form id="login-form" @submit.prevent="login">
-            <input type="text" id="username" v-model="username" placeholder="Username" required>
-            <input type="password" id="password" v-model="password" placeholder="Password" required>
-            <label>
-                <input type="checkbox" v-model="remember">
-                Remember me for a month
-            </label>
-            <button type="submit" :disabled="loading">
-                <i class="fas fa-spin fa-spinner" v-if="loading"></i>
-                Log In
-            </button>
+    <p class="error-message" v-if="error !== ''">{{error}}</p>
+    <div id="login-box">
+        <form @submit.prevent="login">
+            <div id="logo-area">
+                <p id="logo">
+                    <span>栞</span>shiori
+                </p>
+                <p id="tagline">simple bookmark manager</p>
+            </div>
+            <div id="input-area">
+                <label for="username">Username: </label>
+                <input id="username" type="text" name="username" placeholder="Username" tabindex="1" autofocus />
+                <label for="password">Password: </label>
+                <input id="password" type="password" name="password" placeholder="Password" tabindex="2"
+                    @keyup.enter="login">
+                <label class="checkbox-field"><input type="checkbox" name="remember" v-model="remember"
+                        tabindex="3">Remember me</label>
+            </div>
+            <div id="button-area">
+                <a v-if="loading">
+                    <i class="fas fa-fw fa-spinner fa-spin"></i>
+                </a>
+                <a v-else class="button" tabindex="4" @click="login" @keyup.enter="login">Log In</a>
+            </div>
         </form>
     </div>
+    <footer class="login-footer">
+        <p>$$.Version$$</p>
+    </footer>
 </div>
 `;
 
