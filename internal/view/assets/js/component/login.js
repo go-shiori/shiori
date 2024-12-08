@@ -94,6 +94,11 @@ export default {
         localStorage.removeItem("shiori-token");
 
         // <input autofocus> wasn't working all the time, so I'm putting this here as a fallback
-        document.querySelector('#username').focus()
+        this.$nextTick(() => {
+            const usernameInput = document.querySelector('#username');
+            if (usernameInput) {
+                usernameInput.focus();
+            }
+        });
     }
 }
