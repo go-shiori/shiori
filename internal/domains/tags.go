@@ -34,13 +34,15 @@ func (d *TagsDomain) GetTags(ctx context.Context) ([]model.TagDTO, error) {
 
 func (d *TagsDomain) CreateTag(ctx context.Context, tag model.TagDTO) (model.TagDTO, error) {
 	// Create tag
-	err := d.deps.Database.CreateTags(ctx, tag.ToTag())
+	tags, err := d.deps.Database.CreateTags(ctx, tag.ToTag())
 	if err != nil {
 		return model.TagDTO{}, fmt.Errorf("error creating tag: %w", err)
 	}
 
-	// TODO: Since we can't get the created tag directly return the input tag as is for now
-	return tag, nil
+	if len(tags) > 0 {
+		return tags[0].ToDTO(), nil
+	}
+	return model.TagDTO{}, fmt.Errorf("no tag was created")
 }
 
 func (d *TagsDomain) CreateTags(ctx context.Context, tags ...model.TagDTO) ([]model.TagDTO, error) {
@@ -51,12 +53,17 @@ func (d *TagsDomain) CreateTags(ctx context.Context, tags ...model.TagDTO) ([]mo
 	}
 
 	// Create tags
-	err := d.deps.Database.CreateTags(ctx, modelTags...)
+	createdTags, err := d.deps.Database.CreateTags(ctx, modelTags...)
 	if err != nil {
 		return nil, fmt.Errorf("error creating tags: %w", err)
 	}
 
-	return tags, nil
+	// Convert created tags back to DTOs
+	tagDTOs := make([]model.TagDTO, len(createdTags))
+	for i, tag := range createdTags {
+		tagDTOs[i] = tag.ToDTO()
+	}
+	return tagDTOs, nil
 }
 
 func (d *TagsDomain) UpdateTag(ctx context.Context, tag model.TagDTO) (model.TagDTO, error) {

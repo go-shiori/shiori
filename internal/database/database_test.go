@@ -323,13 +323,13 @@ func testGetBookmarksCount(t *testing.T, db DB) {
 func testCreateTag(t *testing.T, db DB) {
 	ctx := context.TODO()
 	tag := model.Tag{Name: "shiori"}
-	err := db.CreateTags(ctx, tag)
+	_, err := db.CreateTags(ctx, tag)
 	assert.NoError(t, err, "Save tag must not fail")
 }
 
 func testCreateTags(t *testing.T, db DB) {
 	ctx := context.TODO()
-	err := db.CreateTags(ctx, model.Tag{Name: "shiori"}, model.Tag{Name: "shiori2"})
+	_, err := db.CreateTags(ctx, model.Tag{Name: "shiori"}, model.Tag{Name: "shiori2"})
 	assert.NoError(t, err, "Save tag must not fail")
 }
 
