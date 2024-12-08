@@ -50,7 +50,7 @@
         Vue.prototype.$bus = EventBus;
 
 		var app = new Vue({
-			el: '#main-scene',
+			el: '#app',
 			mixins: [basePage],
 			components: {
 				pageHome,
@@ -78,8 +78,8 @@
 						url = new Url;
 
                     if (page === 'page-home'  && this.activePage === 'page-home') {
-                    Vue.prototype.$bus.$emit('clearHomePage', {});
-                        }
+                        Vue.prototype.$bus.$emit('clearHomePage', {});
+                    }
 					url.hash = pageName;
 					this.activePage = page;
 					history.pushState(state, page, url);
@@ -139,7 +139,6 @@
 						MakePublic: MakePublic,
 					};
                     this.themeSwitch(Theme)
-
 				},
 				loadAccount() {
 					var account = JSON.parse(localStorage.getItem("shiori-account")) || {},
@@ -152,10 +151,7 @@
 						username: username,
 						owner: owner,
 					};
-				}
-			},
-			methods: {
-				// ... existing methods ...
+				},
 				
 				onLoginSuccess() {
 					this.loadSetting();
