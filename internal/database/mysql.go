@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/go-shiori/shiori/internal/model"
+	"github.com/huandu/go-sqlbuilder"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/bcrypt"
