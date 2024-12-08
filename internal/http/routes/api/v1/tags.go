@@ -32,8 +32,9 @@ func (r *TagsAPIRoutes) Setup(g *gin.RouterGroup) model.Routes {
 // @Failure					403	{object}	nil			"Token not provided/invalid"
 // @Router						/api/v1/tags [get]
 func (r *TagsAPIRoutes) listHandler(c *gin.Context) {
-	tags, err := r.deps.Database.GetTags(c)
+	tags, err := r.deps.Domains.Tags.GetTags(c)
 	if err != nil {
+		r.logger.WithError(err).Error("Failed to get tags")
 		response.SendInternalServerError(c)
 		return
 	}
@@ -56,19 +57,19 @@ func (r *TagsAPIRoutes) createHandler(c *gin.Context) {
 		return
 	}
 
-	var tag model.Tag
+	var tag model.TagDTO
 	if err := c.BindJSON(&tag); err != nil {
 		response.SendError(c, http.StatusBadRequest, nil)
 		return
 	}
 
-	err := r.deps.Database.CreateTags(c, tag)
+	createdTag, err := r.deps.Domains.Tags.CreateTag(c, tag)
 	if err != nil {
 		response.SendInternalServerError(c)
 		return
 	}
 
-	response.Send(c, http.StatusCreated, nil)
+	response.Send(c, http.StatusCreated, createdTag)
 }
 
 func NewTagsPIRoutes(logger *logrus.Logger, deps *dependencies.Dependencies) *TagsAPIRoutes {

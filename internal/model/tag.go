@@ -2,15 +2,17 @@ package model
 
 // Tag is the database representation of a tag object
 type Tag struct {
-	ID      int    `db:"id"          json:"id"`
-	Name    string `db:"name"        json:"name"`
-	Deleted bool   `db:"-"           json:"-"`
+	ID            int    `db:"id"`
+	Name          string `db:"name"`
+	Deleted       bool   `db:"-" `
+	BookmarkCount int    `db:"bookmark_count"`
 }
 
 func (t *Tag) ToDTO() TagDTO {
 	return TagDTO{
-		ID:   t.ID,
-		Name: t.Name,
+		ID:            t.ID,
+		Name:          t.Name,
+		BookmarkCount: t.BookmarkCount,
 	}
 }
 

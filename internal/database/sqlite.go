@@ -829,7 +829,7 @@ func (db *SQLiteDatabase) CreateTags(ctx context.Context, tags ...model.Tag) err
 // GetTags fetch list of tags and their frequency.
 func (db *SQLiteDatabase) GetTags(ctx context.Context) ([]model.Tag, error) {
 	tags := []model.Tag{}
-	query := `SELECT bt.tag_id id, t.name, COUNT(bt.tag_id) n_bookmarks
+	query := `SELECT bt.tag_id id, t.name, COUNT(bt.tag_id) bookmark_count
 		FROM bookmark_tag bt
 		LEFT JOIN tag t ON bt.tag_id = t.id
 		GROUP BY bt.tag_id ORDER BY t.name`
