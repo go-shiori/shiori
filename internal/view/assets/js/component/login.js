@@ -26,9 +26,6 @@ const template = `
             </div>
         </form>
     </div>
-    <footer class="login-footer">
-        <p>$$.Version$$</p>
-    </footer>
 </div>
 `;
 
