@@ -30,107 +30,123 @@ const template = `
 `;
 
 export default {
-    name: 'login-view',
-    template,
-    data() {
-        return {
-            error: "",
-            loading: false,
-            username: "",
-            password: "",
-            remember: false
-        }
-    },
-    emits: ['login-success'],
-    methods: {
-        async getErrorMessage(err) {
-            switch (err.constructor) {
-                case Error:
-                    return err.message;
-                case Response:
-                    var text = await err.text();
+	name: "login-view",
+	template,
+	data() {
+		return {
+			error: "",
+			loading: false,
+			username: "",
+			password: "",
+			remember: false,
+		};
+	},
+	emits: ["login-success"],
+	methods: {
+		async getErrorMessage(err) {
+			switch (err.constructor) {
+				case Error:
+					return err.message;
+				case Response:
+					var text = await err.text();
 
-                    // Handle new error messages
-                    if (text[0] == "{") {
-                        var json = JSON.parse(text);
-                        return json.message;
-                    }
-                    return `${text} (${err.status})`;
-                default:
-                    return err;
-            }
-        },
-        parseJWT(token) {
-            try {
-                return JSON.parse(atob(token.split('.')[1]));
-            } catch (e) {
-                return null;
-            }
-        },
-        login() {
-            // Get values directly from the form
-            const usernameInput = document.querySelector('#username');
-            const passwordInput = document.querySelector('#password');
-            this.username = usernameInput ? usernameInput.value : this.username;
-            this.password = passwordInput ? passwordInput.value : this.password;
-            
-            // Validate input
-            if (this.username === "") {
-                this.error = "Username must not empty";
-                return;
-            }
+					// Handle new error messages
+					if (text[0] == "{") {
+						var json = JSON.parse(text);
+						return json.message;
+					}
+					return `${text} (${err.status})`;
+				default:
+					return err;
+			}
+		},
+		parseJWT(token) {
+			try {
+				return JSON.parse(atob(token.split(".")[1]));
+			} catch (e) {
+				return null;
+			}
+		},
+		login() {
+			// Get values directly from the form
+			const usernameInput = document.querySelector("#username");
+			const passwordInput = document.querySelector("#password");
+			this.username = usernameInput ? usernameInput.value : this.username;
+			this.password = passwordInput ? passwordInput.value : this.password;
 
-            // Remove old cookie
-            document.cookie = `session-id=; Path=${new URL(document.baseURI).pathname}; Expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
+			// Validate input
+			if (this.username === "") {
+				this.error = "Username must not empty";
+				return;
+			}
 
-            // Send request
-            this.loading = true;
+			// Remove old cookie
+			document.cookie = `session-id=; Path=${
+				new URL(document.baseURI).pathname
+			}; Expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
 
-            fetch(new URL("api/v1/auth/login", document.baseURI), {
-                method: "post",
-                body: JSON.stringify({
-                    username: this.username,
-                    password: this.password,
-                    remember_me: this.remember == 1 ? true : false,
-                }),
-                headers: { "Content-Type": "application/json" },
-            }).then(response => {
-                if (!response.ok) throw response;
-                return response.json();
-            }).then(json => {
-                // Save session id
-                document.cookie = `session-id=${json.message.session}; Path=${new URL(document.baseURI).pathname}; Expires=${json.message.expires}`;
-                document.cookie = `token=${json.message.token}; Path=${new URL(document.baseURI).pathname}; Expires=${json.message.expires}`;
+			// Send request
+			this.loading = true;
 
-                // Save account data
-                localStorage.setItem("shiori-token", json.message.token);
-                localStorage.setItem("shiori-account", JSON.stringify(this.parseJWT(json.message.token).account));
+			fetch(new URL("api/v1/auth/login", document.baseURI), {
+				method: "post",
+				body: JSON.stringify({
+					username: this.username,
+					password: this.password,
+					remember_me: this.remember == 1 ? true : false,
+				}),
+				headers: { "Content-Type": "application/json" },
+			})
+				.then((response) => {
+					if (!response.ok) throw response;
+					return response.json();
+				})
+				.then((json) => {
+					// Save session id
+					document.cookie = `session-id=${json.message.session}; Path=${
+						new URL(document.baseURI).pathname
+					}; Expires=${json.message.expires}`;
+					document.cookie = `token=${json.message.token}; Path=${
+						new URL(document.baseURI).pathname
+					}; Expires=${json.message.expires}`;
 
-                this.visible = false;
-                this.$emit('login-success');
-            }).catch(err => {
-                this.loading = false;
-                this.getErrorMessage(err).then(msg => {
-                    this.error = msg;
-                })
-            });
-        }
-    },
-    mounted() {
-        // Clear any existing cookies
-        document.cookie = `session-id=; Path=${new URL(document.baseURI).pathname}; Expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
-        document.cookie = `token=; Path=${new URL(document.baseURI).pathname}; Expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
-        
-        // Clear local storage
-        localStorage.removeItem("shiori-account");
-        localStorage.removeItem("shiori-token");
+					// Save account data
+					localStorage.setItem("shiori-token", json.message.token);
+					localStorage.setItem(
+						"shiori-account",
+						JSON.stringify(this.parseJWT(json.message.token).account),
+					);
 
-        // <input autofocus> wasn't working all the time, so I'm putting this here as a fallback
-        this.$nextTick(() => {
-            const usernameInput = document.querySelector('#username');
-            if (usernameInput) {
-                usernameInput.focus();
-            }
-        });
-    }
-}
+					this.visible = false;
+					this.$emit("login-success");
+				})
+				.catch((err) => {
+					this.loading = false;
+					this.getErrorMessage(err).then((msg) => {
+						this.error = msg;
+					});
+				});
+		},
+	},
+	mounted() {
+		// Clear any existing cookies
+		document.cookie = `session-id=; Path=${
+			new URL(document.baseURI).pathname
+		}; Expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
+		document.cookie = `token=; Path=${
+			new URL(document.baseURI).pathname
+		}; Expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
+
+		// Clear local storage
+		localStorage.removeItem("shiori-account");
+		localStorage.removeItem("shiori-token");
+
+		// <input autofocus> wasn't working all the time, so I'm putting this here as a fallback
+		this.$nextTick(() => {
+			const usernameInput = document.querySelector("#username");
+			if (usernameInput) {
+				usernameInput.focus();
+			}
+		});
+	},
+};
