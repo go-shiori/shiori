@@ -21,6 +21,7 @@ theme:
     - toc.follow
     - search.suggest
     - search.highlight
+    - content.tabs.link
 
 nav:
   - Home: index.md
@@ -42,7 +43,7 @@ markdown_extensions:
   - pymdownx.details
   - pymdownx.superfences
   - pymdownx.tabbed:
-      alternate_style: true 
+      alternate_style: true
   - tables
   - toc:
       permalink: true
