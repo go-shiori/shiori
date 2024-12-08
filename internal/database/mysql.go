@@ -702,21 +702,17 @@ func (db *MySQLDatabase) CreateTags(ctx context.Context, tags ...model.Tag) ([]m
 		// Generate query and args
 		query, args := ib.Build()
 
-		// Execute the insert
-		result, err := tx.ExecContext(ctx, query, args...)
+		// Modify query to return inserted IDs
+		query = query + " RETURNING id, name"
+
+		// Prepare and execute the statement
+		stmt, err := tx.Preparex(query)
 		if err != nil {
-			return fmt.Errorf("error executing query: %w", err)
+			return fmt.Errorf("error preparing query: %w", err)
 		}
 
-		// Get the first inserted ID
-		firstID, err := result.LastInsertId()
-		if err != nil {
-			return fmt.Errorf("error getting last insert ID: %w", err)
-		}
-
-		// Fetch all created tags
-		query = "SELECT id, name FROM tag WHERE id >= ? AND id < ? + ?"
-		rows, err := tx.QueryxContext(ctx, query, firstID, firstID, len(tags))
+		// Execute and scan results
+		rows, err := stmt.QueryxContext(ctx, args...)
 		if err != nil {
 			return fmt.Errorf("error fetching created tags: %w", err)
 		}
