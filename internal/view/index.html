@@ -163,14 +163,44 @@
 					this.isLoggedIn = true;
 				},
 
-				checkLoginStatus() {
+				async validateSession() {
+					const token = localStorage.getItem("shiori-token");
+					if (!token) return false;
+
+					try {
+						const response = await fetch(new URL("api/v1/auth/check", document.baseURI), {
+							headers: {
+								"Authorization": `Bearer ${token}`
+							}
+						});
+						return response.ok;
+					} catch (err) {
+						return false;
+					}
+				},
+
+				async checkLoginStatus() {
 					const account = localStorage.getItem("shiori-account");
 					const token = localStorage.getItem("shiori-token");
-					this.isLoggedIn = !!(account && token);
+					
+					if (!(account && token)) {
+						this.isLoggedIn = false;
+						return;
+					}
+
+					const isValid = await this.validateSession();
+					if (!isValid) {
+						// Clear invalid session data
+						localStorage.removeItem("shiori-account");
+						localStorage.removeItem("shiori-token");
+						document.cookie = `session-id=; Path=${new URL(document.baseURI).pathname}; Expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
+					}
+					
+					this.isLoggedIn = isValid;
 				}
 			},
-			mounted() {
-				this.checkLoginStatus();
+			async mounted() {
+				await this.checkLoginStatus();
 				if (this.isLoggedIn) {
 					this.loadSetting();
 					this.loadAccount();

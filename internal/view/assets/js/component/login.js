@@ -85,7 +85,11 @@ export default {
         }
     },
     mounted() {
-        // Load setting
+        // Clear any existing cookies
+        document.cookie = `session-id=; Path=${new URL(document.baseURI).pathname}; Expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
+        document.cookie = `token=; Path=${new URL(document.baseURI).pathname}; Expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
+        
+        // Clear local storage
         localStorage.removeItem("shiori-account");
         localStorage.removeItem("shiori-token");
 
