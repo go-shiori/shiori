@@ -329,8 +329,73 @@ func testCreateTag(t *testing.T, db DB) {
 
 func testCreateTags(t *testing.T, db DB) {
 	ctx := context.TODO()
-	_, err := db.CreateTags(ctx, model.Tag{Name: "shiori"}, model.Tag{Name: "shiori2"})
-	assert.NoError(t, err, "Save tag must not fail")
+
+	t.Run("create multiple tags", func(t *testing.T) {
+		tags := []model.Tag{
+			{Name: "tag1"},
+			{Name: "tag2"},
+			{Name: "tag3"},
+		}
+
+		createdTags, err := db.CreateTags(ctx, tags...)
+		assert.NoError(t, err, "Creating tags must not fail")
+		assert.Len(t, createdTags, len(tags), "Should create all tags")
+
+		for i, tag := range createdTags {
+			assert.NotZero(t, tag.ID, "Created tag should have non-zero ID")
+			assert.Equal(t, tags[i].Name, tag.Name, "Created tag should have correct name")
+		}
+	})
+
+	t.Run("create empty tags slice", func(t *testing.T) {
+		createdTags, err := db.CreateTags(ctx)
+		assert.NoError(t, err, "Creating empty tags slice should not fail")
+		assert.Empty(t, createdTags, "Should return empty slice for empty input")
+	})
+
+	t.Run("create duplicate tags", func(t *testing.T) {
+		tag := model.Tag{Name: "duplicate"}
+		
+		// Create first tag
+		tags1, err := db.CreateTags(ctx, tag)
+		assert.NoError(t, err, "First tag creation should succeed")
+		assert.Len(t, tags1, 1)
+		
+		// Try to create duplicate
+		tags2, err := db.CreateTags(ctx, tag) 
+		assert.Error(t, err, "Duplicate tag creation should fail")
+	})
+}
+
+func testGetTags(t *testing.T, db DB) {
+	ctx := context.TODO()
+
+	t.Run("get tags from empty database", func(t *testing.T) {
+		tags, err := db.GetTags(ctx)
+		assert.NoError(t, err, "Getting tags should not fail")
+		assert.Empty(t, tags, "Should return empty slice when no tags exist")
+	})
+
+	t.Run("get existing tags", func(t *testing.T) {
+		// Create some test tags first
+		testTags := []model.Tag{
+			{Name: "test1"},
+			{Name: "test2"},
+		}
+		createdTags, err := db.CreateTags(ctx, testTags...)
+		assert.NoError(t, err, "Creating test tags should not fail")
+
+		// Get all tags
+		tags, err := db.GetTags(ctx)
+		assert.NoError(t, err, "Getting tags should not fail")
+		assert.Len(t, tags, len(testTags), "Should return all created tags")
+
+		// Verify returned tags
+		for _, tag := range tags {
+			assert.NotZero(t, tag.ID, "Tag should have non-zero ID")
+			assert.NotEmpty(t, tag.Name, "Tag should have non-empty name")
+		}
+	})
 }
 
 func testSaveAccount(t *testing.T, db DB) {
