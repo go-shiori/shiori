@@ -4,6 +4,8 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
+
+	"github.com/golang-jwt/jwt/v5"
 )
 
 // Account is the database model for account.
@@ -16,15 +18,15 @@ type Account struct {
 }
 
 type UserConfig struct {
-	ShowId        bool `json:"ShowId"`
-	ListMode      bool `json:"ListMode"`
-	HideThumbnail bool `json:"HideThumbnail"`
-	HideExcerpt   bool `json:"HideExcerpt"`
-	NightMode     bool `json:"NightMode"`
-	KeepMetadata  bool `json:"KeepMetadata"`
-	UseArchive    bool `json:"UseArchive"`
-	CreateEbook   bool `json:"CreateEbook"`
-	MakePublic    bool `json:"MakePublic"`
+	ShowId        bool   `json:"ShowId"`
+	ListMode      bool   `json:"ListMode"`
+	HideThumbnail bool   `json:"HideThumbnail"`
+	HideExcerpt   bool   `json:"HideExcerpt"`
+	Theme         string `json:"Theme"`
+	KeepMetadata  bool   `json:"KeepMetadata"`
+	UseArchive    bool   `json:"UseArchive"`
+	CreateEbook   bool   `json:"CreateEbook"`
+	MakePublic    bool   `json:"MakePublic"`
 }
 
 func (c *UserConfig) Scan(value interface{}) error {
@@ -60,4 +62,10 @@ type AccountDTO struct {
 	Username string     `json:"username"`
 	Owner    bool       `json:"owner"`
 	Config   UserConfig `json:"config"`
+}
+
+type JWTClaim struct {
+	jwt.RegisteredClaims
+
+	Account *Account
 }

@@ -82,14 +82,11 @@ func TestAccountsRoute(t *testing.T) {
 		router.Setup(g.Group("/"))
 
 		// Create an account manually to test
-		account := model.Account{
-			Username: "shiori",
-			Password: "gopher",
-			Owner:    true,
-		}
-		require.NoError(t, deps.Database.SaveAccount(ctx, account))
+		account := testutil.GetValidAccount()
+		account.Owner = true
+		require.NoError(t, deps.Database.SaveAccount(ctx, *account))
 
-		token, err := deps.Domains.Auth.CreateTokenForAccount(&account, time.Now().Add(time.Minute))
+		token, err := deps.Domains.Auth.CreateTokenForAccount(account, time.Now().Add(time.Minute))
 		require.NoError(t, err)
 
 		req := httptest.NewRequest("GET", "/me", nil)
@@ -175,9 +172,7 @@ func TestRefreshHandler(t *testing.T) {
 	})
 
 	t.Run("token valid", func(t *testing.T) {
-		token, err := deps.Domains.Auth.CreateTokenForAccount(&model.Account{
-			Username: "shiori",
-		}, time.Now().Add(time.Minute))
+		token, err := deps.Domains.Auth.CreateTokenForAccount(testutil.GetValidAccount(), time.Now().Add(time.Minute))
 		require.NoError(t, err)
 
 		w := testutil.PerformRequest(g, "POST", "/refresh", testutil.WithHeader(model.AuthorizationHeader, model.AuthorizationTokenType+" "+token))
@@ -186,7 +181,7 @@ func TestRefreshHandler(t *testing.T) {
 	})
 }
 
-func TestSettingsHandler(t *testing.T) {
+func TestUpdateHandler(t *testing.T) {
 	logger := logrus.New()
 	ctx := context.TODO()
 	g := testutil.NewGin()
@@ -196,10 +191,18 @@ func TestSettingsHandler(t *testing.T) {
 	g.Use(middleware.AuthMiddleware(deps))
 	router.Setup(g.Group("/"))
 
+	require.NoError(t, deps.Database.SaveAccount(ctx, model.Account{
+		Username: "shiori",
+		Password: "gopher",
+	}))
+
+	t.Run("invalid token", func(t *testing.T) {
+		w := testutil.PerformRequest(g, "PATCH", "/account")
+		require.Equal(t, http.StatusForbidden, w.Code)
+	})
+
 	t.Run("token valid", func(t *testing.T) {
-		token, err := deps.Domains.Auth.CreateTokenForAccount(&model.Account{
-			Username: "shiori",
-		}, time.Now().Add(time.Minute))
+		token, err := deps.Domains.Auth.CreateTokenForAccount(testutil.GetValidAccount(), time.Now().Add(time.Minute))
 		require.NoError(t, err)
 
 		type settingRequestPayload struct {
@@ -222,9 +225,7 @@ func TestSettingsHandler(t *testing.T) {
 	})
 
 	t.Run("config not valid", func(t *testing.T) {
-		token, err := deps.Domains.Auth.CreateTokenForAccount(&model.Account{
-			Username: "shiori",
-		}, time.Now().Add(time.Minute))
+		token, err := deps.Domains.Auth.CreateTokenForAccount(testutil.GetValidAccount(), time.Now().Add(time.Minute))
 		require.NoError(t, err)
 
 		w := testutil.PerformRequest(g, "PATCH", "/account", testutil.WithBody("notValidConfig"), testutil.WithHeader(model.AuthorizationHeader, model.AuthorizationTokenType+" "+token))
@@ -250,7 +251,7 @@ func TestSettingsHandler(t *testing.T) {
 				ListMode:      true,
 				HideThumbnail: true,
 				HideExcerpt:   true,
-				NightMode:     true,
+				Theme:         "follow",
 				KeepMetadata:  true,
 				UseArchive:    true,
 				CreateEbook:   true,
@@ -274,7 +275,7 @@ func TestSettingsHandler(t *testing.T) {
 			"ListMode": false,
 			"HideThumbnail": false,
 			"HideExcerpt": false,
-			"NightMode": false,
+			"Theme": "follow",
 			"KeepMetadata": false,
 			"UseArchive": false,
 			"CreateEbook": false,

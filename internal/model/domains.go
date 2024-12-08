@@ -25,6 +25,7 @@ type TagsDomain interface {
 }
 
 type AccountsDomain interface {
+	ParseToken(userJWT string) (*JWTClaim, error)
 	CheckToken(ctx context.Context, userJWT string) (*Account, error)
 	GetAccountFromCredentials(ctx context.Context, username, password string) (*Account, error)
 	CreateTokenForAccount(account *Account, expiration time.Time) (string, error)

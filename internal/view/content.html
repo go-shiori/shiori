@@ -16,16 +16,14 @@
 
 	<link href="assets/css/style.css" rel="stylesheet">
 
-	<script src="assets/js/dayjs.min.js"></script>
 	<script src="assets/js/vue.min.js"></script>
 </head>
 
-<body class="night">
-	<div id="content-scene" :class="{night: appOptions.NightMode}">
+<body>
+	<div id="content-scene">
 		<div id="header">
-			<p id="metadata" v-cloak>Added {{localtime()}}</p>
 			<p id="title" dir="auto">$$.Book.Title$$</p>
-			<div id="links">
+			<div class="links">
 				<a href="$$.Book.URL$$" target="_blank" rel="noopener noreferrer">View Original</a>
 				$$if .Book.HasArchive$$
 				<a href="bookmark/$$.Book.ID$$/archive">View Archive</a>
@@ -38,6 +36,9 @@
 		<div id="content" dir="auto" v-pre>
 			$$.HTML$$
 		</div>
+        <footer class="content-footer">
+            <p class="metadata">{{ createdModifiedTime() }} </p>
+        </footer>
 	</div>
 
 	<script type="module">
@@ -48,33 +49,38 @@
 			el: '#content-scene',
 			mixins: [basePage],
 			data: {
-				modified: "$$.Book.Modified$$"
+				created: "$$.Book.CreatedAt$$"
 			},
 			methods: {
-				localtime() {
-					var strTime = this.modified.replace(" ", "T");
-					if (!strTime.endsWith("Z")) {
-						strTime += "Z";
-					}
-					return dayjs(strTime).format("D MMMM YYYY, HH:mm:ss");
+				createdModifiedTime() {
+          const strCreatedTime = "$$.Book.CreatedAt$$".replace(" ", "T") + ("$$.Book.CreatedAt$$".endsWith("Z") ? "" : "Z");
+          const strModifiedTime = "$$.Book.ModifiedAt$$".replace(" ", "T") + ("$$.Book.ModifiedAt$$".endsWith("Z") ? "" : "Z");
+
+          const createdDate = new Date(strCreatedTime);
+          const modifiedDate = new Date(strModifiedTime);
+
+          if (createdDate.toDateString() === modifiedDate.toDateString()) {
+            return `Added ${createdDate.getDate()} ${createdDate.toLocaleString('default', { month: 'long' })} ${createdDate.getFullYear()}`;
+          } else {
+            return `Added ${createdDate.getDate()} ${createdDate.toLocaleString('default', { month: 'long' })}  ${createdDate.getFullYear()}  | Last Modified ${modifiedDate.getDate()} ${modifiedDate.toLocaleString('default', {month: 'long'})} ${modifiedDate.getFullYear()}`;
+        }
 				},
 				loadSetting() {
 					var opts = JSON.parse(localStorage.getItem("shiori-account")) || {},
 						ShowId = (typeof opts.config.ShowId === "boolean") ? opts.config.ShowId : false,
 						ListMode = (typeof opts.config.ListMode === "boolean") ? opts.config.ListMode : false,
-						NightMode = (typeof opts.config.NightMode === "boolean") ? opts.config.NightMode : false,
-						UseArchive = (typeof opts.config.UseArchive === "boolean") ? opts.config.UseArchive : false;
+						Theme = (typeof opts.config.Theme === "string" && opts.config.Theme !== "") ? opts.config.Theme : "follow",
+						UseArchive = (typeof opts.config.UseArchive === "boolean") ? opts.config.UseArchive : false,
 						CreateEbook = (typeof opts.config.CreateEbook === "boolean") ? opts.config.CreateEbook : false;
 
 					this.appOptions = {
 						ShowId: ShowId,
 						ListMode: ListMode,
-						NightMode: NightMode,
+						Theme: Theme,
 						UseArchive: UseArchive,
 						CreateEbook: CreateEbook,
 					};
-
-					document.body.className = NightMode ? "night" : "";
+                    this.themeSwitch(Theme)
 				}
 			},
 			mounted() {

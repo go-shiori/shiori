@@ -48,6 +48,7 @@ var template = `
             :excerpt="book.excerpt"
             :public="book.public"
             :imageURL="book.imageURL"
+            :modifiedAt="book.modifiedAt"
             :hasContent="book.hasContent"
             :hasArchive="book.hasArchive"
             :hasEbook="book.hasEbook"
@@ -90,6 +91,9 @@ import paginationBox from "../component/pagination.js";
 import bookmarkItem from "../component/bookmark.js";
 import customDialog from "../component/dialog.js";
 import basePage from "./base.js";
+import EventBus from "../component/eventBus.js";
+
+Vue.prototype.$bus = EventBus;
 
 export default {
 	template: template,
@@ -153,6 +157,10 @@ export default {
 		},
 	},
 	methods: {
+		clearHomePage() {
+			this.search = "";
+			this.searchBookmarks();
+		},
 		reloadData() {
 			if (this.loading) return;
 			this.page = 1;
@@ -403,7 +411,7 @@ export default {
 					},
 					{
 						name: "makePublic",
-						label: "Make archive publicly available",
+						label: "Make bookmark publicly available",
 						type: "check",
 						value: this.appOptions.MakePublic,
 					},
@@ -510,7 +518,7 @@ export default {
 					},
 					{
 						name: "makePublic",
-						label: "Make archive publicly available",
+						label: "Make bookmark publicly available",
 						type: "check",
 						value: book.public >= 1,
 					},
@@ -999,6 +1007,9 @@ export default {
 		},
 	},
 	mounted() {
+		this.$bus.$on("clearHomePage", () => {
+			this.clearHomePage();
+		});
 		// Prepare history state watcher
 		var stateWatcher = (e) => {
 			var state = e.state || {},

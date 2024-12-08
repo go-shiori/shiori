@@ -17,6 +17,10 @@ if [[ -d "dist/shiori_linux_amd64_v1" ]]; then
     cp -r dist/shiori_linux_amd64_v1 dist/shiori_linux_amd64
 fi
 
+if [[ -d "dist/shiori_linux_arm64_v8.0" ]]; then
+    cp -r dist/shiori_linux_arm64_v8.0 dist/shiori_linux_arm64
+fi
+
 $CONTAINER_RUNTIME buildx build \
     -f ${CONTAINERFILE_NAME} \
     --platform=${BUILDX_PLATFORMS} \

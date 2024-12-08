@@ -1,0 +1,49 @@
+:root {
+	--colorLink: #999;
+	--colorSidebar: #fff;
+	--errorColor: #f44336;
+	--main: #f44336;
+	--sidebarBg: #292929;
+	--sidebarHoverBg: #232323;
+	.light-colors();
+}
+
+.night-colors {
+	--bg: #1f1f1f;
+	--border: #191919;
+	--color: #fff;
+	--contentBg: #292929;
+	--headerBg: #292929;
+	--selectedBg: #261918;
+	--bgqoute: #1f1f1f5e;
+}
+
+.light-colors {
+	--bg: #eee;
+	--border: #e5e5e5;
+	--color: #232323;
+	--contentBg: #fff;
+	--headerBg: #fff;
+	--selectedBg: #ffe7e5;
+	--bgqoute: #eee;
+}
+
+body.dark {
+	.night-colors();
+}
+
+body.light {
+	.light-colors();
+}
+
+@media (prefers-color-scheme: dark) {
+	:root {
+		.night-colors();
+	}
+}
+
+@media (prefers-color-scheme: light) {
+	:root {
+		.light-colors();
+	}
+}

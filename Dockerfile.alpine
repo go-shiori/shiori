@@ -1,0 +1,23 @@
+ARG ALPINE_VERSION=3.19
+
+FROM docker.io/library/alpine:${ALPINE_VERSION}
+ARG TARGETARCH
+ARG TARGETOS
+ARG TARGETVARIANT
+COPY dist/shiori_${TARGETOS}_${TARGETARCH}${TARGETVARIANT}/shiori /usr/bin/shiori
+RUN apk add --no-cache ca-certificates tzdata && \
+    chmod +x /usr/bin/shiori && \
+    rm -rf /tmp/* && \
+    apk cache clean
+
+ENV PORT=8080
+ENV SHIORI_DIR=/shiori
+WORKDIR ${SHIORI_DIR}
+
+LABEL org.opencontainers.image.source="https://github.com/go-shiori/shiori"
+LABEL maintainer="Felipe Martin <github@fmartingr.com>"
+
+EXPOSE ${PORT}
+
+ENTRYPOINT ["/usr/bin/shiori"]
+CMD ["server"]

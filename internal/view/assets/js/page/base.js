@@ -16,7 +16,6 @@ export default {
 				return {
 					ShowId: false,
 					ListMode: false,
-					NightMode: false,
 					HideThumbnail: false,
 					HideExcerpt: false,
 					KeepMetadata: false,
@@ -93,6 +92,23 @@ export default {
 					return true;
 				default:
 					return false;
+			}
+		},
+		themeSwitch(theme) {
+			switch (theme) {
+				case "light":
+					document.body.classList.remove("dark");
+					document.body.classList.add("light");
+					break;
+				case "dark":
+					document.body.classList.remove("light");
+					document.body.classList.add("dark");
+					break;
+				case "follow":
+					document.body.classList.remove("light", "dark");
+					break;
+				default:
+					console.error("Invalid theme selected");
 			}
 		},
 		showErrorDialog(msg) {

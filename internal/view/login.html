@@ -21,7 +21,7 @@
 </head>
 
 <body>
-	<div id="login-scene" :class="{night: NightMode}">
+	<div id="login-scene">
 		<p class="error-message" v-if="error !== ''">{{error}}</p>
 		<div id="login-box">
 			<form @submit.prevent="login">
@@ -48,9 +48,9 @@
 				</div>
 			</form>
 		</div>
-		<div>
+		<footer class="login-footer">
 			<p>$$.Version$$</p>
-		</div>
+		</footer>
 	</div>
 
 	<script type="module">
@@ -62,7 +62,6 @@
 				username: "",
 				password: "",
 				remember: false,
-				NightMode: false,
 			},
 			methods: {
 				async getErrorMessage(err) {
@@ -148,16 +147,9 @@
 						})
 					});
 				},
-				loadSetting() {
-					var opts = JSON.parse(localStorage.getItem("shiori-account")) || {},
-						NightMode = (typeof opts.config.NightMode === "boolean") ? opts.configNightMode : false;
-
-					this.NightMode = NightMode;
-				}
 			},
 			mounted() {
 				// Load setting
-				this.loadSetting();
 				localStorage.removeItem("shiori-account");
 				localStorage.removeItem("shiori-token");
 

@@ -1,6 +1,5 @@
 # Build stage
-ARG ALPINE_VERSION
-ARG GOLANG_VERSION
+ARG ALPINE_VERSION=3.19
 
 FROM docker.io/library/alpine:${ALPINE_VERSION} AS builder
 ARG TARGETARCH
@@ -14,7 +13,7 @@ RUN apk add --no-cache ca-certificates tzdata && \
 # Server image
 FROM scratch
 
-ENV PORT 8080
+ENV PORT=8080
 ENV SHIORI_DIR=/shiori
 WORKDIR ${SHIORI_DIR}
 
