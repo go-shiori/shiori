@@ -854,6 +854,14 @@ func (db *SQLiteDatabase) RenameTag(ctx context.Context, id int, newName string)
 	return nil
 }
 
+// UpdateTag updates tag with matching id in database.
+func (db *SQLiteDatabase) UpdateTag(ctx context.Context, tag model.Tag) error {
+	return db.withTx(ctx, func(tx *sqlx.Tx) error {
+		_, err := tx.ExecContext(ctx, `UPDATE tag SET name = ? WHERE id = ?`, tag.Name, tag.ID)
+		return errors.WithStack(err)
+	})
+}
+
 // DeleteTag removes tag with matching id from database.
 func (db *SQLiteDatabase) DeleteTag(ctx context.Context, id model.DBID) error {
 	return db.withTx(ctx, func(tx *sqlx.Tx) error {

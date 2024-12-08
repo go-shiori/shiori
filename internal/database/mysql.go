@@ -735,6 +735,14 @@ func (db *MySQLDatabase) RenameTag(ctx context.Context, id int, newName string) 
 	return errors.WithStack(err)
 }
 
+// UpdateTag updates tag with matching id in database.
+func (db *MySQLDatabase) UpdateTag(ctx context.Context, tag model.Tag) error {
+	return db.withTx(ctx, func(tx *sqlx.Tx) error {
+		_, err := tx.ExecContext(ctx, `UPDATE tag SET name = ? WHERE id = ?`, tag.Name, tag.ID)
+		return errors.WithStack(err)
+	})
+}
+
 // DeleteTag removes tag with matching id from database.
 func (db *MySQLDatabase) DeleteTag(ctx context.Context, id model.DBID) error {
 	return db.withTx(ctx, func(tx *sqlx.Tx) error {
