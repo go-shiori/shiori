@@ -6,8 +6,7 @@ export default {
             loading: false,
             username: "",
             password: "",
-            remember: false,
-            visible: true
+            remember: false
         }
     },
     emits: ['login-success'],
