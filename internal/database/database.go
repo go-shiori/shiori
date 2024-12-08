@@ -120,9 +120,6 @@ type DB interface {
 
 	// RenameTag change the name of a tag.
 	RenameTag(ctx context.Context, id int, newName string) error
-
-	// DeleteTag removes tag with matching id from database.
-	DeleteTag(ctx context.Context, id model.DBID) error
 }
 
 type dbbase struct {
