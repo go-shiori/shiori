@@ -1,5 +1,30 @@
+const template = `
+<div id="login-scene">
+    <div id="login-content">
+        <div id="login-logo">
+            <img src="assets/res/logo.png" alt="logo">
+            <h1>Shiori</h1>
+        </div>
+        <p id="login-error" v-if="error">{{error}}</p>
+        <form id="login-form" @submit.prevent="login">
+            <input type="text" id="username" v-model="username" placeholder="Username" required>
+            <input type="password" id="password" v-model="password" placeholder="Password" required>
+            <label>
+                <input type="checkbox" v-model="remember">
+                Remember me for a month
+            </label>
+            <button type="submit" :disabled="loading">
+                <i class="fas fa-spin fa-spinner" v-if="loading"></i>
+                Log In
+            </button>
+        </form>
+    </div>
+</div>
+`;
+
 export default {
     name: 'login-view',
+    template,
     data() {
         return {
             error: "",
