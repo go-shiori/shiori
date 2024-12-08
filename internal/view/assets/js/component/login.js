@@ -71,10 +71,11 @@ export default {
             }
         },
         login() {
-            // needed to work around autofill issue
-            // https://github.com/facebook/react/issues/1159#issuecomment-506584346
-            this.username = document.querySelector('#username').value;
-            this.password = document.querySelector('#password').value;
+            // Get values directly from the form
+            const usernameInput = document.querySelector('#username');
+            const passwordInput = document.querySelector('#password');
+            this.username = usernameInput ? usernameInput.value : this.username;
+            this.password = passwordInput ? passwordInput.value : this.password;
             
             // Validate input
             if (this.username === "") {
