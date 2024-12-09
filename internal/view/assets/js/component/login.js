@@ -133,7 +133,7 @@ export default {
 		const token = localStorage.getItem("shiori-token");
 		if (token) {
 			try {
-				const response = await fetch(new URL("api/v1/auth/check", document.baseURI), {
+				const response = await fetch(new URL("api/v1/auth/me", document.baseURI), {
 					headers: {
 						"Authorization": `Bearer ${token}`
 					}
