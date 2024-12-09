@@ -128,8 +128,28 @@ export default {
 				});
 		},
 	},
-	mounted() {
-		// Clear any existing cookies
+	async mounted() {
+		// Check if there's a valid session first
+		const token = localStorage.getItem("shiori-token");
+		if (token) {
+			try {
+				const response = await fetch(new URL("api/v1/auth/check", document.baseURI), {
+					headers: {
+						"Authorization": `Bearer ${token}`
+					}
+				});
+				
+				if (response.ok) {
+					// Valid session exists, emit login success
+					this.$emit("login-success");
+					return;
+				}
+			} catch (err) {
+				// Continue with login form if check fails
+			}
+		}
+
+		// Clear session data if we reach here
 		document.cookie = `session-id=; Path=${
 			new URL(document.baseURI).pathname
 		}; Expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
@@ -137,11 +157,10 @@ export default {
 			new URL(document.baseURI).pathname
 		}; Expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
 
-		// Clear local storage
 		localStorage.removeItem("shiori-account");
 		localStorage.removeItem("shiori-token");
 
-		// <input autofocus> wasn't working all the time, so I'm putting this here as a fallback
+		// Focus username input
 		this.$nextTick(() => {
 			const usernameInput = document.querySelector("#username");
 			if (usernameInput) {
