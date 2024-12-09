@@ -104,6 +104,7 @@
 								document.cookie = `session-id=; Path=${new URL(document.baseURI).pathname}; Expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
 								document.cookie = `token=; Path=${new URL(document.baseURI).pathname}; Expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
 								this.isLoggedIn = false;
+								this.loginRequired = true;
 							}).catch(err => {
 								this.dialog.loading = false;
 								this.getErrorMessage(err).then(msg => {
