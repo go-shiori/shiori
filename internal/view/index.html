@@ -22,7 +22,7 @@
 
 <body>
 	<div id="app">
-		<login-view v-if="isLoggedIn === false" @login-success="onLoginSuccess"></login-view>
+		<login-view v-if="isLoggedIn === false && loginRequired" @login-success="onLoginSuccess"></login-view>
 		<div id="main-scene" v-else-if="isLoggedIn === true">
 		<div id="main-sidebar">
 			<a v-for="item in sidebarItems" :title="item.title" :class="{active: activePage === item.page}" @click="switchPage(item.page)">
@@ -59,7 +59,8 @@
 				'login-view': LoginComponent
 			},
 			data: {
-				isLoggedIn: false,
+				isLoggedIn: null,
+				loginRequired: false,
 				activePage: "page-home",
 				sidebarItems: [{
 					title: "Home",
@@ -103,6 +104,7 @@
 								document.cookie = `session-id=; Path=${new URL(document.baseURI).pathname}; Expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
 								document.cookie = `token=; Path=${new URL(document.baseURI).pathname}; Expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
 								this.isLoggedIn = false;
+								this.loginRequired = true;
 							}).catch(err => {
 								this.dialog.loading = false;
 								this.getErrorMessage(err).then(msg => {
@@ -169,7 +171,7 @@
 					}
 
 					try {
-						const response = await fetch(new URL("api/v1/auth/check", document.baseURI), {
+						const response = await fetch(new URL("api/v1/auth/me", document.baseURI), {
 							headers: {
 								"Authorization": `Bearer ${token}`
 							}
@@ -197,6 +199,8 @@
 					if (isValid) {
 						this.loadSetting();
 						this.loadAccount();
+					} else {
+						this.loginRequired = true;
 					}
 				}
 			},
