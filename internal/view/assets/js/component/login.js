@@ -133,12 +133,15 @@ export default {
 		const token = localStorage.getItem("shiori-token");
 		if (token) {
 			try {
-				const response = await fetch(new URL("api/v1/auth/me", document.baseURI), {
-					headers: {
-						"Authorization": `Bearer ${token}`
-					}
-				});
-				
+				const response = await fetch(
+					new URL("api/v1/auth/me", document.baseURI),
+					{
+						headers: {
+							Authorization: `Bearer ${token}`,
+						},
+					},
+				);
+
 				if (response.ok) {
 					// Valid session exists, emit login success
 					this.$emit("login-success");
