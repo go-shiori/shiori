@@ -20,6 +20,5 @@ func OpenSQLiteDatabase(ctx context.Context, databasePath string) (sqliteDB *SQL
 		return nil, errors.WithStack(err)
 	}
 
-	sqliteDB = &SQLiteDatabase{dbbase: dbbase{db}}
-	return sqliteDB, nil
+	return sqliteDatabaseFromDB(db), nil
 }
