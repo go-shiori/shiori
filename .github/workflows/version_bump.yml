@@ -44,3 +44,6 @@ jobs:
     with:
       tag_prefix: alpine-
       dockerfile: Dockerfile.alpine
+  call-mkdocs-publish:
+    needs: [call-buildx, call-buildx-alpine]
+    uses: ./.github/workflows/_mkdocs-publish.yml
