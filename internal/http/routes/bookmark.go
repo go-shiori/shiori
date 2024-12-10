@@ -185,6 +185,34 @@ func (r *BookmarkRoutes) bookmarkThumbnailHandler(c *gin.Context) {
 	response.SendFile(c, r.deps.Domains.Storage, model.GetThumbnailPath(bookmark), options)
 }
 
+func (r *BookmarkRoutes) bookmarkThumbnailHeadHandler(c *gin.Context) {
+	ctx := context.NewContextFromGin(c)
+
+	bookmark, err := r.getBookmark(ctx)
+	if err != nil {
+		return
+	}
+
+	if !r.deps.Domains.Bookmarks.HasThumbnail(bookmark) {
+		response.NotFound(c)
+		return
+	}
+
+	etag := fmt.Sprintf("w/thumb-%d-%s", bookmark.ID, bookmark.ModifiedAt)
+
+	// Check if the client's ETag matches the current ETag
+	if c.GetHeader("If-None-Match") == etag {
+		c.Status(http.StatusNotModified)
+		return
+	}
+
+	// Set headers but don't send body for HEAD request
+	c.Header("Cache-Control", "max-age=86400")
+	c.Header("Last-Modified", bookmark.ModifiedAt)
+	c.Header("ETag", etag)
+	c.Status(http.StatusOK)
+}
+
 func (r *BookmarkRoutes) bookmarkEbookHandler(c *gin.Context) {
 	ctx := context.NewContextFromGin(c)
 
