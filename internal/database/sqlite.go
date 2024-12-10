@@ -69,6 +69,39 @@ type SQLiteDatabase struct {
 	dbbase
 }
 
+// InitializeSQLite sets up the SQLite database with optimal settings
+func (db *SQLiteDatabase) InitializeSQLite() error {
+	// Set connection pool settings
+	db.SetMaxOpenConns(1)  // SQLite works best with a single connection
+	db.SetMaxIdleConns(1)
+	db.SetConnMaxLifetime(time.Hour)
+
+	// Enable WAL mode for better concurrency
+	if _, err := db.Exec(`PRAGMA journal_mode=WAL`); err != nil {
+		return errors.WithStack(err)
+	}
+
+	// Set busy timeout to avoid "database is locked" errors
+	if _, err := db.Exec(`PRAGMA busy_timeout=5000`); err != nil {
+		return errors.WithStack(err)
+	}
+
+	// Other performance and reliability settings
+	pragmas := []string{
+		`PRAGMA synchronous=NORMAL`,
+		`PRAGMA cache_size=-2000`, // Use 2MB of memory for cache
+		`PRAGMA foreign_keys=ON`,
+	}
+
+	for _, pragma := range pragmas {
+		if _, err := db.Exec(pragma); err != nil {
+			return errors.WithStack(err)
+		}
+	}
+
+	return nil
+}
+
 type bookmarkContent struct {
 	ID      int    `db:"docid"`
 	Content string `db:"content"`
@@ -87,6 +120,10 @@ func (db *SQLiteDatabase) DBx() *sqlx.DB {
 
 // Migrate runs migrations for this database engine
 func (db *SQLiteDatabase) Migrate(ctx context.Context) error {
+	if err := db.InitializeSQLite(); err != nil {
+		return errors.WithStack(err)
+	}
+
 	if err := runMigrations(ctx, db, sqliteMigrations); err != nil {
 		return errors.WithStack(err)
 	}
