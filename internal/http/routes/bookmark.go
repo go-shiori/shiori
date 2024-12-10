@@ -180,7 +180,7 @@ func (r *BookmarkRoutes) bookmarkThumbnailHandler(c *gin.Context) {
 	options := &response.SendFileOptions{
 		Headers: []http.Header{
 			{"Allow": []string{"GET", "HEAD"}},
-			{"Cache-Control": {"max-age=1209600"}},
+			{"Cache-Control": {fmt.Sprintf("max-age=%d", defaultMaxAge)}},
 			{"Last-Modified": {bookmark.ModifiedAt}},
 			{"ETag": {etag}},
 		},
@@ -213,7 +213,7 @@ func (r *BookmarkRoutes) bookmarkThumbnailHeadHandler(c *gin.Context) {
 	}
 
 	// Set headers but don't send body for HEAD request
-	c.Header("Cache-Control", "max-age=1209600")
+	c.Header("Cache-Control", fmt.Sprintf("max-age=%d", defaultMaxAge))
 	c.Header("Last-Modified", bookmark.ModifiedAt)
 	c.Header("ETag", etag)
 	c.Status(http.StatusOK)
