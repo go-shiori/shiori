@@ -75,15 +75,11 @@ func (db *SQLiteDatabase) withTx(ctx context.Context, fn func(tx *sqlx.Tx) error
 		return errors.WithStack(err)
 	}
 
-	defer func() {
-		if p := recover(); p != nil {
-			_ = tx.Rollback()
-			panic(p)
-		}
-	}()
 
-	if err := fn(tx); err != nil {
-		if rbErr := tx.Rollback(); rbErr != nil {
+	err = fn(tx)
+	if err != nil {
+		rbErr := tx.Rollback()
+		if rbErr != nil {
 			return errors.WithStack(fmt.Errorf("error rolling back: %v (original error: %w)", rbErr, err))
 		}
 		return errors.WithStack(err)
