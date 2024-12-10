@@ -95,6 +95,11 @@ func (db *MySQLDatabase) DBx() *sqlx.DB {
 	return db.DB
 }
 
+// Init initializes the database
+func (db *MySQLDatabase) Init(ctx context.Context) error {
+	return nil
+}
+
 // Migrate runs migrations for this database engine
 func (db *MySQLDatabase) Migrate(ctx context.Context) error {
 	if err := runMigrations(ctx, db, mysqlMigrations); err != nil {

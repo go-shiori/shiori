@@ -95,20 +95,20 @@ func (db *SQLiteDatabase) withTxRetry(ctx context.Context, fn func(tx *sqlx.Tx) 
 	return errors.WithStack(lastErr)
 }
 
-// InitializeSQLite sets up the SQLite database with optimal settings
-func (db *SQLiteDatabase) InitializeSQLite() error {
+// Init sets up the SQLite database with optimal settings
+func (db *SQLiteDatabase) Init(ctx context.Context) error {
 	// Set connection pool settings
-	db.SetMaxOpenConns(1)  // SQLite works best with a single connection
+	db.SetMaxOpenConns(1) // SQLite works best with a single connection
 	db.SetMaxIdleConns(1)
 	db.SetConnMaxLifetime(time.Hour)
 
 	// Enable WAL mode for better concurrency
-	if _, err := db.Exec(`PRAGMA journal_mode=WAL`); err != nil {
+	if _, err := db.ExecContext(ctx, `PRAGMA journal_mode=WAL`); err != nil {
 		return errors.WithStack(err)
 	}
 
 	// Set busy timeout to avoid "database is locked" errors
-	if _, err := db.Exec(`PRAGMA busy_timeout=5000`); err != nil {
+	if _, err := db.ExecContext(ctx, `PRAGMA busy_timeout=5000`); err != nil {
 		return errors.WithStack(err)
 	}
 
@@ -120,7 +120,7 @@ func (db *SQLiteDatabase) InitializeSQLite() error {
 	}
 
 	for _, pragma := range pragmas {
-		if _, err := db.Exec(pragma); err != nil {
+		if _, err := db.ExecContext(ctx, pragma); err != nil {
 			return errors.WithStack(err)
 		}
 	}
@@ -146,7 +146,7 @@ func (db *SQLiteDatabase) DBx() *sqlx.DB {
 
 // Migrate runs migrations for this database engine
 func (db *SQLiteDatabase) Migrate(ctx context.Context) error {
-	if err := db.InitializeSQLite(); err != nil {
+	if err := db.Init(ctx); err != nil {
 		return errors.WithStack(err)
 	}
 
