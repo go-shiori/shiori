@@ -120,33 +120,36 @@ func (db *SQLiteDatabase) withTxRetry(ctx context.Context, fn func(tx *sqlx.Tx) 
 	return fmt.Errorf("transaction failed after max retries, last error: %w", lastErr)
 }
 
-// Init sets up the SQLite database with optimal settings
+// Init sets up the SQLite database with optimal settings for both reader and writer connections
 func (db *SQLiteDatabase) Init(ctx context.Context) error {
-	// Set connection pool settings
-	db.SetMaxOpenConns(1) // SQLite works best with a single connection
-	db.SetMaxIdleConns(1)
-	db.SetConnMaxLifetime(time.Hour)
+	// Initialize both connections with appropriate settings
+	for _, conn := range []*dbbase{db.writer, db.reader} {
+		// Set connection pool settings
+		conn.SetMaxOpenConns(1) // SQLite works best with a single connection
+		conn.SetMaxIdleConns(1)
+		conn.SetConnMaxLifetime(time.Hour)
 
-	// Enable WAL mode for better concurrency
-	if _, err := db.ExecContext(ctx, `PRAGMA journal_mode=WAL`); err != nil {
-		return errors.WithStack(err)
-	}
-
-	// Set busy timeout to avoid "database is locked" errors
-	if _, err := db.ExecContext(ctx, `PRAGMA busy_timeout=5000`); err != nil {
-		return errors.WithStack(err)
-	}
-
-	// Other performance and reliability settings
-	pragmas := []string{
-		`PRAGMA synchronous=NORMAL`,
-		`PRAGMA cache_size=-2000`, // Use 2MB of memory for cache
-		`PRAGMA foreign_keys=ON`,
-	}
-
-	for _, pragma := range pragmas {
-		if _, err := db.ExecContext(ctx, pragma); err != nil {
+		// Enable WAL mode for better concurrency
+		if _, err := conn.ExecContext(ctx, `PRAGMA journal_mode=WAL`); err != nil {
 			return errors.WithStack(err)
+		}
+
+		// Set busy timeout to avoid "database is locked" errors
+		if _, err := conn.ExecContext(ctx, `PRAGMA busy_timeout=5000`); err != nil {
+			return errors.WithStack(err)
+		}
+
+		// Other performance and reliability settings
+		pragmas := []string{
+			`PRAGMA synchronous=NORMAL`,
+			`PRAGMA cache_size=-2000`, // Use 2MB of memory for cache
+			`PRAGMA foreign_keys=ON`,
+		}
+
+		for _, pragma := range pragmas {
+			if _, err := conn.ExecContext(ctx, pragma); err != nil {
+				return errors.WithStack(err)
+			}
 		}
 	}
 
