@@ -72,21 +72,20 @@ type SQLiteDatabase struct {
 func (db *SQLiteDatabase) withTx(ctx context.Context, fn func(tx *sqlx.Tx) error) error {
 	tx, err := db.BeginTxx(ctx, nil)
 	if err != nil {
-		return errors.WithStack(err)
+		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
-
 
 	err = fn(tx)
 	if err != nil {
 		rbErr := tx.Rollback()
 		if rbErr != nil {
-			return errors.WithStack(fmt.Errorf("error rolling back: %v (original error: %w)", rbErr, err))
+			return fmt.Errorf("error rolling back: %v (original error: %w)", rbErr, err)
 		}
-		return errors.WithStack(err)
+		return fmt.Errorf("transaction failed: %w", err)
 	}
 
 	if err := tx.Commit(); err != nil {
-		return errors.WithStack(err)
+		return fmt.Errorf("failed to commit transaction: %w", err)
 	}
 
 	return nil
@@ -108,10 +107,10 @@ func (db *SQLiteDatabase) withTxRetry(ctx context.Context, fn func(tx *sqlx.Tx) 
 			continue
 		}
 
-		return errors.WithStack(err)
+		return fmt.Errorf("transaction failed after retry: %w", err)
 	}
 
-	return errors.WithStack(lastErr)
+	return fmt.Errorf("transaction failed after max retries, last error: %w", lastErr)
 }
 
 // Init sets up the SQLite database with optimal settings
