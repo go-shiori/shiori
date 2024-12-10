@@ -69,6 +69,9 @@ type SQLiteDatabase struct {
 	dbbase
 }
 
+// withTx executes the given function within a transaction.
+// If the function returns an error, the transaction is rolled back.
+// Otherwise, the transaction is committed.
 func (db *SQLiteDatabase) withTx(ctx context.Context, fn func(tx *sqlx.Tx) error) error {
 	tx, err := db.BeginTxx(ctx, nil)
 	if err != nil {
@@ -91,6 +94,9 @@ func (db *SQLiteDatabase) withTx(ctx context.Context, fn func(tx *sqlx.Tx) error
 	return nil
 }
 
+// withTxRetry executes the given function within a transaction with retry logic.
+// It will retry up to 3 times if the database is locked, with exponential backoff.
+// For other errors, it returns immediately.
 func (db *SQLiteDatabase) withTxRetry(ctx context.Context, fn func(tx *sqlx.Tx) error) error {
 	maxRetries := 3
 	var lastErr error
