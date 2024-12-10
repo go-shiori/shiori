@@ -70,7 +70,30 @@ type SQLiteDatabase struct {
 }
 
 func (db *SQLiteDatabase) withTx(ctx context.Context, fn func(tx *sqlx.Tx) error) error {
-	return db.withTxRetry(ctx, fn)
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	defer func() {
+		if p := recover(); p != nil {
+			_ = tx.Rollback()
+			panic(p)
+		}
+	}()
+
+	if err := fn(tx); err != nil {
+		if rbErr := tx.Rollback(); rbErr != nil {
+			return errors.WithStack(fmt.Errorf("error rolling back: %v (original error: %w)", rbErr, err))
+		}
+		return errors.WithStack(err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return errors.WithStack(err)
+	}
+
+	return nil
 }
 
 func (db *SQLiteDatabase) withTxRetry(ctx context.Context, fn func(tx *sqlx.Tx) error) error {
@@ -78,7 +101,7 @@ func (db *SQLiteDatabase) withTxRetry(ctx context.Context, fn func(tx *sqlx.Tx) 
 	var lastErr error
 
 	for i := 0; i < maxRetries; i++ {
-		err := db.dbbase.withTx(ctx, fn)
+		err := db.withTx(ctx, fn)
 		if err == nil {
 			return nil
 		}
