@@ -35,7 +35,7 @@ func (r *BookmarkRoutes) Setup(group *gin.RouterGroup) model.Routes {
 	group.GET("/:id/archive/file/*filepath", r.bookmarkArchiveFileHandler)
 	group.GET("/:id/content", r.bookmarkContentHandler)
 	group.GET("/:id/thumb", r.bookmarkThumbnailHandler)
-	group.HEAD("/:id/thumb", r.bookmarkThumbnailHeadHandler)
+	group.HEAD("/:id/thumb", r.bookmarkThumbnailHandler)
 	group.GET("/:id/ebook", r.bookmarkEbookHandler)
 
 	return r
@@ -177,46 +177,29 @@ func (r *BookmarkRoutes) bookmarkThumbnailHandler(c *gin.Context) {
 		return
 	}
 
+	headers := []http.Header{
+		{"Allow": []string{"GET", "HEAD"}},
+		{"Cache-Control": {fmt.Sprintf("max-age=%d", defaultMaxAge)}},
+		{"Last-Modified": {bookmark.ModifiedAt}},
+		{"ETag": {etag}},
+	}
+
+	// For HEAD requests, only send headers
+	if c.Request.Method == http.MethodHead {
+		for _, header := range headers {
+			for key, values := range header {
+				c.Header(key, values[0])
+			}
+		}
+		c.Status(http.StatusOK)
+		return
+	}
+
+	// For GET requests, send the full file
 	options := &response.SendFileOptions{
-		Headers: []http.Header{
-			{"Allow": []string{"GET", "HEAD"}},
-			{"Cache-Control": {fmt.Sprintf("max-age=%d", defaultMaxAge)}},
-			{"Last-Modified": {bookmark.ModifiedAt}},
-			{"ETag": {etag}},
-		},
+		Headers: headers,
 	}
-
 	response.SendFile(c, r.deps.Domains.Storage, model.GetThumbnailPath(bookmark), options)
-}
-
-func (r *BookmarkRoutes) bookmarkThumbnailHeadHandler(c *gin.Context) {
-	ctx := context.NewContextFromGin(c)
-
-	bookmark, err := r.getBookmark(ctx)
-	if err != nil {
-		r.logger.WithError(err).Error("error getting bookmark")
-		response.SendInternalServerError(c)
-		return
-	}
-
-	if !r.deps.Domains.Bookmarks.HasThumbnail(bookmark) {
-		response.NotFound(c)
-		return
-	}
-
-	etag := fmt.Sprintf("w/thumb-%d-%s", bookmark.ID, bookmark.ModifiedAt)
-
-	// Check if the client's ETag matches the current ETag
-	if c.GetHeader("If-None-Match") == etag {
-		c.Status(http.StatusNotModified)
-		return
-	}
-
-	// Set headers but don't send body for HEAD request
-	c.Header("Cache-Control", fmt.Sprintf("max-age=%d", defaultMaxAge))
-	c.Header("Last-Modified", bookmark.ModifiedAt)
-	c.Header("ETag", etag)
-	c.Status(http.StatusOK)
 }
 
 func (r *BookmarkRoutes) bookmarkEbookHandler(c *gin.Context) {
