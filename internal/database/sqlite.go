@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"runtime"
 	"strings"
 	"time"
 
@@ -124,9 +125,7 @@ func (db *SQLiteDatabase) withTxRetry(ctx context.Context, fn func(tx *sqlx.Tx) 
 func (db *SQLiteDatabase) Init(ctx context.Context) error {
 	// Initialize both connections with appropriate settings
 	for _, conn := range []*dbbase{db.writer, db.reader} {
-		// Set connection pool settings
-		conn.SetMaxOpenConns(1) // SQLite works best with a single connection
-		conn.SetMaxIdleConns(1)
+		// Reuse connections for up to one hour
 		conn.SetConnMaxLifetime(time.Hour)
 
 		// Enable WAL mode for better concurrency
@@ -153,6 +152,12 @@ func (db *SQLiteDatabase) Init(ctx context.Context) error {
 		}
 	}
 
+	// Use a single connection on the writer to avoid database is locked errors
+	db.writer.SetMaxOpenConns(1)
+
+	// Set maximum idle connections for the reader to number of CPUs (maxing at 4)
+	db.reader.SetMaxIdleConns(max(4, runtime.NumCPU()))
+
 	return nil
 }
 
@@ -167,17 +172,18 @@ type tagContent struct {
 	model.Tag
 }
 
-// DBX returns the underlying sqlx.DB object
+// DBX returns the underlying sqlx.DB object for writes
 func (db *SQLiteDatabase) DBx() *sqlx.DB {
-	return db.DB
+	return db.writer.DB
+}
+
+// ReaderDBx returns the underlying sqlx.DB object for reading
+func (db *SQLiteDatabase) ReaderDBx() *sqlx.DB {
+	return db.reader.DB
 }
 
 // Migrate runs migrations for this database engine
 func (db *SQLiteDatabase) Migrate(ctx context.Context) error {
-	if err := db.Init(ctx); err != nil {
-		return errors.WithStack(err)
-	}
-
 	if err := runMigrations(ctx, db, sqliteMigrations); err != nil {
 		return errors.WithStack(err)
 	}
@@ -189,7 +195,7 @@ func (db *SQLiteDatabase) Migrate(ctx context.Context) error {
 func (db *SQLiteDatabase) GetDatabaseSchemaVersion(ctx context.Context) (string, error) {
 	var version string
 
-	err := db.GetContext(ctx, &version, "SELECT database_schema_version FROM shiori_system")
+	err := db.reader.GetContext(ctx, &version, "SELECT database_schema_version FROM shiori_system")
 	if err != nil {
 		return "", errors.WithStack(err)
 	}
