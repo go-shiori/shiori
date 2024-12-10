@@ -16,6 +16,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+const defaultMaxAge = 1209600
+
 type BookmarkRoutes struct {
 	logger *logrus.Logger
 	deps   *dependencies.Dependencies
@@ -146,9 +148,8 @@ func (r *BookmarkRoutes) bookmarkArchiveFileHandler(c *gin.Context) {
 
 	// Generate weak ETAG
 	shioriUUID := uuid.NewV5(uuid.NamespaceURL, model.ShioriURLNamespace)
-	c.Header("Etag", fmt.Sprintf("W/%s", uuid.NewV5(shioriUUID, fmt.Sprintf("%x-%x-%x", bookmark.ID, resourcePath, len(content)))))
+	c.Header("Etag", fmt.Sprintf("w/%s", uuid.NewV5(shioriUUID, fmt.Sprintf("%x-%x-%x", bookmark.ID, resourcePath, len(content)))))
 	c.Header("Cache-Control", "max-age=31536000")
-
 	c.Header("Content-Encoding", "gzip")
 	c.Data(http.StatusOK, resourceContentType, content)
 }
@@ -158,6 +159,8 @@ func (r *BookmarkRoutes) bookmarkThumbnailHandler(c *gin.Context) {
 
 	bookmark, err := r.getBookmark(ctx)
 	if err != nil {
+		r.logger.WithError(err).Error("error getting bookmark")
+		response.SendInternalServerError(c)
 		return
 	}
 
@@ -176,7 +179,8 @@ func (r *BookmarkRoutes) bookmarkThumbnailHandler(c *gin.Context) {
 
 	options := &response.SendFileOptions{
 		Headers: []http.Header{
-			{"Cache-Control": {"max-age=86400"}},
+			{"Allow": []string{"GET", "HEAD"}},
+			{"Cache-Control": {"max-age=1209600"}},
 			{"Last-Modified": {bookmark.ModifiedAt}},
 			{"ETag": {etag}},
 		},
@@ -190,6 +194,8 @@ func (r *BookmarkRoutes) bookmarkThumbnailHeadHandler(c *gin.Context) {
 
 	bookmark, err := r.getBookmark(ctx)
 	if err != nil {
+		r.logger.WithError(err).Error("error getting bookmark")
+		response.SendInternalServerError(c)
 		return
 	}
 
@@ -207,7 +213,7 @@ func (r *BookmarkRoutes) bookmarkThumbnailHeadHandler(c *gin.Context) {
 	}
 
 	// Set headers but don't send body for HEAD request
-	c.Header("Cache-Control", "max-age=86400")
+	c.Header("Cache-Control", "max-age=1209600")
 	c.Header("Last-Modified", bookmark.ModifiedAt)
 	c.Header("ETag", etag)
 	c.Status(http.StatusOK)
