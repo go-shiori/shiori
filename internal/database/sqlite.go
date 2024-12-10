@@ -898,10 +898,7 @@ func (db *SQLiteDatabase) GetBookmark(ctx context.Context, id int, url string) (
 
 	book := model.BookmarkDTO{}
 	if err := db.reader.GetContext(ctx, &book, query, args...); err != nil && err != sql.ErrNoRows {
-		if err != nil {
-			return book, false, fmt.Errorf("failed to get bookmark: %w", err)
-		}
-		return book, false, nil
+		return book, false, fmt.Errorf("failed to get bookmark: %w", err)
 	}
 
 	return book, book.ID != 0, nil
@@ -1000,7 +997,7 @@ func (db *SQLiteDatabase) GetAccount(ctx context.Context, username string) (mode
 		if err != nil && err != sql.ErrNoRows {
 			return account, false, fmt.Errorf("failed to get account: %w", err)
 		}
-		return account, false, nil
+		return account, true, nil
 	}
 
 	return account, account.ID != 0, nil
