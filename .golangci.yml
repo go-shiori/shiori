@@ -20,12 +20,12 @@ linters-settings:
 linters:
   disable-all: true
   enable:
+    - copyloopvar
     - gofmt
     - gosimple
     # - govet # Re-enable when all shadow declarations are fixed
     - ineffassign
     - predeclared
-    - exportloopref
     - staticcheck
     - unconvert
     - unused
