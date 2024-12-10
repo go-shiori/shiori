@@ -66,14 +66,15 @@ var sqliteMigrations = []migration{
 // SQLiteDatabase is implementation of Database interface
 // for connecting to SQLite3 database.
 type SQLiteDatabase struct {
-	dbbase
+	writer *dbbase
+	reader *dbbase
 }
 
 // withTx executes the given function within a transaction.
 // If the function returns an error, the transaction is rolled back.
 // Otherwise, the transaction is committed.
 func (db *SQLiteDatabase) withTx(ctx context.Context, fn func(tx *sqlx.Tx) error) error {
-	tx, err := db.BeginTxx(ctx, nil)
+	tx, err := db.writer.BeginTxx(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
