@@ -12,7 +12,7 @@ import (
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/bcrypt"
 
-	_ "github.com/lib/pq"
+	"github.com/lib/pq"
 )
 
 var postgresMigrations = []migration{
@@ -28,9 +28,12 @@ var postgresMigrations = []migration{
 		defer tx.Rollback()
 
 		_, err = tx.Exec(`ALTER TABLE bookmark ADD COLUMN has_content BOOLEAN DEFAULT FALSE NOT NULL`)
-		if err != nil && compareWordsInString(err.Error(), `pq column has_content of relation bookmark already exists`) {
-			tx.Rollback()
-		} else if err != nil {
+		if err != nil {
+			// Check if this is a "column already exists" error (PostgreSQL error code 42701)
+			pqErr, ok := err.(*pq.Error)
+			if ok && pqErr.Code == "42701" {
+				tx.Rollback()
+			} else {
 			return fmt.Errorf("failed to add has_content column to bookmark table: %w", err)
 		} else if err == nil {
 			if errCommit := tx.Commit(); errCommit != nil {
@@ -45,9 +48,12 @@ var postgresMigrations = []migration{
 		defer tx.Rollback()
 
 		_, err = tx.Exec(`ALTER TABLE account ADD COLUMN config JSONB NOT NULL DEFAULT '{}'`)
-		if err != nil && compareWordsInString(err.Error(), `pq column config of relation account already exists`) {
-			tx.Rollback()
-		} else if err != nil {
+		if err != nil {
+			// Check if this is a "column already exists" error (PostgreSQL error code 42701)
+			pqErr, ok := err.(*pq.Error)
+			if ok && pqErr.Code == "42701" {
+				tx.Rollback()
+			} else {
 			return fmt.Errorf("failed to add config column to account table: %w", err)
 		} else if err == nil {
 			if errCommit := tx.Commit(); errCommit != nil {
