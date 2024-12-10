@@ -211,7 +211,7 @@ func (db *SQLiteDatabase) SetDatabaseSchemaVersion(ctx context.Context, version 
 func (db *SQLiteDatabase) SaveBookmarks(ctx context.Context, create bool, bookmarks ...model.BookmarkDTO) ([]model.BookmarkDTO, error) {
 	var result []model.BookmarkDTO
 
-	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
+	if err := db.withTxRetry(ctx, func(tx *sqlx.Tx) error {
 		// Prepare statement
 
 		stmtInsertBook, err := tx.PreparexContext(ctx, `INSERT INTO bookmark
