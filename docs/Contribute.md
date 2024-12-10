@@ -80,3 +80,17 @@ Finally, run the tests with the following command:
 ```bash
 make unittest
 ```
+
+## Building the documentation
+
+The documentation is built using MkDocs with the Material theme. For installation instructions, please refer to the [MkDocs installation guide](https://www.mkdocs.org/user-guide/installation/).
+
+To preview the documentation locally while making changes, run:
+
+```bash
+mkdocs serve
+```
+
+This will start a local server at `http://127.0.0.1:8000` where you can preview your changes in real-time.
+
+Documentation for production is generated automatically on every release and published using github pages.

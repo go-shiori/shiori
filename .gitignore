@@ -28,3 +28,7 @@ go.work*
 
 # workaround for buildx using podman
 type=docker
+
+# Docs
+docs/.venv
+build/docs

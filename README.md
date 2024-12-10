@@ -36,7 +36,7 @@ Shiori is distributed under the terms of the [MIT license][mit], which means you
 [documentation]: https://github.com/go-shiori/shiori/blob/master/docs/index.md
 [mit]: https://choosealicense.com/licenses/mit/
 [web-extension]: https://github.com/go-shiori/shiori-web-ext
-[screenshot]: https://raw.githubusercontent.com/go-shiori/shiori/master/docs/readme/cover.png
-[mode-comparison]: https://raw.githubusercontent.com/go-shiori/shiori/master/docs/readme/comparison.png
+[screenshot]: https://raw.githubusercontent.com/go-shiori/shiori/master/docs/assets/screenshots/cover.png
+[mode-comparison]: https://raw.githubusercontent.com/go-shiori/shiori/master/docs/assets/screenshots/comparison.png
 [pocket]: https://getpocket.com/
 [256]: https://github.com/go-shiori/shiori/issues/256

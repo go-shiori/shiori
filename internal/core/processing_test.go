@@ -39,7 +39,7 @@ func TestDownloadBookImage(t *testing.T) {
 			require.NoError(t, err)
 			require.NoError(t, os.Chdir(tmpDir))
 			// Arrange
-			imageURL := "https://raw.githubusercontent.com/go-shiori/shiori/master/docs/readme/cover.png"
+			imageURL := "https://raw.githubusercontent.com/go-shiori/shiori/master/docs/assets/screenshots/cover.png"
 			dstFile := "." + string(fp.Separator) + "cover.png"
 
 			// Act

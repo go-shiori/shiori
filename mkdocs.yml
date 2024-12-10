@@ -1,0 +1,54 @@
+site_name: Shiori Documentation
+site_description: Documentation for the Shiori bookmark manager
+repo_url: https://github.com/go-shiori/shiori
+theme:
+  name: material
+  palette:
+  # Light mode
+  - scheme: shiori
+    media: "(prefers-color-scheme: light)"
+    toggle:
+      icon: material/brightness-7
+      name: Switch to dark mode
+  # Dark mode
+  - scheme: slate
+    media: "(prefers-color-scheme: dark)"
+    toggle:
+      icon: material/brightness-4
+      name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.sections
+    - navigation.expand
+    - navigation.indexes
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - content.tabs.link
+extra_css:
+  - assets/css/style.css
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Installation: installation.md
+    - Usage: usage.md
+    - Configuration: configuration.md
+    - Storage: storage.md
+  - API Reference:
+    - API v1: apiv1.md
+    - Legacy API: api.md
+  - Contributing:
+    - Contributing Guide: contribute.md
+    - FAQ: faq.md
+  - Screenshots: screenshots.md
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - tables
+  - toc:
+      permalink: true

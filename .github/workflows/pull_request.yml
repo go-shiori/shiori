@@ -18,10 +18,12 @@ jobs:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN}}
   call-swagger-check:
     uses: ./.github/workflows/_swagger-check.yml
+  call-mkdocs-check:
+    uses: ./.github/workflows/_mkdocs-check.yml
   call-styles-check:
     uses: ./.github/workflows/_styles-check.yml
   call-e2e:
-    needs: [call-lint, call-test, call-swagger-check, call-styles-check]
+    needs: [call-lint, call-test, call-swagger-check, call-styles-check, call-mkdocs-check]
     uses: ./.github/workflows/_e2e.yml
   call-gorelease:
     needs: [call-e2e]
