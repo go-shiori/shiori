@@ -34,11 +34,12 @@ var postgresMigrations = []migration{
 			if ok && pqErr.Code == "42701" {
 				tx.Rollback()
 			} else {
-			return fmt.Errorf("failed to add has_content column to bookmark table: %w", err)
-		} else if err == nil {
-			if errCommit := tx.Commit(); errCommit != nil {
-				return fmt.Errorf("failed to commit transaction: %w", errCommit)
+				return fmt.Errorf("failed to add has_content column to bookmark table: %w", err)
 			}
+		}
+
+		if errCommit := tx.Commit(); errCommit != nil {
+			return fmt.Errorf("failed to commit transaction: %w", errCommit)
 		}
 
 		tx, err = db.Begin()
@@ -54,11 +55,12 @@ var postgresMigrations = []migration{
 			if ok && pqErr.Code == "42701" {
 				tx.Rollback()
 			} else {
-			return fmt.Errorf("failed to add config column to account table: %w", err)
-		} else if err == nil {
-			if errCommit := tx.Commit(); errCommit != nil {
-				return fmt.Errorf("failed to commit transaction: %w", errCommit)
+				return fmt.Errorf("failed to add config column to account table: %w", err)
 			}
+		}
+
+		if errCommit := tx.Commit(); errCommit != nil {
+			return fmt.Errorf("failed to commit transaction: %w", errCommit)
 		}
 
 		return nil
