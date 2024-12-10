@@ -69,6 +69,32 @@ type SQLiteDatabase struct {
 	dbbase
 }
 
+func (db *SQLiteDatabase) withTx(ctx context.Context, fn func(tx *sqlx.Tx) error) error {
+	return db.withTxRetry(ctx, fn)
+}
+
+func (db *SQLiteDatabase) withTxRetry(ctx context.Context, fn func(tx *sqlx.Tx) error) error {
+	maxRetries := 3
+	var lastErr error
+
+	for i := 0; i < maxRetries; i++ {
+		err := db.dbbase.withTx(ctx, fn)
+		if err == nil {
+			return nil
+		}
+
+		if strings.Contains(err.Error(), "database is locked") {
+			lastErr = err
+			time.Sleep(time.Duration(i+1) * 100 * time.Millisecond)
+			continue
+		}
+
+		return errors.WithStack(err)
+	}
+
+	return errors.WithStack(lastErr)
+}
+
 // InitializeSQLite sets up the SQLite database with optimal settings
 func (db *SQLiteDatabase) InitializeSQLite() error {
 	// Set connection pool settings
