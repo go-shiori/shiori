@@ -217,18 +217,17 @@ func (db *SQLiteDatabase) GetDatabaseSchemaVersion(ctx context.Context) (string,
 
 // SetDatabaseSchemaVersion sets the current migrations version of the database
 func (db *SQLiteDatabase) SetDatabaseSchemaVersion(ctx context.Context, version string) error {
-	tx := db.MustBegin()
-	defer tx.Rollback()
-
-	_, err := tx.Exec("UPDATE shiori_system SET database_schema_version = ?", version)
-	if err != nil {
+	if err := db.withTxRetry(ctx, func(tx *sqlx.Tx) error {
+		_, err := tx.ExecContext(ctx, "UPDATE shiori_system SET database_schema_version = ?", version)
 		if err != nil {
-			return fmt.Errorf("failed to get database schema version: %w", err)
+			return err
 		}
 		return nil
+	}); err != nil {
+		return fmt.Errorf("failed to set database schema version: %w", err)
 	}
 
-	return tx.Commit()
+	return nil
 }
 
 // SaveBookmarks saves new or updated bookmarks to database.
