@@ -33,6 +33,7 @@ func (r *BookmarkRoutes) Setup(group *gin.RouterGroup) model.Routes {
 	group.GET("/:id/archive/file/*filepath", r.bookmarkArchiveFileHandler)
 	group.GET("/:id/content", r.bookmarkContentHandler)
 	group.GET("/:id/thumb", r.bookmarkThumbnailHandler)
+	group.HEAD("/:id/thumb", r.bookmarkThumbnailHeadHandler)
 	group.GET("/:id/ebook", r.bookmarkEbookHandler)
 
 	return r
@@ -165,7 +166,7 @@ func (r *BookmarkRoutes) bookmarkThumbnailHandler(c *gin.Context) {
 		return
 	}
 
-	etag := "w/" + model.GetThumbnailPath(bookmark) + "-" + bookmark.ModifiedAt
+	etag := fmt.Sprintf("w/thumb-%d-%s", bookmark.ID, bookmark.ModifiedAt)
 
 	// Check if the client's ETag matches the current ETag
 	if c.GetHeader("If-None-Match") == etag {
@@ -175,7 +176,7 @@ func (r *BookmarkRoutes) bookmarkThumbnailHandler(c *gin.Context) {
 
 	options := &response.SendFileOptions{
 		Headers: []http.Header{
-			{"Cache-Control": {"no-cache , must-revalidate"}},
+			{"Cache-Control": {"max-age=86400"}},
 			{"Last-Modified": {bookmark.ModifiedAt}},
 			{"ETag": {etag}},
 		},
