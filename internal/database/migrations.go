@@ -11,7 +11,6 @@ import (
 	"github.com/blang/semver"
 )
 
-
 //go:embed migrations/*
 var migrationFiles embed.FS
 
