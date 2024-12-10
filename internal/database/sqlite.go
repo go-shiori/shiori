@@ -507,7 +507,7 @@ func (db *SQLiteDatabase) GetBookmarks(ctx context.Context, opts GetBookmarksOpt
 
 	// Fetch bookmarks
 	bookmarks := []model.BookmarkDTO{}
-	err = db.SelectContext(ctx, &bookmarks, query, args...)
+	err = db.reader.SelectContext(ctx, &bookmarks, query, args...)
 	if err != nil && err != sql.ErrNoRows {
 		return nil, errors.WithStack(err)
 	}
@@ -529,12 +529,12 @@ func (db *SQLiteDatabase) GetBookmarks(ctx context.Context, opts GetBookmarksOpt
 		contentMap := make(map[int]bookmarkContent, len(bookmarks))
 
 		contentQuery, args, err := sqlx.In(`SELECT docid, content, html FROM bookmark_content WHERE docid IN (?)`, bookmarkIds)
-		contentQuery = db.Rebind(contentQuery)
+		contentQuery = db.reader.Rebind(contentQuery)
 		if err != nil {
 			return nil, errors.WithStack(err)
 		}
 
-		err = db.Select(&contents, contentQuery, args...)
+		err = db.reader.Select(&contents, contentQuery, args...)
 		if err != nil && err != sql.ErrNoRows {
 			return nil, errors.WithStack(err)
 		}
@@ -562,12 +562,12 @@ func (db *SQLiteDatabase) GetBookmarks(ctx context.Context, opts GetBookmarksOpt
 		LEFT JOIN tag t ON bt.tag_id = t.id
 		WHERE bt.bookmark_id IN (?)
 		ORDER BY t.name`, bookmarkIds)
-	tagsQuery = db.Rebind(tagsQuery)
+	tagsQuery = db.reader.Rebind(tagsQuery)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
 
-	err = db.Select(&tags, tagsQuery, tagArgs...)
+	err = db.reader.Select(&tags, tagsQuery, tagArgs...)
 	if err != nil && err != sql.ErrNoRows {
 		return nil, errors.WithStack(err)
 	}
@@ -686,7 +686,7 @@ func (db *SQLiteDatabase) GetBookmarksCount(ctx context.Context, opts GetBookmar
 
 	// Fetch count
 	var nBookmarks int
-	err = db.GetContext(ctx, &nBookmarks, query, args...)
+	err = db.reader.GetContext(ctx, &nBookmarks, query, args...)
 	if err != nil && err != sql.ErrNoRows {
 		return 0, errors.WithStack(err)
 	}
@@ -781,7 +781,7 @@ func (db *SQLiteDatabase) GetBookmark(ctx context.Context, id int, url string) (
 	}
 
 	book := model.BookmarkDTO{}
-	if err := db.GetContext(ctx, &book, query, args...); err != nil && err != sql.ErrNoRows {
+	if err := db.reader.GetContext(ctx, &book, query, args...); err != nil && err != sql.ErrNoRows {
 		return book, false, errors.WithStack(err)
 	}
 
@@ -847,7 +847,7 @@ func (db *SQLiteDatabase) GetAccounts(ctx context.Context, opts GetAccountsOptio
 
 	// Fetch list account
 	accounts := []model.Account{}
-	err := db.SelectContext(ctx, &accounts, query, args...)
+	err := db.reader.SelectContext(ctx, &accounts, query, args...)
 	if err != nil && err != sql.ErrNoRows {
 		return nil, errors.WithStack(err)
 	}
@@ -859,7 +859,7 @@ func (db *SQLiteDatabase) GetAccounts(ctx context.Context, opts GetAccountsOptio
 // Returns the account and boolean whether it's exist or not.
 func (db *SQLiteDatabase) GetAccount(ctx context.Context, username string) (model.Account, bool, error) {
 	account := model.Account{}
-	if err := db.GetContext(ctx, &account, `SELECT
+	if err := db.reader.GetContext(ctx, &account, `SELECT
 		id, username, password, owner, config FROM account WHERE username = ?`,
 		username,
 	); err != nil {
@@ -931,7 +931,7 @@ func (db *SQLiteDatabase) GetTags(ctx context.Context) ([]model.Tag, error) {
 		LEFT JOIN tag t ON bt.tag_id = t.id
 		GROUP BY bt.tag_id ORDER BY t.name`
 
-	err := db.SelectContext(ctx, &tags, query)
+	err := db.reader.SelectContext(ctx, &tags, query)
 	if err != nil && err != sql.ErrNoRows {
 		return nil, errors.WithStack(err)
 	}
