@@ -44,7 +44,7 @@ func pocketHandler(cmd *cobra.Command, args []string) {
 	}
 	defer srcFile.Close()
 
-	bookmarks := []model.BookmarkDTO{}
+	var bookmarks []model.BookmarkDTO
 	switch filepath.Ext(filePath) {
 	case ".html":
 		bookmarks = parseHtmlExport(ctx, deps.Database, srcFile)
