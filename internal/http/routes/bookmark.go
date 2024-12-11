@@ -123,33 +123,26 @@ func (r *BookmarkRoutes) bookmarkArchiveFileHandler(c *gin.Context) {
 	resourcePath, _ := c.Params.Get("filepath")
 	resourcePath = strings.TrimPrefix(resourcePath, "/")
 
-	archive, err := r.deps.Domains.Archiver.GetBookmarkArchive(bookmark)
+	archiveFile, err := r.deps.Domains.Archiver.GetBookmarkArchiveFile(bookmark, resourcePath)
 	if err != nil {
-		r.logger.WithError(err).Error("error opening archive")
+		r.logger.WithError(err).Error("error getting archive file")
 		response.SendInternalServerError(c)
 		return
 	}
-	defer archive.Close()
 
-	if !archive.HasResource(resourcePath) {
-		response.NotFound(c)
-		return
-	}
-
-	content, resourceContentType, err := archive.Read(resourcePath)
-	if err != nil {
-		r.logger.WithError(err).Error("error reading archive file")
-		response.SendInternalServerError(c)
-		return
-	}
+	r.logger.Warn(archiveFile)
 
 	// Generate weak ETAG
 	shioriUUID := uuid.NewV5(uuid.NamespaceURL, model.ShioriURLNamespace)
-	c.Header("Etag", fmt.Sprintf("W/%s", uuid.NewV5(shioriUUID, fmt.Sprintf("%x-%x-%x", bookmark.ID, resourcePath, len(content)))))
+	c.Header("Etag", fmt.Sprintf("W/%s", uuid.NewV5(shioriUUID, fmt.Sprintf("%x-%x-%x", bookmark.ID, resourcePath, archiveFile.Size()))))
 	c.Header("Cache-Control", "max-age=31536000")
 
-	c.Header("Content-Encoding", "gzip")
-	c.Data(http.StatusOK, resourceContentType, content)
+	c.DataFromReader(
+		http.StatusOK,
+		archiveFile.Size(),
+		archiveFile.ContentType(),
+		archiveFile.Reader(),
+		archiveFile.AsHTTPHeaders())
 }
 
 func (r *BookmarkRoutes) bookmarkThumbnailHandler(c *gin.Context) {

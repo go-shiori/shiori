@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-shiori/shiori/internal/database/migrations"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
@@ -61,6 +62,14 @@ var sqliteMigrations = []migration{
 	newFileMigration("0.3.0", "0.4.0", "sqlite/0002_denormalize_content"),
 	newFileMigration("0.4.0", "0.5.0", "sqlite/0003_uniq_id"),
 	newFileMigration("0.5.0", "0.6.0", "sqlite/0004_created_time"),
+	newFileMigration("0.6.0", "0.7.0", "sqlite/0005_bookmark_archiver"),
+	newFuncMigration("0.7.0", "0.8.0", func(db *sql.DB) error {
+		return migrations.MigrateArchiverMigration(db, "sqlite")
+	}),
+}
+
+func sqliteDatabaseFromDB(db *sqlx.DB) *SQLiteDatabase {
+	return &SQLiteDatabase{dbbase: dbbase{db}}
 }
 
 // SQLiteDatabase is implementation of Database interface
@@ -128,15 +137,16 @@ func (db *SQLiteDatabase) SaveBookmarks(ctx context.Context, create bool, bookma
 		// Prepare statement
 
 		stmtInsertBook, err := tx.PreparexContext(ctx, `INSERT INTO bookmark
-			(url, title, excerpt, author, public, modified_at, has_content, created_at)
-			VALUES(?, ?, ?, ?, ?, ?, ?, ?) RETURNING id`)
+			(url, title, excerpt, author, public, modified_at, created_at, has_content, archiver, archive_path)
+			VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id`)
 		if err != nil {
 			return errors.WithStack(err)
 		}
 
 		stmtUpdateBook, err := tx.PreparexContext(ctx, `UPDATE bookmark SET
 			url = ?, title = ?,	excerpt = ?, author = ?,
-			public = ?, modified_at = ?, has_content = ?
+			public = ?, modified_at = ?, has_content = ?,
+			archiver = ?, archive_path = ?
 			WHERE id = ?`)
 		if err != nil {
 			return errors.WithStack(err)
@@ -205,10 +215,10 @@ func (db *SQLiteDatabase) SaveBookmarks(ctx context.Context, create bool, bookma
 			if create {
 				book.CreatedAt = modifiedTime
 				err = stmtInsertBook.QueryRowContext(ctx,
-					book.URL, book.Title, book.Excerpt, book.Author, book.Public, book.ModifiedAt, hasContent, book.CreatedAt).Scan(&book.ID)
+					book.URL, book.Title, book.Excerpt, book.Author, book.Public, book.ModifiedAt, book.CreatedAt, hasContent, book.Archiver, book.ArchivePath).Scan(&book.ID)
 			} else {
 				_, err = stmtUpdateBook.ExecContext(ctx,
-					book.URL, book.Title, book.Excerpt, book.Author, book.Public, book.ModifiedAt, hasContent, book.ID)
+					book.URL, book.Title, book.Excerpt, book.Author, book.Public, book.ModifiedAt, hasContent, book.Archiver, book.ArchivePath, book.ID)
 			}
 			if err != nil {
 				return errors.WithStack(err)
@@ -302,7 +312,9 @@ func (db *SQLiteDatabase) GetBookmarks(ctx context.Context, opts GetBookmarksOpt
 		b.public,
 		b.created_at,
 		b.modified_at,
-		b.has_content
+		b.has_content,
+		b.archiver,
+		b.archive_path
 		FROM bookmark b
 		WHERE 1`
 
@@ -673,7 +685,8 @@ func (db *SQLiteDatabase) GetBookmark(ctx context.Context, id int, url string) (
 	args := []interface{}{id}
 	query := `SELECT
 		b.id, b.url, b.title, b.excerpt, b.author, b.public, b.modified_at,
-		bc.content, bc.html, b.has_content, b.created_at
+		bc.content, bc.html, b.has_content, b.created_at,
+		b.archiver, b.archive_path
 		FROM bookmark b
 		LEFT JOIN bookmark_content bc ON bc.docid = b.id
 		WHERE b.id = ?`
