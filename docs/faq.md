@@ -15,7 +15,8 @@
   - [Why my old accounts can't do anything after upgrading Shiori to v1.5.0 ?](#why-my-old-accounts-cant-do-anything-after-upgrading-shiori-to-v150-)
   - [`Failed to get bookmarks: failed to fetch data: no such module: fts4` ?](#failed-to-get-bookmarks-failed-to-fetch-data-no-such-module-fts4-)
 - [Advanced](#advanced)
-  - [How to run `shiori` on start up ?](#how-to-run-shiori-on-start-up-)
+  - [How to run `shiori` on start up (Linux)?](#how-to-run-shiori-on-start-up-linux)
+  - [How to run `shiori` on start up (macOS)?](#how-to-run-shiori-on-start-up-macos)
 
 <!-- /TOC -->
 
@@ -115,7 +116,7 @@ This happens to SQLite users that upgrade from 1.5.0 to 1.5.1 because of a break
 
 ## Advanced
 
-### How to run `shiori` on start up ?
+### How to run `shiori` on start up (Linux)?
 
 There are several methods to run `shiori` on start up, however the most recommended is running it as a service.
 
@@ -236,3 +237,36 @@ There are several methods to run `shiori` on start up, however the most recommen
     ```sh
     systemctl enable --now shiori
     ```
+
+### How to run `shiori` on start up (macOS)?
+
+Create `local.app.shiori.plist` file in `~/Library/LaunchAgents` and use the template below. Add your own secret key and paths. The filename can be anything but it's a good practice to start it with `local`:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>local.app.shiori</string>
+  <key>EnvironmentVariables</key>
+  <dict>
+      <key>SHIORI_HTTP_SECRET_KEY</key>
+      <string>somerandomvalue123489</string>
+  </dict>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/absolute/path/to/shiori/binary</string>
+    <string>server</string>
+    <string>--storage-directory</string>
+    <string>/absolute/path/to/shiori/storage/directory</string>
+    </array>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>ServiceDescription</key>
+  <string>Shiori Bookmarking Service</string>
+</dict>
+</plist>
+```
+
+You also need to update your Mac's `System Settings > General > Login Items & Extensions > Allow in the background`. Next time you log in to your Mac, the Shiori server will automatically start and the Shiori login state will persist. To remove the service, delete the `plist` file.
