@@ -42,7 +42,7 @@ func TestUpdateBookmarkCache(t *testing.T) {
 	})
 }
 
-func TestReadableeBookmarkContent(t *testing.T) {
+func TestReadableBookmarkContent(t *testing.T) {
 	logger := logrus.New()
 	ctx := context.TODO()
 
@@ -62,7 +62,7 @@ func TestReadableeBookmarkContent(t *testing.T) {
 	bookmark := testutil.GetValidBookmark()
 	_, err = deps.Database.SaveBookmarks(ctx, true, *bookmark)
 	require.NoError(t, err)
-	response := `{"ok":true,"message":{"content":"","html":""}}`
+	response := `{"ok":true,"message":{"content":"","html":"","imageURL":""}}`
 
 	t.Run("require authentication", func(t *testing.T) {
 		w := testutil.PerformRequest(g, "GET", "/1/readable")

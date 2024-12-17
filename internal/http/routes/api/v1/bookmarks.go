@@ -83,6 +83,9 @@ func (r *BookmarksAPIRoutes) getBookmark(c *context.Context) (*model.BookmarkDTO
 		return nil, model.ErrBookmarkNotFound
 	}
 
+	// Populate imageURL field
+	r.deps.Domains.Bookmarks.populateImageURL(bookmark)
+
 	return bookmark, nil
 }
 

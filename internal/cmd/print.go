@@ -63,7 +63,7 @@ func printHandler(cmd *cobra.Command, args []string) {
 		OrderMethod:  orderMethod,
 	}
 
-	bookmarks, err := deps.Database.GetBookmarks(cmd.Context(), searchOptions)
+	bookmarks, err := deps.Domains.Bookmarks.GetBookmarks(cmd.Context(), searchOptions)
 	if err != nil {
 		cError.Printf("Failed to get bookmarks: %v\n", err)
 		return

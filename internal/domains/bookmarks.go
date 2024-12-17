@@ -41,7 +41,16 @@ func (d *BookmarksDomain) GetBookmark(ctx context.Context, id model.DBID) (*mode
 	bookmark.HasEbook = d.HasEbook(&bookmark)
 	bookmark.HasArchive = d.HasArchive(&bookmark)
 
+	// Populate imageURL field
+	d.populateImageURL(&bookmark)
+
 	return &bookmark, nil
+}
+
+func (d *BookmarksDomain) populateImageURL(b *model.BookmarkDTO) {
+	if d.HasThumbnail(b) {
+		b.ImageURL = fmt.Sprintf("/bookmark/%d/thumb", b.ID)
+	}
 }
 
 func NewBookmarksDomain(deps *dependencies.Dependencies) *BookmarksDomain {
