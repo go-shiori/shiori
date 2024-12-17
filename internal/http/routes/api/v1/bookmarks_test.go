@@ -42,7 +42,7 @@ func TestUpdateBookmarkCache(t *testing.T) {
 	})
 }
 
-func TestReadableeBookmarkContent(t *testing.T) {
+func TestReadableBookmarkContent(t *testing.T) {
 	logger := logrus.New()
 	ctx := context.TODO()
 
