@@ -92,4 +92,17 @@ func TestBookmarkDomain(t *testing.T) {
 			require.Empty(t, bookmark.ImageURL)
 		})
 	})
+
+	t.Run("TestImageURLField", func(t *testing.T) {
+		t.Run("ImageURL is populated", func(t *testing.T) {
+			bookmark := &model.BookmarkDTO{ID: 1}
+			domain.populateImageURL(bookmark)
+			require.Equal(t, "/bookmark/1/thumb", bookmark.ImageURL)
+		})
+		t.Run("ImageURL is empty", func(t *testing.T) {
+			bookmark := &model.BookmarkDTO{ID: 2}
+			domain.populateImageURL(bookmark)
+			require.Empty(t, bookmark.ImageURL)
+		})
+	})
 }
