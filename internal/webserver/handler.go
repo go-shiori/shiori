@@ -2,7 +2,6 @@ package webserver
 
 import (
 	"fmt"
-	"html/template"
 	"net/http"
 	"strings"
 
@@ -24,8 +23,6 @@ type Handler struct {
 	Log          bool
 
 	dependencies *dependencies.Dependencies
-
-	templates map[string]*template.Template
 }
 
 func (h *Handler) PrepareSessionCache() {
@@ -46,43 +43,6 @@ func (h *Handler) PrepareSessionCache() {
 
 		h.UserCache.Set(account.Username, sessionIDs, -1)
 	})
-}
-
-func (h *Handler) PrepareTemplates() error {
-	// Prepare variables
-	var err error
-	h.templates = make(map[string]*template.Template)
-
-	// Prepare func map
-	funcMap := template.FuncMap{
-		"html": func(s string) template.HTML {
-			return template.HTML(s)
-		},
-	}
-
-	// Create template for login, index and content
-	for _, name := range []string{"login", "index", "content"} {
-		h.templates[name], err = createTemplate(name+".html", funcMap)
-		if err != nil {
-			return err
-		}
-	}
-
-	// Create template for archive overlay
-	h.templates["archive"], err = template.New("archive").Delims("$$", "$$").Parse(
-		`<div id="shiori-archive-header">
-		<p id="shiori-logo"><span>栞</span>shiori</p>
-		<div class="spacer"></div>
-		<a href="$$.URL$$" target="_blank" rel="noopener noreferrer">View Original</a>
-		$$if .HasContent$$
-		<a href="/bookmark/$$.ID$$/content">View Readable</a>
-		$$end$$
-		</div>`)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func (h *Handler) GetSessionID(r *http.Request) string {

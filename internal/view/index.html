@@ -93,7 +93,7 @@
 						secondText: "No",
 						mainClick: () => {
 							this.dialog.loading = true;
-							fetch(new URL("api/logout", document.baseURI), {
+							fetch(new URL("api/v1/logout", document.baseURI), {
 								method: "post"
 							}).then(response => {
 								if (!response.ok) throw response;
@@ -155,7 +155,7 @@
 						owner: owner,
 					};
 				},
-				
+
 				onLoginSuccess() {
 					this.loadSetting();
 					this.loadAccount();
@@ -165,7 +165,7 @@
 				async validateSession() {
 					const token = localStorage.getItem("shiori-token");
 					const account = localStorage.getItem("shiori-account");
-					
+
 					if (!(token && account)) {
 						return false;
 					}
@@ -176,11 +176,11 @@
 								"Authorization": `Bearer ${token}`
 							}
 						});
-						
+
 						if (!response.ok) {
 							throw new Error('Invalid session');
 						}
-						
+
 						return true;
 					} catch (err) {
 						// Clear invalid session data
@@ -195,7 +195,7 @@
 				async checkLoginStatus() {
 					const isValid = await this.validateSession();
 					this.isLoggedIn = isValid;
-					
+
 					if (isValid) {
 						this.loadSetting();
 						this.loadAccount();

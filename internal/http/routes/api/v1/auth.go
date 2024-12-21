@@ -93,7 +93,7 @@ func (r *AuthAPIRoutes) loginHandler(c *gin.Context) {
 		return
 	}
 
-	sessionID, err := r.legacyLoginHandler(account, time.Hour*24*30)
+	sessionID, err := r.legacyLoginHandler(account, expiration)
 	if err != nil {
 		r.logger.WithError(err).Error("failed execute legacy login handler")
 		response.SendInternalServerError(c)

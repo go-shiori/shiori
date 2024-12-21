@@ -69,6 +69,10 @@ func (d *AuthDomain) GetAccountFromCredentials(ctx context.Context, username, pa
 }
 
 func (d *AuthDomain) CreateTokenForAccount(account *model.AccountDTO, expiration time.Time) (string, error) {
+	if account == nil {
+		return "", fmt.Errorf("account is nil")
+	}
+
 	claims := jwt.MapClaims{
 		"account": account,
 		"exp":     expiration.UTC().Unix(),

@@ -67,7 +67,6 @@ func (r *LegacyAPIRoutes) Setup(g *gin.Engine) {
 		Log:      false, // Already done by gin
 	}, r.deps)
 	r.legacyHandler.PrepareSessionCache()
-	r.legacyHandler.PrepareTemplates()
 
 	legacyGroup := g.Group("/")
 
@@ -77,8 +76,6 @@ func (r *LegacyAPIRoutes) Setup(g *gin.Engine) {
 	legacyGroup.Use(gin.CustomRecovery(func(c *gin.Context, err any) {
 		c.Data(http.StatusInternalServerError, "text/plain", []byte(err.(error).Error()))
 	}))
-
-	legacyGroup.POST("/api/logout", r.handle(r.legacyHandler.ApiLogout))
 
 	// router.GET(jp("/api/tags"), withLogging(hdl.apiGetTags))
 	legacyGroup.GET("/api/tags", r.handle(r.legacyHandler.ApiGetTags))

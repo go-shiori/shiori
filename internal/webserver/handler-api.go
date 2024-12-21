@@ -45,17 +45,6 @@ func downloadBookmarkContent(deps *dependencies.Dependencies, book *model.Bookma
 	return &result, err
 }
 
-// ApiLogout is handler for POST /api/logout
-func (h *Handler) ApiLogout(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	// Get session ID
-	sessionID := h.GetSessionID(r)
-	if sessionID != "" {
-		h.SessionCache.Delete(sessionID)
-	}
-
-	fmt.Fprint(w, 1)
-}
-
 // ApiGetBookmarks is handler for GET /api/bookmarks
 func (h *Handler) ApiGetBookmarks(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	ctx := r.Context()
