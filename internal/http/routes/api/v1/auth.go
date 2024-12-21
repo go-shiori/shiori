@@ -179,6 +179,21 @@ func (r *AuthAPIRoutes) updateHandler(c *gin.Context) {
 	response.Send(c, http.StatusOK, account)
 }
 
+// logoutHandler godoc
+//
+//	@Summary					Logout from the current session
+//	@Tags						Auth
+//	@securityDefinitions.apikey	ApiKeyAuth
+//	@Produce					json
+//	@Success					200	{object}	nil	"Logout successful"
+//	@Failure					403	{object}	nil	"Token not provided/invalid"
+//	@Router						/api/v1/auth/logout [post]
+func (r *AuthAPIRoutes) logoutHandler(c *gin.Context) {
+	// Since the token is stateless JWT, we just return success
+	// The client should remove the token from their storage
+	response.Send(c, http.StatusOK, nil)
+}
+
 func NewAuthAPIRoutes(logger *logrus.Logger, deps *dependencies.Dependencies, loginHandler model.LegacyLoginHandler) *AuthAPIRoutes {
 	return &AuthAPIRoutes{
 		logger:             logger,
