@@ -79,12 +79,14 @@ func (r *AuthAPIRoutes) loginHandler(c *gin.Context) {
 		return
 	}
 
-	expiration := time.Now().Add(time.Hour)
+	expiration := time.Hour
 	if payload.RememberMe {
-		expiration = time.Now().Add(time.Hour * 24 * 30)
+		expiration = time.Hour * 24 * 30
 	}
 
-	token, err := r.deps.Domains.Auth.CreateTokenForAccount(account, expiration)
+	expirationTime := time.Now().Add(expiration)
+
+	token, err := r.deps.Domains.Auth.CreateTokenForAccount(account, expirationTime)
 	if err != nil {
 		response.SendInternalServerError(c)
 		return
@@ -100,7 +102,7 @@ func (r *AuthAPIRoutes) loginHandler(c *gin.Context) {
 	response.Send(c, http.StatusOK, loginResponseMessage{
 		Token:      token,
 		SessionID:  sessionID,
-		Expiration: expiration.Unix(),
+		Expiration: expirationTime.Unix(),
 	})
 }
 

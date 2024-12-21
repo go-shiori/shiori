@@ -61,7 +61,7 @@ func TestAuthMiddleware(t *testing.T) {
 	})
 
 	t.Run("test authorization header", func(t *testing.T) {
-		account := model.AccountDTO{Username: "shiori"}
+		account := testutil.GetValidAccount().ToDTO()
 		token, err := deps.Domains.Auth.CreateTokenForAccount(&account, time.Now().Add(time.Minute))
 		require.NoError(t, err)
 		w := httptest.NewRecorder()

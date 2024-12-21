@@ -23,6 +23,7 @@ func AuthMiddleware(deps *dependencies.Dependencies) gin.HandlerFunc {
 
 		account, err := deps.Domains.Auth.CheckToken(c, token)
 		if err != nil {
+			deps.Log.WithError(err).Error("Failed to check token")
 			return
 		}
 

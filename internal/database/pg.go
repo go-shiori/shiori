@@ -12,7 +12,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 
-	_ "github.com/lib/pq"
+	"github.com/lib/pq"
 )
 
 var postgresMigrations = []migration{
@@ -25,16 +25,21 @@ var postgresMigrations = []migration{
 		if err != nil {
 			return fmt.Errorf("failed to start transaction: %w", err)
 		}
-		defer tx.Rollback()
 
 		_, err = tx.Exec(`ALTER TABLE bookmark ADD COLUMN has_content BOOLEAN DEFAULT FALSE NOT NULL`)
-		if err != nil && strings.Contains(err.Error(), `column "has_content" of relation "bookmark" already exists`) {
-			tx.Rollback()
-		} else if err != nil {
-			return fmt.Errorf("failed to add has_content column to bookmark table: %w", err)
-		} else if err == nil {
-			if errCommit := tx.Commit(); errCommit != nil {
-				return fmt.Errorf("failed to commit transaction: %w", errCommit)
+		if err != nil {
+			// Check if this is a "column already exists" error (PostgreSQL error code 42701)
+			// If it's not, return error.
+			// This is needed for users upgrading from >1.5.4 directly into this version.
+			pqErr, ok := err.(*pq.Error)
+			if ok && pqErr.Code == "42701" {
+				tx.Rollback()
+			} else {
+				return fmt.Errorf("failed to add has_content column to bookmark table: %w", err)
+			}
+		} else {
+			if err := tx.Commit(); err != nil {
+				return fmt.Errorf("failed to commit transaction: %w", err)
 			}
 		}
 
@@ -42,16 +47,21 @@ var postgresMigrations = []migration{
 		if err != nil {
 			return fmt.Errorf("failed to start transaction: %w", err)
 		}
-		defer tx.Rollback()
 
 		_, err = tx.Exec(`ALTER TABLE account ADD COLUMN config JSONB NOT NULL DEFAULT '{}'`)
-		if err != nil && strings.Contains(err.Error(), `column "config" of relation "account" already exists`) {
-			tx.Rollback()
-		} else if err != nil {
-			return fmt.Errorf("failed to add config column to account table: %w", err)
-		} else if err == nil {
-			if errCommit := tx.Commit(); errCommit != nil {
-				return fmt.Errorf("failed to commit transaction: %w", errCommit)
+		if err != nil {
+			// Check if this is a "column already exists" error (PostgreSQL error code 42701)
+			// If it's not, return error
+			// This is needed for users upgrading from >1.5.4 directly into this version.
+			pqErr, ok := err.(*pq.Error)
+			if ok && pqErr.Code == "42701" {
+				tx.Rollback()
+			} else {
+				return fmt.Errorf("failed to add config column to account table: %w", err)
+			}
+		} else {
+			if err := tx.Commit(); err != nil {
+				return fmt.Errorf("failed to commit transaction: %w", err)
 			}
 		}
 

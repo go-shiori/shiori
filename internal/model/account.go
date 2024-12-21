@@ -4,6 +4,8 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
+
+	"github.com/golang-jwt/jwt/v5"
 )
 
 // Account is the database representation for account.
@@ -88,4 +90,10 @@ func (adto *AccountDTO) IsValidUpdate() error {
 	}
 
 	return nil
+}
+
+type JWTClaim struct {
+	jwt.RegisteredClaims
+
+	Account *Account
 }

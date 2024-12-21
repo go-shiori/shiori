@@ -23,12 +23,8 @@ func TestTagList(t *testing.T) {
 	_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
 	g.Use(middleware.AuthMiddleware(deps))
 
-	account := model.Account{
-		Username: "test",
-		Password: "test",
-		Owner:    true,
-	}
-	_, err := deps.Database.CreateAccount(ctx, account)
+	account := testutil.GetValidAccount()
+	_, err := deps.Database.CreateAccount(ctx, *account)
 	require.NoError(t, err)
 	token, err := deps.Domains.Auth.CreateTokenForAccount(model.Ptr(account.ToDTO()), time.Now().Add(time.Minute))
 	require.NoError(t, err)
@@ -74,12 +70,8 @@ func TestTagCreate(t *testing.T) {
 	_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
 	g.Use(middleware.AuthMiddleware(deps))
 
-	account := model.Account{
-		Username: "test",
-		Password: "test",
-		Owner:    true,
-	}
-	_, err := deps.Database.CreateAccount(ctx, account)
+	account := testutil.GetValidAccount()
+	_, err := deps.Database.CreateAccount(ctx, *account)
 	require.NoError(t, err)
 	// token, err := deps.Domains.Auth.CreateTokenForAccount(&account, time.Now().Add(time.Minute))
 	// require.NoError(t, err)

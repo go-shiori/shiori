@@ -55,3 +55,14 @@ func GetValidBookmark() *model.BookmarkDTO {
 		Title: "Shiori repository",
 	}
 }
+
+// GetValidAccount returns a valid account for testing
+// It includes an ID to properly use the account when testing authentication methods
+// without interacting with the database.
+func GetValidAccount() *model.Account {
+	return &model.Account{
+		ID:       99,
+		Username: "test",
+		Password: "test",
+	}
+}

@@ -90,6 +90,11 @@ golangci-lint:
 unittest:
 	GIN_MODE=$(GIN_MODE) GO_TEST_FLAGS="$(GO_TEST_FLAGS)" GOTESTFMT_FLAGS="$(GOTESTFMT_FLAGS)" $(BASH) -xe ./scripts/test.sh
 
+## Run end to end tests
+.PHONY: e2e
+e2e:
+	$(BASH) -xe ./scripts/e2e.sh
+
 ## Build styles
 .PHONY: styles
 styles:

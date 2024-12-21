@@ -170,7 +170,7 @@ func TestRefreshHandler(t *testing.T) {
 	})
 }
 
-func TestSettingsHandler(t *testing.T) {
+func TestUpdateHandler(t *testing.T) {
 	logger := logrus.New()
 	ctx := context.TODO()
 	g := testutil.NewGin()

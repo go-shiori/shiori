@@ -48,7 +48,7 @@ func testDatabase(t *testing.T, dbFactory testDatabaseFactory) {
 		t.Run(testName, func(tInner *testing.T) {
 			ctx := context.TODO()
 			db, err := dbFactory(t, ctx)
-			assert.NoError(tInner, err, "Error recreating database")
+			require.NoError(tInner, err, "Error recreating database")
 			testCase(tInner, db)
 		})
 	}
