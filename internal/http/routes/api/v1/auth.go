@@ -26,6 +26,7 @@ func (r *AuthAPIRoutes) Setup(group *gin.RouterGroup) model.Routes {
 	group.GET("/me", r.meHandler)
 	group.POST("/refresh", r.refreshHandler)
 	group.PATCH("/account", r.updateHandler)
+	group.POST("/logout", r.logoutHandler)
 	return r
 }
 
