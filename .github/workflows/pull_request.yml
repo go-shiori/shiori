@@ -30,13 +30,11 @@ jobs:
     uses: ./.github/workflows/_gorelease.yml
   call-buildx:
     needs: call-gorelease
-    # only build on pull requests from the same repo for now
-    if: github.event.pull_request.head.repo.full_name == github.repository
+    if: ${{ startsWith(github.head_ref, 'dependabot/') }}
     uses: ./.github/workflows/_buildx.yml
   call-buildx-alpine:
     needs: call-gorelease
-    # only build on pull requests from the same repo for now
-    if: github.event.pull_request.head.repo.full_name == github.repository
+    if: ${{ !startsWith(github.head_ref, 'dependabot/') }}
     uses: ./.github/workflows/_buildx.yml
     with:
       tag_prefix: alpine-
