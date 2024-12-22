@@ -8,6 +8,7 @@ import (
 	"github.com/go-shiori/shiori/internal/domains"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/go-shiori/shiori/internal/testutil"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
 )
@@ -52,6 +53,36 @@ func TestAuthDomainCheckToken(t *testing.T) {
 		require.Error(t, err)
 		require.Nil(t, claims)
 	})
+
+	t.Run("nil account", func(t *testing.T) {
+		token, err := domain.CreateTokenForAccount(nil, time.Now().Add(time.Hour))
+		require.Error(t, err)
+		require.Empty(t, token)
+		require.Contains(t, err.Error(), "account is nil")
+	})
+}
+
+func TestAuthDomainCheckTokenInvalidMethod(t *testing.T) {
+	ctx := context.TODO()
+	logger := logrus.New()
+	_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+	domain := domains.NewAuthDomain(deps)
+
+	// Create a token with an unsupported signing method
+	account := testutil.GetValidAccount().ToDTO()
+	claims := jwt.MapClaims{
+		"account": account,
+		"exp":     time.Now().Add(time.Hour).UTC().Unix(),
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodNone, claims)
+	tokenString, err := token.SignedString(jwt.UnsafeAllowNoneSignatureType)
+	require.NoError(t, err)
+
+	// Try to verify the token
+	acc, err := domain.CheckToken(ctx, tokenString)
+	require.Error(t, err)
+	require.Nil(t, acc)
+	require.Contains(t, err.Error(), "Unexpected signing method")
 }
 
 func TestAuthDomainGetAccountFromCredentials(t *testing.T) {
