@@ -9,7 +9,6 @@ import (
 	"github.com/go-shiori/shiori/internal/dependencies"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/pkg/errors"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -33,7 +32,7 @@ func (d *AuthDomain) CheckToken(ctx context.Context, userJWT string) (*model.Acc
 		return d.deps.Config.Http.SecretKey, nil
 	})
 	if err != nil {
-		return nil, errors.Wrap(err, "error parsing token")
+		return nil, fmt.Errorf("error parsing token: %w", err)
 	}
 
 	if claims, ok := token.Claims.(*JWTClaim); ok && token.Valid {
