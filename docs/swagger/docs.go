@@ -114,7 +114,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/model.AccountDTO"
+                                "$ref": "#/definitions/api_v1.updateAccountPayload"
                             }
                         }
                     },
@@ -148,7 +148,7 @@ const docTemplate = `{
                         "name": "payload",
                         "in": "body",
                         "schema": {
-                            "$ref": "#/definitions/model.AccountDTO"
+                            "$ref": "#/definitions/api_v1.updateAccountPayload"
                         }
                     }
                 ],
@@ -454,6 +454,26 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "html": {
+                    "type": "string"
+                }
+            }
+        },
+        "api_v1.updateAccountPayload": {
+            "type": "object",
+            "properties": {
+                "config": {
+                    "$ref": "#/definitions/model.UserConfig"
+                },
+                "new_password": {
+                    "type": "string"
+                },
+                "old_password": {
+                    "type": "string"
+                },
+                "owner": {
+                    "type": "boolean"
+                },
+                "username": {
                     "type": "string"
                 }
             }

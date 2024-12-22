@@ -189,7 +189,7 @@ func (p *updateAccountPayload) ToAccountDTO() model.AccountDTO {
 //	@Summary					Update account information
 //	@Tags						Auth
 //	@securityDefinitions.apikey	ApiKeyAuth
-//	@Param						payload	body	model.AccountDTO	false	"Account data"
+//	@Param						payload	body	updateAccountPayload	false	"Account data"
 //	@Produce					json
 //	@Success					200	{object}	model.Account
 //	@Failure					403	{object}	nil	"Token not provided/invalid"

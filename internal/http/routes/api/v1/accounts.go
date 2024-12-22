@@ -139,7 +139,7 @@ func (r *AccountsAPIRoutes) deleteHandler(c *gin.Context) {
 //	@Summary	Update an account
 //	@Tags		accounts
 //	@Produce	json
-//	@Success	200	{array}		model.AccountDTO
+//	@Success	200	{array}		updateAccountPayload
 //	@Failure	400	{string}	string	"Bad Request"
 //	@Failure	500	{string}	string	"Internal Server Error"
 //	@Router		/api/v1/accounts/{id} [patch]
