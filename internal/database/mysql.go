@@ -678,7 +678,7 @@ func (db *MySQLDatabase) ListAccounts(ctx context.Context, opts ListAccountsOpti
 	return accounts, nil
 }
 
-// GetAccount fetch account with matching username.
+// GetAccount fetch account with matching ID.
 // Returns the account and boolean whether it's exist or not.
 func (db *MySQLDatabase) GetAccount(ctx context.Context, id model.DBID) (*model.Account, bool, error) {
 	account := model.Account{}
@@ -698,7 +698,7 @@ func (db *MySQLDatabase) GetAccount(ctx context.Context, id model.DBID) (*model.
 	return &account, account.ID != 0, err
 }
 
-// DeleteAccount removes record with matching username.
+// DeleteAccount removes record with matching ID.
 func (db *MySQLDatabase) DeleteAccount(ctx context.Context, id model.DBID) error {
 	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
 		result, err := tx.ExecContext(ctx, `DELETE FROM account WHERE id = ?`, id)

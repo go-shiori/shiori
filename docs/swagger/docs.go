@@ -200,6 +200,25 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/auth/logout": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Logout from the current session",
+                "responses": {
+                    "200": {
+                        "description": "Logout successful"
+                    },
+                    "403": {
+                        "description": "Token not provided/invalid"
+                    }
+                }
+            }
+        },
         "/api/v1/auth/me": {
             "get": {
                 "produces": [

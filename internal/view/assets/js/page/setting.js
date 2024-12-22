@@ -48,7 +48,7 @@ var template = `
                 Make bookmark publicly available by default
             </label>
         </details>
-        <details v-if="activeAccount.owner" open class="setting-group" id="setting-accounts">
+        <details v-if="activeAccount.owner" open class="setting-group setting-accounts" id="setting-accounts">
             <summary>Accounts</summary>
             <ul>
                 <li v-if="accounts.length === 0">No accounts registered</li>
@@ -68,6 +68,19 @@ var template = `
                 <a @click="loadAccounts">Refresh accounts</a>
                 <a v-if="activeAccount.owner" @click="showDialogNewAccount">Add new account</a>
             </div>
+        </details>
+	    <details v-if="!activeAccount.owner" open class="setting-group setting-accounts" id="setting-my-account">
+            <summary>My account</summary>
+            <ul>
+                <li v-for="(account, idx) in [this.activeAccount]">
+                    <p>{{account.username}}
+                        <span v-if="account.owner" class="account-level">(owner)</span>
+                    </p>
+                    <a title="Change password" @click="showDialogChangePassword(account)">
+                        <i class="fa fas fa-fw fa-key"></i>
+                    </a>
+                </li>
+            </ul>
         </details>
 		<details v-if="activeAccount.owner" class="setting-group" id="setting-system-info">
 			<summary>System info</summary>
@@ -208,14 +221,14 @@ export default {
 						value: "",
 					},
 					{
-						name: "repeat",
+						name: "repeat_password",
 						label: "Repeat password",
 						type: "password",
 						value: "",
 					},
 					{
-						name: "visitor",
-						label: "This account is for visitor",
+						name: "admin",
+						label: "This account is an admin account",
 						type: "check",
 						value: false,
 					},
@@ -233,7 +246,7 @@ export default {
 						return;
 					}
 
-					if (data.password !== data.repeat) {
+					if (data.password !== data.repeat_password) {
 						this.showErrorDialog("Password does not match");
 						return;
 					}
@@ -241,7 +254,7 @@ export default {
 					var request = {
 						username: data.username,
 						password: data.password,
-						owner: !data.visitor,
+						owner: data.admin,
 					};
 
 					this.dialog.loading = true;
@@ -287,43 +300,74 @@ export default {
 			});
 		},
 		showDialogChangePassword(account) {
+			let fields = [
+				{
+					name: "new_password",
+					label: "New password",
+					type: "password",
+					value: "",
+				},
+				{
+					name: "repeat_password",
+					label: "Repeat password",
+					type: "password",
+					value: "",
+				},
+			];
+
+			const requiresOldPassword = !this.activeAccount.owner || this.activeAccount.id === account.id;
+
+			// Only owners can update user passwords without
+			// providing the old password
+
+			if (requiresOldPassword) {
+				fields.unshift({
+					name: "old_password",
+					label: "The current password",
+					type: "password",
+					value: "",
+				});
+			}
+
 			this.showDialog({
 				title: "Change Password",
-				content: "Input new password :",
-				fields: [
-					{
-						name: "password",
-						label: "New password",
-						type: "password",
-						value: "",
-					},
-					{
-						name: "repeat",
-						label: "Repeat password",
-						type: "password",
-						value: "",
-					},
-				],
+				content: "",
+				fields: fields,
 				mainText: "OK",
 				secondText: "Cancel",
 				mainClick: (data) => {
-					if (data.password === "") {
-						this.showErrorDialog("New password must not empty");
+					if (requiresOldPassword) {
+						if (data.old_password === "") {
+							this.showErrorDialog("You must provide the current password.");
+							return;
+						}
+					}
+
+					if (data.new_password === "") {
+						this.showErrorDialog("New password must not empt.");
 						return;
 					}
 
-					if (data.password !== data.repeat) {
-						this.showErrorDialog("Password does not match");
+					if (data.new_password !== data.repeat_password) {
+						this.showErrorDialog("Password does not match.");
 						return;
 					}
 
 					var request = {
-						password: data.password,
+						old_password: data.old_password,
+						new_password: data.new_password,
 					};
 
+					// Determine which URL to use depending if the user is updating its own
+					// account or another user's account.
+					let url = `api/v1/accounts/${account.id}`;
+					if (this.activeAccount.id === account.id) {
+						url = "api/v1/auth/account";
+					}
+
 					this.dialog.loading = true;
-					fetch(new URL(`api/v1/accounts/${account.id}`, document.baseURI), {
-						method: "patch",
+					fetch(new URL(url, document.baseURI), {
+						method: "PATCH",
 						body: JSON.stringify(request),
 						headers: {
 							"Content-Type": "application/json",
@@ -335,8 +379,14 @@ export default {
 							return response;
 						})
 						.then(() => {
-							this.dialog.loading = false;
-							this.dialog.visible = false;
+							this.showDialog({
+								title: "Password Changed",
+								content: "Password has been changed.",
+								mainText: "OK",
+								mainClick: () => {
+									this.dialog.visible = false;
+								},
+							})
 						})
 						.catch((err) => {
 							this.dialog.loading = false;
@@ -356,7 +406,7 @@ export default {
 				mainClick: () => {
 					this.dialog.loading = true;
 					fetch(`api/v1/accounts/${account.id}`, {
-						method: "delete",
+						method: "DELETE",
 						headers: {
 							"Content-Type": "application/json",
 							Authorization: "Bearer " + localStorage.getItem("shiori-token"),

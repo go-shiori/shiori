@@ -258,49 +258,50 @@ func TestAccountUpdate(t *testing.T) {
 
 	for _, tc := range []struct {
 		name    string
-		payload model.AccountDTO
+		payload updateAccountPayload
 		code    int
-		cmp     func(t *testing.T, initial, payload model.AccountDTO, storedAccount model.Account)
+		cmp     func(t *testing.T, initial *model.AccountDTO, payload updateAccountPayload, storedAccount model.Account)
 	}{
 		{
 			name: "success change username",
-			payload: model.AccountDTO{
+			payload: updateAccountPayload{
 				Username: "gopher2",
 			},
 			code: http.StatusOK,
-			cmp: func(t *testing.T, initial, payload model.AccountDTO, storedAccount model.Account) {
+			cmp: func(t *testing.T, initial *model.AccountDTO, payload updateAccountPayload, storedAccount model.Account) {
 				require.Equal(t, payload.Username, storedAccount.Username)
 			},
 		},
 		{
 			name: "success change password",
-			payload: model.AccountDTO{
-				Password: "gopher2",
+			payload: updateAccountPayload{
+				OldPassword: "gopher",
+				NewPassword: "gopher2",
 			},
 			code: http.StatusOK,
-			cmp: func(t *testing.T, initial, payload model.AccountDTO, storedAccount model.Account) {
+			cmp: func(t *testing.T, initial *model.AccountDTO, payload updateAccountPayload, storedAccount model.Account) {
 				require.NotEqual(t, initial.Password, storedAccount.Password)
 			},
 		},
 		{
 			name: "success change owner",
-			payload: model.AccountDTO{
+			payload: updateAccountPayload{
 				Owner: model.Ptr(true),
 			},
 			code: http.StatusOK,
-			cmp: func(t *testing.T, initial, payload model.AccountDTO, storedAccount model.Account) {
+			cmp: func(t *testing.T, initial *model.AccountDTO, payload updateAccountPayload, storedAccount model.Account) {
 				require.Equal(t, *payload.Owner, storedAccount.Owner)
 			},
 		},
 		{
 			name: "change entire account",
-			payload: model.AccountDTO{
-				Username: "gopher2",
-				Password: "gopher2",
-				Owner:    model.Ptr(true),
+			payload: updateAccountPayload{
+				Username:    "gopher2",
+				NewPassword: "gopher2",
+				Owner:       model.Ptr(true),
 			},
 			code: http.StatusOK,
-			cmp: func(t *testing.T, initial, payload model.AccountDTO, storedAccount model.Account) {
+			cmp: func(t *testing.T, initial *model.AccountDTO, payload updateAccountPayload, storedAccount model.Account) {
 				require.Equal(t, payload.Username, storedAccount.Username)
 				require.NotEqual(t, initial.Password, storedAccount.Password)
 				require.Equal(t, *payload.Owner, storedAccount.Owner)
@@ -308,9 +309,10 @@ func TestAccountUpdate(t *testing.T) {
 		},
 		{
 			name:    "invalid update",
-			payload: model.AccountDTO{},
+			payload: updateAccountPayload{},
 			code:    http.StatusBadRequest,
-			cmp:     func(t *testing.T, initial, payload model.AccountDTO, storedAccount model.Account) {},
+			cmp: func(t *testing.T, initial *model.AccountDTO, payload updateAccountPayload, storedAccount model.Account) {
+			},
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -339,7 +341,7 @@ func TestAccountUpdate(t *testing.T) {
 			storedAccount, _, err := deps.Database.GetAccount(ctx, account.ID)
 			require.NoError(t, err)
 
-			tc.cmp(t, *account, tc.payload, *storedAccount)
+			tc.cmp(t, account, tc.payload, *storedAccount)
 		})
 	}
 

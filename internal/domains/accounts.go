@@ -34,7 +34,7 @@ func (d *AccountsDomain) CreateAccount(ctx context.Context, account model.Accoun
 		return nil, err
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(account.Password), 10)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(account.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, fmt.Errorf("error hashing provided password: %w", err)
 	}

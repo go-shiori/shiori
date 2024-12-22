@@ -56,16 +56,16 @@ func (r *AccountsAPIRoutes) listHandler(c *gin.Context) {
 }
 
 type createAccountPayload struct {
-	Username  string `json:"username"`
-	Password  string `json:"password"`
-	IsVisitor bool   `json:"is_visitor"`
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Owner    bool   `json:"owner"`
 }
 
 func (p *createAccountPayload) ToAccountDTO() model.AccountDTO {
 	return model.AccountDTO{
 		Username: p.Username,
 		Password: p.Password,
-		Owner:    model.Ptr(!p.IsVisitor),
+		Owner:    &p.Owner,
 	}
 }
 
@@ -151,15 +151,18 @@ func (r *AccountsAPIRoutes) updateHandler(c *gin.Context) {
 		return
 	}
 
-	var payload model.AccountDTO
+	var payload updateAccountPayload
 	if err := c.ShouldBindJSON(&payload); err != nil {
 		r.logger.WithError(err).Error("error binding json")
 		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
-	payload.ID = model.DBID(accountID)
 
-	account, err := r.deps.Domains.Accounts.UpdateAccount(c.Request.Context(), payload)
+	// Not checking the old password since admins/owners can update any account
+	updatedAccount := payload.ToAccountDTO()
+	updatedAccount.ID = model.DBID(accountID)
+
+	account, err := r.deps.Domains.Accounts.UpdateAccount(c.Request.Context(), updatedAccount)
 	if errors.Is(err, model.ErrNotFound) {
 		response.SendError(c, http.StatusNotFound, "account not found")
 		return

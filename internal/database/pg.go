@@ -605,23 +605,20 @@ func (db *PGDatabase) CreateAccount(ctx context.Context, account model.Account) 
 	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
 		query, err := tx.PrepareContext(ctx, `INSERT INTO account
 			(username, password, owner, config) VALUES ($1, $2, $3, $4)
-			ON CONFLICT(username) DO UPDATE SET
-			password = $2,
-			owner = $3
 			RETURNING id`)
 		if err != nil {
-			return errors.WithStack(err)
+			return fmt.Errorf("error preparing query: %w", err)
 		}
 
 		err = query.QueryRowContext(ctx,
 			account.Username, account.Password, account.Owner, account.Config).Scan(&accountID)
 		if err != nil {
-			return errors.WithStack(err)
+			return fmt.Errorf("error executing query: %w", err)
 		}
 
 		return nil
 	}); err != nil {
-		return nil, errors.WithStack(err)
+		return nil, fmt.Errorf("error during transaction: %w", err)
 	}
 
 	account.ID = model.DBID(accountID)
@@ -699,7 +696,7 @@ func (db *PGDatabase) ListAccounts(ctx context.Context, opts ListAccountsOptions
 	return accounts, nil
 }
 
-// GetAccount fetch account with matching username.
+// GetAccount fetch account with matching ID.
 // Returns the account and boolean whether it's exist or not.
 func (db *PGDatabase) GetAccount(ctx context.Context, id model.DBID) (*model.Account, bool, error) {
 	account := model.Account{}
@@ -719,7 +716,7 @@ func (db *PGDatabase) GetAccount(ctx context.Context, id model.DBID) (*model.Acc
 	return &account, account.ID != 0, err
 }
 
-// DeleteAccount removes record with matching username.
+// DeleteAccount removes record with matching ID.
 func (db *PGDatabase) DeleteAccount(ctx context.Context, id model.DBID) error {
 	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
 		result, err := tx.ExecContext(ctx, `DELETE FROM account WHERE id = $1`, id)

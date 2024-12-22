@@ -280,6 +280,18 @@ paths:
       summary: Login to an account using username and password
       tags:
       - Auth
+  /api/v1/auth/logout:
+    post:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Logout successful
+        "403":
+          description: Token not provided/invalid
+      summary: Logout from the current session
+      tags:
+      - Auth
   /api/v1/auth/me:
     get:
       produces:

@@ -146,6 +146,44 @@ func (r *AuthAPIRoutes) meHandler(c *gin.Context) {
 	response.Send(c, http.StatusOK, ctx.GetAccount())
 }
 
+type updateAccountPayload struct {
+	OldPassword string            `json:"old_password"`
+	NewPassword string            `json:"new_password"`
+	Username    string            `json:"username"`
+	Owner       *bool             `json:"owner"`
+	Config      *model.UserConfig `json:"config"`
+}
+
+func (p *updateAccountPayload) IsValid() error {
+	if p.NewPassword != "" && p.OldPassword == "" {
+		return fmt.Errorf("To update the password the old one must be provided")
+	}
+
+	return nil
+}
+
+func (p *updateAccountPayload) ToAccountDTO() model.AccountDTO {
+	account := model.AccountDTO{}
+
+	if p.NewPassword != "" {
+		account.Password = p.NewPassword
+	}
+
+	if p.Owner != nil {
+		account.Owner = p.Owner
+	}
+
+	if p.Config != nil {
+		account.Config = p.Config
+	}
+
+	if p.Username != "" {
+		account.Username = p.Username
+	}
+
+	return account
+}
+
 // updateHandler godoc
 //
 //	@Summary					Update account information
@@ -159,17 +197,34 @@ func (r *AuthAPIRoutes) meHandler(c *gin.Context) {
 func (r *AuthAPIRoutes) updateHandler(c *gin.Context) {
 	ctx := context.NewContextFromGin(c)
 
-	var payload model.AccountDTO
+	var payload updateAccountPayload
 	if err := c.ShouldBindJSON(&payload); err != nil {
 		response.SendInternalServerError(c)
 	}
 
-	// TODO: Check old password?
+	r.deps.Log.Error(payload.OldPassword)
+	r.deps.Log.Error(payload.NewPassword)
+
+	if err := payload.IsValid(); err != nil {
+		response.SendError(c, http.StatusBadRequest, err.Error())
+		return
+	}
 
 	account := ctx.GetAccount()
-	payload.ID = account.ID
 
-	account, err := r.deps.Domains.Accounts.UpdateAccount(c, payload)
+	// If trying to update password, check if old password is correct
+	if payload.NewPassword != "" {
+		_, err := r.deps.Domains.Auth.GetAccountFromCredentials(c, account.Username, payload.OldPassword)
+		if err != nil {
+			response.SendError(c, http.StatusBadRequest, "Old password is incorrect")
+			return
+		}
+	}
+
+	updatedAccount := payload.ToAccountDTO()
+	updatedAccount.ID = account.ID
+
+	account, err := r.deps.Domains.Accounts.UpdateAccount(c, updatedAccount)
 	if err != nil {
 		r.deps.Log.WithError(err).Error("failed to update account")
 		response.SendInternalServerError(c)

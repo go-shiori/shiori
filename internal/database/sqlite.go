@@ -696,8 +696,6 @@ func (db *SQLiteDatabase) CreateAccount(ctx context.Context, account model.Accou
 	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
 		query, err := tx.PrepareContext(ctx, `INSERT INTO account
 			(username, password, owner, config) VALUES (?, ?, ?, ?)
-			ON CONFLICT(username) DO UPDATE SET
-			password = ?, owner = ?
 			RETURNING id`)
 		if err != nil {
 			return errors.WithStack(err)
@@ -736,6 +734,7 @@ func (db *SQLiteDatabase) SaveAccountSettings(ctx context.Context, account model
 	return nil
 }
 
+// UpdateAccount updates account in database.
 func (db *SQLiteDatabase) UpdateAccount(ctx context.Context, account model.Account) error {
 	if account.ID == 0 {
 		return ErrNotFound
@@ -797,7 +796,7 @@ func (db *SQLiteDatabase) ListAccounts(ctx context.Context, opts ListAccountsOpt
 	return accounts, nil
 }
 
-// GetAccount fetch account with matching username.
+// GetAccount fetch account with matching ID.
 // Returns the account and boolean whether it's exist or not.
 func (db *SQLiteDatabase) GetAccount(ctx context.Context, id model.DBID) (*model.Account, bool, error) {
 	account := model.Account{}
@@ -817,7 +816,7 @@ func (db *SQLiteDatabase) GetAccount(ctx context.Context, id model.DBID) (*model
 	return &account, account.ID != 0, err
 }
 
-// DeleteAccount removes record with matching username.
+// DeleteAccount removes record with matching ID.
 func (db *SQLiteDatabase) DeleteAccount(ctx context.Context, id model.DBID) error {
 	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
 		result, err := tx.ExecContext(ctx, `DELETE FROM account WHERE id = ?`, id)
