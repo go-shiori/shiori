@@ -706,6 +706,19 @@ func (db *SQLiteDatabase) GetBookmark(ctx context.Context, id int, url string) (
 func (db *SQLiteDatabase) CreateAccount(ctx context.Context, account model.Account) (*model.Account, error) {
 	var accountID int64
 	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
+		// Check if username already exists
+		var exists bool
+		err := tx.GetContext(ctx, &exists, 
+			"SELECT EXISTS(SELECT 1 FROM account WHERE username = ?)", 
+			account.Username)
+		if err != nil {
+			return fmt.Errorf("error checking username existence: %w", err)
+		}
+		if exists {
+			return ErrAlreadyExists
+		}
+
+		// Insert new account
 		query, err := tx.PrepareContext(ctx, `INSERT INTO account
 			(username, password, owner, config) VALUES (?, ?, ?, ?)
 			RETURNING id`)
@@ -715,13 +728,7 @@ func (db *SQLiteDatabase) CreateAccount(ctx context.Context, account model.Accou
 
 		err = query.QueryRowContext(ctx,
 			account.Username, account.Password, account.Owner, account.Config).Scan(&accountID)
-
-		// Check if trying to create existing username
 		if err != nil {
-			if strings.HasSuffix(err.Error(), " (2067)") {
-				return ErrAlreadyExists
-			}
-
 			return fmt.Errorf("error executing query: %w", err)
 		}
 
@@ -758,22 +765,37 @@ func (db *SQLiteDatabase) UpdateAccount(ctx context.Context, account model.Accou
 	}
 
 	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
-		queryString := "UPDATE account SET username = ?, password = ?, owner = ?, config = ? WHERE id = ?"
+		// Check if username already exists for a different account
+		var exists bool
+		err := tx.GetContext(ctx, &exists,
+			"SELECT EXISTS(SELECT 1 FROM account WHERE username = ? AND id != ?)",
+			account.Username, account.ID)
+		if err != nil {
+			return fmt.Errorf("error checking username existence: %w", err)
+		}
+		if exists {
+			return ErrAlreadyExists
+		}
 
+		// Update account
+		queryString := "UPDATE account SET username = ?, password = ?, owner = ?, config = ? WHERE id = ?"
 		updateQuery, err := tx.PrepareContext(ctx, queryString)
 		if err != nil {
 			return fmt.Errorf("error preparing query: %w", err)
 		}
 
-		_, err = updateQuery.ExecContext(ctx, account.Username, account.Password, account.Owner, account.Config, account.ID)
-
-		// Check if trying to update to existing username
+		result, err := updateQuery.ExecContext(ctx, 
+			account.Username, account.Password, account.Owner, account.Config, account.ID)
 		if err != nil {
-			if strings.HasSuffix(err.Error(), " (2067)") {
-				return ErrAlreadyExists
-			}
-
 			return fmt.Errorf("error executing query: %w", err)
+		}
+
+		rows, err := result.RowsAffected()
+		if err != nil {
+			return fmt.Errorf("error getting rows affected: %w", err)
+		}
+		if rows == 0 {
+			return ErrNotFound
 		}
 
 		return nil

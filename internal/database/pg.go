@@ -603,6 +603,19 @@ func (db *PGDatabase) GetBookmark(ctx context.Context, id int, url string) (mode
 func (db *PGDatabase) CreateAccount(ctx context.Context, account model.Account) (*model.Account, error) {
 	var accountID int64
 	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
+		// Check for existing username
+		var exists bool
+		err := tx.QueryRowContext(ctx,
+			"SELECT EXISTS(SELECT 1 FROM account WHERE username = $1)",
+			account.Username).Scan(&exists)
+		if err != nil {
+			return fmt.Errorf("error checking username: %w", err)
+		}
+		if exists {
+			return ErrAlreadyExists
+		}
+
+		// Create the account
 		query, err := tx.PrepareContext(ctx, `INSERT INTO account
 			(username, password, owner, config) VALUES ($1, $2, $3, $4)
 			RETURNING id`)
@@ -633,12 +646,32 @@ func (db *PGDatabase) UpdateAccount(ctx context.Context, account model.Account) 
 	}
 
 	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
-		_, err := tx.ExecContext(ctx, `UPDATE account
+		// Check for existing username
+		var exists bool
+		err := tx.QueryRowContext(ctx,
+			"SELECT EXISTS(SELECT 1 FROM account WHERE username = $1 AND id != $2)",
+			account.Username, account.ID).Scan(&exists)
+		if err != nil {
+			return fmt.Errorf("error checking username: %w", err)
+		}
+		if exists {
+			return ErrAlreadyExists
+		}
+
+		result, err := tx.ExecContext(ctx, `UPDATE account
 			SET username = $1, password = $2, owner = $3, config = $4
 			WHERE id = $5`,
 			account.Username, account.Password, account.Owner, account.Config, account.ID)
 		if err != nil {
 			return errors.WithStack(err)
+		}
+
+		rows, err := result.RowsAffected()
+		if err != nil {
+			return errors.WithStack(err)
+		}
+		if rows == 0 {
+			return ErrNotFound
 		}
 
 		return nil

@@ -589,25 +589,39 @@ func (db *MySQLDatabase) GetBookmark(ctx context.Context, id int, url string) (m
 
 // CreateAccount saves new account to database. Returns error if any happened.
 func (db *MySQLDatabase) CreateAccount(ctx context.Context, account model.Account) (*model.Account, error) {
-	// Insert account to database
-	result, insertErr := db.ExecContext(ctx, `INSERT INTO account
-		(username, password, owner, config) VALUES (?, ?, ?, ?)
-		ON DUPLICATE KEY UPDATE
-		password = VALUES(password),
-		owner = VALUES(owner)`,
-		account.Username, account.Password, account.Owner, account.Config)
-	if insertErr != nil {
-		return nil, errors.WithStack(insertErr)
-	}
-
 	var accountID int64
-	accountID, err := result.LastInsertId()
-	if err != nil {
+	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
+		// Check for existing username
+		var exists bool
+		err := tx.QueryRowContext(ctx, 
+			"SELECT EXISTS(SELECT 1 FROM account WHERE username = ?)", 
+			account.Username).Scan(&exists)
+		if err != nil {
+			return fmt.Errorf("error checking username: %w", err)
+		}
+		if exists {
+			return ErrAlreadyExists
+		}
+
+		// Create the account
+		result, err := tx.ExecContext(ctx, `INSERT INTO account
+			(username, password, owner, config) VALUES (?, ?, ?, ?)`,
+			account.Username, account.Password, account.Owner, account.Config)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+
+		id, err := result.LastInsertId()
+		if err != nil {
+			return errors.WithStack(err)
+		}
+		accountID = id
+		return nil
+	}); err != nil {
 		return nil, errors.WithStack(err)
 	}
 
 	account.ID = model.DBID(accountID)
-
 	return &account, nil
 }
 
@@ -617,8 +631,20 @@ func (db *MySQLDatabase) UpdateAccount(ctx context.Context, account model.Accoun
 		return ErrNotFound
 	}
 
-	db.withTx(ctx, func(tx *sqlx.Tx) error {
-		_, err := tx.ExecContext(ctx, `UPDATE account
+	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
+		// Check for existing username
+		var exists bool
+		err := tx.QueryRowContext(ctx, 
+			"SELECT EXISTS(SELECT 1 FROM account WHERE username = ? AND id != ?)", 
+			account.Username, account.ID).Scan(&exists)
+		if err != nil {
+			return fmt.Errorf("error checking username: %w", err)
+		}
+		if exists {
+			return ErrAlreadyExists
+		}
+
+		result, err := tx.ExecContext(ctx, `UPDATE account
 			SET username = ?, password = ?, owner = ?, config = ?
 			WHERE id = ?`,
 			account.Username, account.Password, account.Owner, account.Config, account.ID)
@@ -626,8 +652,18 @@ func (db *MySQLDatabase) UpdateAccount(ctx context.Context, account model.Accoun
 			return errors.WithStack(err)
 		}
 
+		rows, err := result.RowsAffected()
+		if err != nil {
+			return errors.WithStack(err)
+		}
+		if rows == 0 {
+			return ErrNotFound
+		}
+
 		return nil
-	})
+	}); err != nil {
+		return errors.WithStack(err)
+	}
 
 	return nil
 }
