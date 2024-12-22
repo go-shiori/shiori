@@ -64,6 +64,25 @@ func TestAccountList(t *testing.T) {
 	logger := logrus.New()
 	ctx := context.TODO()
 
+	t.Run("database error", func(t *testing.T) {
+		g := gin.New()
+		cfg, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+		g.Use(middleware.AuthMiddleware(deps))
+
+		// Close DB to force error
+		deps.Database.Close()
+
+		_, token, err := testutil.NewAdminUser(deps)
+		require.NoError(t, err)
+
+		router := NewAccountsAPIRoutes(logger, deps)
+		router.Setup(g.Group("/"))
+		w := testutil.PerformRequest(g, "GET", "/", testutil.WithAuthToken(token))
+		require.Equal(t, http.StatusInternalServerError, w.Code)
+	})
+	logger := logrus.New()
+	ctx := context.TODO()
+
 	t.Run("return account", func(t *testing.T) {
 		g := gin.New()
 		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
@@ -113,6 +132,86 @@ func TestAccountList(t *testing.T) {
 }
 
 func TestAccountCreate(t *testing.T) {
+	logger := logrus.New()
+	ctx := context.TODO()
+
+	t.Run("database error", func(t *testing.T) {
+		g := gin.New()
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+		g.Use(middleware.AuthMiddleware(deps))
+
+		_, token, err := testutil.NewAdminUser(deps)
+		require.NoError(t, err)
+
+		// Close DB to force error
+		deps.Database.Close()
+
+		router := NewAccountsAPIRoutes(logger, deps)
+		router.Setup(g.Group("/"))
+
+		w := testutil.PerformRequest(g, "POST", "/", testutil.WithBody(`{
+			"username": "gopher",
+			"password": "shiori"
+		}`), testutil.WithAuthToken(token))
+		require.Equal(t, http.StatusInternalServerError, w.Code)
+	})
+
+	t.Run("duplicate username", func(t *testing.T) {
+		g := gin.New()
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+		g.Use(middleware.AuthMiddleware(deps))
+
+		_, token, err := testutil.NewAdminUser(deps)
+		require.NoError(t, err)
+
+		// Create first account
+		_, err = deps.Domains.Accounts.CreateAccount(ctx, model.AccountDTO{
+			Username: "gopher",
+			Password: "shiori",
+		})
+		require.NoError(t, err)
+
+		router := NewAccountsAPIRoutes(logger, deps)
+		router.Setup(g.Group("/"))
+
+		// Try to create account with same username
+		w := testutil.PerformRequest(g, "POST", "/", testutil.WithBody(`{
+			"username": "gopher",
+			"password": "shiori"
+		}`), testutil.WithAuthToken(token))
+		require.Equal(t, http.StatusBadRequest, w.Code)
+
+		response, err := testutil.NewTestResponseFromReader(w.Body)
+		require.NoError(t, err)
+		response.AssertNotOk(t)
+	})
+
+	t.Run("create owner account", func(t *testing.T) {
+		g := gin.New()
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+		g.Use(middleware.AuthMiddleware(deps))
+
+		_, token, err := testutil.NewAdminUser(deps)
+		require.NoError(t, err)
+		router := NewAccountsAPIRoutes(logger, deps)
+		router.Setup(g.Group("/"))
+
+		w := testutil.PerformRequest(g, "POST", "/", testutil.WithBody(`{
+			"username": "gopher",
+			"password": "shiori",
+			"owner": true
+		}`), testutil.WithAuthToken(token))
+		require.Equal(t, http.StatusCreated, w.Code)
+
+		response, err := testutil.NewTestResponseFromReader(w.Body)
+		require.NoError(t, err)
+		response.AssertOk(t)
+
+		var account model.AccountDTO
+		err = json.Unmarshal([]byte(response.Response.Message.(string)), &account)
+		require.NoError(t, err)
+		require.True(t, *account.Owner)
+	})
 	logger := logrus.New()
 	ctx := context.TODO()
 
@@ -207,6 +306,53 @@ func TestAccountDelete(t *testing.T) {
 	logger := logrus.New()
 	ctx := context.TODO()
 
+	t.Run("database error", func(t *testing.T) {
+		g := gin.New()
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+		g.Use(middleware.AuthMiddleware(deps))
+
+		_, token, err := testutil.NewAdminUser(deps)
+		require.NoError(t, err)
+
+		account, err := deps.Domains.Accounts.CreateAccount(ctx, model.AccountDTO{
+			Username: "gopher",
+			Password: "shiori",
+		})
+		require.NoError(t, err)
+
+		// Close DB to force error
+		deps.Database.Close()
+
+		router := NewAccountsAPIRoutes(logger, deps)
+		router.Setup(g.Group("/"))
+		w := testutil.PerformRequest(g, "DELETE", "/"+strconv.Itoa(int(account.ID)), testutil.WithAuthToken(token))
+		require.Equal(t, http.StatusInternalServerError, w.Code)
+	})
+
+	t.Run("delete owner account", func(t *testing.T) {
+		g := gin.New()
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+		g.Use(middleware.AuthMiddleware(deps))
+
+		_, token, err := testutil.NewAdminUser(deps)
+		require.NoError(t, err)
+
+		owner := true
+		account, err := deps.Domains.Accounts.CreateAccount(ctx, model.AccountDTO{
+			Username: "gopher",
+			Password: "shiori",
+			Owner:    &owner,
+		})
+		require.NoError(t, err)
+
+		router := NewAccountsAPIRoutes(logger, deps)
+		router.Setup(g.Group("/"))
+		w := testutil.PerformRequest(g, "DELETE", "/"+strconv.Itoa(int(account.ID)), testutil.WithAuthToken(token))
+		require.Equal(t, http.StatusNoContent, w.Code)
+	})
+	logger := logrus.New()
+	ctx := context.TODO()
+
 	t.Run("success", func(t *testing.T) {
 		g := gin.New()
 		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
@@ -253,6 +399,89 @@ func TestAccountDelete(t *testing.T) {
 }
 
 func TestAccountUpdate(t *testing.T) {
+	logger := logrus.New()
+	ctx := context.TODO()
+
+	t.Run("database error", func(t *testing.T) {
+		g := gin.New()
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+		g.Use(middleware.AuthMiddleware(deps))
+
+		_, token, err := testutil.NewAdminUser(deps)
+		require.NoError(t, err)
+
+		account, err := deps.Domains.Accounts.CreateAccount(ctx, model.AccountDTO{
+			Username: "gopher",
+			Password: "shiori",
+		})
+		require.NoError(t, err)
+
+		// Close DB to force error
+		deps.Database.Close()
+
+		router := NewAccountsAPIRoutes(logger, deps)
+		router.Setup(g.Group("/"))
+
+		w := testutil.PerformRequest(g, "PATCH", "/"+strconv.Itoa(int(account.ID)), 
+			testutil.WithBody(`{"username":"newname"}`), 
+			testutil.WithAuthToken(token))
+		require.Equal(t, http.StatusInternalServerError, w.Code)
+	})
+
+	t.Run("update to existing username", func(t *testing.T) {
+		g := gin.New()
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+		g.Use(middleware.AuthMiddleware(deps))
+
+		_, token, err := testutil.NewAdminUser(deps)
+		require.NoError(t, err)
+
+		// Create first account
+		_, err = deps.Domains.Accounts.CreateAccount(ctx, model.AccountDTO{
+			Username: "gopher1",
+			Password: "shiori",
+		})
+		require.NoError(t, err)
+
+		// Create second account
+		account2, err := deps.Domains.Accounts.CreateAccount(ctx, model.AccountDTO{
+			Username: "gopher2",
+			Password: "shiori",
+		})
+		require.NoError(t, err)
+
+		router := NewAccountsAPIRoutes(logger, deps)
+		router.Setup(g.Group("/"))
+
+		// Try to update second account to first account's username
+		w := testutil.PerformRequest(g, "PATCH", "/"+strconv.Itoa(int(account2.ID)),
+			testutil.WithBody(`{"username":"gopher1"}`),
+			testutil.WithAuthToken(token))
+		require.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("update with empty changes", func(t *testing.T) {
+		g := gin.New()
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+		g.Use(middleware.AuthMiddleware(deps))
+
+		_, token, err := testutil.NewAdminUser(deps)
+		require.NoError(t, err)
+
+		account, err := deps.Domains.Accounts.CreateAccount(ctx, model.AccountDTO{
+			Username: "gopher",
+			Password: "shiori",
+		})
+		require.NoError(t, err)
+
+		router := NewAccountsAPIRoutes(logger, deps)
+		router.Setup(g.Group("/"))
+
+		w := testutil.PerformRequest(g, "PATCH", "/"+strconv.Itoa(int(account.ID)),
+			testutil.WithBody(`{}`),
+			testutil.WithAuthToken(token))
+		require.Equal(t, http.StatusBadRequest, w.Code)
+	})
 	logger := logrus.New()
 	ctx := context.TODO()
 
