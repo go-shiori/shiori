@@ -35,13 +35,15 @@ func testDatabase(t *testing.T, dbFactory testDatabaseFactory) {
 		"testCreateTag":  testCreateTag,
 		"testCreateTags": testCreateTags,
 		// Accounts
-		"testCreateAccount":            testCreateAccount,
-		"testDeleteAccount":            testDeleteAccount,
-		"testDeleteNonExistantAccount": testDeleteNonExistantAccount,
-		"testUpdateAccount":            testUpdateAccount,
-		"testGetAccount":               testGetAccount,
-		"testListAccounts":             testListAccounts,
-		"testListAccountsWithPassword": testListAccountsWithPassword,
+		"testCreateAccount":              testCreateAccount,
+		"testCreateDuplicateAccount":     testCreateDuplicateAccount,
+		"testDeleteAccount":              testDeleteAccount,
+		"testDeleteNonExistantAccount":   testDeleteNonExistantAccount,
+		"testUpdateAccount":              testUpdateAccount,
+		"testUpdateAccountDuplicateUser": testUpdateAccountDuplicateUser,
+		"testGetAccount":                 testGetAccount,
+		"testListAccounts":               testListAccounts,
+		"testListAccountsWithPassword":   testListAccountsWithPassword,
 	}
 
 	for testName, testCase := range tests {
@@ -485,6 +487,51 @@ func testListAccounts(t *testing.T, db DB) {
 			assert.Equal(t, tt.expected, len(accounts))
 		})
 	}
+}
+
+func testCreateDuplicateAccount(t *testing.T, db DB) {
+	ctx := context.TODO()
+
+	acc := model.Account{
+		Username: "testuser",
+		Password: "testpass",
+		Owner:    false,
+	}
+
+	// Create first account
+	_, err := db.CreateAccount(ctx, acc)
+	assert.NoError(t, err, "First account creation must not fail")
+
+	// Try to create account with same username
+	_, err = db.CreateAccount(ctx, acc)
+	assert.ErrorIs(t, err, ErrAlreadyExists, "Creating duplicate account must return ErrAlreadyExists")
+}
+
+func testUpdateAccountDuplicateUser(t *testing.T, db DB) {
+	ctx := context.TODO()
+
+	// Create first account
+	acc1 := model.Account{
+		Username: "testuser1",
+		Password: "testpass",
+		Owner:    false,
+	}
+	storedAcc1, err := db.CreateAccount(ctx, acc1)
+	assert.NoError(t, err, "First account creation must not fail")
+
+	// Create second account
+	acc2 := model.Account{
+		Username: "testuser2",
+		Password: "testpass",
+		Owner:    false,
+	}
+	storedAcc2, err := db.CreateAccount(ctx, acc2)
+	assert.NoError(t, err, "Second account creation must not fail")
+
+	// Try to update second account to have same username as first
+	storedAcc2.Username = storedAcc1.Username
+	err = db.UpdateAccount(ctx, *storedAcc2)
+	assert.ErrorIs(t, err, ErrAlreadyExists, "Updating to duplicate username must return ErrAlreadyExists")
 }
 
 func testListAccountsWithPassword(t *testing.T, db DB) {
