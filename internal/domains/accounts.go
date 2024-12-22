@@ -51,6 +51,10 @@ func (d *AccountsDomain) CreateAccount(ctx context.Context, account model.Accoun
 	}
 
 	storedAccount, err := d.deps.Database.CreateAccount(ctx, acc)
+	if errors.Is(err, database.ErrAlreadyExists) {
+		return nil, model.ErrAlreadyExists
+	}
+
 	if err != nil {
 		return nil, fmt.Errorf("error creating account: %v", err)
 	}
@@ -110,6 +114,10 @@ func (d *AccountsDomain) UpdateAccount(ctx context.Context, account model.Accoun
 
 	// Save updated account
 	err = d.deps.Database.UpdateAccount(ctx, *storedAccount)
+	if errors.Is(err, database.ErrAlreadyExists) {
+		return nil, model.ErrAlreadyExists
+	}
+
 	if err != nil {
 		return nil, fmt.Errorf("error updating account: %w", err)
 	}

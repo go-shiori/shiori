@@ -66,23 +66,20 @@ func TestAccountList(t *testing.T) {
 
 	t.Run("database error", func(t *testing.T) {
 		g := gin.New()
-		cfg, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
 		g.Use(middleware.AuthMiddleware(deps))
-
-		// Close DB to force error
-		deps.Database.Close()
 
 		_, token, err := testutil.NewAdminUser(deps)
 		require.NoError(t, err)
+
+		// Force DB error by clearing the deps
+		deps.Database.DBx().Close()
 
 		router := NewAccountsAPIRoutes(logger, deps)
 		router.Setup(g.Group("/"))
 		w := testutil.PerformRequest(g, "GET", "/", testutil.WithAuthToken(token))
 		require.Equal(t, http.StatusInternalServerError, w.Code)
 	})
-	logger := logrus.New()
-	ctx := context.TODO()
-
 	t.Run("return account", func(t *testing.T) {
 		g := gin.New()
 		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
@@ -143,8 +140,8 @@ func TestAccountCreate(t *testing.T) {
 		_, token, err := testutil.NewAdminUser(deps)
 		require.NoError(t, err)
 
-		// Close DB to force error
-		deps.Database.Close()
+		// Force DB error by clearing the deps
+		deps.Database.DBx().Close()
 
 		router := NewAccountsAPIRoutes(logger, deps)
 		router.Setup(g.Group("/"))
@@ -179,7 +176,7 @@ func TestAccountCreate(t *testing.T) {
 			"username": "gopher",
 			"password": "shiori"
 		}`), testutil.WithAuthToken(token))
-		require.Equal(t, http.StatusBadRequest, w.Code)
+		require.Equal(t, http.StatusConflict, w.Code)
 
 		response, err := testutil.NewTestResponseFromReader(w.Body)
 		require.NoError(t, err)
@@ -207,13 +204,9 @@ func TestAccountCreate(t *testing.T) {
 		require.NoError(t, err)
 		response.AssertOk(t)
 
-		var account model.AccountDTO
-		err = json.Unmarshal([]byte(response.Response.Message.(string)), &account)
 		require.NoError(t, err)
-		require.True(t, *account.Owner)
+		require.True(t, response.Response.Message.(map[string]interface{})["owner"].(bool))
 	})
-	logger := logrus.New()
-	ctx := context.TODO()
 
 	t.Run("invalid payload", func(t *testing.T) {
 		g := gin.New()
@@ -320,8 +313,8 @@ func TestAccountDelete(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		// Close DB to force error
-		deps.Database.Close()
+		// Force DB error by clearing the deps
+		deps.Database.DBx().Close()
 
 		router := NewAccountsAPIRoutes(logger, deps)
 		router.Setup(g.Group("/"))
@@ -350,8 +343,6 @@ func TestAccountDelete(t *testing.T) {
 		w := testutil.PerformRequest(g, "DELETE", "/"+strconv.Itoa(int(account.ID)), testutil.WithAuthToken(token))
 		require.Equal(t, http.StatusNoContent, w.Code)
 	})
-	logger := logrus.New()
-	ctx := context.TODO()
 
 	t.Run("success", func(t *testing.T) {
 		g := gin.New()
@@ -416,14 +407,14 @@ func TestAccountUpdate(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		// Close DB to force error
-		deps.Database.Close()
+		// Close dataase connection to force error
+		deps.Database.DBx().Close()
 
 		router := NewAccountsAPIRoutes(logger, deps)
 		router.Setup(g.Group("/"))
 
-		w := testutil.PerformRequest(g, "PATCH", "/"+strconv.Itoa(int(account.ID)), 
-			testutil.WithBody(`{"username":"newname"}`), 
+		w := testutil.PerformRequest(g, "PATCH", "/"+strconv.Itoa(int(account.ID)),
+			testutil.WithBody(`{"username":"newname"}`),
 			testutil.WithAuthToken(token))
 		require.Equal(t, http.StatusInternalServerError, w.Code)
 	})
@@ -457,7 +448,7 @@ func TestAccountUpdate(t *testing.T) {
 		w := testutil.PerformRequest(g, "PATCH", "/"+strconv.Itoa(int(account2.ID)),
 			testutil.WithBody(`{"username":"gopher1"}`),
 			testutil.WithAuthToken(token))
-		require.Equal(t, http.StatusBadRequest, w.Code)
+		require.Equal(t, http.StatusConflict, w.Code)
 	})
 
 	t.Run("update with empty changes", func(t *testing.T) {
@@ -482,9 +473,6 @@ func TestAccountUpdate(t *testing.T) {
 			testutil.WithAuthToken(token))
 		require.Equal(t, http.StatusBadRequest, w.Code)
 	})
-	logger := logrus.New()
-	ctx := context.TODO()
-
 	for _, tc := range []struct {
 		name    string
 		payload updateAccountPayload

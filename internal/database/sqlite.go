@@ -15,6 +15,18 @@ import (
 	_ "modernc.org/sqlite"
 )
 
+// sqliteError represents sqlite library error code.
+type sqliteError struct {
+	msg  string
+	code int
+}
+
+// Error implements error.
+func (e *sqliteError) Error() string { return e.msg }
+
+// Code returns the sqlite result code for this error.
+func (e *sqliteError) Code() int { return e.code }
+
 var sqliteMigrations = []migration{
 	newFileMigration("0.0.0", "0.1.0", "sqlite/0000_system"),
 	newFileMigration("0.1.0", "0.2.0", "sqlite/0001_initial"),
@@ -698,18 +710,24 @@ func (db *SQLiteDatabase) CreateAccount(ctx context.Context, account model.Accou
 			(username, password, owner, config) VALUES (?, ?, ?, ?)
 			RETURNING id`)
 		if err != nil {
-			return errors.WithStack(err)
+			return fmt.Errorf("error preparing query: %w", err)
 		}
 
 		err = query.QueryRowContext(ctx,
 			account.Username, account.Password, account.Owner, account.Config).Scan(&accountID)
+
+		// Check if trying to create existing username
 		if err != nil {
-			return errors.WithStack(err)
+			if strings.HasSuffix(err.Error(), " (2067)") {
+				return ErrAlreadyExists
+			}
+
+			return fmt.Errorf("error executing query: %w", err)
 		}
 
 		return nil
 	}); err != nil {
-		return nil, errors.WithStack(err)
+		return nil, fmt.Errorf("error running transaction: %w", err)
 	}
 
 	account.ID = model.DBID(accountID)
@@ -744,17 +762,23 @@ func (db *SQLiteDatabase) UpdateAccount(ctx context.Context, account model.Accou
 
 		updateQuery, err := tx.PrepareContext(ctx, queryString)
 		if err != nil {
-			return errors.WithStack(err)
+			return fmt.Errorf("error preparing query: %w", err)
 		}
 
 		_, err = updateQuery.ExecContext(ctx, account.Username, account.Password, account.Owner, account.Config, account.ID)
+
+		// Check if trying to update to existing username
 		if err != nil {
-			return errors.WithStack(err)
+			if strings.HasSuffix(err.Error(), " (2067)") {
+				return ErrAlreadyExists
+			}
+
+			return fmt.Errorf("error executing query: %w", err)
 		}
 
 		return nil
 	}); err != nil {
-		return errors.WithStack(err)
+		return fmt.Errorf("error running transaction: %w", err)
 	}
 
 	return nil

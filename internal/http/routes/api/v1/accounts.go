@@ -92,6 +92,11 @@ func (r *AccountsAPIRoutes) createHandler(c *gin.Context) {
 		return
 	}
 
+	if errors.Is(err, model.ErrAlreadyExists) {
+		response.SendError(c, http.StatusConflict, "account already exists")
+		return
+	}
+
 	if err != nil {
 		r.logger.WithError(err).Error("error creating account")
 		c.AbortWithStatus(http.StatusInternalServerError)
@@ -167,6 +172,11 @@ func (r *AccountsAPIRoutes) updateHandler(c *gin.Context) {
 		response.SendError(c, http.StatusNotFound, "account not found")
 		return
 	}
+	if errors.Is(err, model.ErrAlreadyExists) {
+		response.SendError(c, http.StatusConflict, "account already exists")
+		return
+	}
+
 	if err, isValidationErr := err.(model.ValidationError); isValidationErr {
 		response.SendError(c, http.StatusBadRequest, err.Error())
 		return

@@ -15,6 +15,9 @@ import (
 // ErrNotFound is error returned when record is not found in database.
 var ErrNotFound = errors.New("not found")
 
+// ErrAlreadyExists is error returned when record already exists in database.
+var ErrAlreadyExists = errors.New("already exists")
+
 // OrderMethod is the order method for getting bookmarks
 type OrderMethod int
 
