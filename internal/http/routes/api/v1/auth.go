@@ -202,9 +202,6 @@ func (r *AuthAPIRoutes) updateHandler(c *gin.Context) {
 		response.SendInternalServerError(c)
 	}
 
-	r.deps.Log.Error(payload.OldPassword)
-	r.deps.Log.Error(payload.NewPassword)
-
 	if err := payload.IsValid(); err != nil {
 		response.SendError(c, http.StatusBadRequest, err.Error())
 		return
