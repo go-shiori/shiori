@@ -30,7 +30,7 @@ jobs:
     uses: ./.github/workflows/_gorelease.yml
   call-buildx:
     needs: call-gorelease
-    if: ${{ startsWith(github.head_ref, 'dependabot/') }}
+    if: ${{ !startsWith(github.head_ref, 'dependabot/') }}
     uses: ./.github/workflows/_buildx.yml
   call-buildx-alpine:
     needs: call-gorelease
