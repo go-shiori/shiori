@@ -69,7 +69,7 @@ var template = `
                 <a v-if="activeAccount.owner" @click="showDialogNewAccount">Add new account</a>
             </div>
         </details>
-	    <details v-if="!activeAccount.owner" open class="setting-group setting-accounts" id="setting-my-account">
+        <details v-if="!activeAccount.owner" open class="setting-group setting-accounts" id="setting-my-account">
             <summary>My account</summary>
             <ul>
                 <li v-for="(account, idx) in [this.activeAccount]">
@@ -315,7 +315,8 @@ export default {
 				},
 			];
 
-			const requiresOldPassword = !this.activeAccount.owner || this.activeAccount.id === account.id;
+			const requiresOldPassword =
+				!this.activeAccount.owner || this.activeAccount.id === account.id;
 
 			// Only owners can update user passwords without
 			// providing the old password
@@ -386,7 +387,7 @@ export default {
 								mainClick: () => {
 									this.dialog.visible = false;
 								},
-							})
+							});
 						})
 						.catch((err) => {
 							this.dialog.loading = false;
