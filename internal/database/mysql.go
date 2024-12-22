@@ -593,9 +593,10 @@ func (db *MySQLDatabase) CreateAccount(ctx context.Context, account model.Accoun
 	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
 		// Check for existing username
 		var exists bool
-		err := tx.QueryRowContext(ctx, 
-			"SELECT EXISTS(SELECT 1 FROM account WHERE username = ?)", 
-			account.Username).Scan(&exists)
+		err := tx.QueryRowContext(
+			ctx, "SELECT EXISTS(SELECT 1 FROM account WHERE username = ?)",
+			account.Username,
+		).Scan(&exists)
 		if err != nil {
 			return fmt.Errorf("error checking username: %w", err)
 		}
@@ -634,8 +635,8 @@ func (db *MySQLDatabase) UpdateAccount(ctx context.Context, account model.Accoun
 	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
 		// Check for existing username
 		var exists bool
-		err := tx.QueryRowContext(ctx, 
-			"SELECT EXISTS(SELECT 1 FROM account WHERE username = ? AND id != ?)", 
+		err := tx.QueryRowContext(ctx,
+			"SELECT EXISTS(SELECT 1 FROM account WHERE username = ? AND id != ?)",
 			account.Username, account.ID).Scan(&exists)
 		if err != nil {
 			return fmt.Errorf("error checking username: %w", err)

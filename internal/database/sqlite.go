@@ -15,18 +15,6 @@ import (
 	_ "modernc.org/sqlite"
 )
 
-// sqliteError represents sqlite library error code.
-type sqliteError struct {
-	msg  string
-	code int
-}
-
-// Error implements error.
-func (e *sqliteError) Error() string { return e.msg }
-
-// Code returns the sqlite result code for this error.
-func (e *sqliteError) Code() int { return e.code }
-
 var sqliteMigrations = []migration{
 	newFileMigration("0.0.0", "0.1.0", "sqlite/0000_system"),
 	newFileMigration("0.1.0", "0.2.0", "sqlite/0001_initial"),
@@ -708,8 +696,8 @@ func (db *SQLiteDatabase) CreateAccount(ctx context.Context, account model.Accou
 	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
 		// Check if username already exists
 		var exists bool
-		err := tx.GetContext(ctx, &exists, 
-			"SELECT EXISTS(SELECT 1 FROM account WHERE username = ?)", 
+		err := tx.GetContext(ctx, &exists,
+			"SELECT EXISTS(SELECT 1 FROM account WHERE username = ?)",
 			account.Username)
 		if err != nil {
 			return fmt.Errorf("error checking username existence: %w", err)
@@ -784,7 +772,7 @@ func (db *SQLiteDatabase) UpdateAccount(ctx context.Context, account model.Accou
 			return fmt.Errorf("error preparing query: %w", err)
 		}
 
-		result, err := updateQuery.ExecContext(ctx, 
+		result, err := updateQuery.ExecContext(ctx,
 			account.Username, account.Password, account.Owner, account.Config, account.ID)
 		if err != nil {
 			return fmt.Errorf("error executing query: %w", err)
