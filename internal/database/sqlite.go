@@ -702,8 +702,7 @@ func (db *SQLiteDatabase) CreateAccount(ctx context.Context, account model.Accou
 		}
 
 		err = query.QueryRowContext(ctx,
-			account.Username, account.Password, account.Owner, account.Config,
-			account.Password, account.Owner).Scan(&accountID)
+			account.Username, account.Password, account.Owner, account.Config).Scan(&accountID)
 		if err != nil {
 			return errors.WithStack(err)
 		}
