@@ -211,8 +211,38 @@ func TestUpdateHandler(t *testing.T) {
 		require.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 
+	t.Run("password update with invalid old password", func(t *testing.T) {
+		token, err := deps.Domains.Auth.CreateTokenForAccount(account, time.Now().Add(time.Minute))
+		require.NoError(t, err)
+
+		payloadJSON := `{
+			"old_password": "wrongpassword",
+			"new_password": "newpassword"
+		}`
+
+		w := testutil.PerformRequest(g, "PATCH", "/account", testutil.WithBody(payloadJSON), testutil.WithAuthToken(token))
+		require.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("password update with correct old password", func(t *testing.T) {
+		token, err := deps.Domains.Auth.CreateTokenForAccount(account, time.Now().Add(time.Minute))
+		require.NoError(t, err)
+
+		payloadJSON := `{
+			"old_password": "gopher",
+			"new_password": "newpassword"
+		}`
+
+		w := testutil.PerformRequest(g, "PATCH", "/account", testutil.WithBody(payloadJSON), testutil.WithAuthToken(token))
+		require.Equal(t, http.StatusOK, w.Code)
+
+		// Verify we can login with new password
+		loginW := testutil.PerformRequest(g, "POST", "/login", testutil.WithBody(`{"username": "shiori", "password": "newpassword"}`))
+		require.Equal(t, http.StatusOK, loginW.Code)
+	})
+
 	t.Run("Test configure change in database", func(t *testing.T) {
-		// Get current user config
+		// Get current user config 
 		user, _, err := deps.Database.GetAccount(ctx, account.ID)
 		require.NoError(t, err)
 		require.Equal(t, user.ToDTO().Config, account.Config)
