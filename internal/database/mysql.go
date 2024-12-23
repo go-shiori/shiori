@@ -669,7 +669,6 @@ func (db *MySQLDatabase) UpdateAccount(ctx context.Context, account model.Accoun
 	return nil
 }
 
-
 // ListAccounts fetch list of account (without its password) based on submitted options.
 func (db *MySQLDatabase) ListAccounts(ctx context.Context, opts ListAccountsOptions) ([]model.Account, error) {
 	// Create query

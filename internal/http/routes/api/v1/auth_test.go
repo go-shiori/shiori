@@ -242,7 +242,7 @@ func TestUpdateHandler(t *testing.T) {
 	})
 
 	t.Run("Test configure change in database", func(t *testing.T) {
-		// Get current user config 
+		// Get current user config
 		user, _, err := deps.Database.GetAccount(ctx, account.ID)
 		require.NoError(t, err)
 		require.Equal(t, user.ToDTO().Config, account.Config)

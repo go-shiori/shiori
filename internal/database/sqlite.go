@@ -730,7 +730,6 @@ func (db *SQLiteDatabase) CreateAccount(ctx context.Context, account model.Accou
 	return &account, nil
 }
 
-
 // UpdateAccount updates account in database.
 func (db *SQLiteDatabase) UpdateAccount(ctx context.Context, account model.Account) error {
 	if account.ID == 0 {

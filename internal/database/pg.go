@@ -682,7 +682,6 @@ func (db *PGDatabase) UpdateAccount(ctx context.Context, account model.Account) 
 	return nil
 }
 
-
 // ListAccounts fetch list of account (without its password) based on submitted options.
 func (db *PGDatabase) ListAccounts(ctx context.Context, opts ListAccountsOptions) ([]model.Account, error) {
 	// Create query
