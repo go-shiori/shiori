@@ -669,16 +669,6 @@ func (db *MySQLDatabase) UpdateAccount(ctx context.Context, account model.Accoun
 	return nil
 }
 
-// SaveAccountSettings update settings for specific account  in database. Returns error if any happened
-func (db *MySQLDatabase) SaveAccountSettings(ctx context.Context, account model.Account) (err error) {
-	// Update account config in database for specific user
-	_, err = db.ExecContext(ctx, `UPDATE account
-		SET config = ?
-		WHERE username = ?`,
-		account.Config, account.Username)
-
-	return errors.WithStack(err)
-}
 
 // ListAccounts fetch list of account (without its password) based on submitted options.
 func (db *MySQLDatabase) ListAccounts(ctx context.Context, opts ListAccountsOptions) ([]model.Account, error) {

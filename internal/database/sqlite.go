@@ -730,21 +730,6 @@ func (db *SQLiteDatabase) CreateAccount(ctx context.Context, account model.Accou
 	return &account, nil
 }
 
-// SaveAccountSettings update settings for specific account  in database. Returns error if any happened.
-func (db *SQLiteDatabase) SaveAccountSettings(ctx context.Context, account model.Account) error {
-	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
-		// Update account config in database for specific user
-		_, err := tx.Exec(`UPDATE account
-	   SET config = ?
-	   WHERE username = ?`,
-			account.Config, account.Username)
-		return errors.WithStack(err)
-	}); err != nil {
-		return errors.WithStack(err)
-	}
-
-	return nil
-}
 
 // UpdateAccount updates account in database.
 func (db *SQLiteDatabase) UpdateAccount(ctx context.Context, account model.Account) error {

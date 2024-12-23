@@ -682,17 +682,6 @@ func (db *PGDatabase) UpdateAccount(ctx context.Context, account model.Account) 
 	return nil
 }
 
-// SaveAccountSettings update settings for specific account  in database. Returns error if any happened
-func (db *PGDatabase) SaveAccountSettings(ctx context.Context, account model.Account) (err error) {
-
-	// Insert account to database
-	_, err = db.ExecContext(ctx, `UPDATE account
-   		SET config = $1
-   		WHERE username = $2`,
-		account.Config, account.Username)
-
-	return errors.WithStack(err)
-}
 
 // ListAccounts fetch list of account (without its password) based on submitted options.
 func (db *PGDatabase) ListAccounts(ctx context.Context, opts ListAccountsOptions) ([]model.Account, error) {
