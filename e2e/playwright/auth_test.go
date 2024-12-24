@@ -34,7 +34,8 @@ func TestAuth(t *testing.T) {
 		defer page.Close()
 
 		// Navigate to the login page
-		require.NoError(t, page.Goto(baseURL))
+		_, err = page.Goto(baseURL)
+		require.NoError(t, err)
 
 		// Fill in the login form with default credentials
 		require.NoError(t, page.Fill("#username", "shiori"))
@@ -44,7 +45,8 @@ func TestAuth(t *testing.T) {
 		require.NoError(t, page.Click(".button"))
 
 		// Wait for navigation and verify we're logged in by checking for bookmarks page element
-		require.NoError(t, page.WaitForSelector("#page-content"))
+		_, err = page.WaitForSelector("#page-content")
+		require.NoError(t, err)
 	})
 
 	t.Run("failed login with wrong username", func(t *testing.T) {
@@ -53,7 +55,8 @@ func TestAuth(t *testing.T) {
 		defer page.Close()
 
 		// Navigate to the login page
-		require.NoError(t, page.Goto(baseURL))
+		_, err = page.Goto(baseURL)
+		require.NoError(t, err)
 
 		// Fill in the login form with wrong username
 		require.NoError(t, page.Fill("#username", "wrong_user"))
@@ -74,7 +77,8 @@ func TestAuth(t *testing.T) {
 		defer page.Close()
 
 		// Navigate to the login page
-		require.NoError(t, page.Goto(baseURL))
+		_, err = page.Goto(baseURL)
+		require.NoError(t, err)
 
 		// Fill in the login form with wrong password
 		require.NoError(t, page.Fill("#username", "shiori"))
@@ -95,7 +99,8 @@ func TestAuth(t *testing.T) {
 		defer page.Close()
 
 		// Navigate to the login page
-		require.NoError(t, page.Goto(baseURL))
+		_, err = page.Goto(baseURL)
+		require.NoError(t, err)
 
 		// Fill in only password
 		require.NoError(t, page.Fill("#password", "gopher"))
