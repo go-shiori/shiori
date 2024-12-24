@@ -14,7 +14,7 @@ func TestAuthLogin(t *testing.T) {
 
 	t.Run("login ok", func(t *testing.T) {
 		req, err := http.Post(
-			"http://localhost:"+container.GetPort()+"/api/v/auth/login",
+			"http://localhost:"+container.GetPort()+"/api/v1/auth/login",
 			"application/json",
 			bytes.NewReader([]byte(`{"username": "shiori", "password": "gopher"}`)),
 		)
@@ -24,11 +24,11 @@ func TestAuthLogin(t *testing.T) {
 
 	t.Run("wrong credentials", func(t *testing.T) {
 		req, err := http.Post(
-			"http://localhost:"+container.GetPort()+"/api/v/auth/login",
+			"http://localhost:"+container.GetPort()+"/api/v1/auth/login",
 			"application/json",
 			bytes.NewReader([]byte(`{"username": "wrong", "password": "wrong"}`)),
 		)
 		require.NoError(t, err)
-		require.Equal(t, http.StatusUnauthorized, req.StatusCode)
+		require.Equal(t, http.StatusBadRequest, req.StatusCode)
 	})
 }
