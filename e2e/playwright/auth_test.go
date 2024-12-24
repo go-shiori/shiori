@@ -54,7 +54,7 @@ func TestAuth(t *testing.T) {
 
 		// Click login and wait for success
 		require.NoError(t, buttonLocator.Click())
-		require.NoError(t, expect.Expect(page.Locator("#bookmarks-grid")).ToBeVisible())
+		require.NoError(t, page.Locator("#bookmarks-grid").WaitFor())
 	})
 
 	t.Run("failed login with wrong username", func(t *testing.T) {
