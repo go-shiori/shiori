@@ -21,7 +21,7 @@ func AuthMiddleware(deps *dependencies.Dependencies) gin.HandlerFunc {
 			token = getTokenFromCookie(c)
 		}
 
-		account, err := deps.Domains.Auth.CheckToken(c, token)
+		account, err := deps.Domains.Auth.CheckToken(c.Request.Context(), token)
 		if err != nil {
 			deps.Log.WithError(err).Error("Failed to check token")
 			return
@@ -38,6 +38,19 @@ func AuthenticationRequired() gin.HandlerFunc {
 		ctx := context.NewContextFromGin(c)
 		if !ctx.UserIsLogged() {
 			response.SendError(c, http.StatusUnauthorized, nil)
+			return
+		}
+	}
+}
+
+// AdminRequired provides a middleware that checks if the user is logged in and is an admin, returning
+// a 403 error if not.
+func AdminRequired() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		c := context.NewContextFromGin(ctx)
+		account := c.GetAccount()
+		if account == nil || !account.IsOwner() {
+			response.SendError(ctx, http.StatusForbidden, nil)
 			return
 		}
 	}

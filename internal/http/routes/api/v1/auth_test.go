@@ -1,11 +1,8 @@
 package api_v1
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"net/http"
-	"net/http/httptest"
 	"testing"
 	"time"
 
@@ -16,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func noopLegacyLoginHandler(_ model.Account, _ time.Duration) (string, error) {
+func noopLegacyLoginHandler(_ *model.AccountDTO, _ time.Duration) (string, error) {
 	return "", nil
 }
 
@@ -29,10 +26,8 @@ func TestAccountsRoute(t *testing.T) {
 		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
 		router := NewAuthAPIRoutes(logger, deps, noopLegacyLoginHandler)
 		router.Setup(g.Group("/"))
-		w := httptest.NewRecorder()
-		body := []byte(`{"username": "gopher"}`)
-		req := httptest.NewRequest("POST", "/login", bytes.NewBuffer(body))
-		g.ServeHTTP(w, req)
+		body := `{"username": "gopher"}`
+		w := testutil.PerformRequest(g, "POST", "/login", testutil.WithBody(body))
 
 		require.Equal(t, 400, w.Code)
 	})
@@ -42,11 +37,8 @@ func TestAccountsRoute(t *testing.T) {
 		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
 		router := NewAuthAPIRoutes(logger, deps, noopLegacyLoginHandler)
 		router.Setup(g.Group("/"))
-		w := httptest.NewRecorder()
-		body := []byte(`{"username": "gopher", "password": "shiori"}`)
-		req := httptest.NewRequest("POST", "/login", bytes.NewBuffer(body))
-		g.ServeHTTP(w, req)
-
+		body := `{"username": "gopher", "password": "shiori"}`
+		w := testutil.PerformRequest(g, "POST", "/login", testutil.WithBody(body))
 		require.Equal(t, 400, w.Code)
 	})
 
@@ -57,17 +49,16 @@ func TestAccountsRoute(t *testing.T) {
 		router.Setup(g.Group("/"))
 
 		// Create an account manually to test
-		account := model.Account{
+		account := model.AccountDTO{
 			Username: "shiori",
 			Password: "gopher",
-			Owner:    true,
+			Owner:    model.Ptr(true),
 		}
-		require.NoError(t, deps.Database.SaveAccount(ctx, account))
 
-		w := httptest.NewRecorder()
-		body := []byte(`{"username": "shiori", "password": "gopher"}`)
-		req := httptest.NewRequest("POST", "/login", bytes.NewBuffer(body))
-		g.ServeHTTP(w, req)
+		_, accountInsertErr := deps.Domains.Accounts.CreateAccount(ctx, account)
+		require.NoError(t, accountInsertErr)
+
+		w := testutil.PerformRequest(g, "POST", "/login", testutil.WithBody(`{"username": "shiori", "password": "gopher"}`))
 
 		require.Equal(t, 200, w.Code)
 	})
@@ -82,19 +73,19 @@ func TestAccountsRoute(t *testing.T) {
 		router.Setup(g.Group("/"))
 
 		// Create an account manually to test
-		account := testutil.GetValidAccount()
-		account.Owner = true
-		require.NoError(t, deps.Database.SaveAccount(ctx, *account))
+		account := model.Account{
+			Username: "shiori",
+			Password: "gopher",
+			Owner:    true,
+		}
+		_, accountInsertErr := deps.Database.CreateAccount(ctx, account)
+		require.NoError(t, accountInsertErr)
 
-		token, err := deps.Domains.Auth.CreateTokenForAccount(account, time.Now().Add(time.Minute))
+		token, err := deps.Domains.Auth.CreateTokenForAccount(model.Ptr(account.ToDTO()), time.Now().Add(time.Minute))
 		require.NoError(t, err)
 
-		req := httptest.NewRequest("GET", "/me", nil)
-		req.Header.Add("Authorization", "Bearer "+token)
-		w := httptest.NewRecorder()
-		g.ServeHTTP(w, req)
-
-		require.Equal(t, 200, w.Code)
+		w := testutil.PerformRequest(g, "GET", "/me", testutil.WithAuthToken(token))
+		require.Equal(t, http.StatusOK, w.Code)
 	})
 
 	t.Run("check /me (incorrect token)", func(t *testing.T) {
@@ -106,11 +97,9 @@ func TestAccountsRoute(t *testing.T) {
 		router := NewAuthAPIRoutes(logger, deps, noopLegacyLoginHandler)
 		router.Setup(g.Group("/"))
 
-		req := httptest.NewRequest("GET", "/me", nil)
-		w := httptest.NewRecorder()
-		g.ServeHTTP(w, req)
+		w := testutil.PerformRequest(g, "POST", "/refresh", testutil.WithAuthToken("nometokens"))
 
-		require.Equal(t, 403, w.Code)
+		require.Equal(t, http.StatusUnauthorized, w.Code)
 	})
 }
 
@@ -163,19 +152,19 @@ func TestRefreshHandler(t *testing.T) {
 
 	t.Run("empty headers", func(t *testing.T) {
 		w := testutil.PerformRequest(g, "POST", "/refresh")
-		require.Equal(t, http.StatusForbidden, w.Code)
+		require.Equal(t, http.StatusUnauthorized, w.Code)
 	})
 
 	t.Run("token invalid", func(t *testing.T) {
-		w := testutil.PerformRequest(g, "POST", "/refresh")
-		require.Equal(t, http.StatusForbidden, w.Code)
+		w := testutil.PerformRequest(g, "POST", "/refresh", testutil.WithAuthToken("nometokens"))
+		require.Equal(t, http.StatusUnauthorized, w.Code)
 	})
 
 	t.Run("token valid", func(t *testing.T) {
-		token, err := deps.Domains.Auth.CreateTokenForAccount(testutil.GetValidAccount(), time.Now().Add(time.Minute))
+		_, token, err := testutil.NewAdminUser(deps)
 		require.NoError(t, err)
 
-		w := testutil.PerformRequest(g, "POST", "/refresh", testutil.WithHeader(model.AuthorizationHeader, model.AuthorizationTokenType+" "+token))
+		w := testutil.PerformRequest(g, "POST", "/refresh", testutil.WithAuthToken(token))
 
 		require.Equal(t, http.StatusAccepted, w.Code)
 	})
@@ -191,85 +180,78 @@ func TestUpdateHandler(t *testing.T) {
 	g.Use(middleware.AuthMiddleware(deps))
 	router.Setup(g.Group("/"))
 
-	require.NoError(t, deps.Database.SaveAccount(ctx, model.Account{
+	account, err := deps.Domains.Accounts.CreateAccount(ctx, model.AccountDTO{
 		Username: "shiori",
 		Password: "gopher",
-	}))
-
-	t.Run("invalid token", func(t *testing.T) {
-		w := testutil.PerformRequest(g, "PATCH", "/account")
-		require.Equal(t, http.StatusForbidden, w.Code)
+		Owner:    model.Ptr(true),
+		Config: model.Ptr(model.UserConfig{
+			ShowId:        true,
+			ListMode:      true,
+			HideThumbnail: true,
+			HideExcerpt:   true,
+			KeepMetadata:  true,
+			UseArchive:    true,
+			CreateEbook:   true,
+			MakePublic:    true,
+		}),
 	})
+	require.NoError(t, err)
 
-	t.Run("token valid", func(t *testing.T) {
-		token, err := deps.Domains.Auth.CreateTokenForAccount(testutil.GetValidAccount(), time.Now().Add(time.Minute))
-		require.NoError(t, err)
-
-		type settingRequestPayload struct {
-			Config model.UserConfig `json:"config"`
-		}
-		payload := settingRequestPayload{
-			Config: model.UserConfig{
-				// add your configuration data here
-			},
-		}
-		payloadJSON, err := json.Marshal(payload)
-		if err != nil {
-			logrus.Printf("problem")
-		}
-
-		w := testutil.PerformRequest(g, "PATCH", "/account", testutil.WithBody(string(payloadJSON)), testutil.WithHeader(model.AuthorizationHeader, model.AuthorizationTokenType+" "+token))
-
-		require.Equal(t, http.StatusOK, w.Code)
-
+	t.Run("require authentication", func(t *testing.T) {
+		w := testutil.PerformRequest(g, "PATCH", "/account")
+		require.Equal(t, http.StatusUnauthorized, w.Code)
 	})
 
 	t.Run("config not valid", func(t *testing.T) {
-		token, err := deps.Domains.Auth.CreateTokenForAccount(testutil.GetValidAccount(), time.Now().Add(time.Minute))
+		token, err := deps.Domains.Auth.CreateTokenForAccount(account, time.Now().Add(time.Minute))
 		require.NoError(t, err)
 
-		w := testutil.PerformRequest(g, "PATCH", "/account", testutil.WithBody("notValidConfig"), testutil.WithHeader(model.AuthorizationHeader, model.AuthorizationTokenType+" "+token))
+		w := testutil.PerformRequest(g, "PATCH", "/account", testutil.WithBody("notValidConfig"), testutil.WithAuthToken(token))
 
 		require.Equal(t, http.StatusInternalServerError, w.Code)
-
 	})
-	t.Run("Test configure change in database", func(t *testing.T) {
-		// Create a tmp database
-		g := testutil.NewGin()
-		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
-		router := NewAuthAPIRoutes(logger, deps, noopLegacyLoginHandler)
-		g.Use(middleware.AuthMiddleware(deps))
-		router.Setup(g.Group("/"))
 
-		// Create an account manually to test
-		account := model.Account{
-			Username: "shiori",
-			Password: "gopher",
-			Owner:    true,
-			Config: model.UserConfig{
-				ShowId:        true,
-				ListMode:      true,
-				HideThumbnail: true,
-				HideExcerpt:   true,
-				Theme:         "follow",
-				KeepMetadata:  true,
-				UseArchive:    true,
-				CreateEbook:   true,
-				MakePublic:    true,
-			},
-		}
-		require.NoError(t, deps.Database.SaveAccount(ctx, account))
-
-		// Get current user config
-		user, _, err := deps.Database.GetAccount(ctx, "shiori")
+	t.Run("password update with invalid old password", func(t *testing.T) {
+		token, err := deps.Domains.Auth.CreateTokenForAccount(account, time.Now().Add(time.Minute))
 		require.NoError(t, err)
-		require.Equal(t, user.Config, account.Config)
+
+		payloadJSON := `{
+			"old_password": "wrongpassword",
+			"new_password": "newpassword"
+		}`
+
+		w := testutil.PerformRequest(g, "PATCH", "/account", testutil.WithBody(payloadJSON), testutil.WithAuthToken(token))
+		require.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("password update with correct old password", func(t *testing.T) {
+		token, err := deps.Domains.Auth.CreateTokenForAccount(account, time.Now().Add(time.Minute))
+		require.NoError(t, err)
+
+		payloadJSON := `{
+			"old_password": "gopher",
+			"new_password": "newpassword"
+		}`
+
+		w := testutil.PerformRequest(g, "PATCH", "/account", testutil.WithBody(payloadJSON), testutil.WithAuthToken(token))
+		require.Equal(t, http.StatusOK, w.Code)
+
+		// Verify we can login with new password
+		loginW := testutil.PerformRequest(g, "POST", "/login", testutil.WithBody(`{"username": "shiori", "password": "newpassword"}`))
+		require.Equal(t, http.StatusOK, loginW.Code)
+	})
+
+	t.Run("Test configure change in database", func(t *testing.T) {
+		// Get current user config
+		user, _, err := deps.Database.GetAccount(ctx, account.ID)
+		require.NoError(t, err)
+		require.Equal(t, user.ToDTO().Config, account.Config)
 
 		// Send Request to update config for user
-		token, err := deps.Domains.Auth.CreateTokenForAccount(&user, time.Now().Add(time.Minute))
+		token, err := deps.Domains.Auth.CreateTokenForAccount(model.Ptr(user.ToDTO()), time.Now().Add(time.Minute))
 		require.NoError(t, err)
 
-		payloadJSON := []byte(`{
+		payloadJSON := `{
 			"config": {
 			"ShowId": false,
 			"ListMode": false,
@@ -280,20 +262,14 @@ func TestUpdateHandler(t *testing.T) {
 			"UseArchive": false,
 			"CreateEbook": false,
 			"MakePublic": false
-			  }
-			}`)
+			}}`
 
-		w := httptest.NewRecorder()
-		req := httptest.NewRequest(http.MethodPatch, "/account", bytes.NewBuffer(payloadJSON))
-		req.Header.Set("Content-Type", "application/json")
-		req.Header.Add("Authorization", "Bearer "+token)
-		g.ServeHTTP(w, req)
+		w := testutil.PerformRequest(g, "PATCH", "/account", testutil.WithBody(payloadJSON), testutil.WithAuthToken(token))
+		require.Equal(t, http.StatusOK, w.Code)
 
-		require.Equal(t, 200, w.Code)
-		user, _, err = deps.Database.GetAccount(ctx, "shiori")
-
+		user, _, err = deps.Database.GetAccount(ctx, account.ID)
 		require.NoError(t, err)
-		require.NotEqual(t, user.Config, account.Config)
 
+		require.NotEqualValues(t, user.ToDTO().Config, account.Config)
 	})
 }

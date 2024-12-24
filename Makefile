@@ -57,15 +57,10 @@ help:
 clean:
 	rm -rf dist
 
-## Runs the legacy http API for local development
-.PHONY: serve
-serve:
-	SHIORI_DEVELOPMENT=$(SHIORI_DEVELOPMENT) SHIORI_DIR=$(SHIORI_DIR) go run main.go serve
-
 ## Runs server for local development
 .PHONY: run-server
 run-server:
-	GIN_MODE=$(GIN_MODE) SHIORI_DEVELOPMENT=$(SHIORI_DEVELOPMENT) SHIORI_DIR=$(SHIORI_DIR) SHIORI_HTTP_SECRET_KEY=shiori go run main.go server --log-level debug
+	GIN_MODE=$(GIN_MODE) SHIORI_DEVELOPMENT=$(SHIORI_DEVELOPMENT) SHIORI_DIR=$(SHIORI_DIR) SHIORI_HTTP_SECRET_KEY=shiori SHIORI_HTTP_SERVE_SWAGGER=true go run main.go server --log-level debug
 
 ## Generate swagger docs
 .PHONY: swagger

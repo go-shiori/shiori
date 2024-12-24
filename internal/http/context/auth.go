@@ -8,9 +8,9 @@ func (c *Context) UserIsLogged() bool {
 	return exists
 }
 
-func (c *Context) GetAccount() *model.Account {
+func (c *Context) GetAccount() *model.AccountDTO {
 	if c.account == nil && c.UserIsLogged() {
-		c.account = c.MustGet(model.ContextAccountKey).(*model.Account)
+		c.account = c.MustGet(model.ContextAccountKey).(*model.AccountDTO)
 	}
 
 	return c.account

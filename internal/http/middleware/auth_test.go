@@ -61,8 +61,8 @@ func TestAuthMiddleware(t *testing.T) {
 	})
 
 	t.Run("test authorization header", func(t *testing.T) {
-		account := testutil.GetValidAccount()
-		token, err := deps.Domains.Auth.CreateTokenForAccount(account, time.Now().Add(time.Minute))
+		account := testutil.GetValidAccount().ToDTO()
+		token, err := deps.Domains.Auth.CreateTokenForAccount(&account, time.Now().Add(time.Minute))
 		require.NoError(t, err)
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
@@ -74,8 +74,8 @@ func TestAuthMiddleware(t *testing.T) {
 	})
 
 	t.Run("test authorization cookie", func(t *testing.T) {
-		account := testutil.GetValidAccount()
-		token, err := deps.Domains.Auth.CreateTokenForAccount(account, time.Now().Add(time.Minute))
+		account := model.AccountDTO{Username: "shiori"}
+		token, err := deps.Domains.Auth.CreateTokenForAccount(&account, time.Now().Add(time.Minute))
 		require.NoError(t, err)
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
@@ -88,5 +88,51 @@ func TestAuthMiddleware(t *testing.T) {
 		middleware(c)
 		_, exists := c.Get(model.ContextAccountKey)
 		require.True(t, exists)
+	})
+}
+
+func TestAdminRequiredMiddleware(t *testing.T) {
+	t.Run("test unauthorized", func(t *testing.T) {
+		g := testutil.NewGin()
+		g.Use(AdminRequired())
+		g.Handle("GET", "/", func(c *gin.Context) {
+			response.Send(c, http.StatusOK, nil)
+		})
+		w := testutil.PerformRequest(g, "GET", "/")
+		require.Equal(t, http.StatusForbidden, w.Code)
+		// This ensures we are aborting the request and not sending more data
+		require.Equal(t, `{"ok":false,"message":null}`, w.Body.String())
+	})
+
+	t.Run("test user but not admin", func(t *testing.T) {
+		g := testutil.NewGin()
+		// Fake a logged in admin in the context, which is the way the AuthMiddleware works.
+		g.Use(func(ctx *gin.Context) {
+			ctx.Set(model.ContextAccountKey, &model.AccountDTO{
+				Owner: model.Ptr(false),
+			})
+		})
+		g.Use(AdminRequired())
+		g.GET("/", func(c *gin.Context) {
+			c.Status(http.StatusOK)
+		})
+		w := testutil.PerformRequest(g, "GET", "/")
+		require.Equal(t, http.StatusForbidden, w.Code)
+	})
+
+	t.Run("test authorized", func(t *testing.T) {
+		g := testutil.NewGin()
+		// Fake a logged in admin in the context, which is the way the AuthMiddleware works.
+		g.Use(func(ctx *gin.Context) {
+			ctx.Set(model.ContextAccountKey, &model.AccountDTO{
+				Owner: model.Ptr(true),
+			})
+		})
+		g.Use(AdminRequired())
+		g.GET("/", func(c *gin.Context) {
+			c.Status(http.StatusOK)
+		})
+		w := testutil.PerformRequest(g, "GET", "/")
+		require.Equal(t, http.StatusOK, w.Code)
 	})
 }
