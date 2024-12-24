@@ -96,6 +96,11 @@ func (db *PGDatabase) DBx() *sqlx.DB {
 	return db.DB
 }
 
+// Init initializes the database
+func (db *PGDatabase) Init(ctx context.Context) error {
+	return nil
+}
+
 // Migrate runs migrations for this database engine
 func (db *PGDatabase) Migrate(ctx context.Context) error {
 	if err := runMigrations(ctx, db, postgresMigrations); err != nil {
