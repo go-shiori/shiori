@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-shiori/shiori/e2e/e2eutil"
 	"github.com/playwright-community/playwright-go"
+	expect "github.com/playwright-community/playwright-go/expect"
 	"github.com/stretchr/testify/require"
 )
 
@@ -42,19 +43,19 @@ func TestAuth(t *testing.T) {
 		_, err = page.Goto(baseURL)
 		require.NoError(t, err)
 
-		_, err = page.WaitForSelector("#username")
-		require.NoError(t, err)
+		// Get locators for form elements
+		usernameLocator := page.Locator("#username")
+		passwordLocator := page.Locator("#password")
+		buttonLocator := page.Locator(".button")
 
-		// Fill in the login form with default credentials
-		require.NoError(t, page.Fill("#username", "shiori"))
-		require.NoError(t, page.Fill("#password", "gopher"))
+		// Wait for and fill the login form
+		require.NoError(t, expect.Expect(usernameLocator).ToBeVisible())
+		require.NoError(t, usernameLocator.Fill("shiori"))
+		require.NoError(t, passwordLocator.Fill("gopher"))
 
-		// Click the login button
-		require.NoError(t, page.Click(".button"))
-
-		// Wait for navigation and verify we're logged in by checking for bookmarks page element
-		_, err = page.WaitForSelector("#bookmarks-grid")
-		require.NoError(t, err)
+		// Click login and wait for success
+		require.NoError(t, buttonLocator.Click())
+		require.NoError(t, expect.Expect(page.Locator("#bookmarks-grid")).ToBeVisible())
 	})
 
 	t.Run("failed login with wrong username", func(t *testing.T) {
@@ -69,18 +70,20 @@ func TestAuth(t *testing.T) {
 		_, err = page.Goto(baseURL)
 		require.NoError(t, err)
 
-		_, err = page.WaitForSelector("#username")
-		require.NoError(t, err)
+		// Get locators for form elements
+		usernameLocator := page.Locator("#username")
+		passwordLocator := page.Locator("#password")
+		buttonLocator := page.Locator(".button")
+		errorLocator := page.Locator(".error-message")
 
-		// Fill in the login form with wrong username
-		require.NoError(t, page.Fill("#username", "wrong_user"))
-		require.NoError(t, page.Fill("#password", "gopher"))
+		// Wait for and fill the login form
+		require.NoError(t, expect.Expect(usernameLocator).ToBeVisible())
+		require.NoError(t, usernameLocator.Fill("wrong_user"))
+		require.NoError(t, passwordLocator.Fill("gopher"))
 
-		// Click the login button
-		require.NoError(t, page.Click(".button"))
-
-		// Verify error message appears
-		errorText, err := page.TextContent(".error-message")
+		// Click login and verify error
+		require.NoError(t, buttonLocator.Click())
+		errorText, err := errorLocator.TextContent()
 		require.NoError(t, err)
 		require.Contains(t, errorText, "username or password do not match")
 	})
@@ -97,18 +100,20 @@ func TestAuth(t *testing.T) {
 		_, err = page.Goto(baseURL)
 		require.NoError(t, err)
 
-		_, err = page.WaitForSelector("#username")
-		require.NoError(t, err)
+		// Get locators for form elements
+		usernameLocator := page.Locator("#username")
+		passwordLocator := page.Locator("#password")
+		buttonLocator := page.Locator(".button")
+		errorLocator := page.Locator(".error-message")
 
-		// Fill in the login form with wrong password
-		require.NoError(t, page.Fill("#username", "shiori"))
-		require.NoError(t, page.Fill("#password", "wrong_password"))
+		// Wait for and fill the login form
+		require.NoError(t, expect.Expect(usernameLocator).ToBeVisible())
+		require.NoError(t, usernameLocator.Fill("shiori"))
+		require.NoError(t, passwordLocator.Fill("wrong_password"))
 
-		// Click the login button
-		require.NoError(t, page.Click(".button"))
-
-		// Verify error message appears
-		errorText, err := page.TextContent(".error-message")
+		// Click login and verify error
+		require.NoError(t, buttonLocator.Click())
+		errorText, err := errorLocator.TextContent()
 		require.NoError(t, err)
 		require.Contains(t, errorText, "username or password invalid")
 	})
@@ -125,17 +130,19 @@ func TestAuth(t *testing.T) {
 		_, err = page.Goto(baseURL)
 		require.NoError(t, err)
 
-		_, err = page.WaitForSelector("#username")
-		require.NoError(t, err)
+		// Get locators for form elements
+		usernameLocator := page.Locator("#username")
+		passwordLocator := page.Locator("#password")
+		buttonLocator := page.Locator(".button")
+		errorLocator := page.Locator(".error-message")
 
-		// Fill in only password
-		require.NoError(t, page.Fill("#password", "gopher"))
+		// Wait for form and fill only password
+		require.NoError(t, expect.Expect(usernameLocator).ToBeVisible())
+		require.NoError(t, passwordLocator.Fill("gopher"))
 
-		// Click the login button
-		require.NoError(t, page.Click(".button"))
-
-		// Verify error message appears
-		errorText, err := page.TextContent(".error-message")
+		// Click login and verify error
+		require.NoError(t, buttonLocator.Click())
+		errorText, err := errorLocator.TextContent()
 		require.NoError(t, err)
 		require.Contains(t, errorText, "Username must not empty")
 	})
