@@ -6,7 +6,6 @@ import (
 
 	"github.com/go-shiori/shiori/e2e/e2eutil"
 	"github.com/playwright-community/playwright-go"
-	"github.com/playwright-community/playwright-go/expect"
 	"github.com/stretchr/testify/require"
 )
 
@@ -49,7 +48,7 @@ func TestAuth(t *testing.T) {
 		buttonLocator := page.Locator(".button")
 
 		// Wait for and fill the login form
-		require.NoError(t, expect.Expect(usernameLocator).ToBeVisible())
+		require.NoError(t, usernameLocator.WaitFor())
 		require.NoError(t, usernameLocator.Fill("shiori"))
 		require.NoError(t, passwordLocator.Fill("gopher"))
 
@@ -77,7 +76,7 @@ func TestAuth(t *testing.T) {
 		errorLocator := page.Locator(".error-message")
 
 		// Wait for and fill the login form
-		require.NoError(t, expect.Expect(usernameLocator).ToBeVisible())
+		require.NoError(t, usernameLocator.WaitFor())
 		require.NoError(t, usernameLocator.Fill("wrong_user"))
 		require.NoError(t, passwordLocator.Fill("gopher"))
 
@@ -107,7 +106,7 @@ func TestAuth(t *testing.T) {
 		errorLocator := page.Locator(".error-message")
 
 		// Wait for and fill the login form
-		require.NoError(t, expect.Expect(usernameLocator).ToBeVisible())
+		require.NoError(t, usernameLocator.WaitFor())
 		require.NoError(t, usernameLocator.Fill("shiori"))
 		require.NoError(t, passwordLocator.Fill("wrong_password"))
 
@@ -137,7 +136,7 @@ func TestAuth(t *testing.T) {
 		errorLocator := page.Locator(".error-message")
 
 		// Wait for form and fill only password
-		require.NoError(t, expect.Expect(usernameLocator).ToBeVisible())
+		require.NoError(t, usernameLocator.WaitFor())
 		require.NoError(t, passwordLocator.Fill("gopher"))
 
 		// Click login and verify error
