@@ -6,7 +6,7 @@ import (
 
 	"github.com/go-shiori/shiori/e2e/e2eutil"
 	"github.com/playwright-community/playwright-go"
-	expect "github.com/playwright-community/playwright-go/expect"
+	"github.com/playwright-community/playwright-go/expect"
 	"github.com/stretchr/testify/require"
 )
 
