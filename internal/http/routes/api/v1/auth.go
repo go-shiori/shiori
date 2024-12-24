@@ -211,7 +211,7 @@ func (r *AuthAPIRoutes) updateHandler(c *gin.Context) {
 
 	// If trying to update password, check if old password is correct
 	if payload.NewPassword != "" {
-		_, err := r.deps.Domains.Auth.GetAccountFromCredentials(c, account.Username, payload.OldPassword)
+		_, err := r.deps.Domains.Auth.GetAccountFromCredentials(c.Request.Context(), account.Username, payload.OldPassword)
 		if err != nil {
 			response.SendError(c, http.StatusBadRequest, "Old password is incorrect")
 			return
@@ -221,7 +221,7 @@ func (r *AuthAPIRoutes) updateHandler(c *gin.Context) {
 	updatedAccount := payload.ToAccountDTO()
 	updatedAccount.ID = account.ID
 
-	account, err := r.deps.Domains.Accounts.UpdateAccount(c, updatedAccount)
+	account, err := r.deps.Domains.Accounts.UpdateAccount(c.Request.Context(), updatedAccount)
 	if err != nil {
 		r.deps.Log.WithError(err).Error("failed to update account")
 		response.SendInternalServerError(c)

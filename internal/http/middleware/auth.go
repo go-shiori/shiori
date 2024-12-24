@@ -21,7 +21,7 @@ func AuthMiddleware(deps *dependencies.Dependencies) gin.HandlerFunc {
 			token = getTokenFromCookie(c)
 		}
 
-		account, err := deps.Domains.Auth.CheckToken(c, token)
+		account, err := deps.Domains.Auth.CheckToken(c.Request.Context(), token)
 		if err != nil {
 			deps.Log.WithError(err).Error("Failed to check token")
 			return
