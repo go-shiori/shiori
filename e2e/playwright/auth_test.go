@@ -19,7 +19,9 @@ func TestAuth(t *testing.T) {
 	require.NoError(t, err)
 	defer pw.Stop()
 
-	browser, err := pw.Chromium.Launch()
+	browser, err := pw.Chromium.Launch(playwright.BrowserTypeLaunchOptions{
+		Headless: playwright.Bool(true),
+	})
 	require.NoError(t, err)
 	defer browser.Close()
 
@@ -29,12 +31,18 @@ func TestAuth(t *testing.T) {
 	defer context.Close()
 
 	t.Run("successful login with default credentials", func(t *testing.T) {
+		_, err = browser.NewContext()
+		require.NoError(t, err)
+
 		page, err := context.NewPage()
 		require.NoError(t, err)
 		defer page.Close()
 
 		// Navigate to the login page
 		_, err = page.Goto(baseURL)
+		require.NoError(t, err)
+
+		_, err = page.WaitForSelector("#username")
 		require.NoError(t, err)
 
 		// Fill in the login form with default credentials
@@ -45,17 +53,23 @@ func TestAuth(t *testing.T) {
 		require.NoError(t, page.Click(".button"))
 
 		// Wait for navigation and verify we're logged in by checking for bookmarks page element
-		_, err = page.WaitForSelector("#page-content")
+		_, err = page.WaitForSelector("#bookmarks-grid")
 		require.NoError(t, err)
 	})
 
 	t.Run("failed login with wrong username", func(t *testing.T) {
+		_, err = browser.NewContext()
+		require.NoError(t, err)
+
 		page, err := context.NewPage()
 		require.NoError(t, err)
 		defer page.Close()
 
 		// Navigate to the login page
 		_, err = page.Goto(baseURL)
+		require.NoError(t, err)
+
+		_, err = page.WaitForSelector("#username")
 		require.NoError(t, err)
 
 		// Fill in the login form with wrong username
@@ -68,16 +82,22 @@ func TestAuth(t *testing.T) {
 		// Verify error message appears
 		errorText, err := page.TextContent(".error-message")
 		require.NoError(t, err)
-		require.Contains(t, errorText, "username or password invalid")
+		require.Contains(t, errorText, "username or password do not match")
 	})
 
 	t.Run("failed login with wrong password", func(t *testing.T) {
+		_, err = browser.NewContext()
+		require.NoError(t, err)
+
 		page, err := context.NewPage()
 		require.NoError(t, err)
 		defer page.Close()
 
 		// Navigate to the login page
 		_, err = page.Goto(baseURL)
+		require.NoError(t, err)
+
+		_, err = page.WaitForSelector("#username")
 		require.NoError(t, err)
 
 		// Fill in the login form with wrong password
@@ -94,12 +114,18 @@ func TestAuth(t *testing.T) {
 	})
 
 	t.Run("empty username validation", func(t *testing.T) {
+		_, err = browser.NewContext()
+		require.NoError(t, err)
+
 		page, err := context.NewPage()
 		require.NoError(t, err)
 		defer page.Close()
 
 		// Navigate to the login page
 		_, err = page.Goto(baseURL)
+		require.NoError(t, err)
+
+		_, err = page.WaitForSelector("#username")
 		require.NoError(t, err)
 
 		// Fill in only password
