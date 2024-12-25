@@ -15,11 +15,9 @@ jobs:
       with:
         go-version-file: ./go.mod
 
-    - uses: actions/setup-node@v4
-      with:
-        node-version: lts/*
+    - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.2
 
-    - name: Install Playwright Browsers
+    - name: Install browsers
       run: npx playwright install --with-deps
 
     - run: make e2e

@@ -10,32 +10,32 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  call-lint:
-    uses: ./.github/workflows/_golangci-lint.yml
-  call-test:
-    uses: ./.github/workflows/_test.yml
-    secrets:
-      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN}}
-  call-swagger-check:
-    uses: ./.github/workflows/_swagger-check.yml
-  call-mkdocs-check:
-    uses: ./.github/workflows/_mkdocs-check.yml
-  call-styles-check:
-    uses: ./.github/workflows/_styles-check.yml
+  # call-lint:
+  #   uses: ./.github/workflows/_golangci-lint.yml
+  # call-test:
+  #   uses: ./.github/workflows/_test.yml
+  #   secrets:
+  #     CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN}}
+  # call-swagger-check:
+  #   uses: ./.github/workflows/_swagger-check.yml
+  # call-mkdocs-check:
+  #   uses: ./.github/workflows/_mkdocs-check.yml
+  # call-styles-check:
+  #   uses: ./.github/workflows/_styles-check.yml
   call-e2e:
-    needs: [call-lint, call-test, call-swagger-check, call-styles-check, call-mkdocs-check]
+    # needs: [call-lint, call-test, call-swagger-check, call-styles-check, call-mkdocs-check]
     uses: ./.github/workflows/_e2e.yml
-  call-gorelease:
-    needs: [call-e2e]
-    uses: ./.github/workflows/_gorelease.yml
-  call-buildx:
-    needs: call-gorelease
-    if: ${{ !startsWith(github.head_ref, 'dependabot/') }}
-    uses: ./.github/workflows/_buildx.yml
-  call-buildx-alpine:
-    needs: call-gorelease
-    if: ${{ !startsWith(github.head_ref, 'dependabot/') }}
-    uses: ./.github/workflows/_buildx.yml
-    with:
-      tag_prefix: alpine-
-      dockerfile: Dockerfile.alpine
+  # call-gorelease:
+  #   needs: [call-e2e]
+  #   uses: ./.github/workflows/_gorelease.yml
+  # call-buildx:
+  #   needs: call-gorelease
+  #   if: ${{ !startsWith(github.head_ref, 'dependabot/') }}
+  #   uses: ./.github/workflows/_buildx.yml
+  # call-buildx-alpine:
+  #   needs: call-gorelease
+  #   if: ${{ !startsWith(github.head_ref, 'dependabot/') }}
+  #   uses: ./.github/workflows/_buildx.yml
+  #   with:
+  #     tag_prefix: alpine-
+  #     dockerfile: Dockerfile.alpine

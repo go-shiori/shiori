@@ -25,14 +25,13 @@ func TestAuth(t *testing.T) {
 	require.NoError(t, err)
 	defer browser.Close()
 
-	// Create a new browser context for each test to ensure clean state
-	context, err := browser.NewContext()
-	require.NoError(t, err)
-	defer context.Close()
-
 	t.Run("successful login with default credentials", func(t *testing.T) {
-		_, err = browser.NewContext()
+		context, err := browser.NewContext()
 		require.NoError(t, err)
+
+		t.Cleanup(func() {
+			context.Close()
+		})
 
 		page, err := context.NewPage()
 		require.NoError(t, err)
@@ -58,8 +57,12 @@ func TestAuth(t *testing.T) {
 	})
 
 	t.Run("failed login with wrong username", func(t *testing.T) {
-		_, err = browser.NewContext()
+		context, err := browser.NewContext()
 		require.NoError(t, err)
+
+		t.Cleanup(func() {
+			context.Close()
+		})
 
 		page, err := context.NewPage()
 		require.NoError(t, err)
@@ -88,8 +91,12 @@ func TestAuth(t *testing.T) {
 	})
 
 	t.Run("failed login with wrong password", func(t *testing.T) {
-		_, err = browser.NewContext()
+		context, err := browser.NewContext()
 		require.NoError(t, err)
+
+		t.Cleanup(func() {
+			context.Close()
+		})
 
 		page, err := context.NewPage()
 		require.NoError(t, err)
@@ -118,8 +125,12 @@ func TestAuth(t *testing.T) {
 	})
 
 	t.Run("empty username validation", func(t *testing.T) {
-		_, err = browser.NewContext()
+		context, err := browser.NewContext()
 		require.NoError(t, err)
+
+		t.Cleanup(func() {
+			context.Close()
+		})
 
 		page, err := context.NewPage()
 		require.NoError(t, err)
