@@ -55,13 +55,13 @@ func (d *AuthDomain) GetAccountFromCredentials(ctx context.Context, username, pa
 	}
 
 	if len(accounts) != 1 {
-		return nil, fmt.Errorf("username org password do not match")
+		return nil, fmt.Errorf("username or password do not match")
 	}
 
 	account := accounts[0]
 
 	if err := bcrypt.CompareHashAndPassword([]byte(account.Password), []byte(password)); err != nil {
-		return nil, fmt.Errorf("username org password do not match")
+		return nil, fmt.Errorf("username or password do not match")
 	}
 
 	return model.Ptr(account.ToDTO()), nil

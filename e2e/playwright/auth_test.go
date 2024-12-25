@@ -121,7 +121,7 @@ func TestAuth(t *testing.T) {
 		require.NoError(t, buttonLocator.Click())
 		errorText, err := errorLocator.TextContent()
 		require.NoError(t, err)
-		require.Contains(t, errorText, "username or password invalid")
+		require.Contains(t, errorText, "username or password do not match")
 	})
 
 	t.Run("empty username validation", func(t *testing.T) {
