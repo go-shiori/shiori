@@ -11,6 +11,7 @@ var template = `
 						:style="{gridColumnEnd: showLabel ? null : 'span 2'}"
 						:placeholder="field.label"
 						:tabindex="index+1"
+						:name="field.name"
 						ref="input"
 						v-model="field.value"
 						@focus="$event.target.select()"
@@ -18,6 +19,7 @@ var template = `
 					</textarea>
 					<label v-else-if="field.type === 'check'" class="checkbox-field">
 						<input type="checkbox"
+						  :name="field.name"
 							v-model="field.value"
 							:tabindex="index+1">{{field.label}}
 					</label>
@@ -26,6 +28,7 @@ var template = `
 						:type="fieldType(field)"
 						:placeholder="field.label"
 						:tabindex="index+1"
+						:name="field.name"
 						ref="input"
 						v-model="field.value"
 						@focus="$event.target.select()"

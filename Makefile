@@ -59,7 +59,7 @@ clean:
 
 ## Runs server for local development
 .PHONY: run-server
-run-server:
+run-server: generate
 	GIN_MODE=$(GIN_MODE) SHIORI_DEVELOPMENT=$(SHIORI_DEVELOPMENT) SHIORI_DIR=$(SHIORI_DIR) SHIORI_HTTP_SECRET_KEY=shiori SHIORI_HTTP_SERVE_SWAGGER=true go run main.go server --log-level debug
 
 ## Generate swagger docs
@@ -134,6 +134,6 @@ coverage:
 	$(GO) tool cover -html=coverage.txt
 
 ## Run generate accross the project
-.PHONY: generated
+.PHONY: generate
 generate:
 	$(GO) generate ./...

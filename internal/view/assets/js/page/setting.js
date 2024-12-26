@@ -50,7 +50,7 @@ var template = `
         </details>
         <details v-if="activeAccount.owner" open class="setting-group setting-accounts" id="setting-accounts">
             <summary>Accounts</summary>
-            <ul>
+            <ul class="accounts-list">
                 <li v-if="accounts.length === 0">No accounts registered</li>
                 <li v-for="(account, idx) in accounts">
                     <p>{{account.username}}
@@ -65,8 +65,8 @@ var template = `
                 </li>
             </ul>
             <div class="setting-group-footer">
-                <a @click="loadAccounts">Refresh accounts</a>
-                <a v-if="activeAccount.owner" @click="showDialogNewAccount">Add new account</a>
+                <a @click="loadAccounts" title="Refresh accounts">Refresh accounts</a>
+                <a v-if="activeAccount.owner" @click="showDialogNewAccount" title="Add new account">Add new account</a>
             </div>
         </details>
         <details v-if="!activeAccount.owner" open class="setting-group setting-accounts" id="setting-my-account">
