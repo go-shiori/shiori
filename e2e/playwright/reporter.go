@@ -22,10 +22,12 @@ type TestReporter struct {
 	Results []TestResult
 }
 
-func NewTestReporter() *TestReporter {
-	return &TestReporter{
-		Results: make([]TestResult, 0),
-	}
+var globalReporter = &TestReporter{
+	Results: make([]TestResult, 0),
+}
+
+func GetReporter() *TestReporter {
+	return globalReporter
 }
 
 func (r *TestReporter) AddResult(name string, passed bool, screenshotPath string, err string) {
