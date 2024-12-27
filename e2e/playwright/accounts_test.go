@@ -3,6 +3,7 @@ package playwright
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/go-shiori/shiori/e2e/e2eutil"
 	"github.com/playwright-community/playwright-go"
@@ -14,111 +15,314 @@ func TestE2EAccounts(t *testing.T) {
 	container := e2eutil.NewShioriContainer(t, "")
 	baseURL := fmt.Sprintf("http://localhost:%s", container.GetPort())
 
-	// Initialize the browser
-	pw, err := playwright.Run()
+	mainTestHelper, err := NewTestHelper(t, "main")
 	require.NoError(t, err)
-	defer pw.Stop()
+	defer mainTestHelper.Close()
 
-	browser, err := pw.Chromium.Launch(playwright.BrowserTypeLaunchOptions{
-		Headless: playwright.Bool(true),
-	})
-	require.NoError(t, err)
-	defer browser.Close()
-
-	context, err := browser.NewContext()
-	require.NoError(t, err)
-
-	t.Cleanup(func() {
-		context.Close()
-	})
-
-	page, err := context.NewPage()
-	require.NoError(t, err)
-	defer page.Close()
-
-	t.Run("login as admin", func(t *testing.T) {
+	t.Run("001 login as admin", func(t *testing.T) {
 		// Navigate to the login page
-		_, err = page.Goto(baseURL)
-		require.NoError(t, err)
+		_, err = mainTestHelper.page.Goto(baseURL)
+		mainTestHelper.Require().NoError(err)
 
 		// Get locators for form elements
-		usernameLocator := page.Locator("#username")
-		passwordLocator := page.Locator("#password")
-		buttonLocator := page.Locator(".button")
+		usernameLocator := mainTestHelper.page.Locator("#username")
+		passwordLocator := mainTestHelper.page.Locator("#password")
+		buttonLocator := mainTestHelper.page.Locator(".button")
 
 		// Wait for and fill the login form
-		require.NoError(t, usernameLocator.WaitFor())
-		require.NoError(t, usernameLocator.Fill("shiori"))
-		require.NoError(t, passwordLocator.Fill("gopher"))
+		mainTestHelper.Require().NoError(usernameLocator.WaitFor())
+		mainTestHelper.Require().NoError(usernameLocator.Fill("shiori"))
+		mainTestHelper.Require().NoError(passwordLocator.Fill("gopher"))
 
 		// Click login and wait for success
-		require.NoError(t, buttonLocator.Click())
-		require.NoError(t, page.Locator("#bookmarks-grid").WaitFor(playwright.LocatorWaitForOptions{
+		mainTestHelper.Require().NoError(buttonLocator.Click())
+		mainTestHelper.Require().NoError(mainTestHelper.page.Locator("#bookmarks-grid").WaitFor(playwright.LocatorWaitForOptions{
 			State:   playwright.WaitForSelectorStateVisible,
 			Timeout: playwright.Float(1000),
 		}))
 	})
 
-	t.Run("create new admin account", func(t *testing.T) {
+	t.Run("002 create new admin account", func(t *testing.T) {
 		// Navigate to settings page
-		page.Locator(`[title="Settings"]`).Click()
-		require.NoError(t, page.Locator(".setting-container").WaitFor(playwright.LocatorWaitForOptions{
+		mainTestHelper.page.Locator(`[title="Settings"]`).Click()
+		mainTestHelper.Require().NoError(mainTestHelper.page.Locator(".setting-container").WaitFor(playwright.LocatorWaitForOptions{
 			State:   playwright.WaitForSelectorStateVisible,
 			Timeout: playwright.Float(1000),
 		}))
 
 		// Click on "Add new account" <a> element
-		page.Locator(`[title="Add new account"]`).Click()
-		page.Locator(".custom-dialog").WaitFor(playwright.LocatorWaitForOptions{
+		mainTestHelper.page.Locator(`[title="Add new account"]`).Click()
+		mainTestHelper.page.Locator(".custom-dialog").WaitFor(playwright.LocatorWaitForOptions{
 			State: playwright.WaitForSelectorStateVisible,
 		})
 
 		// Fill modal
-		page.Locator(`[name="username"]`).Fill("admin2")
-		page.Locator(`[name="password"]`).Fill("admin2")
-		page.Locator(`[name="repeat_password"]`).Fill("admin2")
-		page.Locator(`[name="admin"]`).Check()
+		mainTestHelper.page.Locator(`[name="username"]`).Fill("admin2")
+		mainTestHelper.page.Locator(`[name="password"]`).Fill("admin2")
+		mainTestHelper.page.Locator(`[name="repeat_password"]`).Fill("admin2")
+		mainTestHelper.page.Locator(`[name="admin"]`).Check()
 
 		// Click on "Ok" button
-		page.Locator(`.custom-dialog-button.main`).Click()
+		mainTestHelper.page.Locator(`.custom-dialog-button.main`).Click()
 
 		// Wait for modal to disappear
-		page.Locator(".custom-dialog").WaitFor(playwright.LocatorWaitForOptions{
+		mainTestHelper.page.Locator(".custom-dialog").WaitFor(playwright.LocatorWaitForOptions{
+			State:   playwright.WaitForSelectorStateHidden,
+			Timeout: playwright.Float(1000),
+		})
+
+		// Refresh account list
+		mainTestHelper.page.Locator(`a[title="Refresh accounts"]`).Click()
+		mainTestHelper.page.Locator(".loading-overlay").WaitFor(playwright.LocatorWaitForOptions{
 			State:   playwright.WaitForSelectorStateHidden,
 			Timeout: playwright.Float(1000),
 		})
 
 		// Check if new account is created
-		accountsCount, err := page.Locator(".accounts-list li").Count()
-		require.NoError(t, err)
-		require.Equal(t, 2, accountsCount)
+		accountsCount, err := mainTestHelper.page.Locator(".accounts-list li").Count()
+		mainTestHelper.Require().NoError(err)
+		mainTestHelper.Require().Equal(2, accountsCount)
 	})
 
-	t.Run("create new user account", func(t *testing.T) {
+	t.Run("003 create new user account", func(t *testing.T) {
 		// Click on "Add new account" <a> element
-		page.Locator(`[title="Add new account"]`).Click()
-		page.Locator(".custom-dialog").WaitFor(playwright.LocatorWaitForOptions{
+		mainTestHelper.page.Locator(`[title="Add new account"]`).Click()
+		mainTestHelper.page.Locator(".custom-dialog").WaitFor(playwright.LocatorWaitForOptions{
 			State:   playwright.WaitForSelectorStateVisible,
 			Timeout: playwright.Float(1000),
 		})
 
 		// Fill modal
-		page.Locator(`[name="username"]`).Fill("user1")
-		page.Locator(`[name="password"]`).Fill("user1")
-		page.Locator(`[name="repeat_password"]`).Fill("user1")
+		mainTestHelper.page.Locator(`[name="username"]`).Fill("user1")
+		mainTestHelper.page.Locator(`[name="password"]`).Fill("user1")
+		mainTestHelper.page.Locator(`[name="repeat_password"]`).Fill("user1")
 
 		// Click on "Ok" button
-		page.Locator(`.custom-dialog-button.main`).Click()
+		mainTestHelper.page.Locator(`.custom-dialog-button.main`).Click()
 
 		// Wait for modal to disappear
-		page.Locator(".custom-dialog").WaitFor(playwright.LocatorWaitForOptions{
+		mainTestHelper.page.Locator(".custom-dialog").WaitFor(playwright.LocatorWaitForOptions{
+			State:   playwright.WaitForSelectorStateHidden,
+			Timeout: playwright.Float(1000),
+		})
+
+		// Refresh account list
+		mainTestHelper.page.Locator(`a[title="Refresh accounts"]`).Click()
+		mainTestHelper.page.Locator(".loading-overlay").WaitFor(playwright.LocatorWaitForOptions{
 			State:   playwright.WaitForSelectorStateHidden,
 			Timeout: playwright.Float(1000),
 		})
 
 		// Check if new account is created
-		accountsCount, err := page.Locator(".accounts-list li").Count()
+		accountsCount, err := mainTestHelper.page.Locator(".accounts-list li").Count()
+		mainTestHelper.Require().NoError(err)
+		mainTestHelper.Require().Equal(3, accountsCount)
+	})
+
+	t.Run("004 check admin account created successfully", func(t *testing.T) {
+		th, err := NewTestHelper(t, t.Name())
 		require.NoError(t, err)
-		require.Equal(t, 3, accountsCount)
+		defer th.Close()
+
+		// Navigate to the login page
+		_, err = th.page.Goto(baseURL)
+		th.Require().NoError(err)
+
+		// Get locators for form elements
+		usernameLocator := th.page.Locator("#username")
+		passwordLocator := th.page.Locator("#password")
+		buttonLocator := th.page.Locator(".button")
+
+		// Wait for and fill the login form
+		th.Require().NoError(usernameLocator.WaitFor())
+		th.Require().NoError(usernameLocator.Fill("admin2"))
+		th.Require().NoError(passwordLocator.Fill("admin2"))
+
+		// Click login and wait for success
+		th.Require().NoError(buttonLocator.Click())
+		th.Require().NoError(th.page.Locator("#bookmarks-grid").WaitFor(playwright.LocatorWaitForOptions{
+			State:   playwright.WaitForSelectorStateVisible,
+			Timeout: playwright.Float(1000),
+		}))
+
+		// Navigate to settings
+		th.page.Locator(`[title="Settings"]`).Click()
+		th.Require().NoError(th.page.Locator(".setting-container").WaitFor(playwright.LocatorWaitForOptions{
+			State:   playwright.WaitForSelectorStateVisible,
+			Timeout: playwright.Float(1000),
+		}))
+
+		// Check if can see system info (admin only)
+		visible, err := th.page.Locator(`#setting-system-info`).IsVisible()
+		th.Require().NoError(err)
+		th.Require().True(visible)
+	})
+
+	t.Run("005 check user account created successfully", func(t *testing.T) {
+		th, err := NewTestHelper(t, t.Name())
+		require.NoError(t, err)
+
+		defer th.Close()
+
+		// Navigate to the login page
+		_, err = th.page.Goto(baseURL)
+		th.Require().NoError(err)
+
+		// Get locators for form elements
+		usernameLocator := th.page.Locator("#username")
+		passwordLocator := th.page.Locator("#password")
+		buttonLocator := th.page.Locator(".button")
+
+		// Wait for and fill the login form
+		th.Require().NoError(usernameLocator.WaitFor())
+		th.Require().NoError(usernameLocator.Fill("user1"))
+		th.Require().NoError(passwordLocator.Fill("user1"))
+
+		// Click login and wait for success
+		th.Require().NoError(buttonLocator.Click())
+		th.Require().NoError(th.page.Locator("#bookmarks-grid").WaitFor(playwright.LocatorWaitForOptions{
+			State:   playwright.WaitForSelectorStateVisible,
+			Timeout: playwright.Float(1000),
+		}))
+
+		// Navigate to settings
+		th.page.Locator(`[title="Settings"]`).Click()
+		th.Require().NoError(th.page.Locator(".setting-container").WaitFor(playwright.LocatorWaitForOptions{
+			State:   playwright.WaitForSelectorStateVisible,
+			Timeout: playwright.Float(1000),
+		}))
+
+		// Check if can see system info (admin only)
+		visible, err := th.page.Locator(`#setting-system-info`).IsVisible()
+		th.Require().NoError(err)
+		th.Require().False(visible)
+
+		// My account settings is visible
+		visible, err = th.page.Locator(`#setting-my-account`).IsVisible()
+		th.Require().NoError(err)
+		th.Require().True(visible)
+
+		// Check change password requires current password
+		th.page.Locator(`li[shiori-username="user1"] a[title="Change password"]`).Click()
+		th.page.Locator(".custom-dialog").WaitFor(playwright.LocatorWaitForOptions{
+			State:   playwright.WaitForSelectorStateVisible,
+			Timeout: playwright.Float(1000),
+		})
+		visible, err = th.page.Locator(`[name="old_password"]`).IsVisible()
+		th.Require().NoError(err)
+		th.Require().True(visible, "Old password field should be visible")
+
+		// Fill modal
+		th.page.Locator(`[name="old_password"]`).Fill("user1")
+		th.page.Locator(`[name="new_password"]`).Fill("new_user1")
+		th.page.Locator(`[name="repeat_password"]`).Fill("new_user1")
+
+		// Click on "Ok" button
+		th.page.Locator(`.custom-dialog-button.main`).Click()
+
+		// Wait for modal to display text: "Password has been changed."
+		dialogContent := th.page.Locator(".custom-dialog-content")
+		dialogContent.WaitFor(playwright.LocatorWaitForOptions{
+			State:   playwright.WaitForSelectorStateVisible,
+			Timeout: playwright.Float(1000),
+		})
+
+		contentText, err := dialogContent.TextContent()
+		th.Require().NoError(err)
+		th.Require().Equal("Password has been changed.", contentText)
+	})
+
+	t.Run("006 delete user account", func(t *testing.T) {
+		// Click on "Delete" button
+		mainTestHelper.page.Locator(`li[shiori-username="user1"] a[title="Delete account"]`).Click()
+		mainTestHelper.page.Locator(".custom-dialog").WaitFor(playwright.LocatorWaitForOptions{
+			State:   playwright.WaitForSelectorStateVisible,
+			Timeout: playwright.Float(1000),
+		})
+
+		// Click on "Ok" button
+		mainTestHelper.page.Locator(`.custom-dialog-button.main`).Click()
+
+		// Wait for modal to disappear
+		mainTestHelper.page.Locator(".custom-dialog").WaitFor(playwright.LocatorWaitForOptions{
+			State:   playwright.WaitForSelectorStateHidden,
+			Timeout: playwright.Float(1000),
+		})
+
+		// Refresh account list
+		mainTestHelper.page.Locator(`a[title="Refresh accounts"]`).Click()
+		mainTestHelper.page.Locator(".loading-overlay").WaitFor(playwright.LocatorWaitForOptions{
+			State:   playwright.WaitForSelectorStateHidden,
+			Timeout: playwright.Float(1000),
+		})
+
+		// Check if account is deleted
+		accountsCount, err := mainTestHelper.page.Locator(".accounts-list li").Count()
+		mainTestHelper.Require().NoError(err)
+		mainTestHelper.Require().Equal(2, accountsCount)
+
+		time.Sleep(5 * time.Second)
+	})
+
+	t.Run("007 change password for admin account", func(t *testing.T) {
+		// Click on "Change password" button
+		mainTestHelper.page.Locator(`li[shiori-username="admin2"] a[title="Change password"]`).Click()
+		mainTestHelper.page.Locator(".custom-dialog").WaitFor(playwright.LocatorWaitForOptions{
+			State:   playwright.WaitForSelectorStateVisible,
+			Timeout: playwright.Float(1000),
+		})
+
+		// Fill modal
+		mainTestHelper.page.Locator(`[name="password"]`).Fill("admin3")
+		mainTestHelper.page.Locator(`[name="repeat_password"]`).Fill("admin3")
+
+		// Click on "Ok" button
+		mainTestHelper.page.Locator(`.custom-dialog-button.main`).Click()
+
+		// Wait for modal to disappear
+		mainTestHelper.page.Locator(".custom-dialog").WaitFor(playwright.LocatorWaitForOptions{
+			State:   playwright.WaitForSelectorStateHidden,
+			Timeout: playwright.Float(1000),
+		})
+
+		// Refresh account list
+		mainTestHelper.page.Locator(`a[title="Refresh accounts"]`).Click()
+		mainTestHelper.page.Locator(".loading-overlay").WaitFor(playwright.LocatorWaitForOptions{
+			State:   playwright.WaitForSelectorStateHidden,
+			Timeout: playwright.Float(1000),
+		})
+
+		t.Run("0071 login with new password", func(t *testing.T) {
+			th, err := NewTestHelper(t, t.Name())
+			require.NoError(t, err)
+			defer th.Close()
+
+			// Go to login page
+			th.page.Goto(baseURL)
+
+			// Wait for login page
+			th.page.Locator("#username").WaitFor(playwright.LocatorWaitForOptions{
+				State:   playwright.WaitForSelectorStateVisible,
+				Timeout: playwright.Float(1000),
+			})
+			th.Require().NoError(th.page.Locator("#username").Fill("admin2"))
+			th.Require().NoError(th.page.Locator("#password").Fill("admin3"))
+			th.Require().NoError(th.page.Locator(".button").Click())
+			th.Require().NoError(th.page.Locator("#bookmarks-grid").WaitFor(playwright.LocatorWaitForOptions{
+				State:   playwright.WaitForSelectorStateVisible,
+				Timeout: playwright.Float(1000),
+			}))
+		})
+	})
+
+	t.Run("008 logout", func(t *testing.T) {
+		// Click on "Logout" button
+		mainTestHelper.page.Locator(`a[title="Logout"]`).Click()
+
+		// Wait for login page
+		mainTestHelper.page.Locator("#login-scene").WaitFor(playwright.LocatorWaitForOptions{
+			State:   playwright.WaitForSelectorStateVisible,
+			Timeout: playwright.Float(1000),
+		})
 	})
 }

@@ -63,7 +63,7 @@ func NewShioriContainer(t *testing.T, tag string) ShioriContainer {
 		containerDefinition.ContainerRequest.Image = "ghcr.io/go-shiori/shiori:" + tag
 	} else {
 		containerDefinition.ContainerRequest.FromDockerfile = testcontainers.FromDockerfile{
-			PrintBuildLog: true,
+			PrintBuildLog: false,
 			Context:       "../..",
 			Dockerfile:    "Dockerfile.e2e",
 			KeepImage:     true,

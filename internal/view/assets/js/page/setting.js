@@ -52,7 +52,7 @@ var template = `
             <summary>Accounts</summary>
             <ul class="accounts-list">
                 <li v-if="accounts.length === 0">No accounts registered</li>
-                <li v-for="(account, idx) in accounts">
+                <li v-for="(account, idx) in accounts" :shiori-username="account.username">
                     <p>{{account.username}}
                         <span v-if="account.owner" class="account-level">(owner)</span>
                     </p>
@@ -72,7 +72,7 @@ var template = `
         <details v-if="!activeAccount.owner" open class="setting-group setting-accounts" id="setting-my-account">
             <summary>My account</summary>
             <ul>
-                <li v-for="(account, idx) in [this.activeAccount]">
+                <li v-for="(account, idx) in [this.activeAccount]" :shiori-username="account.username">
                     <p>{{account.username}}
                         <span v-if="account.owner" class="account-level">(owner)</span>
                     </p>
@@ -81,6 +81,9 @@ var template = `
                     </a>
                 </li>
             </ul>
+            <div class="setting-group-footer">
+                <a @click="showDialogChangePassword(this.activeAccount)" title="Change password">Change password</a>
+            </div>
         </details>
 		<details v-if="activeAccount.owner" class="setting-group" id="setting-system-info">
 			<summary>System info</summary>
