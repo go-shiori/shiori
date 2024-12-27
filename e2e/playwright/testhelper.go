@@ -67,6 +67,10 @@ func (th *TestHelper) HandleError(screenshotPath string, msgAndArgs ...interface
 	GetReporter().AddResult(th.name, false, screenshotPath, errMsg)
 }
 
+func (th *TestHelper) HandleSuccess() {
+	GetReporter().AddResult(th.name, true, "", "")
+}
+
 // PlaywrightRequire wraps require.Assertions to add screenshot capability
 type PlaywrightRequire struct {
 	*require.Assertions
@@ -110,7 +114,7 @@ func (pr *PlaywrightRequire) True(value bool, msgAndArgs ...interface{}) {
 		screenshotPath := pr.helper.captureScreenshot(pr.helper.name)
 		pr.helper.HandleError(screenshotPath, msgAndArgs...)
 	} else {
-		GetReporter().AddResult(pr.helper.name, true, "", "")
+		pr.helper.HandleSuccess()
 	}
 	pr.Assertions.True(value, msgAndArgs...)
 }
@@ -119,6 +123,8 @@ func (pr *PlaywrightRequire) True(value bool, msgAndArgs ...interface{}) {
 func (pr *PlaywrightRequire) False(value bool, msgAndArgs ...interface{}) {
 	if value {
 		pr.helper.captureScreenshot(pr.helper.name)
+	} else {
+		pr.helper.HandleSuccess()
 	}
 	pr.Assertions.False(value, msgAndArgs...)
 }
@@ -127,6 +133,8 @@ func (pr *PlaywrightRequire) False(value bool, msgAndArgs ...interface{}) {
 func (pr *PlaywrightRequire) Equal(expected, actual interface{}, msgAndArgs ...interface{}) {
 	if expected != actual {
 		pr.helper.captureScreenshot(pr.helper.name)
+	} else {
+		pr.helper.HandleSuccess()
 	}
 	pr.Assertions.Equal(expected, actual, msgAndArgs...)
 }
@@ -135,6 +143,8 @@ func (pr *PlaywrightRequire) Equal(expected, actual interface{}, msgAndArgs ...i
 func (pr *PlaywrightRequire) NoError(err error, msgAndArgs ...interface{}) {
 	if err != nil {
 		pr.helper.captureScreenshot(pr.helper.name)
+	} else {
+		pr.helper.HandleSuccess()
 	}
 	pr.Assertions.NoError(err, msgAndArgs...)
 }
@@ -143,6 +153,8 @@ func (pr *PlaywrightRequire) NoError(err error, msgAndArgs ...interface{}) {
 func (pr *PlaywrightRequire) Error(err error, msgAndArgs ...interface{}) {
 	if err == nil {
 		pr.helper.captureScreenshot(pr.helper.name)
+	} else {
+		pr.helper.HandleSuccess()
 	}
 	pr.Assertions.Error(err, msgAndArgs...)
 }
