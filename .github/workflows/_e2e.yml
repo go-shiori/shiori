@@ -21,3 +21,11 @@ jobs:
       run: npx playwright install --with-deps
 
     - run: make e2e
+
+    - name: Upload test report
+      if: always()
+      uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b # v4.5.0
+      with:
+        name: e2e-test-report
+        path: e2e-report.html
+        if-no-files-found: ignore
