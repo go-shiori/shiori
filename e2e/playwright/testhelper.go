@@ -173,17 +173,13 @@ func (pr *PlaywrightRequire) NoError(t *testing.T, err error, msgAndArgs ...inte
 
 // Error asserts that a function returned an error and takes a screenshot on failure
 func (pr *PlaywrightRequire) Error(t *testing.T, err error, msgAndArgs ...interface{}) {
-	if err == nil {
-		screenshotPath := pr.helper.captureScreenshot(t.Name())
-		msg := fmt.Sprintf("Expected error but got none in test '%s'", t.Name())
-		if len(msgAndArgs) > 0 {
-			msg = fmt.Sprint(msgAndArgs...)
+	pr.Assert(t, func() error {
+		if err == nil {
+			return fmt.Errorf("Expected error but got none in test '%s'", t.Name())
 		}
-		pr.helper.HandleError(screenshotPath, msg)
-	} else {
-		pr.helper.HandleSuccess()
-	}
-	pr.Assertions.Error(err, msgAndArgs...)
+		pr.Assertions.Error(err, msgAndArgs...)
+		return nil
+	})
 }
 
 // Close cleans up resources and generates the report
