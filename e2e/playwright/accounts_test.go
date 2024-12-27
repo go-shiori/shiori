@@ -121,7 +121,7 @@ func TestE2EAccounts(t *testing.T) {
 
 	t.Run("004 check admin account created successfully", func(t *testing.T) {
 		th, err := NewTestHelper(t, t.Name())
-		require.NoError(t, t, err, "Failed to create test helper")
+		require.NoError(t, err, "Failed to create test helper")
 		defer th.Close()
 
 		// Navigate to the login page
