@@ -45,7 +45,7 @@ func TestE2EAccounts(t *testing.T) {
 	t.Run("002 create new admin account", func(t *testing.T) {
 		// Navigate to settings page
 		mainTestHelper.page.Locator(`[title="Settings"]`).Click()
-		mainTestHelper.Require().NoError(mainTestHelper.page.Locator(".setting-container").WaitFor(playwright.LocatorWaitForOptions{
+		mainTestHelper.Require().NoError(t, mainTestHelper.page.Locator(".setting-container").WaitFor(playwright.LocatorWaitForOptions{
 			State:   playwright.WaitForSelectorStateVisible,
 			Timeout: playwright.Float(1000),
 		}))
@@ -147,7 +147,7 @@ func TestE2EAccounts(t *testing.T) {
 
 		// Navigate to settings
 		th.page.Locator(`[title="Settings"]`).Click()
-		th.Require().NoError(th.page.Locator(".setting-container").WaitFor(playwright.LocatorWaitForOptions{
+		th.Require().NoError(t, th.page.Locator(".setting-container").WaitFor(playwright.LocatorWaitForOptions{
 			State:   playwright.WaitForSelectorStateVisible,
 			Timeout: playwright.Float(1000),
 		}))
