@@ -126,55 +126,60 @@ func (pr *PlaywrightRequire) Assert(t *testing.T, assertFn func() error, msgAndA
 // True asserts that the specified value is true and takes a screenshot on failure
 func (pr *PlaywrightRequire) True(t *testing.T, value bool, msgAndArgs ...interface{}) {
 	pr.Assert(t, func() error {
-		if !value {
-			return fmt.Errorf("Expected value to be true but got false in test '%s'", t.Name())
-		}
+		var err error
 		pr.Assertions.True(value, msgAndArgs...)
-		return nil
+		if !value {
+			err = fmt.Errorf("Expected value to be true but got false in test '%s'", t.Name())
+		}
+		return err
 	})
 }
 
 // False asserts that the specified value is false and takes a screenshot on failure
 func (pr *PlaywrightRequire) False(t *testing.T, value bool, msgAndArgs ...interface{}) {
 	pr.Assert(t, func() error {
-		if value {
-			return fmt.Errorf("Expected value to be false but got true in test '%s'", t.Name())
-		}
+		var err error
 		pr.Assertions.False(value, msgAndArgs...)
-		return nil
+		if value {
+			err = fmt.Errorf("Expected value to be false but got true in test '%s'", t.Name())
+		}
+		return err
 	})
 }
 
 // Equal asserts that two objects are equal and takes a screenshot on failure
 func (pr *PlaywrightRequire) Equal(t *testing.T, expected, actual interface{}, msgAndArgs ...interface{}) {
 	pr.Assert(t, func() error {
-		if expected != actual {
-			return fmt.Errorf("Expected values to be equal in test '%s':\nexpected: %v\nactual: %v", t.Name(), expected, actual)
-		}
+		var err error
 		pr.Assertions.Equal(expected, actual, msgAndArgs...)
-		return nil
+		if expected != actual {
+			err = fmt.Errorf("Expected values to be equal in test '%s':\nexpected: %v\nactual: %v", t.Name(), expected, actual)
+		}
+		return err
 	})
 }
 
 // NoError asserts that a function returned no error and takes a screenshot on failure
 func (pr *PlaywrightRequire) NoError(t *testing.T, err error, msgAndArgs ...interface{}) {
 	pr.Assert(t, func() error {
-		if err != nil {
-			return fmt.Errorf("Expected no error but got error in test '%s': %v", t.Name(), err)
-		}
+		var assertErr error
 		pr.Assertions.NoError(err, msgAndArgs...)
-		return nil
+		if err != nil {
+			assertErr = fmt.Errorf("Expected no error but got error in test '%s': %v", t.Name(), err)
+		}
+		return assertErr
 	})
 }
 
 // Error asserts that a function returned an error and takes a screenshot on failure
 func (pr *PlaywrightRequire) Error(t *testing.T, err error, msgAndArgs ...interface{}) {
 	pr.Assert(t, func() error {
-		if err == nil {
-			return fmt.Errorf("Expected error but got none in test '%s'", t.Name())
-		}
+		var assertErr error
 		pr.Assertions.Error(err, msgAndArgs...)
-		return nil
+		if err == nil {
+			assertErr = fmt.Errorf("Expected error but got none in test '%s'", t.Name())
+		}
+		return assertErr
 	})
 }
 
