@@ -3,32 +3,32 @@
 version: "3"
 services:
   shiori:
-    build:
-      context: .
-      dockerfile: Dockerfile.compose
+    image: ghcr.io/go-shiori/shiori
     container_name: shiori
     ports:
-      - "8080:8080"
+      - "8080:8080" #set port number if it needs to be different
     volumes:
       - "./dev-data:/srv/shiori"
       - ".:/src/shiori"
     restart: unless-stopped
-    links:
+    depends_on:
       - "postgres"
       - "mariadb"
     environment:
       SHIORI_DIR: /srv/shiori
       #SHIORI_DATABASE_URL: mysql://shiori:shiori@(mariadb)/shiori?charset=utf8mb4
       SHIORI_DATABASE_URL: postgres://shiori:shiori@postgres/shiori?sslmode=disable
-
+    networks:
+      shiori:
   postgres:
     image: postgres:15
     environment:
       POSTGRES_PASSWORD: shiori
       POSTGRES_USER: shiori
     ports:
-      - "5432:5432"
-
+      - 5432
+    networks:
+      shiori:
   mariadb:
     image: mariadb:11
     environment:
@@ -37,4 +37,10 @@ services:
       MYSQL_USER: shiori
       MYSQL_PASSWORD: shiori
     ports:
-      - "3306:3306"
+      - 3306
+    networks:
+      shiori:
+networks:
+  shiori:
+
+
