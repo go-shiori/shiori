@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -68,8 +69,8 @@ func (th *TestHelper) HandleError(t *testing.T, screenshotPath string, msgAndArg
 	GetReporter().AddResult(t.Name(), false, screenshotPath, errMsg)
 }
 
-func (th *TestHelper) HandleSuccess(t *testing.T) {
-	GetReporter().AddResult(t.Name(), true, "", "")
+func (th *TestHelper) HandleSuccess(t *testing.T, message string) {
+	GetReporter().AddResult(t.Name(), true, "", message)
 }
 
 // PlaywrightRequire wraps require.Assertions to add screenshot capability
@@ -81,10 +82,14 @@ type PlaywrightRequire struct {
 // captureScreenshot saves a screenshot to the screenshots directory
 func (th *TestHelper) captureScreenshot(testName string) string {
 	timestamp := time.Now().Format("20060102-150405")
-	filename := fmt.Sprintf("screenshots/%s-%s.png", testName, timestamp)
+	tmpDir, err := os.MkdirTemp("", "playwright-screenshots")
+	if err != nil {
+		panic(err)
+	}
+	filePath := filepath.Join(tmpDir, fmt.Sprintf("%s-%s.png", testName, timestamp))
 
 	// Get the full path without the filename from `filename` and create the directories
-	if err := os.MkdirAll(path.Dir(filename), 0755); err != nil {
+	if err := os.MkdirAll(path.Dir(filePath), 0755); err != nil {
 		fmt.Printf("Failed to create screenshots directory: %v\n", err)
 		panic(err)
 	}
@@ -97,26 +102,26 @@ func (th *TestHelper) captureScreenshot(testName string) string {
 
 	// Take screenshot
 	if _, err := th.page.Screenshot(playwright.PageScreenshotOptions{
-		Path:     playwright.String(filename),
+		Path:     playwright.String(filePath),
 		FullPage: playwright.Bool(true),
 	}); err != nil {
 		fmt.Printf("Failed to capture screenshot: %v\n", err)
 		return ""
 	}
 
-	fmt.Printf("Screenshot saved: %s\n", filename)
+	fmt.Printf("Screenshot saved: %s\n", filePath)
 
-	return filename
+	return filePath
 }
 
 func (pr *PlaywrightRequire) Assert(t *testing.T, assertFn func() error, msgAndArgs ...interface{}) {
 	err := assertFn()
 	var msg string
 	if len(msgAndArgs) > 0 {
-		msg = fmt.Sprint(msgAndArgs...)
+		msg = fmt.Sprintf("%s", msgAndArgs...)
 	}
-	if err != nil {
-		pr.helper.HandleSuccess(t)
+	if err == nil {
+		pr.helper.HandleSuccess(t, msg)
 	} else {
 		screenshotPath := pr.helper.captureScreenshot(t.Name())
 		pr.helper.HandleError(t, screenshotPath, msg)
