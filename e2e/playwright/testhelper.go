@@ -67,30 +67,6 @@ func (th *TestHelper) Require() *PlaywrightRequire {
 func (th *TestHelper) HandleError(screenshotPath string, msgAndArgs ...interface{}) {
 	errMsg := fmt.Sprint(msgAndArgs...)
 	th.reporter.AddResult(th.name, false, screenshotPath, errMsg)
-
-	if th.runningInCI {
-		th.addToGithubStepSummary(fmt.Sprintf("### ❌ %s", th.name))
-	}
-}
-
-// addToGithubStepSummary adds a message to the $GITHUB_STEP_SUMMARY
-func (th *TestHelper) addToGithubStepSummary(content string) error {
-	// Retrieve the path to $GITHUB_STEP_SUMMARY from the environment variable
-	summaryFile := os.Getenv("GITHUB_STEP_SUMMARY")
-	if summaryFile == "" {
-		return fmt.Errorf("GITHUB_STEP_SUMMARY environment variable is not set")
-	}
-
-	// Open the file in append mode, create if it doesn't exist
-	file, err := os.OpenFile(summaryFile, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	// Write the content to the file
-	_, err = file.WriteString(content)
-	return err
 }
 
 // PlaywrightRequire wraps require.Assertions to add screenshot capability

@@ -1,14 +1,12 @@
 package playwright
 
 import (
+	"encoding/base64"
 	"fmt"
 	"html/template"
 	"os"
-	"encoding/base64"
-	"path"
 	"strings"
 	"time"
-	"io/ioutil"
 )
 
 type TestResult struct {
@@ -38,13 +36,13 @@ func (r *TestReporter) AddResult(name string, passed bool, screenshotPath string
 
 	var b64Screenshot string
 	if screenshotPath != "" {
-		if data, err := ioutil.ReadFile(screenshotPath); err == nil {
+		if data, err := os.ReadFile(screenshotPath); err == nil {
 			b64Screenshot = "data:image/png;base64," + base64.StdEncoding.EncodeToString(data)
 		} else {
 			fmt.Printf("Failed to read screenshot %s: %v\n", screenshotPath, err)
 		}
 	}
-	
+
 	r.Results = append(r.Results, TestResult{
 		Name:           name,
 		Status:         status,
@@ -91,7 +89,7 @@ func (r *TestReporter) GenerateHTML() error {
 	t = t.Funcs(template.FuncMap{
 		"toLowerCase": strings.ToLower,
 	})
-	
+
 	t, err := t.Parse(tmpl)
 	if err != nil {
 		return fmt.Errorf("failed to parse template: %v", err)
