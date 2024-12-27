@@ -10,9 +10,9 @@ import (
 )
 
 type AssertionResult struct {
-	Message   string
-	Status    string
-	Error     string
+	Message    string
+	Status     string
+	Error      string
 	Screenshot string // Base64 screenshot, only for failures
 }
 
@@ -35,7 +35,7 @@ func GetReporter() *TestReporter {
 	return globalReporter
 }
 
-func (r *TestReporter) AddResult(testName string, passed bool, screenshotPath string, err string) {
+func (r *TestReporter) AddResult(testName string, passed bool, screenshotPath string, message string) {
 	status := "Passed"
 	if !passed {
 		status = "Failed"
@@ -64,9 +64,8 @@ func (r *TestReporter) AddResult(testName string, passed bool, screenshotPath st
 
 	// Add assertion result
 	testResult.Assertions = append(testResult.Assertions, AssertionResult{
-		Message:    err,
+		Message:    message,
 		Status:     status,
-		Error:      err,
 		Screenshot: screenshot,
 	})
 
@@ -100,17 +99,15 @@ func (r *TestReporter) GenerateHTML() error {
     {{range .Results}}
     <div class="test {{.Status | toLowerCase}}">
         <h3>{{.Name}}</h3>
-        <p>Status: {{.Status}}</p>
-        <p>Time: {{.Timestamp.Format "2006-01-02 15:04:05"}}</p>
+        <p><b>Status:</b> {{.Status}}</p>
+		<p>Timestamp: {{.Timestamp}}</p>
 
+		{{if eq .Status "Failed"}}
         <div class="assertions">
             {{range .Assertions}}
                 {{if eq .Status "Failed"}}
                     <div class="assertion failed">
                         <div class="assertion-msg">{{.Message}}</div>
-                        {{if .Error}}
-                            <div class="error-details">{{.Error}}</div>
-                        {{end}}
                         {{if .Screenshot}}
                             <img src="{{.Screenshot}}" alt="Failure Screenshot">
                         {{end}}
@@ -120,6 +117,7 @@ func (r *TestReporter) GenerateHTML() error {
                 {{end}}
             {{end}}
         </div>
+  		{{end}}
     </div>
     {{end}}
 </body>

@@ -39,16 +39,18 @@ func TestE2EAccounts(t *testing.T) {
 		mainTestHelper.Require().NoError(t, mainTestHelper.page.Locator("#bookmarks-grid").WaitFor(playwright.LocatorWaitForOptions{
 			State:   playwright.WaitForSelectorStateVisible,
 			Timeout: playwright.Float(1000),
-		}))
+		}), "Wait for bookmarks section to show up")
 	})
 
 	t.Run("002 create new admin account", func(t *testing.T) {
 		// Navigate to settings page
-		mainTestHelper.page.Locator(`[title="Settings"]`).Click()
+		mainTestHelper.Require().NoError(t,
+			mainTestHelper.page.Locator(`[title="Settings"]`).Click(),
+			"Click on settings button")
 		mainTestHelper.Require().NoError(t, mainTestHelper.page.Locator(".setting-container").WaitFor(playwright.LocatorWaitForOptions{
 			State:   playwright.WaitForSelectorStateVisible,
 			Timeout: playwright.Float(1000),
-		}))
+		}), "Wait for settings page to show up")
 
 		// Click on "Add new account" <a> element
 		mainTestHelper.page.Locator(`[title="Add new account"]`).Click()
@@ -66,17 +68,23 @@ func TestE2EAccounts(t *testing.T) {
 		mainTestHelper.page.Locator(`.custom-dialog-button.main`).Click()
 
 		// Wait for modal to disappear
-		mainTestHelper.page.Locator(".custom-dialog").WaitFor(playwright.LocatorWaitForOptions{
-			State:   playwright.WaitForSelectorStateHidden,
-			Timeout: playwright.Float(1000),
-		})
+		mainTestHelper.Require().NoError(t,
+			mainTestHelper.page.Locator(".custom-dialog").WaitFor(playwright.LocatorWaitForOptions{
+				State:   playwright.WaitForSelectorStateHidden,
+				Timeout: playwright.Float(1000),
+			}),
+			"Wait for modal to disappear")
 
 		// Refresh account list
-		mainTestHelper.page.Locator(`a[title="Refresh accounts"]`).Click()
-		mainTestHelper.page.Locator(".loading-overlay").WaitFor(playwright.LocatorWaitForOptions{
-			State:   playwright.WaitForSelectorStateHidden,
-			Timeout: playwright.Float(1000),
-		})
+		mainTestHelper.Require().NoError(t,
+			mainTestHelper.page.Locator(`a[title="Refresh accounts"]`).Click(),
+			"Click on refresh accounts button")
+		mainTestHelper.Require().NoError(t,
+			mainTestHelper.page.Locator(".loading-overlay").WaitFor(playwright.LocatorWaitForOptions{
+				State:   playwright.WaitForSelectorStateHidden,
+				Timeout: playwright.Float(1000),
+			}),
+			"Wait for loading overlay to disappear")
 
 		// Check if new account is created
 		accountsCount, err := mainTestHelper.page.Locator(".accounts-list li").Count()
@@ -143,14 +151,18 @@ func TestE2EAccounts(t *testing.T) {
 		th.Require().NoError(t, th.page.Locator("#bookmarks-grid").WaitFor(playwright.LocatorWaitForOptions{
 			State:   playwright.WaitForSelectorStateVisible,
 			Timeout: playwright.Float(1000),
-		}))
+		}), "Wait for bookmarks section to show up")
 
 		// Navigate to settings
-		th.page.Locator(`[title="Settings"]`).Click()
-		th.Require().NoError(t, th.page.Locator(".setting-container").WaitFor(playwright.LocatorWaitForOptions{
-			State:   playwright.WaitForSelectorStateVisible,
-			Timeout: playwright.Float(1000),
-		}))
+		th.Require().NoError(t,
+			th.page.Locator(`[title="Settings"]`).Click(),
+			"Click on settings button")
+		th.Require().NoError(t,
+			th.page.Locator(".setting-container").WaitFor(playwright.LocatorWaitForOptions{
+				State:   playwright.WaitForSelectorStateVisible,
+				Timeout: playwright.Float(1000),
+			}),
+			"Wait for settings page to show up")
 
 		// Check if can see system info (admin only)
 		visible, err := th.page.Locator(`#setting-system-info`).IsVisible()
@@ -183,14 +195,16 @@ func TestE2EAccounts(t *testing.T) {
 		th.Require().NoError(t, th.page.Locator("#bookmarks-grid").WaitFor(playwright.LocatorWaitForOptions{
 			State:   playwright.WaitForSelectorStateVisible,
 			Timeout: playwright.Float(1000),
-		}))
+		}), "Wait for bookmarks section to show up")
 
 		// Navigate to settings
-		th.page.Locator(`[title="Settings"]`).Click()
+		th.Require().NoError(t,
+			th.page.Locator(`[title="Settings"]`).Click(),
+			"Click on settings button")
 		th.Require().NoError(t, th.page.Locator(".setting-container").WaitFor(playwright.LocatorWaitForOptions{
 			State:   playwright.WaitForSelectorStateVisible,
 			Timeout: playwright.Float(1000),
-		}))
+		}), "Wait for settings page to show up")
 
 		// Check if can see system info (admin only)
 		visible, err := th.page.Locator(`#setting-system-info`).IsVisible()
@@ -203,29 +217,43 @@ func TestE2EAccounts(t *testing.T) {
 		th.Require().True(t, visible, "Verify account settings visibility for user")
 
 		// Check change password requires current password
-		th.page.Locator(`li[shiori-username="user1"] a[title="Change password"]`).Click()
-		th.page.Locator(".custom-dialog").WaitFor(playwright.LocatorWaitForOptions{
-			State:   playwright.WaitForSelectorStateVisible,
-			Timeout: playwright.Float(1000),
-		})
+		th.Require().NoError(t,
+			th.page.Locator(`li[shiori-username="user1"] a[title="Change password"]`).Click(),
+			"Click on change password button")
+		th.Require().NoError(t,
+			th.page.Locator(".custom-dialog").WaitFor(playwright.LocatorWaitForOptions{
+				State:   playwright.WaitForSelectorStateVisible,
+				Timeout: playwright.Float(1000),
+			}),
+			"Wait for change password modal to show up")
 		visible, err = th.page.Locator(`[name="old_password"]`).IsVisible()
 		th.Require().NoError(t, err, "Check visibility of old password field")
 		th.Require().True(t, visible, "Verify old password field visibility when changing password")
 
 		// Fill modal
-		th.page.Locator(`[name="old_password"]`).Fill("user1")
-		th.page.Locator(`[name="new_password"]`).Fill("new_user1")
-		th.page.Locator(`[name="repeat_password"]`).Fill("new_user1")
+		th.Require().NoError(t,
+			th.page.Locator(`[name="old_password"]`).Fill("user1"),
+			"Fill old password field")
+		th.Require().NoError(t,
+			th.page.Locator(`[name="new_password"]`).Fill("new_user1"),
+			"Fill new password field")
+		th.Require().NoError(t,
+			th.page.Locator(`[name="repeat_password"]`).Fill("new_user1"),
+			"Fill repeat password field")
 
 		// Click on "Ok" button
-		th.page.Locator(`.custom-dialog-button.main`).Click()
+		th.Require().NoError(t,
+			th.page.Locator(`.custom-dialog-button.main`).Click(),
+			"Click on ok button")
 
 		// Wait for modal to display text: "Password has been changed."
 		dialogContent := th.page.Locator(".custom-dialog-content")
-		dialogContent.WaitFor(playwright.LocatorWaitForOptions{
-			State:   playwright.WaitForSelectorStateVisible,
-			Timeout: playwright.Float(1000),
-		})
+		th.Require().NoError(t,
+			dialogContent.WaitFor(playwright.LocatorWaitForOptions{
+				State:   playwright.WaitForSelectorStateVisible,
+				Timeout: playwright.Float(1000),
+			}),
+			"Wait for dialog content to show up")
 
 		contentText, err := dialogContent.TextContent()
 		th.Require().NoError(t, err, "Get dialog content text")
@@ -311,13 +339,13 @@ func TestE2EAccounts(t *testing.T) {
 			th.Require().NoError(t, th.page.Locator("#bookmarks-grid").WaitFor(playwright.LocatorWaitForOptions{
 				State:   playwright.WaitForSelectorStateVisible,
 				Timeout: playwright.Float(1000),
-			}))
+			}), "Wait for bookmarks section to show up")
 		})
 	})
 
 	t.Run("008 logout", func(t *testing.T) {
 		// Click on "Logout" button
-		mainTestHelper.page.Locator(`a[title="Logout"]`).Click()
+		mainTestHelper.Require().NoError(t, mainTestHelper.page.Locator(`a[title="Logout"]`).Click(), "Click on logout button")
 
 		// Wait for login page
 		err := mainTestHelper.page.Locator("#login-scene").WaitFor(playwright.LocatorWaitForOptions{

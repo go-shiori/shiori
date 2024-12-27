@@ -139,7 +139,7 @@ func (pr *PlaywrightRequire) True(t *testing.T, value bool, msgAndArgs ...interf
 			err = fmt.Errorf("Expected value to be true but got false in test '%s'", t.Name())
 		}
 		return err
-	})
+	}, msgAndArgs...)
 }
 
 // False asserts that the specified value is false and takes a screenshot on failure
@@ -151,7 +151,7 @@ func (pr *PlaywrightRequire) False(t *testing.T, value bool, msgAndArgs ...inter
 			err = fmt.Errorf("Expected value to be false but got true in test '%s'", t.Name())
 		}
 		return err
-	})
+	}, msgAndArgs...)
 }
 
 // Equal asserts that two objects are equal and takes a screenshot on failure
@@ -163,7 +163,7 @@ func (pr *PlaywrightRequire) Equal(t *testing.T, expected, actual interface{}, m
 			err = fmt.Errorf("Expected values to be equal in test '%s':\nexpected: %v\nactual: %v", t.Name(), expected, actual)
 		}
 		return err
-	})
+	}, msgAndArgs...)
 }
 
 // NoError asserts that a function returned no error and takes a screenshot on failure
@@ -175,7 +175,7 @@ func (pr *PlaywrightRequire) NoError(t *testing.T, err error, msgAndArgs ...inte
 			assertErr = fmt.Errorf("Expected no error but got error in test '%s': %v", t.Name(), err)
 		}
 		return assertErr
-	})
+	}, msgAndArgs...)
 }
 
 // Error asserts that a function returned an error and takes a screenshot on failure
@@ -187,7 +187,7 @@ func (pr *PlaywrightRequire) Error(t *testing.T, err error, msgAndArgs ...interf
 			assertErr = fmt.Errorf("Expected error but got none in test '%s'", t.Name())
 		}
 		return assertErr
-	})
+	}, msgAndArgs...)
 }
 
 // Close cleans up resources and generates the report
