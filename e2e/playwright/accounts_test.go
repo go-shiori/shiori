@@ -121,12 +121,12 @@ func TestE2EAccounts(t *testing.T) {
 
 	t.Run("004 check admin account created successfully", func(t *testing.T) {
 		th, err := NewTestHelper(t, t.Name())
-		require.NoError(t, err, "Failed to create test helper")
+		require.NoError(t, err, "Create test helper")
 		defer th.Close()
 
 		// Navigate to the login page
 		_, err = th.page.Goto(baseURL)
-		th.Require().NoError(t, err, "Failed to navigate to base URL")
+		th.Require().NoError(t, err, "Navigate to base URL")
 
 		// Get locators for form elements
 		usernameLocator := th.page.Locator("#username")
@@ -134,12 +134,12 @@ func TestE2EAccounts(t *testing.T) {
 		buttonLocator := th.page.Locator(".button")
 
 		// Wait for and fill the login form
-		th.Require().NoError(t, usernameLocator.WaitFor(), "Username field not found")
-		th.Require().NoError(t, usernameLocator.Fill("admin2"), "Failed to fill username")
-		th.Require().NoError(t, passwordLocator.Fill("admin2"), "Failed to fill password")
+		th.Require().NoError(t, usernameLocator.WaitFor(), "Wait for username field")
+		th.Require().NoError(t, usernameLocator.Fill("admin2"), "Fill username field")
+		th.Require().NoError(t, passwordLocator.Fill("admin2"), "Fill password field")
 
 		// Click login and wait for success
-		th.Require().NoError(t, buttonLocator.Click(), "Failed to click login button")
+		th.Require().NoError(t, buttonLocator.Click(), "Click login button")
 		th.Require().NoError(t, th.page.Locator("#bookmarks-grid").WaitFor(playwright.LocatorWaitForOptions{
 			State:   playwright.WaitForSelectorStateVisible,
 			Timeout: playwright.Float(1000),
@@ -199,8 +199,8 @@ func TestE2EAccounts(t *testing.T) {
 
 		// My account settings is visible
 		visible, err = th.page.Locator(`#setting-my-account`).IsVisible()
-		th.Require().NoError(t, err, "Failed to check visibility of account settings")
-		th.Require().True(t, visible, "Account settings should be visible for user")
+		th.Require().NoError(t, err, "Check visibility of account settings")
+		th.Require().True(t, visible, "Verify account settings visibility for user")
 
 		// Check change password requires current password
 		th.page.Locator(`li[shiori-username="user1"] a[title="Change password"]`).Click()
@@ -209,8 +209,8 @@ func TestE2EAccounts(t *testing.T) {
 			Timeout: playwright.Float(1000),
 		})
 		visible, err = th.page.Locator(`[name="old_password"]`).IsVisible()
-		th.Require().NoError(t, err, "Failed to check visibility of old password field")
-		th.Require().True(t, visible, "Old password field should be visible when changing password")
+		th.Require().NoError(t, err, "Check visibility of old password field")
+		th.Require().True(t, visible, "Verify old password field visibility when changing password")
 
 		// Fill modal
 		th.page.Locator(`[name="old_password"]`).Fill("user1")
@@ -258,8 +258,8 @@ func TestE2EAccounts(t *testing.T) {
 
 		// Check if account is deleted
 		accountsCount, err := mainTestHelper.page.Locator(".accounts-list li").Count()
-		mainTestHelper.Require().NoError(t, err, "Failed to count accounts in list")
-		mainTestHelper.Require().Equal(t, 2, accountsCount, "Expected 2 accounts after creating admin account")
+		mainTestHelper.Require().NoError(t, err, "Count accounts in list")
+		mainTestHelper.Require().Equal(t, 2, accountsCount, "Verify 2 accounts present after creating admin account")
 
 		time.Sleep(5 * time.Second)
 	})
@@ -324,6 +324,6 @@ func TestE2EAccounts(t *testing.T) {
 			State:   playwright.WaitForSelectorStateVisible,
 			Timeout: playwright.Float(1000),
 		})
-		mainTestHelper.Require().NoError(t, err, "Failed to wait for login page")
+		mainTestHelper.Require().NoError(t, err, "Wait for login page")
 	})
 }
