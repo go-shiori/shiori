@@ -18,6 +18,7 @@ type TestHelper struct {
 	context     playwright.BrowserContext
 	t           require.TestingT
 	runningInCI bool
+	reporter    *TestReporter
 }
 
 // NewTestHelper creates a new test helper instance
@@ -51,6 +52,7 @@ func NewTestHelper(t require.TestingT, name string) (*TestHelper, error) {
 		context:     context,
 		t:           t,
 		runningInCI: os.Getenv("GITHUB_STEP_SUMMARY") != "",
+		reporter:    NewTestReporter(),
 	}, nil
 }
 
@@ -63,11 +65,12 @@ func (th *TestHelper) Require() *PlaywrightRequire {
 }
 
 func (th *TestHelper) HandleError(screenshotPath string, msgAndArgs ...interface{}) {
-	if !th.runningInCI {
-		return
-	}
+	errMsg := fmt.Sprint(msgAndArgs...)
+	th.reporter.AddResult(th.name, false, screenshotPath, errMsg)
 
-	th.addToGithubStepSummary(fmt.Sprintf("### ❌ %s", th.name))
+	if th.runningInCI {
+		th.addToGithubStepSummary(fmt.Sprintf("### ❌ %s", th.name))
+	}
 }
 
 // addToGithubStepSummary adds a message to the $GITHUB_STEP_SUMMARY
@@ -132,6 +135,8 @@ func (pr *PlaywrightRequire) True(value bool, msgAndArgs ...interface{}) {
 	if !value {
 		screenshotPath := pr.helper.captureScreenshot(pr.helper.name)
 		pr.helper.HandleError(screenshotPath, msgAndArgs...)
+	} else {
+		pr.helper.reporter.AddResult(pr.helper.name, true, "", "")
 	}
 	pr.Assertions.True(value, msgAndArgs...)
 }
@@ -168,8 +173,11 @@ func (pr *PlaywrightRequire) Error(err error, msgAndArgs ...interface{}) {
 	pr.Assertions.Error(err, msgAndArgs...)
 }
 
-// Close cleans up resources
+// Close cleans up resources and generates the report
 func (th *TestHelper) Close() {
+	if err := th.reporter.GenerateHTML(); err != nil {
+		fmt.Printf("Failed to generate HTML report: %v\n", err)
+	}
 	if th.page != nil {
 		th.page.Close()
 	}
