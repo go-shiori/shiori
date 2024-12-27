@@ -112,7 +112,11 @@ func (th *TestHelper) captureScreenshot(testName string) string {
 func (pr *PlaywrightRequire) True(value bool, msgAndArgs ...interface{}) {
 	if !value {
 		screenshotPath := pr.helper.captureScreenshot(pr.helper.name)
-		pr.helper.HandleError(screenshotPath, msgAndArgs...)
+		msg := fmt.Sprintf("Expected value to be true but got false in test '%s'", pr.helper.name)
+		if len(msgAndArgs) > 0 {
+			msg = fmt.Sprint(msgAndArgs...)
+		}
+		pr.helper.HandleError(screenshotPath, msg)
 	} else {
 		pr.helper.HandleSuccess()
 	}
@@ -122,7 +126,12 @@ func (pr *PlaywrightRequire) True(value bool, msgAndArgs ...interface{}) {
 // False asserts that the specified value is false and takes a screenshot on failure
 func (pr *PlaywrightRequire) False(value bool, msgAndArgs ...interface{}) {
 	if value {
-		pr.helper.captureScreenshot(pr.helper.name)
+		screenshotPath := pr.helper.captureScreenshot(pr.helper.name)
+		msg := fmt.Sprintf("Expected value to be false but got true in test '%s'", pr.helper.name)
+		if len(msgAndArgs) > 0 {
+			msg = fmt.Sprint(msgAndArgs...)
+		}
+		pr.helper.HandleError(screenshotPath, msg)
 	} else {
 		pr.helper.HandleSuccess()
 	}
@@ -132,7 +141,12 @@ func (pr *PlaywrightRequire) False(value bool, msgAndArgs ...interface{}) {
 // Equal asserts that two objects are equal and takes a screenshot on failure
 func (pr *PlaywrightRequire) Equal(expected, actual interface{}, msgAndArgs ...interface{}) {
 	if expected != actual {
-		pr.helper.captureScreenshot(pr.helper.name)
+		screenshotPath := pr.helper.captureScreenshot(pr.helper.name)
+		msg := fmt.Sprintf("Expected values to be equal in test '%s':\nexpected: %v\nactual: %v", pr.helper.name, expected, actual)
+		if len(msgAndArgs) > 0 {
+			msg = fmt.Sprint(msgAndArgs...)
+		}
+		pr.helper.HandleError(screenshotPath, msg)
 	} else {
 		pr.helper.HandleSuccess()
 	}
@@ -142,7 +156,12 @@ func (pr *PlaywrightRequire) Equal(expected, actual interface{}, msgAndArgs ...i
 // NoError asserts that a function returned no error and takes a screenshot on failure
 func (pr *PlaywrightRequire) NoError(err error, msgAndArgs ...interface{}) {
 	if err != nil {
-		pr.helper.captureScreenshot(pr.helper.name)
+		screenshotPath := pr.helper.captureScreenshot(pr.helper.name)
+		msg := fmt.Sprintf("Expected no error but got error in test '%s': %v", pr.helper.name, err)
+		if len(msgAndArgs) > 0 {
+			msg = fmt.Sprint(msgAndArgs...)
+		}
+		pr.helper.HandleError(screenshotPath, msg)
 	} else {
 		pr.helper.HandleSuccess()
 	}
@@ -152,7 +171,12 @@ func (pr *PlaywrightRequire) NoError(err error, msgAndArgs ...interface{}) {
 // Error asserts that a function returned an error and takes a screenshot on failure
 func (pr *PlaywrightRequire) Error(err error, msgAndArgs ...interface{}) {
 	if err == nil {
-		pr.helper.captureScreenshot(pr.helper.name)
+		screenshotPath := pr.helper.captureScreenshot(pr.helper.name)
+		msg := fmt.Sprintf("Expected error but got none in test '%s'", pr.helper.name)
+		if len(msgAndArgs) > 0 {
+			msg = fmt.Sprint(msgAndArgs...)
+		}
+		pr.helper.HandleError(screenshotPath, msg)
 	} else {
 		pr.helper.HandleSuccess()
 	}
