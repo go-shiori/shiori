@@ -136,17 +136,13 @@ func (pr *PlaywrightRequire) True(t *testing.T, value bool, msgAndArgs ...interf
 
 // False asserts that the specified value is false and takes a screenshot on failure
 func (pr *PlaywrightRequire) False(t *testing.T, value bool, msgAndArgs ...interface{}) {
-	if value {
-		screenshotPath := pr.helper.captureScreenshot(t.Name())
-		msg := fmt.Sprintf("Expected value to be false but got true in test '%s'", t.Name())
-		if len(msgAndArgs) > 0 {
-			msg = fmt.Sprint(msgAndArgs...)
+	pr.Assert(t, func() error {
+		if value {
+			return fmt.Errorf("Expected value to be false but got true in test '%s'", t.Name())
 		}
-		pr.helper.HandleError(screenshotPath, msg)
-	} else {
-		pr.helper.HandleSuccess()
-	}
-	pr.Assertions.False(value, msgAndArgs...)
+		pr.Assertions.False(value, msgAndArgs...)
+		return nil
+	})
 }
 
 // Equal asserts that two objects are equal and takes a screenshot on failure
