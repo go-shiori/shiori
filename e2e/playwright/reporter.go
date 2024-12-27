@@ -10,12 +10,10 @@ import (
 )
 
 type AssertionResult struct {
-	Message        string
-	Status         string
-	ScreenshotPath string
-	ScreenshotB64  string
-	Timestamp      time.Time
-	Error          string
+	Message   string
+	Status    string
+	Error     string
+	Screenshot string // Base64 screenshot, only for failures
 }
 
 type TestResult struct {
@@ -43,10 +41,10 @@ func (r *TestReporter) AddResult(testName string, passed bool, screenshotPath st
 		status = "Failed"
 	}
 
-	var b64Screenshot string
-	if screenshotPath != "" {
+	var screenshot string
+	if !passed && screenshotPath != "" {
 		if data, err := os.ReadFile(screenshotPath); err == nil {
-			b64Screenshot = "data:image/png;base64," + base64.StdEncoding.EncodeToString(data)
+			screenshot = "data:image/png;base64," + base64.StdEncoding.EncodeToString(data)
 		} else {
 			fmt.Printf("Failed to read screenshot %s: %v\n", screenshotPath, err)
 		}
@@ -66,12 +64,10 @@ func (r *TestReporter) AddResult(testName string, passed bool, screenshotPath st
 
 	// Add assertion result
 	testResult.Assertions = append(testResult.Assertions, AssertionResult{
-		Message:        err,
-		Status:         status,
-		ScreenshotPath: screenshotPath,
-		ScreenshotB64:  b64Screenshot,
-		Timestamp:      time.Now(),
-		Error:          err,
+		Message:    err,
+		Status:     status,
+		Error:      err,
+		Screenshot: screenshot,
 	})
 
 	// Update test status if any assertion failed
@@ -89,11 +85,14 @@ func (r *TestReporter) GenerateHTML() error {
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; }
         .test { margin: 20px 0; padding: 15px; border: 1px solid #ddd; }
-        .assertion { margin: 10px 0; padding: 10px; border: 1px solid #eee; }
-        .passed { background-color: #e8f5e9; }
-        .failed { background-color: #ffebee; }
-        img { max-width: 800px; margin-top: 10px; }
-        h4 { margin: 5px 0; }
+        .test.passed { background-color: #e8f5e9; }
+        .test.failed { background-color: #ffebee; }
+        .assertions { margin: 10px 0; }
+        .assertion { padding: 5px 10px; }
+        .assertion.failed { background-color: #fff0f0; margin: 10px 0; border: 1px solid #ffcdd2; }
+        img { max-width: 800px; margin: 10px 0; }
+        .assertion-msg { font-weight: bold; }
+        .error-details { color: #d32f2f; margin: 5px 0; }
     </style>
 </head>
 <body>
@@ -104,19 +103,23 @@ func (r *TestReporter) GenerateHTML() error {
         <p>Status: {{.Status}}</p>
         <p>Time: {{.Timestamp.Format "2006-01-02 15:04:05"}}</p>
 
-        {{range .Assertions}}
-        <div class="assertion {{.Status | toLowerCase}}">
-            <h4>{{.Message}}</h4>
-            <p>Status: {{.Status}}</p>
-            <p>Time: {{.Timestamp.Format "2006-01-02 15:04:05"}}</p>
-            {{if .Error}}
-            <p>Error: {{.Error}}</p>
-            {{end}}
-            {{if .ScreenshotB64}}
-            <img src="{{.ScreenshotB64}}" alt="Test Screenshot">
+        <div class="assertions">
+            {{range .Assertions}}
+                {{if eq .Status "Failed"}}
+                    <div class="assertion failed">
+                        <div class="assertion-msg">{{.Message}}</div>
+                        {{if .Error}}
+                            <div class="error-details">{{.Error}}</div>
+                        {{end}}
+                        {{if .Screenshot}}
+                            <img src="{{.Screenshot}}" alt="Failure Screenshot">
+                        {{end}}
+                    </div>
+                {{else}}
+                    <div class="assertion">✓ {{.Message}}</div>
+                {{end}}
             {{end}}
         </div>
-        {{end}}
     </div>
     {{end}}
 </body>
