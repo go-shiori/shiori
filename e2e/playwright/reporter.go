@@ -44,7 +44,7 @@ func (r *TestReporter) AddResult(testName string, passed bool, screenshotPath st
 	var screenshot string
 	if !passed && screenshotPath != "" {
 		if data, err := os.ReadFile(screenshotPath); err == nil {
-			screenshot = template.HTMLEscapeString("data:image/png;base64," + base64.StdEncoding.EncodeToString(data))
+			screenshot = "data:image/png;base64," + base64.StdEncoding.EncodeToString(data)
 		} else {
 			fmt.Printf("Failed to read screenshot %s: %v\n", screenshotPath, err)
 		}
@@ -107,7 +107,7 @@ func (r *TestReporter) GenerateHTML() error {
                     <p>{{if eq .Status "Passed"}}✓ {{end}}{{.Message}}</p>
                     <p class="error-details">{{.Error}}</p>
                     {{if .Screenshot}}
-                        <p><img src="{{.Screenshot | safeHTML}}" alt="Failure Screenshot"></p>
+                        <p><img src="{{.Screenshot}}" alt="Failure Screenshot"></p>
                     {{end}}
                 </li>
             {{end}}
