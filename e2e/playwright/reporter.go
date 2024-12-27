@@ -37,7 +37,7 @@ func GetReporter() *TestReporter {
 	return globalReporter
 }
 
-func (r *TestReporter) AddResult(testName string, assertionMsg string, passed bool, screenshotPath string, err string) {
+func (r *TestReporter) AddResult(testName string, passed bool, screenshotPath string, err string) {
 	status := "Passed"
 	if !passed {
 		status = "Failed"
@@ -66,7 +66,7 @@ func (r *TestReporter) AddResult(testName string, assertionMsg string, passed bo
 
 	// Add assertion result
 	testResult.Assertions = append(testResult.Assertions, AssertionResult{
-		Message:        assertionMsg,
+		Message:        err,
 		Status:         status,
 		ScreenshotPath: screenshotPath,
 		ScreenshotB64:  b64Screenshot,
@@ -103,7 +103,7 @@ func (r *TestReporter) GenerateHTML() error {
         <h3>{{.Name}}</h3>
         <p>Status: {{.Status}}</p>
         <p>Time: {{.Timestamp.Format "2006-01-02 15:04:05"}}</p>
-        
+
         {{range .Assertions}}
         <div class="assertion {{.Status | toLowerCase}}">
             <h4>{{.Message}}</h4>
