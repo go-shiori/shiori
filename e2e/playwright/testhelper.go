@@ -14,12 +14,11 @@ import (
 
 // TestHelper wraps common test functionality
 type TestHelper struct {
-	name        string
-	page        playwright.Page
-	browser     playwright.Browser
-	context     playwright.BrowserContext
-	t           require.TestingT
-	runningInCI bool
+	name    string
+	page    playwright.Page
+	browser playwright.Browser
+	context playwright.BrowserContext
+	t       require.TestingT
 }
 
 // NewTestHelper creates a new test helper instance
@@ -47,12 +46,11 @@ func NewTestHelper(t require.TestingT, name string) (*TestHelper, error) {
 	}
 
 	return &TestHelper{
-		name:        name,
-		page:        page,
-		browser:     browser,
-		context:     context,
-		t:           t,
-		runningInCI: os.Getenv("GITHUB_STEP_SUMMARY") != "",
+		name:    name,
+		page:    page,
+		browser: browser,
+		context: context,
+		t:       t,
 	}, nil
 }
 
