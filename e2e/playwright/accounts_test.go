@@ -160,7 +160,7 @@ func TestE2EAccounts(t *testing.T) {
 
 	t.Run("005 check user account created successfully", func(t *testing.T) {
 		th, err := NewTestHelper(t, t.Name())
-		require.NoError(t, err)
+		require.NoError(t, err, "Failed to create test helper")
 
 		defer th.Close()
 
@@ -174,12 +174,12 @@ func TestE2EAccounts(t *testing.T) {
 		buttonLocator := th.page.Locator(".button")
 
 		// Wait for and fill the login form
-		th.Require().NoError(usernameLocator.WaitFor())
-		th.Require().NoError(usernameLocator.Fill("user1"))
-		th.Require().NoError(passwordLocator.Fill("user1"))
+		th.Require().NoError(usernameLocator.WaitFor(), "Username field not found")
+		th.Require().NoError(usernameLocator.Fill("user1"), "Failed to fill username")
+		th.Require().NoError(passwordLocator.Fill("user1"), "Failed to fill password")
 
 		// Click login and wait for success
-		th.Require().NoError(buttonLocator.Click())
+		th.Require().NoError(buttonLocator.Click(), "Failed to click login button")
 		th.Require().NoError(th.page.Locator("#bookmarks-grid").WaitFor(playwright.LocatorWaitForOptions{
 			State:   playwright.WaitForSelectorStateVisible,
 			Timeout: playwright.Float(1000),
@@ -294,7 +294,7 @@ func TestE2EAccounts(t *testing.T) {
 
 		t.Run("0071 login with new password", func(t *testing.T) {
 			th, err := NewTestHelper(t, t.Name())
-			require.NoError(t, err)
+			require.NoError(t, err, "Failed to create test helper")
 			defer th.Close()
 
 			// Go to login page
@@ -320,9 +320,10 @@ func TestE2EAccounts(t *testing.T) {
 		mainTestHelper.page.Locator(`a[title="Logout"]`).Click()
 
 		// Wait for login page
-		mainTestHelper.page.Locator("#login-scene").WaitFor(playwright.LocatorWaitForOptions{
+		err := mainTestHelper.page.Locator("#login-scene").WaitFor(playwright.LocatorWaitForOptions{
 			State:   playwright.WaitForSelectorStateVisible,
 			Timeout: playwright.Float(1000),
 		})
+		mainTestHelper.Require().NoError(err, "Failed to wait for login page")
 	})
 }
