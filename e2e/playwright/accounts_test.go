@@ -187,7 +187,7 @@ func TestE2EAccounts(t *testing.T) {
 
 		// Navigate to settings
 		th.page.Locator(`[title="Settings"]`).Click()
-		th.Require().NoError(th.page.Locator(".setting-container").WaitFor(playwright.LocatorWaitForOptions{
+		th.Require().NoError(t, th.page.Locator(".setting-container").WaitFor(playwright.LocatorWaitForOptions{
 			State:   playwright.WaitForSelectorStateVisible,
 			Timeout: playwright.Float(1000),
 		}))
@@ -305,10 +305,10 @@ func TestE2EAccounts(t *testing.T) {
 				State:   playwright.WaitForSelectorStateVisible,
 				Timeout: playwright.Float(1000),
 			})
-			th.Require().NoError(th.page.Locator("#username").Fill("admin2"), "Failed to fill username")
-			th.Require().NoError(th.page.Locator("#password").Fill("admin3"), "Failed to fill password")
-			th.Require().NoError(th.page.Locator(".button").Click(), "Failed to click login button")
-			th.Require().NoError(th.page.Locator("#bookmarks-grid").WaitFor(playwright.LocatorWaitForOptions{
+			th.Require().NoError(t, th.page.Locator("#username").Fill("admin2"), "Failed to fill username")
+			th.Require().NoError(t, th.page.Locator("#password").Fill("admin3"), "Failed to fill password")
+			th.Require().NoError(t, th.page.Locator(".button").Click(), "Failed to click login button")
+			th.Require().NoError(t, th.page.Locator("#bookmarks-grid").WaitFor(playwright.LocatorWaitForOptions{
 				State:   playwright.WaitForSelectorStateVisible,
 				Timeout: playwright.Float(1000),
 			}))
