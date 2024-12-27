@@ -35,7 +35,7 @@ func GetReporter() *TestReporter {
 	return globalReporter
 }
 
-func (r *TestReporter) AddResult(testName string, passed bool, screenshotPath string, message string) {
+func (r *TestReporter) AddResult(testName string, passed bool, screenshotPath string, message, error string) {
 	status := "Passed"
 	if !passed {
 		status = "Failed"
@@ -100,23 +100,18 @@ func (r *TestReporter) GenerateHTML() error {
     <div class="test {{.Status | toLowerCase}}">
         <h3>{{.Name}}</h3>
         <p><b>Status:</b> {{.Status}}</p>
-		<p>Timestamp: {{.Timestamp}}</p>
-
 		{{if eq .Status "Failed"}}
-        <div class="assertions">
+        <ul class="assertions">
             {{range .Assertions}}
-                {{if eq .Status "Failed"}}
-                    <div class="assertion failed">
-                        <div class="assertion-msg">{{.Message}}</div>
-                        {{if .Screenshot}}
-                            <img src="{{.Screenshot}}" alt="Failure Screenshot">
-                        {{end}}
-                    </div>
-                {{else}}
-                    <div class="assertion">✓ {{.Message}}</div>
-                {{end}}
+                <li class="assertion {{.Status | toLowerCase}}">
+                    <p>{{if eq .Status "Passed"}}✓ {{end}}{{.Message}}</p>
+                    <p class="error-details">{{.Error}}</p>
+                    {{if .Screenshot}}
+                        <p><img src="{{.Screenshot}}" alt="Failure Screenshot"></p>
+                    {{end}}
+                </li>
             {{end}}
-        </div>
+        </ul>
   		{{end}}
     </div>
     {{end}}
