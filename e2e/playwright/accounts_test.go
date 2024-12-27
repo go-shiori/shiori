@@ -115,8 +115,8 @@ func TestE2EAccounts(t *testing.T) {
 
 		// Check if new account is created
 		accountsCount, err := mainTestHelper.page.Locator(".accounts-list li").Count()
-		mainTestHelper.Require().NoError(err, "Failed to count accounts in list")
-		mainTestHelper.Require().Equal(3, accountsCount, "Expected 3 accounts after creating user account")
+		mainTestHelper.Require().NoError(t, err, "Failed to count accounts in list")
+		mainTestHelper.Require().Equal(t, 3, accountsCount, "Expected 3 accounts after creating user account")
 	})
 
 	t.Run("004 check admin account created successfully", func(t *testing.T) {
@@ -126,7 +126,7 @@ func TestE2EAccounts(t *testing.T) {
 
 		// Navigate to the login page
 		_, err = th.page.Goto(baseURL)
-		th.Require().NoError(err, "Failed to navigate to base URL")
+		th.Require().NoError(t, err, "Failed to navigate to base URL")
 
 		// Get locators for form elements
 		usernameLocator := th.page.Locator("#username")
@@ -134,13 +134,13 @@ func TestE2EAccounts(t *testing.T) {
 		buttonLocator := th.page.Locator(".button")
 
 		// Wait for and fill the login form
-		th.Require().NoError(usernameLocator.WaitFor(), "Username field not found")
-		th.Require().NoError(usernameLocator.Fill("admin2"), "Failed to fill username")
-		th.Require().NoError(passwordLocator.Fill("admin2"), "Failed to fill password")
+		th.Require().NoError(t, usernameLocator.WaitFor(), "Username field not found")
+		th.Require().NoError(t, usernameLocator.Fill("admin2"), "Failed to fill username")
+		th.Require().NoError(t, passwordLocator.Fill("admin2"), "Failed to fill password")
 
 		// Click login and wait for success
-		th.Require().NoError(buttonLocator.Click(), "Failed to click login button")
-		th.Require().NoError(th.page.Locator("#bookmarks-grid").WaitFor(playwright.LocatorWaitForOptions{
+		th.Require().NoError(t, buttonLocator.Click(), "Failed to click login button")
+		th.Require().NoError(t, th.page.Locator("#bookmarks-grid").WaitFor(playwright.LocatorWaitForOptions{
 			State:   playwright.WaitForSelectorStateVisible,
 			Timeout: playwright.Float(1000),
 		}))
@@ -166,7 +166,7 @@ func TestE2EAccounts(t *testing.T) {
 
 		// Navigate to the login page
 		_, err = th.page.Goto(baseURL)
-		th.Require().NoError(err, "Failed to navigate to base URL")
+		th.Require().NoError(t, err, "Failed to navigate to base URL")
 
 		// Get locators for form elements
 		usernameLocator := th.page.Locator("#username")
@@ -174,13 +174,13 @@ func TestE2EAccounts(t *testing.T) {
 		buttonLocator := th.page.Locator(".button")
 
 		// Wait for and fill the login form
-		th.Require().NoError(usernameLocator.WaitFor(), "Username field not found")
-		th.Require().NoError(usernameLocator.Fill("user1"), "Failed to fill username")
-		th.Require().NoError(passwordLocator.Fill("user1"), "Failed to fill password")
+		th.Require().NoError(t, usernameLocator.WaitFor(), "Username field not found")
+		th.Require().NoError(t, usernameLocator.Fill("user1"), "Failed to fill username")
+		th.Require().NoError(t, passwordLocator.Fill("user1"), "Failed to fill password")
 
 		// Click login and wait for success
-		th.Require().NoError(buttonLocator.Click(), "Failed to click login button")
-		th.Require().NoError(th.page.Locator("#bookmarks-grid").WaitFor(playwright.LocatorWaitForOptions{
+		th.Require().NoError(t, buttonLocator.Click(), "Failed to click login button")
+		th.Require().NoError(t, th.page.Locator("#bookmarks-grid").WaitFor(playwright.LocatorWaitForOptions{
 			State:   playwright.WaitForSelectorStateVisible,
 			Timeout: playwright.Float(1000),
 		}))
