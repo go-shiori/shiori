@@ -294,31 +294,47 @@ func TestE2EAccounts(t *testing.T) {
 
 	t.Run("007 change password for admin account", func(t *testing.T) {
 		// Click on "Change password" button
-		mainTestHelper.page.Locator(`li[shiori-username="admin2"] a[title="Change password"]`).Click()
-		mainTestHelper.page.Locator(".custom-dialog").WaitFor(playwright.LocatorWaitForOptions{
-			State:   playwright.WaitForSelectorStateVisible,
-			Timeout: playwright.Float(1000),
-		})
+		mainTestHelper.Require().NoError(t,
+			mainTestHelper.page.Locator(`li[shiori-username="admin2"] a[title="Change password"]`).Click(),
+			"Click change password button")
+		mainTestHelper.Require().NoError(t,
+			mainTestHelper.page.Locator(".custom-dialog").WaitFor(playwright.LocatorWaitForOptions{
+				State:   playwright.WaitForSelectorStateVisible,
+				Timeout: playwright.Float(1000),
+			}),
+			"Wait for password dialog to appear")
 
 		// Fill modal
-		mainTestHelper.page.Locator(`[name="password"]`).Fill("admin3")
-		mainTestHelper.page.Locator(`[name="repeat_password"]`).Fill("admin3")
+		mainTestHelper.Require().NoError(t,
+			mainTestHelper.page.Locator(`[name="password"]`).Fill("admin3"),
+			"Fill new password")
+		mainTestHelper.Require().NoError(t,
+			mainTestHelper.page.Locator(`[name="repeat_password"]`).Fill("admin3"),
+			"Fill repeat password")
 
 		// Click on "Ok" button
-		mainTestHelper.page.Locator(`.custom-dialog-button.main`).Click()
+		mainTestHelper.Require().NoError(t,
+			mainTestHelper.page.Locator(`.custom-dialog-button.main`).Click(),
+			"Click ok button")
 
 		// Wait for modal to disappear
-		mainTestHelper.page.Locator(".custom-dialog").WaitFor(playwright.LocatorWaitForOptions{
-			State:   playwright.WaitForSelectorStateHidden,
-			Timeout: playwright.Float(1000),
-		})
+		mainTestHelper.Require().NoError(t,
+			mainTestHelper.page.Locator(".custom-dialog").WaitFor(playwright.LocatorWaitForOptions{
+				State:   playwright.WaitForSelectorStateHidden,
+				Timeout: playwright.Float(1000),
+			}),
+			"Wait for dialog to close")
 
 		// Refresh account list
-		mainTestHelper.page.Locator(`a[title="Refresh accounts"]`).Click()
-		mainTestHelper.page.Locator(".loading-overlay").WaitFor(playwright.LocatorWaitForOptions{
-			State:   playwright.WaitForSelectorStateHidden,
-			Timeout: playwright.Float(1000),
-		})
+		mainTestHelper.Require().NoError(t,
+			mainTestHelper.page.Locator(`a[title="Refresh accounts"]`).Click(),
+			"Click refresh accounts")
+		mainTestHelper.Require().NoError(t,
+			mainTestHelper.page.Locator(".loading-overlay").WaitFor(playwright.LocatorWaitForOptions{
+				State:   playwright.WaitForSelectorStateHidden,
+				Timeout: playwright.Float(1000),
+			}),
+			"Wait for refresh to complete")
 
 		t.Run("0071 login with new password", func(t *testing.T) {
 			th, err := NewTestHelper(t, t.Name())
