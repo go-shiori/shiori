@@ -22,7 +22,7 @@ func TestE2EAccounts(t *testing.T) {
 	t.Run("001 login as admin", func(t *testing.T) {
 		// Navigate to the login page
 		_, err = mainTestHelper.page.Goto(baseURL)
-		mainTestHelper.Require().NoError(t, err, "Failed to navigate to base URL")
+		mainTestHelper.Require().NoError(t, err, "Navigate to base URL")
 
 		// Get locators for form elements
 		usernameLocator := mainTestHelper.page.Locator("#username")
@@ -30,12 +30,12 @@ func TestE2EAccounts(t *testing.T) {
 		buttonLocator := mainTestHelper.page.Locator(".button")
 
 		// Wait for and fill the login form
-		mainTestHelper.Require().NoError(t, usernameLocator.WaitFor(), "Username field not found")
-		mainTestHelper.Require().NoError(t, usernameLocator.Fill("shiori"), "Failed to fill username")
-		mainTestHelper.Require().NoError(t, passwordLocator.Fill("gopher"), "Failed to fill password")
+		mainTestHelper.Require().NoError(t, usernameLocator.WaitFor(), "Wait for username field")
+		mainTestHelper.Require().NoError(t, usernameLocator.Fill("shiori"), "Fill username field")
+		mainTestHelper.Require().NoError(t, passwordLocator.Fill("gopher"), "Fill password field")
 
 		// Click login and wait for success
-		mainTestHelper.Require().NoError(t, buttonLocator.Click(), "Failed to click login button")
+		mainTestHelper.Require().NoError(t, buttonLocator.Click(), "Click login button")
 		mainTestHelper.Require().NoError(t, mainTestHelper.page.Locator("#bookmarks-grid").WaitFor(playwright.LocatorWaitForOptions{
 			State:   playwright.WaitForSelectorStateVisible,
 			Timeout: playwright.Float(1000),
@@ -80,8 +80,8 @@ func TestE2EAccounts(t *testing.T) {
 
 		// Check if new account is created
 		accountsCount, err := mainTestHelper.page.Locator(".accounts-list li").Count()
-		mainTestHelper.Require().NoError(t, err, "Failed to count accounts in list")
-		mainTestHelper.Require().Equal(t, 2, accountsCount, "Expected 2 accounts after deleting user account")
+		mainTestHelper.Require().NoError(t, err, "Count accounts in list")
+		mainTestHelper.Require().Equal(t, 2, accountsCount, "Verify 2 accounts present after deleting user account")
 	})
 
 	t.Run("003 create new user account", func(t *testing.T) {
@@ -154,8 +154,8 @@ func TestE2EAccounts(t *testing.T) {
 
 		// Check if can see system info (admin only)
 		visible, err := th.page.Locator(`#setting-system-info`).IsVisible()
-		th.Require().NoError(t, err, "Failed to check visibility of system info section")
-		th.Require().True(t, visible, "System info section should be visible for admin user")
+		th.Require().NoError(t, err, "Check visibility of system info section")
+		th.Require().True(t, visible, "Verify system info section visibility for admin user")
 	})
 
 	t.Run("005 check user account created successfully", func(t *testing.T) {
@@ -228,8 +228,8 @@ func TestE2EAccounts(t *testing.T) {
 		})
 
 		contentText, err := dialogContent.TextContent()
-		th.Require().NoError(t, err, "Failed to get dialog content text")
-		th.Require().Equal(t, "Password has been changed.", contentText, "Password change confirmation message not shown")
+		th.Require().NoError(t, err, "Get dialog content text")
+		th.Require().Equal(t, "Password has been changed.", contentText, "Verify password change confirmation message")
 	})
 
 	t.Run("006 delete user account", func(t *testing.T) {
