@@ -4,17 +4,20 @@ import (
 	"fmt"
 	"html/template"
 	"os"
+	"encoding/base64"
 	"path"
 	"strings"
 	"time"
+	"io/ioutil"
 )
 
 type TestResult struct {
-	Name          string
-	Status        string
+	Name           string
+	Status         string
 	ScreenshotPath string
-	Timestamp     time.Time
-	Error         string
+	ScreenshotB64  string
+	Timestamp      time.Time
+	Error          string
 }
 
 type TestReporter struct {
@@ -32,13 +35,23 @@ func (r *TestReporter) AddResult(name string, passed bool, screenshotPath string
 	if !passed {
 		status = "Failed"
 	}
+
+	var b64Screenshot string
+	if screenshotPath != "" {
+		if data, err := ioutil.ReadFile(screenshotPath); err == nil {
+			b64Screenshot = "data:image/png;base64," + base64.StdEncoding.EncodeToString(data)
+		} else {
+			fmt.Printf("Failed to read screenshot %s: %v\n", screenshotPath, err)
+		}
+	}
 	
 	r.Results = append(r.Results, TestResult{
-		Name:          name,
-		Status:        status,
+		Name:           name,
+		Status:         status,
 		ScreenshotPath: screenshotPath,
-		Timestamp:     time.Now(),
-		Error:         err,
+		ScreenshotB64:  b64Screenshot,
+		Timestamp:      time.Now(),
+		Error:          err,
 	})
 }
 
@@ -66,8 +79,8 @@ func (r *TestReporter) GenerateHTML() error {
         {{if .Error}}
         <p>Error: {{.Error}}</p>
         {{end}}
-        {{if .ScreenshotPath}}
-        <img src="{{.ScreenshotPath}}" alt="Test Screenshot">
+        {{if .ScreenshotB64}}
+        <img src="{{.ScreenshotB64}}" alt="Test Screenshot">
         {{end}}
     </div>
     {{end}}
