@@ -22,7 +22,7 @@ func TestE2EAccounts(t *testing.T) {
 	t.Run("001 login as admin", func(t *testing.T) {
 		// Navigate to the login page
 		_, err = mainTestHelper.page.Goto(baseURL)
-		mainTestHelper.Require().NoError(err, "Failed to navigate to base URL")
+		mainTestHelper.Require().NoError(t, err, "Failed to navigate to base URL")
 
 		// Get locators for form elements
 		usernameLocator := mainTestHelper.page.Locator("#username")
@@ -121,7 +121,7 @@ func TestE2EAccounts(t *testing.T) {
 
 	t.Run("004 check admin account created successfully", func(t *testing.T) {
 		th, err := NewTestHelper(t, t.Name())
-		require.NoError(t, err, "Failed to create test helper")
+		require.NoError(t, t, err, "Failed to create test helper")
 		defer th.Close()
 
 		// Navigate to the login page

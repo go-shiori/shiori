@@ -109,10 +109,10 @@ func (th *TestHelper) captureScreenshot(testName string) string {
 }
 
 // True asserts that the specified value is true and takes a screenshot on failure
-func (pr *PlaywrightRequire) True(value bool, msgAndArgs ...interface{}) {
+func (pr *PlaywrightRequire) True(t *testing.T, value bool, msgAndArgs ...interface{}) {
 	if !value {
-		screenshotPath := pr.helper.captureScreenshot(pr.helper.name)
-		msg := fmt.Sprintf("Expected value to be true but got false in test '%s'", pr.helper.name)
+		screenshotPath := pr.helper.captureScreenshot(t.Name())
+		msg := fmt.Sprintf("Expected value to be true but got false in test '%s'", t.Name())
 		if len(msgAndArgs) > 0 {
 			msg = fmt.Sprint(msgAndArgs...)
 		}
@@ -124,10 +124,10 @@ func (pr *PlaywrightRequire) True(value bool, msgAndArgs ...interface{}) {
 }
 
 // False asserts that the specified value is false and takes a screenshot on failure
-func (pr *PlaywrightRequire) False(value bool, msgAndArgs ...interface{}) {
+func (pr *PlaywrightRequire) False(t *testing.T, value bool, msgAndArgs ...interface{}) {
 	if value {
-		screenshotPath := pr.helper.captureScreenshot(pr.helper.name)
-		msg := fmt.Sprintf("Expected value to be false but got true in test '%s'", pr.helper.name)
+		screenshotPath := pr.helper.captureScreenshot(t.Name())
+		msg := fmt.Sprintf("Expected value to be false but got true in test '%s'", t.Name())
 		if len(msgAndArgs) > 0 {
 			msg = fmt.Sprint(msgAndArgs...)
 		}
@@ -139,10 +139,10 @@ func (pr *PlaywrightRequire) False(value bool, msgAndArgs ...interface{}) {
 }
 
 // Equal asserts that two objects are equal and takes a screenshot on failure
-func (pr *PlaywrightRequire) Equal(expected, actual interface{}, msgAndArgs ...interface{}) {
+func (pr *PlaywrightRequire) Equal(t *testing.T, expected, actual interface{}, msgAndArgs ...interface{}) {
 	if expected != actual {
-		screenshotPath := pr.helper.captureScreenshot(pr.helper.name)
-		msg := fmt.Sprintf("Expected values to be equal in test '%s':\nexpected: %v\nactual: %v", pr.helper.name, expected, actual)
+		screenshotPath := pr.helper.captureScreenshot(t.Name())
+		msg := fmt.Sprintf("Expected values to be equal in test '%s':\nexpected: %v\nactual: %v", t.Name(), expected, actual)
 		if len(msgAndArgs) > 0 {
 			msg = fmt.Sprint(msgAndArgs...)
 		}
@@ -154,10 +154,10 @@ func (pr *PlaywrightRequire) Equal(expected, actual interface{}, msgAndArgs ...i
 }
 
 // NoError asserts that a function returned no error and takes a screenshot on failure
-func (pr *PlaywrightRequire) NoError(err error, msgAndArgs ...interface{}) {
+func (pr *PlaywrightRequire) NoError(t *testing.T, err error, msgAndArgs ...interface{}) {
 	if err != nil {
-		screenshotPath := pr.helper.captureScreenshot(pr.helper.name)
-		msg := fmt.Sprintf("Expected no error but got error in test '%s': %v", pr.helper.name, err)
+		screenshotPath := pr.helper.captureScreenshot(t.Name())
+		msg := fmt.Sprintf("Expected no error but got error in test '%s': %v", t.Name(), err)
 		if len(msgAndArgs) > 0 {
 			msg = fmt.Sprint(msgAndArgs...)
 		}
@@ -169,10 +169,10 @@ func (pr *PlaywrightRequire) NoError(err error, msgAndArgs ...interface{}) {
 }
 
 // Error asserts that a function returned an error and takes a screenshot on failure
-func (pr *PlaywrightRequire) Error(err error, msgAndArgs ...interface{}) {
+func (pr *PlaywrightRequire) Error(t *testing.T, err error, msgAndArgs ...interface{}) {
 	if err == nil {
-		screenshotPath := pr.helper.captureScreenshot(pr.helper.name)
-		msg := fmt.Sprintf("Expected error but got none in test '%s'", pr.helper.name)
+		screenshotPath := pr.helper.captureScreenshot(t.Name())
+		msg := fmt.Sprintf("Expected error but got none in test '%s'", t.Name())
 		if len(msgAndArgs) > 0 {
 			msg = fmt.Sprint(msgAndArgs...)
 		}
