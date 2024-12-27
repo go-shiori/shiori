@@ -147,17 +147,13 @@ func (pr *PlaywrightRequire) False(t *testing.T, value bool, msgAndArgs ...inter
 
 // Equal asserts that two objects are equal and takes a screenshot on failure
 func (pr *PlaywrightRequire) Equal(t *testing.T, expected, actual interface{}, msgAndArgs ...interface{}) {
-	if expected != actual {
-		screenshotPath := pr.helper.captureScreenshot(t.Name())
-		msg := fmt.Sprintf("Expected values to be equal in test '%s':\nexpected: %v\nactual: %v", t.Name(), expected, actual)
-		if len(msgAndArgs) > 0 {
-			msg = fmt.Sprint(msgAndArgs...)
+	pr.Assert(t, func() error {
+		if expected != actual {
+			return fmt.Errorf("Expected values to be equal in test '%s':\nexpected: %v\nactual: %v", t.Name(), expected, actual)
 		}
-		pr.helper.HandleError(screenshotPath, msg)
-	} else {
-		pr.helper.HandleSuccess()
-	}
-	pr.Assertions.Equal(expected, actual, msgAndArgs...)
+		pr.Assertions.Equal(expected, actual, msgAndArgs...)
+		return nil
+	})
 }
 
 // NoError asserts that a function returned no error and takes a screenshot on failure
