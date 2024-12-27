@@ -116,7 +116,11 @@ func (pr *PlaywrightRequire) Assert(t *testing.T, assertFn func() error, msgAndA
 	err := assertFn()
 	var msg string
 	if len(msgAndArgs) > 0 {
-		msg = fmt.Sprintf("%s", msgAndArgs[0])
+		if format, ok := msgAndArgs[0].(string); ok && len(msgAndArgs) > 1 {
+			msg = fmt.Sprintf(format, msgAndArgs[1:]...)
+		} else {
+			msg = fmt.Sprint(msgAndArgs...)
+		}
 	}
 	if err == nil {
 		pr.helper.HandleSuccess(t, msg)
