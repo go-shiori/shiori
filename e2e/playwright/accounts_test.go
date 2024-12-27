@@ -306,7 +306,7 @@ func TestE2EAccounts(t *testing.T) {
 
 		// Fill modal
 		mainTestHelper.Require().NoError(t,
-			mainTestHelper.page.Locator(`[name="password"]`).Fill("admin3"),
+			mainTestHelper.page.Locator(`[name="new_password"]`).Fill("admin3"),
 			"Fill new password")
 		mainTestHelper.Require().NoError(t,
 			mainTestHelper.page.Locator(`[name="repeat_password"]`).Fill("admin3"),
@@ -317,11 +317,29 @@ func TestE2EAccounts(t *testing.T) {
 			mainTestHelper.page.Locator(`.custom-dialog-button.main`).Click(),
 			"Click ok button")
 
+		// Wait for modal to display text: "Password has been changed."
+		dialogContent := mainTestHelper.page.Locator(".custom-dialog-content")
+		mainTestHelper.Require().NoError(t,
+			dialogContent.WaitFor(playwright.LocatorWaitForOptions{
+				State:   playwright.WaitForSelectorStateVisible,
+				Timeout: playwright.Float(1000),
+			}),
+			"Wait for dialog content to show up")
+
+		contentText, err := dialogContent.TextContent()
+		mainTestHelper.Require().NoError(t, err, "Get dialog content text")
+		mainTestHelper.Require().Equal(t, "Password has been changed.", contentText, "Verify password change confirmation message")
+
+		// Click on "Ok" button
+		mainTestHelper.Require().NoError(t,
+			mainTestHelper.page.Locator(`.custom-dialog-button.main`).Click(),
+			"Click ok button")
+
 		// Wait for modal to disappear
 		mainTestHelper.Require().NoError(t,
 			mainTestHelper.page.Locator(".custom-dialog").WaitFor(playwright.LocatorWaitForOptions{
 				State:   playwright.WaitForSelectorStateHidden,
-				Timeout: playwright.Float(1000),
+				Timeout: playwright.Float(2000),
 			}),
 			"Wait for dialog to close")
 
@@ -341,14 +359,17 @@ func TestE2EAccounts(t *testing.T) {
 			require.NoError(t, err, "Failed to create test helper")
 			defer th.Close()
 
-			// Go to login page
-			th.page.Goto(baseURL)
+			// Navigate to the login page
+			_, err = th.page.Goto(baseURL)
+			th.Require().NoError(t, err, "Navigate to base URL")
 
 			// Wait for login page
-			th.page.Locator("#username").WaitFor(playwright.LocatorWaitForOptions{
-				State:   playwright.WaitForSelectorStateVisible,
-				Timeout: playwright.Float(1000),
-			})
+			th.Require().NoError(t,
+				th.page.Locator("#username").WaitFor(playwright.LocatorWaitForOptions{
+					State:   playwright.WaitForSelectorStateVisible,
+					Timeout: playwright.Float(1000),
+				}),
+				"Wait for login page")
 			th.Require().NoError(t, th.page.Locator("#username").Fill("admin2"), "Fill username field")
 			th.Require().NoError(t, th.page.Locator("#password").Fill("admin3"), "Fill password field")
 			th.Require().NoError(t, th.page.Locator(".button").Click(), "Click login button")
@@ -363,8 +384,26 @@ func TestE2EAccounts(t *testing.T) {
 		// Click on "Logout" button
 		mainTestHelper.Require().NoError(t, mainTestHelper.page.Locator(`a[title="Logout"]`).Click(), "Click on logout button")
 
+		// Wait for modal to display text
+		dialogContent := mainTestHelper.page.Locator(".custom-dialog-content")
+		mainTestHelper.Require().NoError(t,
+			dialogContent.WaitFor(playwright.LocatorWaitForOptions{
+				State:   playwright.WaitForSelectorStateVisible,
+				Timeout: playwright.Float(1000),
+			}),
+			"Wait for dialog content to show up")
+
+		contentText, err := dialogContent.TextContent()
+		mainTestHelper.Require().NoError(t, err, "Get dialog content text")
+		mainTestHelper.Require().Equal(t, "Are you sure you want to log out ?", contentText, "Verify logout confirmation message")
+
+		// Click on "Yes" button
+		mainTestHelper.Require().NoError(t,
+			mainTestHelper.page.Locator(`.custom-dialog-button.main`).Click(),
+			"Click Yes button")
+
 		// Wait for login page
-		err := mainTestHelper.page.Locator("#login-scene").WaitFor(playwright.LocatorWaitForOptions{
+		err = mainTestHelper.page.Locator("#login-scene").WaitFor(playwright.LocatorWaitForOptions{
 			State:   playwright.WaitForSelectorStateVisible,
 			Timeout: playwright.Float(1000),
 		})

@@ -4,7 +4,9 @@ import (
 	"encoding/base64"
 	"fmt"
 	"html/template"
+	"io"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -43,10 +45,17 @@ func (r *TestReporter) AddResult(testName string, passed bool, screenshotPath st
 
 	var screenshot string
 	if !passed && screenshotPath != "" {
-		if data, err := os.ReadFile(screenshotPath); err == nil {
-			screenshot = "data:image/png;base64," + base64.StdEncoding.EncodeToString(data)
+		imageFile, err := os.Open(screenshotPath)
+		if err == nil {
+			defer imageFile.Close()
+			if data, err := io.ReadAll(imageFile); err == nil {
+				screenshot = "data:image/png;base64," + base64.StdEncoding.EncodeToString(data)
+				fmt.Printf("Screenshot saved: %v\n", base64.StdEncoding.EncodeToString(data))
+			} else {
+				fmt.Printf("Failed to read screenshot %s: %v\n", screenshotPath, err)
+			}
 		} else {
-			fmt.Printf("Failed to read screenshot %s: %v\n", screenshotPath, err)
+			fmt.Printf("Failed to open screenshot %s: %v\n", screenshotPath, err)
 		}
 	}
 
@@ -65,6 +74,7 @@ func (r *TestReporter) AddResult(testName string, passed bool, screenshotPath st
 	// Add assertion result
 	testResult.Assertions = append(testResult.Assertions, AssertionResult{
 		Message:    message,
+		Error:      error,
 		Status:     status,
 		Screenshot: screenshot,
 	})
@@ -87,8 +97,7 @@ func (r *TestReporter) GenerateHTML() error {
         .test.passed { background-color: #e8f5e9; }
         .test.failed { background-color: #ffebee; }
         .assertions { margin: 10px 0; }
-        .assertion { padding: 5px 10px; }
-        .assertion.failed { background-color: #fff0f0; margin: 10px 0; border: 1px solid #ffcdd2; }
+        .assertion.failed { font-weight: bold; }
         img { max-width: 800px; margin: 10px 0; }
         .assertion-msg { font-weight: bold; }
         .error-details { color: #d32f2f; margin: 5px 0; }
@@ -106,9 +115,7 @@ func (r *TestReporter) GenerateHTML() error {
                 <li class="assertion {{.Status | toLowerCase}}">
                     <p>{{if eq .Status "Passed"}}✓ {{end}}{{.Message}}</p>
                     <p class="error-details">{{.Error}}</p>
-                    {{if .Screenshot}}
-                        <p><img src="{{.Screenshot}}" alt="Failure Screenshot"></p>
-                    {{end}}
+                    {{if .Screenshot}}<p><img src="{{.Screenshot | safeURL}}" alt="Failure screenshot"></p>{{end}}
                 </li>
             {{end}}
         </ul>
@@ -122,6 +129,9 @@ func (r *TestReporter) GenerateHTML() error {
 	t = t.Funcs(template.FuncMap{
 		"toLowerCase": strings.ToLower,
 		"safeHTML":    func(s string) template.HTML { return template.HTML(s) },
+		"safeURL": func(s string) template.URL {
+			return template.URL(s)
+		},
 	})
 
 	t, err := t.Parse(tmpl)
@@ -133,7 +143,12 @@ func (r *TestReporter) GenerateHTML() error {
 		return fmt.Errorf("failed to create results directory: %v", err)
 	}
 
-	f, err := os.Create("test-results/report.html")
+	basePath := os.Getenv("CONTEXT_PATH")
+	if basePath == "" {
+		basePath = "."
+	}
+
+	f, err := os.Create(filepath.Join(basePath, "e2e-report.html"))
 	if err != nil {
 		return fmt.Errorf("failed to create report file: %v", err)
 	}
