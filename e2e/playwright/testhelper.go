@@ -64,9 +64,9 @@ func (th *TestHelper) Require() *PlaywrightRequire {
 	}
 }
 
-func (th *TestHelper) HandleError(t *testing.T, screenshotPath string, msgAndArgs ...interface{}) {
-	errMsg := fmt.Sprint(msgAndArgs...)
-	GetReporter().AddResult(t.Name(), false, screenshotPath, errMsg)
+func (th *TestHelper) HandleError(t *testing.T, screenshotPath string, msg string) {
+	GetReporter().AddResult(t.Name(), false, screenshotPath, msg)
+	t.Error(msg) // Also log the error to the test output
 }
 
 func (th *TestHelper) HandleSuccess(t *testing.T, message string) {
@@ -118,13 +118,13 @@ func (pr *PlaywrightRequire) Assert(t *testing.T, assertFn func() error, msgAndA
 	err := assertFn()
 	var msg string
 	if len(msgAndArgs) > 0 {
-		msg = fmt.Sprintf("%s", msgAndArgs...)
+		msg = fmt.Sprintf("%s", msgAndArgs[0])
 	}
 	if err == nil {
 		pr.helper.HandleSuccess(t, msg)
 	} else {
 		screenshotPath := pr.helper.captureScreenshot(t.Name())
-		pr.helper.HandleError(t, screenshotPath, msg)
+		pr.helper.HandleError(t, screenshotPath, fmt.Sprintf("%s: %v", msg, err))
 	}
 }
 
