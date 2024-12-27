@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"testing"
 	"time"
 
 	"github.com/playwright-community/playwright-go"
@@ -62,13 +63,13 @@ func (th *TestHelper) Require() *PlaywrightRequire {
 	}
 }
 
-func (th *TestHelper) HandleError(screenshotPath string, msgAndArgs ...interface{}) {
+func (th *TestHelper) HandleError(t *testing.T, screenshotPath string, msgAndArgs ...interface{}) {
 	errMsg := fmt.Sprint(msgAndArgs...)
-	GetReporter().AddResult(th.name, false, screenshotPath, errMsg)
+	GetReporter().AddResult(t.Name(), false, screenshotPath, errMsg)
 }
 
-func (th *TestHelper) HandleSuccess() {
-	GetReporter().AddResult(th.name, true, "", "")
+func (th *TestHelper) HandleSuccess(t *testing.T) {
+	GetReporter().AddResult(t.Name(), true, "", "")
 }
 
 // PlaywrightRequire wraps require.Assertions to add screenshot capability
@@ -108,19 +109,29 @@ func (th *TestHelper) captureScreenshot(testName string) string {
 	return filename
 }
 
+func (pr *PlaywrightRequire) Assert(t *testing.T, assertFn func() error, msgAndArgs ...interface{}) {
+	err := assertFn()
+	var msg string
+	if len(msgAndArgs) > 0 {
+		msg = fmt.Sprint(msgAndArgs...)
+	}
+	if err != nil {
+		pr.helper.HandleSuccess(t)
+	} else {
+		screenshotPath := pr.helper.captureScreenshot(t.Name())
+		pr.helper.HandleError(t, screenshotPath, msg)
+	}
+}
+
 // True asserts that the specified value is true and takes a screenshot on failure
 func (pr *PlaywrightRequire) True(t *testing.T, value bool, msgAndArgs ...interface{}) {
-	if !value {
-		screenshotPath := pr.helper.captureScreenshot(t.Name())
-		msg := fmt.Sprintf("Expected value to be true but got false in test '%s'", t.Name())
-		if len(msgAndArgs) > 0 {
-			msg = fmt.Sprint(msgAndArgs...)
+	pr.Assert(t, func() error {
+		if !value {
+			return fmt.Errorf("Expected value to be true but got false in test '%s'", t.Name())
 		}
-		pr.helper.HandleError(screenshotPath, msg)
-	} else {
-		pr.helper.HandleSuccess()
-	}
-	pr.Assertions.True(value, msgAndArgs...)
+		pr.Assertions.True(value, msgAndArgs...)
+		return nil
+	})
 }
 
 // False asserts that the specified value is false and takes a screenshot on failure
