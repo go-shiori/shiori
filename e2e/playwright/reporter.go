@@ -37,7 +37,7 @@ func GetReporter() *TestReporter {
 	return globalReporter
 }
 
-func (r *TestReporter) AddResult(testName string, passed bool, screenshotPath string, message, error string) {
+func (r *TestReporter) AddResult(testName string, passed bool, screenshotPath string, message, errorMessage string) {
 	status := "Passed"
 	if !passed {
 		status = "Failed"
@@ -74,7 +74,7 @@ func (r *TestReporter) AddResult(testName string, passed bool, screenshotPath st
 	// Add assertion result
 	testResult.Assertions = append(testResult.Assertions, AssertionResult{
 		Message:    message,
-		Error:      error,
+		Error:      errorMessage,
 		Status:     status,
 		Screenshot: screenshot,
 	})
