@@ -80,8 +80,8 @@ func TestE2EAccounts(t *testing.T) {
 
 		// Check if new account is created
 		accountsCount, err := mainTestHelper.page.Locator(".accounts-list li").Count()
-		mainTestHelper.Require().NoError(err)
-		mainTestHelper.Require().Equal(2, accountsCount)
+		mainTestHelper.Require().NoError(err, "Failed to count accounts in list")
+		mainTestHelper.Require().Equal(2, accountsCount, "Expected 2 accounts after deleting user account")
 	})
 
 	t.Run("003 create new user account", func(t *testing.T) {
@@ -115,13 +115,13 @@ func TestE2EAccounts(t *testing.T) {
 
 		// Check if new account is created
 		accountsCount, err := mainTestHelper.page.Locator(".accounts-list li").Count()
-		mainTestHelper.Require().NoError(err)
-		mainTestHelper.Require().Equal(3, accountsCount)
+		mainTestHelper.Require().NoError(err, "Failed to count accounts in list")
+		mainTestHelper.Require().Equal(3, accountsCount, "Expected 3 accounts after creating user account")
 	})
 
 	t.Run("004 check admin account created successfully", func(t *testing.T) {
 		th, err := NewTestHelper(t, t.Name())
-		require.NoError(t, err)
+		require.NoError(t, err, "Failed to create test helper")
 		defer th.Close()
 
 		// Navigate to the login page
@@ -154,8 +154,8 @@ func TestE2EAccounts(t *testing.T) {
 
 		// Check if can see system info (admin only)
 		visible, err := th.page.Locator(`#setting-system-info`).IsVisible()
-		th.Require().NoError(err)
-		th.Require().True(visible)
+		th.Require().NoError(err, "Failed to check visibility of system info section")
+		th.Require().True(visible, "System info section should be visible for admin user")
 	})
 
 	t.Run("005 check user account created successfully", func(t *testing.T) {
@@ -194,13 +194,13 @@ func TestE2EAccounts(t *testing.T) {
 
 		// Check if can see system info (admin only)
 		visible, err := th.page.Locator(`#setting-system-info`).IsVisible()
-		th.Require().NoError(err)
-		th.Require().False(visible)
+		th.Require().NoError(err, "Failed to check visibility of system info section")
+		th.Require().False(visible, "System info section should not be visible for regular user")
 
 		// My account settings is visible
 		visible, err = th.page.Locator(`#setting-my-account`).IsVisible()
-		th.Require().NoError(err)
-		th.Require().True(visible)
+		th.Require().NoError(err, "Failed to check visibility of account settings")
+		th.Require().True(visible, "Account settings should be visible for user")
 
 		// Check change password requires current password
 		th.page.Locator(`li[shiori-username="user1"] a[title="Change password"]`).Click()
@@ -209,8 +209,8 @@ func TestE2EAccounts(t *testing.T) {
 			Timeout: playwright.Float(1000),
 		})
 		visible, err = th.page.Locator(`[name="old_password"]`).IsVisible()
-		th.Require().NoError(err)
-		th.Require().True(visible, "Old password field should be visible")
+		th.Require().NoError(err, "Failed to check visibility of old password field")
+		th.Require().True(visible, "Old password field should be visible when changing password")
 
 		// Fill modal
 		th.page.Locator(`[name="old_password"]`).Fill("user1")
@@ -228,8 +228,8 @@ func TestE2EAccounts(t *testing.T) {
 		})
 
 		contentText, err := dialogContent.TextContent()
-		th.Require().NoError(err)
-		th.Require().Equal("Password has been changed.", contentText)
+		th.Require().NoError(err, "Failed to get dialog content text")
+		th.Require().Equal("Password has been changed.", contentText, "Password change confirmation message not shown")
 	})
 
 	t.Run("006 delete user account", func(t *testing.T) {
@@ -258,8 +258,8 @@ func TestE2EAccounts(t *testing.T) {
 
 		// Check if account is deleted
 		accountsCount, err := mainTestHelper.page.Locator(".accounts-list li").Count()
-		mainTestHelper.Require().NoError(err)
-		mainTestHelper.Require().Equal(2, accountsCount)
+		mainTestHelper.Require().NoError(err, "Failed to count accounts in list")
+		mainTestHelper.Require().Equal(2, accountsCount, "Expected 2 accounts after creating admin account")
 
 		time.Sleep(5 * time.Second)
 	})
