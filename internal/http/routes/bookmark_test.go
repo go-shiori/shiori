@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strconv"
 	"testing"
 
@@ -122,7 +123,7 @@ func TestBookmarkContentHandler(t *testing.T) {
 		req, _ := http.NewRequest("GET", path, nil)
 		g.ServeHTTP(w, req)
 		require.Equal(t, http.StatusFound, w.Code)
-		require.Equal(t, "/?dst="+path, w.Header().Get("Location"))
+		require.Equal(t, "/?dst="+url.QueryEscape(path), w.Header().Get("Location"))
 	})
 
 	t.Run("get existing bookmark content", func(t *testing.T) {
