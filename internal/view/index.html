@@ -105,6 +105,8 @@
 								document.cookie = `token=; Path=${new URL(document.baseURI).pathname}; Expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
 								this.isLoggedIn = false;
 								this.loginRequired = true;
+								this.dialog.loading = false;
+								this.dialog.visible = false;
 							}).catch(err => {
 								this.dialog.loading = false;
 								this.getErrorMessage(err).then(msg => {
@@ -155,7 +157,7 @@
 						owner: owner,
 					};
 				},
-				
+
 				onLoginSuccess() {
 					this.loadSetting();
 					this.loadAccount();
@@ -165,7 +167,7 @@
 				async validateSession() {
 					const token = localStorage.getItem("shiori-token");
 					const account = localStorage.getItem("shiori-account");
-					
+
 					if (!(token && account)) {
 						return false;
 					}
@@ -176,11 +178,11 @@
 								"Authorization": `Bearer ${token}`
 							}
 						});
-						
+
 						if (!response.ok) {
 							throw new Error('Invalid session');
 						}
-						
+
 						return true;
 					} catch (err) {
 						// Clear invalid session data
@@ -195,7 +197,7 @@
 				async checkLoginStatus() {
 					const isValid = await this.validateSession();
 					this.isLoggedIn = isValid;
-					
+
 					if (isValid) {
 						this.loadSetting();
 						this.loadAccount();
