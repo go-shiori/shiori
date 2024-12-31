@@ -40,6 +40,7 @@ services:
       - 3306
     networks:
       shiori:
+
 networks:
   shiori:
 
