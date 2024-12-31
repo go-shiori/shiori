@@ -79,6 +79,14 @@ func (c *HttpConfig) SetDefaults(logger *logrus.Logger) {
 	}
 }
 
+func (c *HttpConfig) IsValid() error {
+	if !strings.HasSuffix(c.RootPath, "/") {
+		return fmt.Errorf("root path should end with a slash")
+	}
+
+	return nil
+}
+
 type DatabaseConfig struct {
 	DBMS string `env:"DBMS"` // Deprecated
 	// DBMS requires more environment variables. Check the database package for more information.
@@ -138,6 +146,14 @@ func (c *Config) DebugConfiguration(logger *logrus.Logger) {
 	logger.Debugf(" SHIORI_HTTP_IDLE_TIMEOUT: %s", c.Http.IDLETimeout)
 	logger.Debugf(" SHIORI_HTTP_DISABLE_KEEP_ALIVE: %t", c.Http.DisableKeepAlive)
 	logger.Debugf(" SHIORI_HTTP_DISABLE_PARSE_MULTIPART_FORM: %t", c.Http.DisablePreParseMultipartForm)
+}
+
+func (c *Config) IsValid() error {
+	if err := c.Http.IsValid(); err != nil {
+		return fmt.Errorf("http configuration is invalid: %w", err)
+	}
+
+	return nil
 }
 
 // ParseServerConfiguration parses the configuration from the enabled lookupers

@@ -16,27 +16,27 @@
 
 	<link href="assets/css/style.css" rel="stylesheet">
 
-	<script src="assets/js/vue.min.js"></script>
-	<script src="assets/js/url.min.js"></script>
+	<script src="assets/js/vue.min.js" type="text/javascript"></script>
+	<script src="assets/js/url.min.js" type="text/javascript"></script>
 </head>
 
 <body>
 	<div id="app">
 		<login-view v-if="isLoggedIn === false && loginRequired" @login-success="onLoginSuccess"></login-view>
 		<div id="main-scene" v-else-if="isLoggedIn === true">
-		<div id="main-sidebar">
-			<a v-for="item in sidebarItems" :title="item.title" :class="{active: activePage === item.page}" @click="switchPage(item.page)">
-				<i class="fas fa-fw" :class="item.icon"></i>
-			</a>
-			<div class="spacer"></div>
-			<a title="Logout" @click="logout">
-				<i class="fas fa-fw fa-sign-out-alt"></i>
-			</a>
-		</div>
-		<keep-alive>
-			<component :is="activePage" :active-account="activeAccount" :app-options="appOptions" @setting-changed="saveSetting"></component>
-		</keep-alive>
-		<custom-dialog v-bind="dialog" />
+    		<div id="main-sidebar">
+    			<a v-for="item in sidebarItems" :title="item.title" :class="{active: activePage === item.page}" @click="switchPage(item.page)">
+    				<i class="fas fa-fw" :class="item.icon"></i>
+    			</a>
+    			<div class="spacer"></div>
+    			<a title="Logout" @click="logout">
+    				<i class="fas fa-fw fa-sign-out-alt"></i>
+    			</a>
+    		</div>
+    		<keep-alive>
+    			<component :is="activePage" :active-account="activeAccount" :app-options="appOptions" @setting-changed="saveSetting"></component>
+    		</keep-alive>
+    		<custom-dialog v-bind="dialog"></custom-dialog>
 		</div>
 	</div>
 
