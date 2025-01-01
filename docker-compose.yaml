@@ -22,9 +22,9 @@ services:
       - "mariadb"
     environment:
       SHIORI_DIR: /srv/shiori
-      SHIORI_HTTP_ROOT_PATH: /shiori
-      #SHIORI_DATABASE_URL: mysql://shiori:shiori@(mariadb)/shiori?charset=utf8mb4
-      SHIORI_DATABASE_URL: postgres://shiori:shiori@postgres/shiori?sslmode=disable
+      # SHIORI_HTTP_ROOT_PATH: /shiori/
+      # SHIORI_DATABASE_URL: mysql://shiori:shiori@(mariadb)/shiori?charset=utf8mb4
+      # SHIORI_DATABASE_URL: postgres://shiori:shiori@postgres/shiori?sslmode=disable
 
   nginx:
     image: nginx:alpine
