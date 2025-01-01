@@ -101,3 +101,19 @@ func TestConfigSetDefaults(t *testing.T) {
 	require.NotEmpty(t, cfg.Storage.DataDir)
 	require.NotEmpty(t, cfg.Database.URL)
 }
+
+func TestConfigIsValid(t *testing.T) {
+	log := logrus.New()
+
+	t.Run("valid configuration", func(t *testing.T) {
+		cfg := ParseServerConfiguration(context.TODO(), log)
+		cfg.SetDefaults(log, false)
+		require.NoError(t, cfg.IsValid())
+	})
+
+	t.Run("invalid http root path", func(t *testing.T) {
+		cfg := ParseServerConfiguration(context.TODO(), log)
+		cfg.Http.RootPath = "/invalid"
+		require.Error(t, cfg.IsValid())
+	})
+}
