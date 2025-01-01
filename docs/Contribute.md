@@ -10,16 +10,8 @@
 To run the current development server with the defaults you can run the following command:
 
 ```bash
-make serve
-```
-
-If you want to run the refactored server, you can run the following command:
-
-```bash
 make run-server
 ```
-
-> **ℹ️ Note:** For more information into what the _refactored server_ means, please check this issue: https://github.com/go-shiori/shiori/issues/640
 
 ## Updating the API documentation
 
@@ -94,3 +86,7 @@ mkdocs serve
 This will start a local server at `http://127.0.0.1:8000` where you can preview your changes in real-time.
 
 Documentation for production is generated automatically on every release and published using github pages.
+
+## Running the server with docker
+
+## Running the server using an nginx reverse proxy and a custom webroot
