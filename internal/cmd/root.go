@@ -80,6 +80,10 @@ func initShiori(ctx context.Context, cmd *cobra.Command) (*config.Config, *depen
 
 	cfg.SetDefaults(logger, portableMode)
 
+	if err := cfg.IsValid(); err != nil {
+		logger.WithError(err).Fatal("invalid configuration detected")
+	}
+
 	err := os.MkdirAll(cfg.Storage.DataDir, model.DataDirPerm)
 	if err != nil {
 		logger.WithError(err).Fatal("error creating data directory")

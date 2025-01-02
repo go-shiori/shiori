@@ -47,7 +47,7 @@ var mysqlMigrations = []migration{
 		}
 		defer tx.Rollback()
 
-		_, err = tx.Exec(`ALTER TABLE account ADD COLUMN config JSON  NOT NULL DEFAULT '{}'`)
+		_, err = tx.Exec(`ALTER TABLE account ADD COLUMN config JSON  NOT NULL DEFAULT ('{}')`)
 		if err != nil && strings.Contains(err.Error(), `Duplicate column name`) {
 			tx.Rollback()
 		} else if err != nil {
