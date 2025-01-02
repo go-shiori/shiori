@@ -1,25 +1,39 @@
 # Docker compose for development purposes only.
 # Edit it to fit your current development needs.
-version: "3"
 services:
   shiori:
     build:
       context: .
       dockerfile: Dockerfile.compose
     container_name: shiori
+    command:
+      - "server"
+      - "--log-level"
+      - "debug"
     ports:
       - "8080:8080"
     volumes:
       - "./dev-data:/srv/shiori"
       - ".:/src/shiori"
+      - "go-mod-cache:/go/pkg/mod"
     restart: unless-stopped
     links:
       - "postgres"
       - "mariadb"
     environment:
       SHIORI_DIR: /srv/shiori
-      #SHIORI_DATABASE_URL: mysql://shiori:shiori@(mariadb)/shiori?charset=utf8mb4
-      SHIORI_DATABASE_URL: postgres://shiori:shiori@postgres/shiori?sslmode=disable
+      # SHIORI_HTTP_ROOT_PATH: /shiori/
+      # SHIORI_DATABASE_URL: mysql://shiori:shiori@(mariadb)/shiori?charset=utf8mb4
+      # SHIORI_DATABASE_URL: postgres://shiori:shiori@postgres/shiori?sslmode=disable
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "8081:8081"
+    volumes:
+      - "./testdata/nginx.conf:/etc/nginx/nginx.conf:ro"
+    depends_on:
+      - shiori
 
   postgres:
     image: postgres:15
@@ -38,3 +52,6 @@ services:
       MYSQL_PASSWORD: shiori
     ports:
       - "3306:3306"
+
+volumes:
+  go-mod-cache:

@@ -8,5 +8,6 @@ on:
 jobs:
   delete-tag:
     uses: ./.github/workflows/_delete-registry-tag.yml
+    if: github.event.pull_request.head.repo.fork == false
     with:
       tag_name: pr-${{ github.event.pull_request.number }}
