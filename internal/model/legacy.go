@@ -2,4 +2,4 @@ package model
 
 import "time"
 
-type LegacyLoginHandler func(account Account, expTime time.Duration) (string, error)
+type LegacyLoginHandler func(account *AccountDTO, expTime time.Duration) (string, error)

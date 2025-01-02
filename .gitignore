@@ -11,8 +11,9 @@
 # Exclude development data
 /dev-data*
 
-# Coverage data
+# Tests
 /coverage.*
+e2e-report.html
 
 # Dist files
 dist/

@@ -31,6 +31,12 @@ func WithHeader(name, value string) Option {
 	}
 }
 
+func WithAuthToken(token string) Option {
+	return func(request *http.Request) {
+		request.Header.Add(model.AuthorizationHeader, model.AuthorizationTokenType+" "+token)
+	}
+}
+
 func PerformRequest(handler http.Handler, method, path string, options ...Option) *httptest.ResponseRecorder {
 	recorder := httptest.NewRecorder()
 	return PerformRequestWithRecorder(recorder, handler, method, path, options...)
@@ -52,10 +58,10 @@ func PerformRequestWithRecorder(recorder *httptest.ResponseRecorder, r http.Hand
 // Keep in mind that this users is not saved in database so any tests that use this middleware
 // should not rely on database.
 func FakeUserLoggedInMiddlewware(ctx *gin.Context) {
-	ctx.Set("account", &model.Account{
+	ctx.Set("account", &model.AccountDTO{
 		ID:       1,
 		Username: "user",
-		Owner:    false,
+		Owner:    model.Ptr(false),
 	})
 }
 
@@ -63,10 +69,10 @@ func FakeUserLoggedInMiddlewware(ctx *gin.Context) {
 // Keep in mind that this users is not saved in database so any tests that use this middleware
 // should not rely on database.
 func FakeAdminLoggedInMiddlewware(ctx *gin.Context) {
-	ctx.Set("account", &model.Account{
+	ctx.Set("account", &model.AccountDTO{
 		ID:       1,
-		Username: "admin",
-		Owner:    true,
+		Username: "user",
+		Owner:    model.Ptr(true),
 	})
 }
 

@@ -60,13 +60,13 @@ func NewShioriContainer(t *testing.T, tag string) ShioriContainer {
 	}
 
 	if tag != "" {
-		containerDefinition.ContainerRequest.FromDockerfile = testcontainers.FromDockerfile{}
-		containerDefinition.Image = "gchr.io/go-shiori/shiori:" + tag
+		containerDefinition.ContainerRequest.Image = "ghcr.io/go-shiori/shiori:" + tag
 	} else {
-		containerDefinition.FromDockerfile = testcontainers.FromDockerfile{
-			Context:    "../..",
-			Dockerfile: "Dockerfile.e2e",
-			KeepImage:  true,
+		containerDefinition.ContainerRequest.FromDockerfile = testcontainers.FromDockerfile{
+			PrintBuildLog: false,
+			Context:       "../..",
+			Dockerfile:    "Dockerfile.e2e",
+			KeepImage:     true,
 			BuildArgs: map[string]*string{
 				"ALPINE_VERSION": newBuildArg(os.Getenv("CONTAINER_ALPINE_VERSION")),
 				"GOLANG_VERSION": newBuildArg(os.Getenv("GOLANG_VERSION")),
