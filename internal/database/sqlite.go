@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/go-shiori/shiori/internal/model"
+	"github.com/huandu/go-sqlbuilder"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/bcrypt"
@@ -796,40 +797,69 @@ func (db *SQLiteDatabase) DeleteAccounts(ctx context.Context, usernames ...strin
 	return nil
 }
 
-// CreateTags creates new tags from submitted objects.
-func (db *SQLiteDatabase) CreateTags(ctx context.Context, tags ...model.Tag) error {
-	query := `INSERT INTO tag (name) VALUES `
-	values := []interface{}{}
-
-	for _, t := range tags {
-		query += "(?),"
-		values = append(values, t.Name)
+// CreateTags creates new tags from submitted objects and returns the created tags with their IDs.
+func (db *SQLiteDatabase) CreateTags(ctx context.Context, tags ...model.Tag) ([]model.Tag, error) {
+	if len(tags) == 0 {
+		return nil, nil
 	}
-	query = query[0 : len(query)-1]
+
+	var createdTags []model.Tag
 
 	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
-		stmt, err := tx.Preparex(query)
-		if err != nil {
-			return errors.Wrap(errors.WithStack(err), "error preparing query")
+		// Create insert builder
+		ib := sqlbuilder.SQLite.NewInsertBuilder()
+		ib.InsertInto("tag")
+		ib.Cols("name")
+
+		// Add values for each tag
+		for _, tag := range tags {
+			ib.Values(tag.Name)
 		}
 
-		_, err = stmt.ExecContext(ctx, values...)
+		// Generate query and args
+		query, args := ib.Build()
+
+		// Modify query to return inserted IDs
+		query = query + " RETURNING id, name"
+
+		// Prepare and execute the statement
+		stmt, err := tx.Preparex(query)
 		if err != nil {
-			return errors.Wrap(errors.WithStack(err), "error executing query")
+			return fmt.Errorf("error preparing query: %w", err)
+		}
+
+		// Execute and scan results
+		rows, err := stmt.QueryxContext(ctx, args...)
+		if err != nil {
+			return fmt.Errorf("error executing query: %w", err)
+		}
+		defer rows.Close()
+
+		// Scan the returned rows into tags
+		for rows.Next() {
+			var tag model.Tag
+			if err := rows.StructScan(&tag); err != nil {
+				return fmt.Errorf("error scanning tag: %w", err)
+			}
+			createdTags = append(createdTags, tag)
+		}
+
+		if err = rows.Err(); err != nil {
+			return fmt.Errorf("error iterating rows: %w", err)
 		}
 
 		return nil
 	}); err != nil {
-		return errors.Wrap(errors.WithStack(err), "error running transaction")
+		return nil, fmt.Errorf("error running transaction: %w", err)
 	}
 
-	return nil
+	return createdTags, nil
 }
 
 // GetTags fetch list of tags and their frequency.
 func (db *SQLiteDatabase) GetTags(ctx context.Context) ([]model.Tag, error) {
 	tags := []model.Tag{}
-	query := `SELECT bt.tag_id id, t.name, COUNT(bt.tag_id) n_bookmarks
+	query := `SELECT bt.tag_id id, t.name, COUNT(bt.tag_id) bookmark_count
 		FROM bookmark_tag bt
 		LEFT JOIN tag t ON bt.tag_id = t.id
 		GROUP BY bt.tag_id ORDER BY t.name`
@@ -852,4 +882,20 @@ func (db *SQLiteDatabase) RenameTag(ctx context.Context, id int, newName string)
 	}
 
 	return nil
+}
+
+// UpdateTag updates tag with matching id in database.
+func (db *SQLiteDatabase) UpdateTag(ctx context.Context, tag model.Tag) error {
+	return db.withTx(ctx, func(tx *sqlx.Tx) error {
+		_, err := tx.ExecContext(ctx, `UPDATE tag SET name = ? WHERE id = ?`, tag.Name, tag.ID)
+		return errors.WithStack(err)
+	})
+}
+
+// DeleteTag removes tag with matching id from database.
+func (db *SQLiteDatabase) DeleteTag(ctx context.Context, id model.DBID) error {
+	return db.withTx(ctx, func(tx *sqlx.Tx) error {
+		_, err := tx.ExecContext(ctx, `DELETE FROM tag WHERE id = ?`, id)
+		return errors.WithStack(err)
+	})
 }
