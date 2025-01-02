@@ -67,6 +67,9 @@ type DB interface {
 	// DBx is the underlying sqlx.DB
 	DBx() *sqlx.DB
 
+	// Init initializes the database
+	Init(ctx context.Context) error
+
 	// Migrate runs migrations for this database
 	Migrate(ctx context.Context) error
 

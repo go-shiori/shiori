@@ -120,7 +120,7 @@ func (c Config) SetDefaults(logger *logrus.Logger, portableMode bool) {
 
 	// Set default database url if not set
 	if c.Database.DBMS == "" && c.Database.URL == "" {
-		c.Database.URL = fmt.Sprintf("sqlite:///%s", filepath.Join(c.Storage.DataDir, "shiori.db"))
+		c.Database.URL = fmt.Sprintf("sqlite:///%s?_txlock=immediate", filepath.Join(c.Storage.DataDir, "shiori.db"))
 	}
 
 	c.Http.SetDefaults(logger)
