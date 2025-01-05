@@ -48,7 +48,7 @@ var mysqlMigrations = []migration{
 		}
 		defer tx.Rollback()
 
-		_, err = tx.Exec(`ALTER TABLE account ADD COLUMN config JSON  NOT NULL DEFAULT '{}'`)
+		_, err = tx.Exec(`ALTER TABLE account ADD COLUMN config JSON  NOT NULL DEFAULT ('{}')`)
 		if err != nil && strings.Contains(err.Error(), `Duplicate column name`) {
 			tx.Rollback()
 		} else if err != nil {
@@ -93,6 +93,11 @@ func OpenMySQLDatabase(ctx context.Context, connString string) (mysqlDB *MySQLDa
 // DBX returns the underlying sqlx.DB object
 func (db *MySQLDatabase) DBx() *sqlx.DB {
 	return db.DB
+}
+
+// Init initializes the database
+func (db *MySQLDatabase) Init(ctx context.Context) error {
+	return nil
 }
 
 // Migrate runs migrations for this database engine

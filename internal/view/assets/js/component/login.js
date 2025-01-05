@@ -39,10 +39,35 @@ export default {
 			username: "",
 			password: "",
 			remember: false,
+			destination: "/", // Default destination
 		};
 	},
 	emits: ["login-success"],
 	methods: {
+		sanitizeDestination(dst) {
+			try {
+				// Remove any leading/trailing whitespace
+				dst = dst.trim();
+
+				// Decode the URL to handle any encoded characters
+				dst = decodeURIComponent(dst);
+
+				// Create a URL object to parse the destination
+				const url = new URL(dst, window.location.origin);
+
+				// Only allow paths from the same origin
+				if (url.origin !== window.location.origin) {
+					return "/";
+				}
+
+				// Only return the pathname and search params
+				return url.pathname + url.search + url.hash;
+			} catch (e) {
+				// If any error occurs during parsing, return root
+				return "/";
+			}
+		},
+
 		async getErrorMessage(err) {
 			switch (err.constructor) {
 				case Error:
@@ -105,10 +130,10 @@ export default {
 					// Save session id
 					document.cookie = `session-id=${json.message.session}; Path=${
 						new URL(document.baseURI).pathname
-					}; Expires=${json.message.expires}`;
+					}; Expires=${new Date(json.message.expires * 1000).toUTCString()}`;
 					document.cookie = `token=${json.message.token}; Path=${
 						new URL(document.baseURI).pathname
-					}; Expires=${json.message.expires}`;
+					}; Expires=${new Date(json.message.expires * 1000).toUTCString()}`;
 
 					// Save account data
 					localStorage.setItem("shiori-token", json.message.token);
@@ -119,6 +144,9 @@ export default {
 
 					this.visible = false;
 					this.$emit("login-success");
+
+					// Redirect to sanitized destination
+					if (this.destination !== "/") window.location.href = this.destination;
 				})
 				.catch((err) => {
 					this.loading = false;
@@ -129,6 +157,11 @@ export default {
 		},
 	},
 	async mounted() {
+		// Get and sanitize destination from URL parameters
+		const urlParams = new URLSearchParams(window.location.search);
+		const dst = urlParams.get("dst");
+		this.destination = dst ? this.sanitizeDestination(dst) : "/";
+
 		// Check if there's a valid session first
 		const token = localStorage.getItem("shiori-token");
 		if (token) {
