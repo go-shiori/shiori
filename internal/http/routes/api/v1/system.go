@@ -62,7 +62,7 @@ func (r *SystemAPIRoutes) infoHandler(c *gin.Context) {
 			Commit: model.BuildCommit,
 			Date:   model.BuildDate,
 		},
-		Database: r.deps.Database.DBx().DriverName(),
+		Database: r.deps.Database.ReaderDB().DriverName(),
 		OS:       runtime.GOOS + " (" + runtime.GOARCH + ")",
 	})
 }

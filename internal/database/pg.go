@@ -91,9 +91,19 @@ func OpenPGDatabase(ctx context.Context, connString string) (pgDB *PGDatabase, e
 	return pgDB, err
 }
 
-// DBX returns the underlying sqlx.DB object
-func (db *PGDatabase) DBx() *sqlx.DB {
+// WriterDB returns the underlying sqlx.DB object
+func (db *PGDatabase) WriterDB() *sqlx.DB {
 	return db.DB
+}
+
+// ReaderDB returns the underlying sqlx.DB object
+func (db *PGDatabase) ReaderDB() *sqlx.DB {
+	return db.DB
+}
+
+// Init initializes the database
+func (db *PGDatabase) Init(ctx context.Context) error {
+	return nil
 }
 
 // Migrate runs migrations for this database engine

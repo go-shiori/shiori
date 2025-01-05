@@ -76,8 +76,14 @@ func Connect(ctx context.Context, dbURL string) (DB, error) {
 
 // DB is interface for accessing and manipulating data in database.
 type DB interface {
-	// DBx is the underlying sqlx.DB
-	DBx() *sqlx.DB
+	// WriterDB is the underlying sqlx.DB
+	WriterDB() *sqlx.DB
+
+	// ReaderDB is the underlying sqlx.DB
+	ReaderDB() *sqlx.DB
+
+	// Init initializes the database
+	Init(ctx context.Context) error
 
 	// Migrate runs migrations for this database
 	Migrate(ctx context.Context) error

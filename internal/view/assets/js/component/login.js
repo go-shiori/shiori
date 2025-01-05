@@ -130,10 +130,10 @@ export default {
 					// Save session id
 					document.cookie = `session-id=${json.message.session}; Path=${
 						new URL(document.baseURI).pathname
-					}; Expires=${json.message.expires}`;
+					}; Expires=${new Date(json.message.expires * 1000).toUTCString()}`;
 					document.cookie = `token=${json.message.token}; Path=${
 						new URL(document.baseURI).pathname
-					}; Expires=${json.message.expires}`;
+					}; Expires=${new Date(json.message.expires * 1000).toUTCString()}`;
 
 					// Save account data
 					localStorage.setItem("shiori-token", json.message.token);

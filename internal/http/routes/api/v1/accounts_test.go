@@ -73,7 +73,7 @@ func TestAccountList(t *testing.T) {
 		require.NoError(t, err)
 
 		// Force DB error by clearing the deps
-		deps.Database.DBx().Close()
+		deps.Database.ReaderDB().Close()
 
 		router := NewAccountsAPIRoutes(logger, deps)
 		router.Setup(g.Group("/"))
@@ -141,7 +141,7 @@ func TestAccountCreate(t *testing.T) {
 		require.NoError(t, err)
 
 		// Force DB error by clearing the deps
-		deps.Database.DBx().Close()
+		deps.Database.WriterDB().Close()
 
 		router := NewAccountsAPIRoutes(logger, deps)
 		router.Setup(g.Group("/"))
@@ -314,7 +314,7 @@ func TestAccountDelete(t *testing.T) {
 		require.NoError(t, err)
 
 		// Force DB error by clearing the deps
-		deps.Database.DBx().Close()
+		deps.Database.WriterDB().Close()
 
 		router := NewAccountsAPIRoutes(logger, deps)
 		router.Setup(g.Group("/"))
@@ -408,7 +408,7 @@ func TestAccountUpdate(t *testing.T) {
 		require.NoError(t, err)
 
 		// Close dataase connection to force error
-		deps.Database.DBx().Close()
+		deps.Database.ReaderDB().Close()
 
 		router := NewAccountsAPIRoutes(logger, deps)
 		router.Setup(g.Group("/"))

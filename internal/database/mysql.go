@@ -89,9 +89,19 @@ func OpenMySQLDatabase(ctx context.Context, connString string) (mysqlDB *MySQLDa
 	return mysqlDB, err
 }
 
-// DBX returns the underlying sqlx.DB object
-func (db *MySQLDatabase) DBx() *sqlx.DB {
+// WriterDB returns the underlying sqlx.DB object
+func (db *MySQLDatabase) WriterDB() *sqlx.DB {
 	return db.DB
+}
+
+// ReaderDB returns the underlying sqlx.DB object
+func (db *MySQLDatabase) ReaderDB() *sqlx.DB {
+	return db.DB
+}
+
+// Init initializes the database
+func (db *MySQLDatabase) Init(ctx context.Context) error {
+	return nil
 }
 
 // Migrate runs migrations for this database engine

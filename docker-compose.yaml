@@ -36,7 +36,7 @@ services:
       - shiori
 
   postgres:
-    image: postgres:15
+    image: postgres:13.18
     environment:
       POSTGRES_PASSWORD: shiori
       POSTGRES_USER: shiori
@@ -44,7 +44,7 @@ services:
       - "5432:5432"
 
   mariadb:
-    image: mariadb:11
+    image: mariadb:10.5.27
     environment:
       MYSQL_ROOT_PASSWORD: toor
       MYSQL_DATABASE: shiori
@@ -52,6 +52,16 @@ services:
       MYSQL_PASSWORD: shiori
     ports:
       - "3306:3306"
+
+  mysql:
+    image: mysql:8.0.40
+    environment:
+      MYSQL_ROOT_PASSWORD: toor
+      MYSQL_DATABASE: shiori
+      MYSQL_USER: shiori
+      MYSQL_PASSWORD: shiori
+    ports:
+      - "3307:3306"
 
 volumes:
   go-mod-cache:
