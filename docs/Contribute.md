@@ -57,14 +57,19 @@ In order to run the test suite, you need to have running a local instance of Mar
 If you have docker, you can do this by running the following command with the compose file provided:
 
 ```bash
-docker-compose up -d mariadb postgres
+docker-compose up -d mariadb mysql postgres
 ```
 
-After that, provide the `SHIORI_TEST_PG_URL` and `SHIORI_TEST_MYSQL_URL` environment variables with the connection string to the databases:
+After that, provide the environment variables for the unitest to connect to the database engines:
+
+- `SHIORI_TEST_MYSQL_URL` for MySQL
+- `SHIORI_TEST_MARIADB_URL` for MariaDB
+- `SHIORI_TEST_PG_URL` for PostgreSQL
 
 ```
 SHIORI_TEST_PG_URL=postgres://shiori:shiori@127.0.0.1:5432/shiori?sslmode=disable
 SHIORI_TEST_MYSQL_URL=shiori:shiori@tcp(127.0.0.1:3306)/shiori
+SHIORI_TEST_MARIADB_URL=shiori:shiori@tcp(127.0.0.1:3307)/shiori
 ```
 
 Finally, run the tests with the following command:
