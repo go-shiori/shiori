@@ -41,7 +41,10 @@ jobs:
           MYSQL_DATABASE: shiori
           MYSQL_ROOT_PASSWORD: shiori
         options: >-
-          --health-cmd="/usr/local/bin/healthcheck.sh --connect" --health-interval 10s --health-timeout 5s --health-retries 5
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
         ports:
         - 3307:3306
 
