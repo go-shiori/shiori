@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:15
+        image: postgres:13.18
         env:
           POSTGRES_PASSWORD: shiori
           POSTGRES_USER: shiori
@@ -23,7 +23,7 @@ jobs:
         ports:
         - 5432:5432
       mariadb:
-        image: mariadb:11
+        image: mariadb:10.5.27
         env:
           MYSQL_USER: shiori
           MYSQL_PASSWORD: shiori
@@ -33,6 +33,17 @@ jobs:
           --health-cmd="/usr/local/bin/healthcheck.sh --connect" --health-interval 10s --health-timeout 5s --health-retries 5
         ports:
         - 3306:3306
+      mysql:
+        image: mysql:8.0.40
+        env:
+          MYSQL_USER: shiori
+          MYSQL_PASSWORD: shiori
+          MYSQL_DATABASE: shiori
+          MYSQL_ROOT_PASSWORD: shiori
+        options: >-
+          --health-cmd="/usr/local/bin/healthcheck.sh --connect" --health-interval 10s --health-timeout 5s --health-retries 5
+        ports:
+        - 3307:3306
 
     name: Go unit tests (ubuntu-latest)
     steps:
@@ -60,6 +71,7 @@ jobs:
       env:
         SHIORI_TEST_PG_URL: "postgres://shiori:shiori@localhost:5432/shiori?sslmode=disable"
         SHIORI_TEST_MYSQL_URL: "shiori:shiori@(localhost:3306)/shiori"
+        SHIORI_TEST_MARIADB_URL: "shiori:shiori@(localhost:3307)/shiori"
         CGO_ENABLED: 1 # go test -race requires cgo
 
     - run: go build -tags osusergo,netgo -ldflags="-s -w -X main.version=$(git describe --tags) -X main.date=$(date --iso-8601=seconds)"
