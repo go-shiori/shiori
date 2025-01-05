@@ -84,7 +84,7 @@ func runMigrations(ctx context.Context, db DB, migrations []migration) error {
 			continue
 		}
 
-		if err := migration.migrationFunc(db.DBx().DB); err != nil {
+		if err := migration.migrationFunc(db.WriterDB().DB); err != nil {
 			return fmt.Errorf("failed to run migration from %s to %s: %w", migration.fromVersion, migration.toVersion, err)
 		}
 

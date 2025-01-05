@@ -46,7 +46,8 @@ type infoResponse struct {
 //	@Router						/api/v1/system/info [get]
 func (r *SystemAPIRoutes) infoHandler(c *gin.Context) {
 	ctx := context.NewContextFromGin(c)
-	if !ctx.GetAccount().Owner {
+	account := ctx.GetAccount()
+	if account == nil || !account.IsOwner() {
 		response.SendError(c, http.StatusForbidden, "Only owners can access this endpoint")
 		return
 	}
@@ -61,7 +62,7 @@ func (r *SystemAPIRoutes) infoHandler(c *gin.Context) {
 			Commit: model.BuildCommit,
 			Date:   model.BuildDate,
 		},
-		Database: r.deps.Database.DBx().DriverName(),
+		Database: r.deps.Database.ReaderDB().DriverName(),
 		OS:       runtime.GOOS + " (" + runtime.GOARCH + ")",
 	})
 }

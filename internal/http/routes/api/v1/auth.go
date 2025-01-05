@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-shiori/shiori/internal/dependencies"
 	"github.com/go-shiori/shiori/internal/http/context"
+	"github.com/go-shiori/shiori/internal/http/middleware"
 	"github.com/go-shiori/shiori/internal/http/response"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/sirupsen/logrus"
@@ -20,10 +21,12 @@ type AuthAPIRoutes struct {
 }
 
 func (r *AuthAPIRoutes) Setup(group *gin.RouterGroup) model.Routes {
-	group.GET("/me", r.meHandler)
 	group.POST("/login", r.loginHandler)
+	group.Use(middleware.AuthenticationRequired())
+	group.GET("/me", r.meHandler)
 	group.POST("/refresh", r.refreshHandler)
 	group.PATCH("/account", r.updateHandler)
+	group.POST("/logout", r.logoutHandler)
 	return r
 }
 
@@ -47,10 +50,6 @@ type loginResponseMessage struct {
 	Token      string `json:"token"`
 	SessionID  string `json:"session"` // Deprecated, used only for legacy APIs
 	Expiration int64  `json:"expires"` // Deprecated, used only for legacy APIs
-}
-
-type settingRequestPayload struct {
-	Config model.UserConfig `json:"config"`
 }
 
 // loginHandler godoc
@@ -94,7 +93,7 @@ func (r *AuthAPIRoutes) loginHandler(c *gin.Context) {
 		return
 	}
 
-	sessionID, err := r.legacyLoginHandler(*account, expiration)
+	sessionID, err := r.legacyLoginHandler(account, expiration)
 	if err != nil {
 		r.logger.WithError(err).Error("failed execute legacy login handler")
 		response.SendInternalServerError(c)
@@ -119,14 +118,10 @@ func (r *AuthAPIRoutes) loginHandler(c *gin.Context) {
 //	@Router						/api/v1/auth/refresh [post]
 func (r *AuthAPIRoutes) refreshHandler(c *gin.Context) {
 	ctx := context.NewContextFromGin(c)
-	if !ctx.UserIsLogged() {
-		response.SendError(c, http.StatusForbidden, nil)
-		return
-	}
 
 	expiration := time.Now().Add(time.Hour * 72)
-	account, _ := c.Get(model.ContextAccountKey)
-	token, err := r.deps.Domains.Auth.CreateTokenForAccount(account.(*model.Account), expiration)
+	account := ctx.GetAccount()
+	token, err := r.deps.Domains.Auth.CreateTokenForAccount(account, expiration)
 	if err != nil {
 		response.SendInternalServerError(c)
 		return
@@ -148,47 +143,107 @@ func (r *AuthAPIRoutes) refreshHandler(c *gin.Context) {
 //	@Router						/api/v1/auth/me [get]
 func (r *AuthAPIRoutes) meHandler(c *gin.Context) {
 	ctx := context.NewContextFromGin(c)
-	if !ctx.UserIsLogged() {
-		response.SendError(c, http.StatusForbidden, nil)
-		return
+	response.Send(c, http.StatusOK, ctx.GetAccount())
+}
+
+type updateAccountPayload struct {
+	OldPassword string            `json:"old_password"`
+	NewPassword string            `json:"new_password"`
+	Username    string            `json:"username"`
+	Owner       *bool             `json:"owner"`
+	Config      *model.UserConfig `json:"config"`
+}
+
+func (p *updateAccountPayload) IsValid() error {
+	if p.NewPassword != "" && p.OldPassword == "" {
+		return fmt.Errorf("To update the password the old one must be provided")
 	}
 
-	response.Send(c, http.StatusOK, ctx.GetAccount())
+	return nil
+}
+
+func (p *updateAccountPayload) ToAccountDTO() model.AccountDTO {
+	account := model.AccountDTO{}
+
+	if p.NewPassword != "" {
+		account.Password = p.NewPassword
+	}
+
+	if p.Owner != nil {
+		account.Owner = p.Owner
+	}
+
+	if p.Config != nil {
+		account.Config = p.Config
+	}
+
+	if p.Username != "" {
+		account.Username = p.Username
+	}
+
+	return account
 }
 
 // updateHandler godoc
 //
-//	@Summary					Perform actions on the currently logged-in user.
+//	@Summary					Update account information
 //	@Tags						Auth
 //	@securityDefinitions.apikey	ApiKeyAuth
-//	@Param						payload	body	settingRequestPayload	false	"Config data"
+//	@Param						payload	body	updateAccountPayload	false	"Account data"
 //	@Produce					json
 //	@Success					200	{object}	model.Account
 //	@Failure					403	{object}	nil	"Token not provided/invalid"
 //	@Router						/api/v1/auth/account [patch]
 func (r *AuthAPIRoutes) updateHandler(c *gin.Context) {
 	ctx := context.NewContextFromGin(c)
-	if !ctx.UserIsLogged() {
-		response.SendError(c, http.StatusForbidden, nil)
-	}
-	var payload settingRequestPayload
+
+	var payload updateAccountPayload
 	if err := c.ShouldBindJSON(&payload); err != nil {
 		response.SendInternalServerError(c)
 	}
 
-	account := ctx.GetAccount()
-	if account == nil {
-		response.SendError(c, http.StatusUnauthorized, nil)
+	if err := payload.IsValid(); err != nil {
+		response.SendError(c, http.StatusBadRequest, err.Error())
 		return
 	}
-	account.Config = payload.Config
 
-	err := r.deps.Database.SaveAccountSettings(c, *account)
-	if err != nil {
-		response.SendInternalServerError(c)
+	account := ctx.GetAccount()
+
+	// If trying to update password, check if old password is correct
+	if payload.NewPassword != "" {
+		_, err := r.deps.Domains.Auth.GetAccountFromCredentials(c.Request.Context(), account.Username, payload.OldPassword)
+		if err != nil {
+			response.SendError(c, http.StatusBadRequest, "Old password is incorrect")
+			return
+		}
 	}
 
-	response.Send(c, http.StatusOK, ctx.GetAccount())
+	updatedAccount := payload.ToAccountDTO()
+	updatedAccount.ID = account.ID
+
+	account, err := r.deps.Domains.Accounts.UpdateAccount(c.Request.Context(), updatedAccount)
+	if err != nil {
+		r.deps.Log.WithError(err).Error("failed to update account")
+		response.SendInternalServerError(c)
+		return
+	}
+
+	response.Send(c, http.StatusOK, account)
+}
+
+// logoutHandler godoc
+//
+//	@Summary					Logout from the current session
+//	@Tags						Auth
+//	@securityDefinitions.apikey	ApiKeyAuth
+//	@Produce					json
+//	@Success					200	{object}	nil	"Logout successful"
+//	@Failure					403	{object}	nil	"Token not provided/invalid"
+//	@Router						/api/v1/auth/logout [post]
+func (r *AuthAPIRoutes) logoutHandler(c *gin.Context) {
+	// Since the token is stateless JWT, we just return success
+	// The client should remove the token from their storage
+	response.Send(c, http.StatusOK, nil)
 }
 
 func NewAuthAPIRoutes(logger *logrus.Logger, deps *dependencies.Dependencies, loginHandler model.LegacyLoginHandler) *AuthAPIRoutes {

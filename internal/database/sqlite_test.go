@@ -68,5 +68,4 @@ func testSqliteGetBookmarksWithDash(t *testing.T) {
 	assert.NoError(t, err, "Get bookmarks should not fail")
 	assert.Len(t, results, 1, "results should contain one item")
 	assert.Equal(t, savedBookmark.ID, results[0].ID, "bookmark should be the one saved")
-
 }

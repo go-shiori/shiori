@@ -74,6 +74,13 @@ export default {
 					return err.message;
 				case Response:
 					var text = await err.text();
+
+					// Handle new error messages
+					if (text[0] == "{") {
+						var json = JSON.parse(text);
+						return json.message;
+					}
+
 					return `${text} (${err.status})`;
 				default:
 					return err;
