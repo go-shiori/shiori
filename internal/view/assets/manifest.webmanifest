@@ -1,7 +1,7 @@
 {
   "name": "Shiori",
   "short_name": "Shiori",
-  "display": "fullscreen",
+  "display": "standalone",
   "description": "Shiori is a simple bookmarks manager written in the Go language. Intended as a simple clone of Pocket. You can use it as a command line application or as a web application. This application is distributed as a single binary, which means it can be installed and used easily.",
   "icons": [
     {
