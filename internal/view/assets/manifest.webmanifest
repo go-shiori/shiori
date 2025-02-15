@@ -24,11 +24,12 @@
   ],
   "start_url": "/",
   "share_target": {
-    "action": "/share-target/",
+    "action": "/#home",
+		"enctype": "application/x-www-form-urlencoded",
     "method": "GET",
     "params": {
-      "title": "title",
-      "text": "text",
+      "title": "name",
+      "text": "description",
       "url": "url"
     }
   }
