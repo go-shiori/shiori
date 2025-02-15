@@ -1056,6 +1056,16 @@ export default {
 			}
 
 			this.showDialogAdd(shareData);
+			var history = {
+				activePage: "page-home",
+				search: this.search,
+				page: this.page,
+			};
+
+			var url = new Url(document.baseURI);
+			url.hash = "home";
+			url.clearQuery();
+			window.history.replaceState(history, "page-home", url);
 		}
 
 		this.loadData(false, true);
