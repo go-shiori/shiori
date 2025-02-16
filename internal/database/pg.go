@@ -277,6 +277,43 @@ func (db *PGDatabase) SaveBookmarks(ctx context.Context, create bool, bookmarks 
 	return result, nil
 }
 
+// GetDeletedBookmarks fetch list of bookmark that deleted from database.
+func (db *PGDatabase) GetDeletedBookmarks(ctx context.Context, opts GetBookmarksOptions) ([]int, error) {
+	var missingIDs []int
+
+	// Construct the query using UNION ALL to create a temporary table of IDs
+	var unionQueries []string
+	for _, id := range opts.IsDeleted {
+		unionQueries = append(unionQueries, fmt.Sprintf("SELECT %d AS id", id))
+	}
+	unionQuery := strings.Join(unionQueries, " UNION ALL ")
+
+	query := fmt.Sprintf("SELECT temp.id FROM (%s) AS temp LEFT JOIN bookmark ON temp.id = bookmark.id WHERE bookmark.id IS NULL", unionQuery)
+
+	// Execute the query
+	rows, err := db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	// Scan the results into missingIDs
+	for rows.Next() {
+		var id int
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		missingIDs = append(missingIDs, id)
+	}
+
+	// Check for errors from iterating over rows
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return missingIDs, nil
+}
+
 // GetBookmarks fetch list of bookmarks based on submitted options.
 func (db *PGDatabase) GetBookmarks(ctx context.Context, opts GetBookmarksOptions) ([]model.BookmarkDTO, error) {
 	// Create initial query
@@ -305,6 +342,12 @@ func (db *PGDatabase) GetBookmarks(ctx context.Context, opts GetBookmarksOptions
 	if len(opts.IDs) > 0 {
 		query += ` AND id IN (:ids)`
 		arg["ids"] = opts.IDs
+	}
+
+	// Add where clause for LastSync
+	if opts.LastSync != "" {
+		query += ` AND modified_at >= :last_sync`
+		arg["last_sync"] = opts.LastSync
 	}
 
 	// Add where clause for search keyword
@@ -439,6 +482,12 @@ func (db *PGDatabase) GetBookmarksCount(ctx context.Context, opts GetBookmarksOp
 	if len(opts.IDs) > 0 {
 		query += ` AND id IN (:ids)`
 		arg["ids"] = opts.IDs
+	}
+
+	// Add where clause for LastSync
+	if opts.LastSync != "" {
+		query += ` AND modified_at >= :last_sync`
+		arg["last_sync"] = opts.LastSync
 	}
 
 	// Add where clause for search keyword
