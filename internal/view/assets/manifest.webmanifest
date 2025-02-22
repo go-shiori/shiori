@@ -14,6 +14,24 @@
       "type": "image/png",
       "sizes": "152x152",
       "purpose": "maskable"
+    },
+		{
+      "src": "res/pwa-192x192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "maskable"
+    },
+		{
+      "src": "res/pwa-512x512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "maskable"
+    },
+		{
+      "src": "res/pwa-1024x1024.png",
+      "type": "image/png",
+      "sizes": "1024x1024",
+      "purpose": "maskable"
     }
   ],
   "start_url": "../",
