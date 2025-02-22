@@ -374,7 +374,9 @@ export default {
 			this.loadData();
 		},
 		showDialogAdd(values) {
-			if( values === undefined ){ values = {}; }
+			if (values === undefined) {
+				values = {};
+			}
 
 			this.showDialog({
 				title: "New Bookmark",
@@ -1039,17 +1041,18 @@ export default {
 		this.search = url.query.search || "";
 		this.page = url.query.page || 1;
 
-		var isSharing = url.query.url !== undefined || url.query.excerpt !== undefined 
-		if( isSharing ){
+		var isSharing =
+			url.query.url !== undefined || url.query.excerpt !== undefined;
+		if (isSharing) {
 			// this is what the spec says
 			var shareData = {
 				url: url.query.url,
 				excerpt: url.query.excerpt,
-				title: url.query.title
-			}
+				title: url.query.title,
+			};
 
 			// In my testing sharing from chrome and ff focus, this is how data arrives
-			if( shareData.url === undefined ){
+			if (shareData.url === undefined) {
 				shareData.url = url.query.excerpt;
 				shareData.title = url.query.title;
 				shareData.excerpt = "";
