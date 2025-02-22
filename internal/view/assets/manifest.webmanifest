@@ -22,8 +22,8 @@
 		"enctype": "application/x-www-form-urlencoded",
     "method": "GET",
     "params": {
-      "title": "name",
-      "text": "description",
+      "title": "title",
+      "text": "excerpt",
       "url": "url"
     }
   }

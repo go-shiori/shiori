@@ -1039,19 +1039,19 @@ export default {
 		this.search = url.query.search || "";
 		this.page = url.query.page || 1;
 
-		var isSharing = url.query.url !== undefined || url.query.description !== undefined 
+		var isSharing = url.query.url !== undefined || url.query.excerpt !== undefined 
 		if( isSharing ){
 			// this is what the spec says
 			var shareData = {
 				url: url.query.url,
-				excerpt: url.query.description,
-				title: url.query.name
+				excerpt: url.query.excerpt,
+				title: url.query.title
 			}
 
 			// In my testing sharing from chrome and ff focus, this is how data arrives
 			if( shareData.url === undefined ){
-				shareData.url = url.query.description;
-				shareData.title = url.query.name;
+				shareData.url = url.query.excerpt;
+				shareData.title = url.query.title;
 				shareData.excerpt = "";
 			}
 
