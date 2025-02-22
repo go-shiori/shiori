@@ -64,7 +64,7 @@ func (r *BookmarkRoutes) getBookmark(c *context.Context) (*model.BookmarkDTO, er
 	}
 
 	if bookmark.Public != 1 && !c.UserIsLogged() {
-		response.RedirectToLogin(c.Context, c.Request.URL.String())
+		response.RedirectToLogin(c.Context, r.deps.Config.Http.RootPath, c.Request.URL.String())
 		return nil, model.ErrUnauthorized
 	}
 

@@ -19,7 +19,7 @@ Shiori is a simple bookmarks manager written in the Go language. Intended as a s
 - Simple and clean command line interface.
 - Simple and pretty web interface for those who don't want to use a command line app.
 - Portable, thanks to its single binary format.
-- Support for sqlite3, PostgreSQL and MySQL as its database.
+- Support for sqlite3, PostgreSQL, MariaDB and MySQL as its database.
 - Where possible, by default `shiori` will parse the readable content and create an offline archive of the webpage.
 - [BETA] [web extension][web-extension] support for Firefox and Chrome.
 

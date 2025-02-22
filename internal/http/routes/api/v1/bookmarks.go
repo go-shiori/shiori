@@ -61,7 +61,6 @@ func (r *BookmarksAPIRoutes) getBookmark(c *context.Context) (*model.BookmarkDTO
 		response.SendError(c.Context, http.StatusBadRequest, "Invalid bookmark ID")
 		return nil, model.ErrBookmarkInvalidID
 	}
-
 	bookmarkID, err := strconv.Atoi(bookmarkIDParam)
 	if err != nil {
 		r.logger.WithError(err).Error("error parsing bookmark ID parameter")
@@ -123,7 +122,8 @@ func (r *BookmarksAPIRoutes) bookmarkReadable(c *gin.Context) {
 //	@Router						/api/v1/bookmarks/cache [put]
 func (r *BookmarksAPIRoutes) updateCache(c *gin.Context) {
 	ctx := context.NewContextFromGin(c)
-	if !ctx.GetAccount().Owner {
+	account := ctx.GetAccount()
+	if account != nil && !account.IsOwner() {
 		response.SendError(c, http.StatusForbidden, nil)
 		return
 	}

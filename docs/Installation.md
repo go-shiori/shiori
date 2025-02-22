@@ -93,6 +93,9 @@ spec:
       - name: app
         hostPath:
           path: /path/to/data/dir
+      - name: tmp
+        emptyDir:
+          medium: Memory
       containers:
       - name: shiori
         image: ghcr.io/go-shiori/shiori:latest
@@ -103,6 +106,8 @@ spec:
         volumeMounts:
         - mountPath: /srv/shiori
           name: app
+        - mountPath: /tmp
+          name: tmp
         env:
         - name: SHIORI_DIR
           value: /srv/shiori
@@ -112,7 +117,10 @@ spec:
 
 Here we are using a local directory to persist Shiori's data. You will need
 to replace `/path/to/data/dir` with the path to the directory where you want
-to keep your data. Since we haven't configured a database in particular,
+to keep your data. We are also mounting an `EmptyDir` volume for `/tmp` so 
+we can successfully generate ebooks.
+
+Since we haven't configured a database in particular,
 Shiori will use SQLite. I don't think Postgres or MySQL is worth it for
 such an app, but that's up to you. If you decide to use SQLite, I strongly
 suggest to keep `replicas` set to 1 since SQLite usually allows at most

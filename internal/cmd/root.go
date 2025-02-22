@@ -80,6 +80,10 @@ func initShiori(ctx context.Context, cmd *cobra.Command) (*config.Config, *depen
 
 	cfg.SetDefaults(logger, portableMode)
 
+	if err := cfg.IsValid(); err != nil {
+		logger.WithError(err).Fatal("invalid configuration detected")
+	}
+
 	err := os.MkdirAll(cfg.Storage.DataDir, model.DataDirPerm)
 	if err != nil {
 		logger.WithError(err).Fatal("error creating data directory")
@@ -100,7 +104,8 @@ func initShiori(ctx context.Context, cmd *cobra.Command) (*config.Config, *depen
 	}
 
 	dependencies := dependencies.NewDependencies(logger, db, cfg)
-	dependencies.Domains.Auth = domains.NewAccountsDomain(dependencies)
+	dependencies.Domains.Auth = domains.NewAuthDomain(dependencies)
+	dependencies.Domains.Accounts = domains.NewAccountsDomain(dependencies)
 	dependencies.Domains.Archiver = domains.NewArchiverDomain(dependencies)
 	dependencies.Domains.Bookmarks = domains.NewBookmarksDomain(dependencies)
 	dependencies.Domains.Storage = domains.NewStorageDomain(dependencies, afero.NewBasePathFs(afero.NewOsFs(), cfg.Storage.DataDir))
@@ -108,20 +113,20 @@ func initShiori(ctx context.Context, cmd *cobra.Command) (*config.Config, *depen
 	// Workaround: Get accounts to make sure at least one is present in the database.
 	// If there's no accounts in the database, create the shiori/gopher account the legacy api
 	// hardcoded in the login handler.
-	accounts, err := db.GetAccounts(cmd.Context(), database.GetAccountsOptions{})
+	accounts, err := db.ListAccounts(cmd.Context(), database.ListAccountsOptions{})
 	if err != nil {
 		cError.Printf("Failed to get owner account: %v\n", err)
 		os.Exit(1)
 	}
 
 	if len(accounts) == 0 {
-		account := model.Account{
+		account := model.AccountDTO{
 			Username: "shiori",
 			Password: "gopher",
-			Owner:    true,
+			Owner:    model.Ptr[bool](true),
 		}
 
-		if err := db.SaveAccount(cmd.Context(), account); err != nil {
+		if _, err := dependencies.Domains.Accounts.CreateAccount(cmd.Context(), account); err != nil {
 			logger.WithError(err).Fatal("error ensuring owner account")
 		}
 	}

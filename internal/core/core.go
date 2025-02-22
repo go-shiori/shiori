@@ -1,9 +1,5 @@
 package core
 
-import (
-	"fmt"
+import "github.com/go-shiori/shiori/internal/model"
 
-	"github.com/go-shiori/shiori/internal/model"
-)
-
-var userAgent = fmt.Sprintf("Shiori/%s (+https://github.com/go-shiori/shiori)", model.BuildVersion)
+var userAgent = "Shiori/" + model.BuildVersion + " (" + model.BuildCommit + ") (+https://github.com/go-shiori/shiori)"

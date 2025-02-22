@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"runtime"
 	"strings"
 	"time"
 
@@ -12,7 +13,6 @@ import (
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
-	"golang.org/x/crypto/bcrypt"
 
 	_ "modernc.org/sqlite"
 )
@@ -68,14 +68,101 @@ var sqliteMigrations = []migration{
 	}),
 }
 
-func sqliteDatabaseFromDB(db *sqlx.DB) *SQLiteDatabase {
-	return &SQLiteDatabase{dbbase: dbbase{db}}
-}
-
 // SQLiteDatabase is implementation of Database interface
 // for connecting to SQLite3 database.
 type SQLiteDatabase struct {
-	dbbase
+	writer *dbbase
+	reader *dbbase
+}
+
+// withTx executes the given function within a transaction.
+// If the function returns an error, the transaction is rolled back.
+// Otherwise, the transaction is committed.
+func (db *SQLiteDatabase) withTx(ctx context.Context, fn func(tx *sqlx.Tx) error) error {
+	tx, err := db.writer.BeginTxx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+
+	err = fn(tx)
+	if err != nil {
+		rbErr := tx.Rollback()
+		if rbErr != nil {
+			return fmt.Errorf("error rolling back: %v (original error: %w)", rbErr, err)
+		}
+		return fmt.Errorf("transaction failed: %w", err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+
+	return nil
+}
+
+// withTxRetry executes the given function within a transaction with retry logic.
+// It will retry up to 3 times if the database is locked, with exponential backoff.
+// For other errors, it returns immediately.
+func (db *SQLiteDatabase) withTxRetry(ctx context.Context, fn func(tx *sqlx.Tx) error) error {
+	maxRetries := 3
+	var lastErr error
+
+	for i := 0; i < maxRetries; i++ {
+		err := db.withTx(ctx, fn)
+		if err == nil {
+			return nil
+		}
+
+		if strings.Contains(err.Error(), "database is locked") {
+			lastErr = err
+			time.Sleep(time.Duration(i+1) * 100 * time.Millisecond)
+			continue
+		}
+
+		return fmt.Errorf("transaction failed after retry: %w", err)
+	}
+
+	return fmt.Errorf("transaction failed after max retries, last error: %w", lastErr)
+}
+
+// Init sets up the SQLite database with optimal settings for both reader and writer connections
+func (db *SQLiteDatabase) Init(ctx context.Context) error {
+	// Initialize both connections with appropriate settings
+	for _, conn := range []*dbbase{db.writer, db.reader} {
+		// Reuse connections for up to one hour
+		conn.SetConnMaxLifetime(time.Hour)
+
+		// Enable WAL mode for better concurrency
+		if _, err := conn.ExecContext(ctx, `PRAGMA journal_mode=WAL`); err != nil {
+			return fmt.Errorf("failed to set journal mode: %w", err)
+		}
+
+		// Set busy timeout to avoid "database is locked" errors
+		if _, err := conn.ExecContext(ctx, `PRAGMA busy_timeout=5000`); err != nil {
+			return fmt.Errorf("failed to set busy timeout: %w", err)
+		}
+
+		// Other performance and reliability settings
+		pragmas := []string{
+			`PRAGMA synchronous=NORMAL`,
+			`PRAGMA cache_size=-2000`, // Use 2MB of memory for cache
+			`PRAGMA foreign_keys=ON`,
+		}
+
+		for _, pragma := range pragmas {
+			if _, err := conn.ExecContext(ctx, pragma); err != nil {
+				return fmt.Errorf("failed to set pragma %s: %w", pragma, err)
+			}
+		}
+	}
+
+	// Use a single connection on the writer to avoid database is locked errors
+	db.writer.SetMaxOpenConns(1)
+
+	// Set maximum idle connections for the reader to number of CPUs (maxing at 4)
+	db.reader.SetMaxIdleConns(max(4, runtime.NumCPU()))
+
+	return nil
 }
 
 type bookmarkContent struct {
@@ -89,15 +176,20 @@ type tagContent struct {
 	model.Tag
 }
 
-// DBX returns the underlying sqlx.DB object
-func (db *SQLiteDatabase) DBx() *sqlx.DB {
-	return db.DB
+// DBX returns the underlying sqlx.DB object for writes
+func (db *SQLiteDatabase) WriterDB() *sqlx.DB {
+	return db.writer.DB
+}
+
+// ReaderDBx returns the underlying sqlx.DB object for reading
+func (db *SQLiteDatabase) ReaderDB() *sqlx.DB {
+	return db.reader.DB
 }
 
 // Migrate runs migrations for this database engine
 func (db *SQLiteDatabase) Migrate(ctx context.Context) error {
 	if err := runMigrations(ctx, db, sqliteMigrations); err != nil {
-		return errors.WithStack(err)
+		return fmt.Errorf("failed to run migrations: %w", err)
 	}
 
 	return nil
@@ -107,9 +199,9 @@ func (db *SQLiteDatabase) Migrate(ctx context.Context) error {
 func (db *SQLiteDatabase) GetDatabaseSchemaVersion(ctx context.Context) (string, error) {
 	var version string
 
-	err := db.GetContext(ctx, &version, "SELECT database_schema_version FROM shiori_system")
+	err := db.reader.GetContext(ctx, &version, "SELECT database_schema_version FROM shiori_system")
 	if err != nil {
-		return "", errors.WithStack(err)
+		return "", fmt.Errorf("failed to get database schema version: %w", err)
 	}
 
 	return version, nil
@@ -117,15 +209,17 @@ func (db *SQLiteDatabase) GetDatabaseSchemaVersion(ctx context.Context) (string,
 
 // SetDatabaseSchemaVersion sets the current migrations version of the database
 func (db *SQLiteDatabase) SetDatabaseSchemaVersion(ctx context.Context, version string) error {
-	tx := db.MustBegin()
-	defer tx.Rollback()
-
-	_, err := tx.Exec("UPDATE shiori_system SET database_schema_version = ?", version)
-	if err != nil {
-		return errors.WithStack(err)
+	if err := db.withTxRetry(ctx, func(tx *sqlx.Tx) error {
+		_, err := tx.ExecContext(ctx, "UPDATE shiori_system SET database_schema_version = ?", version)
+		if err != nil {
+			return err
+		}
+		return nil
+	}); err != nil {
+		return fmt.Errorf("failed to set database schema version: %w", err)
 	}
 
-	return tx.Commit()
+	return nil
 }
 
 // SaveBookmarks saves new or updated bookmarks to database.
@@ -133,14 +227,14 @@ func (db *SQLiteDatabase) SetDatabaseSchemaVersion(ctx context.Context, version 
 func (db *SQLiteDatabase) SaveBookmarks(ctx context.Context, create bool, bookmarks ...model.BookmarkDTO) ([]model.BookmarkDTO, error) {
 	var result []model.BookmarkDTO
 
-	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
+	if err := db.withTxRetry(ctx, func(tx *sqlx.Tx) error {
 		// Prepare statement
 
 		stmtInsertBook, err := tx.PreparexContext(ctx, `INSERT INTO bookmark
 			(url, title, excerpt, author, public, modified_at, created_at, has_content, archiver, archive_path)
 			VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id`)
 		if err != nil {
-			return errors.WithStack(err)
+			return fmt.Errorf("failed to prepare insert book statement: %w", err)
 		}
 
 		stmtUpdateBook, err := tx.PreparexContext(ctx, `UPDATE bookmark SET
@@ -149,43 +243,43 @@ func (db *SQLiteDatabase) SaveBookmarks(ctx context.Context, create bool, bookma
 			archiver = ?, archive_path = ?
 			WHERE id = ?`)
 		if err != nil {
-			return errors.WithStack(err)
+			return fmt.Errorf("failed to prepare update book statement: %w", err)
 		}
 
 		stmtInsertBookContent, err := tx.PreparexContext(ctx, `INSERT OR REPLACE INTO bookmark_content
 			(docid, title, content, html)
 			VALUES (?, ?, ?, ?)`)
 		if err != nil {
-			return errors.WithStack(err)
+			return fmt.Errorf("failed to prepare insert book content statement: %w", err)
 		}
 
 		stmtUpdateBookContent, err := tx.PreparexContext(ctx, `UPDATE bookmark_content SET
 			title = ?, content = ?, html = ?
 			WHERE docid = ?`)
 		if err != nil {
-			return errors.WithStack(err)
+			return fmt.Errorf("failed to prepare update book content statement: %w", err)
 		}
 
 		stmtGetTag, err := tx.PreparexContext(ctx, `SELECT id FROM tag WHERE name = ?`)
 		if err != nil {
-			return errors.WithStack(err)
+			return fmt.Errorf("failed to prepare get tag statement: %w", err)
 		}
 
 		stmtInsertTag, err := tx.PreparexContext(ctx, `INSERT INTO tag (name) VALUES (?)`)
 		if err != nil {
-			return errors.WithStack(err)
+			return fmt.Errorf("failed to prepare insert tag statement: %w", err)
 		}
 
 		stmtInsertBookTag, err := tx.PreparexContext(ctx, `INSERT OR IGNORE INTO bookmark_tag
 			(tag_id, bookmark_id) VALUES (?, ?)`)
 		if err != nil {
-			return errors.WithStack(err)
+			return fmt.Errorf("failed to prepare insert book tag statement: %w", err)
 		}
 
 		stmtDeleteBookTag, err := tx.PreparexContext(ctx, `DELETE FROM bookmark_tag
 			WHERE bookmark_id = ? AND tag_id = ?`)
 		if err != nil {
-			return errors.WithStack(err)
+			return fmt.Errorf("failed to execute delete statement: %w", err)
 		}
 
 		// Prepare modified time
@@ -221,25 +315,25 @@ func (db *SQLiteDatabase) SaveBookmarks(ctx context.Context, create bool, bookma
 					book.URL, book.Title, book.Excerpt, book.Author, book.Public, book.ModifiedAt, hasContent, book.Archiver, book.ArchivePath, book.ID)
 			}
 			if err != nil {
-				return errors.WithStack(err)
+				return fmt.Errorf("failed to delete bookmark content: %w", err)
 			}
 
 			// Try to update it first to check for existence, we can't do an UPSERT here because
 			// bookmant_content is a virtual table
 			res, err := stmtUpdateBookContent.ExecContext(ctx, book.Title, book.Content, book.HTML, book.ID)
 			if err != nil {
-				return errors.WithStack(err)
+				return fmt.Errorf("failed to delete bookmark tag: %w", err)
 			}
 
 			rows, err := res.RowsAffected()
 			if err != nil {
-				return errors.WithStack(err)
+				return fmt.Errorf("failed to delete bookmark: %w", err)
 			}
 
 			if rows == 0 {
 				_, err = stmtInsertBookContent.ExecContext(ctx, book.ID, book.Title, book.Content, book.HTML)
 				if err != nil {
-					return errors.WithStack(err)
+					return fmt.Errorf("failed to execute delete bookmark tag statement: %w", err)
 				}
 			}
 
@@ -250,7 +344,7 @@ func (db *SQLiteDatabase) SaveBookmarks(ctx context.Context, create bool, bookma
 				if tag.Deleted {
 					_, err = stmtDeleteBookTag.ExecContext(ctx, book.ID, tag.ID)
 					if err != nil {
-						return errors.WithStack(err)
+						return fmt.Errorf("failed to execute delete bookmark statement: %w", err)
 					}
 					continue
 				}
@@ -262,26 +356,26 @@ func (db *SQLiteDatabase) SaveBookmarks(ctx context.Context, create bool, bookma
 				// If tag doesn't have any ID, fetch it from database
 				if tag.ID == 0 {
 					if err := stmtGetTag.GetContext(ctx, &tag.ID, tagName); err != nil && err != sql.ErrNoRows {
-						return errors.WithStack(err)
+						return fmt.Errorf("failed to get tag ID: %w", err)
 					}
 
 					// If tag doesn't exist in database, save it
 					if tag.ID == 0 {
 						res, err := stmtInsertTag.ExecContext(ctx, tagName)
 						if err != nil {
-							return errors.WithStack(err)
+							return fmt.Errorf("failed to get last insert ID for tag: %w", err)
 						}
 
 						tagID64, err := res.LastInsertId()
 						if err != nil && err != sql.ErrNoRows {
-							return errors.WithStack(err)
+							return fmt.Errorf("failed to insert bookmark tag: %w", err)
 						}
 
 						tag.ID = int(tagID64)
 					}
 
 					if _, err := stmtInsertBookTag.ExecContext(ctx, tag.ID, book.ID); err != nil {
-						return errors.WithStack(err)
+						return fmt.Errorf("failed to execute bookmark tag statement: %w", err)
 					}
 				}
 
@@ -294,7 +388,7 @@ func (db *SQLiteDatabase) SaveBookmarks(ctx context.Context, create bool, bookma
 
 		return nil
 	}); err != nil {
-		return nil, errors.WithStack(err)
+		return nil, fmt.Errorf("failed to execute select query for bookmark content: %w", err)
 	}
 
 	return result, nil
@@ -417,14 +511,14 @@ func (db *SQLiteDatabase) GetBookmarks(ctx context.Context, opts GetBookmarksOpt
 	// Expand query, because some of the args might be an array
 	query, args, err := sqlx.In(query, args...)
 	if err != nil {
-		return nil, errors.WithStack(err)
+		return nil, fmt.Errorf("failed to execute select query for tags: %w", err)
 	}
 
 	// Fetch bookmarks
 	bookmarks := []model.BookmarkDTO{}
-	err = db.SelectContext(ctx, &bookmarks, query, args...)
+	err = db.reader.SelectContext(ctx, &bookmarks, query, args...)
 	if err != nil && err != sql.ErrNoRows {
-		return nil, errors.WithStack(err)
+		return nil, fmt.Errorf("failed to fetch accounts: %w", err)
 	}
 
 	// store bookmark IDs for further enrichment
@@ -444,14 +538,14 @@ func (db *SQLiteDatabase) GetBookmarks(ctx context.Context, opts GetBookmarksOpt
 		contentMap := make(map[int]bookmarkContent, len(bookmarks))
 
 		contentQuery, args, err := sqlx.In(`SELECT docid, content, html FROM bookmark_content WHERE docid IN (?)`, bookmarkIds)
-		contentQuery = db.Rebind(contentQuery)
+		contentQuery = db.reader.Rebind(contentQuery)
 		if err != nil {
-			return nil, errors.WithStack(err)
+			return nil, fmt.Errorf("failed to expand tags query with IN clause: %w", err)
 		}
 
-		err = db.Select(&contents, contentQuery, args...)
+		err = db.reader.Select(&contents, contentQuery, args...)
 		if err != nil && err != sql.ErrNoRows {
-			return nil, errors.WithStack(err)
+			return nil, fmt.Errorf("failed to get tags: %w", err)
 		}
 		for _, content := range contents {
 			contentMap[content.ID] = content
@@ -477,14 +571,14 @@ func (db *SQLiteDatabase) GetBookmarks(ctx context.Context, opts GetBookmarksOpt
 		LEFT JOIN tag t ON bt.tag_id = t.id
 		WHERE bt.bookmark_id IN (?)
 		ORDER BY t.name`, bookmarkIds)
-	tagsQuery = db.Rebind(tagsQuery)
+	tagsQuery = db.reader.Rebind(tagsQuery)
 	if err != nil {
-		return nil, errors.WithStack(err)
+		return nil, fmt.Errorf("failed to delete bookmark and related records: %w", err)
 	}
 
-	err = db.Select(&tags, tagsQuery, tagArgs...)
+	err = db.reader.Select(&tags, tagsQuery, tagArgs...)
 	if err != nil && err != sql.ErrNoRows {
-		return nil, errors.WithStack(err)
+		return nil, fmt.Errorf("failed to get tags: %w", err)
 	}
 	for _, fetchedTag := range tags {
 		if tags, found := tagsMap[fetchedTag.ID]; found {
@@ -596,14 +690,14 @@ func (db *SQLiteDatabase) GetBookmarksCount(ctx context.Context, opts GetBookmar
 	// Expand query, because some of the args might be an array
 	query, args, err := sqlx.In(query, args...)
 	if err != nil {
-		return 0, errors.WithStack(err)
+		return 0, fmt.Errorf("failed to expand query with IN clause: %w", err)
 	}
 
 	// Fetch count
 	var nBookmarks int
-	err = db.GetContext(ctx, &nBookmarks, query, args...)
+	err = db.reader.GetContext(ctx, &nBookmarks, query, args...)
 	if err != nil && err != sql.ErrNoRows {
-		return 0, errors.WithStack(err)
+		return 0, fmt.Errorf("failed to get bookmark count: %w", err)
 	}
 
 	return nBookmarks, nil
@@ -621,17 +715,17 @@ func (db *SQLiteDatabase) DeleteBookmarks(ctx context.Context, ids ...int) error
 		if len(ids) == 0 {
 			_, err := tx.ExecContext(ctx, delBookmarkContent)
 			if err != nil {
-				return errors.WithStack(err)
+				return fmt.Errorf("failed to prepare delete statement: %w", err)
 			}
 
 			_, err = tx.ExecContext(ctx, delBookmarkTag)
 			if err != nil {
-				return errors.WithStack(err)
+				return fmt.Errorf("failed to execute delete account statement: %w", err)
 			}
 
 			_, err = tx.ExecContext(ctx, delBookmark)
 			if err != nil {
-				return errors.WithStack(err)
+				return fmt.Errorf("failed to execute delete bookmark statement: %w", err)
 			}
 		} else {
 			delBookmark += ` WHERE id = ?`
@@ -640,40 +734,40 @@ func (db *SQLiteDatabase) DeleteBookmarks(ctx context.Context, ids ...int) error
 
 			stmtDelBookmark, err := tx.Preparex(delBookmark)
 			if err != nil {
-				return errors.WithStack(err)
+				return fmt.Errorf("failed to get bookmark: %w", err)
 			}
 
 			stmtDelBookmarkTag, err := tx.Preparex(delBookmarkTag)
 			if err != nil {
-				return errors.WithStack(err)
+				return fmt.Errorf("failed to expand query with IN clause: %w", err)
 			}
 
 			stmtDelBookmarkContent, err := tx.Preparex(delBookmarkContent)
 			if err != nil {
-				return errors.WithStack(err)
+				return fmt.Errorf("failed to delete bookmark content: %w", err)
 			}
 
 			for _, id := range ids {
 				_, err = stmtDelBookmarkContent.ExecContext(ctx, id)
 				if err != nil {
-					return errors.WithStack(err)
+					return fmt.Errorf("failed to delete bookmark: %w", err)
 				}
 
 				_, err = stmtDelBookmarkTag.ExecContext(ctx, id)
 				if err != nil {
-					return errors.WithStack(err)
+					return fmt.Errorf("failed to delete bookmark tag: %w", err)
 				}
 
 				_, err = stmtDelBookmark.ExecContext(ctx, id)
 				if err != nil {
-					return errors.WithStack(err)
+					return fmt.Errorf("failed to delete bookmark: %w", err)
 				}
 			}
 		}
 
 		return nil
 	}); err != nil {
-		return errors.WithStack(err)
+		return fmt.Errorf("failed to update database schema version: %w", err)
 	}
 
 	return nil
@@ -697,113 +791,176 @@ func (db *SQLiteDatabase) GetBookmark(ctx context.Context, id int, url string) (
 	}
 
 	book := model.BookmarkDTO{}
-	if err := db.GetContext(ctx, &book, query, args...); err != nil && err != sql.ErrNoRows {
-		return book, false, errors.WithStack(err)
+	if err := db.reader.GetContext(ctx, &book, query, args...); err != nil && err != sql.ErrNoRows {
+		return book, false, fmt.Errorf("failed to get bookmark: %w", err)
 	}
 
 	return book, book.ID != 0, nil
 }
 
-// SaveAccount saves new account to database. Returns error if any happened.
-func (db *SQLiteDatabase) SaveAccount(ctx context.Context, account model.Account) error {
+// CreateAccount saves new account to database. Returns error if any happened.
+func (db *SQLiteDatabase) CreateAccount(ctx context.Context, account model.Account) (*model.Account, error) {
+	var accountID int64
 	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
-		// Hash password with bcrypt
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(account.Password), 10)
+		// Check if username already exists
+		var exists bool
+		err := tx.GetContext(ctx, &exists,
+			"SELECT EXISTS(SELECT 1 FROM account WHERE username = ?)",
+			account.Username)
 		if err != nil {
-			return err
+			return fmt.Errorf("error checking username existence: %w", err)
+		}
+		if exists {
+			return ErrAlreadyExists
 		}
 
-		// Insert account to database
-		_, err = tx.Exec(`INSERT INTO account
-		(username, password, owner, config) VALUES (?, ?, ?, ?)
-		ON CONFLICT(username) DO UPDATE SET
-		password = ?, owner = ?`,
-			account.Username, hashedPassword, account.Owner, account.Config,
-			hashedPassword, account.Owner, account.Config)
-		return errors.WithStack(err)
+		// Insert new account
+		query, err := tx.PrepareContext(ctx, `INSERT INTO account
+			(username, password, owner, config) VALUES (?, ?, ?, ?)
+			RETURNING id`)
+		if err != nil {
+			return fmt.Errorf("error preparing query: %w", err)
+		}
+
+		err = query.QueryRowContext(ctx,
+			account.Username, account.Password, account.Owner, account.Config).Scan(&accountID)
+		if err != nil {
+			return fmt.Errorf("error executing query: %w", err)
+		}
+
+		return nil
 	}); err != nil {
-		return errors.WithStack(err)
+		return nil, fmt.Errorf("error running transaction: %w", err)
 	}
 
-	return nil
+	account.ID = model.DBID(accountID)
+
+	return &account, nil
 }
 
-// SaveAccountSettings update settings for specific account  in database. Returns error if any happened.
-func (db *SQLiteDatabase) SaveAccountSettings(ctx context.Context, account model.Account) error {
+// UpdateAccount updates account in database.
+func (db *SQLiteDatabase) UpdateAccount(ctx context.Context, account model.Account) error {
+	if account.ID == 0 {
+		return ErrNotFound
+	}
+
 	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
-		// Update account config in database for specific user
-		_, err := tx.Exec(`UPDATE account
-	   SET config = ?
-	   WHERE username = ?`,
-			account.Config, account.Username)
-		return errors.WithStack(err)
+		// Check if username already exists for a different account
+		var exists bool
+		err := tx.GetContext(ctx, &exists,
+			"SELECT EXISTS(SELECT 1 FROM account WHERE username = ? AND id != ?)",
+			account.Username, account.ID)
+		if err != nil {
+			return fmt.Errorf("error checking username existence: %w", err)
+		}
+		if exists {
+			return ErrAlreadyExists
+		}
+
+		// Update account
+		queryString := "UPDATE account SET username = ?, password = ?, owner = ?, config = ? WHERE id = ?"
+		updateQuery, err := tx.PrepareContext(ctx, queryString)
+		if err != nil {
+			return fmt.Errorf("error preparing query: %w", err)
+		}
+
+		result, err := updateQuery.ExecContext(ctx,
+			account.Username, account.Password, account.Owner, account.Config, account.ID)
+		if err != nil {
+			return fmt.Errorf("error executing query: %w", err)
+		}
+
+		rows, err := result.RowsAffected()
+		if err != nil {
+			return fmt.Errorf("error getting rows affected: %w", err)
+		}
+		if rows == 0 {
+			return ErrNotFound
+		}
+
+		return nil
 	}); err != nil {
-		return errors.WithStack(err)
+		return fmt.Errorf("error running transaction: %w", err)
 	}
 
 	return nil
 }
 
-// GetAccounts fetch list of account (without its password) based on submitted options.
-func (db *SQLiteDatabase) GetAccounts(ctx context.Context, opts GetAccountsOptions) ([]model.Account, error) {
+// ListAccounts fetch list of account (without its password) based on submitted options.
+func (db *SQLiteDatabase) ListAccounts(ctx context.Context, opts ListAccountsOptions) ([]model.Account, error) {
 	// Create query
 	args := []interface{}{}
-	query := `SELECT id, username, owner, config FROM account WHERE 1`
+	fields := []string{"id", "username", "owner", "config"}
+	if opts.WithPassword {
+		fields = append(fields, "password")
+	}
+
+	query := fmt.Sprintf(`SELECT %s FROM account WHERE 1`, strings.Join(fields, ", "))
 
 	if opts.Keyword != "" {
 		query += " AND username LIKE ?"
 		args = append(args, "%"+opts.Keyword+"%")
 	}
 
+	if opts.Username != "" {
+		query += " AND username = ?"
+		args = append(args, opts.Username)
+	}
+
 	if opts.Owner {
 		query += " AND owner = 1"
 	}
 
-	query += ` ORDER BY username`
-
 	// Fetch list account
 	accounts := []model.Account{}
-	err := db.SelectContext(ctx, &accounts, query, args...)
+	err := db.reader.SelectContext(ctx, &accounts, query, args...)
 	if err != nil && err != sql.ErrNoRows {
-		return nil, errors.WithStack(err)
+		return nil, fmt.Errorf("failed to execute select query: %w", err)
 	}
 
 	return accounts, nil
 }
 
-// GetAccount fetch account with matching username.
+// GetAccount fetch account with matching ID.
 // Returns the account and boolean whether it's exist or not.
-func (db *SQLiteDatabase) GetAccount(ctx context.Context, username string) (model.Account, bool, error) {
+func (db *SQLiteDatabase) GetAccount(ctx context.Context, id model.DBID) (*model.Account, bool, error) {
 	account := model.Account{}
-	if err := db.GetContext(ctx, &account, `SELECT
-		id, username, password, owner, config FROM account WHERE username = ?`,
-		username,
-	); err != nil {
-		return account, false, errors.WithStack(err)
+	err := db.reader.GetContext(ctx, &account, `SELECT
+		id, username, password, owner, config FROM account WHERE id = ?`,
+		id,
+	)
+	if err != nil && err != sql.ErrNoRows {
+		return &account, false, errors.WithStack(err)
 	}
 
-	return account, account.ID != 0, nil
+	// Use custom not found error if that's the result of the query
+	if err == sql.ErrNoRows {
+		err = ErrNotFound
+	}
+
+	return &account, account.ID != 0, err
 }
 
-// DeleteAccounts removes all record with matching usernames.
-func (db *SQLiteDatabase) DeleteAccounts(ctx context.Context, usernames ...string) error {
+// DeleteAccount removes record with matching ID.
+func (db *SQLiteDatabase) DeleteAccount(ctx context.Context, id model.DBID) error {
 	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
-		// Delete account
-		stmtDelete, err := tx.Preparex(`DELETE FROM account WHERE username = ?`)
+		result, err := tx.ExecContext(ctx, `DELETE FROM account WHERE id = ?`, id)
 		if err != nil {
-			return errors.WithStack(err)
+			return errors.WithStack(fmt.Errorf("error deleting account: %v", err))
 		}
 
-		for _, username := range usernames {
-			_, err := stmtDelete.ExecContext(ctx, username)
-			if err != nil {
-				return errors.WithStack(err)
-			}
+		rows, err := result.RowsAffected()
+		if err != nil && err != sql.ErrNoRows {
+			return errors.WithStack(fmt.Errorf("error getting rows affected: %v", err))
+		}
+
+		if rows == 0 {
+			return ErrNotFound
 		}
 
 		return nil
 	}); err != nil {
-		return errors.WithStack(err)
+		return fmt.Errorf("failed to prepare statement: %w", err)
 	}
 
 	return nil
@@ -823,17 +980,17 @@ func (db *SQLiteDatabase) CreateTags(ctx context.Context, tags ...model.Tag) err
 	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
 		stmt, err := tx.Preparex(query)
 		if err != nil {
-			return errors.Wrap(errors.WithStack(err), "error preparing query")
+			return fmt.Errorf("failed to prepare tag creation query: %w", err)
 		}
 
 		_, err = stmt.ExecContext(ctx, values...)
 		if err != nil {
-			return errors.Wrap(errors.WithStack(err), "error executing query")
+			return fmt.Errorf("failed to execute tag creation query: %w", err)
 		}
 
 		return nil
 	}); err != nil {
-		return errors.Wrap(errors.WithStack(err), "error running transaction")
+		return fmt.Errorf("failed to run tag creation transaction: %w", err)
 	}
 
 	return nil
@@ -847,9 +1004,9 @@ func (db *SQLiteDatabase) GetTags(ctx context.Context) ([]model.Tag, error) {
 		LEFT JOIN tag t ON bt.tag_id = t.id
 		GROUP BY bt.tag_id ORDER BY t.name`
 
-	err := db.SelectContext(ctx, &tags, query)
+	err := db.reader.SelectContext(ctx, &tags, query)
 	if err != nil && err != sql.ErrNoRows {
-		return nil, errors.WithStack(err)
+		return nil, fmt.Errorf("failed to prepare delete bookmark content statement: %w", err)
 	}
 
 	return tags, nil
@@ -861,7 +1018,7 @@ func (db *SQLiteDatabase) RenameTag(ctx context.Context, id int, newName string)
 		_, err := tx.ExecContext(ctx, `UPDATE tag SET name = ? WHERE id = ?`, newName, id)
 		return err
 	}); err != nil {
-		return errors.WithStack(err)
+		return fmt.Errorf("failed to rename tag: %w", err)
 	}
 
 	return nil

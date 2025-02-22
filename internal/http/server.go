@@ -61,7 +61,10 @@ func (s *HttpServer) Setup(cfg *config.Config, deps *dependencies.Dependencies) 
 	s.handle("/system", routes.NewSystemRoutes(s.logger))
 	s.handle("/bookmark", routes.NewBookmarkRoutes(s.logger, deps))
 	s.handle("/api/v1", api_v1.NewAPIRoutes(s.logger, deps, legacyRoutes.HandleLogin))
-	s.handle("/swagger", routes.NewSwaggerAPIRoutes(s.logger))
+
+	if cfg.Http.ServeSwagger {
+		s.handle("/swagger", routes.NewSwaggerAPIRoutes(s.logger))
+	}
 
 	s.http.Handler = s.engine
 	s.http.Addr = fmt.Sprintf("%s%d", cfg.Http.Address, cfg.Http.Port)
