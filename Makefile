@@ -16,7 +16,7 @@ LDFLAGS += -s -w -X main.version=$(BUILD_HASH) -X main.date=$(BUILD_TIME)
 # Build (container)
 CONTAINER_RUNTIME := docker
 CONTAINERFILE_NAME := Dockerfile
-CONTAINER_ALPINE_VERSION := 3.19
+CONTAINER_ALPINE_VERSION := 3.21
 BUILDX_PLATFORMS := linux/amd64,linux/arm64,linux/arm/v7
 
 # This is used for local development only, forcing linux to create linux only images but with the arch
