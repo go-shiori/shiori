@@ -12,6 +12,12 @@ import (
 	"github.com/pkg/errors"
 )
 
+// ErrNotFound is error returned when record is not found in database.
+var ErrNotFound = errors.New("not found")
+
+// ErrAlreadyExists is error returned when record already exists in database.
+var ErrAlreadyExists = errors.New("already exists")
+
 // OrderMethod is the order method for getting bookmarks
 type OrderMethod int
 
@@ -36,10 +42,16 @@ type GetBookmarksOptions struct {
 	Offset       int
 }
 
-// GetAccountsOptions is options for fetching accounts from database.
-type GetAccountsOptions struct {
+// ListAccountsOptions is options for fetching accounts from database.
+type ListAccountsOptions struct {
+	// Filter accounts by a keyword
 	Keyword string
-	Owner   bool
+	// Filter accounts by exact useranme
+	Username string
+	// Return owner accounts only
+	Owner bool
+	// Retrieve password content
+	WithPassword bool
 }
 
 // Connect connects to database based on submitted database URL.
@@ -64,8 +76,11 @@ func Connect(ctx context.Context, dbURL string) (DB, error) {
 
 // DB is interface for accessing and manipulating data in database.
 type DB interface {
-	// DBx is the underlying sqlx.DB
-	DBx() *sqlx.DB
+	// WriterDB is the underlying sqlx.DB
+	WriterDB() *sqlx.DB
+
+	// ReaderDB is the underlying sqlx.DB
+	ReaderDB() *sqlx.DB
 
 	// Init initializes the database
 	Init(ctx context.Context) error
@@ -94,20 +109,20 @@ type DB interface {
 	// GetBookmark fetches bookmark based on its ID or URL.
 	GetBookmark(ctx context.Context, id int, url string) (model.BookmarkDTO, bool, error)
 
-	// SaveAccount saves new account in database
-	SaveAccount(ctx context.Context, a model.Account) error
+	// CreateAccount saves new account in database
+	CreateAccount(ctx context.Context, a model.Account) (*model.Account, error)
 
-	// SaveAccountSettings saves settings for specific user in database
-	SaveAccountSettings(ctx context.Context, a model.Account) error
+	// UpdateAccount updates account in database
+	UpdateAccount(ctx context.Context, a model.Account) error
 
-	// GetAccounts fetch list of account (without its password) with matching keyword.
-	GetAccounts(ctx context.Context, opts GetAccountsOptions) ([]model.Account, error)
+	// ListAccounts fetch list of account (without its password) with matching keyword.
+	ListAccounts(ctx context.Context, opts ListAccountsOptions) ([]model.Account, error)
 
 	// GetAccount fetch account with matching username.
-	GetAccount(ctx context.Context, username string) (model.Account, bool, error)
+	GetAccount(ctx context.Context, id model.DBID) (*model.Account, bool, error)
 
-	// DeleteAccounts removes all record with matching usernames
-	DeleteAccounts(ctx context.Context, usernames ...string) error
+	// DeleteAccount removes account with matching id
+	DeleteAccount(ctx context.Context, id model.DBID) error
 
 	// CreateTags creates new tags in database.
 	CreateTags(ctx context.Context, tags ...model.Tag) error

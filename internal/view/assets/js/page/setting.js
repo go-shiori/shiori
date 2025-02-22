@@ -48,11 +48,11 @@ var template = `
                 Make bookmark publicly available by default
             </label>
         </details>
-        <details v-if="activeAccount.owner" open class="setting-group" id="setting-accounts">
+        <details v-if="activeAccount.owner" open class="setting-group setting-accounts" id="setting-accounts">
             <summary>Accounts</summary>
-            <ul>
+            <ul class="accounts-list">
                 <li v-if="accounts.length === 0">No accounts registered</li>
-                <li v-for="(account, idx) in accounts">
+                <li v-for="(account, idx) in accounts" :shiori-username="account.username">
                     <p>{{account.username}}
                         <span v-if="account.owner" class="account-level">(owner)</span>
                     </p>
@@ -65,8 +65,24 @@ var template = `
                 </li>
             </ul>
             <div class="setting-group-footer">
-                <a @click="loadAccounts">Refresh accounts</a>
-                <a v-if="activeAccount.owner" @click="showDialogNewAccount">Add new account</a>
+                <a @click="loadAccounts" title="Refresh accounts">Refresh accounts</a>
+                <a v-if="activeAccount.owner" @click="showDialogNewAccount" title="Add new account">Add new account</a>
+            </div>
+        </details>
+        <details v-if="!activeAccount.owner" open class="setting-group setting-accounts" id="setting-my-account">
+            <summary>My account</summary>
+            <ul>
+                <li v-for="(account, idx) in [this.activeAccount]" :shiori-username="account.username">
+                    <p>{{account.username}}
+                        <span v-if="account.owner" class="account-level">(owner)</span>
+                    </p>
+                    <a title="Change password" @click="showDialogChangePassword(account)">
+                        <i class="fa fas fa-fw fa-key"></i>
+                    </a>
+                </li>
+            </ul>
+            <div class="setting-group-footer">
+                <a @click="showDialogChangePassword(this.activeAccount)" title="Change password">Change password</a>
             </div>
         </details>
 		<details v-if="activeAccount.owner" class="setting-group" id="setting-system-info">
@@ -148,7 +164,7 @@ export default {
 			if (this.loading) return;
 
 			this.loading = true;
-			fetch(new URL("api/accounts", document.baseURI), {
+			fetch(new URL("api/v1/accounts", document.baseURI), {
 				headers: {
 					"Content-Type": "application/json",
 					Authorization: "Bearer " + localStorage.getItem("shiori-token"),
@@ -160,7 +176,7 @@ export default {
 				})
 				.then((json) => {
 					this.loading = false;
-					this.accounts = json;
+					this.accounts = json.message;
 				})
 				.catch((err) => {
 					this.loading = false;
@@ -208,14 +224,14 @@ export default {
 						value: "",
 					},
 					{
-						name: "repeat",
+						name: "repeat_password",
 						label: "Repeat password",
 						type: "password",
 						value: "",
 					},
 					{
-						name: "visitor",
-						label: "This account is for visitor",
+						name: "admin",
+						label: "This account is an admin account",
 						type: "check",
 						value: false,
 					},
@@ -233,7 +249,7 @@ export default {
 						return;
 					}
 
-					if (data.password !== data.repeat) {
+					if (data.password !== data.repeat_password) {
 						this.showErrorDialog("Password does not match");
 						return;
 					}
@@ -241,11 +257,11 @@ export default {
 					var request = {
 						username: data.username,
 						password: data.password,
-						owner: !data.visitor,
+						owner: data.admin,
 					};
 
 					this.dialog.loading = true;
-					fetch(new URL("api/accounts", document.baseURI), {
+					fetch(new URL("api/v1/accounts", document.baseURI), {
 						method: "post",
 						body: JSON.stringify(request),
 						headers: {
@@ -255,16 +271,13 @@ export default {
 					})
 						.then((response) => {
 							if (!response.ok) throw response;
-							return response;
+							return response.json();
 						})
-						.then(() => {
+						.then((json) => {
 							this.dialog.loading = false;
 							this.dialog.visible = false;
 
-							this.accounts.push({
-								username: data.username,
-								owner: !data.visitor,
-							});
+							this.accounts.push(json.message);
 							this.accounts.sort((a, b) => {
 								var nameA = a.username.toLowerCase(),
 									nameB = b.username.toLowerCase();
@@ -290,57 +303,75 @@ export default {
 			});
 		},
 		showDialogChangePassword(account) {
+			let fields = [
+				{
+					name: "new_password",
+					label: "New password",
+					type: "password",
+					value: "",
+				},
+				{
+					name: "repeat_password",
+					label: "Repeat password",
+					type: "password",
+					value: "",
+				},
+			];
+
+			const requiresOldPassword =
+				!this.activeAccount.owner || this.activeAccount.id === account.id;
+
+			// Only owners can update user passwords without
+			// providing the old password
+
+			if (requiresOldPassword) {
+				fields.unshift({
+					name: "old_password",
+					label: "The current password",
+					type: "password",
+					value: "",
+				});
+			}
+
 			this.showDialog({
 				title: "Change Password",
-				content: "Input new password :",
-				fields: [
-					{
-						name: "oldPassword",
-						label: "Old password",
-						type: "password",
-						value: "",
-					},
-					{
-						name: "password",
-						label: "New password",
-						type: "password",
-						value: "",
-					},
-					{
-						name: "repeat",
-						label: "Repeat password",
-						type: "password",
-						value: "",
-					},
-				],
+				content: "",
+				fields: fields,
 				mainText: "OK",
 				secondText: "Cancel",
 				mainClick: (data) => {
-					if (data.oldPassword === "") {
-						this.showErrorDialog("Old password must not empty");
+					if (requiresOldPassword) {
+						if (data.old_password === "") {
+							this.showErrorDialog("You must provide the current password.");
+							return;
+						}
+					}
+
+					if (data.new_password === "") {
+						this.showErrorDialog("New password must not empt.");
 						return;
 					}
 
-					if (data.password === "") {
-						this.showErrorDialog("New password must not empty");
-						return;
-					}
-
-					if (data.password !== data.repeat) {
-						this.showErrorDialog("Password does not match");
+					if (data.new_password !== data.repeat_password) {
+						this.showErrorDialog("Password does not match.");
 						return;
 					}
 
 					var request = {
-						username: account.username,
-						oldPassword: data.oldPassword,
-						newPassword: data.password,
-						owner: account.owner,
+						old_password: data.old_password,
+						new_password: data.new_password,
 					};
 
+					// Determine which URL to use depending if the user is updating its own
+					// account or another user's account.
+					let url = `api/v1/accounts/${account.id}`;
+					if (this.activeAccount.id === account.id) {
+						url = "api/v1/auth/account";
+					}
+
 					this.dialog.loading = true;
-					fetch(new URL("api/accounts", document.baseURI), {
-						method: "put",
+					fetch(new URL(url, document.baseURI), {
+						method: "PATCH",
 						body: JSON.stringify(request),
 						headers: {
 							"Content-Type": "application/json",
@@ -352,8 +383,14 @@ export default {
 							return response;
 						})
 						.then(() => {
-							this.dialog.loading = false;
-							this.dialog.visible = false;
+							this.showDialog({
+								title: "Password Changed",
+								content: "Password has been changed.",
+								mainText: "OK",
+								mainClick: () => {
+									this.dialog.visible = false;
+								},
+							});
 						})
 						.catch((err) => {
 							this.dialog.loading = false;
@@ -372,9 +409,8 @@ export default {
 				secondText: "No",
 				mainClick: () => {
 					this.dialog.loading = true;
-					fetch(`api/accounts`, {
-						method: "delete",
-						body: JSON.stringify([account.username]),
+					fetch(`api/v1/accounts/${account.id}`, {
+						method: "DELETE",
 						headers: {
 							"Content-Type": "application/json",
 							Authorization: "Bearer " + localStorage.getItem("shiori-token"),

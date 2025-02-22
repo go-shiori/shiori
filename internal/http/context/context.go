@@ -9,7 +9,7 @@ import (
 type Context struct {
 	*gin.Context
 
-	account *model.Account
+	account *model.AccountDTO
 }
 
 // NewContextFromGin returns a new Context instance from gin.Context
