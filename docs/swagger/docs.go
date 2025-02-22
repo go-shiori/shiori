@@ -181,6 +181,39 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/bookmarks/sync": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Get List of bookmark and last time of sync response bookmark change after that time and deleted bookmark.",
+                "parameters": [
+                    {
+                        "description": "Bookmarks id in client side and last sync timestamp and page for pagination",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api_v1.syncPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api_v1.syncResponseMessage"
+                        }
+                    },
+                    "403": {
+                        "description": "Token not provided/invalid"
+                    }
+                }
+            }
+        },
         "/api/v1/system/info": {
             "get": {
                 "description": "Get general system information like Shiori version, database, and OS",
@@ -251,6 +284,23 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "api_v1.bookmarksModifiedResponse": {
+            "type": "object",
+            "properties": {
+                "bookmarks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.BookmarkDTO"
+                    }
+                },
+                "maxPage": {
+                    "type": "integer"
+                },
+                "page": {
+                    "type": "integer"
+                }
+            }
+        },
         "api_v1.infoResponse": {
             "type": "object",
             "properties": {
@@ -326,6 +376,40 @@ const docTemplate = `{
             "properties": {
                 "config": {
                     "$ref": "#/definitions/model.UserConfig"
+                }
+            }
+        },
+        "api_v1.syncPayload": {
+            "type": "object",
+            "required": [
+                "ids"
+            ],
+            "properties": {
+                "ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "last_sync": {
+                    "type": "integer"
+                },
+                "page": {
+                    "type": "integer"
+                }
+            }
+        },
+        "api_v1.syncResponseMessage": {
+            "type": "object",
+            "properties": {
+                "deleted": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "modified": {
+                    "$ref": "#/definitions/api_v1.bookmarksModifiedResponse"
                 }
             }
         },

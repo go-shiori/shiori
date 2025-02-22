@@ -2,6 +2,7 @@ package api_v1
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"testing"
 	"time"
@@ -85,5 +86,161 @@ func TestReadableeBookmarkContent(t *testing.T) {
 		require.Equal(t, response, w.Body.String())
 		require.Equal(t, http.StatusOK, w.Code)
 	})
+}
 
+func TestSync(t *testing.T) {
+	logger := logrus.New()
+	ctx := context.TODO()
+
+	g := gin.New()
+
+	_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+	g.Use(middleware.AuthMiddleware(deps))
+
+	router := NewBookmarksAPIRoutes(logger, deps)
+	router.Setup(g.Group("/"))
+
+	account := model.Account{
+		Username: "test",
+		Password: "test",
+		Owner:    false,
+	}
+	require.NoError(t, deps.Database.SaveAccount(ctx, account))
+	token, err := deps.Domains.Auth.CreateTokenForAccount(&account, time.Now().Add(time.Minute))
+	require.NoError(t, err)
+
+	// all payloads need
+	payloadInvalidID := syncPayload{
+		Ids:      []int{0, -1},
+		LastSync: 0,
+		Page:     1,
+	}
+
+	// Json format of payloads
+	payloadJSONInvalidID, err := json.Marshal(payloadInvalidID)
+	if err != nil {
+		logrus.Printf("can't create a valid json")
+	}
+
+	// Add bookmarks to the database
+	bookmarkFirst := testutil.GetValidBookmark()
+	_, err = deps.Database.SaveBookmarks(ctx, true, *bookmarkFirst)
+	require.NoError(t, err)
+
+	bookmarkSecond := testutil.GetValidBookmark()
+	bookmarkSecond.Title = "second bookmark"
+	unixTimestampOneSecondLater := time.Now().UTC().Add(1 * time.Second).Unix()
+	bookmarkSecond.ModifiedAt = time.Unix(unixTimestampOneSecondLater, 0).UTC().Format(model.DatabaseDateFormat)
+	_, err = deps.Database.SaveBookmarks(ctx, true, *bookmarkSecond)
+	require.NoError(t, err)
+
+	payloadValid := syncPayload{
+		Ids:      []int{},
+		LastSync: unixTimestampOneSecondLater,
+		Page:     1,
+	}
+
+	payloadValidWithIDs := syncPayload{
+		Ids:      []int{3, 2, 7},
+		LastSync: unixTimestampOneSecondLater,
+		Page:     1,
+	}
+
+	payloadJSONValid, err := json.Marshal(payloadValid)
+	if err != nil {
+		logrus.Printf("can't create a valid json")
+	}
+	payloadJSONValidWithIDs, err := json.Marshal(payloadValidWithIDs)
+	if err != nil {
+		logrus.Printf("can't create a valid json")
+	}
+
+	t.Run("require authentication", func(t *testing.T) {
+		w := testutil.PerformRequest(g, "POST", "/sync")
+		require.Equal(t, http.StatusUnauthorized, w.Code)
+	})
+
+	t.Run("invalid id", func(t *testing.T) {
+		w := testutil.PerformRequest(g, "POST", "/sync", testutil.WithHeader(model.AuthorizationHeader, model.AuthorizationTokenType+" "+token), testutil.WithBody(string(payloadJSONInvalidID)))
+		require.Equal(t, http.StatusBadRequest, w.Code)
+
+		// Check the response body
+		var response map[string]interface{}
+		err := json.Unmarshal(w.Body.Bytes(), &response)
+		require.NoError(t, err, "failed to unmarshal response body")
+
+		// Assert that the response message is as expected for 0 or negative id
+		require.Equal(t, "id should not be 0 or negative", response["message"])
+	})
+
+	t.Run("retun just second bookmark with LastSync option sync api", func(t *testing.T) {
+		w := testutil.PerformRequest(g, "POST", "/sync", testutil.WithHeader(model.AuthorizationHeader, model.AuthorizationTokenType+" "+token), testutil.WithBody(string(payloadJSONValid)))
+		require.Equal(t, http.StatusOK, w.Code)
+
+		// Check the response body
+		var response map[string]interface{}
+		err := json.Unmarshal(w.Body.Bytes(), &response)
+		require.NoError(t, err, "failed to unmarshal response body")
+
+		// Assert that the response message is as expected
+		require.Equal(t, true, response["ok"])
+
+		// Access the bookmarks
+		message := response["message"].(map[string]interface{})
+		deleted := message["deleted"]
+		modified := message["modified"].(map[string]interface{})
+		bookmarks := modified["bookmarks"].([]interface{})
+
+		// Check the IDs of the bookmarks
+		var ids []int
+		for _, bookmark := range bookmarks {
+			bookmarkMap := bookmark.(map[string]interface{})
+			id := int(bookmarkMap["id"].(float64))
+			ids = append(ids, id)
+		}
+
+		// Assert that the IDs are as expected
+		expectedIDs := []int{2}
+		require.ElementsMatch(t, expectedIDs, ids, "bookmark IDs do not match")
+		require.Nil(t, deleted, "deleted bookmark is not nil")
+	})
+
+	t.Run("retun deleted bookmark", func(t *testing.T) {
+		w := testutil.PerformRequest(g, "POST", "/sync", testutil.WithHeader(model.AuthorizationHeader, model.AuthorizationTokenType+" "+token), testutil.WithBody(string(payloadJSONValidWithIDs)))
+		require.Equal(t, http.StatusOK, w.Code)
+
+		// Check the response body
+		var response map[string]interface{}
+		err := json.Unmarshal(w.Body.Bytes(), &response)
+		require.NoError(t, err, "failed to unmarshal response body")
+
+		// Assert that the response message is as expected
+		require.Equal(t, true, response["ok"])
+
+		// Access the bookmarks
+		message := response["message"].(map[string]interface{})
+		deleted := message["deleted"].([]interface{})
+		modified := message["modified"].(map[string]interface{})
+		bookmarks := modified["bookmarks"].([]interface{})
+
+		// Check the IDs of the bookmarks
+		var ids []int
+		for _, bookmark := range bookmarks {
+			bookmarkMap := bookmark.(map[string]interface{})
+			id := int(bookmarkMap["id"].(float64))
+			ids = append(ids, id)
+		}
+		// Convert deleted IDs to int
+		var deletedIDs []int
+		for _, del := range deleted {
+			deletedID := int(del.(float64)) // Convert each deleted ID to int
+			deletedIDs = append(deletedIDs, deletedID)
+		}
+
+		// Assert that the IDs are as expected
+		expectedIDs := []int{2}
+		expectedDeletedIDs := []int{3, 7}
+		require.ElementsMatch(t, expectedIDs, ids, "bookmark IDs do not match")
+		require.ElementsMatch(t, expectedDeletedIDs, deletedIDs, "deleted bookmark IDs do not match")
+	})
 }

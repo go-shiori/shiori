@@ -2,11 +2,13 @@ package api_v1
 
 import (
 	"fmt"
+	"math"
 	"net/http"
 	"os"
 	fp "path/filepath"
 	"strconv"
 	"sync"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-shiori/shiori/internal/core"
@@ -28,6 +30,8 @@ func (r *BookmarksAPIRoutes) Setup(g *gin.RouterGroup) model.Routes {
 	g.Use(middleware.AuthenticationRequired())
 	g.PUT("/cache", r.updateCache)
 	g.GET("/:id/readable", r.bookmarkReadable)
+	g.POST("/sync", r.sync)
+
 	return r
 }
 
@@ -112,6 +116,110 @@ func (r *BookmarksAPIRoutes) bookmarkReadable(c *gin.Context) {
 		Content: bookmark.Content,
 		Html:    bookmark.HTML,
 	})
+}
+
+type syncPayload struct {
+	Ids      []int `json:"ids"          validate:"required"`
+	LastSync int64 `json:"last_sync"`
+	Page     int   `json:"page"`
+}
+
+func (p *syncPayload) IsValid() error {
+	for _, id := range p.Ids {
+		if id <= 0 {
+			return fmt.Errorf("id should not be 0 or negative")
+		}
+	}
+	return nil
+}
+
+type bookmarksModifiedResponse struct {
+	Bookmarks []model.BookmarkDTO `json:"bookmarks"`
+	Page      int                 `json:"page"`
+	MaxPage   int                 `json:"maxPage"`
+}
+
+type syncResponseMessage struct {
+	Deleted  []int                     `json:"deleted"`
+	Modified bookmarksModifiedResponse `json:"modified"`
+}
+
+// Bookmark Sync godoc
+//
+//	@Summary					Get List of bookmark and last time of sync response bookmark change after that time and deleted bookmark.
+//	@Tags						  Auth
+//	@securityDefinitions.apikey	ApiKeyAuth
+//	@Param						payload	body	syncPayload	true	"Bookmarks id in client side and last sync timestamp and page for pagination"`
+//	@Produce					json
+//	@Success					200	{object}	syncResponseMessage
+//	@Failure					403	{object}	nil	"Token not provided/invalid"
+//	@Router						/api/v1/bookmarks/sync [post]
+func (r *BookmarksAPIRoutes) sync(c *gin.Context) {
+	var payload syncPayload
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		response.SendInternalServerError(c)
+		return
+	}
+
+	if err := payload.IsValid(); err != nil {
+		response.SendError(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	lastsyncformat := time.Unix(payload.LastSync, 0).UTC().Format(model.DatabaseDateFormat)
+
+	page := payload.Page
+	if payload.Page < 1 {
+		page = 1
+	}
+
+	filter := database.GetBookmarksOptions{
+		LastSync:  lastsyncformat,
+		IsDeleted: payload.Ids,
+		Limit:     30,
+		Offset:    (page - 1) * 30,
+	}
+
+	// Calculate max page
+	nBookmarks, err := r.deps.Database.GetBookmarksCount(c, filter)
+	if err != nil {
+		r.logger.WithError(err).Error("error getting bookmakrs number")
+		response.SendInternalServerError(c)
+		return
+	}
+
+	maxPage := int(math.Ceil(float64(nBookmarks) / 30))
+
+	bookmarks, err := r.deps.Database.GetBookmarks(c, filter)
+	if err != nil {
+		r.logger.WithError(err).Error("error getting bookmakrs")
+		response.SendInternalServerError(c)
+		return
+	}
+
+	// Get Deleted Bookmarks
+	var deletedBookmarks []int
+
+	if len(payload.Ids) > 0 && page == 1 {
+		deletedBookmarks, err = r.deps.Database.GetDeletedBookmarks(c, filter)
+		if err != nil {
+			r.logger.WithError(err).Error("error getting bookmakrs")
+			response.SendInternalServerError(c)
+			return
+		}
+	}
+
+	// Create response using syncResponseMessage struct
+	resp := syncResponseMessage{
+		Deleted: deletedBookmarks,
+		Modified: bookmarksModifiedResponse{
+			Bookmarks: bookmarks,
+			Page:      page,
+			MaxPage:   maxPage,
+		},
+	}
+
+	response.Send(c, 200, resp)
 }
 
 // updateCache godoc
