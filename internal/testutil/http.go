@@ -10,15 +10,6 @@ import (
 	"github.com/go-shiori/shiori/internal/model"
 )
 
-type Handler func(deps *model.Dependencies, c *model.WebContext)
-
-// NewGin returns a new gin engine with test mode enabled.
-func NewGin() *gin.Engine {
-	engine := gin.New()
-	gin.SetMode(gin.TestMode)
-	return engine
-}
-
 type Option = func(*http.Request)
 
 func WithBody(body string) Option {
@@ -39,21 +30,35 @@ func WithAuthToken(token string) Option {
 	}
 }
 
-func PerformRequest(handler http.Handler, method, path string, options ...Option) *httptest.ResponseRecorder {
-	recorder := httptest.NewRecorder()
-	return PerformRequestWithRecorder(recorder, handler, method, path, options...)
+// PerformRequest executes a request against a handler
+func PerformRequest(deps model.Dependencies, handler model.HttpHandler, method, path string, options ...Option) *httptest.ResponseRecorder {
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(method, path, nil)
+	for _, opt := range options {
+		opt(r)
+	}
+
+	c := NewWebContext(w, r)
+	handler(deps, c)
+
+	return w
 }
 
-func PerformRequestWithRecorder(recorder *httptest.ResponseRecorder, r http.Handler, method, path string, options ...Option) *httptest.ResponseRecorder {
-	request, err := http.NewRequest(method, path, nil)
-	if err != nil {
-		panic(err)
+// FakeAccount creates a fake account for testing
+func FakeAccount(isAdmin bool) *model.AccountDTO {
+	return &model.AccountDTO{
+		ID:       1,
+		Username: "user",
+		Owner:    model.Ptr(isAdmin),
 	}
-	for _, opt := range options {
-		opt(request)
+}
+
+// WithFakeAccount adds a fake account to the request context
+func WithFakeAccount(isAdmin bool) Option {
+	return func(r *http.Request) {
+		c := NewWebContext(nil, r)
+		c.SetAccount(FakeAccount(isAdmin))
 	}
-	r.ServeHTTP(recorder, request)
-	return recorder
 }
 
 // FakeUserLoggedInMiddlewware is a middleware that sets a fake user account to context.

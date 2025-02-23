@@ -5,8 +5,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/go-shiori/shiori/internal/database"
-	"github.com/go-shiori/shiori/internal/dependencies"
 	"github.com/go-shiori/shiori/internal/model"
 	cch "github.com/patrickmn/go-cache"
 	"github.com/sirupsen/logrus"
@@ -14,7 +12,7 @@ import (
 
 // Handler is Handler for serving the web interface.
 type Handler struct {
-	DB           database.DB
+	DB           model.DB
 	DataDir      string
 	RootPath     string
 	UserCache    *cch.Cache
@@ -22,7 +20,7 @@ type Handler struct {
 	ArchiveCache *cch.Cache
 	Log          bool
 
-	dependencies *dependencies.Dependencies
+	dependencies model.Dependencies
 }
 
 func (h *Handler) PrepareSessionCache() {
@@ -71,7 +69,7 @@ func (h *Handler) validateSession(r *http.Request) error {
 			return fmt.Errorf("session has been expired")
 		}
 
-		account, err := h.dependencies.Domains.Auth.CheckToken(r.Context(), authParts[1])
+		account, err := h.dependencies.Domains().Auth().CheckToken(r.Context(), authParts[1])
 		if err != nil {
 			return fmt.Errorf("session has been expired")
 		}
@@ -80,7 +78,7 @@ func (h *Handler) validateSession(r *http.Request) error {
 			return fmt.Errorf("account level is not sufficient")
 		}
 
-		h.dependencies.Log.WithFields(logrus.Fields{
+		h.dependencies.Logger().WithFields(logrus.Fields{
 			"username": account.Username,
 			"method":   r.Method,
 			"path":     r.URL.Path,

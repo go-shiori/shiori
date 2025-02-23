@@ -12,6 +12,7 @@ import (
 	"github.com/go-shiori/shiori/internal/dependencies"
 	"github.com/go-shiori/shiori/internal/http/handlers"
 	"github.com/go-shiori/shiori/internal/http/middleware"
+	"github.com/go-shiori/shiori/internal/http/templates"
 	"github.com/sirupsen/logrus"
 )
 
@@ -24,14 +25,22 @@ type HttpServer struct {
 func (s *HttpServer) Setup(cfg *config.Config, deps *dependencies.Dependencies) (*HttpServer, error) {
 	s.mux = http.NewServeMux()
 
-	// Register routes using standard http handlers
-	// if cfg.Http.ServeWebUI {
-	// 	s.mux.Handle("/", NewFrontendHandler(s.logger, cfg))
-	// }
+	if err := templates.SetupTemplates(); err != nil {
+		return nil, fmt.Errorf("failed to setup templates: %w", err)
+	}
 
-	// API routes with auth
-	// apiHandler := handlers.NewAPIHandler(s.logger, deps)
-	// s.mux.Handle("/api/v1/", middleware.NewAuthMiddleware(deps).OnRequest(deps, c))
+	// Register routes using standard http handlers
+	if cfg.Http.ServeWebUI {
+		// Frontend routes
+		s.mux.HandleFunc("/", ToHTTPHandler(deps,
+			handlers.HandleFrontend,
+			middleware.NewLoggingMiddleware(),
+		))
+		s.mux.HandleFunc("/assets/", ToHTTPHandler(deps,
+			handlers.HandleAssets,
+			middleware.NewLoggingMiddleware(),
+		))
+	}
 
 	// System routes with logging middleware
 	s.mux.HandleFunc("/system/liveness", ToHTTPHandler(deps,
@@ -42,9 +51,13 @@ func (s *HttpServer) Setup(cfg *config.Config, deps *dependencies.Dependencies) 
 	// Bookmark routes
 	// s.mux.Handle("/bookmark/", http.StripPrefix("/bookmark", NewBookmarkHandler(s.logger, deps)))
 
-	// if cfg.Http.ServeSwagger {
-	// 	s.mux.Handle("/swagger/", http.StripPrefix("/swagger", NewSwaggerHandler(s.logger)))
-	// }
+	// Add this inside Setup() where other routes are registered
+	if cfg.Http.ServeSwagger {
+		s.mux.HandleFunc("/swagger/", ToHTTPHandler(deps,
+			handlers.HandleSwagger,
+			middleware.NewLoggingMiddleware(),
+		))
+	}
 
 	s.server = &http.Server{
 		Addr:    fmt.Sprintf("%s%d", cfg.Http.Address, cfg.Http.Port),

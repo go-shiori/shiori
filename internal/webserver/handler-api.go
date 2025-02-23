@@ -14,13 +14,11 @@ import (
 	"strings"
 
 	"github.com/go-shiori/shiori/internal/core"
-	"github.com/go-shiori/shiori/internal/database"
-	"github.com/go-shiori/shiori/internal/dependencies"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/julienschmidt/httprouter"
 )
 
-func downloadBookmarkContent(deps *dependencies.Dependencies, book *model.BookmarkDTO, dataDir string, _ *http.Request, keepTitle, keepExcerpt bool) (*model.BookmarkDTO, error) {
+func downloadBookmarkContent(deps model.Dependencies, book *model.BookmarkDTO, dataDir string, _ *http.Request, keepTitle, keepExcerpt bool) (*model.BookmarkDTO, error) {
 	content, contentType, err := core.DownloadBookmark(book.URL)
 	if err != nil {
 		return nil, fmt.Errorf("error downloading url: %s", err)
@@ -75,13 +73,13 @@ func (h *Handler) ApiGetBookmarks(w http.ResponseWriter, r *http.Request, ps htt
 	}
 
 	// Prepare filter for database
-	searchOptions := database.DBGetBookmarksOptions{
+	searchOptions := model.DBGetBookmarksOptions{
 		Tags:         tags,
 		ExcludedTags: excludedTags,
 		Keyword:      keyword,
 		Limit:        30,
 		Offset:       (page - 1) * 30,
-		OrderMethod:  database.ByLastAdded,
+		OrderMethod:  model.ByLastAdded,
 	}
 
 	// Calculate max page
@@ -305,7 +303,7 @@ func (h *Handler) ApiUpdateBookmark(w http.ResponseWriter, r *http.Request, ps h
 	}
 
 	// Get existing bookmark from database
-	filter := database.DBGetBookmarksOptions{
+	filter := model.DBGetBookmarksOptions{
 		IDs:         []int{request.ID},
 		WithContent: true,
 	}
@@ -389,7 +387,7 @@ func (h *Handler) ApiUpdateBookmarkTags(w http.ResponseWriter, r *http.Request, 
 	}
 
 	// Get existing bookmark from database
-	filter := database.DBGetBookmarksOptions{
+	filter := model.DBGetBookmarksOptions{
 		IDs:         request.IDs,
 		WithContent: true,
 	}

@@ -7,7 +7,7 @@ import (
 	"github.com/go-shiori/shiori/internal/model"
 )
 
-// ToHTTPHandler converts a HandlerFunc to http.HandlerFunc with dependencies and middlewares
+// ToHTTPHandler converts a model.HttpHandler to http.HandlerFunc with dependencies and middlewares
 func ToHTTPHandler(deps model.Dependencies, h model.HttpHandler, middlewares ...model.HttpMiddleware) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		c := webcontext.NewWebContext(w, r)

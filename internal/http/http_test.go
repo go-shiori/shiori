@@ -45,7 +45,10 @@ func TestToHTTPHandler(t *testing.T) {
 			c.ResponseWriter().WriteHeader(http.StatusOK)
 		}
 
-		_, w := testutil.ExecuteHandler(handler)
+		c, w := testutil.NewTestWebContext()
+		httpHandler := ToHTTPHandler(deps, handler)
+		httpHandler.ServeHTTP(w, c.Request())
+
 		require.True(t, handlerCalled)
 		require.Equal(t, http.StatusOK, w.Code)
 	})

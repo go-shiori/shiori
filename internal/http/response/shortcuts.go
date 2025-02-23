@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/go-shiori/shiori/internal/http/templates"
 	"github.com/go-shiori/shiori/internal/model"
 )
 
@@ -63,4 +64,13 @@ func SendJSON(c model.WebContext, statusCode int, data any) error {
 // SendErrorJSON is a helper function to send error JSON responses
 func SendErrorJSON(c model.WebContext, statusCode int, message string) error {
 	return SendError(c, statusCode, message, nil)
+}
+
+// SendTemplate renders and sends an HTML template
+func SendTemplate(c model.WebContext, name string, data any) error {
+	c.ResponseWriter().Header().Set("Content-Type", "text/html; charset=utf-8")
+	if err := templates.RenderTemplate(c.ResponseWriter(), name, data); err != nil {
+		return SendInternalServerError(c)
+	}
+	return nil
 }
