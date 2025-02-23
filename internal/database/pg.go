@@ -798,7 +798,7 @@ func (db *PGDatabase) CreateTags(ctx context.Context, tags ...model.Tag) ([]mode
 		// Modify query to return inserted IDs
 		query = query + " RETURNING id, name"
 
-		// Execute and scan results 
+		// Execute and scan results
 		rows, err := tx.QueryxContext(ctx, query, args...)
 		if err != nil {
 			return fmt.Errorf("error executing query: %w", err)
