@@ -143,9 +143,11 @@ definitions:
     type: object
   model.Tag:
     properties:
-      id:
+      bookmarkCount:
         type: integer
-      nBookmarks:
+      deleted:
+        type: boolean
+      id:
         type: integer
       name:
         type: string
