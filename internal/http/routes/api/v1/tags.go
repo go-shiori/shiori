@@ -52,7 +52,8 @@ func (r *TagsAPIRoutes) listHandler(c *gin.Context) {
 // @Router						/api/v1/tags [post]
 func (r *TagsAPIRoutes) createHandler(c *gin.Context) {
 	ctx := context.NewContextFromGin(c)
-	if !ctx.GetAccount().Owner {
+	account := ctx.GetAccount()
+	if account != nil && !account.IsOwner() {
 		response.SendError(c, http.StatusForbidden, nil)
 		return
 	}

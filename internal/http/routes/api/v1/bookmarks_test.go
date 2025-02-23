@@ -27,8 +27,9 @@ func TestUpdateBookmarkCache(t *testing.T) {
 	router.Setup(g.Group("/"))
 
 	account := testutil.GetValidAccount()
-	require.NoError(t, deps.Database.SaveAccount(ctx, *account))
-	token, err := deps.Domains.Auth.CreateTokenForAccount(account, time.Now().Add(time.Minute))
+	_, err := deps.Database.CreateAccount(ctx, *account)
+	require.NoError(t, err)
+	token, err := deps.Domains.Auth.CreateTokenForAccount(model.Ptr(account.ToDTO()), time.Now().Add(time.Minute))
 	require.NoError(t, err)
 
 	t.Run("require authentication", func(t *testing.T) {
@@ -37,7 +38,13 @@ func TestUpdateBookmarkCache(t *testing.T) {
 	})
 
 	t.Run("require owner", func(t *testing.T) {
-		w := testutil.PerformRequest(g, "PUT", "/cache", testutil.WithHeader(model.AuthorizationHeader, model.AuthorizationTokenType+" "+token))
+		w := testutil.PerformRequest(
+			g,
+			"PUT",
+			"/cache",
+			testutil.WithAuthToken(token),
+			testutil.WithBody(`{"ids":[1]}`),
+		)
 		require.Equal(t, http.StatusForbidden, w.Code)
 	})
 }
@@ -55,8 +62,9 @@ func TestReadableeBookmarkContent(t *testing.T) {
 	router.Setup(g.Group("/"))
 
 	account := testutil.GetValidAccount()
-	require.NoError(t, deps.Database.SaveAccount(ctx, *account))
-	token, err := deps.Domains.Auth.CreateTokenForAccount(account, time.Now().Add(time.Minute))
+	_, err := deps.Database.CreateAccount(ctx, *account)
+	require.NoError(t, err)
+	token, err := deps.Domains.Auth.CreateTokenForAccount(model.Ptr(account.ToDTO()), time.Now().Add(time.Minute))
 	require.NoError(t, err)
 
 	bookmark := testutil.GetValidBookmark()

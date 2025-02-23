@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -11,9 +12,8 @@ import (
 	"github.com/huandu/go-sqlbuilder"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
-	"golang.org/x/crypto/bcrypt"
 
-	_ "github.com/lib/pq"
+	"github.com/lib/pq"
 )
 
 var postgresMigrations = []migration{
@@ -26,16 +26,21 @@ var postgresMigrations = []migration{
 		if err != nil {
 			return fmt.Errorf("failed to start transaction: %w", err)
 		}
-		defer tx.Rollback()
 
 		_, err = tx.Exec(`ALTER TABLE bookmark ADD COLUMN has_content BOOLEAN DEFAULT FALSE NOT NULL`)
-		if err != nil && strings.Contains(err.Error(), `column "has_content" of relation "bookmark" already exists`) {
-			tx.Rollback()
-		} else if err != nil {
-			return fmt.Errorf("failed to add has_content column to bookmark table: %w", err)
-		} else if err == nil {
-			if errCommit := tx.Commit(); errCommit != nil {
-				return fmt.Errorf("failed to commit transaction: %w", errCommit)
+		if err != nil {
+			// Check if this is a "column already exists" error (PostgreSQL error code 42701)
+			// If it's not, return error.
+			// This is needed for users upgrading from >1.5.4 directly into this version.
+			pqErr, ok := err.(*pq.Error)
+			if ok && pqErr.Code == "42701" {
+				tx.Rollback()
+			} else {
+				return fmt.Errorf("failed to add has_content column to bookmark table: %w", err)
+			}
+		} else {
+			if err := tx.Commit(); err != nil {
+				return fmt.Errorf("failed to commit transaction: %w", err)
 			}
 		}
 
@@ -43,16 +48,21 @@ var postgresMigrations = []migration{
 		if err != nil {
 			return fmt.Errorf("failed to start transaction: %w", err)
 		}
-		defer tx.Rollback()
 
 		_, err = tx.Exec(`ALTER TABLE account ADD COLUMN config JSONB NOT NULL DEFAULT '{}'`)
-		if err != nil && strings.Contains(err.Error(), `column "config" of relation "account" already exists`) {
-			tx.Rollback()
-		} else if err != nil {
-			return fmt.Errorf("failed to add config column to account table: %w", err)
-		} else if err == nil {
-			if errCommit := tx.Commit(); errCommit != nil {
-				return fmt.Errorf("failed to commit transaction: %w", errCommit)
+		if err != nil {
+			// Check if this is a "column already exists" error (PostgreSQL error code 42701)
+			// If it's not, return error
+			// This is needed for users upgrading from >1.5.4 directly into this version.
+			pqErr, ok := err.(*pq.Error)
+			if ok && pqErr.Code == "42701" {
+				tx.Rollback()
+			} else {
+				return fmt.Errorf("failed to add config column to account table: %w", err)
+			}
+		} else {
+			if err := tx.Commit(); err != nil {
+				return fmt.Errorf("failed to commit transaction: %w", err)
 			}
 		}
 
@@ -82,9 +92,19 @@ func OpenPGDatabase(ctx context.Context, connString string) (pgDB *PGDatabase, e
 	return pgDB, err
 }
 
-// DBX returns the underlying sqlx.DB object
-func (db *PGDatabase) DBx() *sqlx.DB {
+// WriterDB returns the underlying sqlx.DB object
+func (db *PGDatabase) WriterDB() *sqlx.DB {
 	return db.DB
+}
+
+// ReaderDB returns the underlying sqlx.DB object
+func (db *PGDatabase) ReaderDB() *sqlx.DB {
+	return db.DB
+}
+
+// Init initializes the database
+func (db *PGDatabase) Init(ctx context.Context) error {
+	return nil
 }
 
 // Migrate runs migrations for this database engine
@@ -590,53 +610,113 @@ func (db *PGDatabase) GetBookmark(ctx context.Context, id int, url string) (mode
 	return book, book.ID != 0, nil
 }
 
-// SaveAccount saves new account to database. Returns error if any happened.
-func (db *PGDatabase) SaveAccount(ctx context.Context, account model.Account) (err error) {
-	// Hash password with bcrypt
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(account.Password), 10)
-	if err != nil {
-		return err
+// CreateAccount saves new account to database. Returns error if any happened.
+func (db *PGDatabase) CreateAccount(ctx context.Context, account model.Account) (*model.Account, error) {
+	var accountID int64
+	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
+		// Check for existing username
+		var exists bool
+		err := tx.QueryRowContext(ctx,
+			"SELECT EXISTS(SELECT 1 FROM account WHERE username = $1)",
+			account.Username).Scan(&exists)
+		if err != nil {
+			return fmt.Errorf("error checking username: %w", err)
+		}
+		if exists {
+			return ErrAlreadyExists
+		}
+
+		// Create the account
+		query, err := tx.PrepareContext(ctx, `INSERT INTO account
+			(username, password, owner, config) VALUES ($1, $2, $3, $4)
+			RETURNING id`)
+		if err != nil {
+			return fmt.Errorf("error preparing query: %w", err)
+		}
+
+		err = query.QueryRowContext(ctx,
+			account.Username, account.Password, account.Owner, account.Config).Scan(&accountID)
+		if err != nil {
+			return fmt.Errorf("error executing query: %w", err)
+		}
+
+		return nil
+	}); err != nil {
+		return nil, fmt.Errorf("error during transaction: %w", err)
 	}
 
-	// Insert account to database
-	_, err = db.ExecContext(ctx, `INSERT INTO account
-		(username, password, owner, config) VALUES ($1, $2, $3, $4)
-		ON CONFLICT(username) DO UPDATE SET
-		password = $2,
-		owner = $3`,
-		account.Username, hashedPassword, account.Owner, account.Config)
+	account.ID = model.DBID(accountID)
 
-	return errors.WithStack(err)
+	return &account, nil
 }
 
-// SaveAccountSettings update settings for specific account  in database. Returns error if any happened
-func (db *PGDatabase) SaveAccountSettings(ctx context.Context, account model.Account) (err error) {
+// UpdateAccount updates account in database.
+func (db *PGDatabase) UpdateAccount(ctx context.Context, account model.Account) error {
+	if account.ID == 0 {
+		return ErrNotFound
+	}
 
-	// Insert account to database
-	_, err = db.ExecContext(ctx, `UPDATE account
-   		SET config = $1
-   		WHERE username = $2`,
-		account.Config, account.Username)
+	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
+		// Check for existing username
+		var exists bool
+		err := tx.QueryRowContext(ctx,
+			"SELECT EXISTS(SELECT 1 FROM account WHERE username = $1 AND id != $2)",
+			account.Username, account.ID).Scan(&exists)
+		if err != nil {
+			return fmt.Errorf("error checking username: %w", err)
+		}
+		if exists {
+			return ErrAlreadyExists
+		}
 
-	return errors.WithStack(err)
+		result, err := tx.ExecContext(ctx, `UPDATE account
+			SET username = $1, password = $2, owner = $3, config = $4
+			WHERE id = $5`,
+			account.Username, account.Password, account.Owner, account.Config, account.ID)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+
+		rows, err := result.RowsAffected()
+		if err != nil {
+			return errors.WithStack(err)
+		}
+		if rows == 0 {
+			return ErrNotFound
+		}
+
+		return nil
+	}); err != nil {
+		return errors.WithStack(err)
+	}
+
+	return nil
 }
 
-// GetAccounts fetch list of account (without its password) based on submitted options.
-func (db *PGDatabase) GetAccounts(ctx context.Context, opts GetAccountsOptions) ([]model.Account, error) {
+// ListAccounts fetch list of account (without its password) based on submitted options.
+func (db *PGDatabase) ListAccounts(ctx context.Context, opts ListAccountsOptions) ([]model.Account, error) {
 	// Create query
 	args := []interface{}{}
-	query := `SELECT id, username, owner, config FROM account WHERE TRUE`
+	fields := []string{"id", "username", "owner", "config"}
+	if opts.WithPassword {
+		fields = append(fields, "password")
+	}
+
+	query := fmt.Sprintf(`SELECT %s FROM account WHERE TRUE`, strings.Join(fields, ", "))
 
 	if opts.Keyword != "" {
-		query += " AND username LIKE $1"
+		query += " AND username LIKE $" + strconv.Itoa(len(args)+1)
 		args = append(args, "%"+opts.Keyword+"%")
+	}
+
+	if opts.Username != "" {
+		query += " AND username = $" + strconv.Itoa(len(args)+1)
+		args = append(args, opts.Username)
 	}
 
 	if opts.Owner {
 		query += " AND owner = TRUE"
 	}
-
-	query += ` ORDER BY username`
 
 	// Fetch list account
 	accounts := []model.Account{}
@@ -648,29 +728,41 @@ func (db *PGDatabase) GetAccounts(ctx context.Context, opts GetAccountsOptions) 
 	return accounts, nil
 }
 
-// GetAccount fetch account with matching username.
+// GetAccount fetch account with matching ID.
 // Returns the account and boolean whether it's exist or not.
-func (db *PGDatabase) GetAccount(ctx context.Context, username string) (model.Account, bool, error) {
+func (db *PGDatabase) GetAccount(ctx context.Context, id model.DBID) (*model.Account, bool, error) {
 	account := model.Account{}
-	if err := db.GetContext(ctx, &account, `SELECT
-		id, username, password, owner, config FROM account WHERE username = $1`,
-		username,
-	); err != nil {
-		return account, false, errors.WithStack(err)
+	err := db.GetContext(ctx, &account, `SELECT
+		id, username, password, owner, config FROM account WHERE id = $1`,
+		id,
+	)
+	if err != nil && err != sql.ErrNoRows {
+		return &account, false, errors.WithStack(err)
 	}
 
-	return account, account.ID != 0, nil
+	// Use custom not found error if that's the result of the query
+	if err == sql.ErrNoRows {
+		err = ErrNotFound
+	}
+
+	return &account, account.ID != 0, err
 }
 
-// DeleteAccounts removes all record with matching usernames.
-func (db *PGDatabase) DeleteAccounts(ctx context.Context, usernames ...string) (err error) {
+// DeleteAccount removes record with matching ID.
+func (db *PGDatabase) DeleteAccount(ctx context.Context, id model.DBID) error {
 	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
-		// Delete account
-		stmtDelete, _ := tx.Preparex(`DELETE FROM account WHERE username = $1`)
-		for _, username := range usernames {
-			if _, err := stmtDelete.ExecContext(ctx, username); err != nil {
-				return errors.WithStack(err)
-			}
+		result, err := tx.ExecContext(ctx, `DELETE FROM account WHERE id = $1`, id)
+		if err != nil {
+			return errors.WithStack(fmt.Errorf("error deleting account: %v", err))
+		}
+
+		rows, err := result.RowsAffected()
+		if err != nil && err != sql.ErrNoRows {
+			return errors.WithStack(fmt.Errorf("error getting rows affected: %v", err))
+		}
+
+		if rows == 0 {
+			return ErrNotFound
 		}
 
 		return nil

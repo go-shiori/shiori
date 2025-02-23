@@ -18,6 +18,7 @@ func (r *APIRoutes) Setup(g *gin.RouterGroup) model.Routes {
 	r.handle(g, "/auth", NewAuthAPIRoutes(r.logger, r.deps, r.loginHandler))
 	r.handle(g, "/bookmarks", NewBookmarksAPIRoutes(r.logger, r.deps))
 	r.handle(g, "/tags", NewTagsPIRoutes(r.logger, r.deps))
+	r.handle(g, "/accounts", NewAccountsAPIRoutes(r.logger, r.deps))
 	r.handle(g, "/system", NewSystemAPIRoutes(r.logger, r.deps))
 
 	return r

@@ -11,7 +11,6 @@ import (
 	"github.com/huandu/go-sqlbuilder"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
-	"golang.org/x/crypto/bcrypt"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -49,7 +48,7 @@ var mysqlMigrations = []migration{
 		}
 		defer tx.Rollback()
 
-		_, err = tx.Exec(`ALTER TABLE account ADD COLUMN config JSON  NOT NULL DEFAULT '{}'`)
+		_, err = tx.Exec(`ALTER TABLE account ADD COLUMN config JSON  NOT NULL DEFAULT ('{}')`)
 		if err != nil && strings.Contains(err.Error(), `Duplicate column name`) {
 			tx.Rollback()
 		} else if err != nil {
@@ -91,9 +90,19 @@ func OpenMySQLDatabase(ctx context.Context, connString string) (mysqlDB *MySQLDa
 	return mysqlDB, err
 }
 
-// DBX returns the underlying sqlx.DB object
-func (db *MySQLDatabase) DBx() *sqlx.DB {
+// WriterDB returns the underlying sqlx.DB object
+func (db *MySQLDatabase) WriterDB() *sqlx.DB {
 	return db.DB
+}
+
+// ReaderDB returns the underlying sqlx.DB object
+func (db *MySQLDatabase) ReaderDB() *sqlx.DB {
+	return db.DB
+}
+
+// Init initializes the database
+func (db *MySQLDatabase) Init(ctx context.Context) error {
+	return nil
 }
 
 // Migrate runs migrations for this database engine
@@ -589,52 +598,112 @@ func (db *MySQLDatabase) GetBookmark(ctx context.Context, id int, url string) (m
 	return book, book.ID != 0, nil
 }
 
-// SaveAccount saves new account to database. Returns error if any happened.
-func (db *MySQLDatabase) SaveAccount(ctx context.Context, account model.Account) (err error) {
-	// Hash password with bcrypt
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(account.Password), 10)
-	if err != nil {
+// CreateAccount saves new account to database. Returns error if any happened.
+func (db *MySQLDatabase) CreateAccount(ctx context.Context, account model.Account) (*model.Account, error) {
+	var accountID int64
+	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
+		// Check for existing username
+		var exists bool
+		err := tx.QueryRowContext(
+			ctx, "SELECT EXISTS(SELECT 1 FROM account WHERE username = ?)",
+			account.Username,
+		).Scan(&exists)
+		if err != nil {
+			return fmt.Errorf("error checking username: %w", err)
+		}
+		if exists {
+			return ErrAlreadyExists
+		}
+
+		// Create the account
+		result, err := tx.ExecContext(ctx, `INSERT INTO account
+			(username, password, owner, config) VALUES (?, ?, ?, ?)`,
+			account.Username, account.Password, account.Owner, account.Config)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+
+		id, err := result.LastInsertId()
+		if err != nil {
+			return errors.WithStack(err)
+		}
+		accountID = id
+		return nil
+	}); err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	account.ID = model.DBID(accountID)
+	return &account, nil
+}
+
+// UpdateAccount update account in database
+func (db *MySQLDatabase) UpdateAccount(ctx context.Context, account model.Account) error {
+	if account.ID == 0 {
+		return ErrNotFound
+	}
+
+	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
+		// Check for existing username
+		var exists bool
+		err := tx.QueryRowContext(ctx,
+			"SELECT EXISTS(SELECT 1 FROM account WHERE username = ? AND id != ?)",
+			account.Username, account.ID).Scan(&exists)
+		if err != nil {
+			return fmt.Errorf("error checking username: %w", err)
+		}
+		if exists {
+			return ErrAlreadyExists
+		}
+
+		result, err := tx.ExecContext(ctx, `UPDATE account
+			SET username = ?, password = ?, owner = ?, config = ?
+			WHERE id = ?`,
+			account.Username, account.Password, account.Owner, account.Config, account.ID)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+
+		rows, err := result.RowsAffected()
+		if err != nil {
+			return errors.WithStack(err)
+		}
+		if rows == 0 {
+			return ErrNotFound
+		}
+
+		return nil
+	}); err != nil {
 		return errors.WithStack(err)
 	}
 
-	// Insert account to database
-	_, err = db.ExecContext(ctx, `INSERT INTO account
-		(username, password, owner, config) VALUES (?, ?, ?, ?)
-		ON DUPLICATE KEY UPDATE
-		password = VALUES(password),
-		owner = VALUES(owner)`,
-		account.Username, hashedPassword, account.Owner, account.Config)
-
-	return errors.WithStack(err)
+	return nil
 }
 
-// SaveAccountSettings update settings for specific account  in database. Returns error if any happened
-func (db *MySQLDatabase) SaveAccountSettings(ctx context.Context, account model.Account) (err error) {
-	// Update account config in database for specific user
-	_, err = db.ExecContext(ctx, `UPDATE account
-		SET config = ?
-		WHERE username = ?`,
-		account.Config, account.Username)
-
-	return errors.WithStack(err)
-}
-
-// GetAccounts fetch list of account (without its password) based on submitted options.
-func (db *MySQLDatabase) GetAccounts(ctx context.Context, opts GetAccountsOptions) ([]model.Account, error) {
+// ListAccounts fetch list of account (without its password) based on submitted options.
+func (db *MySQLDatabase) ListAccounts(ctx context.Context, opts ListAccountsOptions) ([]model.Account, error) {
 	// Create query
 	args := []interface{}{}
-	query := `SELECT id, username, owner, config FROM account WHERE 1`
+	fields := []string{"id", "username", "owner", "config"}
+	if opts.WithPassword {
+		fields = append(fields, "password")
+	}
+
+	query := fmt.Sprintf(`SELECT %s FROM account WHERE 1`, strings.Join(fields, ", "))
 
 	if opts.Keyword != "" {
 		query += " AND username LIKE ?"
 		args = append(args, "%"+opts.Keyword+"%")
 	}
 
+	if opts.Username != "" {
+		query += " AND username = ?"
+		args = append(args, opts.Username)
+	}
+
 	if opts.Owner {
 		query += " AND owner = 1"
 	}
-
-	query += ` ORDER BY username`
 
 	// Fetch list account
 	accounts := []model.Account{}
@@ -646,30 +715,41 @@ func (db *MySQLDatabase) GetAccounts(ctx context.Context, opts GetAccountsOption
 	return accounts, nil
 }
 
-// GetAccount fetch account with matching username.
+// GetAccount fetch account with matching ID.
 // Returns the account and boolean whether it's exist or not.
-func (db *MySQLDatabase) GetAccount(ctx context.Context, username string) (model.Account, bool, error) {
+func (db *MySQLDatabase) GetAccount(ctx context.Context, id model.DBID) (*model.Account, bool, error) {
 	account := model.Account{}
-	if err := db.GetContext(ctx, &account, `SELECT
-		id, username, password, owner, config FROM account WHERE username = ?`,
-		username,
-	); err != nil {
-		return account, false, errors.WithStack(err)
+	err := db.GetContext(ctx, &account, `SELECT
+		id, username, password, owner, config FROM account WHERE id = ?`,
+		id,
+	)
+	if err != nil && err != sql.ErrNoRows {
+		return &account, false, errors.WithStack(err)
 	}
 
-	return account, account.ID != 0, nil
+	// Use custom not found error if that's the result of the query
+	if err == sql.ErrNoRows {
+		err = ErrNotFound
+	}
+
+	return &account, account.ID != 0, err
 }
 
-// DeleteAccounts removes all record with matching usernames.
-func (db *MySQLDatabase) DeleteAccounts(ctx context.Context, usernames ...string) error {
+// DeleteAccount removes record with matching ID.
+func (db *MySQLDatabase) DeleteAccount(ctx context.Context, id model.DBID) error {
 	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
-		// Delete account
-		stmtDelete, _ := tx.Preparex(`DELETE FROM account WHERE username = ?`)
-		for _, username := range usernames {
-			_, err := stmtDelete.ExecContext(ctx, username)
-			if err != nil {
-				return errors.WithStack(err)
-			}
+		result, err := tx.ExecContext(ctx, `DELETE FROM account WHERE id = ?`, id)
+		if err != nil {
+			return errors.WithStack(fmt.Errorf("error deleting account: %v", err))
+		}
+
+		rows, err := result.RowsAffected()
+		if err != nil && err != sql.ErrNoRows {
+			return errors.WithStack(fmt.Errorf("error getting rows affected: %v", err))
+		}
+
+		if rows == 0 {
+			return ErrNotFound
 		}
 
 		return nil

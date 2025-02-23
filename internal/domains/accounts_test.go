@@ -2,118 +2,162 @@ package domains_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
-	"github.com/go-shiori/shiori/internal/domains"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/go-shiori/shiori/internal/testutil"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
 )
 
-func TestAccountsDomainParseToken(t *testing.T) {
-	ctx := context.TODO()
+func TestAccountDomainsListAccounts(t *testing.T) {
 	logger := logrus.New()
-	_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
-	domain := domains.NewAccountsDomain(deps)
+	_, deps := testutil.GetTestConfigurationAndDependencies(t, context.TODO(), logger)
 
-	t.Run("valid token", func(t *testing.T) {
-		// Create a valid token
-		token, err := domain.CreateTokenForAccount(
-			testutil.GetValidAccount(),
-			time.Now().Add(time.Hour*1),
-		)
+	t.Run("empty", func(t *testing.T) {
+		accounts, err := deps.Domains.Accounts.ListAccounts(context.Background())
 		require.NoError(t, err)
-
-		claims, err := domain.ParseToken(token)
-		require.NoError(t, err)
-		require.NotNil(t, claims)
-		require.Equal(t, 99, claims.Account.ID)
+		require.Empty(t, accounts)
 	})
 
-	t.Run("invalid token", func(t *testing.T) {
-		claims, err := domain.ParseToken("invalid-token")
-		require.Error(t, err)
-		require.Nil(t, claims)
+	t.Run("some accounts", func(t *testing.T) {
+		for i := 0; i < 3; i++ {
+			_, err := deps.Domains.Accounts.CreateAccount(context.TODO(), model.AccountDTO{
+				Username: fmt.Sprintf("user%d", i),
+				Password: fmt.Sprintf("password%d", i),
+			})
+			require.NoError(t, err)
+		}
+
+		accounts, err := deps.Domains.Accounts.ListAccounts(context.Background())
+		require.NoError(t, err)
+		require.Len(t, accounts, 3)
+		require.Equal(t, "", accounts[0].Password)
 	})
 }
 
-func TestAccountsDomainCheckToken(t *testing.T) {
-	ctx := context.TODO()
+func TestAccountDomainCreateAccount(t *testing.T) {
 	logger := logrus.New()
-	_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
-	domain := domains.NewAccountsDomain(deps)
+	_, deps := testutil.GetTestConfigurationAndDependencies(t, context.TODO(), logger)
 
-	t.Run("valid token", func(t *testing.T) {
-		// Create a valid token
-		token, err := domain.CreateTokenForAccount(
-			testutil.GetValidAccount(),
-			time.Now().Add(time.Hour*1),
-		)
+	t.Run("create account", func(t *testing.T) {
+		acc, err := deps.Domains.Accounts.CreateAccount(context.TODO(), model.AccountDTO{
+			Username: "user",
+			Password: "password",
+			Owner:    model.Ptr(true),
+			Config: &model.UserConfig{
+				Theme: "dark",
+			},
+		})
 		require.NoError(t, err)
-
-		acc, err := domain.CheckToken(ctx, token)
-		require.NoError(t, err)
-		require.NotNil(t, acc)
-		require.Equal(t, 99, acc.ID)
+		require.NotZero(t, acc.ID)
+		require.Equal(t, "user", acc.Username)
+		require.Equal(t, "dark", acc.Config.Theme)
 	})
 
-	t.Run("expired token", func(t *testing.T) {
-		// Create an expired token
-		token, err := domain.CreateTokenForAccount(
-			testutil.GetValidAccount(),
-			time.Now().Add(time.Hour*-1),
-		)
-		require.NoError(t, err)
-
-		acc, err := domain.CheckToken(ctx, token)
+	t.Run("create account with empty username", func(t *testing.T) {
+		_, err := deps.Domains.Accounts.CreateAccount(context.TODO(), model.AccountDTO{
+			Username: "",
+			Password: "password",
+		})
 		require.Error(t, err)
-		require.Nil(t, acc)
+		_, isValidationErr := err.(model.ValidationError)
+		require.True(t, isValidationErr)
+	})
+
+	t.Run("create account with empty password", func(t *testing.T) {
+		_, err := deps.Domains.Accounts.CreateAccount(context.TODO(), model.AccountDTO{
+			Username: "user",
+			Password: "",
+		})
+		require.Error(t, err)
+		_, isValidationErr := err.(model.ValidationError)
+		require.True(t, isValidationErr)
 	})
 }
 
-func TestAccountsDomainGetAccountFromCredentials(t *testing.T) {
-	ctx := context.TODO()
+func TestAccountDomainUpdateAccount(t *testing.T) {
 	logger := logrus.New()
-	_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
-	domain := domains.NewAccountsDomain(deps)
+	_, deps := testutil.GetTestConfigurationAndDependencies(t, context.TODO(), logger)
 
-	require.NoError(t, deps.Database.SaveAccount(ctx, model.Account{
-		Username: "test",
-		Password: "test",
-	}))
-
-	t.Run("valid credentials", func(t *testing.T) {
-		acc, err := domain.GetAccountFromCredentials(ctx, "test", "test")
+	t.Run("update account", func(t *testing.T) {
+		acc, err := deps.Domains.Accounts.CreateAccount(context.TODO(), model.AccountDTO{
+			Username: "user",
+			Password: "password",
+		})
 		require.NoError(t, err)
-		require.NotNil(t, acc)
-		require.Equal(t, "test", acc.Username)
+
+		acc, err = deps.Domains.Accounts.UpdateAccount(context.TODO(), model.AccountDTO{
+			ID:       acc.ID,
+			Username: "user2",
+			Password: "password2",
+			Owner:    model.Ptr(true),
+			Config: &model.UserConfig{
+				Theme: "light",
+			},
+		})
+		require.NoError(t, err)
+		require.Equal(t, "user2", acc.Username)
+		require.Equal(t, "light", acc.Config.Theme)
 	})
 
-	t.Run("invalid credentials", func(t *testing.T) {
-		acc, err := domain.GetAccountFromCredentials(ctx, "test", "invalid")
+	t.Run("update non-existing account", func(t *testing.T) {
+		_, err := deps.Domains.Accounts.UpdateAccount(context.TODO(), model.AccountDTO{
+			ID:       999,
+			Username: "user",
+			Password: "password",
+		})
 		require.Error(t, err)
-		require.Nil(t, acc)
+		require.ErrorIs(t, err, model.ErrNotFound)
 	})
 
-	t.Run("invalid username", func(t *testing.T) {
-		acc, err := domain.GetAccountFromCredentials(ctx, "nope", "invalid")
+	t.Run("try to update with no changes", func(t *testing.T) {
+		acc, err := deps.Domains.Accounts.CreateAccount(context.TODO(), model.AccountDTO{
+			Username: "user",
+			Password: "password",
+		})
+		require.NoError(t, err)
+
+		_, err = deps.Domains.Accounts.UpdateAccount(context.TODO(), model.AccountDTO{
+			ID: acc.ID,
+		})
 		require.Error(t, err)
-		require.Nil(t, acc)
+		_, isValidationErr := err.(model.ValidationError)
+		require.True(t, isValidationErr)
 	})
-
 }
 
-func TestAccountsDomainCreateTokenForAccount(t *testing.T) {
-	ctx := context.TODO()
+func TestAccountDomainDeleteAccount(t *testing.T) {
 	logger := logrus.New()
-	_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
-	domain := domains.NewAccountsDomain(deps)
+	_, deps := testutil.GetTestConfigurationAndDependencies(t, context.TODO(), logger)
+
+	t.Run("delete account", func(t *testing.T) {
+		acc, err := deps.Domains.Accounts.CreateAccount(context.TODO(), model.AccountDTO{
+			Username: "user",
+			Password: "password",
+		})
+		require.NoError(t, err)
+
+		err = deps.Domains.Accounts.DeleteAccount(context.TODO(), int(acc.ID))
+		require.NoError(t, err)
+
+		accounts, err := deps.Domains.Accounts.ListAccounts(context.Background())
+		require.NoError(t, err)
+		require.Empty(t, accounts)
+	})
+
+	t.Run("delete non-existing account", func(t *testing.T) {
+		err := deps.Domains.Accounts.DeleteAccount(context.TODO(), 999)
+		require.Error(t, err)
+		require.ErrorIs(t, err, model.ErrNotFound)
+	})
 
 	t.Run("valid account", func(t *testing.T) {
-		token, err := domain.CreateTokenForAccount(
-			testutil.GetValidAccount(),
+		account := testutil.GetValidAccount().ToDTO()
+		token, err := deps.Domains.Auth.CreateTokenForAccount(
+			&account,
 			time.Now().Add(time.Hour*1),
 		)
 		require.NoError(t, err)
@@ -121,7 +165,7 @@ func TestAccountsDomainCreateTokenForAccount(t *testing.T) {
 	})
 
 	t.Run("nil account", func(t *testing.T) {
-		token, err := domain.CreateTokenForAccount(
+		token, err := deps.Domains.Auth.CreateTokenForAccount(
 			nil,
 			time.Now().Add(time.Hour*1),
 		)
@@ -130,16 +174,17 @@ func TestAccountsDomainCreateTokenForAccount(t *testing.T) {
 	})
 
 	t.Run("token expiration is valid", func(t *testing.T) {
+		ctx := context.TODO()
+		account := testutil.GetValidAccount().ToDTO()
 		expiration := time.Now().Add(time.Hour * 9)
-		token, err := domain.CreateTokenForAccount(
-			testutil.GetValidAccount(),
+		token, err := deps.Domains.Auth.CreateTokenForAccount(
+			&account,
 			expiration,
 		)
 		require.NoError(t, err)
 		require.NotEmpty(t, token)
-		claims, err := domain.ParseToken(token)
+		tokenAccount, err := deps.Domains.Auth.CheckToken(ctx, token)
 		require.NoError(t, err)
-		require.NotNil(t, claims)
-		require.Equal(t, expiration.Unix(), claims.ExpiresAt.Time.Unix())
+		require.NotNil(t, tokenAccount)
 	})
 }

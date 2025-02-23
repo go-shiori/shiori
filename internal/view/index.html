@@ -13,32 +13,37 @@
 	<link rel="icon" type="image/png" href="assets/res/favicon-32x32.png" sizes="32x32">
 	<link rel="icon" type="image/png" href="assets/res/favicon-16x16.png" sizes="16x16">
 	<link rel="icon" type="image/x-icon" href="assets/res/favicon.ico">
+	<link rel="manifest" href="assets/manifest.webmanifest" />
 
 	<link href="assets/css/style.css" rel="stylesheet">
 
-	<script src="assets/js/vue.min.js"></script>
-	<script src="assets/js/url.min.js"></script>
+	<script src="assets/js/vue.min.js" type="text/javascript"></script>
+	<script src="assets/js/url.min.js" type="text/javascript"></script>
 </head>
 
 <body>
-	<div id="main-scene">
-		<div id="main-sidebar">
-			<a v-for="item in sidebarItems" :title="item.title" :class="{active: activePage === item.page}" @click="switchPage(item.page)">
-				<i class="fas fa-fw" :class="item.icon"></i>
-			</a>
-			<div class="spacer"></div>
-			<a title="Logout" @click="logout">
-				<i class="fas fa-fw fa-sign-out-alt"></i>
-			</a>
+	<div id="app">
+		<login-view v-if="isLoggedIn === false && loginRequired" @login-success="onLoginSuccess"></login-view>
+		<div id="main-scene" v-else-if="isLoggedIn === true">
+    		<div id="main-sidebar">
+    			<a v-for="item in sidebarItems" :title="item.title" :class="{active: activePage === item.page}" @click="switchPage(item.page)">
+    				<i class="fas fa-fw" :class="item.icon"></i>
+    			</a>
+    			<div class="spacer"></div>
+    			<a title="Logout" @click="logout">
+    				<i class="fas fa-fw fa-sign-out-alt"></i>
+    			</a>
+    		</div>
+    		<keep-alive>
+    			<component :is="activePage" :active-account="activeAccount" :app-options="appOptions" @setting-changed="saveSetting"></component>
+    		</keep-alive>
+    		<custom-dialog v-bind="dialog"></custom-dialog>
 		</div>
-		<keep-alive>
-			<component :is="activePage" :active-account="activeAccount" :app-options="appOptions" @setting-changed="saveSetting"></component>
-		</keep-alive>
-		<custom-dialog v-bind="dialog" />
 	</div>
 
 	<script type="module">
 		import basePage from "./assets/js/page/base.js";
+		import LoginComponent from "./assets/js/component/login.js";
 		import pageHome from "./assets/js/page/home.js";
 		import pageSetting from "./assets/js/page/setting.js";
 		import customDialog from "./assets/js/component/dialog.js";
@@ -46,21 +51,24 @@
         Vue.prototype.$bus = EventBus;
 
 		var app = new Vue({
-			el: '#main-scene',
+			el: '#app',
 			mixins: [basePage],
 			components: {
 				pageHome,
 				pageSetting,
-				customDialog
+				customDialog,
+				'login-view': LoginComponent
 			},
 			data: {
+				isLoggedIn: null,
+				loginRequired: false,
 				activePage: "page-home",
 				sidebarItems: [{
 					title: "Home",
 					icon: "fa-home",
 					page: "page-home",
 				}, {
-					title: "Setting",
+					title: "Settings",
 					icon: "fa-cog",
 					page: "page-setting",
 				}],
@@ -72,8 +80,8 @@
 						url = new Url;
 
                     if (page === 'page-home'  && this.activePage === 'page-home') {
-                    Vue.prototype.$bus.$emit('clearHomePage', {});
-                        }
+                        Vue.prototype.$bus.$emit('clearHomePage', {});
+                    }
 					url.hash = pageName;
 					this.activePage = page;
 					history.pushState(state, page, url);
@@ -86,7 +94,7 @@
 						secondText: "No",
 						mainClick: () => {
 							this.dialog.loading = true;
-							fetch(new URL("api/logout", document.baseURI), {
+							fetch(new URL("api/v1/auth/logout", document.baseURI), {
 								method: "post"
 							}).then(response => {
 								if (!response.ok) throw response;
@@ -95,7 +103,11 @@
 								localStorage.removeItem("shiori-account");
 								localStorage.removeItem("shiori-token");
 								document.cookie = `session-id=; Path=${new URL(document.baseURI).pathname}; Expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
-								location.href = new URL("login", document.baseURI);
+								document.cookie = `token=; Path=${new URL(document.baseURI).pathname}; Expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
+								this.isLoggedIn = false;
+								this.loginRequired = true;
+								this.dialog.loading = false;
+								this.dialog.visible = false;
 							}).catch(err => {
 								this.dialog.loading = false;
 								this.getErrorMessage(err).then(msg => {
@@ -133,7 +145,6 @@
 						MakePublic: MakePublic,
 					};
                     this.themeSwitch(Theme)
-
 				},
 				loadAccount() {
 					var account = JSON.parse(localStorage.getItem("shiori-account")) || {},
@@ -146,12 +157,62 @@
 						username: username,
 						owner: owner,
 					};
+				},
+
+				onLoginSuccess() {
+					this.loadSetting();
+					this.loadAccount();
+					this.isLoggedIn = true;
+				},
+
+				async validateSession() {
+					const token = localStorage.getItem("shiori-token");
+					const account = localStorage.getItem("shiori-account");
+
+					if (!(token && account)) {
+						return false;
+					}
+
+					try {
+						const response = await fetch(new URL("api/v1/auth/me", document.baseURI), {
+							headers: {
+								"Authorization": `Bearer ${token}`
+							}
+						});
+
+						if (!response.ok) {
+							throw new Error('Invalid session');
+						}
+
+						return true;
+					} catch (err) {
+						// Clear invalid session data
+						localStorage.removeItem("shiori-account");
+						localStorage.removeItem("shiori-token");
+						document.cookie = `session-id=; Path=${new URL(document.baseURI).pathname}; Expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
+						document.cookie = `token=; Path=${new URL(document.baseURI).pathname}; Expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
+						return false;
+					}
+				},
+
+				async checkLoginStatus() {
+					const isValid = await this.validateSession();
+					this.isLoggedIn = isValid;
+
+					if (isValid) {
+						this.loadSetting();
+						this.loadAccount();
+					} else {
+						this.loginRequired = true;
+					}
 				}
 			},
-			mounted() {
-				// Load setting
-				this.loadSetting();
-				this.loadAccount();
+			async mounted() {
+				await this.checkLoginStatus();
+				if (this.isLoggedIn) {
+					this.loadSetting();
+					this.loadAccount();
+				}
 
 				// Prepare history state watcher
 				var stateWatcher = (e) => {

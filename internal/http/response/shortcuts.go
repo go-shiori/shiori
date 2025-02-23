@@ -2,6 +2,7 @@ package response
 
 import (
 	"net/http"
+	"net/url"
 
 	"github.com/gin-gonic/gin"
 )
@@ -35,10 +36,17 @@ func SendInternalServerError(ctx *gin.Context) {
 }
 
 // SendNotFound directly sends a not found response
-func RedirectToLogin(ctx *gin.Context, dst string) {
-	ctx.Redirect(http.StatusFound, "/login?dst="+dst)
+func RedirectToLogin(ctx *gin.Context, webroot, dst string) {
+	url := url.URL{
+		Path: webroot,
+		RawQuery: url.Values{
+			"dst": []string{dst},
+		}.Encode(),
+	}
+	ctx.Redirect(http.StatusFound, url.String())
 }
 
+// NotFound directly sends a not found response
 func NotFound(ctx *gin.Context) {
 	ctx.AbortWithStatus(http.StatusNotFound)
 }

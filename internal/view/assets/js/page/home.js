@@ -373,7 +373,11 @@ export default {
 			this.page = 1;
 			this.loadData();
 		},
-		showDialogAdd() {
+		showDialogAdd(values) {
+			if (values === undefined) {
+				values = {};
+			}
+
 			this.showDialog({
 				title: "New Bookmark",
 				content: "Create a new bookmark",
@@ -381,15 +385,18 @@ export default {
 					{
 						name: "url",
 						label: "Url, start with http://...",
+						value: values.url || "",
 					},
 					{
 						name: "title",
 						label: "Custom title (optional)",
+						value: values.title || "",
 					},
 					{
 						name: "excerpt",
 						label: "Custom excerpt (optional)",
 						type: "area",
+						value: values.excerpt || "",
 					},
 					{
 						name: "tags",
@@ -1033,6 +1040,36 @@ export default {
 		var url = new Url();
 		this.search = url.query.search || "";
 		this.page = url.query.page || 1;
+
+		var isSharing =
+			url.query.url !== undefined || url.query.excerpt !== undefined;
+		if (isSharing) {
+			// this is what the spec says
+			var shareData = {
+				url: url.query.url,
+				excerpt: url.query.excerpt,
+				title: url.query.title,
+			};
+
+			// In my testing sharing from chrome and ff focus, this is how data arrives
+			if (shareData.url === undefined) {
+				shareData.url = url.query.excerpt;
+				shareData.title = url.query.title;
+				shareData.excerpt = "";
+			}
+
+			this.showDialogAdd(shareData);
+			var history = {
+				activePage: "page-home",
+				search: this.search,
+				page: this.page,
+			};
+
+			var url = new Url(document.baseURI);
+			url.hash = "home";
+			url.clearQuery();
+			window.history.replaceState(history, "page-home", url);
+		}
 
 		this.loadData(false, true);
 	},

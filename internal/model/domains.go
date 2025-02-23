@@ -16,6 +16,11 @@ type BookmarksDomain interface {
 	HasThumbnail(b *BookmarkDTO) bool
 	GetBookmark(ctx context.Context, id DBID) (*BookmarkDTO, error)
 }
+type AuthDomain interface {
+	CheckToken(ctx context.Context, userJWT string) (*AccountDTO, error)
+	GetAccountFromCredentials(ctx context.Context, username, password string) (*AccountDTO, error)
+	CreateTokenForAccount(account *AccountDTO, expiration time.Time) (string, error)
+}
 
 type TagsDomain interface {
 	GetTags(ctx context.Context) ([]TagDTO, error)
@@ -26,10 +31,10 @@ type TagsDomain interface {
 }
 
 type AccountsDomain interface {
-	ParseToken(userJWT string) (*JWTClaim, error)
-	CheckToken(ctx context.Context, userJWT string) (*Account, error)
-	GetAccountFromCredentials(ctx context.Context, username, password string) (*Account, error)
-	CreateTokenForAccount(account *Account, expiration time.Time) (string, error)
+	ListAccounts(ctx context.Context) ([]AccountDTO, error)
+	CreateAccount(ctx context.Context, account AccountDTO) (*AccountDTO, error)
+	UpdateAccount(ctx context.Context, account AccountDTO) (*AccountDTO, error)
+	DeleteAccount(ctx context.Context, id int) error
 }
 
 type ArchiverDomain interface {

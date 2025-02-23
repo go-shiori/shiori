@@ -8,8 +8,9 @@ import (
 )
 
 type Domains struct {
+	Accounts  model.AccountsDomain
 	Archiver  model.ArchiverDomain
-	Auth      model.AccountsDomain
+	Auth      model.AuthDomain
 	Bookmarks model.BookmarksDomain
 	Storage   model.StorageDomain
 	Tags      model.TagsDomain

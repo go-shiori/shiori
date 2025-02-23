@@ -1,4 +1,0 @@
-#!/bin/zsh -e
-
-golint -set_exit_status ./...
-go mod tidy -v

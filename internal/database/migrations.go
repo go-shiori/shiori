@@ -1,3 +1,4 @@
+// Package database implements database operations and migrations
 package database
 
 import (
@@ -13,13 +14,14 @@ import (
 //go:embed migrations/*
 var migrationFiles embed.FS
 
+// migration represents a database schema migration
 type migration struct {
 	fromVersion   semver.Version
 	toVersion     semver.Version
 	migrationFunc func(db *sql.DB) error
 }
 
-// txFunc is a function that runs in a transaction.
+// txFn is a function that runs in a transaction.
 type txFn func(tx *sql.Tx) error
 
 // runInTransaction runs the given function in a transaction.
@@ -82,7 +84,7 @@ func runMigrations(ctx context.Context, db DB, migrations []migration) error {
 			continue
 		}
 
-		if err := migration.migrationFunc(db.DBx().DB); err != nil {
+		if err := migration.migrationFunc(db.WriterDB().DB); err != nil {
 			return fmt.Errorf("failed to run migration from %s to %s: %w", migration.fromVersion, migration.toVersion, err)
 		}
 
