@@ -3,6 +3,7 @@ package testutil
 import (
 	"encoding/json"
 	"io"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/go-shiori/shiori/internal/http/response"
@@ -40,6 +41,10 @@ func (r *testResponse) AssertNotOk(t *testing.T) {
 
 func (r *testResponse) Assert(t *testing.T, fn func(t *testing.T, r *testResponse)) {
 	fn(t, r)
+}
+
+func NewTestResponseFromRecorder(w *httptest.ResponseRecorder) (*testResponse, error) {
+	return NewTestResponseFromBytes(w.Body.Bytes())
 }
 
 func NewTestResponseFromBytes(b []byte) (*testResponse, error) {

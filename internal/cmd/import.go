@@ -106,7 +106,7 @@ func importHandler(cmd *cobra.Command, args []string) {
 			return
 		}
 
-		_, exist, err := deps.Database.GetBookmark(cmd.Context(), 0, url)
+		_, exist, err := deps.Database().GetBookmark(cmd.Context(), 0, url)
 		if err != nil && !errors.Is(err, sql.ErrNoRows) {
 			cError.Printf("Skip %s: Get Bookmark fail, %v", url, err)
 			return
@@ -147,7 +147,7 @@ func importHandler(cmd *cobra.Command, args []string) {
 	})
 
 	// Save bookmark to database
-	bookmarks, err = deps.Database.SaveBookmarks(cmd.Context(), true, bookmarks...)
+	bookmarks, err = deps.Database().SaveBookmarks(cmd.Context(), true, bookmarks...)
 	if err != nil {
 		cError.Printf("Failed to save bookmarks: %v\n", err)
 		os.Exit(1)

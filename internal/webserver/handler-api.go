@@ -75,7 +75,7 @@ func (h *Handler) ApiGetBookmarks(w http.ResponseWriter, r *http.Request, ps htt
 	}
 
 	// Prepare filter for database
-	searchOptions := database.GetBookmarksOptions{
+	searchOptions := database.DBGetBookmarksOptions{
 		Tags:         tags,
 		ExcludedTags: excludedTags,
 		Keyword:      keyword,
@@ -305,7 +305,7 @@ func (h *Handler) ApiUpdateBookmark(w http.ResponseWriter, r *http.Request, ps h
 	}
 
 	// Get existing bookmark from database
-	filter := database.GetBookmarksOptions{
+	filter := database.DBGetBookmarksOptions{
 		IDs:         []int{request.ID},
 		WithContent: true,
 	}
@@ -389,7 +389,7 @@ func (h *Handler) ApiUpdateBookmarkTags(w http.ResponseWriter, r *http.Request, 
 	}
 
 	// Get existing bookmark from database
-	filter := database.GetBookmarksOptions{
+	filter := database.DBGetBookmarksOptions{
 		IDs:         request.IDs,
 		WithContent: true,
 	}

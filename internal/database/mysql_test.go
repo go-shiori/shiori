@@ -9,6 +9,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/go-shiori/shiori/internal/model"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -20,7 +21,7 @@ func init() {
 }
 
 func mysqlTestDatabaseFactory(envKey string) testDatabaseFactory {
-	return func(_ *testing.T, ctx context.Context) (DB, error) {
+	return func(_ *testing.T, ctx context.Context) (model.DB, error) {
 		connString := os.Getenv(envKey)
 		db, err := OpenMySQLDatabase(ctx, connString)
 		if err != nil {

@@ -283,7 +283,7 @@ func (db *PGDatabase) SaveBookmarks(ctx context.Context, create bool, bookmarks 
 }
 
 // GetBookmarks fetch list of bookmarks based on submitted options.
-func (db *PGDatabase) GetBookmarks(ctx context.Context, opts GetBookmarksOptions) ([]model.BookmarkDTO, error) {
+func (db *PGDatabase) GetBookmarks(ctx context.Context, opts model.DBGetBookmarksOptions) ([]model.BookmarkDTO, error) {
 	// Create initial query
 	columns := []string{
 		`id`,
@@ -379,9 +379,9 @@ func (db *PGDatabase) GetBookmarks(ctx context.Context, opts GetBookmarksOptions
 
 	// Add order clause
 	switch opts.OrderMethod {
-	case ByLastAdded:
+	case model.ByLastAdded:
 		query += ` ORDER BY id DESC`
-	case ByLastModified:
+	case model.ByLastModified:
 		query += ` ORDER BY modified_at DESC`
 	default:
 		query += ` ORDER BY id`
@@ -434,7 +434,7 @@ func (db *PGDatabase) GetBookmarks(ctx context.Context, opts GetBookmarksOptions
 }
 
 // GetBookmarksCount fetch count of bookmarks based on submitted options.
-func (db *PGDatabase) GetBookmarksCount(ctx context.Context, opts GetBookmarksOptions) (int, error) {
+func (db *PGDatabase) GetBookmarksCount(ctx context.Context, opts model.DBGetBookmarksOptions) (int, error) {
 	// Create initial query
 	query := `SELECT COUNT(id) FROM bookmark WHERE TRUE`
 
@@ -693,7 +693,7 @@ func (db *PGDatabase) UpdateAccount(ctx context.Context, account model.Account) 
 }
 
 // ListAccounts fetch list of account (without its password) based on submitted options.
-func (db *PGDatabase) ListAccounts(ctx context.Context, opts ListAccountsOptions) ([]model.Account, error) {
+func (db *PGDatabase) ListAccounts(ctx context.Context, opts model.DBListAccountsOptions) ([]model.Account, error) {
 	// Create query
 	args := []interface{}{}
 	fields := []string{"id", "username", "owner", "config"}

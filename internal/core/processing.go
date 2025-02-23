@@ -108,7 +108,7 @@ func ProcessBookmark(deps *dependencies.Dependencies, req ProcessRequest) (book 
 		if article.Image != "" {
 			imageURLs = append(imageURLs, article.Image)
 		} else {
-			deps.Domains.Storage.FS().Remove(imgPath)
+			deps.Domains().Storage().FS().Remove(imgPath)
 		}
 
 		if article.Favicon != "" {
@@ -129,7 +129,7 @@ func ProcessBookmark(deps *dependencies.Dependencies, req ProcessRequest) (book 
 		if err != nil && errors.Is(err, ErrNoSupportedImageType) {
 			log.Printf("%s: %s", err, imageURL)
 			if i == len(imageURLs)-1 {
-				deps.Domains.Storage.FS().Remove(imgPath)
+				deps.Domains().Storage().FS().Remove(imgPath)
 			}
 		}
 		if err != nil {
@@ -182,7 +182,7 @@ func ProcessBookmark(deps *dependencies.Dependencies, req ProcessRequest) (book 
 		}
 
 		dstPath := model.GetArchivePath(&book)
-		err = deps.Domains.Storage.WriteFile(dstPath, tmpFile)
+		err = deps.Domains().Storage().WriteFile(dstPath, tmpFile)
 		if err != nil {
 			return book, false, fmt.Errorf("failed move archive to destination `: %v", err)
 		}
@@ -266,7 +266,7 @@ func DownloadBookImage(deps *dependencies.Dependencies, url, dstPath string) err
 		return fmt.Errorf("failed to save image %s: %v", url, err)
 	}
 
-	err = deps.Domains.Storage.WriteFile(dstPath, tmpFile)
+	err = deps.Domains().Storage().WriteFile(dstPath, tmpFile)
 	if err != nil {
 		return err
 	}

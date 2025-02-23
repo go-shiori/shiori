@@ -72,7 +72,7 @@ func addHandler(cmd *cobra.Command, args []string) {
 	}
 
 	// Save bookmark to database
-	books, err := deps.Database.SaveBookmarks(cmd.Context(), true, book)
+	books, err := deps.Database().SaveBookmarks(cmd.Context(), true, book)
 	if err != nil {
 		cError.Printf("Failed to save bookmark: %v\n", err)
 		os.Exit(1)
@@ -114,7 +114,7 @@ func addHandler(cmd *cobra.Command, args []string) {
 		}
 
 		// Save bookmark to database
-		_, err = deps.Database.SaveBookmarks(cmd.Context(), false, book)
+		_, err = deps.Database().SaveBookmarks(cmd.Context(), false, book)
 		if err != nil {
 			cError.Printf("Failed to save bookmark with content: %v\n", err)
 			os.Exit(1)

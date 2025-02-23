@@ -10,6 +10,8 @@ import (
 	"github.com/go-shiori/shiori/internal/model"
 )
 
+type Handler func(deps *model.Dependencies, c *model.WebContext)
+
 // NewGin returns a new gin engine with test mode enabled.
 func NewGin() *gin.Engine {
 	engine := gin.New()

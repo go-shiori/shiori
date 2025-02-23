@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/go-shiori/shiori/internal/database"
 	"github.com/go-shiori/shiori/internal/dependencies"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/golang-jwt/jwt/v5"
@@ -29,7 +28,7 @@ func (d *AuthDomain) CheckToken(ctx context.Context, userJWT string) (*model.Acc
 			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
 		}
 
-		return d.deps.Config.Http.SecretKey, nil
+		return d.deps.Config().Http.SecretKey, nil
 	})
 	if err != nil {
 		return nil, fmt.Errorf("error parsing token: %w", err)
@@ -46,7 +45,7 @@ func (d *AuthDomain) CheckToken(ctx context.Context, userJWT string) (*model.Acc
 }
 
 func (d *AuthDomain) GetAccountFromCredentials(ctx context.Context, username, password string) (*model.AccountDTO, error) {
-	accounts, err := d.deps.Database.ListAccounts(ctx, database.ListAccountsOptions{
+	accounts, err := d.deps.Database().ListAccounts(ctx, model.DBListAccountsOptions{
 		Username:     username,
 		WithPassword: true,
 	})
@@ -79,9 +78,9 @@ func (d *AuthDomain) CreateTokenForAccount(account *model.AccountDTO, expiration
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	t, err := token.SignedString(d.deps.Config.Http.SecretKey)
+	t, err := token.SignedString(d.deps.Config().Http.SecretKey)
 	if err != nil {
-		d.deps.Log.WithError(err).Error("error signing token")
+		d.deps.Logger().WithError(err).Error("error signing token")
 	}
 
 	return t, err

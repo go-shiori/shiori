@@ -10,7 +10,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-shiori/shiori/internal/core"
-	"github.com/go-shiori/shiori/internal/database"
 	"github.com/go-shiori/shiori/internal/dependencies"
 	"github.com/go-shiori/shiori/internal/http/context"
 	"github.com/go-shiori/shiori/internal/http/middleware"
@@ -143,7 +142,7 @@ func (r *BookmarksAPIRoutes) updateCache(c *gin.Context) {
 	}
 
 	// send request to database and get bookmarks
-	filter := database.GetBookmarksOptions{
+	filter := model.DBGetBookmarksOptions{
 		IDs:         payload.Ids,
 		WithContent: true,
 	}

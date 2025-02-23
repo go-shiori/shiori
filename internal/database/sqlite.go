@@ -389,7 +389,7 @@ func (db *SQLiteDatabase) SaveBookmarks(ctx context.Context, create bool, bookma
 }
 
 // GetBookmarks fetch list of bookmarks based on submitted options.
-func (db *SQLiteDatabase) GetBookmarks(ctx context.Context, opts GetBookmarksOptions) ([]model.BookmarkDTO, error) {
+func (db *SQLiteDatabase) GetBookmarks(ctx context.Context, opts model.DBGetBookmarksOptions) ([]model.BookmarkDTO, error) {
 	// Create initial query
 	query := `SELECT
 		b.id,
@@ -487,9 +487,9 @@ func (db *SQLiteDatabase) GetBookmarks(ctx context.Context, opts GetBookmarksOpt
 
 	// Add order clause
 	switch opts.OrderMethod {
-	case ByLastAdded:
+	case model.ByLastAdded:
 		query += ` ORDER BY b.id DESC`
-	case ByLastModified:
+	case model.ByLastModified:
 		query += ` ORDER BY b.modified_at DESC`
 	default:
 		query += ` ORDER BY b.id`
@@ -592,7 +592,7 @@ func (db *SQLiteDatabase) GetBookmarks(ctx context.Context, opts GetBookmarksOpt
 }
 
 // GetBookmarksCount fetch count of bookmarks based on submitted options.
-func (db *SQLiteDatabase) GetBookmarksCount(ctx context.Context, opts GetBookmarksOptions) (int, error) {
+func (db *SQLiteDatabase) GetBookmarksCount(ctx context.Context, opts model.DBGetBookmarksOptions) (int, error) {
 	// Create initial query
 	query := `SELECT COUNT(b.id)
 		FROM bookmark b
@@ -878,7 +878,7 @@ func (db *SQLiteDatabase) UpdateAccount(ctx context.Context, account model.Accou
 }
 
 // ListAccounts fetch list of account (without its password) based on submitted options.
-func (db *SQLiteDatabase) ListAccounts(ctx context.Context, opts ListAccountsOptions) ([]model.Account, error) {
+func (db *SQLiteDatabase) ListAccounts(ctx context.Context, opts model.DBListAccountsOptions) ([]model.Account, error) {
 	// Create query
 	args := []interface{}{}
 	fields := []string{"id", "username", "owner", "config"}

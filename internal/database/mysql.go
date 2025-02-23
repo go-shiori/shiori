@@ -292,7 +292,7 @@ func (db *MySQLDatabase) SaveBookmarks(ctx context.Context, create bool, bookmar
 }
 
 // GetBookmarks fetch list of bookmarks based on submitted options.
-func (db *MySQLDatabase) GetBookmarks(ctx context.Context, opts GetBookmarksOptions) ([]model.BookmarkDTO, error) {
+func (db *MySQLDatabase) GetBookmarks(ctx context.Context, opts model.DBGetBookmarksOptions) ([]model.BookmarkDTO, error) {
 	// Create initial query
 	columns := []string{
 		`id`,
@@ -385,9 +385,9 @@ func (db *MySQLDatabase) GetBookmarks(ctx context.Context, opts GetBookmarksOpti
 
 	// Add order clause
 	switch opts.OrderMethod {
-	case ByLastAdded:
+	case model.ByLastAdded:
 		query += ` ORDER BY id DESC`
-	case ByLastModified:
+	case model.ByLastModified:
 		query += ` ORDER BY modified_at DESC`
 	default:
 		query += ` ORDER BY id`
@@ -436,7 +436,7 @@ func (db *MySQLDatabase) GetBookmarks(ctx context.Context, opts GetBookmarksOpti
 }
 
 // GetBookmarksCount fetch count of bookmarks based on submitted options.
-func (db *MySQLDatabase) GetBookmarksCount(ctx context.Context, opts GetBookmarksOptions) (int, error) {
+func (db *MySQLDatabase) GetBookmarksCount(ctx context.Context, opts model.DBGetBookmarksOptions) (int, error) {
 	// Create initial query
 	query := `SELECT COUNT(id) FROM bookmark WHERE 1`
 
@@ -680,7 +680,7 @@ func (db *MySQLDatabase) UpdateAccount(ctx context.Context, account model.Accoun
 }
 
 // ListAccounts fetch list of account (without its password) based on submitted options.
-func (db *MySQLDatabase) ListAccounts(ctx context.Context, opts ListAccountsOptions) ([]model.Account, error) {
+func (db *MySQLDatabase) ListAccounts(ctx context.Context, opts model.DBListAccountsOptions) ([]model.Account, error) {
 	// Create query
 	args := []interface{}{}
 	fields := []string{"id", "username", "owner", "config"}

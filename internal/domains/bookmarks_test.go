@@ -18,7 +18,7 @@ func TestBookmarkDomain(t *testing.T) {
 	logger := logrus.New()
 	_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
 
-	deps.Domains.Storage = domains.NewStorageDomain(deps, fs)
+	deps.Domains().SetStorage(domains.NewStorageDomain(deps, fs))
 
 	fs.MkdirAll("thumb", 0755)
 	fs.Create("thumb/1")
@@ -58,7 +58,7 @@ func TestBookmarkDomain(t *testing.T) {
 
 	t.Run("GetBookmark", func(t *testing.T) {
 		t.Run("Success", func(t *testing.T) {
-			_, err := deps.Database.SaveBookmarks(context.TODO(), true, *testutil.GetValidBookmark())
+			_, err := deps.Database().SaveBookmarks(context.TODO(), true, *testutil.GetValidBookmark())
 			require.NoError(t, err)
 			bookmark, err := domain.GetBookmark(context.Background(), 1)
 			require.NoError(t, err)
