@@ -125,10 +125,16 @@ type DB interface {
 	DeleteAccount(ctx context.Context, id model.DBID) error
 
 	// CreateTags creates new tags in database.
-	CreateTags(ctx context.Context, tags ...model.Tag) error
+	CreateTags(ctx context.Context, tags ...model.Tag) ([]model.Tag, error)
 
 	// GetTags fetch list of tags and its frequency from database.
 	GetTags(ctx context.Context) ([]model.Tag, error)
+
+	// UpdateTag updates tag with matching id in database.
+	UpdateTag(ctx context.Context, tag model.Tag) error
+
+	// DeleteTag removes tag with matching id from database.
+	DeleteTag(ctx context.Context, id model.DBID) error
 
 	// RenameTag change the name of a tag.
 	RenameTag(ctx context.Context, id int, newName string) error

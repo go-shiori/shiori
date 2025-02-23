@@ -44,6 +44,7 @@ func GetTestConfigurationAndDependencies(t *testing.T, ctx context.Context, logg
 	deps.Domains.Auth = domains.NewAuthDomain(deps)
 	deps.Domains.Bookmarks = domains.NewBookmarksDomain(deps)
 	deps.Domains.Storage = domains.NewStorageDomain(deps, afero.NewBasePathFs(afero.NewOsFs(), cfg.Storage.DataDir))
+	deps.Domains.Tags = domains.NewTagsDomain(deps)
 
 	return cfg, deps
 }

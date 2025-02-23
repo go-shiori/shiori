@@ -32,6 +32,7 @@ func testDatabase(t *testing.T, dbFactory testDatabaseFactory) {
 		"testGetBookmarksWithSQLCharacters":     testGetBookmarksWithSQLCharacters,
 		"testGetBookmarksCount":                 testGetBookmarksCount,
 		// Tags
+		"testGetTags":    testGetTags,
 		"testCreateTag":  testCreateTag,
 		"testCreateTags": testCreateTags,
 		// Accounts
@@ -328,14 +329,149 @@ func testGetBookmarksCount(t *testing.T, db DB) {
 func testCreateTag(t *testing.T, db DB) {
 	ctx := context.TODO()
 	tag := model.Tag{Name: "shiori"}
-	err := db.CreateTags(ctx, tag)
+	_, err := db.CreateTags(ctx, tag)
 	assert.NoError(t, err, "Save tag must not fail")
 }
 
 func testCreateTags(t *testing.T, db DB) {
 	ctx := context.TODO()
-	err := db.CreateTags(ctx, model.Tag{Name: "shiori"}, model.Tag{Name: "shiori2"})
-	assert.NoError(t, err, "Save tag must not fail")
+
+	t.Run("create multiple tags", func(t *testing.T) {
+		tags := []model.Tag{
+			{Name: "tag1"},
+			{Name: "tag2"},
+			{Name: "tag3"},
+		}
+
+		createdTags, err := db.CreateTags(ctx, tags...)
+		assert.NoError(t, err, "Creating tags must not fail")
+		assert.Len(t, createdTags, len(tags), "Should create all tags")
+
+		for i, tag := range createdTags {
+			assert.NotZero(t, tag.ID, "Created tag should have non-zero ID")
+			assert.Equal(t, tags[i].Name, tag.Name, "Created tag should have correct name")
+		}
+	})
+
+	t.Run("create empty tags slice", func(t *testing.T) {
+		createdTags, err := db.CreateTags(ctx)
+		assert.NoError(t, err, "Creating empty tags slice should not fail")
+		assert.Empty(t, createdTags, "Should return empty slice for empty input")
+	})
+
+	t.Run("create duplicate tags", func(t *testing.T) {
+		tag := model.Tag{Name: "duplicate"}
+
+		// Create first tag
+		tags1, err := db.CreateTags(ctx, tag)
+		assert.NoError(t, err, "First tag creation should succeed")
+		assert.Len(t, tags1, 1)
+
+		// Try to create duplicate
+		_, err = db.CreateTags(ctx, tag)
+		assert.Error(t, err, "Duplicate tag creation should fail")
+	})
+}
+
+func testGetTags(t *testing.T, db DB) {
+	ctx := context.TODO()
+
+	t.Run("get tags from empty database", func(t *testing.T) {
+		tags, err := db.GetTags(ctx)
+		assert.NoError(t, err, "Getting tags should not fail")
+		assert.Empty(t, tags, "Should return empty slice when no tags exist")
+	})
+
+	t.Run("get existing tags", func(t *testing.T) {
+		// Create some test tags first
+		testTags := []model.Tag{
+			{Name: "test1"},
+			{Name: "test2"},
+			{Name: "test3"},
+		}
+		createdTags, err := db.CreateTags(ctx, testTags...)
+		assert.NoError(t, err, "Creating test tags should not fail")
+
+		// Create some bookmarks with these tags
+		book1 := model.BookmarkDTO{
+			URL:   "https://example1.com",
+			Title: "Example 1",
+			Tags:  []model.Tag{createdTags[0], createdTags[1]}, // test1, test2
+		}
+		book2 := model.BookmarkDTO{
+			URL:   "https://example2.com",
+			Title: "Example 2",
+			Tags:  []model.Tag{createdTags[1], createdTags[2]}, // test2, test3
+		}
+
+		_, err = db.SaveBookmarks(ctx, true, book1, book2)
+		assert.NoError(t, err, "Creating bookmarks should not fail")
+
+		// Get all tags
+		tags, err := db.GetTags(ctx)
+		assert.NoError(t, err, "Getting tags should not fail")
+		assert.Len(t, tags, len(testTags), "Should return all created tags")
+
+		// Verify returned tags
+		tagMap := make(map[string]model.Tag)
+		for _, tag := range tags {
+			tagMap[tag.Name] = tag
+			assert.NotZero(t, tag.ID, "Tag should have non-zero ID")
+			assert.NotEmpty(t, tag.Name, "Tag should have non-empty name")
+		}
+
+		// Verify bookmark counts
+		assert.Equal(t, 1, tagMap["test1"].BookmarkCount, "test1 should have 1 bookmark")
+		assert.Equal(t, 2, tagMap["test2"].BookmarkCount, "test2 should have 2 bookmarks")
+		assert.Equal(t, 1, tagMap["test3"].BookmarkCount, "test3 should have 1 bookmark")
+	})
+
+	t.Run("get tags after bookmark deletion", func(t *testing.T) {
+		// Create a tag
+		testTag := model.Tag{Name: "delete-test"}
+		createdTags, err := db.CreateTags(ctx, testTag)
+		assert.NoError(t, err, "Creating tag should not fail")
+		assert.Len(t, createdTags, 1)
+
+		// Create a bookmark with this tag
+		book := model.BookmarkDTO{
+			URL:   "https://delete-example.com",
+			Title: "Delete Example",
+			Tags:  createdTags,
+		}
+		savedBooks, err := db.SaveBookmarks(ctx, true, book)
+		assert.NoError(t, err, "Creating bookmark should not fail")
+		assert.Len(t, savedBooks, 1)
+
+		// Verify tag exists with count 1
+		tags, err := db.GetTags(ctx)
+		assert.NoError(t, err, "Getting tags should not fail")
+		var found bool
+		for _, tag := range tags {
+			if tag.Name == testTag.Name {
+				assert.Equal(t, 1, tag.BookmarkCount, "Tag should have 1 bookmark")
+				found = true
+				break
+			}
+		}
+		assert.True(t, found, "Should find the test tag")
+
+		// Delete the bookmark
+		err = db.DeleteBookmarks(ctx, savedBooks[0].ID)
+		assert.NoError(t, err, "Deleting bookmark should not fail")
+
+		// Verify tag is no longer returned (since it has no bookmarks)
+		tags, err = db.GetTags(ctx)
+		assert.NoError(t, err, "Getting tags after delete should not fail")
+		found = false
+		for _, tag := range tags {
+			if tag.Name == testTag.Name {
+				found = true
+				break
+			}
+		}
+		assert.False(t, found, "Tag should not be returned after its bookmark was deleted")
+	})
 }
 
 // ----------------- ACCOUNTS -----------------

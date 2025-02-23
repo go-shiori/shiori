@@ -13,6 +13,7 @@ type Domains struct {
 	Auth      model.AuthDomain
 	Bookmarks model.BookmarksDomain
 	Storage   model.StorageDomain
+	Tags      model.TagsDomain
 }
 
 type Dependencies struct {

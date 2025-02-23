@@ -606,10 +606,13 @@ const docTemplate = `{
         "model.Tag": {
             "type": "object",
             "properties": {
-                "id": {
+                "bookmarkCount": {
                     "type": "integer"
                 },
-                "nBookmarks": {
+                "deleted": {
+                    "type": "boolean"
+                },
+                "id": {
                     "type": "integer"
                 },
                 "name": {
