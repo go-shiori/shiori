@@ -38,13 +38,14 @@ type readableResponseMessage struct {
 }
 
 // HandleBookmarkReadable returns the readable version of a bookmark
-// @Summary Get readable version of bookmark.
-// @Tags Auth
-// @securityDefinitions.apikey ApiKeyAuth
-// @Produce json
-// @Success 200 {object} readableResponseMessage
-// @Failure 403 {object} nil "Token not provided/invalid"
-// @Router /api/v1/bookmarks/id/readable [get]
+//
+//	@Summary					Get readable version of bookmark.
+//	@Tags						Auth
+//	@securityDefinitions.apikey	ApiKeyAuth
+//	@Produce					json
+//	@Success					200	{object}	readableResponseMessage
+//	@Failure					403	{object}	nil	"Token not provided/invalid"
+//	@Router						/api/v1/bookmarks/id/readable [get]
 func HandleBookmarkReadable(deps model.Dependencies, c model.WebContext) {
 	if err := middleware.RequireLoggedInUser(deps, c); err != nil {
 		response.SendError(c, http.StatusForbidden, err.Error(), nil)
@@ -70,14 +71,15 @@ func HandleBookmarkReadable(deps model.Dependencies, c model.WebContext) {
 }
 
 // HandleUpdateCache updates the cache and ebook for bookmarks
-// @Summary Update Cache and Ebook on server.
-// @Tags Auth
-// @securityDefinitions.apikey ApiKeyAuth
-// @Param payload body updateCachePayload true "Update Cache Payload"
-// @Produce json
-// @Success 200 {object} model.BookmarkDTO
-// @Failure 403 {object} nil "Token not provided/invalid"
-// @Router /api/v1/bookmarks/cache [put]
+//
+//	@Summary					Update Cache and Ebook on server.
+//	@Tags						Auth
+//	@securityDefinitions.apikey	ApiKeyAuth
+//	@Param						payload	body	updateCachePayload	true	"Update Cache Payload"
+//	@Produce					json
+//	@Success					200	{object}	model.BookmarkDTO
+//	@Failure					403	{object}	nil	"Token not provided/invalid"
+//	@Router						/api/v1/bookmarks/cache [put]
 func HandleUpdateCache(deps model.Dependencies, c model.WebContext) {
 	if err := middleware.RequireLoggedInAdmin(deps, c); err != nil {
 		response.SendError(c, http.StatusForbidden, err.Error(), nil)

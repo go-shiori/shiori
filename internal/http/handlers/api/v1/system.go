@@ -19,14 +19,14 @@ type infoResponse struct {
 	OS       string `json:"os"`
 }
 
-// @Summary                  Get general system information
-// @Description             Get general system information like Shiori version, database, and OS
-// @Tags                    System
-// @securityDefinitions.apikey ApiKeyAuth
-// @Produce                 json
-// @Success                 200 {object} infoResponse
-// @Failure                 403 {object} nil "Only owners can access this endpoint"
-// @Router                  /api/v1/system/info [get]
+// @Summary					Get general system information
+// @Description				Get general system information like Shiori version, database, and OS
+// @Tags						System
+// @securityDefinitions.apikey	ApiKeyAuth
+// @Produce					json
+// @Success					200	{object}	infoResponse
+// @Failure					403	{object}	nil	"Only owners can access this endpoint"
+// @Router						/api/v1/system/info [get]
 func HandleSystemInfo(deps model.Dependencies, c model.WebContext) {
 	if err := middleware.RequireLoggedInAdmin(deps, c); err != nil {
 		return

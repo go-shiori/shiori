@@ -33,14 +33,14 @@ type loginResponseMessage struct {
 	Expiration int64  `json:"expires"` // Deprecated, used only for legacy APIs
 }
 
-// @Summary    Login to an account using username and password
-// @Tags       Auth
-// @Accept     json
-// @Produce    json
-// @Param      payload  body    loginRequestPayload  false  "Login data"
-// @Success    200     {object} loginResponseMessage "Login successful"
-// @Failure    400     {object} nil                 "Invalid login data"
-// @Router     /api/v1/auth/login [post]
+// @Summary	Login to an account using username and password
+// @Tags		Auth
+// @Accept		json
+// @Produce	json
+// @Param		payload	body		loginRequestPayload		false	"Login data"
+// @Success	200		{object}	loginResponseMessage	"Login successful"
+// @Failure	400		{object}	nil						"Invalid login data"
+// @Router		/api/v1/auth/login [post]
 func HandleLogin(deps model.Dependencies, c model.WebContext, legacyLoginHandler model.LegacyLoginHandler) {
 	var payload loginRequestPayload
 	if err := json.NewDecoder(c.Request().Body).Decode(&payload); err != nil {
@@ -86,13 +86,13 @@ func HandleLogin(deps model.Dependencies, c model.WebContext, legacyLoginHandler
 	})
 }
 
-// @Summary                  Refresh a token for an account
-// @Tags                     Auth
-// @securityDefinitions.apikey ApiKeyAuth
-// @Produce                  json
-// @Success                  200 {object} loginResponseMessage "Refresh successful"
-// @Failure                  403 {object} nil                 "Token not provided/invalid"
-// @Router                   /api/v1/auth/refresh [post]
+// @Summary					Refresh a token for an account
+// @Tags						Auth
+// @securityDefinitions.apikey	ApiKeyAuth
+// @Produce					json
+// @Success					200	{object}	loginResponseMessage	"Refresh successful"
+// @Failure					403	{object}	nil						"Token not provided/invalid"
+// @Router						/api/v1/auth/refresh [post]
 func HandleRefreshToken(deps model.Dependencies, c model.WebContext) {
 	if err := middleware.RequireLoggedInUser(deps, c); err != nil {
 		return
@@ -111,13 +111,13 @@ func HandleRefreshToken(deps model.Dependencies, c model.WebContext) {
 	})
 }
 
-// @Summary                  Get information for the current logged in user
-// @Tags                     Auth
-// @securityDefinitions.apikey ApiKeyAuth
-// @Produce                  json
-// @Success                  200 {object} model.Account
-// @Failure                  403 {object} nil "Token not provided/invalid"
-// @Router                   /api/v1/auth/me [get]
+// @Summary					Get information for the current logged in user
+// @Tags						Auth
+// @securityDefinitions.apikey	ApiKeyAuth
+// @Produce					json
+// @Success					200	{object}	model.Account
+// @Failure					403	{object}	nil	"Token not provided/invalid"
+// @Router						/api/v1/auth/me [get]
 func HandleGetMe(deps model.Dependencies, c model.WebContext) {
 	if err := middleware.RequireLoggedInUser(deps, c); err != nil {
 		return
@@ -157,14 +157,14 @@ func (p *updateAccountPayload) ToAccountDTO() model.AccountDTO {
 	return account
 }
 
-// @Summary                  Update account information
-// @Tags                     Auth
-// @securityDefinitions.apikey ApiKeyAuth
-// @Param                    payload body updateAccountPayload false "Account data"
-// @Produce                  json
-// @Success                  200 {object} model.Account
-// @Failure                  403 {object} nil "Token not provided/invalid"
-// @Router                   /api/v1/auth/account [patch]
+// @Summary					Update account information
+// @Tags						Auth
+// @securityDefinitions.apikey	ApiKeyAuth
+// @Param						payload	body	updateAccountPayload	false	"Account data"
+// @Produce					json
+// @Success					200	{object}	model.Account
+// @Failure					403	{object}	nil	"Token not provided/invalid"
+// @Router						/api/v1/auth/account [patch]
 func HandleUpdateLoggedAccount(deps model.Dependencies, c model.WebContext) {
 	if err := middleware.RequireLoggedInUser(deps, c); err != nil {
 		return
@@ -204,13 +204,13 @@ func HandleUpdateLoggedAccount(deps model.Dependencies, c model.WebContext) {
 	response.Send(c, http.StatusOK, account)
 }
 
-// @Summary                  Logout from the current session
-// @Tags                     Auth
-// @securityDefinitions.apikey ApiKeyAuth
-// @Produce                  json
-// @Success                  200 {object} nil "Logout successful"
-// @Failure                  403 {object} nil "Token not provided/invalid"
-// @Router                   /api/v1/auth/logout [post]
+// @Summary					Logout from the current session
+// @Tags						Auth
+// @securityDefinitions.apikey	ApiKeyAuth
+// @Produce					json
+// @Success					200	{object}	nil	"Logout successful"
+// @Failure					403	{object}	nil	"Token not provided/invalid"
+// @Router						/api/v1/auth/logout [post]
 func HandleLogout(deps model.Dependencies, c model.WebContext) {
 	if err := middleware.RequireLoggedInUser(deps, c); err != nil {
 		return

@@ -126,7 +126,7 @@ func HandleDeleteAccount(deps model.Dependencies, c model.WebContext) {
 // @Tags		accounts
 // @Accept		json
 // @Produce	json
-// @Param		id		path		int					true	"Account ID"
+// @Param		id		path		int						true	"Account ID"
 // @Param		account	body		updateAccountPayload	true	"Account data"
 // @Success	200		{object}	model.AccountDTO
 // @Failure	400		{object}	nil	"Invalid ID/data"
