@@ -96,31 +96,39 @@ func (s *HttpServer) Setup(cfg *config.Config, deps *dependencies.Dependencies) 
 			// TODO: Remove this once the legacy API is removed
 			api_v1.HandleLogin(deps, c, legacyHandler.HandleLogin)
 		},
+		globalMiddleware...,
 	))
 	s.mux.HandleFunc("POST /api/v1/auth/refresh", ToHTTPHandler(deps,
 		api_v1.HandleRefreshToken,
+		globalMiddleware...,
 	))
 	s.mux.HandleFunc("GET /api/v1/auth/me", ToHTTPHandler(deps,
 		api_v1.HandleGetMe,
+		globalMiddleware...,
 	))
 	s.mux.HandleFunc("PATCH /api/v1/auth/account", ToHTTPHandler(deps,
-		api_v1.HandleUpdateLoggedAccount,
+		api_v1.HandleUpdateAccount,
+		globalMiddleware...,
 	))
 	s.mux.HandleFunc("POST /api/v1/auth/logout", ToHTTPHandler(deps,
 		api_v1.HandleLogout,
+		globalMiddleware...,
 	))
-	// Accounts
 	s.mux.HandleFunc("GET /api/v1/accounts", ToHTTPHandler(deps,
 		api_v1.HandleListAccounts,
+		globalMiddleware...,
 	))
 	s.mux.HandleFunc("POST /api/v1/accounts", ToHTTPHandler(deps,
 		api_v1.HandleCreateAccount,
+		globalMiddleware...,
 	))
 	s.mux.HandleFunc("DELETE /api/v1/accounts/{id}", ToHTTPHandler(deps,
 		api_v1.HandleDeleteAccount,
+		globalMiddleware...,
 	))
 	s.mux.HandleFunc("PATCH /api/v1/accounts/{id}", ToHTTPHandler(deps,
 		api_v1.HandleUpdateAccount,
+		globalMiddleware...,
 	))
 
 	s.server = &http.Server{
