@@ -13,6 +13,7 @@ import (
 	"github.com/go-shiori/shiori/internal/http/handlers"
 	"github.com/go-shiori/shiori/internal/http/middleware"
 	"github.com/go-shiori/shiori/internal/http/templates"
+	"github.com/go-shiori/shiori/internal/model"
 	"github.com/sirupsen/logrus"
 )
 
@@ -29,23 +30,29 @@ func (s *HttpServer) Setup(cfg *config.Config, deps *dependencies.Dependencies) 
 		return nil, fmt.Errorf("failed to setup templates: %w", err)
 	}
 
+	globalMiddleware := []model.HttpMiddleware{
+		middleware.NewLoggingMiddleware(),
+		middleware.NewAuthMiddleware(deps),
+	}
+
 	// Register routes using standard http handlers
 	if cfg.Http.ServeWebUI {
 		// Frontend routes
 		s.mux.HandleFunc("/", ToHTTPHandler(deps,
 			handlers.HandleFrontend,
-			middleware.NewLoggingMiddleware(),
+			globalMiddleware...,
 		))
 		s.mux.HandleFunc("/assets/", ToHTTPHandler(deps,
 			handlers.HandleAssets,
-			middleware.NewLoggingMiddleware(),
+			globalMiddleware...,
 		))
+
 	}
 
 	// System routes with logging middleware
 	s.mux.HandleFunc("/system/liveness", ToHTTPHandler(deps,
 		handlers.HandleLiveness,
-		middleware.NewLoggingMiddleware(),
+		globalMiddleware...,
 	))
 
 	// Bookmark routes
@@ -55,9 +62,23 @@ func (s *HttpServer) Setup(cfg *config.Config, deps *dependencies.Dependencies) 
 	if cfg.Http.ServeSwagger {
 		s.mux.HandleFunc("/swagger/", ToHTTPHandler(deps,
 			handlers.HandleSwagger,
-			middleware.NewLoggingMiddleware(),
+			globalMiddleware...,
 		))
 	}
+
+	// Legacy API routes
+	// TODO: Remove this once the legacy API is removed
+	legacyHandler := handlers.NewLegacyHandler(deps)
+
+	s.mux.HandleFunc("/api/tags", ToHTTPHandler(deps, legacyHandler.HandleGetTags, globalMiddleware...))
+	s.mux.HandleFunc("/api/tags", ToHTTPHandler(deps, legacyHandler.HandleRenameTag, globalMiddleware...))
+	s.mux.HandleFunc("/api/bookmarks", ToHTTPHandler(deps, legacyHandler.HandleGetBookmarks, globalMiddleware...))
+	s.mux.HandleFunc("/api/bookmarks", ToHTTPHandler(deps, legacyHandler.HandleInsertBookmark, globalMiddleware...))
+	s.mux.HandleFunc("/api/bookmarks", ToHTTPHandler(deps, legacyHandler.HandleDeleteBookmark, globalMiddleware...))
+	s.mux.HandleFunc("/api/bookmarks", ToHTTPHandler(deps, legacyHandler.HandleUpdateBookmark, globalMiddleware...))
+	s.mux.HandleFunc("/api/bookmarks/tags", ToHTTPHandler(deps, legacyHandler.HandleUpdateBookmarkTags, globalMiddleware...))
+	s.mux.HandleFunc("/api/bookmarks/ext", ToHTTPHandler(deps, legacyHandler.HandleInsertViaExtension, globalMiddleware...))
+	s.mux.HandleFunc("/api/bookmarks/ext", ToHTTPHandler(deps, legacyHandler.HandleDeleteViaExtension, globalMiddleware...))
 
 	s.server = &http.Server{
 		Addr:    fmt.Sprintf("%s%d", cfg.Http.Address, cfg.Http.Port),
