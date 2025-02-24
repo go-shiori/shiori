@@ -6,7 +6,6 @@ import (
 	"net/http/httptest"
 	"strings"
 
-	"github.com/gin-gonic/gin"
 	"github.com/go-shiori/shiori/internal/model"
 )
 
@@ -61,32 +60,30 @@ func WithFakeAccount(isAdmin bool) Option {
 	}
 }
 
-// FakeUserLoggedInMiddlewware is a middleware that sets a fake user account to context.
-// Keep in mind that this users is not saved in database so any tests that use this middleware
-// should not rely on database.
-func FakeUserLoggedInMiddlewware(ctx *gin.Context) {
-	ctx.Set("account", &model.AccountDTO{
+// SetFakeUser sets a fake user account in the WebContext
+func SetFakeUser(c model.WebContext) {
+	c.SetAccount(&model.AccountDTO{
 		ID:       1,
 		Username: "user",
 		Owner:    model.Ptr(false),
 	})
 }
 
-// FakeAdminLoggedInMiddlewware is a middleware that sets a fake admin account to context.
-// Keep in mind that this users is not saved in database so any tests that use this middleware
-// should not rely on database.
-func FakeAdminLoggedInMiddlewware(ctx *gin.Context) {
-	ctx.Set("account", &model.AccountDTO{
+// SetFakeAdmin sets a fake admin account in the WebContext
+func SetFakeAdmin(c model.WebContext) {
+	c.SetAccount(&model.AccountDTO{
 		ID:       1,
 		Username: "user",
 		Owner:    model.Ptr(true),
 	})
 }
 
-// AuthUserMiddleware is a middleware that manually sets an user as authenticated in the context
-// to be used in tests.
-func AuthUserMiddleware(user *model.AccountDTO) gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		ctx.Set("account", user)
-	}
+// WithFakeUser returns an Option that sets a fake user account
+func WithFakeUser() Option {
+	return WithFakeAccount(false)
+}
+
+// WithFakeAdmin returns an Option that sets a fake admin account
+func WithFakeAdmin() Option {
+	return WithFakeAccount(true)
 }
