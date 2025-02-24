@@ -43,45 +43,6 @@ func (m *AuthMiddleware) OnResponse(deps model.Dependencies, c model.WebContext)
 	return nil
 }
 
-// // RequireAuthMiddleware ensures a user is authenticated
-// type RequireAuthMiddleware struct{}
-
-// func NewRequireAuthMiddleware() *RequireAuthMiddleware {
-// 	return &RequireAuthMiddleware{}
-// }
-
-// func (m *RequireAuthMiddleware) OnRequest(deps model.Dependencies, c model.WebContext) error {
-// 	if !c.UserIsLogged() {
-// 		response.SendError(c, http.StatusUnauthorized, "Authentication required", nil)
-// 		return nil
-// 	}
-// 	return nil
-// }
-
-// func (m *RequireAuthMiddleware) OnResponse(deps model.Dependencies, c model.WebContext) error {
-// 	return nil
-// }
-
-// // RequireAdminMiddleware ensures a user is authenticated and is an admin
-// type RequireAdminMiddleware struct{}
-
-// func NewRequireAdminMiddleware() *RequireAdminMiddleware {
-// 	return &RequireAdminMiddleware{}
-// }
-
-// func (m *RequireAdminMiddleware) OnRequest(deps model.Dependencies, c model.WebContext) error {
-// 	account := c.GetAccount()
-// 	if account == nil || !account.IsOwner() {
-// 		response.SendError(c, http.StatusForbidden, "Admin access required", nil)
-// 		return nil
-// 	}
-// 	return nil
-// }
-
-// func (m *RequireAdminMiddleware) OnResponse(deps model.Dependencies, c model.WebContext) error {
-// 	return nil
-// }
-
 // RequireLoggedInUser ensures a user is authenticated
 func RequireLoggedInUser(deps model.Dependencies, c model.WebContext) error {
 	if !c.UserIsLogged() {

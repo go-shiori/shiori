@@ -14,42 +14,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestRequireAuthMiddleware(t *testing.T) {
-	t.Run("test unauthorized", func(t *testing.T) {
-		w := httptest.NewRecorder()
-		r := httptest.NewRequest(http.MethodGet, "/", nil)
-		c := webcontext.NewWebContext(w, r)
-
-		logger := logrus.New()
-		_, deps := testutil.GetTestConfigurationAndDependencies(t, context.TODO(), logger)
-
-		middleware := NewRequireAuthMiddleware()
-		err := middleware.OnRequest(deps, c)
-		require.NoError(t, err)
-		require.Equal(t, http.StatusUnauthorized, w.Code)
-
-		resp, err := testutil.NewTestResponseFromRecorder(w)
-		require.NoError(t, err)
-		require.True(t, resp.Response.IsError())
-	})
-
-	t.Run("test authorized", func(t *testing.T) {
-		w := httptest.NewRecorder()
-		r := httptest.NewRequest(http.MethodGet, "/", nil)
-		c := webcontext.NewWebContext(w, r)
-
-		logger := logrus.New()
-		_, deps := testutil.GetTestConfigurationAndDependencies(t, context.TODO(), logger)
-
-		c.SetAccount(&model.AccountDTO{Username: "test"})
-
-		middleware := NewRequireAuthMiddleware()
-		err := middleware.OnRequest(deps, c)
-		require.NoError(t, err)
-		require.Equal(t, http.StatusOK, w.Code)
-	})
-}
-
 func TestAuthMiddleware(t *testing.T) {
 	logger := logrus.New()
 	_, deps := testutil.GetTestConfigurationAndDependencies(t, context.TODO(), logger)
@@ -99,45 +63,5 @@ func TestAuthMiddleware(t *testing.T) {
 		err = middleware.OnRequest(deps, c)
 		require.NoError(t, err)
 		require.NotNil(t, c.GetAccount())
-	})
-}
-
-func TestRequireAdminMiddleware(t *testing.T) {
-	logger := logrus.New()
-	_, deps := testutil.GetTestConfigurationAndDependencies(t, context.TODO(), logger)
-
-	t.Run("test unauthorized", func(t *testing.T) {
-		w := httptest.NewRecorder()
-		r := httptest.NewRequest(http.MethodGet, "/", nil)
-		c := webcontext.NewWebContext(w, r)
-
-		middleware := NewRequireAdminMiddleware()
-		err := middleware.OnRequest(deps, c)
-		require.NoError(t, err)
-		require.Equal(t, http.StatusForbidden, w.Code)
-	})
-
-	t.Run("test user but not admin", func(t *testing.T) {
-		w := httptest.NewRecorder()
-		r := httptest.NewRequest(http.MethodGet, "/", nil)
-		c := webcontext.NewWebContext(w, r)
-		c.SetAccount(&model.AccountDTO{Owner: model.Ptr(false)})
-
-		middleware := NewRequireAdminMiddleware()
-		err := middleware.OnRequest(deps, c)
-		require.NoError(t, err)
-		require.Equal(t, http.StatusForbidden, w.Code)
-	})
-
-	t.Run("test authorized", func(t *testing.T) {
-		w := httptest.NewRecorder()
-		r := httptest.NewRequest(http.MethodGet, "/", nil)
-		c := webcontext.NewWebContext(w, r)
-		c.SetAccount(&model.AccountDTO{Owner: model.Ptr(true)})
-
-		middleware := NewRequireAdminMiddleware()
-		err := middleware.OnRequest(deps, c)
-		require.NoError(t, err)
-		require.Equal(t, http.StatusOK, w.Code)
 	})
 }
