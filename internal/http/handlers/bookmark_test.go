@@ -29,45 +29,43 @@ func TestGetBookmark(t *testing.T) {
 	}...)
 	require.NoError(t, err)
 
-	t.Run("bookmark ID is not present", func(t *testing.T) {
-		c, _ := testutil.NewTestWebContextWithMethod("GET", "/bookmark/")
-		bookmark, err := getBookmark(deps, c)
-		require.Error(t, err)
-		require.Nil(t, bookmark)
-	})
-
 	t.Run("bookmark ID is not parsable number", func(t *testing.T) {
-		c, _ := testutil.NewTestWebContextWithMethod("GET", "/bookmark/not-a-number")
-		bookmark, err := getBookmark(deps, c)
-		require.Error(t, err)
+		c, w := testutil.NewTestWebContextWithMethod("GET", "/bookmark/notanumber")
+		testutil.SetRequestPathValue(c, "id", "notanumber")
+		bookmark, _ := getBookmark(deps, c)
 		require.Nil(t, bookmark)
+		require.Equal(t, http.StatusNotFound, w.Code)
 	})
 
 	t.Run("bookmark ID does not exist", func(t *testing.T) {
-		c, _ := testutil.NewTestWebContextWithMethod("GET", "/bookmark/99999")
-		bookmark, err := getBookmark(deps, c)
-		require.Error(t, err)
+		c, w := testutil.NewTestWebContextWithMethod("GET", "/bookmark/99999")
+		testutil.SetRequestPathValue(c, "id", "99999")
+		bookmark, _ := getBookmark(deps, c)
 		require.Nil(t, bookmark)
+		require.Equal(t, http.StatusNotFound, w.Code)
 	})
 
 	t.Run("bookmark ID exists but user is not logged in", func(t *testing.T) {
 		c, _ := testutil.NewTestWebContextWithMethod("GET", "/bookmark/"+strconv.Itoa(bookmarks[0].ID))
-		bookmark, err := getBookmark(deps, c)
+		testutil.SetRequestPathValue(c, "id", strconv.Itoa(bookmarks[0].ID))
+		bookmark, _ := getBookmark(deps, c)
 		require.NoError(t, err) // No error because it redirects
 		require.Nil(t, bookmark)
 	})
 
 	t.Run("bookmark ID exists and its public and user is not logged in", func(t *testing.T) {
 		c, _ := testutil.NewTestWebContextWithMethod("GET", "/bookmark/"+strconv.Itoa(bookmarks[1].ID))
-		bookmark, err := getBookmark(deps, c)
+		testutil.SetRequestPathValue(c, "id", strconv.Itoa(bookmarks[1].ID))
+		bookmark, _ := getBookmark(deps, c)
 		require.NoError(t, err)
 		require.NotNil(t, bookmark)
 	})
 
 	t.Run("bookmark ID exists and user is logged in", func(t *testing.T) {
-		c, _ := testutil.NewTestWebContextWithMethod("GET", "/bookmark/"+strconv.Itoa(bookmarks[0].ID))
+		c, _ := testutil.NewTestWebContextWithMethod("GET", "/bookmark/"+strconv.Itoa(bookmarks[0].ID)+"/content")
 		testutil.SetFakeUser(c)
-		bookmark, err := getBookmark(deps, c)
+		testutil.SetRequestPathValue(c, "id", strconv.Itoa(bookmarks[0].ID))
+		bookmark, _ := getBookmark(deps, c)
 		require.NoError(t, err)
 		require.NotNil(t, bookmark)
 	})
@@ -88,6 +86,7 @@ func TestBookmarkContentHandler(t *testing.T) {
 
 	t.Run("not logged in", func(t *testing.T) {
 		c, w := testutil.NewTestWebContextWithMethod("GET", "/bookmark/"+strconv.Itoa(bookmark.ID)+"/content")
+		testutil.SetRequestPathValue(c, "id", strconv.Itoa(bookmark.ID))
 		HandleBookmarkContent(deps, c)
 		require.Equal(t, http.StatusFound, w.Code) // Redirects to login
 	})
@@ -95,6 +94,7 @@ func TestBookmarkContentHandler(t *testing.T) {
 	t.Run("get existing bookmark content", func(t *testing.T) {
 		c, w := testutil.NewTestWebContextWithMethod("GET", "/bookmark/"+strconv.Itoa(bookmark.ID)+"/content")
 		testutil.SetFakeUser(c)
+		testutil.SetRequestPathValue(c, "id", strconv.Itoa(bookmark.ID))
 		HandleBookmarkContent(deps, c)
 		require.Equal(t, http.StatusOK, w.Code)
 		require.Contains(t, w.Body.String(), bookmark.HTML)
@@ -126,6 +126,7 @@ func TestBookmarkFileHandlers(t *testing.T) {
 	t.Run("get existing bookmark archive", func(t *testing.T) {
 		c, w := testutil.NewTestWebContextWithMethod("GET", "/bookmark/"+strconv.Itoa(bookmark.ID)+"/archive")
 		testutil.SetFakeUser(c)
+		testutil.SetRequestPathValue(c, "id", strconv.Itoa(bookmark.ID))
 		HandleBookmarkArchive(deps, c)
 		require.Equal(t, http.StatusOK, w.Code)
 		require.Contains(t, w.Body.String(), "iframe")
@@ -134,6 +135,7 @@ func TestBookmarkFileHandlers(t *testing.T) {
 	t.Run("get existing bookmark thumbnail", func(t *testing.T) {
 		c, w := testutil.NewTestWebContextWithMethod("GET", "/bookmark/"+strconv.Itoa(bookmark.ID)+"/thumb")
 		testutil.SetFakeUser(c)
+		testutil.SetRequestPathValue(c, "id", strconv.Itoa(bookmark.ID))
 		HandleBookmarkThumbnail(deps, c)
 		require.Equal(t, http.StatusOK, w.Code)
 	})
@@ -145,6 +147,7 @@ func TestBookmarkFileHandlers(t *testing.T) {
 
 		c, w := testutil.NewTestWebContextWithMethod("GET", "/bookmark/"+strconv.Itoa(bookmarks[0].ID)+"/archive")
 		testutil.SetFakeUser(c)
+		testutil.SetRequestPathValue(c, "id", strconv.Itoa(bookmarks[0].ID))
 		HandleBookmarkArchive(deps, c)
 		require.Equal(t, http.StatusNotFound, w.Code)
 	})
@@ -152,6 +155,7 @@ func TestBookmarkFileHandlers(t *testing.T) {
 	t.Run("get existing bookmark archive file", func(t *testing.T) {
 		c, w := testutil.NewTestWebContextWithMethod("GET", "/bookmark/"+strconv.Itoa(bookmark.ID)+"/archive/file/")
 		testutil.SetFakeUser(c)
+		testutil.SetRequestPathValue(c, "id", strconv.Itoa(bookmark.ID))
 		HandleBookmarkArchiveFile(deps, c)
 		require.Equal(t, http.StatusOK, w.Code)
 	})
@@ -159,6 +163,7 @@ func TestBookmarkFileHandlers(t *testing.T) {
 	t.Run("bookmark with ebook", func(t *testing.T) {
 		c, w := testutil.NewTestWebContextWithMethod("GET", "/bookmark/"+strconv.Itoa(bookmark.ID)+"/ebook")
 		testutil.SetFakeUser(c)
+		testutil.SetRequestPathValue(c, "id", strconv.Itoa(bookmark.ID))
 		HandleBookmarkEbook(deps, c)
 		require.Equal(t, http.StatusOK, w.Code)
 	})
@@ -170,6 +175,7 @@ func TestBookmarkFileHandlers(t *testing.T) {
 
 		c, w := testutil.NewTestWebContextWithMethod("GET", "/bookmark/"+strconv.Itoa(bookmarks[0].ID)+"/ebook")
 		testutil.SetFakeUser(c)
+		testutil.SetRequestPathValue(c, "id", strconv.Itoa(bookmarks[0].ID))
 		HandleBookmarkEbook(deps, c)
 		require.Equal(t, http.StatusNotFound, w.Code)
 	})

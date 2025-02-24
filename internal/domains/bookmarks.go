@@ -4,12 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/go-shiori/shiori/internal/dependencies"
 	"github.com/go-shiori/shiori/internal/model"
 )
 
 type BookmarksDomain struct {
-	deps *dependencies.Dependencies
+	deps model.Dependencies
 }
 
 func (d *BookmarksDomain) HasEbook(b *model.BookmarkDTO) bool {
@@ -44,7 +43,7 @@ func (d *BookmarksDomain) GetBookmark(ctx context.Context, id model.DBID) (*mode
 	return &bookmark, nil
 }
 
-func NewBookmarksDomain(deps *dependencies.Dependencies) *BookmarksDomain {
+func NewBookmarksDomain(deps model.Dependencies) *BookmarksDomain {
 	return &BookmarksDomain{
 		deps: deps,
 	}

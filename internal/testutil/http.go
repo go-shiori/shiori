@@ -87,3 +87,8 @@ func WithFakeUser() Option {
 func WithFakeAdmin() Option {
 	return WithFakeAccount(true)
 }
+
+// SetRequestPathValue sets a path value for the request
+func SetRequestPathValue(c model.WebContext, key, value string) {
+	c.Request().SetPathValue(key, value)
+}

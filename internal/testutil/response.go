@@ -31,6 +31,10 @@ func (r *testResponse) AssertMessageIsListLength(t *testing.T, length int) {
 	require.Len(t, r.Response.GetMessage(), length)
 }
 
+func (r *testResponse) AssertMessageContains(t *testing.T, expected string) {
+	require.Contains(t, r.Response.GetMessage(), expected)
+}
+
 func (r *testResponse) AssertOk(t *testing.T) {
 	require.False(t, r.Response.IsError())
 }

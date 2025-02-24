@@ -14,10 +14,9 @@ import (
 
 // getBookmark retrieves and validates a bookmark by ID from the request
 func getBookmark(deps model.Dependencies, c model.WebContext) (*model.BookmarkDTO, error) {
-	// Get bookmark ID from URL path
 	bookmarkID, err := strconv.Atoi(c.Request().PathValue("id"))
 	if err != nil {
-		return nil, response.SendError(c, http.StatusBadRequest, "Invalid bookmark ID", nil)
+		return nil, response.SendError(c, http.StatusNotFound, "Invalid bookmark ID", nil)
 	}
 
 	if bookmarkID == 0 {
@@ -42,7 +41,7 @@ func getBookmark(deps model.Dependencies, c model.WebContext) (*model.BookmarkDT
 // HandleBookmarkContent serves the bookmark content page
 func HandleBookmarkContent(deps model.Dependencies, c model.WebContext) {
 	bookmark, err := getBookmark(deps, c)
-	if err != nil {
+	if err != nil || bookmark == nil {
 		return
 	}
 
@@ -61,7 +60,7 @@ func HandleBookmarkContent(deps model.Dependencies, c model.WebContext) {
 // HandleBookmarkArchive serves the bookmark archive page
 func HandleBookmarkArchive(deps model.Dependencies, c model.WebContext) {
 	bookmark, err := getBookmark(deps, c)
-	if err != nil {
+	if err != nil || bookmark == nil {
 		return
 	}
 
@@ -84,7 +83,7 @@ func HandleBookmarkArchive(deps model.Dependencies, c model.WebContext) {
 // HandleBookmarkArchiveFile serves files from the bookmark archive
 func HandleBookmarkArchiveFile(deps model.Dependencies, c model.WebContext) {
 	bookmark, err := getBookmark(deps, c)
-	if err != nil {
+	if err != nil || bookmark == nil {
 		return
 	}
 
@@ -131,7 +130,7 @@ func HandleBookmarkArchiveFile(deps model.Dependencies, c model.WebContext) {
 // HandleBookmarkThumbnail serves the bookmark thumbnail
 func HandleBookmarkThumbnail(deps model.Dependencies, c model.WebContext) {
 	bookmark, err := getBookmark(deps, c)
-	if err != nil {
+	if err != nil || bookmark == nil {
 		return
 	}
 
@@ -162,7 +161,7 @@ func HandleBookmarkThumbnail(deps model.Dependencies, c model.WebContext) {
 // HandleBookmarkEbook serves the bookmark's ebook file
 func HandleBookmarkEbook(deps model.Dependencies, c model.WebContext) {
 	bookmark, err := getBookmark(deps, c)
-	if err != nil {
+	if err != nil || bookmark == nil {
 		return
 	}
 
