@@ -60,7 +60,7 @@ jobs:
     - name: Set up gotestfmt
       uses: gotesttools/gotestfmt-action@8b4478c7019be847373babde9300210e7de34bfb # v2.2.0
 
-    - uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57 # 4.2.0
+    - uses: actions/cache@0c907a75c2c80ebcb7f088228285e798b750cf8f # 4.2.1
       with:
         path: |
           ~/.cache/go-build
@@ -98,7 +98,7 @@ jobs:
       with:
         go-version-file: ./go.mod
 
-    - uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57 # 4.2.0
+    - uses: actions/cache@0c907a75c2c80ebcb7f088228285e798b750cf8f # 4.2.1
       with:
         path: |
           ~/.cache/go-build
