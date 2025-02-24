@@ -43,6 +43,15 @@ func PerformRequest(deps model.Dependencies, handler model.HttpHandler, method, 
 	return w
 }
 
+// PerformRequestOnRecorder executes a request against a handler and returns the response recorder
+func PerformRequestOnRecorder(deps model.Dependencies, w *httptest.ResponseRecorder, handler model.HttpHandler, method, path string, options ...Option) {
+	r := httptest.NewRequest(method, path, nil)
+	for _, opt := range options {
+		opt(r)
+	}
+	handler(deps, NewWebContext(w, r))
+}
+
 // FakeAccount creates a fake account for testing
 func FakeAccount(isAdmin bool) *model.AccountDTO {
 	return &model.AccountDTO{

@@ -89,6 +89,26 @@ func (s *HttpServer) Setup(cfg *config.Config, deps *dependencies.Dependencies) 
 		))
 	}
 
+	// API v1 routes
+	s.mux.HandleFunc("POST /api/v1/auth/login", ToHTTPHandler(deps,
+		func(deps model.Dependencies, c model.WebContext) {
+			// TODO: Remove this once the legacy API is removed
+			api_v1.HandleLogin(deps, c, legacyHandler.HandleLogin)
+		},
+	))
+	s.mux.HandleFunc("POST /api/v1/auth/refresh", ToHTTPHandler(deps,
+		api_v1.HandleRefreshToken,
+	))
+	s.mux.HandleFunc("GET /api/v1/auth/me", ToHTTPHandler(deps,
+		api_v1.HandleGetMe,
+	))
+	s.mux.HandleFunc("PATCH /api/v1/auth/account", ToHTTPHandler(deps,
+		api_v1.HandleUpdateAccount,
+	))
+	s.mux.HandleFunc("POST /api/v1/auth/logout", ToHTTPHandler(deps,
+		api_v1.HandleLogout,
+	))
+
 	s.server = &http.Server{
 		Addr:    fmt.Sprintf("%s%d", cfg.Http.Address, cfg.Http.Port),
 		Handler: s.mux,
