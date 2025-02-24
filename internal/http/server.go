@@ -135,6 +135,15 @@ func (s *HttpServer) Setup(cfg *config.Config, deps *dependencies.Dependencies) 
 		api_v1.HandleListTags,
 		globalMiddleware...,
 	))
+	// Bookmarks
+	s.mux.HandleFunc("PUT /api/v1/bookmarks/cache", ToHTTPHandler(deps,
+		api_v1.HandleUpdateCache,
+		globalMiddleware...,
+	))
+	s.mux.HandleFunc("GET /api/v1/bookmarks/{id}/readable", ToHTTPHandler(deps,
+		api_v1.HandleBookmarkReadable,
+		globalMiddleware...,
+	))
 
 	s.server = &http.Server{
 		Addr:    fmt.Sprintf("%s%d", cfg.Http.Address, cfg.Http.Port),

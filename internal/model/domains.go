@@ -15,6 +15,8 @@ type BookmarksDomain interface {
 	HasArchive(b *BookmarkDTO) bool
 	HasThumbnail(b *BookmarkDTO) bool
 	GetBookmark(ctx context.Context, id DBID) (*BookmarkDTO, error)
+	GetBookmarks(ctx context.Context, ids []int) ([]BookmarkDTO, error)
+	UpdateBookmarkCache(ctx context.Context, bookmark BookmarkDTO, keepMetadata bool, skipExist bool) (*BookmarkDTO, error)
 }
 
 type AuthDomain interface {
