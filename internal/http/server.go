@@ -42,7 +42,7 @@ func (s *HttpServer) Setup(cfg *config.Config, deps *dependencies.Dependencies) 
 			handlers.HandleFrontend,
 			globalMiddleware...,
 		))
-		s.mux.HandleFunc("/assets/", ToHTTPHandler(deps,
+		s.mux.HandleFunc("GET /assets/", ToHTTPHandler(deps,
 			handlers.HandleAssets,
 			globalMiddleware...,
 		))
@@ -50,7 +50,7 @@ func (s *HttpServer) Setup(cfg *config.Config, deps *dependencies.Dependencies) 
 	}
 
 	// System routes with logging middleware
-	s.mux.HandleFunc("/system/liveness", ToHTTPHandler(deps,
+	s.mux.HandleFunc("GET /system/liveness", ToHTTPHandler(deps,
 		handlers.HandleLiveness,
 		globalMiddleware...,
 	))
@@ -70,15 +70,15 @@ func (s *HttpServer) Setup(cfg *config.Config, deps *dependencies.Dependencies) 
 	// TODO: Remove this once the legacy API is removed
 	legacyHandler := handlers.NewLegacyHandler(deps)
 
-	s.mux.HandleFunc("/api/tags", ToHTTPHandler(deps, legacyHandler.HandleGetTags, globalMiddleware...))
-	s.mux.HandleFunc("/api/tags", ToHTTPHandler(deps, legacyHandler.HandleRenameTag, globalMiddleware...))
-	s.mux.HandleFunc("/api/bookmarks", ToHTTPHandler(deps, legacyHandler.HandleGetBookmarks, globalMiddleware...))
-	s.mux.HandleFunc("/api/bookmarks", ToHTTPHandler(deps, legacyHandler.HandleInsertBookmark, globalMiddleware...))
-	s.mux.HandleFunc("/api/bookmarks", ToHTTPHandler(deps, legacyHandler.HandleDeleteBookmark, globalMiddleware...))
-	s.mux.HandleFunc("/api/bookmarks", ToHTTPHandler(deps, legacyHandler.HandleUpdateBookmark, globalMiddleware...))
-	s.mux.HandleFunc("/api/bookmarks/tags", ToHTTPHandler(deps, legacyHandler.HandleUpdateBookmarkTags, globalMiddleware...))
-	s.mux.HandleFunc("/api/bookmarks/ext", ToHTTPHandler(deps, legacyHandler.HandleInsertViaExtension, globalMiddleware...))
-	s.mux.HandleFunc("/api/bookmarks/ext", ToHTTPHandler(deps, legacyHandler.HandleDeleteViaExtension, globalMiddleware...))
+	s.mux.HandleFunc("GET /api/tags", ToHTTPHandler(deps, legacyHandler.HandleGetTags, globalMiddleware...))
+	s.mux.HandleFunc("PUT /api/tags", ToHTTPHandler(deps, legacyHandler.HandleRenameTag, globalMiddleware...))
+	s.mux.HandleFunc("GET /api/bookmarks", ToHTTPHandler(deps, legacyHandler.HandleGetBookmarks, globalMiddleware...))
+	s.mux.HandleFunc("POST /api/bookmarks", ToHTTPHandler(deps, legacyHandler.HandleInsertBookmark, globalMiddleware...))
+	s.mux.HandleFunc("DELETE /api/bookmarks", ToHTTPHandler(deps, legacyHandler.HandleDeleteBookmark, globalMiddleware...))
+	s.mux.HandleFunc("PUT /api/bookmarks", ToHTTPHandler(deps, legacyHandler.HandleUpdateBookmark, globalMiddleware...))
+	s.mux.HandleFunc("PUT /api/bookmarks/tags", ToHTTPHandler(deps, legacyHandler.HandleUpdateBookmarkTags, globalMiddleware...))
+	s.mux.HandleFunc("POST /api/bookmarks/ext", ToHTTPHandler(deps, legacyHandler.HandleInsertViaExtension, globalMiddleware...))
+	s.mux.HandleFunc("DELETE /api/bookmarks/ext", ToHTTPHandler(deps, legacyHandler.HandleDeleteViaExtension, globalMiddleware...))
 
 	s.server = &http.Server{
 		Addr:    fmt.Sprintf("%s%d", cfg.Http.Address, cfg.Http.Port),
