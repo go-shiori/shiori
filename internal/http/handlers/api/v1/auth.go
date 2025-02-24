@@ -48,8 +48,6 @@ func HandleLogin(deps model.Dependencies, c model.WebContext, legacyLoginHandler
 		return
 	}
 
-	deps.Logger().Warn("login payload", "payload", payload)
-
 	if err := payload.IsValid(); err != nil {
 		response.SendError(c, http.StatusBadRequest, err.Error(), nil)
 		return
@@ -167,7 +165,7 @@ func (p *updateAccountPayload) ToAccountDTO() model.AccountDTO {
 // @Success                  200 {object} model.Account
 // @Failure                  403 {object} nil "Token not provided/invalid"
 // @Router                   /api/v1/auth/account [patch]
-func HandleUpdateAccount(deps model.Dependencies, c model.WebContext) {
+func HandleUpdateLoggedAccount(deps model.Dependencies, c model.WebContext) {
 	if err := middleware.RequireLoggedInUser(deps, c); err != nil {
 		return
 	}

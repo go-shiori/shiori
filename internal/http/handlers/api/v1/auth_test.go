@@ -134,7 +134,7 @@ func TestHandleGetMe(t *testing.T) {
 	})
 }
 
-func TestHandleUpdateAccount(t *testing.T) {
+func TestHandleUpdateLoggedAccount(t *testing.T) {
 	logger := logrus.New()
 	_, deps := testutil.GetTestConfigurationAndDependencies(t, context.Background(), logger)
 
