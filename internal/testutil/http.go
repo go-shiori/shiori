@@ -5,10 +5,29 @@ import (
 	"net/http/httptest"
 	"strings"
 
+	"github.com/go-shiori/shiori/internal/http/webcontext"
 	"github.com/go-shiori/shiori/internal/model"
 )
 
 type Option = func(c model.WebContext)
+
+// NewTestWebContext creates a new WebContext with test recorder and request
+func NewTestWebContext() (model.WebContext, *httptest.ResponseRecorder) {
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest("GET", "/", nil)
+	return webcontext.NewWebContext(w, r), w
+}
+
+// NewTestWebContextWithMethod creates a new WebContext with specified method
+func NewTestWebContextWithMethod(method, path string, opts ...Option) (model.WebContext, *httptest.ResponseRecorder) {
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(method, path, nil)
+	c := webcontext.NewWebContext(w, r)
+	for _, opt := range opts {
+		opt(c)
+	}
+	return c, w
+}
 
 func WithBody(body string) Option {
 	return func(c model.WebContext) {
@@ -52,7 +71,7 @@ func WithRequestPathValue(key, value string) Option {
 func PerformRequest(deps model.Dependencies, handler model.HttpHandler, method, path string, options ...Option) *httptest.ResponseRecorder {
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(method, path, nil)
-	c := NewWebContext(w, r)
+	c := webcontext.NewWebContext(w, r)
 	for _, opt := range options {
 		opt(c)
 	}
@@ -65,7 +84,7 @@ func PerformRequest(deps model.Dependencies, handler model.HttpHandler, method, 
 // PerformRequestOnRecorder executes a request against a handler and returns the response recorder
 func PerformRequestOnRecorder(deps model.Dependencies, w *httptest.ResponseRecorder, handler model.HttpHandler, method, path string, options ...Option) {
 	r := httptest.NewRequest(method, path, nil)
-	c := NewWebContext(w, r)
+	c := webcontext.NewWebContext(w, r)
 	for _, opt := range options {
 		opt(c)
 	}

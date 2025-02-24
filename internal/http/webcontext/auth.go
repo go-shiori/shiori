@@ -6,12 +6,6 @@ import (
 	"github.com/go-shiori/shiori/internal/model"
 )
 
-type contextKey string
-
-const (
-	accountKey contextKey = "account"
-)
-
 // UserIsLogged returns a boolean indicating if the user is authenticated or not
 func (c *WebContext) UserIsLogged() bool {
 	return c.GetAccount() != nil

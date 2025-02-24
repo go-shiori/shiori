@@ -12,13 +12,15 @@ const (
 	AuthorizationTokenType = "Bearer"
 )
 
-// WebContext represents the interface for handling HTTP context
+// WebContext represents the context of an HTTP request
 type WebContext interface {
+	Request() *http.Request
+	ResponseWriter() http.ResponseWriter
 	GetAccount() *AccountDTO
 	SetAccount(*AccountDTO)
 	UserIsLogged() bool
-	Request() *http.Request
-	ResponseWriter() http.ResponseWriter
+	GetRequestID() string
+	SetRequestID(id string)
 }
 
 // Handler is a custom handler function that receives dependencies and web context

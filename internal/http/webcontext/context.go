@@ -39,3 +39,17 @@ func (c *WebContext) ResponseWriter() http.ResponseWriter {
 func (c *WebContext) Request() *http.Request {
 	return c.request
 }
+
+// GetRequestID returns the request ID from the context
+func (c *WebContext) GetRequestID() string {
+	if id := c.request.Context().Value(requestIDKey); id != nil {
+		return id.(string)
+	}
+	return ""
+}
+
+// SetRequestID stores the request ID in the context
+func (c *WebContext) SetRequestID(id string) {
+	ctx := context.WithValue(c.request.Context(), requestIDKey, id)
+	c.request = c.request.WithContext(ctx)
+}
