@@ -14,7 +14,7 @@ func HandleSwagger(deps model.Dependencies, c model.WebContext) {
 	// Redirect /swagger to /swagger/
 	path := c.Request().URL.Path
 	if path == "/swagger" {
-		http.Redirect(c.ResponseWriter(), c.Request(), "/swagger/", http.StatusFound)
+		http.Redirect(c.ResponseWriter(), c.Request(), "/swagger/index.html", http.StatusPermanentRedirect)
 		return
 	}
 
