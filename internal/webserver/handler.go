@@ -25,7 +25,7 @@ type Handler struct {
 
 func (h *Handler) PrepareSessionCache() {
 	h.SessionCache.OnEvicted(func(key string, val interface{}) {
-		account := val.(model.Account)
+		account := val.(*model.AccountDTO)
 		arr, found := h.UserCache.Get(account.Username)
 		if !found {
 			return
@@ -100,7 +100,7 @@ func (h *Handler) validateSession(r *http.Request) error {
 
 	// If this is not get request, make sure it's owner
 	if r.Method != "" && r.Method != "GET" {
-		if account := val.(model.Account); !account.Owner {
+		if account := val.(*model.AccountDTO); account.Owner != nil && !*account.Owner {
 			return fmt.Errorf("account level is not sufficient")
 		}
 	}
