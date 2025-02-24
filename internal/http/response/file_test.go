@@ -137,16 +137,3 @@ type errorFs struct {
 func (e *errorFs) Open(name string) (afero.File, error) {
 	return nil, e.err
 }
-
-type errorFile struct {
-	afero.File
-	err error
-}
-
-func (e *errorFile) Read(p []byte) (n int, err error) {
-	return 0, e.err
-}
-
-func (e *errorFile) Close() error {
-	return nil
-}

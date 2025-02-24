@@ -42,6 +42,12 @@ func WithFakeAccount(isAdmin bool) Option {
 	}
 }
 
+func WithRequestPathValue(key, value string) Option {
+	return func(c model.WebContext) {
+		c.Request().SetPathValue(key, value)
+	}
+}
+
 // PerformRequest executes a request against a handler
 func PerformRequest(deps model.Dependencies, handler model.HttpHandler, method, path string, options ...Option) *httptest.ResponseRecorder {
 	w := httptest.NewRecorder()

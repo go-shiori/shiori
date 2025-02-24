@@ -3,15 +3,12 @@ package webcontext
 import (
 	"context"
 	"net/http"
-
-	"github.com/go-shiori/shiori/internal/model"
 )
 
 // WebContext wraps the standard request and response writer
 type WebContext struct {
 	request        *http.Request
 	responseWriter http.ResponseWriter
-	account        *model.AccountDTO
 }
 
 // NewWebContext creates a new WebContext from http.ResponseWriter and *http.Request

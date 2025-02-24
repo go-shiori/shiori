@@ -24,7 +24,7 @@ func (t *Tag) ToDTO() TagDTO {
 
 func (t *TagDTO) ToTag() Tag {
 	return Tag{
-		ID:   int(t.ID),
+		ID:   t.ID,
 		Name: t.Name,
 	}
 }

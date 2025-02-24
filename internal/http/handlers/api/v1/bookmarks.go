@@ -32,6 +32,11 @@ func (p *updateCachePayload) IsValid() error {
 	return nil
 }
 
+type readableResponseMessage struct {
+	Content string `json:"content"`
+	HTML    string `json:"html"`
+}
+
 // HandleBookmarkReadable returns the readable version of a bookmark
 // @Summary Get readable version of bookmark.
 // @Tags Auth
@@ -41,6 +46,11 @@ func (p *updateCachePayload) IsValid() error {
 // @Failure 403 {object} nil "Token not provided/invalid"
 // @Router /api/v1/bookmarks/id/readable [get]
 func HandleBookmarkReadable(deps model.Dependencies, c model.WebContext) {
+	if err := middleware.RequireLoggedInUser(deps, c); err != nil {
+		response.SendError(c, http.StatusForbidden, err.Error(), nil)
+		return
+	}
+
 	bookmarkID, err := strconv.Atoi(c.Request().PathValue("id"))
 	if err != nil {
 		response.SendError(c, http.StatusBadRequest, "Invalid bookmark ID", nil)
@@ -53,9 +63,9 @@ func HandleBookmarkReadable(deps model.Dependencies, c model.WebContext) {
 		return
 	}
 
-	response.Send(c, http.StatusOK, map[string]string{
-		"content": bookmark.Content,
-		"html":    bookmark.HTML,
+	response.Send(c, http.StatusOK, readableResponseMessage{
+		Content: bookmark.Content,
+		HTML:    bookmark.HTML,
 	})
 }
 
