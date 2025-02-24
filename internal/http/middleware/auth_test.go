@@ -65,3 +65,60 @@ func TestAuthMiddleware(t *testing.T) {
 		require.NotNil(t, c.GetAccount())
 	})
 }
+
+func TestRequireLoggedInUser(t *testing.T) {
+	logger := logrus.New()
+	_, deps := testutil.GetTestConfigurationAndDependencies(t, context.TODO(), logger)
+
+	t.Run("returns error when user not logged in", func(t *testing.T) {
+		c, w := testutil.NewTestWebContext()
+		err := RequireLoggedInUser(deps, c)
+		require.Error(t, err)
+		require.Equal(t, "authentication required", err.Error())
+		require.Equal(t, http.StatusUnauthorized, w.Code)
+	})
+
+	t.Run("succeeds when user is logged in", func(t *testing.T) {
+		c, w := testutil.NewTestWebContext()
+		testutil.SetFakeUser(c)
+		err := RequireLoggedInUser(deps, c)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, w.Code)
+	})
+
+	t.Run("succeeds when admin is logged in", func(t *testing.T) {
+		c, w := testutil.NewTestWebContext()
+		testutil.SetFakeAdmin(c)
+		err := RequireLoggedInUser(deps, c)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, w.Code)
+	})
+}
+
+func TestRequireLoggedInAdmin(t *testing.T) {
+	logger := logrus.New()
+	_, deps := testutil.GetTestConfigurationAndDependencies(t, context.TODO(), logger)
+
+	t.Run("returns error when user not logged in", func(t *testing.T) {
+		c, w := testutil.NewTestWebContext()
+		err := RequireLoggedInAdmin(deps, c)
+		require.Error(t, err)
+		require.Equal(t, http.StatusUnauthorized, w.Code)
+	})
+
+	t.Run("returns error when non-admin user is logged in", func(t *testing.T) {
+		c, w := testutil.NewTestWebContext()
+		testutil.SetFakeUser(c)
+		err := RequireLoggedInAdmin(deps, c)
+		require.Error(t, err)
+		require.Equal(t, http.StatusForbidden, w.Code)
+	})
+
+	t.Run("succeeds when admin is logged in", func(t *testing.T) {
+		c, w := testutil.NewTestWebContext()
+		testutil.SetFakeAdmin(c)
+		err := RequireLoggedInAdmin(deps, c)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, w.Code)
+	})
+}

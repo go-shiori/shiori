@@ -163,7 +163,7 @@ func parseCsvExport(ctx context.Context, db model.DB, srcFile *os.File) []model.
 }
 
 // Parse metadata and verify it's validity
-func verifyMetadata(title, url, timeAddedStr, tags string) (string, string, time.Time, []model.Tag, error) {
+func verifyMetadata(title, url, timeAddedStr, tags string) (string, string, time.Time, []model.TagDTO, error) {
 	// Clean up URL
 	var err error
 	url, err = core.RemoveUTMParams(url)
@@ -184,13 +184,15 @@ func verifyMetadata(title, url, timeAddedStr, tags string) (string, string, time
 	timeAdded := time.Unix(timeAddedInt, 0)
 
 	// Get bookmark tags
-	tagsList := []model.Tag{}
+	tagsList := []model.TagDTO{}
 	// We need to split tags by both comma or pipe,
 	// because Pocket's CSV export use pipe as separator,
 	// while HTML export use comma.
 	for _, tag := range regexp.MustCompile(`[,|]`).Split(tags, -1) {
 		if tag != "" {
-			tagsList = append(tagsList, model.Tag{Name: tag})
+			tagsList = append(tagsList, model.TagDTO{
+				Tag: model.Tag{Name: tag},
+			})
 		}
 	}
 

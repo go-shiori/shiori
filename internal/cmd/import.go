@@ -119,11 +119,13 @@ func importHandler(cmd *cobra.Command, args []string) {
 		}
 
 		// Get bookmark tags
-		tags := []model.Tag{}
+		tags := []model.TagDTO{}
 		for _, strTag := range strings.Split(strTags, ",") {
 			strTag = normalizeSpace(strTag)
 			if strTag != "" {
-				tags = append(tags, model.Tag{Name: strTag})
+				tags = append(tags, model.TagDTO{
+					Tag: model.Tag{Name: strTag},
+				})
 			}
 		}
 
@@ -131,7 +133,9 @@ func importHandler(cmd *cobra.Command, args []string) {
 		// and add it as tags (if necessary)
 		category := normalizeSpace(h3.Text())
 		if category != "" && generateTag {
-			tags = append(tags, model.Tag{Name: category})
+			tags = append(tags, model.TagDTO{
+				Tag: model.Tag{Name: category},
+			})
 		}
 
 		// Add item to list

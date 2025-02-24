@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -47,7 +48,7 @@ func (m *AuthMiddleware) OnResponse(deps model.Dependencies, c model.WebContext)
 func RequireLoggedInUser(deps model.Dependencies, c model.WebContext) error {
 	if !c.UserIsLogged() {
 		response.SendError(c, http.StatusUnauthorized, "Authentication required", nil)
-		return nil
+		return fmt.Errorf("authentication required")
 	}
 	return nil
 }
@@ -55,10 +56,15 @@ func RequireLoggedInUser(deps model.Dependencies, c model.WebContext) error {
 // RequireLoggedInAdmin ensures a user is authenticated and is an admin
 func RequireLoggedInAdmin(deps model.Dependencies, c model.WebContext) error {
 	account := c.GetAccount()
-	if account == nil || !account.IsOwner() {
-		response.SendError(c, http.StatusForbidden, "Admin access required", nil)
-		return nil
+	if err := RequireLoggedInUser(deps, c); err != nil {
+		return err
 	}
+
+	if !account.IsOwner() {
+		response.SendError(c, http.StatusForbidden, "Admin access required", nil)
+		return fmt.Errorf("admin access required")
+	}
+
 	return nil
 }
 

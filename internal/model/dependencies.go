@@ -25,4 +25,6 @@ type DomainDependencies interface {
 	SetArchiver(archiver ArchiverDomain)
 	Storage() StorageDomain
 	SetStorage(storage StorageDomain)
+	Tags() TagsDomain
+	SetTags(tags TagsDomain)
 }

@@ -198,10 +198,14 @@ func (h *Handler) ApiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 		URL:           payload.URL,
 		Title:         payload.Title,
 		Excerpt:       payload.Excerpt,
-		Tags:          payload.Tags,
+		Tags:          make([]model.TagDTO, len(payload.Tags)),
 		Public:        payload.MakePublic,
 		CreateArchive: payload.CreateArchive,
 		CreateEbook:   payload.CreateEbook,
+	}
+
+	for i, tag := range payload.Tags {
+		book.Tags[i] = tag.ToDTO()
 	}
 
 	// Clean up bookmark URL
@@ -409,7 +413,7 @@ func (h *Handler) ApiUpdateBookmarkTags(w http.ResponseWriter, r *http.Request, 
 			}
 
 			if newTag.ID == 0 {
-				book.Tags = append(book.Tags, newTag)
+				book.Tags = append(book.Tags, newTag.ToDTO())
 			}
 		}
 

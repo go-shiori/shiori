@@ -60,7 +60,7 @@ type DB interface {
 	CreateTags(ctx context.Context, tags ...Tag) error
 
 	// GetTags fetch list of tags and its frequency from database.
-	GetTags(ctx context.Context) ([]Tag, error)
+	GetTags(ctx context.Context) ([]TagDTO, error)
 
 	// RenameTag change the name of a tag.
 	RenameTag(ctx context.Context, id int, newName string) error

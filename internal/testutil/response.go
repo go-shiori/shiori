@@ -16,14 +16,18 @@ type testResponse struct {
 }
 
 func (r *testResponse) AssertMessageIsEmptyList(t *testing.T) {
-	require.Equal(t, []interface{}{}, r.Response.GetMessage())
+	require.Equal(t, []any{}, r.Response.GetMessage())
+}
+
+func (r *testResponse) AssertMessageIsNotEmptyList(t *testing.T) {
+	require.Greater(t, len(r.Response.GetMessage().([]any)), 0)
 }
 
 func (r *testResponse) AssertNilMessage(t *testing.T) {
 	require.Equal(t, nil, r.Response.GetMessage())
 }
 
-func (r testResponse) AssertMessageEquals(t *testing.T, expected interface{}) {
+func (r testResponse) AssertMessageEquals(t *testing.T, expected any) {
 	require.Equal(t, expected, r.Response.GetMessage())
 }
 

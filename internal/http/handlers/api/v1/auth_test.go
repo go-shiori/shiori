@@ -93,15 +93,17 @@ func TestHandleRefreshToken(t *testing.T) {
 	_, deps := testutil.GetTestConfigurationAndDependencies(t, context.Background(), logger)
 
 	t.Run("requires authentication", func(t *testing.T) {
-		c, w := testutil.NewTestWebContext()
-		HandleRefreshToken(deps, c)
+		w := testutil.PerformRequest(deps, HandleRefreshToken, "POST", "/refresh")
 		require.Equal(t, http.StatusUnauthorized, w.Code)
 	})
 
 	t.Run("successful refresh", func(t *testing.T) {
-		c, w := testutil.NewTestWebContext()
-		testutil.SetFakeUser(c)
-		HandleRefreshToken(deps, c)
+		account := testutil.GetValidAccount().ToDTO()
+		account.Password = "test"
+		_, err := deps.Domains().Accounts().CreateAccount(context.Background(), account)
+		require.NoError(t, err)
+
+		w := testutil.PerformRequest(deps, HandleRefreshToken, "POST", "/refresh", testutil.WithAccount(&account))
 		require.Equal(t, http.StatusAccepted, w.Code)
 
 		response, err := testutil.NewTestResponseFromReader(w.Body)
@@ -157,25 +159,19 @@ func TestHandleUpdateLoggedAccount(t *testing.T) {
 
 	t.Run("requires authentication", func(t *testing.T) {
 		c, w := testutil.NewTestWebContext()
-		HandleUpdateAccount(deps, c)
+		HandleUpdateLoggedAccount(deps, c)
 		require.Equal(t, http.StatusUnauthorized, w.Code)
 	})
 
 	t.Run("invalid json payload", func(t *testing.T) {
 		body := `invalid json`
-		w := testutil.PerformRequest(deps, func(deps model.Dependencies, c model.WebContext) {
-			c.SetAccount(account)
-			HandleUpdateAccount(deps, c)
-		}, "PATCH", "/account", testutil.WithBody(body))
+		w := testutil.PerformRequest(deps, HandleUpdateLoggedAccount, "PATCH", "/account", testutil.WithBody(body), testutil.WithAccount(account))
 		require.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 
 	t.Run("missing old password", func(t *testing.T) {
 		body := `{"new_password": "newpass"}`
-		w := testutil.PerformRequest(deps, func(deps model.Dependencies, c model.WebContext) {
-			c.SetAccount(account)
-			HandleUpdateAccount(deps, c)
-		}, "PATCH", "/account", testutil.WithBody(body))
+		w := testutil.PerformRequest(deps, HandleUpdateLoggedAccount, "PATCH", "/account", testutil.WithBody(body), testutil.WithAccount(account))
 		require.Equal(t, http.StatusBadRequest, w.Code)
 	})
 
@@ -184,10 +180,7 @@ func TestHandleUpdateLoggedAccount(t *testing.T) {
 			"old_password": "wrong",
 			"new_password": "newpass"
 		}`
-		w := testutil.PerformRequest(deps, func(deps model.Dependencies, c model.WebContext) {
-			c.SetAccount(account)
-			HandleUpdateAccount(deps, c)
-		}, "PATCH", "/account", testutil.WithBody(body))
+		w := testutil.PerformRequest(deps, HandleUpdateLoggedAccount, "PATCH", "/account", testutil.WithBody(body), testutil.WithAccount(account))
 		require.Equal(t, http.StatusBadRequest, w.Code)
 	})
 
@@ -200,10 +193,7 @@ func TestHandleUpdateLoggedAccount(t *testing.T) {
 				"list_mode": true
 			}
 		}`
-		w := testutil.PerformRequest(deps, func(deps model.Dependencies, c model.WebContext) {
-			c.SetAccount(account)
-			HandleUpdateAccount(deps, c)
-		}, "PATCH", "/account", testutil.WithBody(body))
+		w := testutil.PerformRequest(deps, HandleUpdateLoggedAccount, "PATCH", "/account", testutil.WithBody(body), testutil.WithAccount(account))
 		require.Equal(t, http.StatusOK, w.Code)
 
 		response, err := testutil.NewTestResponseFromReader(w.Body)

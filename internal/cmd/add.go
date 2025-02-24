@@ -53,7 +53,7 @@ func addHandler(cmd *cobra.Command, args []string) {
 	}
 
 	// Set bookmark tags
-	book.Tags = make([]model.Tag, len(tags))
+	book.Tags = make([]model.TagDTO, len(tags))
 	for i, tag := range tags {
 		book.Tags[i].Name = strings.TrimSpace(tag)
 	}

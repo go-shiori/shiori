@@ -18,10 +18,11 @@ func NewTestWebContext() (model.WebContext, *httptest.ResponseRecorder) {
 func NewTestWebContextWithMethod(method, path string, opts ...Option) (model.WebContext, *httptest.ResponseRecorder) {
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(method, path, nil)
+	c := NewWebContext(w, r)
 	for _, opt := range opts {
-		opt(r)
+		opt(c)
 	}
-	return NewWebContext(w, r), w
+	return c, w
 }
 
 type testWebContext struct {

@@ -130,6 +130,11 @@ func (s *HttpServer) Setup(cfg *config.Config, deps *dependencies.Dependencies) 
 		api_v1.HandleUpdateAccount,
 		globalMiddleware...,
 	))
+	// Tags
+	s.mux.HandleFunc("GET /api/v1/tags", ToHTTPHandler(deps,
+		api_v1.HandleListTags,
+		globalMiddleware...,
+	))
 
 	s.server = &http.Server{
 		Addr:    fmt.Sprintf("%s%d", cfg.Http.Address, cfg.Http.Port),

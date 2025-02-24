@@ -43,3 +43,11 @@ type StorageDomain interface {
 	WriteData(dst string, data []byte) error
 	WriteFile(dst string, src *os.File) error
 }
+
+type TagsDomain interface {
+	ListTags(ctx context.Context) ([]TagDTO, error)
+	CreateTag(ctx context.Context, tag TagDTO) (TagDTO, error)
+	// GetTag(ctx context.Context, id int64) (TagDTO, error)
+	// UpdateTag(ctx context.Context, tag TagDTO) (TagDTO, error)
+	// DeleteTag(ctx context.Context, id int64) error
+}

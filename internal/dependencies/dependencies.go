@@ -35,6 +35,7 @@ type domains struct {
 	bookmarks model.BookmarksDomain
 	archiver  model.ArchiverDomain
 	storage   model.StorageDomain
+	tags      model.TagsDomain
 }
 
 func (d *domains) Auth() model.AuthDomain                       { return d.auth }
@@ -47,6 +48,8 @@ func (d *domains) Archiver() model.ArchiverDomain               { return d.archi
 func (d *domains) SetArchiver(archiver model.ArchiverDomain)    { d.archiver = archiver }
 func (d *domains) Storage() model.StorageDomain                 { return d.storage }
 func (d *domains) SetStorage(storage model.StorageDomain)       { d.storage = storage }
+func (d *domains) Tags() model.TagsDomain                       { return d.tags }
+func (d *domains) SetTags(tags model.TagsDomain)                { d.tags = tags }
 
 var _ model.DomainDependencies = (*domains)(nil)
 

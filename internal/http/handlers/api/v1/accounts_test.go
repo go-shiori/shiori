@@ -20,7 +20,7 @@ func TestHandleListAccounts(t *testing.T) {
 		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
 		c, w := testutil.NewTestWebContext()
 		HandleListAccounts(deps, c)
-		require.Equal(t, http.StatusForbidden, w.Code)
+		require.Equal(t, http.StatusUnauthorized, w.Code)
 	})
 
 	t.Run("requires admin access", func(t *testing.T) {
@@ -73,7 +73,7 @@ func TestHandleCreateAccount(t *testing.T) {
 		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
 		c, w := testutil.NewTestWebContext()
 		HandleCreateAccount(deps, c)
-		require.Equal(t, http.StatusForbidden, w.Code)
+		require.Equal(t, http.StatusUnauthorized, w.Code)
 	})
 
 	t.Run("requires admin access", func(t *testing.T) {
@@ -162,7 +162,7 @@ func TestHandleDeleteAccount(t *testing.T) {
 		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
 		c, w := testutil.NewTestWebContext()
 		HandleDeleteAccount(deps, c)
-		require.Equal(t, http.StatusForbidden, w.Code)
+		require.Equal(t, http.StatusUnauthorized, w.Code)
 	})
 
 	t.Run("requires admin access", func(t *testing.T) {
@@ -217,7 +217,7 @@ func TestHandleUpdateAccount(t *testing.T) {
 		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
 		c, w := testutil.NewTestWebContext()
 		HandleUpdateAccount(deps, c)
-		require.Equal(t, http.StatusForbidden, w.Code)
+		require.Equal(t, http.StatusUnauthorized, w.Code)
 	})
 
 	t.Run("requires admin access", func(t *testing.T) {

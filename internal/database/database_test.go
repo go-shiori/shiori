@@ -123,9 +123,11 @@ func testCreateBookmarkWithTag(t *testing.T, db model.DB) {
 	book := model.BookmarkDTO{
 		URL:   "https://github.com/go-shiori/obelisk",
 		Title: "shiori",
-		Tags: []model.Tag{
+		Tags: []model.TagDTO{
 			{
-				Name: "test-tag",
+				Tag: model.Tag{
+					Name: "test-tag",
+				},
 			},
 		},
 	}

@@ -2,30 +2,43 @@ package testutil
 
 import (
 	"io"
-	"net/http"
 	"net/http/httptest"
 	"strings"
 
 	"github.com/go-shiori/shiori/internal/model"
 )
 
-type Option = func(*http.Request)
+type Option = func(c model.WebContext)
 
 func WithBody(body string) Option {
-	return func(request *http.Request) {
-		request.Body = io.NopCloser(strings.NewReader(body))
+	return func(c model.WebContext) {
+		c.Request().Body = io.NopCloser(strings.NewReader(body))
 	}
 }
 
 func WithHeader(name, value string) Option {
-	return func(request *http.Request) {
-		request.Header.Add(name, value)
+	return func(c model.WebContext) {
+		c.Request().Header.Add(name, value)
 	}
 }
 
+// WithAuthToken adds an authorization token to the request
 func WithAuthToken(token string) Option {
-	return func(request *http.Request) {
-		request.Header.Add(model.AuthorizationHeader, model.AuthorizationTokenType+" "+token)
+	return func(c model.WebContext) {
+		c.Request().Header.Add(model.AuthorizationHeader, model.AuthorizationTokenType+" "+token)
+	}
+}
+
+func WithAccount(account *model.AccountDTO) Option {
+	return func(c model.WebContext) {
+		c.SetAccount(account)
+	}
+}
+
+// WithFakeAccount adds a fake account to the request context
+func WithFakeAccount(isAdmin bool) Option {
+	return func(c model.WebContext) {
+		c.SetAccount(FakeAccount(isAdmin))
 	}
 }
 
@@ -33,11 +46,11 @@ func WithAuthToken(token string) Option {
 func PerformRequest(deps model.Dependencies, handler model.HttpHandler, method, path string, options ...Option) *httptest.ResponseRecorder {
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(method, path, nil)
+	c := NewWebContext(w, r)
 	for _, opt := range options {
-		opt(r)
+		opt(c)
 	}
 
-	c := NewWebContext(w, r)
 	handler(deps, c)
 
 	return w
@@ -46,10 +59,11 @@ func PerformRequest(deps model.Dependencies, handler model.HttpHandler, method, 
 // PerformRequestOnRecorder executes a request against a handler and returns the response recorder
 func PerformRequestOnRecorder(deps model.Dependencies, w *httptest.ResponseRecorder, handler model.HttpHandler, method, path string, options ...Option) {
 	r := httptest.NewRequest(method, path, nil)
+	c := NewWebContext(w, r)
 	for _, opt := range options {
-		opt(r)
+		opt(c)
 	}
-	handler(deps, NewWebContext(w, r))
+	handler(deps, c)
 }
 
 // FakeAccount creates a fake account for testing
@@ -58,14 +72,6 @@ func FakeAccount(isAdmin bool) *model.AccountDTO {
 		ID:       1,
 		Username: "user",
 		Owner:    model.Ptr(isAdmin),
-	}
-}
-
-// WithFakeAccount adds a fake account to the request context
-func WithFakeAccount(isAdmin bool) Option {
-	return func(r *http.Request) {
-		c := NewWebContext(nil, r)
-		c.SetAccount(FakeAccount(isAdmin))
 	}
 }
 

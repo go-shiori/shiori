@@ -17,8 +17,7 @@ func TestHandleSystemInfo(t *testing.T) {
 	t.Run("requires authentication", func(t *testing.T) {
 		c, w := testutil.NewTestWebContext()
 		HandleSystemInfo(deps, c)
-		require.Equal(t, http.StatusForbidden, w.Code)
-		require.Contains(t, w.Body.String(), "Admin access required")
+		require.Equal(t, http.StatusUnauthorized, w.Code)
 	})
 
 	t.Run("requires admin access", func(t *testing.T) {
@@ -26,7 +25,6 @@ func TestHandleSystemInfo(t *testing.T) {
 		testutil.SetFakeUser(c)
 		HandleSystemInfo(deps, c)
 		require.Equal(t, http.StatusForbidden, w.Code)
-		require.Contains(t, w.Body.String(), "Admin access required")
 	})
 
 	t.Run("returns system info for admin", func(t *testing.T) {

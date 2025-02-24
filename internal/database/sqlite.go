@@ -332,10 +332,11 @@ func (db *SQLiteDatabase) SaveBookmarks(ctx context.Context, create bool, bookma
 			}
 
 			// Save book tags
-			newTags := []model.Tag{}
+			newTags := []model.TagDTO{}
 			for _, tag := range book.Tags {
+				t := tag.ToDTO()
 				// If it's deleted tag, delete and continue
-				if tag.Deleted {
+				if t.Deleted {
 					_, err = stmtDeleteBookTag.ExecContext(ctx, book.ID, tag.ID)
 					if err != nil {
 						return fmt.Errorf("failed to execute delete bookmark statement: %w", err)
@@ -373,7 +374,7 @@ func (db *SQLiteDatabase) SaveBookmarks(ctx context.Context, create bool, bookma
 					}
 				}
 
-				newTags = append(newTags, tag)
+				newTags = append(newTags, t)
 			}
 
 			book.Tags = newTags
@@ -556,7 +557,7 @@ func (db *SQLiteDatabase) GetBookmarks(ctx context.Context, opts model.DBGetBook
 
 	// Fetch tags for each bookmark
 	tags := make([]tagContent, 0, len(bookmarks))
-	tagsMap := make(map[int][]model.Tag, len(bookmarks))
+	tagsMap := make(map[int][]model.TagDTO, len(bookmarks))
 
 	tagsQuery, tagArgs, err := sqlx.In(`SELECT bt.bookmark_id, t.id, t.name
 		FROM bookmark_tag bt
@@ -574,9 +575,9 @@ func (db *SQLiteDatabase) GetBookmarks(ctx context.Context, opts model.DBGetBook
 	}
 	for _, fetchedTag := range tags {
 		if tags, found := tagsMap[fetchedTag.ID]; found {
-			tagsMap[fetchedTag.ID] = append(tags, fetchedTag.Tag)
+			tagsMap[fetchedTag.ID] = append(tags, fetchedTag.Tag.ToDTO())
 		} else {
-			tagsMap[fetchedTag.ID] = []model.Tag{fetchedTag.Tag}
+			tagsMap[fetchedTag.ID] = []model.TagDTO{fetchedTag.Tag.ToDTO()}
 		}
 	}
 	for i := range bookmarks[:] {
@@ -584,7 +585,7 @@ func (db *SQLiteDatabase) GetBookmarks(ctx context.Context, opts model.DBGetBook
 		if tags, found := tagsMap[book.ID]; found {
 			book.Tags = tags
 		} else {
-			book.Tags = []model.Tag{}
+			book.Tags = []model.TagDTO{}
 		}
 	}
 
@@ -988,12 +989,12 @@ func (db *SQLiteDatabase) CreateTags(ctx context.Context, tags ...model.Tag) err
 }
 
 // GetTags fetch list of tags and their frequency.
-func (db *SQLiteDatabase) GetTags(ctx context.Context) ([]model.Tag, error) {
-	tags := []model.Tag{}
-	query := `SELECT bt.tag_id id, t.name, COUNT(bt.tag_id) n_bookmarks
-		FROM bookmark_tag bt
-		LEFT JOIN tag t ON bt.tag_id = t.id
-		GROUP BY bt.tag_id ORDER BY t.name`
+func (db *SQLiteDatabase) GetTags(ctx context.Context) ([]model.TagDTO, error) {
+	tags := []model.TagDTO{}
+	query := `SELECT t.id, t.name, COUNT(bt.tag_id) bookmark_count
+		FROM tag t
+		LEFT JOIN bookmark_tag bt ON bt.tag_id = t.id
+		GROUP BY t.id ORDER BY t.name`
 
 	err := db.reader.SelectContext(ctx, &tags, query)
 	if err != nil && err != sql.ErrNoRows {

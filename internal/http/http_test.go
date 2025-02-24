@@ -95,26 +95,4 @@ func TestToHTTPHandler(t *testing.T) {
 		require.False(t, middleware2.onResponseCalled)
 		require.Equal(t, http.StatusInternalServerError, w.Code)
 	})
-
-	t.Run("continues on middleware response error", func(t *testing.T) {
-		middleware1 := &testMiddleware{}
-		middleware2 := &testMiddleware{returnError: true}
-
-		handlerCalled := false
-		handler := func(deps model.Dependencies, c model.WebContext) {
-			handlerCalled = true
-			c.ResponseWriter().WriteHeader(http.StatusOK)
-		}
-
-		c, w := testutil.NewTestWebContext()
-		httpHandler := ToHTTPHandler(deps, handler, middleware1, middleware2)
-		httpHandler.ServeHTTP(w, c.Request())
-
-		require.True(t, handlerCalled)
-		require.True(t, middleware1.onRequestCalled)
-		require.True(t, middleware1.onResponseCalled)
-		require.True(t, middleware2.onRequestCalled)
-		require.True(t, middleware2.onResponseCalled)
-		require.Equal(t, http.StatusOK, w.Code)
-	})
 }

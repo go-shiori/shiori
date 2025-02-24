@@ -262,7 +262,7 @@ func updateHandler(cmd *cobra.Command, args []string) {
 			tmpAddedTags[key] = value
 		}
 
-		newTags := []model.Tag{}
+		newTags := []model.TagDTO{}
 		for _, tag := range book.Tags {
 			if _, isDeleted := deletedTags[tag.Name]; isDeleted {
 				tag.Deleted = true
@@ -276,7 +276,9 @@ func updateHandler(cmd *cobra.Command, args []string) {
 		}
 
 		for tag := range tmpAddedTags {
-			newTags = append(newTags, model.Tag{Name: tag})
+			newTags = append(newTags, model.TagDTO{
+				Tag: model.Tag{Name: tag},
+			})
 		}
 
 		book.Tags = newTags
