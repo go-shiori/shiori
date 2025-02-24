@@ -11,6 +11,7 @@ import (
 	"github.com/go-shiori/shiori/internal/config"
 	"github.com/go-shiori/shiori/internal/dependencies"
 	"github.com/go-shiori/shiori/internal/http/handlers"
+	api_v1 "github.com/go-shiori/shiori/internal/http/handlers/api/v1"
 	"github.com/go-shiori/shiori/internal/http/middleware"
 	"github.com/go-shiori/shiori/internal/http/templates"
 	"github.com/go-shiori/shiori/internal/model"
@@ -56,6 +57,11 @@ func (s *HttpServer) Setup(cfg *config.Config, deps *dependencies.Dependencies) 
 		))
 	}
 
+	// API v1 routes
+	s.mux.HandleFunc("GET /api/v1/system/info", ToHTTPHandler(deps,
+		api_v1.HandleSystemInfo,
+	))
+
 	// Legacy API routes
 	// TODO: Remove this once the legacy API is removed
 	legacyHandler := handlers.NewLegacyHandler(deps)
@@ -82,6 +88,7 @@ func (s *HttpServer) Setup(cfg *config.Config, deps *dependencies.Dependencies) 
 			globalMiddleware...,
 		))
 	}
+
 	s.server = &http.Server{
 		Addr:    fmt.Sprintf("%s%d", cfg.Http.Address, cfg.Http.Port),
 		Handler: s.mux,
