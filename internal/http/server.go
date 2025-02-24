@@ -35,20 +35,6 @@ func (s *HttpServer) Setup(cfg *config.Config, deps *dependencies.Dependencies) 
 		middleware.NewAuthMiddleware(deps),
 	}
 
-	// Register routes using standard http handlers
-	if cfg.Http.ServeWebUI {
-		// Frontend routes
-		s.mux.HandleFunc("/", ToHTTPHandler(deps,
-			handlers.HandleFrontend,
-			globalMiddleware...,
-		))
-		s.mux.HandleFunc("GET /assets/", ToHTTPHandler(deps,
-			handlers.HandleAssets,
-			globalMiddleware...,
-		))
-
-	}
-
 	// System routes with logging middleware
 	s.mux.HandleFunc("GET /system/liveness", ToHTTPHandler(deps,
 		handlers.HandleLiveness,
@@ -56,7 +42,11 @@ func (s *HttpServer) Setup(cfg *config.Config, deps *dependencies.Dependencies) 
 	))
 
 	// Bookmark routes
-	// s.mux.Handle("/bookmark/", http.StripPrefix("/bookmark", NewBookmarkHandler(s.logger, deps)))
+	s.mux.HandleFunc("GET /bookmark/{id}/content", ToHTTPHandler(deps, handlers.HandleBookmarkContent, globalMiddleware...))
+	s.mux.HandleFunc("GET /bookmark/{id}/archive", ToHTTPHandler(deps, handlers.HandleBookmarkArchive, globalMiddleware...))
+	s.mux.HandleFunc("GET /bookmark/{id}/archive/file/{file}", ToHTTPHandler(deps, handlers.HandleBookmarkArchiveFile, globalMiddleware...))
+	s.mux.HandleFunc("GET /bookmark/{id}/thumb", ToHTTPHandler(deps, handlers.HandleBookmarkThumbnail, globalMiddleware...))
+	s.mux.HandleFunc("GET /bookmark/{id}/ebook", ToHTTPHandler(deps, handlers.HandleBookmarkEbook, globalMiddleware...))
 
 	// Add this inside Setup() where other routes are registered
 	if cfg.Http.ServeSwagger {
@@ -80,6 +70,18 @@ func (s *HttpServer) Setup(cfg *config.Config, deps *dependencies.Dependencies) 
 	s.mux.HandleFunc("POST /api/bookmarks/ext", ToHTTPHandler(deps, legacyHandler.HandleInsertViaExtension, globalMiddleware...))
 	s.mux.HandleFunc("DELETE /api/bookmarks/ext", ToHTTPHandler(deps, legacyHandler.HandleDeleteViaExtension, globalMiddleware...))
 
+	// Register routes using standard http handlers
+	if cfg.Http.ServeWebUI {
+		// Frontend routes
+		s.mux.HandleFunc("/", ToHTTPHandler(deps,
+			handlers.HandleFrontend,
+			globalMiddleware...,
+		))
+		s.mux.HandleFunc("GET /assets/", ToHTTPHandler(deps,
+			handlers.HandleAssets,
+			globalMiddleware...,
+		))
+	}
 	s.server = &http.Server{
 		Addr:    fmt.Sprintf("%s%d", cfg.Http.Address, cfg.Http.Port),
 		Handler: s.mux,
