@@ -108,13 +108,14 @@ func (s *HttpServer) Setup(cfg *config.Config, deps *dependencies.Dependencies) 
 		globalMiddleware...,
 	))
 	s.mux.HandleFunc("PATCH /api/v1/auth/account", ToHTTPHandler(deps,
-		api_v1.HandleUpdateAccount,
+		api_v1.HandleUpdateLoggedAccount,
 		globalMiddleware...,
 	))
 	s.mux.HandleFunc("POST /api/v1/auth/logout", ToHTTPHandler(deps,
 		api_v1.HandleLogout,
 		globalMiddleware...,
 	))
+	// Accounts
 	s.mux.HandleFunc("GET /api/v1/accounts", ToHTTPHandler(deps,
 		api_v1.HandleListAccounts,
 		globalMiddleware...,
