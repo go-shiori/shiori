@@ -86,8 +86,8 @@ func TestSendFile(t *testing.T) {
 
 	t.Run("handles large files", func(t *testing.T) {
 		// Create large test file (>512 bytes to test content type detection)
-		content := bytes.Repeat([]byte("large file content "), 100)
-		err := storage.WriteData("large.bin", content)
+		binaryData := bytes.Repeat([]byte{0xFF, 0x00}, 1024*1024)
+		err := storage.WriteData("large.bin", binaryData)
 		require.NoError(t, err)
 
 		c, w := testutil.NewTestWebContext()
@@ -96,7 +96,7 @@ func TestSendFile(t *testing.T) {
 
 		require.Equal(t, http.StatusOK, w.Code)
 		require.Equal(t, "application/octet-stream", w.Header().Get("Content-Type"))
-		require.Equal(t, content, w.Body.Bytes())
+		require.Equal(t, binaryData, w.Body.Bytes())
 	})
 
 	t.Run("handles empty files", func(t *testing.T) {
