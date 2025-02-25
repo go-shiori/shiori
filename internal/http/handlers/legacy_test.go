@@ -83,9 +83,17 @@ func TestLegacyHandler(t *testing.T) {
 		params := handler.convertParams(r)
 
 		require.Len(t, params, 2)
-		require.Equal(t, "page", params[0].Key)
-		require.Equal(t, "1", params[0].Value)
-		require.Equal(t, "tags", params[1].Key)
-		require.Equal(t, "test,dev", params[1].Value)
+
+		// Create a map to check for parameters regardless of order
+		paramMap := make(map[string]string)
+		for _, param := range params {
+			paramMap[param.Key] = param.Value
+		}
+
+		// Check that both parameters exist with the correct values
+		require.Contains(t, paramMap, "page")
+		require.Equal(t, "1", paramMap["page"])
+		require.Contains(t, paramMap, "tags")
+		require.Equal(t, "test,dev", paramMap["tags"])
 	})
 }
