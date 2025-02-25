@@ -47,9 +47,10 @@ Most configuration can be set directly using environment variables or flags. The
 
 The `StorageConfig` struct contains settings related to storage.
 
-| Environment variable | Default       | Required | Description                             |
-| -------------------- | ------------- | -------- | --------------------------------------- |
-| `SHIORI_DIR`         | (current dir) | No       | Directory where Shiori stores its data. |
+| Environment variable | Default           | Required | Description                              |
+| -------------------- | ----------------- | -------- | ---------------------------------------- |
+| `SHIORI_DIR`         | (current dir)     | No       | Directory where Shiori stores its data.  |
+| `SHIORI_MAX_PAR_DL`  | (num logical CPU) | No       | Number of parallel articles to download. |
 
 #### The data Directory
 

@@ -162,12 +162,13 @@ func (r *BookmarksAPIRoutes) updateCache(c *gin.Context) {
 	}
 	// TODO: limit request to 20
 
+	cfg := r.deps.Config
 	// Fetch data from internet
 	mx := sync.RWMutex{}
 	wg := sync.WaitGroup{}
 	chDone := make(chan struct{})
-	chProblem := make(chan int, 10)
-	semaphore := make(chan struct{}, 10)
+	chProblem := make(chan int, cfg.Storage.MaxParDl)
+	semaphore := make(chan struct{}, cfg.Storage.MaxParDl)
 
 	for i, book := range bookmarks {
 		wg.Add(1)
