@@ -44,7 +44,7 @@ type loginResponseMessage struct {
 func HandleLogin(deps model.Dependencies, c model.WebContext, legacyLoginHandler model.LegacyLoginHandler) {
 	var payload loginRequestPayload
 	if err := json.NewDecoder(c.Request().Body).Decode(&payload); err != nil {
-		response.SendInternalServerError(c)
+		response.SendError(c, http.StatusBadRequest, "Invalid JSON payload", nil)
 		return
 	}
 

@@ -27,7 +27,7 @@ func TestHandleLogin(t *testing.T) {
 		w := testutil.PerformRequest(deps, func(deps model.Dependencies, c model.WebContext) {
 			HandleLogin(deps, c, noopLegacyLoginHandler)
 		}, "POST", "/login", testutil.WithBody(body))
-		require.Equal(t, http.StatusInternalServerError, w.Code)
+		require.Equal(t, http.StatusBadRequest, w.Code)
 	})
 
 	t.Run("missing username", func(t *testing.T) {
