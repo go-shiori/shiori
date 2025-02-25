@@ -60,6 +60,7 @@ func (s *HttpServer) Setup(cfg *config.Config, deps *dependencies.Dependencies) 
 	// API v1 routes
 	s.mux.HandleFunc("GET /api/v1/system/info", ToHTTPHandler(deps,
 		api_v1.HandleSystemInfo,
+		globalMiddleware...,
 	))
 
 	// Legacy API routes
