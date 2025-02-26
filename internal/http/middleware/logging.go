@@ -22,8 +22,9 @@ func (m *LoggingMiddleware) OnRequest(deps model.Dependencies, c model.WebContex
 func (m *LoggingMiddleware) OnResponse(deps model.Dependencies, c model.WebContext) error {
 	duration := time.Since(m.startTime)
 	deps.Logger().WithFields(logrus.Fields{
-		"path":     c.Request().URL.Path,
-		"duration": duration,
+		"path":       c.Request().URL.Path,
+		"duration":   duration,
+		"request_id": c.GetRequestID(),
 	}).Info("request completed")
 	return nil
 }

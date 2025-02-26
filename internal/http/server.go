@@ -32,8 +32,12 @@ func (s *HttpServer) Setup(cfg *config.Config, deps *dependencies.Dependencies) 
 	}
 
 	globalMiddleware := []model.HttpMiddleware{
-		middleware.NewLoggingMiddleware(),
 		middleware.NewAuthMiddleware(deps),
+		middleware.NewRequestIDMiddleware(deps),
+	}
+
+	if cfg.Http.AccessLog {
+		globalMiddleware = append(globalMiddleware, middleware.NewLoggingMiddleware())
 	}
 
 	// System routes with logging middleware
