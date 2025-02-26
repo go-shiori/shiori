@@ -1,11 +1,12 @@
 package response
 
 import (
-	"github.com/gin-gonic/gin"
+	"encoding/json"
+
+	"github.com/go-shiori/shiori/internal/model"
 )
 
 type Response struct {
-	// Response payload
 	// Ok if the response was successful or not
 	Ok bool `json:"ok"`
 
@@ -19,17 +20,18 @@ type Response struct {
 	statusCode int
 }
 
-func (m *Response) IsError() bool {
-	return !m.Ok
+func (r *Response) IsError() bool {
+	return !r.Ok
 }
 
-func (m *Response) GetMessage() any {
-	return m.Message
+func (r *Response) GetMessage() any {
+	return r.Message
 }
 
-func (m *Response) Send(c *gin.Context) {
-	c.Status(m.statusCode)
-	c.JSON(m.statusCode, m)
+func (r *Response) Send(c model.WebContext) error {
+	c.ResponseWriter().Header().Set("Content-Type", "application/json")
+	c.ResponseWriter().WriteHeader(r.statusCode)
+	return json.NewEncoder(c.ResponseWriter()).Encode(r)
 }
 
 func NewResponse(ok bool, message any, errorParams map[string]string, statusCode int) *Response {

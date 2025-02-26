@@ -32,7 +32,7 @@ func TestDownloadBookImage(t *testing.T) {
 
 			// Assert
 			assert.EqualError(t, err, "unsupported image type")
-			assert.False(t, deps.Domains.Storage.FileExists(dstFile))
+			assert.False(t, deps.Domains().Storage().FileExists(dstFile))
 		})
 		t.Run("successful download image", func(t *testing.T) {
 			tmpDir, err := os.MkdirTemp("", "")
@@ -47,7 +47,7 @@ func TestDownloadBookImage(t *testing.T) {
 
 			// Assert
 			assert.NoError(t, err)
-			assert.True(t, deps.Domains.Storage.FileExists(dstFile))
+			assert.True(t, deps.Domains().Storage().FileExists(dstFile))
 		})
 		t.Run("successful download medium size image", func(t *testing.T) {
 			tmpDir, err := os.MkdirTemp("", "")
@@ -63,7 +63,7 @@ func TestDownloadBookImage(t *testing.T) {
 
 			// Assert
 			assert.NoError(t, err)
-			assert.True(t, deps.Domains.Storage.FileExists(dstFile))
+			assert.True(t, deps.Domains().Storage().FileExists(dstFile))
 		})
 	})
 }
@@ -181,7 +181,7 @@ func TestProcessBookmark(t *testing.T) {
 				KeepExcerpt: true,
 			}
 			expected, _, _ := core.ProcessBookmark(deps, request)
-			assert.True(t, deps.Domains.Storage.FileExists(fp.Join("thumb", "1")))
+			assert.True(t, deps.Domains().Storage().FileExists(fp.Join("thumb", "1")))
 			if expected.ID != bookmark.ID {
 				t.Errorf("Unexpected ID: got %v, want %v", expected.ID, bookmark.ID)
 			}

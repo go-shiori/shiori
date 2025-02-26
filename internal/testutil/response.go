@@ -3,6 +3,7 @@ package testutil
 import (
 	"encoding/json"
 	"io"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/go-shiori/shiori/internal/http/response"
@@ -15,19 +16,27 @@ type testResponse struct {
 }
 
 func (r *testResponse) AssertMessageIsEmptyList(t *testing.T) {
-	require.Equal(t, []interface{}{}, r.Response.GetMessage())
+	require.Equal(t, []any{}, r.Response.GetMessage())
+}
+
+func (r *testResponse) AssertMessageIsNotEmptyList(t *testing.T) {
+	require.Greater(t, len(r.Response.GetMessage().([]any)), 0)
 }
 
 func (r *testResponse) AssertNilMessage(t *testing.T) {
 	require.Equal(t, nil, r.Response.GetMessage())
 }
 
-func (r testResponse) AssertMessageEquals(t *testing.T, expected interface{}) {
+func (r testResponse) AssertMessageEquals(t *testing.T, expected any) {
 	require.Equal(t, expected, r.Response.GetMessage())
 }
 
 func (r *testResponse) AssertMessageIsListLength(t *testing.T, length int) {
 	require.Len(t, r.Response.GetMessage(), length)
+}
+
+func (r *testResponse) AssertMessageContains(t *testing.T, expected string) {
+	require.Contains(t, r.Response.GetMessage(), expected)
 }
 
 func (r *testResponse) AssertOk(t *testing.T) {
@@ -40,6 +49,10 @@ func (r *testResponse) AssertNotOk(t *testing.T) {
 
 func (r *testResponse) Assert(t *testing.T, fn func(t *testing.T, r *testResponse)) {
 	fn(t, r)
+}
+
+func NewTestResponseFromRecorder(w *httptest.ResponseRecorder) (*testResponse, error) {
+	return NewTestResponseFromBytes(w.Body.Bytes())
 }
 
 func NewTestResponseFromBytes(b []byte) (*testResponse, error) {

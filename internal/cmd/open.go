@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-shiori/shiori/internal/database"
+	"github.com/go-shiori/shiori/internal/model"
 	"github.com/go-shiori/warc"
 	"github.com/julienschmidt/httprouter"
 	"github.com/spf13/cobra"
@@ -70,12 +70,12 @@ func openHandler(cmd *cobra.Command, args []string) {
 	}
 
 	// Read bookmarks from database
-	getOptions := database.GetBookmarksOptions{
+	getOptions := model.DBGetBookmarksOptions{
 		IDs:         ids,
 		WithContent: true,
 	}
 
-	bookmarks, err := deps.Database.GetBookmarks(cmd.Context(), getOptions)
+	bookmarks, err := deps.Database().GetBookmarks(cmd.Context(), getOptions)
 	if err != nil {
 		cError.Printf("Failed to get bookmarks: %v\n", err)
 		os.Exit(1)

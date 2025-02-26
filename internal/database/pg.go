@@ -229,11 +229,12 @@ func (db *PGDatabase) SaveBookmarks(ctx context.Context, create bool, bookmarks 
 			}
 
 			// Save book tags
-			newTags := []model.Tag{}
+			newTags := []model.TagDTO{}
 			for _, tag := range book.Tags {
+				t := tag.ToDTO()
 				// If it's deleted tag, delete and continue
-				if tag.Deleted {
-					_, err = stmtDeleteBookTag.ExecContext(ctx, book.ID, tag.ID)
+				if t.Deleted {
+					_, err = stmtDeleteBookTag.ExecContext(ctx, book.ID, t.ID)
 					if err != nil {
 						return errors.WithStack(err)
 					}
@@ -267,7 +268,7 @@ func (db *PGDatabase) SaveBookmarks(ctx context.Context, create bool, bookmarks 
 					}
 				}
 
-				newTags = append(newTags, tag)
+				newTags = append(newTags, t)
 			}
 
 			book.Tags = newTags
@@ -283,7 +284,7 @@ func (db *PGDatabase) SaveBookmarks(ctx context.Context, create bool, bookmarks 
 }
 
 // GetBookmarks fetch list of bookmarks based on submitted options.
-func (db *PGDatabase) GetBookmarks(ctx context.Context, opts GetBookmarksOptions) ([]model.BookmarkDTO, error) {
+func (db *PGDatabase) GetBookmarks(ctx context.Context, opts model.DBGetBookmarksOptions) ([]model.BookmarkDTO, error) {
 	// Create initial query
 	columns := []string{
 		`id`,
@@ -379,9 +380,9 @@ func (db *PGDatabase) GetBookmarks(ctx context.Context, opts GetBookmarksOptions
 
 	// Add order clause
 	switch opts.OrderMethod {
-	case ByLastAdded:
+	case model.ByLastAdded:
 		query += ` ORDER BY id DESC`
-	case ByLastModified:
+	case model.ByLastModified:
 		query += ` ORDER BY modified_at DESC`
 	default:
 		query += ` ORDER BY id`
@@ -421,7 +422,7 @@ func (db *PGDatabase) GetBookmarks(ctx context.Context, opts GetBookmarksOptions
 	defer stmtGetTags.Close()
 
 	for i, book := range bookmarks {
-		book.Tags = []model.Tag{}
+		book.Tags = []model.TagDTO{}
 		err = stmtGetTags.SelectContext(ctx, &book.Tags, book.ID)
 		if err != nil && err != sql.ErrNoRows {
 			return nil, fmt.Errorf("failed to fetch tags: %v", err)
@@ -434,7 +435,7 @@ func (db *PGDatabase) GetBookmarks(ctx context.Context, opts GetBookmarksOptions
 }
 
 // GetBookmarksCount fetch count of bookmarks based on submitted options.
-func (db *PGDatabase) GetBookmarksCount(ctx context.Context, opts GetBookmarksOptions) (int, error) {
+func (db *PGDatabase) GetBookmarksCount(ctx context.Context, opts model.DBGetBookmarksOptions) (int, error) {
 	// Create initial query
 	query := `SELECT COUNT(id) FROM bookmark WHERE TRUE`
 
@@ -693,7 +694,7 @@ func (db *PGDatabase) UpdateAccount(ctx context.Context, account model.Account) 
 }
 
 // ListAccounts fetch list of account (without its password) based on submitted options.
-func (db *PGDatabase) ListAccounts(ctx context.Context, opts ListAccountsOptions) ([]model.Account, error) {
+func (db *PGDatabase) ListAccounts(ctx context.Context, opts model.DBListAccountsOptions) ([]model.Account, error) {
 	// Create query
 	args := []interface{}{}
 	fields := []string{"id", "username", "owner", "config"}
@@ -790,9 +791,9 @@ func (db *PGDatabase) CreateTags(ctx context.Context, tags ...model.Tag) error {
 }
 
 // GetTags fetch list of tags and their frequency.
-func (db *PGDatabase) GetTags(ctx context.Context) ([]model.Tag, error) {
-	tags := []model.Tag{}
-	query := `SELECT bt.tag_id id, t.name, COUNT(bt.tag_id) n_bookmarks
+func (db *PGDatabase) GetTags(ctx context.Context) ([]model.TagDTO, error) {
+	tags := []model.TagDTO{}
+	query := `SELECT bt.tag_id id, t.name, COUNT(bt.tag_id) bookmark_count
 		FROM bookmark_tag bt
 		LEFT JOIN tag t ON bt.tag_id = t.id
 		GROUP BY bt.tag_id, t.name ORDER BY t.name`

@@ -2,84 +2,133 @@ package testutil
 
 import (
 	"io"
-	"net/http"
 	"net/http/httptest"
 	"strings"
 
-	"github.com/gin-gonic/gin"
+	"github.com/go-shiori/shiori/internal/http/webcontext"
 	"github.com/go-shiori/shiori/internal/model"
 )
 
-// NewGin returns a new gin engine with test mode enabled.
-func NewGin() *gin.Engine {
-	engine := gin.New()
-	gin.SetMode(gin.TestMode)
-	return engine
+type Option = func(c model.WebContext)
+
+// NewTestWebContext creates a new WebContext with test recorder and request
+func NewTestWebContext() (model.WebContext, *httptest.ResponseRecorder) {
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest("GET", "/", nil)
+	return webcontext.NewWebContext(w, r), w
 }
 
-type Option = func(*http.Request)
+// NewTestWebContextWithMethod creates a new WebContext with specified method
+func NewTestWebContextWithMethod(method, path string, opts ...Option) (model.WebContext, *httptest.ResponseRecorder) {
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(method, path, nil)
+	c := webcontext.NewWebContext(w, r)
+	for _, opt := range opts {
+		opt(c)
+	}
+	return c, w
+}
 
 func WithBody(body string) Option {
-	return func(request *http.Request) {
-		request.Body = io.NopCloser(strings.NewReader(body))
+	return func(c model.WebContext) {
+		c.Request().Body = io.NopCloser(strings.NewReader(body))
 	}
 }
 
 func WithHeader(name, value string) Option {
-	return func(request *http.Request) {
-		request.Header.Add(name, value)
+	return func(c model.WebContext) {
+		c.Request().Header.Add(name, value)
 	}
 }
 
+// WithAuthToken adds an authorization token to the request
 func WithAuthToken(token string) Option {
-	return func(request *http.Request) {
-		request.Header.Add(model.AuthorizationHeader, model.AuthorizationTokenType+" "+token)
+	return func(c model.WebContext) {
+		c.Request().Header.Add(model.AuthorizationHeader, model.AuthorizationTokenType+" "+token)
 	}
 }
 
-func PerformRequest(handler http.Handler, method, path string, options ...Option) *httptest.ResponseRecorder {
-	recorder := httptest.NewRecorder()
-	return PerformRequestWithRecorder(recorder, handler, method, path, options...)
+func WithAccount(account *model.AccountDTO) Option {
+	return func(c model.WebContext) {
+		c.SetAccount(account)
+	}
 }
 
-func PerformRequestWithRecorder(recorder *httptest.ResponseRecorder, r http.Handler, method, path string, options ...Option) *httptest.ResponseRecorder {
-	request, err := http.NewRequest(method, path, nil)
-	if err != nil {
-		panic(err)
+// WithFakeAccount adds a fake account to the request context
+func WithFakeAccount(isAdmin bool) Option {
+	return func(c model.WebContext) {
+		c.SetAccount(FakeAccount(isAdmin))
 	}
+}
+
+func WithRequestPathValue(key, value string) Option {
+	return func(c model.WebContext) {
+		c.Request().SetPathValue(key, value)
+	}
+}
+
+// PerformRequest executes a request against a handler
+func PerformRequest(deps model.Dependencies, handler model.HttpHandler, method, path string, options ...Option) *httptest.ResponseRecorder {
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(method, path, nil)
+	c := webcontext.NewWebContext(w, r)
 	for _, opt := range options {
-		opt(request)
+		opt(c)
 	}
-	r.ServeHTTP(recorder, request)
-	return recorder
+
+	handler(deps, c)
+
+	return w
 }
 
-// FakeUserLoggedInMiddlewware is a middleware that sets a fake user account to context.
-// Keep in mind that this users is not saved in database so any tests that use this middleware
-// should not rely on database.
-func FakeUserLoggedInMiddlewware(ctx *gin.Context) {
-	ctx.Set("account", &model.AccountDTO{
+// PerformRequestOnRecorder executes a request against a handler and returns the response recorder
+func PerformRequestOnRecorder(deps model.Dependencies, w *httptest.ResponseRecorder, handler model.HttpHandler, method, path string, options ...Option) {
+	r := httptest.NewRequest(method, path, nil)
+	c := webcontext.NewWebContext(w, r)
+	for _, opt := range options {
+		opt(c)
+	}
+	handler(deps, c)
+}
+
+// FakeAccount creates a fake account for testing
+func FakeAccount(isAdmin bool) *model.AccountDTO {
+	return &model.AccountDTO{
+		ID:       1,
+		Username: "user",
+		Owner:    model.Ptr(isAdmin),
+	}
+}
+
+// SetFakeUser sets a fake user account in the WebContext
+func SetFakeUser(c model.WebContext) {
+	c.SetAccount(&model.AccountDTO{
 		ID:       1,
 		Username: "user",
 		Owner:    model.Ptr(false),
 	})
 }
 
-// FakeAdminLoggedInMiddlewware is a middleware that sets a fake admin account to context.
-// Keep in mind that this users is not saved in database so any tests that use this middleware
-// should not rely on database.
-func FakeAdminLoggedInMiddlewware(ctx *gin.Context) {
-	ctx.Set("account", &model.AccountDTO{
+// SetFakeAdmin sets a fake admin account in the WebContext
+func SetFakeAdmin(c model.WebContext) {
+	c.SetAccount(&model.AccountDTO{
 		ID:       1,
 		Username: "user",
 		Owner:    model.Ptr(true),
 	})
 }
 
-// AuthUserMiddleware is a middleware that manually sets an user as authenticated in the context
-// to be used in tests.
-func AuthUserMiddleware(user *model.AccountDTO) gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		ctx.Set("account", user)
-	}
+// WithFakeUser returns an Option that sets a fake user account
+func WithFakeUser() Option {
+	return WithFakeAccount(false)
+}
+
+// WithFakeAdmin returns an Option that sets a fake admin account
+func WithFakeAdmin() Option {
+	return WithFakeAccount(true)
+}
+
+// SetRequestPathValue sets a path value for the request
+func SetRequestPathValue(c model.WebContext, key, value string) {
+	c.Request().SetPathValue(key, value)
 }

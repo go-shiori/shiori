@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	epub "github.com/go-shiori/go-epub"
-	"github.com/go-shiori/shiori/internal/dependencies"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/pkg/errors"
 )
@@ -15,7 +14,7 @@ import (
 // GenerateEbook receives a `ProcessRequest` and generates an ebook file in the destination path specified.
 // The destination path `dstPath` should include file name with ".epub" extension
 // The bookmark model will be used to update the UI based on whether this function is successful or not.
-func GenerateEbook(deps *dependencies.Dependencies, req ProcessRequest, dstPath string) (book model.BookmarkDTO, err error) {
+func GenerateEbook(deps model.Dependencies, req ProcessRequest, dstPath string) (book model.BookmarkDTO, err error) {
 	book = req.Bookmark
 
 	// Make sure bookmark ID is defined
@@ -29,11 +28,11 @@ func GenerateEbook(deps *dependencies.Dependencies, req ProcessRequest, dstPath 
 	bookmarkThumbnailPath := model.GetThumbnailPath(&book)
 	bookmarkArchivePath := model.GetArchivePath(&book)
 
-	if deps.Domains.Storage.FileExists(bookmarkThumbnailPath) {
+	if deps.Domains().Storage().FileExists(bookmarkThumbnailPath) {
 		book.ImageURL = fp.Join("/", "bookmark", strID, "thumb")
 	}
 
-	if deps.Domains.Storage.FileExists(bookmarkArchivePath) {
+	if deps.Domains().Storage().FileExists(bookmarkArchivePath) {
 		book.HasArchive = true
 	}
 
@@ -62,9 +61,9 @@ func GenerateEbook(deps *dependencies.Dependencies, req ProcessRequest, dstPath 
 
 	ebook.SetTitle(book.Title)
 	ebook.SetAuthor(book.Author)
-	if deps.Domains.Storage.FileExists(bookmarkThumbnailPath) {
+	if deps.Domains().Storage().FileExists(bookmarkThumbnailPath) {
 		// TODO: Use `deps.Domains.Storage` to retrieve the file.
-		absoluteCoverPath := fp.Join(deps.Config.Storage.DataDir, bookmarkThumbnailPath)
+		absoluteCoverPath := fp.Join(deps.Config().Storage.DataDir, bookmarkThumbnailPath)
 		coverPath, _ := ebook.AddImage(absoluteCoverPath, "cover.jpg")
 		ebook.SetCover(coverPath, "")
 	}
@@ -82,7 +81,7 @@ func GenerateEbook(deps *dependencies.Dependencies, req ProcessRequest, dstPath 
 	defer tmpFile.Close()
 
 	// If everything go well we move ebook to dstPath
-	err = deps.Domains.Storage.WriteFile(dstPath, tmpFile)
+	err = deps.Domains().Storage().WriteFile(dstPath, tmpFile)
 	if err != nil {
 		return book, errors.Wrap(err, "failed move ebook to destination")
 	}
