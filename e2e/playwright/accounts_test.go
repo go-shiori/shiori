@@ -89,7 +89,7 @@ func TestE2EAccounts(t *testing.T) {
 		// Check if new account is created
 		accountsCount, err := mainTestHelper.page.Locator(".accounts-list li").Count()
 		mainTestHelper.Require().NoError(t, err, "Count accounts in list")
-		mainTestHelper.Require().Equal(t, 2, accountsCount, "Verify 2 accounts present after deleting user account")
+		mainTestHelper.Require().Equal(t, 2, accountsCount, "Verify 2 accounts present after creating new admin account")
 	})
 
 	t.Run("003 create new user account", func(t *testing.T) {

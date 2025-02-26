@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func sqliteTestDatabaseFactory(t *testing.T, ctx context.Context) (DB, error) {
+func sqliteTestDatabaseFactory(t *testing.T, ctx context.Context) (model.DB, error) {
 	tmpDir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 
@@ -61,7 +61,7 @@ func testSqliteGetBookmarksWithDash(t *testing.T) {
 	assert.NoError(t, err, "Save bookmarks must not fail")
 	savedBookmark := result[0]
 
-	results, err := db.GetBookmarks(ctx, GetBookmarksOptions{
+	results, err := db.GetBookmarks(ctx, model.DBGetBookmarksOptions{
 		Keyword: "what-happens-when",
 	})
 

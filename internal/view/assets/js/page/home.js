@@ -35,9 +35,9 @@ var template = `
     </div>
     <p class="empty-message" v-if="!loading && listIsEmpty">No saved bookmarks yet :(</p>
     <div id="bookmarks-grid" ref="bookmarksGrid" :class="{list: appOptions.ListMode}">
-        <pagination-box v-if="maxPage > 1" 
-            :page="page" 
-            :maxPage="maxPage" 
+        <pagination-box v-if="maxPage > 1"
+            :page="page"
+            :maxPage="maxPage"
             :editMode="editMode"
             @change="changePage">
         </pagination-box>
@@ -257,7 +257,7 @@ export default {
 
 					// Fetch tags if requested
 					if (fetchTags) {
-						return fetch(new URL("api/tags", document.baseURI), {
+						return fetch(new URL("api/v1/tags", document.baseURI), {
 							headers: {
 								"Content-Type": "application/json",
 								Authorization: "Bearer " + localStorage.getItem("shiori-token"),
@@ -273,7 +273,7 @@ export default {
 					return response.json();
 				})
 				.then((json) => {
-					this.tags = json;
+					this.tags = json.message;
 					this.loading = false;
 				})
 				.catch((err) => {

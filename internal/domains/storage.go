@@ -7,17 +7,16 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/go-shiori/shiori/internal/dependencies"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/spf13/afero"
 )
 
 type StorageDomain struct {
-	deps *dependencies.Dependencies
+	deps model.Dependencies
 	fs   afero.Fs
 }
 
-func NewStorageDomain(deps *dependencies.Dependencies, fs afero.Fs) *StorageDomain {
+func NewStorageDomain(deps model.Dependencies, fs afero.Fs) *StorageDomain {
 	return &StorageDomain{
 		deps: deps,
 		fs:   fs,

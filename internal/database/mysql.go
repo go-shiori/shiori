@@ -234,11 +234,12 @@ func (db *MySQLDatabase) SaveBookmarks(ctx context.Context, create bool, bookmar
 			}
 
 			// Save book tags
-			newTags := []model.Tag{}
+			newTags := []model.TagDTO{}
 			for _, tag := range book.Tags {
+				t := tag.ToDTO()
 				// If it's deleted tag, delete and continue
-				if tag.Deleted {
-					_, err = stmtDeleteBookTag.ExecContext(ctx, book.ID, tag.ID)
+				if t.Deleted {
+					_, err = stmtDeleteBookTag.ExecContext(ctx, book.ID, t.ID)
 					if err != nil {
 						return errors.WithStack(err)
 					}
@@ -271,12 +272,12 @@ func (db *MySQLDatabase) SaveBookmarks(ctx context.Context, create bool, bookmar
 						tag.ID = int(tagID64)
 					}
 
-					if _, err := stmtInsertBookTag.ExecContext(ctx, tag.ID, book.ID); err != nil {
+					if _, err := stmtInsertBookTag.ExecContext(ctx, t.ID, book.ID); err != nil {
 						return errors.WithStack(err)
 					}
 				}
 
-				newTags = append(newTags, tag)
+				newTags = append(newTags, t)
 			}
 
 			book.Tags = newTags
@@ -292,7 +293,7 @@ func (db *MySQLDatabase) SaveBookmarks(ctx context.Context, create bool, bookmar
 }
 
 // GetBookmarks fetch list of bookmarks based on submitted options.
-func (db *MySQLDatabase) GetBookmarks(ctx context.Context, opts GetBookmarksOptions) ([]model.BookmarkDTO, error) {
+func (db *MySQLDatabase) GetBookmarks(ctx context.Context, opts model.DBGetBookmarksOptions) ([]model.BookmarkDTO, error) {
 	// Create initial query
 	columns := []string{
 		`id`,
@@ -385,9 +386,9 @@ func (db *MySQLDatabase) GetBookmarks(ctx context.Context, opts GetBookmarksOpti
 
 	// Add order clause
 	switch opts.OrderMethod {
-	case ByLastAdded:
+	case model.ByLastAdded:
 		query += ` ORDER BY id DESC`
-	case ByLastModified:
+	case model.ByLastModified:
 		query += ` ORDER BY modified_at DESC`
 	default:
 		query += ` ORDER BY id`
@@ -422,21 +423,19 @@ func (db *MySQLDatabase) GetBookmarks(ctx context.Context, opts GetBookmarksOpti
 	}
 	defer stmtGetTags.Close()
 
-	for i, book := range bookmarks {
-		book.Tags = []model.Tag{}
+	for _, book := range bookmarks {
+		book.Tags = []model.TagDTO{}
 		err = stmtGetTags.SelectContext(ctx, &book.Tags, book.ID)
 		if err != nil && err != sql.ErrNoRows {
 			return nil, errors.WithStack(err)
 		}
-
-		bookmarks[i] = book
 	}
 
 	return bookmarks, nil
 }
 
 // GetBookmarksCount fetch count of bookmarks based on submitted options.
-func (db *MySQLDatabase) GetBookmarksCount(ctx context.Context, opts GetBookmarksOptions) (int, error) {
+func (db *MySQLDatabase) GetBookmarksCount(ctx context.Context, opts model.DBGetBookmarksOptions) (int, error) {
 	// Create initial query
 	query := `SELECT COUNT(id) FROM bookmark WHERE 1`
 
@@ -680,7 +679,7 @@ func (db *MySQLDatabase) UpdateAccount(ctx context.Context, account model.Accoun
 }
 
 // ListAccounts fetch list of account (without its password) based on submitted options.
-func (db *MySQLDatabase) ListAccounts(ctx context.Context, opts ListAccountsOptions) ([]model.Account, error) {
+func (db *MySQLDatabase) ListAccounts(ctx context.Context, opts model.DBListAccountsOptions) ([]model.Account, error) {
 	// Create query
 	args := []interface{}{}
 	fields := []string{"id", "username", "owner", "config"}
@@ -790,9 +789,9 @@ func (db *MySQLDatabase) CreateTags(ctx context.Context, tags ...model.Tag) erro
 }
 
 // GetTags fetch list of tags and their frequency.
-func (db *MySQLDatabase) GetTags(ctx context.Context) ([]model.Tag, error) {
-	tags := []model.Tag{}
-	query := `SELECT bt.tag_id id, t.name, COUNT(bt.tag_id) n_bookmarks
+func (db *MySQLDatabase) GetTags(ctx context.Context) ([]model.TagDTO, error) {
+	tags := []model.TagDTO{}
+	query := `SELECT bt.tag_id id, t.name, COUNT(bt.tag_id) bookmark_count
 		FROM bookmark_tag bt
 		LEFT JOIN tag t ON bt.tag_id = t.id
 		GROUP BY bt.tag_id ORDER BY t.name`

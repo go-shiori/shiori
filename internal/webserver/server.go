@@ -3,14 +3,13 @@ package webserver
 import (
 	"time"
 
-	"github.com/go-shiori/shiori/internal/database"
-	"github.com/go-shiori/shiori/internal/dependencies"
+	"github.com/go-shiori/shiori/internal/model"
 	cch "github.com/patrickmn/go-cache"
 )
 
 // Config is parameter that used for starting web server
 type Config struct {
-	DB            database.DB
+	DB            model.DB
 	DataDir       string
 	ServerAddress string
 	ServerPort    int
@@ -18,7 +17,8 @@ type Config struct {
 	Log           bool
 }
 
-func GetLegacyHandler(cfg Config, dependencies *dependencies.Dependencies) *Handler {
+// GetLegacyHandler returns a legacy handler to use with the new webserver
+func GetLegacyHandler(cfg Config, dependencies model.Dependencies) *Handler {
 	return &Handler{
 		DB:           cfg.DB,
 		DataDir:      cfg.DataDir,

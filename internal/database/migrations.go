@@ -9,6 +9,7 @@ import (
 	"path"
 
 	"github.com/blang/semver"
+	"github.com/go-shiori/shiori/internal/model"
 )
 
 //go:embed migrations/*
@@ -70,7 +71,7 @@ func newFileMigration(fromVersion, toVersion, filename string) migration {
 }
 
 // runMigrations runs the given migrations.
-func runMigrations(ctx context.Context, db DB, migrations []migration) error {
+func runMigrations(ctx context.Context, db model.DB, migrations []migration) error {
 	currentVersion := semver.Version{}
 
 	// Get current database version

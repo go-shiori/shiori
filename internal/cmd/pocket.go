@@ -15,7 +15,6 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/go-shiori/shiori/internal/core"
-	"github.com/go-shiori/shiori/internal/database"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/spf13/cobra"
 )
@@ -47,16 +46,16 @@ func pocketHandler(cmd *cobra.Command, args []string) {
 	var bookmarks []model.BookmarkDTO
 	switch filepath.Ext(filePath) {
 	case ".html":
-		bookmarks = parseHtmlExport(ctx, deps.Database, srcFile)
+		bookmarks = parseHtmlExport(ctx, deps.Database(), srcFile)
 	case ".csv":
-		bookmarks = parseCsvExport(ctx, deps.Database, srcFile)
+		bookmarks = parseCsvExport(ctx, deps.Database(), srcFile)
 	default:
 		cError.Println("Invalid file format. Only HTML and CSV are supported.")
 		os.Exit(1)
 	}
 
 	// Save bookmark to database
-	bookmarks, err = deps.Database.SaveBookmarks(ctx, true, bookmarks...)
+	bookmarks, err = deps.Database().SaveBookmarks(ctx, true, bookmarks...)
 	if err != nil {
 		cError.Printf("Failed to save bookmarks: %v\n", err)
 		os.Exit(1)
@@ -68,7 +67,7 @@ func pocketHandler(cmd *cobra.Command, args []string) {
 }
 
 // Parse bookmarks from HTML file
-func parseHtmlExport(ctx context.Context, db database.DB, srcFile *os.File) []model.BookmarkDTO {
+func parseHtmlExport(ctx context.Context, db model.DB, srcFile *os.File) []model.BookmarkDTO {
 	bookmarks := []model.BookmarkDTO{}
 	mapURL := make(map[string]struct{})
 
@@ -113,7 +112,7 @@ func parseHtmlExport(ctx context.Context, db database.DB, srcFile *os.File) []mo
 }
 
 // Parse bookmarks from CSV file
-func parseCsvExport(ctx context.Context, db database.DB, srcFile *os.File) []model.BookmarkDTO {
+func parseCsvExport(ctx context.Context, db model.DB, srcFile *os.File) []model.BookmarkDTO {
 	bookmarks := []model.BookmarkDTO{}
 	mapURL := make(map[string]struct{})
 
@@ -164,7 +163,7 @@ func parseCsvExport(ctx context.Context, db database.DB, srcFile *os.File) []mod
 }
 
 // Parse metadata and verify it's validity
-func verifyMetadata(title, url, timeAddedStr, tags string) (string, string, time.Time, []model.Tag, error) {
+func verifyMetadata(title, url, timeAddedStr, tags string) (string, string, time.Time, []model.TagDTO, error) {
 	// Clean up URL
 	var err error
 	url, err = core.RemoveUTMParams(url)
@@ -185,13 +184,15 @@ func verifyMetadata(title, url, timeAddedStr, tags string) (string, string, time
 	timeAdded := time.Unix(timeAddedInt, 0)
 
 	// Get bookmark tags
-	tagsList := []model.Tag{}
+	tagsList := []model.TagDTO{}
 	// We need to split tags by both comma or pipe,
 	// because Pocket's CSV export use pipe as separator,
 	// while HTML export use comma.
 	for _, tag := range regexp.MustCompile(`[,|]`).Split(tags, -1) {
 		if tag != "" {
-			tagsList = append(tagsList, model.Tag{Name: tag})
+			tagsList = append(tagsList, model.TagDTO{
+				Tag: model.Tag{Name: tag},
+			})
 		}
 	}
 
@@ -200,7 +201,7 @@ func verifyMetadata(title, url, timeAddedStr, tags string) (string, string, time
 
 // Checks if the URL already exist, both in bookmark
 // file or in database
-func handleDuplicates(ctx context.Context, db database.DB, mapURL map[string]struct{}, url string) error {
+func handleDuplicates(ctx context.Context, db model.DB, mapURL map[string]struct{}, url string) error {
 	if _, exists := mapURL[url]; exists {
 		return errors.New("URL already exists")
 	}

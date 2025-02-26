@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-shiori/shiori/internal/database"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/spf13/cobra"
 )
@@ -27,7 +26,7 @@ func exportHandler(cmd *cobra.Command, args []string) {
 	_, deps := initShiori(cmd.Context(), cmd)
 
 	// Fetch bookmarks from database
-	bookmarks, err := deps.Database.GetBookmarks(cmd.Context(), database.GetBookmarksOptions{})
+	bookmarks, err := deps.Database().GetBookmarks(cmd.Context(), model.DBGetBookmarksOptions{})
 	if err != nil {
 		cError.Printf("Failed to get bookmarks: %v\n", err)
 		os.Exit(1)

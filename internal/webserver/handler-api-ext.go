@@ -45,7 +45,7 @@ func (h *Handler) ApiInsertViaExtension(w http.ResponseWriter, r *http.Request, 
 	if exist {
 		book.HTML = request.HTML
 
-		mapOldTags := map[string]model.Tag{}
+		mapOldTags := map[string]model.TagDTO{}
 		for _, oldTag := range book.Tags {
 			mapOldTags[oldTag.Name] = oldTag
 		}

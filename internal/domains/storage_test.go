@@ -5,9 +5,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/go-shiori/shiori/internal/config"
-	"github.com/go-shiori/shiori/internal/dependencies"
 	"github.com/go-shiori/shiori/internal/domains"
+	"github.com/go-shiori/shiori/internal/testutil"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
@@ -17,11 +16,11 @@ func TestDirExists(t *testing.T) {
 	fs := afero.NewMemMapFs()
 	fs.MkdirAll("foo", 0755)
 
+	logger := logrus.New()
+	_, deps := testutil.GetTestConfigurationAndDependencies(t, context.TODO(), logger)
+
 	domain := domains.NewStorageDomain(
-		&dependencies.Dependencies{
-			Config: config.ParseServerConfiguration(context.TODO(), logrus.New()),
-			Log:    logrus.New(),
-		},
+		deps,
 		fs,
 	)
 
@@ -35,11 +34,11 @@ func TestFileExists(t *testing.T) {
 	fs.MkdirAll("foo", 0755)
 	fs.Create("foo/file")
 
+	logger := logrus.New()
+	_, deps := testutil.GetTestConfigurationAndDependencies(t, context.TODO(), logger)
+
 	domain := domains.NewStorageDomain(
-		&dependencies.Dependencies{
-			Config: config.ParseServerConfiguration(context.TODO(), logrus.New()),
-			Log:    logrus.New(),
-		},
+		deps,
 		fs,
 	)
 
@@ -50,11 +49,11 @@ func TestFileExists(t *testing.T) {
 func TestWriteFile(t *testing.T) {
 	fs := afero.NewMemMapFs()
 
+	logger := logrus.New()
+	_, deps := testutil.GetTestConfigurationAndDependencies(t, context.TODO(), logger)
+
 	domain := domains.NewStorageDomain(
-		&dependencies.Dependencies{
-			Config: config.ParseServerConfiguration(context.TODO(), logrus.New()),
-			Log:    logrus.New(),
-		},
+		deps,
 		fs,
 	)
 
@@ -75,11 +74,11 @@ func TestWriteFile(t *testing.T) {
 func TestSaveFile(t *testing.T) {
 	fs := afero.NewMemMapFs()
 
+	logger := logrus.New()
+	_, deps := testutil.GetTestConfigurationAndDependencies(t, context.TODO(), logger)
+
 	domain := domains.NewStorageDomain(
-		&dependencies.Dependencies{
-			Config: config.ParseServerConfiguration(context.TODO(), logrus.New()),
-			Log:    logrus.New(),
-		},
+		deps,
 		fs,
 	)
 

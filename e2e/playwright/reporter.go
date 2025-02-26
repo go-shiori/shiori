@@ -50,7 +50,6 @@ func (r *TestReporter) AddResult(testName string, passed bool, screenshotPath st
 			defer imageFile.Close()
 			if data, err := io.ReadAll(imageFile); err == nil {
 				screenshot = "data:image/png;base64," + base64.StdEncoding.EncodeToString(data)
-				fmt.Printf("Screenshot saved: %v\n", base64.StdEncoding.EncodeToString(data))
 			} else {
 				fmt.Printf("Failed to read screenshot %s: %v\n", screenshotPath, err)
 			}

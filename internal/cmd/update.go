@@ -8,7 +8,6 @@ import (
 	"sync"
 
 	"github.com/go-shiori/shiori/internal/core"
-	"github.com/go-shiori/shiori/internal/database"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/spf13/cobra"
 )
@@ -92,11 +91,11 @@ func updateHandler(cmd *cobra.Command, args []string) {
 	}
 
 	// Fetch bookmarks from database
-	filterOptions := database.GetBookmarksOptions{
+	filterOptions := model.DBGetBookmarksOptions{
 		IDs: ids,
 	}
 
-	bookmarks, err := deps.Database.GetBookmarks(cmd.Context(), filterOptions)
+	bookmarks, err := deps.Database().GetBookmarks(cmd.Context(), filterOptions)
 	if err != nil {
 		cError.Printf("Failed to get bookmarks: %v\n", err)
 		os.Exit(1)
@@ -263,7 +262,7 @@ func updateHandler(cmd *cobra.Command, args []string) {
 			tmpAddedTags[key] = value
 		}
 
-		newTags := []model.Tag{}
+		newTags := []model.TagDTO{}
 		for _, tag := range book.Tags {
 			if _, isDeleted := deletedTags[tag.Name]; isDeleted {
 				tag.Deleted = true
@@ -277,7 +276,9 @@ func updateHandler(cmd *cobra.Command, args []string) {
 		}
 
 		for tag := range tmpAddedTags {
-			newTags = append(newTags, model.Tag{Name: tag})
+			newTags = append(newTags, model.TagDTO{
+				Tag: model.Tag{Name: tag},
+			})
 		}
 
 		book.Tags = newTags
@@ -287,7 +288,7 @@ func updateHandler(cmd *cobra.Command, args []string) {
 	}
 
 	// Save bookmarks to database
-	bookmarks, err = deps.Database.SaveBookmarks(cmd.Context(), false, bookmarks...)
+	bookmarks, err = deps.Database().SaveBookmarks(cmd.Context(), false, bookmarks...)
 	if err != nil {
 		cError.Printf("Failed to save bookmark: %v\n", err)
 		os.Exit(1)
