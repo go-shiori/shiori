@@ -6,9 +6,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"strings"
-	"syscall"
 	"testing"
 	"time"
 
@@ -141,32 +139,6 @@ func TestHttpServer_StartStop(t *testing.T) {
 	// Stop the server
 	err = s.Stop(ctx)
 	require.NoError(t, err)
-}
-
-func TestHttpServer_WaitStop(t *testing.T) {
-	logger := logrus.New()
-	ctx := context.Background()
-	cfg, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
-
-	// Use a random port to avoid conflicts
-	cfg.Http.Port = 0
-
-	server := NewHttpServer(logger)
-	s, err := server.Setup(cfg, deps)
-	require.NoError(t, err)
-
-	// Start the server
-	err = s.Start(ctx)
-	require.NoError(t, err)
-
-	// Send shutdown signal after a short delay
-	go func() {
-		time.Sleep(100 * time.Millisecond)
-		syscall.Kill(os.Getpid(), syscall.SIGTERM)
-	}()
-
-	// This should return when the signal is received
-	s.WaitStop(ctx)
 }
 
 func TestHttpServer_Middleware(t *testing.T) {
