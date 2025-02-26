@@ -7,15 +7,15 @@ toolchain go1.23.4
 
 require (
 	git.sr.ht/~emersion/go-sqlite3-fts5 v0.0.0-20240124102820-f3a72e8b79b1
-	github.com/PuerkitoBio/goquery v1.10.1
+	github.com/PuerkitoBio/goquery v1.10.2
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/disintegration/imaging v1.6.2
 	github.com/fatih/color v1.18.0
 	github.com/go-shiori/go-epub v1.2.2-0.20240211121944-dc6435eac436
 	github.com/go-shiori/go-readability v0.0.0-20241012063810-92284fa8a71f
 	github.com/go-shiori/warc v0.0.0-20200621032813-359908319d1d
-	github.com/go-sql-driver/mysql v1.8.1
-	github.com/gofrs/uuid/v5 v5.3.0
+	github.com/go-sql-driver/mysql v1.9.0
+	github.com/gofrs/uuid/v5 v5.3.1
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/julienschmidt/httprouter v1.3.0
@@ -24,22 +24,22 @@ require (
 	github.com/muesli/go-app-paths v0.2.2
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1
-	github.com/playwright-community/playwright-go v0.4901.0
-	github.com/sethvargo/go-envconfig v1.0.2
+	github.com/playwright-community/playwright-go v0.5001.0
+	github.com/sethvargo/go-envconfig v1.1.1
 	github.com/shurcooL/vfsgen v0.0.0-20230704071429-0000e147ea92
 	github.com/sirupsen/logrus v1.9.3
-	github.com/spf13/afero v1.11.0
-	github.com/spf13/cobra v1.8.1
-	github.com/spf13/pflag v1.0.5
+	github.com/spf13/afero v1.12.0
+	github.com/spf13/cobra v1.9.1
+	github.com/spf13/pflag v1.0.6
 	github.com/stretchr/testify v1.10.0
 	github.com/swaggo/http-swagger/v2 v2.0.2
 	github.com/swaggo/swag v1.16.4
-	github.com/testcontainers/testcontainers-go v0.34.0
-	golang.org/x/crypto v0.31.0
-	golang.org/x/image v0.23.0
-	golang.org/x/net v0.33.0
-	golang.org/x/term v0.27.0
-	modernc.org/sqlite v1.34.4
+	github.com/testcontainers/testcontainers-go v0.35.0
+	golang.org/x/crypto v0.33.0
+	golang.org/x/image v0.24.0
+	golang.org/x/net v0.35.0
+	golang.org/x/term v0.29.0
+	modernc.org/sqlite v1.36.0
 )
 
 require (
@@ -77,7 +77,6 @@ require (
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/gogs/chardet v0.0.0-20211120154057-b7413eaefb8f // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/klauspost/compress v1.17.11 // indirect
@@ -118,17 +117,13 @@ require (
 	go.opentelemetry.io/otel/sdk v1.31.0 // indirect
 	go.opentelemetry.io/otel/trace v1.33.0 // indirect
 	golang.org/x/exp v0.0.0-20241217172543-b2144cdd0a67 // indirect
-	golang.org/x/sys v0.28.0 // indirect
-	golang.org/x/text v0.21.0 // indirect
+	golang.org/x/sys v0.30.0 // indirect
+	golang.org/x/text v0.22.0 // indirect
 	golang.org/x/tools v0.28.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20241230172942-26aa7a208def // indirect
 	google.golang.org/grpc v1.69.2 // indirect
-	google.golang.org/protobuf v1.36.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	modernc.org/gc/v3 v3.0.0-20241223112719-96e2e1e4408d // indirect
-	modernc.org/libc v1.61.6 // indirect
+	modernc.org/libc v1.61.13 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
-	modernc.org/memory v1.8.0 // indirect
-	modernc.org/strutil v1.2.1 // indirect
-	modernc.org/token v1.1.0 // indirect
+	modernc.org/memory v1.8.2 // indirect
 )
