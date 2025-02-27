@@ -79,7 +79,7 @@ func TestLegacyHandler(t *testing.T) {
 	})
 
 	t.Run("convertParams", func(t *testing.T) {
-		r, _ := http.NewRequest(http.MethodGet, "/api/bookmarks?page=1&tags=test,dev", nil)
+		r, _ := http.NewRequest(http.MethodGet, "/api/bookmarks?page=1&tags=test,dev", http.NoBody)
 		params := handler.convertParams(r)
 
 		require.Len(t, params, 2)
