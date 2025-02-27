@@ -357,9 +357,7 @@ func TestHandleUpdateAccount(t *testing.T) {
 
 		// Verify we can login with new password
 		loginBody := `{"username": "shiori", "password": "newpass"}`
-		w = testutil.PerformRequest(deps, func(deps model.Dependencies, c model.WebContext) {
-			HandleLogin(deps, c, noopLegacyLoginHandler)
-		}, "POST", "/login", testutil.WithBody(loginBody))
+		w = testutil.PerformRequest(deps, HandleLogin, "POST", "/login", testutil.WithBody(loginBody))
 		require.Equal(t, http.StatusOK, w.Code)
 	})
 
@@ -480,9 +478,7 @@ func TestHandleUpdateAccount(t *testing.T) {
 
 		// Verify password change
 		loginBody := `{"username": "updated", "password": "newpass"}`
-		w = testutil.PerformRequest(deps, func(deps model.Dependencies, c model.WebContext) {
-			HandleLogin(deps, c, noopLegacyLoginHandler)
-		}, "POST", "/login", testutil.WithBody(loginBody))
+		w = testutil.PerformRequest(deps, HandleLogin, "POST", "/login", testutil.WithBody(loginBody))
 		require.Equal(t, http.StatusOK, w.Code)
 	})
 }

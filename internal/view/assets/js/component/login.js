@@ -106,7 +106,7 @@ export default {
 			}
 
 			// Remove old cookie
-			document.cookie = `session-id=; Path=${
+			document.cookie = `token=; Path=${
 				new URL(document.baseURI).pathname
 			}; Expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
 
@@ -128,9 +128,6 @@ export default {
 				})
 				.then((json) => {
 					// Save session id
-					document.cookie = `session-id=${json.message.session}; Path=${
-						new URL(document.baseURI).pathname
-					}; Expires=${new Date(json.message.expires * 1000).toUTCString()}`;
 					document.cookie = `token=${json.message.token}; Path=${
 						new URL(document.baseURI).pathname
 					}; Expires=${new Date(json.message.expires * 1000).toUTCString()}`;
@@ -186,9 +183,6 @@ export default {
 		}
 
 		// Clear session data if we reach here
-		document.cookie = `session-id=; Path=${
-			new URL(document.baseURI).pathname
-		}; Expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
 		document.cookie = `token=; Path=${
 			new URL(document.baseURI).pathname
 		}; Expires=Thu, 01 Jan 1970 00:00:00 GMT;`;

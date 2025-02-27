@@ -4,17 +4,12 @@ import (
 	"context"
 	"net/http"
 	"testing"
-	"time"
 
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/go-shiori/shiori/internal/testutil"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
 )
-
-func noopLegacyLoginHandler(_ *model.AccountDTO, _ time.Duration) (string, error) {
-	return "test-session", nil
-}
 
 func TestHandleLogin(t *testing.T) {
 	logger := logrus.New()
@@ -24,9 +19,7 @@ func TestHandleLogin(t *testing.T) {
 		ctx := context.Background()
 		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
 		body := `{"username":}`
-		w := testutil.PerformRequest(deps, func(deps model.Dependencies, c model.WebContext) {
-			HandleLogin(deps, c, noopLegacyLoginHandler)
-		}, "POST", "/login", testutil.WithBody(body))
+		w := testutil.PerformRequest(deps, HandleLogin, "POST", "/login", testutil.WithBody(body))
 		require.Equal(t, http.StatusBadRequest, w.Code)
 	})
 
@@ -34,9 +27,7 @@ func TestHandleLogin(t *testing.T) {
 		ctx := context.Background()
 		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
 		body := `{"password": "test"}`
-		w := testutil.PerformRequest(deps, func(deps model.Dependencies, c model.WebContext) {
-			HandleLogin(deps, c, noopLegacyLoginHandler)
-		}, "POST", "/login", testutil.WithBody(body))
+		w := testutil.PerformRequest(deps, HandleLogin, "POST", "/login", testutil.WithBody(body))
 		require.Equal(t, http.StatusBadRequest, w.Code)
 	})
 
@@ -44,9 +35,7 @@ func TestHandleLogin(t *testing.T) {
 		ctx := context.Background()
 		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
 		body := `{"username": "test"}`
-		w := testutil.PerformRequest(deps, func(deps model.Dependencies, c model.WebContext) {
-			HandleLogin(deps, c, noopLegacyLoginHandler)
-		}, "POST", "/login", testutil.WithBody(body))
+		w := testutil.PerformRequest(deps, HandleLogin, "POST", "/login", testutil.WithBody(body))
 		require.Equal(t, http.StatusBadRequest, w.Code)
 	})
 
@@ -54,9 +43,7 @@ func TestHandleLogin(t *testing.T) {
 		ctx := context.Background()
 		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
 		body := `{"username": "test", "password": "wrong"}`
-		w := testutil.PerformRequest(deps, func(deps model.Dependencies, c model.WebContext) {
-			HandleLogin(deps, c, noopLegacyLoginHandler)
-		}, "POST", "/login", testutil.WithBody(body))
+		w := testutil.PerformRequest(deps, HandleLogin, "POST", "/login", testutil.WithBody(body))
 		require.Equal(t, http.StatusBadRequest, w.Code)
 	})
 
@@ -74,16 +61,13 @@ func TestHandleLogin(t *testing.T) {
 			"password": "test",
 			"remember_me": true
 		}`
-		w := testutil.PerformRequest(deps, func(deps model.Dependencies, c model.WebContext) {
-			HandleLogin(deps, c, noopLegacyLoginHandler)
-		}, "POST", "/login", testutil.WithBody(body))
+		w := testutil.PerformRequest(deps, HandleLogin, "POST", "/login", testutil.WithBody(body))
 		require.Equal(t, http.StatusOK, w.Code)
 
 		response, err := testutil.NewTestResponseFromReader(w.Body)
 		require.NoError(t, err)
 		response.AssertOk(t)
 		response.AssertMessageContains(t, "token")
-		response.AssertMessageContains(t, "session")
 		response.AssertMessageContains(t, "expires")
 	})
 }

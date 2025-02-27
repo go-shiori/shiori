@@ -29,8 +29,7 @@ func (p *loginRequestPayload) IsValid() error {
 
 type loginResponseMessage struct {
 	Token      string `json:"token"`
-	SessionID  string `json:"session"` // Deprecated, used only for legacy APIs
-	Expiration int64  `json:"expires"` // Deprecated, used only for legacy APIs
+	Expiration int64  `json:"expires"`
 }
 
 // @Summary	Login to an account using username and password
@@ -41,7 +40,7 @@ type loginResponseMessage struct {
 // @Success	200		{object}	loginResponseMessage	"Login successful"
 // @Failure	400		{object}	nil						"Invalid login data"
 // @Router		/api/v1/auth/login [post]
-func HandleLogin(deps model.Dependencies, c model.WebContext, legacyLoginHandler model.LegacyLoginHandler) {
+func HandleLogin(deps model.Dependencies, c model.WebContext) {
 	var payload loginRequestPayload
 	if err := json.NewDecoder(c.Request().Body).Decode(&payload); err != nil {
 		response.SendError(c, http.StatusBadRequest, "Invalid JSON payload", nil)
@@ -72,16 +71,8 @@ func HandleLogin(deps model.Dependencies, c model.WebContext, legacyLoginHandler
 		return
 	}
 
-	sessionID, err := legacyLoginHandler(account, expiration)
-	if err != nil {
-		deps.Logger().WithError(err).Error("failed execute legacy login handler")
-		response.SendInternalServerError(c)
-		return
-	}
-
 	response.Send(c, http.StatusOK, loginResponseMessage{
 		Token:      token,
-		SessionID:  sessionID,
 		Expiration: expirationTime.Unix(),
 	})
 }

@@ -105,7 +105,6 @@
 							}).then(() => {
 								localStorage.removeItem("shiori-account");
 								localStorage.removeItem("shiori-token");
-								document.cookie = `session-id=; Path=${new URL(document.baseURI).pathname}; Expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
 								document.cookie = `token=; Path=${new URL(document.baseURI).pathname}; Expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
 								this.isLoggedIn = false;
 								this.loginRequired = true;
@@ -192,7 +191,6 @@
 						// Clear invalid session data
 						localStorage.removeItem("shiori-account");
 						localStorage.removeItem("shiori-token");
-						document.cookie = `session-id=; Path=${new URL(document.baseURI).pathname}; Expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
 						document.cookie = `token=; Path=${new URL(document.baseURI).pathname}; Expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
 						return false;
 					}
