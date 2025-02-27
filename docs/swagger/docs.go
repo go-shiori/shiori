@@ -439,12 +439,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "expires": {
-                    "description": "Deprecated, used only for legacy APIs",
                     "type": "integer"
-                },
-                "session": {
-                    "description": "Deprecated, used only for legacy APIs",
-                    "type": "string"
                 },
                 "token": {
                     "type": "string"
