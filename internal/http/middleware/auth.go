@@ -32,8 +32,14 @@ func (m *AuthMiddleware) OnRequest(deps model.Dependencies, c model.WebContext) 
 
 	account, err := deps.Domains().Auth().CheckToken(c.Request().Context(), token)
 	if err != nil {
-		deps.Logger().WithError(err).Error("Failed to check token")
-		return err
+		// If we fail to check token, remove the token cookie and redirect to login
+		deps.Logger().WithError(err).WithField("request_id", c.GetRequestID()).Error("Failed to check token")
+		c.Request().AddCookie(&http.Cookie{
+			Name:  "token",
+			Value: "",
+		})
+		response.RedirectToLogin(c, "/login", c.Request().URL.Path)
+		return nil
 	}
 
 	c.SetAccount(account)
