@@ -38,7 +38,6 @@ func (m *AuthMiddleware) OnRequest(deps model.Dependencies, c model.WebContext) 
 			Name:  "token",
 			Value: "",
 		})
-		response.RedirectToLogin(c, "/login", c.Request().URL.Path)
 		return nil
 	}
 
