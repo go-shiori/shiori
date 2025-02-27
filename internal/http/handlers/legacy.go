@@ -59,6 +59,12 @@ func (h *LegacyHandler) HandleLogin(account *model.AccountDTO, expTime time.Dura
 func (h *LegacyHandler) HandleLogout(deps model.Dependencies, c model.WebContext) {
 	sessionID := h.legacyHandler.GetSessionID(c.Request())
 	h.legacyHandler.SessionCache.Delete(sessionID)
+
+	// Remove token cookie
+	c.Request().AddCookie(&http.Cookie{
+		Name:  "token",
+		Value: "",
+	})
 }
 
 // HandleGetTags handles GET /api/tags

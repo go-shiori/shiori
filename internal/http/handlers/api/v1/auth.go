@@ -215,5 +215,12 @@ func HandleLogout(deps model.Dependencies, c model.WebContext) {
 	if err := middleware.RequireLoggedInUser(deps, c); err != nil {
 		return
 	}
+
+	// Remove token cookie
+	c.Request().AddCookie(&http.Cookie{
+		Name:  "token",
+		Value: "",
+	})
+
 	response.Send(c, http.StatusOK, nil)
 }
