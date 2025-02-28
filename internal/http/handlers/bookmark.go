@@ -5,7 +5,6 @@ import (
 	"html/template"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"github.com/go-shiori/shiori/internal/http/response"
 	"github.com/go-shiori/shiori/internal/model"
@@ -92,8 +91,7 @@ func HandleBookmarkArchiveFile(deps model.Dependencies, c model.WebContext) {
 		return
 	}
 
-	// Get resource path from URL
-	resourcePath := strings.TrimPrefix(c.Request().URL.Path, fmt.Sprintf("/bookmark/%d/archive/file/", bookmark.ID))
+	resourcePath := c.Request().PathValue("path")
 
 	archive, err := deps.Domains().Archiver().GetBookmarkArchive(bookmark)
 	if err != nil {
