@@ -36,30 +36,6 @@ func TestLegacyHandler(t *testing.T) {
 		sessionID, err := handler.HandleLogin(account, time.Hour)
 		require.NoError(t, err)
 		require.NotEmpty(t, sessionID)
-
-		// Verify session is stored
-		val, found := handler.legacyHandler.SessionCache.Get(sessionID)
-		require.True(t, found)
-		require.Equal(t, account, val)
-	})
-
-	t.Run("HandleLogout", func(t *testing.T) {
-		// Setup session
-		account := &model.AccountDTO{ID: 1}
-		sessionID, _ := handler.HandleLogin(account, time.Hour)
-
-		// Create request with session cookie
-		c, _ := testutil.NewTestWebContext()
-		c.Request().AddCookie(&http.Cookie{
-			Name:  "session-id",
-			Value: sessionID,
-		})
-
-		handler.HandleLogout(deps, c)
-
-		// Verify session is removed
-		_, found := handler.legacyHandler.SessionCache.Get(sessionID)
-		require.False(t, found)
 	})
 
 	t.Run("HandleGetTags", func(t *testing.T) {
@@ -79,7 +55,7 @@ func TestLegacyHandler(t *testing.T) {
 	})
 
 	t.Run("convertParams", func(t *testing.T) {
-		r, _ := http.NewRequest(http.MethodGet, "/api/bookmarks?page=1&tags=test,dev", nil)
+		r, _ := http.NewRequest(http.MethodGet, "/api/bookmarks?page=1&tags=test,dev", http.NoBody)
 		params := handler.convertParams(r)
 
 		require.Len(t, params, 2)

@@ -49,7 +49,7 @@ func (s *HttpServer) Setup(cfg *config.Config, deps *dependencies.Dependencies) 
 	// Bookmark routes
 	s.mux.HandleFunc("GET /bookmark/{id}/content", ToHTTPHandler(deps, handlers.HandleBookmarkContent, globalMiddleware...))
 	s.mux.HandleFunc("GET /bookmark/{id}/archive", ToHTTPHandler(deps, handlers.HandleBookmarkArchive, globalMiddleware...))
-	s.mux.HandleFunc("GET /bookmark/{id}/archive/file/{file}", ToHTTPHandler(deps, handlers.HandleBookmarkArchiveFile, globalMiddleware...))
+	s.mux.HandleFunc("GET /bookmark/{id}/archive/file/{path...}", ToHTTPHandler(deps, handlers.HandleBookmarkArchiveFile, globalMiddleware...))
 	s.mux.HandleFunc("GET /bookmark/{id}/thumb", ToHTTPHandler(deps, handlers.HandleBookmarkThumbnail, globalMiddleware...))
 	s.mux.HandleFunc("GET /bookmark/{id}/ebook", ToHTTPHandler(deps, handlers.HandleBookmarkEbook, globalMiddleware...))
 
@@ -97,10 +97,7 @@ func (s *HttpServer) Setup(cfg *config.Config, deps *dependencies.Dependencies) 
 	// API v1 routes
 	// Auth
 	s.mux.HandleFunc("POST /api/v1/auth/login", ToHTTPHandler(deps,
-		func(deps model.Dependencies, c model.WebContext) {
-			// TODO: Remove this once the legacy API is removed
-			api_v1.HandleLogin(deps, c, legacyHandler.HandleLogin)
-		},
+		api_v1.HandleLogin,
 		globalMiddleware...,
 	))
 	s.mux.HandleFunc("POST /api/v1/auth/refresh", ToHTTPHandler(deps,

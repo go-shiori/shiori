@@ -64,6 +64,39 @@ func TestAuthMiddleware(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, c.GetAccount())
 	})
+
+	t.Run("test invalid token cookie is removed", func(t *testing.T) {
+		// Create an invalid token
+		invalidToken := "invalid-token"
+
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest(http.MethodGet, "/", nil)
+		r.AddCookie(&http.Cookie{
+			Name:   "token",
+			Value:  invalidToken,
+			MaxAge: int(time.Now().Add(time.Minute).Unix()),
+		})
+		c := webcontext.NewWebContext(w, r)
+
+		middleware := NewAuthMiddleware(deps)
+		err := middleware.OnRequest(deps, c)
+		require.NoError(t, err)
+		require.Nil(t, c.GetAccount())
+
+		// Check that the token cookie was removed in the response
+		responseCookies := w.Result().Cookies()
+
+		var tokenCookie *http.Cookie
+		for _, cookie := range responseCookies {
+			if cookie.Name == "token" {
+				tokenCookie = cookie
+				break
+			}
+		}
+
+		require.NotNil(t, tokenCookie, "Token cookie should exist in response")
+		require.Empty(t, tokenCookie.Value, "Token cookie value should be empty")
+	})
 }
 
 func TestRequireLoggedInUser(t *testing.T) {

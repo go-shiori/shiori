@@ -50,15 +50,18 @@ func (h *LegacyHandler) HandleLogin(account *model.AccountDTO, expTime time.Dura
 	}
 
 	strSessionID := sessionID.String()
-	h.legacyHandler.SessionCache.Set(strSessionID, account, expTime)
 
 	return strSessionID, nil
 }
 
 // HandleLogout handles the legacy logout endpoint
 func (h *LegacyHandler) HandleLogout(deps model.Dependencies, c model.WebContext) {
-	sessionID := h.legacyHandler.GetSessionID(c.Request())
-	h.legacyHandler.SessionCache.Delete(sessionID)
+	// TODO: Leave cookie handling to API consumer or middleware?
+	// Remove token cookie
+	c.Request().AddCookie(&http.Cookie{
+		Name:  "token",
+		Value: "",
+	})
 }
 
 // HandleGetTags handles GET /api/tags
