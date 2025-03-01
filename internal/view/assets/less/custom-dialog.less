@@ -20,7 +20,7 @@
 	height: 100dvh;
 	z-index: 10001;
 	background-color: rgba(0, 0, 0, 0.6);
-	padding: 32px;
+	padding: @padding-large;
 
 	.custom-dialog {
 		display: flex;
@@ -35,7 +35,7 @@
 		resize: both;
 
 		.custom-dialog-header {
-			padding: 16px;
+			padding: @padding-standard;
 			color: var(--colorDialogHeader);
 			background-color: var(--dialogHeaderBg);
 			font-weight: 600;
@@ -45,7 +45,7 @@
 		}
 
 		.custom-dialog-body {
-			padding: 16px 16px 0;
+			padding: @padding-standard @padding-standard 0;
 			display: grid;
 			max-height: 100%;
 			min-height: 80px;
@@ -55,7 +55,7 @@
 			grid-template-columns: max-content 1fr;
 			align-content: start;
 			align-items: baseline;
-			grid-gap: 16px;
+			grid-gap: @padding-standard;
 			flex-grow: 1;
 
 			&::after {
@@ -75,7 +75,7 @@
 
 			> label {
 				color: var(--color);
-				padding: 8px 0;
+				padding: @padding-small 0;
 				font-size: 1em;
 			}
 
@@ -83,7 +83,7 @@
 			> input[type="password"],
 			> textarea {
 				color: var(--color);
-				padding: 8px;
+				padding: @padding-small;
 				font-size: 1em;
 				border: 1px solid var(--border);
 				background-color: var(--contentBg);
@@ -107,7 +107,7 @@
 				}
 
 				> input[type="checkbox"] {
-					margin-right: 8px;
+					margin-right: @padding-small;
 				}
 			}
 
@@ -120,7 +120,7 @@
 			> .suggestion {
 				position: absolute;
 				display: block;
-				padding: 8px;
+				padding: @padding-small;
 				background-color: var(--contentBg);
 				border: 1px solid var(--border);
 				color: var(--color);
@@ -129,14 +129,18 @@
 		}
 
 		.custom-dialog-footer {
-			padding: 16px;
+			padding: @padding-standard;
 			display: flex;
 			flex-flow: row wrap;
 			justify-content: flex-end;
 			border-top: 1px solid var(--border);
 
+			@media @display-mode-pwa {
+				padding-bottom: calc(@padding-standard + env(safe-area-inset-bottom));
+			}
+
 			> a {
-				padding: 0 8px;
+				padding: 0 @padding-small;
 				font-size: 0.9em;
 				font-weight: 600;
 				color: var(--color);
@@ -159,7 +163,7 @@
 	}
 }
 
-@media only screen and (max-width: 768px) {
+@media only screen and (max-width: @screen-md-max) {
 	.custom-dialog-overlay {
 		padding: 0px;
 	}
