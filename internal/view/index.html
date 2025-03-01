@@ -6,7 +6,7 @@
 	<title>Shiori - Bookmarks Manager</title>
 
 	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
 	<link rel="apple-touch-icon-precomposed" sizes="152x152" href="assets/res/apple-touch-icon-152x152.png">
 	<link rel="apple-touch-icon-precomposed" sizes="144x144" href="assets/res/apple-touch-icon-144x144.png">
@@ -95,16 +95,14 @@
 						mainClick: () => {
 							this.dialog.loading = true;
 							fetch(new URL("api/v1/auth/logout", document.baseURI), {
-								method: "post",
-								headers: {
-									"Authorization": `Bearer ${localStorage.getItem("shiori-token")}`
-								}
+								method: "post"
 							}).then(response => {
 								if (!response.ok) throw response;
 								return response;
 							}).then(() => {
 								localStorage.removeItem("shiori-account");
 								localStorage.removeItem("shiori-token");
+								document.cookie = `session-id=; Path=${new URL(document.baseURI).pathname}; Expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
 								document.cookie = `token=; Path=${new URL(document.baseURI).pathname}; Expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
 								this.isLoggedIn = false;
 								this.loginRequired = true;
@@ -191,6 +189,7 @@
 						// Clear invalid session data
 						localStorage.removeItem("shiori-account");
 						localStorage.removeItem("shiori-token");
+						document.cookie = `session-id=; Path=${new URL(document.baseURI).pathname}; Expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
 						document.cookie = `token=; Path=${new URL(document.baseURI).pathname}; Expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
 						return false;
 					}
@@ -203,11 +202,6 @@
 					if (isValid) {
 						this.loadSetting();
 						this.loadAccount();
-
-						// Set the token cookie if empty
-						if (!document.cookie.includes("token")) {
-							document.cookie = `token=${localStorage.getItem("shiori-token")}; Path=${new URL(document.baseURI).pathname}; Expires=${new Date(Date.now() + 1000 * 60 * 60 * 24 * 30).toUTCString()};`;
-						}
 					} else {
 						this.loginRequired = true;
 					}

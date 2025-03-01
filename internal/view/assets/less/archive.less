@@ -1,3 +1,5 @@
+@import "./variables.less";
+
 :root {
 	--main: #f44336;
 	--border: #e5e5e5;
@@ -9,10 +11,6 @@
 		--archiveHeaderBg: rgba(41, 41, 41, 0.95);
 	}
 }
-
-@header-height: 60px;
-@screen-sm-max: 600px;
-@screen-sm-header-height: 50px;
 
 body {
 	padding: 0;
@@ -26,19 +24,20 @@ body {
 body.archive {
 	display: grid;
 	grid-template-rows: minmax(1px, auto) 1fr;
-	height: 100vh;
-	width: 100vw;
+	height: 100dvh;
+	width: 100%;
 
 	.header {
 		display: flex;
 		flex-flow: row wrap;
-		height: @header-height;
+		height: @header-height-desktop;
 		box-sizing: border-box;
-		padding: 0 16px;
+		padding: 0 @padding-standard;
 		align-items: center;
 		font-size: 16px;
 		border-bottom: 1px solid var(--border);
 		background-color: var(--archiveHeaderBg);
+		grid-row: 1;
 
 		* {
 			border-width: 0;
@@ -49,7 +48,7 @@ body.archive {
 		}
 
 		> *:not(:last-child) {
-			margin-right: 8px;
+			margin-right: @padding-small;
 		}
 
 		> .spacer {
@@ -62,7 +61,7 @@ body.archive {
 			color: var(--main);
 
 			span {
-				margin-right: 8px;
+				margin-right: @padding-small;
 			}
 		}
 
@@ -79,7 +78,7 @@ body.archive {
 
 		@media (max-width: @screen-sm-max) {
 			font-size: 14px;
-			height: @screen-sm-header-height;
+			height: @header-height-mobile;
 
 			#shiori-logo {
 				font-size: 1.5em;
@@ -90,5 +89,7 @@ body.archive {
 	iframe {
 		width: 100%;
 		height: 100%;
+		border: none;
+		grid-row: 2;
 	}
 }
