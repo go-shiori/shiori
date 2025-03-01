@@ -29,6 +29,9 @@
     			<a v-for="item in sidebarItems" :title="item.title" :class="{active: activePage === item.page}" @click="switchPage(item.page)">
     				<i class="fas fa-fw" :class="item.icon"></i>
     			</a>
+    			<a title="Refresh" @click="refreshPage">
+    				<i class="fas fa-fw fa-sync-alt"></i>
+    			</a>
     			<div class="spacer"></div>
     			<a title="Logout" @click="logout">
     				<i class="fas fa-fw fa-sign-out-alt"></i>
@@ -86,6 +89,9 @@
 					this.activePage = page;
 					history.pushState(state, page, url);
 				},
+				refreshPage() {
+					window.location.reload();
+				},
 				logout() {
 					this.showDialog({
 						title: "Log Out",
@@ -95,16 +101,14 @@
 						mainClick: () => {
 							this.dialog.loading = true;
 							fetch(new URL("api/v1/auth/logout", document.baseURI), {
-								method: "post",
-								headers: {
-									"Authorization": `Bearer ${localStorage.getItem("shiori-token")}`
-								}
+								method: "post"
 							}).then(response => {
 								if (!response.ok) throw response;
 								return response;
 							}).then(() => {
 								localStorage.removeItem("shiori-account");
 								localStorage.removeItem("shiori-token");
+								document.cookie = `session-id=; Path=${new URL(document.baseURI).pathname}; Expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
 								document.cookie = `token=; Path=${new URL(document.baseURI).pathname}; Expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
 								this.isLoggedIn = false;
 								this.loginRequired = true;
@@ -191,6 +195,7 @@
 						// Clear invalid session data
 						localStorage.removeItem("shiori-account");
 						localStorage.removeItem("shiori-token");
+						document.cookie = `session-id=; Path=${new URL(document.baseURI).pathname}; Expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
 						document.cookie = `token=; Path=${new URL(document.baseURI).pathname}; Expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
 						return false;
 					}
@@ -203,11 +208,6 @@
 					if (isValid) {
 						this.loadSetting();
 						this.loadAccount();
-
-						// Set the token cookie if empty
-						if (!document.cookie.includes("token")) {
-							document.cookie = `token=${localStorage.getItem("shiori-token")}; Path=${new URL(document.baseURI).pathname}; Expires=${new Date(Date.now() + 1000 * 60 * 60 * 24 * 30).toUTCString()};`;
-						}
 					} else {
 						this.loginRequired = true;
 					}

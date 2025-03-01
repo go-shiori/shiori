@@ -11,7 +11,7 @@ select {
 
 .content-footer {
 	width: 100%;
-	padding: 20px;
+	padding: @padding-large;
 	max-width: 840px;
 	margin-bottom: 16px;
 	background-color: var(--contentBg);
@@ -19,6 +19,10 @@ select {
 	display: flex;
 	flex-flow: column;
 	align-items: center;
+
+	@media @display-mode-pwa {
+		padding-bottom: calc(@padding-large + env(safe-area-inset-bottom));
+	}
 }
 
 .metadata {
@@ -214,8 +218,11 @@ a {
 	min-height: 100dvh;
 	padding-top: @header-height-desktop;
 	padding-left: @sidebar-width;
-	padding-bottom: env(safe-area-inset-bottom);
 	background-color: var(--bg);
+
+	@media @display-mode-pwa {
+		padding-bottom: env(safe-area-inset-bottom);
+	}
 
 	#main-sidebar {
 		top: 0;
@@ -353,9 +360,13 @@ a {
 			bottom: 0;
 			width: 100%;
 			width: 100dvw;
-			height: calc(env(safe-area-inset-bottom) + 30px);
+			height: @sidebar-height-mobile;
 			flex-flow: row nowrap;
 			border-top: 1px solid var(--border);
+
+			@media @display-mode-pwa {
+				height: calc(@sidebar-height-mobile + @inlet-bottom);
+			}
 
 			.spacer {
 				display: none;
@@ -365,7 +376,6 @@ a {
 				width: auto;
 				flex: 1 0;
 				line-height: @sidebar-height-mobile;
-				vertical-align: middle;
 
 				&:hover,
 				&:focus {

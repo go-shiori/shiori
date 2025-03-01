@@ -130,11 +130,14 @@
 
 		.custom-dialog-footer {
 			padding: @padding-standard;
-			padding-bottom: calc(@padding-standard + env(safe-area-inset-bottom));
 			display: flex;
 			flex-flow: row wrap;
 			justify-content: flex-end;
 			border-top: 1px solid var(--border);
+
+			@media @display-mode-pwa {
+				padding-bottom: calc(@padding-standard + env(safe-area-inset-bottom));
+			}
 
 			> a {
 				padding: 0 @padding-small;
