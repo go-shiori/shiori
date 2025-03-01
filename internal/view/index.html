@@ -29,9 +29,6 @@
     			<a v-for="item in sidebarItems" :title="item.title" :class="{active: activePage === item.page}" @click="switchPage(item.page)">
     				<i class="fas fa-fw" :class="item.icon"></i>
     			</a>
-    			<a title="Refresh" @click="refreshPage">
-    				<i class="fas fa-fw fa-sync-alt"></i>
-    			</a>
     			<div class="spacer"></div>
     			<a title="Logout" @click="logout">
     				<i class="fas fa-fw fa-sign-out-alt"></i>
@@ -88,9 +85,6 @@
 					url.hash = pageName;
 					this.activePage = page;
 					history.pushState(state, page, url);
-				},
-				refreshPage() {
-					window.location.reload();
 				},
 				logout() {
 					this.showDialog({
