@@ -57,13 +57,25 @@ type DB interface {
 	DeleteAccount(ctx context.Context, id DBID) error
 
 	// CreateTags creates new tags in database.
-	CreateTags(ctx context.Context, tags ...Tag) error
+	CreateTags(ctx context.Context, tags ...Tag) ([]Tag, error)
+
+	// CreateTag creates a new tag in database.
+	CreateTag(ctx context.Context, tag Tag) (Tag, error)
 
 	// GetTags fetch list of tags and its frequency from database.
 	GetTags(ctx context.Context) ([]TagDTO, error)
 
 	// RenameTag change the name of a tag.
 	RenameTag(ctx context.Context, id int, newName string) error
+
+	// GetTag fetch a tag by its ID.
+	GetTag(ctx context.Context, id int) (TagDTO, bool, error)
+
+	// UpdateTag updates a tag in the database.
+	UpdateTag(ctx context.Context, tag Tag) error
+
+	// DeleteTag removes a tag from the database.
+	DeleteTag(ctx context.Context, id int) error
 }
 
 // DBOrderMethod is the order method for getting bookmarks

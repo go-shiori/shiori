@@ -32,8 +32,15 @@ func testDatabase(t *testing.T, dbFactory testDatabaseFactory) {
 		"testGetBookmarksWithSQLCharacters":     testGetBookmarksWithSQLCharacters,
 		"testGetBookmarksCount":                 testGetBookmarksCount,
 		// Tags
-		"testCreateTag":  testCreateTag,
-		"testCreateTags": testCreateTags,
+		"testCreateTag":            testCreateTag,
+		"testCreateTags":           testCreateTags,
+		"testGetTags":              testGetTags,
+		"testGetTag":               testGetTag,
+		"testGetTagNotExistent":    testGetTagNotExistent,
+		"testUpdateTag":            testUpdateTag,
+		"testRenameTag":            testRenameTag,
+		"testDeleteTag":            testDeleteTag,
+		"testDeleteTagNotExistent": testDeleteTagNotExistent,
 		// Accounts
 		"testCreateAccount":              testCreateAccount,
 		"testCreateDuplicateAccount":     testCreateDuplicateAccount,
@@ -330,14 +337,22 @@ func testGetBookmarksCount(t *testing.T, db model.DB) {
 func testCreateTag(t *testing.T, db model.DB) {
 	ctx := context.TODO()
 	tag := model.Tag{Name: "shiori"}
-	err := db.CreateTags(ctx, tag)
+	createdTags, err := db.CreateTags(ctx, tag)
 	assert.NoError(t, err, "Save tag must not fail")
+	assert.Len(t, createdTags, 1, "Should return one created tag")
+	assert.Greater(t, createdTags[0].ID, 0, "Created tag should have a valid ID")
+	assert.Equal(t, "shiori", createdTags[0].Name, "Created tag should have the correct name")
 }
 
 func testCreateTags(t *testing.T, db model.DB) {
 	ctx := context.TODO()
-	err := db.CreateTags(ctx, model.Tag{Name: "shiori"}, model.Tag{Name: "shiori2"})
+	createdTags, err := db.CreateTags(ctx, model.Tag{Name: "shiori"}, model.Tag{Name: "shiori2"})
 	assert.NoError(t, err, "Save tag must not fail")
+	assert.Len(t, createdTags, 2, "Should return two created tags")
+	assert.Greater(t, createdTags[0].ID, 0, "First created tag should have a valid ID")
+	assert.Greater(t, createdTags[1].ID, 0, "Second created tag should have a valid ID")
+	assert.Equal(t, "shiori", createdTags[0].Name, "First created tag should have the correct name")
+	assert.Equal(t, "shiori2", createdTags[1].Name, "Second created tag should have the correct name")
 }
 
 // ----------------- ACCOUNTS -----------------
@@ -640,4 +655,143 @@ func testGetBoomarksWithTimeFilters(t *testing.T, db model.DB) {
 	assert.Equal(t, booksOrderByLastModified[0].Title, updatedBook1.Title)
 	// Second id should be 2 if order them by id
 	assert.Equal(t, booksOrderById[1].ID, 2)
+}
+
+// Additional tag test functions
+
+func testGetTags(t *testing.T, db model.DB) {
+	ctx := context.TODO()
+
+	// Create initial tag to ensure there's at least one tag
+	initialTag := model.Tag{Name: "initial-test-tag"}
+	_, err := db.CreateTags(ctx, initialTag)
+	require.NoError(t, err)
+
+	// Create additional tags
+	tags := []model.Tag{
+		{Name: "tag1"},
+		{Name: "tag2"},
+		{Name: "tag3"},
+	}
+	createdTags, err := db.CreateTags(ctx, tags...)
+	require.NoError(t, err)
+	require.Len(t, createdTags, 3)
+
+	// Fetch all tags
+	fetchedTags, err := db.GetTags(ctx)
+	require.NoError(t, err)
+	require.GreaterOrEqual(t, len(fetchedTags), 4) // At least 3 new tags + 1 initial tag
+
+	// Check that all expected tags are present
+	tagNames := make(map[string]bool)
+	for _, tag := range fetchedTags {
+		tagNames[tag.Name] = true
+	}
+
+	assert.True(t, tagNames["tag1"], "Tag 'tag1' should be present")
+	assert.True(t, tagNames["tag2"], "Tag 'tag2' should be present")
+	assert.True(t, tagNames["tag3"], "Tag 'tag3' should be present")
+	assert.True(t, tagNames["initial-test-tag"], "Tag 'initial-test-tag' should be present")
+}
+
+func testGetTag(t *testing.T, db model.DB) {
+	ctx := context.TODO()
+
+	// Create a tag
+	tag := model.Tag{Name: "get-tag-test"}
+	createdTags, err := db.CreateTags(ctx, tag)
+	require.NoError(t, err)
+	require.Len(t, createdTags, 1)
+	tagID := createdTags[0].ID
+
+	// Get the tag
+	fetchedTag, exists, err := db.GetTag(ctx, tagID)
+	require.NoError(t, err)
+	require.True(t, exists)
+	assert.Equal(t, tagID, fetchedTag.ID)
+	assert.Equal(t, tag.Name, fetchedTag.Name)
+}
+
+func testGetTagNotExistent(t *testing.T, db model.DB) {
+	ctx := context.TODO()
+
+	// Test non-existent tag
+	nonExistentTag, exists, err := db.GetTag(ctx, 9999)
+	require.NoError(t, err)
+	require.False(t, exists)
+	assert.Empty(t, nonExistentTag.Name)
+}
+
+func testUpdateTag(t *testing.T, db model.DB) {
+	ctx := context.TODO()
+
+	// Create a tag
+	tag := model.Tag{Name: "update-tag-test"}
+	createdTags, err := db.CreateTags(ctx, tag)
+	require.NoError(t, err)
+	require.Len(t, createdTags, 1)
+
+	// Update the tag
+	tagToUpdate := model.Tag{
+		ID:   createdTags[0].ID,
+		Name: "updated-tag",
+	}
+	err = db.UpdateTag(ctx, tagToUpdate)
+	require.NoError(t, err)
+
+	// Verify the tag was updated
+	updatedTag, exists, err := db.GetTag(ctx, tagToUpdate.ID)
+	require.NoError(t, err)
+	require.True(t, exists)
+	assert.Equal(t, "updated-tag", updatedTag.Name)
+}
+
+func testRenameTag(t *testing.T, db model.DB) {
+	ctx := context.TODO()
+
+	// Create a tag
+	tag := model.Tag{Name: "rename-tag-test"}
+	createdTags, err := db.CreateTags(ctx, tag)
+	require.NoError(t, err)
+	require.Len(t, createdTags, 1)
+	tagID := createdTags[0].ID
+
+	// Rename the tag
+	err = db.RenameTag(ctx, tagID, "renamed-tag")
+	require.NoError(t, err)
+
+	// Verify the tag was renamed
+	renamedTag, exists, err := db.GetTag(ctx, tagID)
+	require.NoError(t, err)
+	require.True(t, exists)
+	assert.Equal(t, "renamed-tag", renamedTag.Name)
+}
+
+func testDeleteTag(t *testing.T, db model.DB) {
+	ctx := context.TODO()
+
+	// Create a tag
+	tag := model.Tag{Name: "delete-tag-test"}
+	createdTags, err := db.CreateTags(ctx, tag)
+	require.NoError(t, err)
+	require.Len(t, createdTags, 1)
+	tagID := createdTags[0].ID
+
+	// Delete the tag
+	err = db.DeleteTag(ctx, tagID)
+	require.NoError(t, err)
+
+	// Verify the tag was deleted
+	_, exists, err := db.GetTag(ctx, tagID)
+	require.NoError(t, err)
+	require.False(t, exists)
+}
+
+func testDeleteTagNotExistent(t *testing.T, db model.DB) {
+	ctx := context.TODO()
+
+	// Test deleting a non-existent tag
+	err := db.DeleteTag(ctx, 9999)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "not found", "Error should contain 'not found'")
 }

@@ -134,13 +134,6 @@ definitions:
       url:
         type: string
     type: object
-  model.Tag:
-    properties:
-      id:
-        type: integer
-      name:
-        type: string
-    type: object
   model.TagDTO:
     properties:
       bookmark_count:
@@ -414,13 +407,119 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/model.Tag'
+              $ref: '#/definitions/model.TagDTO'
             type: array
         "403":
           description: Authentication required
         "500":
           description: Internal server error
       summary: List tags
+      tags:
+      - Tags
+    post:
+      consumes:
+      - application/json
+      description: Create a new tag
+      parameters:
+      - description: Tag data
+        in: body
+        name: tag
+        required: true
+        schema:
+          $ref: '#/definitions/model.TagDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/model.TagDTO'
+        "400":
+          description: Invalid request
+        "403":
+          description: Authentication required
+        "500":
+          description: Internal server error
+      summary: Create tag
+      tags:
+      - Tags
+  /api/v1/tags/{id}:
+    delete:
+      description: Delete a tag
+      parameters:
+      - description: Tag ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+        "403":
+          description: Authentication required
+        "404":
+          description: Tag not found
+        "500":
+          description: Internal server error
+      summary: Delete tag
+      tags:
+      - Tags
+    get:
+      description: Get a tag by ID
+      parameters:
+      - description: Tag ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.TagDTO'
+        "403":
+          description: Authentication required
+        "404":
+          description: Tag not found
+        "500":
+          description: Internal server error
+      summary: Get tag
+      tags:
+      - Tags
+    put:
+      consumes:
+      - application/json
+      description: Update an existing tag
+      parameters:
+      - description: Tag ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Tag data
+        in: body
+        name: tag
+        required: true
+        schema:
+          $ref: '#/definitions/model.TagDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.TagDTO'
+        "400":
+          description: Invalid request
+        "403":
+          description: Authentication required
+        "404":
+          description: Tag not found
+        "500":
+          description: Internal server error
+      summary: Update tag
       tags:
       - Tags
 swagger: "2.0"

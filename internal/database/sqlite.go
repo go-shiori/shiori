@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/go-shiori/shiori/internal/model"
+	"github.com/huandu/go-sqlbuilder"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 
@@ -959,46 +960,78 @@ func (db *SQLiteDatabase) DeleteAccount(ctx context.Context, id model.DBID) erro
 }
 
 // CreateTags creates new tags from submitted objects.
-func (db *SQLiteDatabase) CreateTags(ctx context.Context, tags ...model.Tag) error {
-	query := `INSERT INTO tag (name) VALUES `
-	values := []interface{}{}
-
-	for _, t := range tags {
-		query += "(?),"
-		values = append(values, t.Name)
+func (db *SQLiteDatabase) CreateTags(ctx context.Context, tags ...model.Tag) ([]model.Tag, error) {
+	if len(tags) == 0 {
+		return []model.Tag{}, nil
 	}
-	query = query[0 : len(query)-1]
+
+	// Create a slice to hold the created tags
+	createdTags := make([]model.Tag, len(tags))
+	copy(createdTags, tags)
 
 	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
-		stmt, err := tx.Preparex(query)
+		// For SQLite, we need to insert tags one by one to get their IDs
+		stmtInsertTag, err := tx.PrepareContext(ctx, "INSERT INTO tag (name) VALUES (?)")
 		if err != nil {
-			return fmt.Errorf("failed to prepare tag creation query: %w", err)
+			return fmt.Errorf("failed to prepare tag insertion statement: %w", err)
 		}
+		defer stmtInsertTag.Close()
 
-		_, err = stmt.ExecContext(ctx, values...)
-		if err != nil {
-			return fmt.Errorf("failed to execute tag creation query: %w", err)
+		// Insert each tag and get its ID
+		for i, tag := range createdTags {
+			result, err := stmtInsertTag.ExecContext(ctx, tag.Name)
+			if err != nil {
+				return fmt.Errorf("failed to insert tag: %w", err)
+			}
+
+			// Get the last inserted ID
+			tagID, err := result.LastInsertId()
+			if err != nil {
+				return fmt.Errorf("failed to get last insert ID: %w", err)
+			}
+
+			createdTags[i].ID = int(tagID)
 		}
 
 		return nil
 	}); err != nil {
-		return fmt.Errorf("failed to run tag creation transaction: %w", err)
+		return nil, fmt.Errorf("failed to run tag creation transaction: %w", err)
 	}
 
-	return nil
+	return createdTags, nil
+}
+
+// CreateTag creates a new tag in database.
+func (db *SQLiteDatabase) CreateTag(ctx context.Context, tag model.Tag) (model.Tag, error) {
+	// Use CreateTags to implement this method
+	createdTags, err := db.CreateTags(ctx, tag)
+	if err != nil {
+		return model.Tag{}, err
+	}
+
+	if len(createdTags) == 0 {
+		return model.Tag{}, fmt.Errorf("failed to create tag")
+	}
+
+	return createdTags[0], nil
 }
 
 // GetTags fetch list of tags and their frequency.
 func (db *SQLiteDatabase) GetTags(ctx context.Context) ([]model.TagDTO, error) {
-	tags := []model.TagDTO{}
-	query := `SELECT t.id, t.name, COUNT(bt.tag_id) bookmark_count
-		FROM tag t
-		LEFT JOIN bookmark_tag bt ON bt.tag_id = t.id
-		GROUP BY t.id ORDER BY t.name`
+	sb := sqlbuilder.NewSelectBuilder()
+	sb.Select("t.id", "t.name", "COUNT(bt.tag_id) AS bookmark_count")
+	sb.From("tag t")
+	sb.JoinWithOption(sqlbuilder.LeftJoin, "bookmark_tag bt", "bt.tag_id = t.id")
+	sb.GroupBy("t.id")
+	sb.OrderBy("t.name")
 
-	err := db.reader.SelectContext(ctx, &tags, query)
+	query, args := sb.Build()
+	query = db.ReaderDB().Rebind(query)
+
+	tags := []model.TagDTO{}
+	err := db.ReaderDB().SelectContext(ctx, &tags, query, args...)
 	if err != nil && err != sql.ErrNoRows {
-		return nil, fmt.Errorf("failed to prepare delete bookmark content statement: %w", err)
+		return nil, fmt.Errorf("failed to get tags: %w", err)
 	}
 
 	return tags, nil
@@ -1006,11 +1039,117 @@ func (db *SQLiteDatabase) GetTags(ctx context.Context) ([]model.TagDTO, error) {
 
 // RenameTag change the name of a tag.
 func (db *SQLiteDatabase) RenameTag(ctx context.Context, id int, newName string) error {
+	sb := sqlbuilder.NewUpdateBuilder()
+	sb.Update("tag")
+	sb.Set(sb.Assign("name", newName))
+	sb.Where(sb.Equal("id", id))
+
+	query, args := sb.Build()
+	query = db.WriterDB().Rebind(query)
+
 	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
-		_, err := tx.ExecContext(ctx, `UPDATE tag SET name = ? WHERE id = ?`, newName, id)
-		return err
+		_, err := tx.ExecContext(ctx, query, args...)
+		if err != nil {
+			return fmt.Errorf("failed to rename tag: %w", err)
+		}
+		return nil
 	}); err != nil {
-		return fmt.Errorf("failed to rename tag: %w", err)
+		return err
+	}
+
+	return nil
+}
+
+// GetTag fetch a tag by its ID.
+func (db *SQLiteDatabase) GetTag(ctx context.Context, id int) (model.TagDTO, bool, error) {
+	sb := sqlbuilder.NewSelectBuilder()
+	sb.Select("t.id", "t.name", "COUNT(bt.tag_id) AS bookmark_count")
+	sb.From("tag t")
+	sb.JoinWithOption(sqlbuilder.LeftJoin, "bookmark_tag bt", "bt.tag_id = t.id")
+	sb.Where(sb.Equal("t.id", id))
+	sb.GroupBy("t.id")
+
+	query, args := sb.Build()
+	query = db.ReaderDB().Rebind(query)
+
+	var tag model.TagDTO
+	err := db.ReaderDB().GetContext(ctx, &tag, query, args...)
+	if err == sql.ErrNoRows {
+		return model.TagDTO{}, false, nil
+	}
+	if err != nil {
+		return model.TagDTO{}, false, fmt.Errorf("failed to get tag: %w", err)
+	}
+
+	return tag, true, nil
+}
+
+// UpdateTag updates a tag in the database.
+func (db *SQLiteDatabase) UpdateTag(ctx context.Context, tag model.Tag) error {
+	sb := sqlbuilder.NewUpdateBuilder()
+	sb.Update("tag")
+	sb.Set(sb.Assign("name", tag.Name))
+	sb.Where(sb.Equal("id", tag.ID))
+
+	query, args := sb.Build()
+	query = db.WriterDB().Rebind(query)
+
+	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
+		_, err := tx.ExecContext(ctx, query, args...)
+		if err != nil {
+			return fmt.Errorf("failed to update tag: %w", err)
+		}
+		return nil
+	}); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// DeleteTag removes a tag from the database.
+func (db *SQLiteDatabase) DeleteTag(ctx context.Context, id int) error {
+	// First, check if the tag exists
+	_, exists, err := db.GetTag(ctx, id)
+	if err != nil {
+		return fmt.Errorf("failed to check if tag exists: %w", err)
+	}
+	if !exists {
+		return model.ErrNotFound
+	}
+
+	// Delete all bookmark_tag associations
+	deleteAssocSb := sqlbuilder.NewDeleteBuilder()
+	deleteAssocSb.DeleteFrom("bookmark_tag")
+	deleteAssocSb.Where(deleteAssocSb.Equal("tag_id", id))
+
+	deleteAssocQuery, deleteAssocArgs := deleteAssocSb.Build()
+	deleteAssocQuery = db.WriterDB().Rebind(deleteAssocQuery)
+
+	// Then, delete the tag itself
+	deleteTagSb := sqlbuilder.NewDeleteBuilder()
+	deleteTagSb.DeleteFrom("tag")
+	deleteTagSb.Where(deleteTagSb.Equal("id", id))
+
+	deleteTagQuery, deleteTagArgs := deleteTagSb.Build()
+	deleteTagQuery = db.WriterDB().Rebind(deleteTagQuery)
+
+	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
+		// Delete bookmark_tag associations
+		_, err := tx.ExecContext(ctx, deleteAssocQuery, deleteAssocArgs...)
+		if err != nil {
+			return fmt.Errorf("failed to delete tag associations: %w", err)
+		}
+
+		// Delete the tag
+		_, err = tx.ExecContext(ctx, deleteTagQuery, deleteTagArgs...)
+		if err != nil {
+			return fmt.Errorf("failed to delete tag: %w", err)
+		}
+
+		return nil
+	}); err != nil {
+		return err
 	}
 
 	return nil
