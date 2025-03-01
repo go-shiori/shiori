@@ -20,10 +20,10 @@ type Config struct {
 // GetLegacyHandler returns a legacy handler to use with the new webserver
 func GetLegacyHandler(cfg Config, dependencies model.Dependencies) *Handler {
 	return &Handler{
-		DB:           cfg.DB,
-		DataDir:      cfg.DataDir,
-		UserCache:    cch.New(time.Hour, 10*time.Minute),
-		SessionCache: cch.New(time.Hour, 10*time.Minute),
+		DB:        cfg.DB,
+		DataDir:   cfg.DataDir,
+		UserCache: cch.New(time.Hour, 10*time.Minute),
+		// SessionCache: cch.New(time.Hour, 10*time.Minute),
 		ArchiveCache: cch.New(time.Minute, 5*time.Minute),
 		RootPath:     cfg.RootPath,
 		Log:          cfg.Log,
