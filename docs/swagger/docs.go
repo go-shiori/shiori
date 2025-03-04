@@ -287,6 +287,48 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/bookmarks/bulk/tags": {
+            "put": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Bulk update tags for multiple bookmarks.",
+                "parameters": [
+                    {
+                        "description": "Bulk Update Bookmark Tags Payload",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api_v1.bulkUpdateBookmarkTagsPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.BookmarkDTO"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request payload"
+                    },
+                    "403": {
+                        "description": "Token not provided/invalid"
+                    },
+                    "404": {
+                        "description": "No bookmarks found"
+                    }
+                }
+            }
+        },
         "/api/v1/bookmarks/cache": {
             "put": {
                 "produces": [
@@ -556,6 +598,27 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "api_v1.bulkUpdateBookmarkTagsPayload": {
+            "type": "object",
+            "required": [
+                "bookmark_ids",
+                "tag_ids"
+            ],
+            "properties": {
+                "bookmark_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "tag_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
         "api_v1.infoResponse": {
             "type": "object",
             "properties": {

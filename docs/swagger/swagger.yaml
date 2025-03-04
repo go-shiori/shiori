@@ -1,4 +1,18 @@
 definitions:
+  api_v1.bulkUpdateBookmarkTagsPayload:
+    properties:
+      bookmark_ids:
+        items:
+          type: integer
+        type: array
+      tag_ids:
+        items:
+          type: integer
+        type: array
+    required:
+    - bookmark_ids
+    - tag_ids
+    type: object
   api_v1.infoResponse:
     properties:
       database:
@@ -344,6 +358,33 @@ paths:
         "403":
           description: Token not provided/invalid
       summary: Refresh a token for an account
+      tags:
+      - Auth
+  /api/v1/bookmarks/bulk/tags:
+    put:
+      parameters:
+      - description: Bulk Update Bookmark Tags Payload
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/api_v1.bulkUpdateBookmarkTagsPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.BookmarkDTO'
+            type: array
+        "400":
+          description: Invalid request payload
+        "403":
+          description: Token not provided/invalid
+        "404":
+          description: No bookmarks found
+      summary: Bulk update tags for multiple bookmarks.
       tags:
       - Auth
   /api/v1/bookmarks/cache:

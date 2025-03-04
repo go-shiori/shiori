@@ -31,6 +31,8 @@ func testDatabase(t *testing.T, dbFactory testDatabaseFactory) {
 		"testGetBookmarks":                      testGetBookmarks,
 		"testGetBookmarksWithSQLCharacters":     testGetBookmarksWithSQLCharacters,
 		"testGetBookmarksCount":                 testGetBookmarksCount,
+		"testSaveBookmark":                      testSaveBookmark,
+		"testBulkUpdateBookmarkTags":            testBulkUpdateBookmarkTags,
 		// Tags
 		"testCreateTag":            testCreateTag,
 		"testCreateTags":           testCreateTags,
@@ -248,8 +250,8 @@ func testGetBookmark(t *testing.T, db model.DB) {
 	assert.NoError(t, err, "Save bookmarks must not fail")
 
 	savedBookmark, exists, err := db.GetBookmark(ctx, result[0].ID, "")
-	assert.True(t, exists, "Bookmark should exist")
 	assert.NoError(t, err, "Get bookmark should not fail")
+	assert.True(t, exists, "Bookmark should exist")
 	assert.Equal(t, result[0].ID, savedBookmark.ID, "Retrieved bookmark should be the same")
 	assert.Equal(t, book.URL, savedBookmark.URL, "Retrieved bookmark should be the same")
 }
@@ -464,7 +466,7 @@ func testGetAccount(t *testing.T, db model.DB) {
 
 	// Failed case
 	account, exists, err := db.GetAccount(ctx, 99)
-	assert.NotNil(t, err)
+	assert.ErrorIs(t, err, ErrNotFound)
 	assert.False(t, exists, "Expected account to exist")
 	assert.Empty(t, account.Username)
 }
@@ -793,5 +795,182 @@ func testDeleteTagNotExistent(t *testing.T, db model.DB) {
 	// Test deleting a non-existent tag
 	err := db.DeleteTag(ctx, 9999)
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "not found", "Error should contain 'not found'")
+	assert.ErrorIs(t, err, ErrNotFound, "Error should be ErrNotFound")
+}
+
+func testSaveBookmark(t *testing.T, db model.DB) {
+	ctx := context.TODO()
+
+	t.Run("invalid_bookmark_id", func(t *testing.T) {
+		bookmark := model.Bookmark{
+			ID:    0, // Invalid ID
+			URL:   "https://example.com",
+			Title: "Example",
+		}
+		err := db.SaveBookmark(ctx, bookmark)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "bookmark ID must be greater than 0")
+	})
+
+	t.Run("empty_url", func(t *testing.T) {
+		bookmark := model.Bookmark{
+			ID:    1,
+			URL:   "", // Empty URL
+			Title: "Example",
+		}
+		err := db.SaveBookmark(ctx, bookmark)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "URL must not be empty")
+	})
+
+	t.Run("empty_title", func(t *testing.T) {
+		bookmark := model.Bookmark{
+			ID:    1,
+			URL:   "https://example.com",
+			Title: "", // Empty title
+		}
+		err := db.SaveBookmark(ctx, bookmark)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "title must not be empty")
+	})
+
+	t.Run("successful_update", func(t *testing.T) {
+		// First create a bookmark
+		bookmark := model.BookmarkDTO{
+			URL:   "https://example.com",
+			Title: "Example",
+		}
+		results, err := db.SaveBookmarks(ctx, true, bookmark)
+		require.NoError(t, err)
+		bookmarkID := results[0].ID
+
+		// Now update it
+		updatedBookmark := model.Bookmark{
+			ID:      bookmarkID,
+			URL:     "https://updated-example.com",
+			Title:   "Updated Example",
+			Excerpt: "Updated excerpt",
+			Author:  "Updated Author",
+			Public:  1, // Use 1 for SQLite, should work for other DBs too
+		}
+
+		err = db.SaveBookmark(ctx, updatedBookmark)
+		require.NoError(t, err)
+
+		// Verify the bookmark was updated
+		retrievedBookmark, exists, err := db.GetBookmark(ctx, bookmarkID, "")
+		require.NoError(t, err)
+		require.True(t, exists)
+		assert.Equal(t, updatedBookmark.URL, retrievedBookmark.URL)
+		assert.Equal(t, updatedBookmark.Title, retrievedBookmark.Title)
+		assert.Equal(t, updatedBookmark.Excerpt, retrievedBookmark.Excerpt)
+		assert.Equal(t, updatedBookmark.Author, retrievedBookmark.Author)
+		assert.Equal(t, updatedBookmark.Public, retrievedBookmark.Public)
+	})
+}
+
+func testBulkUpdateBookmarkTags(t *testing.T, db model.DB) {
+	ctx := context.TODO()
+
+	// Create test bookmarks
+	bookmark1 := model.BookmarkDTO{
+		URL:   "https://example1.com",
+		Title: "Example 1",
+	}
+	bookmark2 := model.BookmarkDTO{
+		URL:   "https://example2.com",
+		Title: "Example 2",
+	}
+
+	results1, err := db.SaveBookmarks(ctx, true, bookmark1)
+	require.NoError(t, err)
+	bookmark1ID := results1[0].ID
+
+	results2, err := db.SaveBookmarks(ctx, true, bookmark2)
+	require.NoError(t, err)
+	bookmark2ID := results2[0].ID
+
+	// Create test tags
+	tag1 := model.Tag{Name: "tag1-bulk-test"}
+	tag2 := model.Tag{Name: "tag2-bulk-test"}
+
+	createdTags, err := db.CreateTags(ctx, tag1, tag2)
+	require.NoError(t, err)
+	require.Len(t, createdTags, 2)
+
+	tag1ID := createdTags[0].ID
+	tag2ID := createdTags[1].ID
+
+	t.Run("empty_bookmark_ids", func(t *testing.T) {
+		err := db.BulkUpdateBookmarkTags(ctx, []int{}, []int{tag1ID, tag2ID})
+		require.NoError(t, err, "Empty bookmark IDs should not cause an error")
+	})
+
+	t.Run("empty_tag_ids", func(t *testing.T) {
+		err := db.BulkUpdateBookmarkTags(ctx, []int{bookmark1ID, bookmark2ID}, []int{})
+		require.NoError(t, err, "Empty tag IDs should not cause an error")
+
+		// Verify tags were removed
+		bookmark, exists, err := db.GetBookmark(ctx, bookmark1ID, "")
+		require.NoError(t, err)
+		require.True(t, exists)
+		assert.Empty(t, bookmark.Tags, "Tags should be empty after update with empty tag IDs")
+	})
+
+	t.Run("non_existent_bookmark", func(t *testing.T) {
+		nonExistentID := 9999
+		err := db.BulkUpdateBookmarkTags(ctx, []int{nonExistentID}, []int{tag1ID})
+		require.Error(t, err, "Non-existent bookmark ID should cause an error")
+		assert.Contains(t, err.Error(), "some bookmarks do not exist")
+	})
+
+	t.Run("non_existent_tag", func(t *testing.T) {
+		nonExistentID := 9999
+		err := db.BulkUpdateBookmarkTags(ctx, []int{bookmark1ID}, []int{nonExistentID})
+		require.Error(t, err, "Non-existent tag ID should cause an error")
+		assert.Contains(t, err.Error(), "some tags do not exist")
+	})
+
+	t.Run("successful_update", func(t *testing.T) {
+		// Update both bookmarks with both tags
+		err := db.BulkUpdateBookmarkTags(ctx, []int{bookmark1ID, bookmark2ID}, []int{tag1ID, tag2ID})
+		require.NoError(t, err, "Bulk update should succeed")
+
+		// Verify bookmark1 has both tags
+		bookmark1, exists, err := db.GetBookmark(ctx, bookmark1ID, "")
+		require.NoError(t, err)
+		require.True(t, exists)
+		assert.Len(t, bookmark1.Tags, 2, "Bookmark 1 should have 2 tags")
+
+		// Verify bookmark2 has both tags
+		bookmark2, exists, err := db.GetBookmark(ctx, bookmark2ID, "")
+		require.NoError(t, err)
+		require.True(t, exists)
+		assert.Len(t, bookmark2.Tags, 2, "Bookmark 2 should have 2 tags")
+
+		// Verify tag names
+		tagNames := make(map[string]bool)
+		for _, tag := range bookmark1.Tags {
+			tagNames[tag.Name] = true
+		}
+		assert.True(t, tagNames[tag1.Name], "Bookmark 1 should have tag1")
+		assert.True(t, tagNames[tag2.Name], "Bookmark 1 should have tag2")
+
+		// Update with a single tag
+		err = db.BulkUpdateBookmarkTags(ctx, []int{bookmark1ID}, []int{tag1ID})
+		require.NoError(t, err, "Update with single tag should succeed")
+
+		// Verify bookmark1 now has only one tag
+		bookmark1, exists, err = db.GetBookmark(ctx, bookmark1ID, "")
+		require.NoError(t, err)
+		require.True(t, exists)
+		assert.Len(t, bookmark1.Tags, 1, "Bookmark 1 should have 1 tag after update")
+		assert.Equal(t, tag1.Name, bookmark1.Tags[0].Name, "Bookmark 1 should have tag1")
+
+		// Verify bookmark2 still has both tags
+		bookmark2, exists, err = db.GetBookmark(ctx, bookmark2ID, "")
+		require.NoError(t, err)
+		require.True(t, exists)
+		assert.Len(t, bookmark2.Tags, 2, "Bookmark 2 should still have 2 tags")
+	})
 }

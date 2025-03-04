@@ -17,6 +17,7 @@ type BookmarksDomain interface {
 	GetBookmark(ctx context.Context, id DBID) (*BookmarkDTO, error)
 	GetBookmarks(ctx context.Context, ids []int) ([]BookmarkDTO, error)
 	UpdateBookmarkCache(ctx context.Context, bookmark BookmarkDTO, keepMetadata bool, skipExist bool) (*BookmarkDTO, error)
+	BulkUpdateBookmarkTags(ctx context.Context, bookmarkIDs []int, tagIDs []int) error
 }
 
 type AuthDomain interface {

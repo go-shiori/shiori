@@ -163,6 +163,10 @@ func (s *HttpServer) Setup(cfg *config.Config, deps *dependencies.Dependencies) 
 		api_v1.HandleBookmarkReadable,
 		globalMiddleware...,
 	))
+	s.mux.HandleFunc("PUT /api/v1/bookmarks/bulk/tags", ToHTTPHandler(deps,
+		api_v1.HandleBulkUpdateBookmarkTags,
+		globalMiddleware...,
+	))
 
 	s.server = &http.Server{
 		Addr:    fmt.Sprintf("%s%d", cfg.Http.Address, cfg.Http.Port),
