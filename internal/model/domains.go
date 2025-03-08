@@ -15,6 +15,8 @@ type BookmarksDomain interface {
 	HasArchive(b *BookmarkDTO) bool
 	HasThumbnail(b *BookmarkDTO) bool
 	GetBookmark(ctx context.Context, id DBID) (*BookmarkDTO, error)
+	GetBookmarks(ctx context.Context, ids []int) ([]BookmarkDTO, error)
+	UpdateBookmarkCache(ctx context.Context, bookmark BookmarkDTO, keepMetadata bool, skipExist bool) (*BookmarkDTO, error)
 }
 
 type AuthDomain interface {
@@ -42,4 +44,12 @@ type StorageDomain interface {
 	DirExists(path string) bool
 	WriteData(dst string, data []byte) error
 	WriteFile(dst string, src *os.File) error
+}
+
+type TagsDomain interface {
+	ListTags(ctx context.Context) ([]TagDTO, error)
+	CreateTag(ctx context.Context, tag TagDTO) (TagDTO, error)
+	// GetTag(ctx context.Context, id int64) (TagDTO, error)
+	// UpdateTag(ctx context.Context, tag TagDTO) (TagDTO, error)
+	// DeleteTag(ctx context.Context, id int64) error
 }

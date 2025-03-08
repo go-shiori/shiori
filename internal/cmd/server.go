@@ -82,17 +82,17 @@ func newServerCommandHandler() func(cmd *cobra.Command, args []string) {
 			cfg.Http.SecretKey = secretKey
 		})
 
-		dependencies.Log.Infof("Starting Shiori v%s", model.BuildVersion)
+		dependencies.Logger().Infof("Starting Shiori v%s", model.BuildVersion)
 
-		server, err := http.NewHttpServer(dependencies.Log).Setup(cfg, dependencies)
+		server, err := http.NewHttpServer(dependencies.Logger()).Setup(cfg, dependencies)
 		if err != nil {
-			dependencies.Log.WithError(err).Fatal("error setting up server")
+			dependencies.Logger().WithError(err).Fatal("error setting up server")
 		}
 
 		if err := server.Start(ctx); err != nil {
-			dependencies.Log.WithError(err).Fatal("error starting server")
+			dependencies.Logger().WithError(err).Fatal("error starting server")
 		}
-		dependencies.Log.WithField("addr", address).Debug("started http server")
+		dependencies.Logger().Debug("started http server")
 
 		server.WaitStop(ctx)
 	}

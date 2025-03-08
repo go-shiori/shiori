@@ -23,18 +23,11 @@ definitions:
         type: boolean
       username:
         type: string
-    required:
-    - password
-    - username
     type: object
   api_v1.loginResponseMessage:
     properties:
       expires:
-        description: Deprecated, used only for legacy APIs
         type: integer
-      session:
-        description: Deprecated, used only for legacy APIs
-        type: string
       token:
         type: string
     type: object
@@ -134,7 +127,7 @@ definitions:
         type: integer
       tags:
         items:
-          $ref: '#/definitions/model.Tag'
+          $ref: '#/definitions/model.TagDTO'
         type: array
       title:
         type: string
@@ -145,30 +138,41 @@ definitions:
     properties:
       id:
         type: integer
-      nBookmarks:
+      name:
+        type: string
+    type: object
+  model.TagDTO:
+    properties:
+      bookmark_count:
+        description: Number of bookmarks with this tag
+        type: integer
+      deleted:
+        description: Marks when a tag is deleted from a bookmark
+        type: boolean
+      id:
         type: integer
       name:
         type: string
     type: object
   model.UserConfig:
     properties:
-      CreateEbook:
+      createEbook:
         type: boolean
-      HideExcerpt:
+      hideExcerpt:
         type: boolean
-      HideThumbnail:
+      hideThumbnail:
         type: boolean
-      KeepMetadata:
+      keepMetadata:
         type: boolean
-      ListMode:
+      listMode:
         type: boolean
-      MakePublic:
+      makePublic:
         type: boolean
-      ShowId:
+      showId:
         type: boolean
-      Theme:
+      theme:
         type: string
-      UseArchive:
+      useArchive:
         type: boolean
     type: object
 info:
@@ -194,60 +198,76 @@ paths:
       tags:
       - accounts
     post:
+      consumes:
+      - application/json
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            items:
-              $ref: '#/definitions/model.AccountDTO'
-            type: array
+            $ref: '#/definitions/model.AccountDTO'
         "400":
           description: Bad Request
-          schema:
-            type: string
+        "409":
+          description: Account already exists
         "500":
           description: Internal Server Error
-          schema:
-            type: string
       summary: Create an account
       tags:
       - accounts
   /api/v1/accounts/{id}:
     delete:
+      parameters:
+      - description: Account ID
+        in: path
+        name: id
+        required: true
+        type: integer
       produces:
       - application/json
       responses:
         "204":
           description: No content
-          schema:
-            type: string
+        "400":
+          description: Invalid ID
+        "404":
+          description: Account not found
         "500":
           description: Internal Server Error
-          schema:
-            type: string
       summary: Delete an account
       tags:
       - accounts
     patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Account ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Account data
+        in: body
+        name: account
+        required: true
+        schema:
+          $ref: '#/definitions/api_v1.updateAccountPayload'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/api_v1.updateAccountPayload'
-            type: array
+            $ref: '#/definitions/model.AccountDTO'
         "400":
-          description: Bad Request
-          schema:
-            type: string
+          description: Invalid ID/data
+        "404":
+          description: Account not found
+        "409":
+          description: Account already exists
         "500":
           description: Internal Server Error
-          schema:
-            type: string
       summary: Update an account
       tags:
       - accounts
@@ -383,34 +403,24 @@ paths:
           description: Only owners can access this endpoint
       summary: Get general system information
       tags:
-      - system
+      - System
   /api/v1/tags:
     get:
+      description: List all tags
       produces:
       - application/json
       responses:
         "200":
-          description: List of tags
+          description: OK
           schema:
-            $ref: '#/definitions/model.Tag'
+            items:
+              $ref: '#/definitions/model.Tag'
+            type: array
         "403":
-          description: Token not provided/invalid
+          description: Authentication required
+        "500":
+          description: Internal server error
       summary: List tags
-      tags:
-      - Tags
-    post:
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Created tag
-          schema:
-            $ref: '#/definitions/model.Tag'
-        "400":
-          description: Token not provided/invalid
-        "403":
-          description: Token not provided/invalid
-      summary: Create tag
       tags:
       - Tags
 swagger: "2.0"

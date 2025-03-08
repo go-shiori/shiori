@@ -44,6 +44,9 @@ const docTemplate = `{
                 }
             },
             "post": {
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -55,23 +58,17 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/model.AccountDTO"
-                            }
+                            "$ref": "#/definitions/model.AccountDTO"
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "string"
-                        }
+                        "description": "Bad Request"
+                    },
+                    "409": {
+                        "description": "Account already exists"
                     },
                     "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "string"
-                        }
+                        "description": "Internal Server Error"
                     }
                 }
             }
@@ -85,22 +82,34 @@ const docTemplate = `{
                     "accounts"
                 ],
                 "summary": "Delete an account",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Account ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "204": {
-                        "description": "No content",
-                        "schema": {
-                            "type": "string"
-                        }
+                        "description": "No content"
+                    },
+                    "400": {
+                        "description": "Invalid ID"
+                    },
+                    "404": {
+                        "description": "Account not found"
                     },
                     "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "string"
-                        }
+                        "description": "Internal Server Error"
                     }
                 }
             },
             "patch": {
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -108,27 +117,42 @@ const docTemplate = `{
                     "accounts"
                 ],
                 "summary": "Update an account",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Account ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Account data",
+                        "name": "account",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api_v1.updateAccountPayload"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/api_v1.updateAccountPayload"
-                            }
+                            "$ref": "#/definitions/model.AccountDTO"
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "string"
-                        }
+                        "description": "Invalid ID/data"
+                    },
+                    "404": {
+                        "description": "Account not found"
+                    },
+                    "409": {
+                        "description": "Account already exists"
                     },
                     "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "string"
-                        }
+                        "description": "Internal Server Error"
                     }
                 }
             }
@@ -325,7 +349,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "system"
+                    "System"
                 ],
                 "summary": "Get general system information",
                 "responses": {
@@ -343,6 +367,7 @@ const docTemplate = `{
         },
         "/api/v1/tags": {
             "get": {
+                "description": "List all tags",
                 "produces": [
                     "application/json"
                 ],
@@ -352,36 +377,19 @@ const docTemplate = `{
                 "summary": "List tags",
                 "responses": {
                     "200": {
-                        "description": "List of tags",
+                        "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/model.Tag"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.Tag"
+                            }
                         }
                     },
                     "403": {
-                        "description": "Token not provided/invalid"
-                    }
-                }
-            },
-            "post": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Tags"
-                ],
-                "summary": "Create tag",
-                "responses": {
-                    "200": {
-                        "description": "Created tag",
-                        "schema": {
-                            "$ref": "#/definitions/model.Tag"
-                        }
+                        "description": "Authentication required"
                     },
-                    "400": {
-                        "description": "Token not provided/invalid"
-                    },
-                    "403": {
-                        "description": "Token not provided/invalid"
+                    "500": {
+                        "description": "Internal server error"
                     }
                 }
             }
@@ -415,10 +423,6 @@ const docTemplate = `{
         },
         "api_v1.loginRequestPayload": {
             "type": "object",
-            "required": [
-                "password",
-                "username"
-            ],
             "properties": {
                 "password": {
                     "type": "string"
@@ -435,12 +439,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "expires": {
-                    "description": "Deprecated, used only for legacy APIs",
                     "type": "integer"
-                },
-                "session": {
-                    "description": "Deprecated, used only for legacy APIs",
-                    "type": "string"
                 },
                 "token": {
                     "type": "string"
@@ -592,7 +591,7 @@ const docTemplate = `{
                 "tags": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/model.Tag"
+                        "$ref": "#/definitions/model.TagDTO"
                     }
                 },
                 "title": {
@@ -609,7 +608,23 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
-                "nBookmarks": {
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.TagDTO": {
+            "type": "object",
+            "properties": {
+                "bookmark_count": {
+                    "description": "Number of bookmarks with this tag",
+                    "type": "integer"
+                },
+                "deleted": {
+                    "description": "Marks when a tag is deleted from a bookmark",
+                    "type": "boolean"
+                },
+                "id": {
                     "type": "integer"
                 },
                 "name": {
@@ -620,31 +635,31 @@ const docTemplate = `{
         "model.UserConfig": {
             "type": "object",
             "properties": {
-                "CreateEbook": {
+                "createEbook": {
                     "type": "boolean"
                 },
-                "HideExcerpt": {
+                "hideExcerpt": {
                     "type": "boolean"
                 },
-                "HideThumbnail": {
+                "hideThumbnail": {
                     "type": "boolean"
                 },
-                "KeepMetadata": {
+                "keepMetadata": {
                     "type": "boolean"
                 },
-                "ListMode": {
+                "listMode": {
                     "type": "boolean"
                 },
-                "MakePublic": {
+                "makePublic": {
                     "type": "boolean"
                 },
-                "ShowId": {
+                "showId": {
                     "type": "boolean"
                 },
-                "Theme": {
+                "theme": {
                     "type": "string"
                 },
-                "UseArchive": {
+                "useArchive": {
                     "type": "boolean"
                 }
             }

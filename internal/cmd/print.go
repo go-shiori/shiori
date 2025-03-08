@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/go-shiori/shiori/internal/database"
+	"github.com/go-shiori/shiori/internal/model"
 	"github.com/spf13/cobra"
 )
 
@@ -50,12 +50,12 @@ func printHandler(cmd *cobra.Command, args []string) {
 	}
 
 	// Read bookmarks from database
-	orderMethod := database.DefaultOrder
+	orderMethod := model.DefaultOrder
 	if orderLatest {
-		orderMethod = database.ByLastModified
+		orderMethod = model.ByLastModified
 	}
 
-	searchOptions := database.GetBookmarksOptions{
+	searchOptions := model.DBGetBookmarksOptions{
 		IDs:          ids,
 		Tags:         tags,
 		ExcludedTags: excludedTags,
@@ -63,7 +63,7 @@ func printHandler(cmd *cobra.Command, args []string) {
 		OrderMethod:  orderMethod,
 	}
 
-	bookmarks, err := deps.Database.GetBookmarks(cmd.Context(), searchOptions)
+	bookmarks, err := deps.Database().GetBookmarks(cmd.Context(), searchOptions)
 	if err != nil {
 		cError.Printf("Failed to get bookmarks: %v\n", err)
 		return

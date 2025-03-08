@@ -8,79 +8,158 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/gin-contrib/requestid"
-	"github.com/gin-gonic/gin"
 	"github.com/go-shiori/shiori/internal/config"
 	"github.com/go-shiori/shiori/internal/dependencies"
+	"github.com/go-shiori/shiori/internal/http/handlers"
+	api_v1 "github.com/go-shiori/shiori/internal/http/handlers/api/v1"
 	"github.com/go-shiori/shiori/internal/http/middleware"
-	"github.com/go-shiori/shiori/internal/http/routes"
-	api_v1 "github.com/go-shiori/shiori/internal/http/routes/api/v1"
 	"github.com/go-shiori/shiori/internal/http/templates"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/sirupsen/logrus"
-	ginlogrus "github.com/toorop/gin-logrus"
 )
 
 type HttpServer struct {
-	engine *gin.Engine
-	http   *http.Server
+	mux    *http.ServeMux
+	server *http.Server
 	logger *logrus.Logger
 }
 
 func (s *HttpServer) Setup(cfg *config.Config, deps *dependencies.Dependencies) (*HttpServer, error) {
-	if !cfg.Development {
-		gin.SetMode(gin.ReleaseMode)
+	s.mux = http.NewServeMux()
+
+	if err := templates.SetupTemplates(); err != nil {
+		return nil, fmt.Errorf("failed to setup templates: %w", err)
 	}
 
-	s.engine = gin.New()
-
-	templates.SetupTemplates(s.engine)
-
-	// s.engine.Use(gzip.Gzip(gzip.DefaultCompression))
-
-	s.engine.Use(requestid.New())
+	globalMiddleware := []model.HttpMiddleware{
+		middleware.NewAuthMiddleware(deps),
+		middleware.NewRequestIDMiddleware(deps),
+	}
 
 	if cfg.Http.AccessLog {
-		s.engine.Use(ginlogrus.Logger(deps.Log))
+		globalMiddleware = append(globalMiddleware, middleware.NewLoggingMiddleware())
 	}
 
-	s.engine.Use(
-		middleware.AuthMiddleware(deps),
-		gin.Recovery(),
-	)
+	// System routes with logging middleware
+	s.mux.HandleFunc("GET /system/liveness", ToHTTPHandler(deps,
+		handlers.HandleLiveness,
+		globalMiddleware...,
+	))
 
-	if cfg.Http.ServeWebUI {
-		routes.NewFrontendRoutes(s.logger, cfg).Setup(s.engine)
-	}
+	// Bookmark routes
+	s.mux.HandleFunc("GET /bookmark/{id}/content", ToHTTPHandler(deps, handlers.HandleBookmarkContent, globalMiddleware...))
+	s.mux.HandleFunc("GET /bookmark/{id}/archive", ToHTTPHandler(deps, handlers.HandleBookmarkArchive, globalMiddleware...))
+	s.mux.HandleFunc("GET /bookmark/{id}/archive/file/{path...}", ToHTTPHandler(deps, handlers.HandleBookmarkArchiveFile, globalMiddleware...))
+	s.mux.HandleFunc("GET /bookmark/{id}/thumb", ToHTTPHandler(deps, handlers.HandleBookmarkThumbnail, globalMiddleware...))
+	s.mux.HandleFunc("GET /bookmark/{id}/ebook", ToHTTPHandler(deps, handlers.HandleBookmarkEbook, globalMiddleware...))
 
-	// LegacyRoutes will be here until we migrate everything from internal/webserver to this new
-	// package.
-	legacyRoutes := routes.NewLegacyAPIRoutes(s.logger, deps, cfg)
-	legacyRoutes.Setup(s.engine)
-
-	s.handle("/system", routes.NewSystemRoutes(s.logger))
-	s.handle("/bookmark", routes.NewBookmarkRoutes(s.logger, deps))
-	s.handle("/api/v1", api_v1.NewAPIRoutes(s.logger, deps, legacyRoutes.HandleLogin))
-
+	// Add this inside Setup() where other routes are registered
 	if cfg.Http.ServeSwagger {
-		s.handle("/swagger", routes.NewSwaggerAPIRoutes(s.logger))
+		s.mux.HandleFunc("/swagger/", ToHTTPHandler(deps,
+			handlers.HandleSwagger,
+			globalMiddleware...,
+		))
 	}
 
-	s.http.Handler = s.engine
-	s.http.Addr = fmt.Sprintf("%s%d", cfg.Http.Address, cfg.Http.Port)
+	// API v1 routes
+	s.mux.HandleFunc("GET /api/v1/system/info", ToHTTPHandler(deps,
+		api_v1.HandleSystemInfo,
+		globalMiddleware...,
+	))
+
+	// Legacy API routes
+	// TODO: Remove this once the legacy API is removed
+	legacyHandler := handlers.NewLegacyHandler(deps)
+
+	s.mux.HandleFunc("GET /api/tags", ToHTTPHandler(deps, legacyHandler.HandleGetTags, globalMiddleware...))
+	s.mux.HandleFunc("PUT /api/tags", ToHTTPHandler(deps, legacyHandler.HandleRenameTag, globalMiddleware...))
+	s.mux.HandleFunc("GET /api/bookmarks", ToHTTPHandler(deps, legacyHandler.HandleGetBookmarks, globalMiddleware...))
+	s.mux.HandleFunc("POST /api/bookmarks", ToHTTPHandler(deps, legacyHandler.HandleInsertBookmark, globalMiddleware...))
+	s.mux.HandleFunc("DELETE /api/bookmarks", ToHTTPHandler(deps, legacyHandler.HandleDeleteBookmark, globalMiddleware...))
+	s.mux.HandleFunc("PUT /api/bookmarks", ToHTTPHandler(deps, legacyHandler.HandleUpdateBookmark, globalMiddleware...))
+	s.mux.HandleFunc("PUT /api/bookmarks/tags", ToHTTPHandler(deps, legacyHandler.HandleUpdateBookmarkTags, globalMiddleware...))
+	s.mux.HandleFunc("POST /api/bookmarks/ext", ToHTTPHandler(deps, legacyHandler.HandleInsertViaExtension, globalMiddleware...))
+	s.mux.HandleFunc("DELETE /api/bookmarks/ext", ToHTTPHandler(deps, legacyHandler.HandleDeleteViaExtension, globalMiddleware...))
+
+	// Register routes using standard http handlers
+	if cfg.Http.ServeWebUI {
+		// Frontend routes
+		s.mux.HandleFunc("/", ToHTTPHandler(deps,
+			handlers.HandleFrontend,
+			globalMiddleware...,
+		))
+		s.mux.HandleFunc("GET /assets/", ToHTTPHandler(deps,
+			handlers.HandleAssets,
+			globalMiddleware...,
+		))
+	}
+
+	// API v1 routes
+	// Auth
+	s.mux.HandleFunc("POST /api/v1/auth/login", ToHTTPHandler(deps,
+		api_v1.HandleLogin,
+		globalMiddleware...,
+	))
+	s.mux.HandleFunc("POST /api/v1/auth/refresh", ToHTTPHandler(deps,
+		api_v1.HandleRefreshToken,
+		globalMiddleware...,
+	))
+	s.mux.HandleFunc("GET /api/v1/auth/me", ToHTTPHandler(deps,
+		api_v1.HandleGetMe,
+		globalMiddleware...,
+	))
+	s.mux.HandleFunc("PATCH /api/v1/auth/account", ToHTTPHandler(deps,
+		api_v1.HandleUpdateLoggedAccount,
+		globalMiddleware...,
+	))
+	s.mux.HandleFunc("POST /api/v1/auth/logout", ToHTTPHandler(deps,
+		api_v1.HandleLogout,
+		globalMiddleware...,
+	))
+	// Accounts
+	s.mux.HandleFunc("GET /api/v1/accounts", ToHTTPHandler(deps,
+		api_v1.HandleListAccounts,
+		globalMiddleware...,
+	))
+	s.mux.HandleFunc("POST /api/v1/accounts", ToHTTPHandler(deps,
+		api_v1.HandleCreateAccount,
+		globalMiddleware...,
+	))
+	s.mux.HandleFunc("DELETE /api/v1/accounts/{id}", ToHTTPHandler(deps,
+		api_v1.HandleDeleteAccount,
+		globalMiddleware...,
+	))
+	s.mux.HandleFunc("PATCH /api/v1/accounts/{id}", ToHTTPHandler(deps,
+		api_v1.HandleUpdateAccount,
+		globalMiddleware...,
+	))
+	// Tags
+	s.mux.HandleFunc("GET /api/v1/tags", ToHTTPHandler(deps,
+		api_v1.HandleListTags,
+		globalMiddleware...,
+	))
+	// Bookmarks
+	s.mux.HandleFunc("PUT /api/v1/bookmarks/cache", ToHTTPHandler(deps,
+		api_v1.HandleUpdateCache,
+		globalMiddleware...,
+	))
+	s.mux.HandleFunc("GET /api/v1/bookmarks/{id}/readable", ToHTTPHandler(deps,
+		api_v1.HandleBookmarkReadable,
+		globalMiddleware...,
+	))
+
+	s.server = &http.Server{
+		Addr:    fmt.Sprintf("%s%d", cfg.Http.Address, cfg.Http.Port),
+		Handler: s.mux,
+	}
 
 	return s, nil
 }
 
-func (s *HttpServer) handle(path string, routes model.Routes) {
-	group := s.engine.Group(path)
-	routes.Setup(group)
-}
-
 func (s *HttpServer) Start(_ context.Context) error {
-	s.logger.WithField("addr", s.http.Addr).Info("starting http server")
+	s.logger.WithField("addr", s.server.Addr).Info("starting http server")
 	go func() {
-		if err := s.http.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		if err := s.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			s.logger.Fatalf("listen and serve error: %s\n", err)
 		}
 	}()
@@ -88,8 +167,8 @@ func (s *HttpServer) Start(_ context.Context) error {
 }
 
 func (s *HttpServer) Stop(ctx context.Context) error {
-	s.logger.WithField("addr", s.http.Addr).Info("stopping http server")
-	return s.http.Shutdown(ctx)
+	s.logger.WithField("addr", s.server.Addr).Info("stopping http server")
+	return s.server.Shutdown(ctx)
 }
 
 func (s *HttpServer) WaitStop(ctx context.Context) {
@@ -107,6 +186,5 @@ func (s *HttpServer) WaitStop(ctx context.Context) {
 func NewHttpServer(logger *logrus.Logger) *HttpServer {
 	return &HttpServer{
 		logger: logger,
-		http:   &http.Server{},
 	}
 }

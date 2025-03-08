@@ -18,7 +18,6 @@ import (
 
 	"github.com/disintegration/imaging"
 	"github.com/go-shiori/go-readability"
-	"github.com/go-shiori/shiori/internal/dependencies"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/go-shiori/warc"
 	"github.com/pkg/errors"
@@ -43,7 +42,7 @@ var ErrNoSupportedImageType = errors.New("unsupported image type")
 
 // ProcessBookmark process the bookmark and archive it if needed.
 // Return three values, is error fatal, and error value.
-func ProcessBookmark(deps *dependencies.Dependencies, req ProcessRequest) (book model.BookmarkDTO, isFatalErr bool, err error) {
+func ProcessBookmark(deps model.Dependencies, req ProcessRequest) (book model.BookmarkDTO, isFatalErr bool, err error) {
 	book = req.Bookmark
 	contentType := req.ContentType
 
@@ -108,7 +107,7 @@ func ProcessBookmark(deps *dependencies.Dependencies, req ProcessRequest) (book 
 		if article.Image != "" {
 			imageURLs = append(imageURLs, article.Image)
 		} else {
-			deps.Domains.Storage.FS().Remove(imgPath)
+			deps.Domains().Storage().FS().Remove(imgPath)
 		}
 
 		if article.Favicon != "" {
@@ -129,7 +128,7 @@ func ProcessBookmark(deps *dependencies.Dependencies, req ProcessRequest) (book 
 		if err != nil && errors.Is(err, ErrNoSupportedImageType) {
 			log.Printf("%s: %s", err, imageURL)
 			if i == len(imageURLs)-1 {
-				deps.Domains.Storage.FS().Remove(imgPath)
+				deps.Domains().Storage().FS().Remove(imgPath)
 			}
 		}
 		if err != nil {
@@ -182,7 +181,7 @@ func ProcessBookmark(deps *dependencies.Dependencies, req ProcessRequest) (book 
 		}
 
 		dstPath := model.GetArchivePath(&book)
-		err = deps.Domains.Storage.WriteFile(dstPath, tmpFile)
+		err = deps.Domains().Storage().WriteFile(dstPath, tmpFile)
 		if err != nil {
 			return book, false, fmt.Errorf("failed move archive to destination `: %v", err)
 		}
@@ -194,7 +193,7 @@ func ProcessBookmark(deps *dependencies.Dependencies, req ProcessRequest) (book 
 	return book, false, nil
 }
 
-func DownloadBookImage(deps *dependencies.Dependencies, url, dstPath string) error {
+func DownloadBookImage(deps model.Dependencies, url, dstPath string) error {
 	// Fetch data from URL
 	resp, err := httpClient.Get(url)
 	if err != nil {
@@ -266,7 +265,7 @@ func DownloadBookImage(deps *dependencies.Dependencies, url, dstPath string) err
 		return fmt.Errorf("failed to save image %s: %v", url, err)
 	}
 
-	err = deps.Domains.Storage.WriteFile(dstPath, tmpFile)
+	err = deps.Domains().Storage().WriteFile(dstPath, tmpFile)
 	if err != nil {
 		return err
 	}

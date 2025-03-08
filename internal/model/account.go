@@ -18,15 +18,15 @@ type Account struct {
 }
 
 type UserConfig struct {
-	ShowId        bool   `json:"ShowId"`
-	ListMode      bool   `json:"ListMode"`
-	HideThumbnail bool   `json:"HideThumbnail"`
-	HideExcerpt   bool   `json:"HideExcerpt"`
-	Theme         string `json:"Theme"`
-	KeepMetadata  bool   `json:"KeepMetadata"`
-	UseArchive    bool   `json:"UseArchive"`
-	CreateEbook   bool   `json:"CreateEbook"`
-	MakePublic    bool   `json:"MakePublic"`
+	ShowId        bool
+	ListMode      bool
+	HideThumbnail bool
+	HideExcerpt   bool
+	Theme         string
+	KeepMetadata  bool
+	UseArchive    bool
+	CreateEbook   bool
+	MakePublic    bool
 }
 
 func (c *UserConfig) Scan(value interface{}) error {
