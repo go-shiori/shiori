@@ -14,6 +14,8 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 
+	"slices"
+
 	_ "modernc.org/sqlite"
 )
 
@@ -162,11 +164,6 @@ type bookmarkContent struct {
 	ID      int    `db:"docid"`
 	Content string `db:"content"`
 	HTML    string `db:"html"`
-}
-
-type tagContent struct {
-	ID int `db:"bookmark_id"`
-	model.Tag
 }
 
 // DBX returns the underlying sqlx.DB object for writes
@@ -365,6 +362,7 @@ func (db *SQLiteDatabase) SaveBookmarks(ctx context.Context, create bool, bookma
 						}
 
 						tag.ID = int(tagID64)
+						t.ID = int(tagID64)
 					}
 
 					if _, err := stmtInsertBookTag.ExecContext(ctx, tag.ID, book.ID); err != nil {
@@ -436,21 +434,15 @@ func (db *SQLiteDatabase) GetBookmarks(ctx context.Context, opts model.DBGetBook
 	// First we check for * in excluded and included tags,
 	// which means all tags will be excluded and included, respectively.
 	excludeAllTags := false
-	for _, excludedTag := range opts.ExcludedTags {
-		if excludedTag == "*" {
-			excludeAllTags = true
-			opts.ExcludedTags = []string{}
-			break
-		}
+	if slices.Contains(opts.ExcludedTags, "*") {
+		excludeAllTags = true
+		opts.ExcludedTags = []string{}
 	}
 
 	includeAllTags := false
-	for _, includedTag := range opts.Tags {
-		if includedTag == "*" {
-			includeAllTags = true
-			opts.Tags = []string{}
-			break
-		}
+	if slices.Contains(opts.Tags, "*") {
+		includeAllTags = true
+		opts.Tags = []string{}
 	}
 
 	// If all tags excluded, we will only show bookmark without tags.
@@ -550,44 +542,38 @@ func (db *SQLiteDatabase) GetBookmarks(ctx context.Context, opts model.DBGetBook
 				log.Printf("not found content for bookmark %d, but it should be; check DB consistency", book.ID)
 			}
 		}
-
 	}
 
 	// Fetch tags for each bookmark
-	tags := make([]tagContent, 0, len(bookmarks))
-	tagsMap := make(map[int][]model.TagDTO, len(bookmarks))
-
-	tagsQuery, tagArgs, err := sqlx.In(`SELECT bt.bookmark_id, t.id, t.name
-		FROM bookmark_tag bt
-		LEFT JOIN tag t ON bt.tag_id = t.id
-		WHERE bt.bookmark_id IN (?)
-		ORDER BY t.name`, bookmarkIds)
-	tagsQuery = db.reader.Rebind(tagsQuery)
-	if err != nil {
-		return nil, fmt.Errorf("failed to delete bookmark and related records: %w", err)
-	}
-
-	err = db.reader.Select(&tags, tagsQuery, tagArgs...)
-	if err != nil && err != sql.ErrNoRows {
-		return nil, fmt.Errorf("failed to get tags: %w", err)
-	}
-	for _, fetchedTag := range tags {
-		if tags, found := tagsMap[fetchedTag.ID]; found {
-			tagsMap[fetchedTag.ID] = append(tags, fetchedTag.Tag.ToDTO())
-		} else {
-			tagsMap[fetchedTag.ID] = []model.TagDTO{fetchedTag.Tag.ToDTO()}
+	for i, book := range bookmarks {
+		tags, err := db.getTagsForBookmark(ctx, book.ID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get tags: %w", err)
 		}
-	}
-	for i := range bookmarks[:] {
-		book := &bookmarks[i]
-		if tags, found := tagsMap[book.ID]; found {
-			book.Tags = tags
-		} else {
-			book.Tags = []model.TagDTO{}
-		}
+		bookmarks[i].Tags = tags
 	}
 
 	return bookmarks, nil
+}
+
+func (db *SQLiteDatabase) getTagsForBookmark(ctx context.Context, bookmarkID int) ([]model.TagDTO, error) {
+	sb := sqlbuilder.SQLite.NewSelectBuilder()
+	sb.Select("t.id", "t.name")
+	sb.From("bookmark_tag bt")
+	sb.JoinWithOption(sqlbuilder.LeftJoin, "tag t", "bt.tag_id = t.id")
+	sb.Where(sb.Equal("bt.bookmark_id", bookmarkID))
+	sb.OrderBy("t.name")
+
+	query, args := sb.Build()
+	query = db.ReaderDB().Rebind(query)
+
+	tags := []model.TagDTO{}
+	err := db.ReaderDB().SelectContext(ctx, &tags, query, args...)
+	if err != nil && err != sql.ErrNoRows {
+		return nil, fmt.Errorf("failed to get tags: %w", err)
+	}
+
+	return tags, nil
 }
 
 // GetBookmarksCount fetch count of bookmarks based on submitted options.
@@ -1041,27 +1027,6 @@ func (db *SQLiteDatabase) CreateTag(ctx context.Context, tag model.Tag) (model.T
 	return createdTags[0], nil
 }
 
-// GetTags fetch list of tags and their frequency.
-func (db *SQLiteDatabase) GetTags(ctx context.Context) ([]model.TagDTO, error) {
-	sb := sqlbuilder.NewSelectBuilder()
-	sb.Select("t.id", "t.name", "COUNT(bt.tag_id) AS bookmark_count")
-	sb.From("tag t")
-	sb.JoinWithOption(sqlbuilder.LeftJoin, "bookmark_tag bt", "bt.tag_id = t.id")
-	sb.GroupBy("t.id")
-	sb.OrderBy("t.name")
-
-	query, args := sb.Build()
-	query = db.ReaderDB().Rebind(query)
-
-	tags := []model.TagDTO{}
-	err := db.ReaderDB().SelectContext(ctx, &tags, query, args...)
-	if err != nil && err != sql.ErrNoRows {
-		return nil, fmt.Errorf("failed to get tags: %w", err)
-	}
-
-	return tags, nil
-}
-
 // RenameTag change the name of a tag.
 func (db *SQLiteDatabase) RenameTag(ctx context.Context, id int, newName string) error {
 	sb := sqlbuilder.NewUpdateBuilder()
@@ -1085,14 +1050,36 @@ func (db *SQLiteDatabase) RenameTag(ctx context.Context, id int, newName string)
 	return nil
 }
 
+// GetTags fetch list of tags and their frequency.
+func (db *SQLiteDatabase) GetTags(ctx context.Context) ([]model.TagDTO, error) {
+	sb := sqlbuilder.SQLite.NewSelectBuilder()
+	sb.Select("t.id", "t.name", "COUNT(bt.tag_id) AS bookmark_count")
+	sb.From("tag t")
+	sb.JoinWithOption(sqlbuilder.LeftJoin, "bookmark_tag bt", "bt.tag_id = t.id")
+	sb.GroupBy("t.id")
+	sb.OrderBy("t.name")
+
+	query, args := sb.Build()
+	query = db.ReaderDB().Rebind(query)
+
+	tags := []model.TagDTO{}
+	err := db.ReaderDB().SelectContext(ctx, &tags, query, args...)
+	if err != nil && err != sql.ErrNoRows {
+		return nil, fmt.Errorf("failed to get tags: %w", err)
+	}
+
+	return tags, nil
+}
+
 // GetTag fetch a tag by its ID.
 func (db *SQLiteDatabase) GetTag(ctx context.Context, id int) (model.TagDTO, bool, error) {
-	sb := sqlbuilder.NewSelectBuilder()
-	sb.Select("t.id", "t.name", "COUNT(bt.tag_id) AS bookmark_count")
+	sb := sqlbuilder.SQLite.NewSelectBuilder()
+	sb.Select("t.id", "t.name", "COUNT(bt.tag_id) bookmark_count")
 	sb.From("tag t")
 	sb.JoinWithOption(sqlbuilder.LeftJoin, "bookmark_tag bt", "bt.tag_id = t.id")
 	sb.Where(sb.Equal("t.id", id))
 	sb.GroupBy("t.id")
+	sb.OrderBy("t.name")
 
 	query, args := sb.Build()
 	query = db.ReaderDB().Rebind(query)

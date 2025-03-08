@@ -29,6 +29,7 @@ func testDatabase(t *testing.T, dbFactory testDatabaseFactory) {
 		"testGetBookmark":                       testGetBookmark,
 		"testGetBookmarkNotExistent":            testGetBookmarkNotExistent,
 		"testGetBookmarks":                      testGetBookmarks,
+		"testGetBookmarksWithTags":              testGetBookmarksWithTags,
 		"testGetBookmarksWithSQLCharacters":     testGetBookmarksWithSQLCharacters,
 		"testGetBookmarksCount":                 testGetBookmarksCount,
 		"testSaveBookmark":                      testSaveBookmark,
@@ -37,6 +38,7 @@ func testDatabase(t *testing.T, dbFactory testDatabaseFactory) {
 		"testCreateTag":            testCreateTag,
 		"testCreateTags":           testCreateTags,
 		"testGetTags":              testGetTags,
+		"testGetTagsBookmarkCount": testGetTagsBookmarkCount,
 		"testGetTag":               testGetTag,
 		"testGetTagNotExistent":    testGetTagNotExistent,
 		"testUpdateTag":            testUpdateTag,
@@ -313,6 +315,155 @@ func testGetBookmarksWithSQLCharacters(t *testing.T, db model.DB) {
 				Keyword: char,
 			})
 			assert.NoError(t, err, "Get bookmarks count should not fail")
+		})
+	}
+}
+
+func testGetBookmarksWithTags(t *testing.T, db model.DB) {
+	ctx := context.TODO()
+
+	// Create test tags
+	tags := []model.Tag{
+		{Name: "programming"},
+		{Name: "golang"},
+		{Name: "database"},
+		{Name: "testing"},
+	}
+	createdTags, err := db.CreateTags(ctx, tags...)
+	require.NoError(t, err)
+	require.Len(t, createdTags, 4)
+
+	// Create bookmarks with different tag combinations
+	bookmarks := []model.BookmarkDTO{
+		{
+			URL:   "https://golang.org",
+			Title: "Go Language",
+			Tags: []model.TagDTO{
+				{Tag: model.Tag{Name: "programming"}},
+				{Tag: model.Tag{Name: "golang"}},
+			},
+		},
+		{
+			URL:   "https://postgresql.org",
+			Title: "PostgreSQL",
+			Tags: []model.TagDTO{
+				{Tag: model.Tag{Name: "programming"}},
+				{Tag: model.Tag{Name: "database"}},
+			},
+		},
+		{
+			URL:   "https://sqlite.org",
+			Title: "SQLite",
+			Tags: []model.TagDTO{
+				{Tag: model.Tag{Name: "database"}},
+			},
+		},
+		{
+			URL:   "https://example.com",
+			Title: "No Tags Example",
+		},
+	}
+
+	// Save all bookmarks
+	for _, bookmark := range bookmarks {
+		results, err := db.SaveBookmarks(ctx, true, bookmark)
+		require.NoError(t, err)
+		require.Len(t, results, 1)
+	}
+
+	tests := []struct {
+		name           string
+		opts           model.DBGetBookmarksOptions
+		expectedCount  int
+		expectedTitles []string
+	}{
+		{
+			name: "single tag - programming",
+			opts: model.DBGetBookmarksOptions{
+				Tags: []string{"programming"},
+			},
+			expectedCount:  2,
+			expectedTitles: []string{"Go Language", "PostgreSQL"},
+		},
+		{
+			name: "multiple tags - programming AND golang",
+			opts: model.DBGetBookmarksOptions{
+				Tags: []string{"programming", "golang"},
+			},
+			expectedCount:  1,
+			expectedTitles: []string{"Go Language"},
+		},
+		{
+			name: "all tags using *",
+			opts: model.DBGetBookmarksOptions{
+				Tags: []string{"*"},
+			},
+			expectedCount:  3,
+			expectedTitles: []string{"Go Language", "PostgreSQL", "SQLite"},
+		},
+		{
+			name: "exclude database tag",
+			opts: model.DBGetBookmarksOptions{
+				ExcludedTags: []string{"database"},
+			},
+			expectedCount:  2,
+			expectedTitles: []string{"Go Language", "No Tags Example"},
+		},
+		{
+			name: "no tags only",
+			opts: model.DBGetBookmarksOptions{
+				ExcludedTags: []string{"*"},
+			},
+			expectedCount:  1,
+			expectedTitles: []string{"No Tags Example"},
+		},
+		{
+			name: "non-existent tag",
+			opts: model.DBGetBookmarksOptions{
+				Tags: []string{"nonexistent"},
+			},
+			expectedCount:  0,
+			expectedTitles: []string{},
+		},
+	}
+
+	t.Run("ensure tags are present", func(t *testing.T) {
+		tags, err := db.GetTags(ctx)
+		require.NoError(t, err)
+		assert.Len(t, tags, 4)
+	})
+
+	t.Run("ensure test data is correct", func(t *testing.T) {
+		results, err := db.GetBookmarks(ctx, model.DBGetBookmarksOptions{})
+		require.NoError(t, err)
+		require.Len(t, results, 4)
+		for _, book := range results {
+			if book.Title == "No Tags Example" {
+				assert.Empty(t, book.Tags)
+			} else {
+				assert.NotEmpty(t, book.Tags)
+			}
+
+			// Ensure tags contain their ID and name
+			for _, tag := range book.Tags {
+				assert.NotZero(t, tag.ID)
+				assert.NotEmpty(t, tag.Name)
+			}
+		}
+	})
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			results, err := db.GetBookmarks(ctx, tt.opts)
+			require.NoError(t, err)
+			assert.Len(t, results, tt.expectedCount)
+
+			// Check if all expected titles are present
+			titles := make([]string, len(results))
+			for i, result := range results {
+				titles[i] = result.Title
+			}
+			assert.ElementsMatch(t, tt.expectedTitles, titles)
 		})
 	}
 }
@@ -972,5 +1123,106 @@ func testBulkUpdateBookmarkTags(t *testing.T, db model.DB) {
 		require.NoError(t, err)
 		require.True(t, exists)
 		assert.Len(t, bookmark2.Tags, 2, "Bookmark 2 should still have 2 tags")
+	})
+}
+
+func testGetTagsBookmarkCount(t *testing.T, db model.DB) {
+	ctx := context.TODO()
+
+	// Create test tags
+	tags := []model.Tag{
+		{Name: "tag1-count"},
+		{Name: "tag2-count"},
+	}
+
+	_, err := db.CreateTags(ctx, model.Tag{Name: "tag3-count"})
+	require.NoError(t, err)
+
+	// Create bookmarks with different tag combinations
+	bookmark1 := model.BookmarkDTO{
+		URL:   "https://example1.com",
+		Title: "Example 1",
+		Tags: []model.TagDTO{
+			{Tag: model.Tag{Name: tags[0].Name}}, // tag1
+			{Tag: model.Tag{Name: tags[1].Name}}, // tag2
+		},
+	}
+
+	bookmark2 := model.BookmarkDTO{
+		URL:   "https://example2.com",
+		Title: "Example 2",
+		Tags: []model.TagDTO{
+			{Tag: model.Tag{Name: tags[0].Name}}, // tag1
+		},
+	}
+
+	bookmark3 := model.BookmarkDTO{
+		URL:   "https://example3.com",
+		Title: "Example 3",
+		Tags: []model.TagDTO{
+			{Tag: model.Tag{Name: tags[1].Name}}, // tag2
+		},
+	}
+
+	// Save bookmarks
+	bookmarks, err := db.SaveBookmarks(ctx, true, bookmark1, bookmark2, bookmark3)
+	require.NoError(t, err)
+
+	t.Run("GetBookmarks", func(t *testing.T) {
+		result, err := db.GetBookmarks(ctx, model.DBGetBookmarksOptions{
+			Tags: []string{tags[0].Name},
+		})
+		require.NoError(t, err)
+		require.NotEmpty(t, result)
+	})
+
+	t.Run("GetTag", func(t *testing.T) {
+		t.Log(bookmarks[0])
+		tag, exists, err := db.GetTag(ctx, bookmarks[0].Tags[0].ID)
+		require.NoError(t, err)
+		require.True(t, exists)
+		assert.Equal(t, tags[0].Name, tag.Name)
+		assert.Equal(t, int64(2), tag.BookmarkCount)
+	})
+
+	// Test GetTags
+	t.Run("GetTags", func(t *testing.T) {
+		fetchedTags, err := db.GetTags(ctx)
+		require.NoError(t, err)
+		require.GreaterOrEqual(t, len(fetchedTags), 3)
+
+		// Create a map of tag name to bookmark count
+		tagCounts := make(map[string]int64)
+		for _, tag := range fetchedTags {
+			tagCounts[tag.Name] = tag.BookmarkCount
+		}
+
+		// Verify counts
+		assert.Equal(t, int64(2), tagCounts["tag1-count"])
+		assert.Equal(t, int64(2), tagCounts["tag2-count"])
+		assert.Equal(t, int64(0), tagCounts["tag3-count"])
+	})
+
+	// Test count updates after bookmark deletion
+	t.Run("CountAfterDeletion", func(t *testing.T) {
+		// Get the first bookmark that has tag1
+		bookmarks, err := db.GetBookmarks(ctx, model.DBGetBookmarksOptions{
+			Tags: []string{tags[0].Name},
+		})
+		require.NoError(t, err)
+		require.NotEmpty(t, bookmarks)
+		require.NotEmpty(t, bookmarks[0].Tags)
+
+		tagID := bookmarks[0].Tags[0].ID
+
+		// Delete the first bookmark
+		err = db.DeleteBookmarks(ctx, bookmarks[0].ID)
+		require.NoError(t, err)
+
+		// Verify updated counts
+		tag1, exists, err := db.GetTag(ctx, tagID)
+		require.NoError(t, err)
+		require.True(t, exists)
+		assert.Equal(t, int64(1), tag1.BookmarkCount, "tag1-count should have 1 bookmark after deletion")
 	})
 }

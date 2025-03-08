@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"slices"
 	"strings"
 	"time"
 
@@ -271,6 +272,7 @@ func (db *MySQLDatabase) SaveBookmarks(ctx context.Context, create bool, bookmar
 						}
 
 						tag.ID = int(tagID64)
+						t.ID = int(tagID64)
 					}
 
 					if _, err := stmtInsertBookTag.ExecContext(ctx, t.ID, book.ID); err != nil {
@@ -305,7 +307,7 @@ func (db *MySQLDatabase) GetBookmarks(ctx context.Context, opts model.DBGetBookm
 		`public`,
 		`created_at`,
 		`modified_at`,
-		`content <> "" has_content`}
+		`content <> "" as has_content`}
 
 	if opts.WithContent {
 		columns = append(columns, `content`, `html`)
@@ -337,21 +339,15 @@ func (db *MySQLDatabase) GetBookmarks(ctx context.Context, opts model.DBGetBookm
 	// First we check for * in excluded and included tags,
 	// which means all tags will be excluded and included, respectively.
 	excludeAllTags := false
-	for _, excludedTag := range opts.ExcludedTags {
-		if excludedTag == "*" {
-			excludeAllTags = true
-			opts.ExcludedTags = []string{}
-			break
-		}
+	if slices.Contains(opts.ExcludedTags, "*") {
+		excludeAllTags = true
+		opts.ExcludedTags = []string{}
 	}
 
 	includeAllTags := false
-	for _, includedTag := range opts.Tags {
-		if includedTag == "*" {
-			includeAllTags = true
-			opts.Tags = []string{}
-			break
-		}
+	if slices.Contains(opts.Tags, "*") {
+		includeAllTags = true
+		opts.Tags = []string{}
 	}
 
 	// If all tags excluded, we will only show bookmark without tags.
@@ -413,26 +409,36 @@ func (db *MySQLDatabase) GetBookmarks(ctx context.Context, opts model.DBGetBookm
 		return nil, errors.WithStack(err)
 	}
 
-	// Fetch tags for each bookmarks
-	stmtGetTags, err := db.PreparexContext(ctx, `SELECT t.id, t.name
-		FROM bookmark_tag bt
-		LEFT JOIN tag t ON bt.tag_id = t.id
-		WHERE bt.bookmark_id = ?
-		ORDER BY t.name`)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-	defer stmtGetTags.Close()
-
-	for _, book := range bookmarks {
-		book.Tags = []model.TagDTO{}
-		err = stmtGetTags.SelectContext(ctx, &book.Tags, book.ID)
-		if err != nil && err != sql.ErrNoRows {
-			return nil, errors.WithStack(err)
+	// Fetch tags for each bookmark
+	for i, book := range bookmarks {
+		tags, err := db.getTagsForBookmark(ctx, book.ID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get tags: %w", err)
 		}
+		bookmarks[i].Tags = tags
 	}
 
 	return bookmarks, nil
+}
+
+func (db *MySQLDatabase) getTagsForBookmark(ctx context.Context, bookmarkID int) ([]model.TagDTO, error) {
+	sb := sqlbuilder.MySQL.NewSelectBuilder()
+	sb.Select("t.id", "t.name")
+	sb.From("bookmark_tag bt")
+	sb.JoinWithOption(sqlbuilder.LeftJoin, "tag t", "bt.tag_id = t.id")
+	sb.Where(sb.Equal("bt.bookmark_id", bookmarkID))
+	sb.OrderBy("t.name")
+
+	query, args := sb.Build()
+	query = db.ReaderDB().Rebind(query)
+
+	tags := []model.TagDTO{}
+	err := db.ReaderDB().SelectContext(ctx, &tags, query, args...)
+	if err != nil && err != sql.ErrNoRows {
+		return nil, fmt.Errorf("failed to get tags: %w", err)
+	}
+
+	return tags, nil
 }
 
 // GetBookmarksCount fetch count of bookmarks based on submitted options.
@@ -465,21 +471,15 @@ func (db *MySQLDatabase) GetBookmarksCount(ctx context.Context, opts model.DBGet
 	// First we check for * in excluded and included tags,
 	// which means all tags will be excluded and included, respectively.
 	excludeAllTags := false
-	for _, excludedTag := range opts.ExcludedTags {
-		if excludedTag == "*" {
-			excludeAllTags = true
-			opts.ExcludedTags = []string{}
-			break
-		}
+	if slices.Contains(opts.ExcludedTags, "*") {
+		excludeAllTags = true
+		opts.ExcludedTags = []string{}
 	}
 
 	includeAllTags := false
-	for _, includedTag := range opts.Tags {
-		if includedTag == "*" {
-			includeAllTags = true
-			opts.Tags = []string{}
-			break
-		}
+	if slices.Contains(opts.Tags, "*") {
+		includeAllTags = true
+		opts.Tags = []string{}
 	}
 
 	// If all tags excluded, we will only show bookmark without tags.
@@ -848,27 +848,6 @@ func (db *MySQLDatabase) CreateTag(ctx context.Context, tag model.Tag) (model.Ta
 	return createdTags[0], nil
 }
 
-// GetTags fetch list of tags and their frequency.
-func (db *MySQLDatabase) GetTags(ctx context.Context) ([]model.TagDTO, error) {
-	sb := sqlbuilder.NewSelectBuilder()
-	sb.Select("t.id", "t.name", "COUNT(bt.tag_id) AS bookmark_count")
-	sb.From("tag t")
-	sb.JoinWithOption(sqlbuilder.LeftJoin, "bookmark_tag bt", "bt.tag_id = t.id")
-	sb.GroupBy("t.id")
-	sb.OrderBy("t.name")
-
-	query, args := sb.Build()
-	query = db.ReaderDB().Rebind(query)
-
-	tags := []model.TagDTO{}
-	err := db.ReaderDB().SelectContext(ctx, &tags, query, args...)
-	if err != nil && err != sql.ErrNoRows {
-		return nil, fmt.Errorf("failed to get tags: %w", err)
-	}
-
-	return tags, nil
-}
-
 // RenameTag change the name of a tag.
 func (db *MySQLDatabase) RenameTag(ctx context.Context, id int, newName string) error {
 	sb := sqlbuilder.NewUpdateBuilder()
@@ -892,14 +871,36 @@ func (db *MySQLDatabase) RenameTag(ctx context.Context, id int, newName string) 
 	return nil
 }
 
+// GetTags fetch list of tags and their frequency.
+func (db *MySQLDatabase) GetTags(ctx context.Context) ([]model.TagDTO, error) {
+	sb := sqlbuilder.MySQL.NewSelectBuilder()
+	sb.Select("t.id", "t.name", "COUNT(bt.tag_id) AS bookmark_count")
+	sb.From("tag t")
+	sb.JoinWithOption(sqlbuilder.LeftJoin, "bookmark_tag bt", "bt.tag_id = t.id")
+	sb.GroupBy("t.id")
+	sb.OrderBy("t.name")
+
+	query, args := sb.Build()
+	query = db.ReaderDB().Rebind(query)
+
+	tags := []model.TagDTO{}
+	err := db.ReaderDB().SelectContext(ctx, &tags, query, args...)
+	if err != nil && err != sql.ErrNoRows {
+		return nil, fmt.Errorf("failed to get tags: %w", err)
+	}
+
+	return tags, nil
+}
+
 // GetTag fetch a tag by its ID.
 func (db *MySQLDatabase) GetTag(ctx context.Context, id int) (model.TagDTO, bool, error) {
-	sb := sqlbuilder.NewSelectBuilder()
-	sb.Select("t.id", "t.name", "COUNT(bt.tag_id) AS bookmark_count")
+	sb := sqlbuilder.MySQL.NewSelectBuilder()
+	sb.Select("t.id", "t.name", "COUNT(bt.tag_id) bookmark_count")
 	sb.From("tag t")
 	sb.JoinWithOption(sqlbuilder.LeftJoin, "bookmark_tag bt", "bt.tag_id = t.id")
 	sb.Where(sb.Equal("t.id", id))
 	sb.GroupBy("t.id")
+	sb.OrderBy("t.name")
 
 	query, args := sb.Build()
 	query = db.ReaderDB().Rebind(query)
@@ -1170,9 +1171,4 @@ func (db *MySQLDatabase) BulkUpdateBookmarkTags(ctx context.Context, bookmarkIDs
 
 		return nil
 	})
-}
-
-// For backward compatibility
-func findMissingIDsMySQL(expected, actual []int) []int {
-	return model.SliceDifference(expected, actual)
 }

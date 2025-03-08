@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"log/slog"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -263,6 +263,7 @@ func (db *PGDatabase) SaveBookmarks(ctx context.Context, create bool, bookmarks 
 						}
 
 						tag.ID = int(tagID64)
+						t.ID = int(tagID64)
 					}
 
 					if _, err := stmtInsertBookTag.ExecContext(ctx, tag.ID, book.ID); err != nil {
@@ -331,21 +332,15 @@ func (db *PGDatabase) GetBookmarks(ctx context.Context, opts model.DBGetBookmark
 	// First we check for * in excluded and included tags,
 	// which means all tags will be excluded and included, respectively.
 	excludeAllTags := false
-	for _, excludedTag := range opts.ExcludedTags {
-		if excludedTag == "*" {
-			excludeAllTags = true
-			opts.ExcludedTags = []string{}
-			break
-		}
+	if slices.Contains(opts.ExcludedTags, "*") {
+		excludeAllTags = true
+		opts.ExcludedTags = []string{}
 	}
 
 	includeAllTags := false
-	for _, includedTag := range opts.Tags {
-		if includedTag == "*" {
-			includeAllTags = true
-			opts.Tags = []string{}
-			break
-		}
+	if slices.Contains(opts.Tags, "*") {
+		includeAllTags = true
+		opts.Tags = []string{}
 	}
 
 	// If all tags excluded, we will only show bookmark without tags.
@@ -636,8 +631,6 @@ func (db *PGDatabase) GetBookmark(ctx context.Context, id int, url string) (mode
 		// Build the query
 		tagQuery, tagArgs := tagSb.Build()
 		tagQuery = db.ReaderDB().Rebind(tagQuery)
-		slog.Info("tagQuery", "tagQuery", tagSb.String())
-		slog.Info("tagArgs", "tagArgs", slog.AnyValue(tagArgs))
 
 		// Execute the query
 		tags := []model.TagDTO{}
@@ -883,27 +876,6 @@ func (db *PGDatabase) CreateTag(ctx context.Context, tag model.Tag) (model.Tag, 
 	return createdTags[0], nil
 }
 
-// GetTags fetch list of tags and their frequency.
-func (db *PGDatabase) GetTags(ctx context.Context) ([]model.TagDTO, error) {
-	sb := sqlbuilder.NewSelectBuilder()
-	sb.Select("t.id", "t.name", "COUNT(bt.tag_id) AS bookmark_count")
-	sb.From("tag t")
-	sb.JoinWithOption(sqlbuilder.LeftJoin, "bookmark_tag bt", "bt.tag_id = t.id")
-	sb.GroupBy("t.id", "t.name") // PostgreSQL requires all non-aggregated columns to be in GROUP BY
-	sb.OrderBy("t.name")
-
-	query, args := sb.Build()
-	query = db.ReaderDB().Rebind(query)
-
-	tags := []model.TagDTO{}
-	err := db.ReaderDB().SelectContext(ctx, &tags, query, args...)
-	if err != nil && err != sql.ErrNoRows {
-		return nil, fmt.Errorf("failed to get tags: %w", err)
-	}
-
-	return tags, nil
-}
-
 // RenameTag change the name of a tag.
 func (db *PGDatabase) RenameTag(ctx context.Context, id int, newName string) error {
 	sb := sqlbuilder.NewUpdateBuilder()
@@ -927,14 +899,36 @@ func (db *PGDatabase) RenameTag(ctx context.Context, id int, newName string) err
 	return nil
 }
 
+// GetTags fetch list of tags and their frequency.
+func (db *PGDatabase) GetTags(ctx context.Context) ([]model.TagDTO, error) {
+	sb := sqlbuilder.PostgreSQL.NewSelectBuilder()
+	sb.Select("t.id", "t.name", "COUNT(bt.tag_id) bookmark_count")
+	sb.From("tag t")
+	sb.JoinWithOption(sqlbuilder.LeftJoin, "bookmark_tag bt", "bt.tag_id = t.id")
+	sb.GroupBy("t.id")
+	sb.OrderBy("t.name")
+
+	query, args := sb.Build()
+	query = db.ReaderDB().Rebind(query)
+
+	tags := []model.TagDTO{}
+	err := db.ReaderDB().SelectContext(ctx, &tags, query, args...)
+	if err != nil && err != sql.ErrNoRows {
+		return nil, fmt.Errorf("failed to get tags: %w", err)
+	}
+
+	return tags, nil
+}
+
 // GetTag fetch a tag by its ID.
 func (db *PGDatabase) GetTag(ctx context.Context, id int) (model.TagDTO, bool, error) {
 	sb := sqlbuilder.NewSelectBuilder()
-	sb.Select("t.id", "t.name", "COUNT(bt.tag_id) AS bookmark_count")
+	sb.Select("t.id", "t.name", "COUNT(bt.tag_id) bookmark_count")
 	sb.From("tag t")
 	sb.JoinWithOption(sqlbuilder.LeftJoin, "bookmark_tag bt", "bt.tag_id = t.id")
 	sb.Where(sb.Equal("t.id", id))
 	sb.GroupBy("t.id")
+	sb.OrderBy("t.name")
 
 	query, args := sb.Build()
 	query = db.ReaderDB().Rebind(query)
