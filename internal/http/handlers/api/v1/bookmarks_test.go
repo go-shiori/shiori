@@ -2,11 +2,14 @@ package api_v1
 
 import (
 	"context"
+	"encoding/json"
+	"io"
 	"net/http"
 	"strconv"
 	"testing"
 	"time"
 
+	"github.com/go-shiori/shiori/internal/model"
 	"github.com/go-shiori/shiori/internal/testutil"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
@@ -190,5 +193,126 @@ func TestHandleUpdateCache(t *testing.T) {
 		require.True(t, exists)
 		require.True(t, updatedBookmark.HasEbook)
 		require.True(t, updatedBookmark.HasArchive)
+	})
+}
+
+func TestHandleUpdateBookmarkTags(t *testing.T) {
+	ctx := context.Background()
+	logger := logrus.New()
+	logger.SetOutput(io.Discard)
+
+	t.Run("requires_authentication", func(t *testing.T) {
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+		w := testutil.PerformRequest(
+			deps,
+			HandleBulkUpdateBookmarkTags,
+			"PUT",
+			"/api/v1/bookmarks/tags",
+		)
+		require.Equal(t, http.StatusUnauthorized, w.Code)
+	})
+
+	t.Run("invalid_json_payload", func(t *testing.T) {
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+		w := testutil.PerformRequest(
+			deps,
+			HandleBulkUpdateBookmarkTags,
+			"PUT",
+			"/api/v1/bookmarks/tags",
+			testutil.WithFakeUser(),
+			testutil.WithBody("invalid json"),
+		)
+		require.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("empty_ids", func(t *testing.T) {
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+		payload := map[string]interface{}{
+			"ids":  []int{},
+			"tags": []model.Tag{{Name: "test"}},
+		}
+		body, _ := json.Marshal(payload)
+		w := testutil.PerformRequest(
+			deps,
+			HandleBulkUpdateBookmarkTags,
+			"PUT",
+			"/api/v1/bookmarks/tags",
+			testutil.WithFakeUser(),
+			testutil.WithBody(string(body)),
+		)
+		require.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("empty_tags", func(t *testing.T) {
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+		payload := map[string]interface{}{
+			"ids":  []int{1},
+			"tags": []model.Tag{},
+		}
+		body, _ := json.Marshal(payload)
+		w := testutil.PerformRequest(
+			deps,
+			HandleBulkUpdateBookmarkTags,
+			"PUT",
+			"/api/v1/bookmarks/tags",
+			testutil.WithFakeUser(),
+			testutil.WithBody(string(body)),
+		)
+		require.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("bookmark_not_found", func(t *testing.T) {
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+		payload := map[string]interface{}{
+			"ids":  []int{999},
+			"tags": []model.Tag{{Name: "test"}},
+		}
+		body, _ := json.Marshal(payload)
+		w := testutil.PerformRequest(
+			deps,
+			HandleBulkUpdateBookmarkTags,
+			"PUT",
+			"/api/v1/bookmarks/tags",
+			testutil.WithFakeUser(),
+			testutil.WithBody(string(body)),
+		)
+		require.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("successful_update", func(t *testing.T) {
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+
+		// Create a bookmark first
+		bookmark := testutil.GetValidBookmark()
+		savedBookmark, err := deps.Database().SaveBookmarks(ctx, true, *bookmark)
+		require.NoError(t, err)
+		require.Len(t, savedBookmark, 1)
+
+		// Create a tag
+		tag := model.TagDTO{Tag: model.Tag{Name: "newtag"}}
+		createdTag, err := deps.Database().CreateTag(ctx, tag.Tag)
+		require.NoError(t, err)
+
+		// Update the bookmark tags
+		payload := map[string]interface{}{
+			"bookmark_ids": []int{savedBookmark[0].ID},
+			"tag_ids":      []int{createdTag.ID},
+		}
+		body, _ := json.Marshal(payload)
+		w := testutil.PerformRequest(
+			deps,
+			HandleBulkUpdateBookmarkTags,
+			"PUT",
+			"/api/v1/bookmarks/tags",
+			testutil.WithFakeUser(),
+			testutil.WithBody(string(body)),
+		)
+		t.Log(w.Body.String())
+		require.Equal(t, http.StatusOK, w.Code)
+
+		// Verify the response
+		response, err := testutil.NewTestResponseFromBytes(w.Body.Bytes())
+		require.NoError(t, err)
+		response.AssertOk(t)
 	})
 }

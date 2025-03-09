@@ -1,5 +1,11 @@
 package model
 
+// BookmarkTag is the relationship between a bookmark and a tag.
+type BookmarkTag struct {
+	BookmarkID int `db:"bookmark_id"`
+	TagID      int `db:"tag_id"`
+}
+
 // Tag is the tag for a bookmark.
 type Tag struct {
 	ID   int    `db:"id"          json:"id"`

@@ -5,6 +5,19 @@ import (
 	"strconv"
 )
 
+// Bookmark is the database representation of a bookmark
+type Bookmark struct {
+	ID         int    `db:"id"`
+	URL        string `db:"url"`
+	Title      string `db:"title"`
+	Excerpt    string `db:"excerpt"`
+	Author     string `db:"author"`
+	Public     int    `db:"public"`
+	CreatedAt  string `db:"created_at"`
+	ModifiedAt string `db:"modified_at"`
+	HasContent bool   `db:"has_content"`
+}
+
 // BookmarkDTO is the bookmark object representation in database and the data transfer object
 // at the same time, pending a refactor to two separate object to represent each role.
 type BookmarkDTO struct {
@@ -25,6 +38,37 @@ type BookmarkDTO struct {
 	HasEbook      bool     `json:"hasEbook"`
 	CreateArchive bool     `json:"create_archive"` // TODO: migrate outside the DTO
 	CreateEbook   bool     `json:"create_ebook"`   // TODO: migrate outside the DTO
+}
+
+// ToBookmark converts a BookmarkDTO to a Bookmark
+func (dto *BookmarkDTO) ToBookmark() Bookmark {
+	return Bookmark{
+		ID:         dto.ID,
+		URL:        dto.URL,
+		Title:      dto.Title,
+		Excerpt:    dto.Excerpt,
+		Author:     dto.Author,
+		Public:     dto.Public,
+		CreatedAt:  dto.CreatedAt,
+		ModifiedAt: dto.ModifiedAt,
+		HasContent: dto.HasContent,
+	}
+}
+
+// ToDTO converts a Bookmark to a BookmarkDTO
+func (b *Bookmark) ToDTO() BookmarkDTO {
+	return BookmarkDTO{
+		ID:         b.ID,
+		URL:        b.URL,
+		Title:      b.Title,
+		Excerpt:    b.Excerpt,
+		Author:     b.Author,
+		Public:     b.Public,
+		CreatedAt:  b.CreatedAt,
+		ModifiedAt: b.ModifiedAt,
+		HasContent: b.HasContent,
+		Tags:       []TagDTO{},
+	}
 }
 
 // GetTumnbailPath returns the relative path to the thumbnail of a bookmark in the filesystem

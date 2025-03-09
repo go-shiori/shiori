@@ -160,3 +160,62 @@ func HandleUpdateCache(deps model.Dependencies, c model.WebContext) {
 
 	response.Send(c, http.StatusOK, bookmarks)
 }
+
+type bulkUpdateBookmarkTagsPayload struct {
+	BookmarkIDs []int `json:"bookmark_ids" validate:"required"`
+	TagIDs      []int `json:"tag_ids" validate:"required"`
+}
+
+func (p *bulkUpdateBookmarkTagsPayload) IsValid() error {
+	if len(p.BookmarkIDs) == 0 {
+		return fmt.Errorf("bookmark_ids should not be empty")
+	}
+	if len(p.TagIDs) == 0 {
+		return fmt.Errorf("tag_ids should not be empty")
+	}
+	return nil
+}
+
+// HandleBulkUpdateBookmarkTags updates the tags for multiple bookmarks
+//
+//	@Summary					Bulk update tags for multiple bookmarks.
+//	@Tags						Auth
+//	@securityDefinitions.apikey	ApiKeyAuth
+//	@Param						payload	body	bulkUpdateBookmarkTagsPayload	true	"Bulk Update Bookmark Tags Payload"
+//	@Produce					json
+//	@Success					200	{object}	[]model.BookmarkDTO
+//	@Failure					403	{object}	nil	"Token not provided/invalid"
+//	@Failure					400	{object}	nil	"Invalid request payload"
+//	@Failure					404	{object}	nil	"No bookmarks found"
+//	@Router						/api/v1/bookmarks/bulk/tags [put]
+func HandleBulkUpdateBookmarkTags(deps model.Dependencies, c model.WebContext) {
+	if err := middleware.RequireLoggedInUser(deps, c); err != nil {
+		response.SendError(c, http.StatusForbidden, err.Error(), nil)
+		return
+	}
+
+	// Parse request payload
+	var payload bulkUpdateBookmarkTagsPayload
+	if err := json.NewDecoder(c.Request().Body).Decode(&payload); err != nil {
+		response.SendError(c, http.StatusBadRequest, "Invalid request payload", nil)
+		return
+	}
+
+	if err := payload.IsValid(); err != nil {
+		response.SendError(c, http.StatusBadRequest, err.Error(), nil)
+		return
+	}
+
+	// Use the domain method to update bookmark tags
+	err := deps.Domains().Bookmarks().BulkUpdateBookmarkTags(c.Request().Context(), payload.BookmarkIDs, payload.TagIDs)
+	if err != nil {
+		if err == model.ErrBookmarkNotFound {
+			response.SendError(c, http.StatusNotFound, "No bookmarks found", nil)
+			return
+		}
+		response.SendError(c, http.StatusInternalServerError, "Failed to update bookmarks", nil)
+		return
+	}
+
+	response.Send(c, http.StatusOK, nil)
+}
