@@ -121,3 +121,9 @@ type DBListAccountsOptions struct {
 	// Retrieve password content
 	WithPassword bool
 }
+
+// DBListTagsOptions is options for fetching tags from database.
+type DBListTagsOptions struct {
+	BookmarkID        int
+	WithBookmarkCount bool
+}
