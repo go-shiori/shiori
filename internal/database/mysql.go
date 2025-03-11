@@ -274,10 +274,11 @@ func (db *MySQLDatabase) SaveBookmarks(ctx context.Context, create bool, bookmar
 						tag.ID = int(tagID64)
 						t.ID = int(tagID64)
 					}
+				}
 
-					if _, err := stmtInsertBookTag.ExecContext(ctx, t.ID, book.ID); err != nil {
-						return errors.WithStack(err)
-					}
+				// Always insert the tag-bookmark association
+				if _, err := stmtInsertBookTag.ExecContext(ctx, tag.ID, book.ID); err != nil {
+					return errors.WithStack(err)
 				}
 
 				newTags = append(newTags, t)
