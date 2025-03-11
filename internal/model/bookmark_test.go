@@ -1,6 +1,7 @@
 package model
 
 import (
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -97,14 +98,14 @@ func TestGetThumbnailPath(t *testing.T) {
 			bookmark: BookmarkDTO{
 				ID: 123,
 			},
-			expected: "thumb/123",
+			expected: filepath.Join("thumb", "123"),
 		},
 		{
 			name: "With zero ID",
 			bookmark: BookmarkDTO{
 				ID: 0,
 			},
-			expected: "thumb/0",
+			expected: filepath.Join("thumb", "0"),
 		},
 	}
 
@@ -129,14 +130,14 @@ func TestGetEbookPath(t *testing.T) {
 			bookmark: BookmarkDTO{
 				ID: 123,
 			},
-			expected: "ebook/123.epub",
+			expected: filepath.Join("ebook", "123.epub"),
 		},
 		{
 			name: "With zero ID",
 			bookmark: BookmarkDTO{
 				ID: 0,
 			},
-			expected: "ebook/0.epub",
+			expected: filepath.Join("ebook", "0.epub"),
 		},
 	}
 
@@ -161,14 +162,14 @@ func TestGetArchivePath(t *testing.T) {
 			bookmark: BookmarkDTO{
 				ID: 123,
 			},
-			expected: "archive/123",
+			expected: filepath.Join("archive", "123"),
 		},
 		{
 			name: "With zero ID",
 			bookmark: BookmarkDTO{
 				ID: 0,
 			},
-			expected: "archive/0",
+			expected: filepath.Join("archive", "0"),
 		},
 	}
 
