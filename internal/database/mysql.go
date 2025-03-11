@@ -4,10 +4,12 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"slices"
 	"strings"
 	"time"
 
 	"github.com/go-shiori/shiori/internal/model"
+	"github.com/huandu/go-sqlbuilder"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 
@@ -270,11 +272,13 @@ func (db *MySQLDatabase) SaveBookmarks(ctx context.Context, create bool, bookmar
 						}
 
 						tag.ID = int(tagID64)
+						t.ID = int(tagID64)
 					}
+				}
 
-					if _, err := stmtInsertBookTag.ExecContext(ctx, t.ID, book.ID); err != nil {
-						return errors.WithStack(err)
-					}
+				// Always insert the tag-bookmark association
+				if _, err := stmtInsertBookTag.ExecContext(ctx, tag.ID, book.ID); err != nil {
+					return errors.WithStack(err)
 				}
 
 				newTags = append(newTags, t)
@@ -304,7 +308,7 @@ func (db *MySQLDatabase) GetBookmarks(ctx context.Context, opts model.DBGetBookm
 		`public`,
 		`created_at`,
 		`modified_at`,
-		`content <> "" has_content`}
+		`content <> "" as has_content`}
 
 	if opts.WithContent {
 		columns = append(columns, `content`, `html`)
@@ -336,21 +340,15 @@ func (db *MySQLDatabase) GetBookmarks(ctx context.Context, opts model.DBGetBookm
 	// First we check for * in excluded and included tags,
 	// which means all tags will be excluded and included, respectively.
 	excludeAllTags := false
-	for _, excludedTag := range opts.ExcludedTags {
-		if excludedTag == "*" {
-			excludeAllTags = true
-			opts.ExcludedTags = []string{}
-			break
-		}
+	if slices.Contains(opts.ExcludedTags, "*") {
+		excludeAllTags = true
+		opts.ExcludedTags = []string{}
 	}
 
 	includeAllTags := false
-	for _, includedTag := range opts.Tags {
-		if includedTag == "*" {
-			includeAllTags = true
-			opts.Tags = []string{}
-			break
-		}
+	if slices.Contains(opts.Tags, "*") {
+		includeAllTags = true
+		opts.Tags = []string{}
 	}
 
 	// If all tags excluded, we will only show bookmark without tags.
@@ -412,26 +410,36 @@ func (db *MySQLDatabase) GetBookmarks(ctx context.Context, opts model.DBGetBookm
 		return nil, errors.WithStack(err)
 	}
 
-	// Fetch tags for each bookmarks
-	stmtGetTags, err := db.PreparexContext(ctx, `SELECT t.id, t.name
-		FROM bookmark_tag bt
-		LEFT JOIN tag t ON bt.tag_id = t.id
-		WHERE bt.bookmark_id = ?
-		ORDER BY t.name`)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-	defer stmtGetTags.Close()
-
-	for _, book := range bookmarks {
-		book.Tags = []model.TagDTO{}
-		err = stmtGetTags.SelectContext(ctx, &book.Tags, book.ID)
-		if err != nil && err != sql.ErrNoRows {
-			return nil, errors.WithStack(err)
+	// Fetch tags for each bookmark
+	for i, book := range bookmarks {
+		tags, err := db.getTagsForBookmark(ctx, book.ID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get tags: %w", err)
 		}
+		bookmarks[i].Tags = tags
 	}
 
 	return bookmarks, nil
+}
+
+func (db *MySQLDatabase) getTagsForBookmark(ctx context.Context, bookmarkID int) ([]model.TagDTO, error) {
+	sb := sqlbuilder.MySQL.NewSelectBuilder()
+	sb.Select("t.id", "t.name")
+	sb.From("bookmark_tag bt")
+	sb.JoinWithOption(sqlbuilder.LeftJoin, "tag t", "bt.tag_id = t.id")
+	sb.Where(sb.Equal("bt.bookmark_id", bookmarkID))
+	sb.OrderBy("t.name")
+
+	query, args := sb.Build()
+	query = db.ReaderDB().Rebind(query)
+
+	tags := []model.TagDTO{}
+	err := db.ReaderDB().SelectContext(ctx, &tags, query, args...)
+	if err != nil && err != sql.ErrNoRows {
+		return nil, fmt.Errorf("failed to get tags: %w", err)
+	}
+
+	return tags, nil
 }
 
 // GetBookmarksCount fetch count of bookmarks based on submitted options.
@@ -464,21 +472,15 @@ func (db *MySQLDatabase) GetBookmarksCount(ctx context.Context, opts model.DBGet
 	// First we check for * in excluded and included tags,
 	// which means all tags will be excluded and included, respectively.
 	excludeAllTags := false
-	for _, excludedTag := range opts.ExcludedTags {
-		if excludedTag == "*" {
-			excludeAllTags = true
-			opts.ExcludedTags = []string{}
-			break
-		}
+	if slices.Contains(opts.ExcludedTags, "*") {
+		excludeAllTags = true
+		opts.ExcludedTags = []string{}
 	}
 
 	includeAllTags := false
-	for _, includedTag := range opts.Tags {
-		if includedTag == "*" {
-			includeAllTags = true
-			opts.Tags = []string{}
-			break
-		}
+	if slices.Contains(opts.Tags, "*") {
+		includeAllTags = true
+		opts.Tags = []string{}
 	}
 
 	// If all tags excluded, we will only show bookmark without tags.
@@ -577,23 +579,57 @@ func (db *MySQLDatabase) DeleteBookmarks(ctx context.Context, ids ...int) (err e
 // GetBookmark fetches bookmark based on its ID or URL.
 // Returns the bookmark and boolean whether it's exist or not.
 func (db *MySQLDatabase) GetBookmark(ctx context.Context, id int, url string) (model.BookmarkDTO, bool, error) {
-	args := []interface{}{id}
-	query := `SELECT
-		id, url, title, excerpt, author, public,
-		content, html, modified_at, created_at, content <> '' has_content
-		FROM bookmark WHERE id = ?`
+	// Create the main query builder for bookmark data
+	sb := sqlbuilder.NewSelectBuilder()
+	sb.Select(
+		"id", "url", "title", "excerpt", "author", `public`, "modified_at",
+		"content", "html", "created_at", "has_content")
+	sb.From("bookmark")
 
-	if url != "" {
-		query += ` OR url = ?`
-		args = append(args, url)
+	// Add conditions
+	if id != 0 {
+		sb.Where(sb.Equal("id", id))
+	} else if url != "" {
+		sb.Where(sb.Equal("url", url))
+	} else {
+		return model.BookmarkDTO{}, false, fmt.Errorf("id or url is required")
 	}
 
+	// Build the query
+	query, args := sb.Build()
+	query = db.ReaderDB().Rebind(query)
+	// Execute the query
 	book := model.BookmarkDTO{}
-	if err := db.GetContext(ctx, &book, query, args...); err != nil && err != sql.ErrNoRows {
-		return book, false, errors.WithStack(err)
+	err := db.ReaderDB().GetContext(ctx, &book, query, args...)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return book, false, nil
+		}
+		return book, false, fmt.Errorf("failed to get bookmark: %w", err)
 	}
 
-	return book, book.ID != 0, nil
+	// If bookmark exists, fetch its tags
+	if book.ID != 0 {
+		// Create query builder for tags
+		tagSb := sqlbuilder.NewSelectBuilder()
+		tagSb.Select("t.id", "t.name")
+		tagSb.From("tag t")
+		tagSb.JoinWithOption(sqlbuilder.InnerJoin, "bookmark_tag bt", "bt.tag_id = t.id")
+		tagSb.Where(tagSb.Equal("bt.bookmark_id", book.ID))
+
+		// Build the query
+		tagQuery, tagArgs := tagSb.Build()
+		tagQuery = db.ReaderDB().Rebind(tagQuery)
+		// Execute the query
+		tags := []model.TagDTO{}
+		if err := db.ReaderDB().SelectContext(ctx, &tags, tagQuery, tagArgs...); err != nil && err != sql.ErrNoRows {
+			return book, false, fmt.Errorf("failed to get tags: %w", err)
+		}
+
+		book.Tags = tags
+	}
+
+	return book, true, nil
 }
 
 // CreateAccount saves new account to database. Returns error if any happened.
@@ -618,17 +654,17 @@ func (db *MySQLDatabase) CreateAccount(ctx context.Context, account model.Accoun
 			(username, password, owner, config) VALUES (?, ?, ?, ?)`,
 			account.Username, account.Password, account.Owner, account.Config)
 		if err != nil {
-			return errors.WithStack(err)
+			return fmt.Errorf("error executing query: %w", err)
 		}
 
 		id, err := result.LastInsertId()
 		if err != nil {
-			return errors.WithStack(err)
+			return fmt.Errorf("error getting last insert id: %w", err)
 		}
 		accountID = id
 		return nil
 	}); err != nil {
-		return nil, errors.WithStack(err)
+		return nil, fmt.Errorf("error running transaction: %w", err)
 	}
 
 	account.ID = model.DBID(accountID)
@@ -659,12 +695,12 @@ func (db *MySQLDatabase) UpdateAccount(ctx context.Context, account model.Accoun
 			WHERE id = ?`,
 			account.Username, account.Password, account.Owner, account.Config, account.ID)
 		if err != nil {
-			return errors.WithStack(err)
+			return fmt.Errorf("error updating account: %w", err)
 		}
 
 		rows, err := result.RowsAffected()
 		if err != nil {
-			return errors.WithStack(err)
+			return fmt.Errorf("error getting rows affected: %w", err)
 		}
 		if rows == 0 {
 			return ErrNotFound
@@ -672,7 +708,7 @@ func (db *MySQLDatabase) UpdateAccount(ctx context.Context, account model.Accoun
 
 		return nil
 	}); err != nil {
-		return errors.WithStack(err)
+		return fmt.Errorf("error running transaction: %w", err)
 	}
 
 	return nil
@@ -721,16 +757,14 @@ func (db *MySQLDatabase) GetAccount(ctx context.Context, id model.DBID) (*model.
 		id, username, password, owner, config FROM account WHERE id = ?`,
 		id,
 	)
-	if err != nil && err != sql.ErrNoRows {
-		return &account, false, errors.WithStack(err)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return &account, false, ErrNotFound
+		}
+		return &account, false, fmt.Errorf("error getting account: %w", err)
 	}
 
-	// Use custom not found error if that's the result of the query
-	if err == sql.ErrNoRows {
-		err = ErrNotFound
-	}
-
-	return &account, account.ID != 0, err
+	return &account, true, nil
 }
 
 // DeleteAccount removes record with matching ID.
@@ -738,12 +772,12 @@ func (db *MySQLDatabase) DeleteAccount(ctx context.Context, id model.DBID) error
 	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
 		result, err := tx.ExecContext(ctx, `DELETE FROM account WHERE id = ?`, id)
 		if err != nil {
-			return errors.WithStack(fmt.Errorf("error deleting account: %v", err))
+			return fmt.Errorf("error deleting account: %w", err)
 		}
 
 		rows, err := result.RowsAffected()
-		if err != nil && err != sql.ErrNoRows {
-			return errors.WithStack(fmt.Errorf("error getting rows affected: %v", err))
+		if err != nil {
+			return fmt.Errorf("error getting rows affected: %w", err)
 		}
 
 		if rows == 0 {
@@ -752,37 +786,87 @@ func (db *MySQLDatabase) DeleteAccount(ctx context.Context, id model.DBID) error
 
 		return nil
 	}); err != nil {
-		return errors.WithStack(err)
+		return fmt.Errorf("error running transaction: %w", err)
 	}
 
 	return nil
 }
 
 // CreateTags creates new tags from submitted objects.
-func (db *MySQLDatabase) CreateTags(ctx context.Context, tags ...model.Tag) error {
-	query := `INSERT INTO tag (name) VALUES `
-	values := []interface{}{}
-
-	for _, t := range tags {
-		query += "(?),"
-		values = append(values, t.Name)
+func (db *MySQLDatabase) CreateTags(ctx context.Context, tags ...model.Tag) ([]model.Tag, error) {
+	if len(tags) == 0 {
+		return []model.Tag{}, nil
 	}
-	query = query[0 : len(query)-1]
+
+	// Create a slice to hold the created tags
+	createdTags := make([]model.Tag, len(tags))
+	copy(createdTags, tags)
 
 	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
-		stmt, err := tx.Preparex(query)
+		// For MySQL, we need to insert tags one by one to get their IDs
+		stmtInsertTag, err := tx.PrepareContext(ctx, "INSERT INTO tag (name) VALUES (?)")
 		if err != nil {
-			return errors.Wrap(errors.WithStack(err), "error preparing query")
+			return fmt.Errorf("failed to prepare tag insertion statement: %w", err)
 		}
+		defer stmtInsertTag.Close()
 
-		_, err = stmt.ExecContext(ctx, values...)
-		if err != nil {
-			return errors.Wrap(errors.WithStack(err), "error executing query")
+		// Insert each tag and get its ID
+		for i, tag := range createdTags {
+			result, err := stmtInsertTag.ExecContext(ctx, tag.Name)
+			if err != nil {
+				return fmt.Errorf("failed to insert tag: %w", err)
+			}
+
+			// Get the last inserted ID
+			tagID, err := result.LastInsertId()
+			if err != nil {
+				return fmt.Errorf("failed to get last insert ID: %w", err)
+			}
+
+			createdTags[i].ID = int(tagID)
 		}
 
 		return nil
 	}); err != nil {
-		return errors.Wrap(errors.WithStack(err), "error running transaction")
+		return nil, fmt.Errorf("failed to run tag creation transaction: %w", err)
+	}
+
+	return createdTags, nil
+}
+
+// CreateTag creates a new tag in database.
+func (db *MySQLDatabase) CreateTag(ctx context.Context, tag model.Tag) (model.Tag, error) {
+	// Use CreateTags to implement this method
+	createdTags, err := db.CreateTags(ctx, tag)
+	if err != nil {
+		return model.Tag{}, err
+	}
+
+	if len(createdTags) == 0 {
+		return model.Tag{}, fmt.Errorf("failed to create tag")
+	}
+
+	return createdTags[0], nil
+}
+
+// RenameTag change the name of a tag.
+func (db *MySQLDatabase) RenameTag(ctx context.Context, id int, newName string) error {
+	sb := sqlbuilder.NewUpdateBuilder()
+	sb.Update("tag")
+	sb.Set(sb.Assign("name", newName))
+	sb.Where(sb.Equal("id", id))
+
+	query, args := sb.Build()
+	query = db.WriterDB().Rebind(query)
+
+	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
+		_, err := tx.ExecContext(ctx, query, args...)
+		if err != nil {
+			return fmt.Errorf("failed to rename tag: %w", err)
+		}
+		return nil
+	}); err != nil {
+		return err
 	}
 
 	return nil
@@ -790,26 +874,302 @@ func (db *MySQLDatabase) CreateTags(ctx context.Context, tags ...model.Tag) erro
 
 // GetTags fetch list of tags and their frequency.
 func (db *MySQLDatabase) GetTags(ctx context.Context) ([]model.TagDTO, error) {
-	tags := []model.TagDTO{}
-	query := `SELECT bt.tag_id id, t.name, COUNT(bt.tag_id) bookmark_count
-		FROM bookmark_tag bt
-		LEFT JOIN tag t ON bt.tag_id = t.id
-		GROUP BY bt.tag_id ORDER BY t.name`
+	sb := sqlbuilder.MySQL.NewSelectBuilder()
+	sb.Select("t.id", "t.name", "COUNT(bt.tag_id) AS bookmark_count")
+	sb.From("tag t")
+	sb.JoinWithOption(sqlbuilder.LeftJoin, "bookmark_tag bt", "bt.tag_id = t.id")
+	sb.GroupBy("t.id")
+	sb.OrderBy("t.name")
 
-	err := db.SelectContext(ctx, &tags, query)
+	query, args := sb.Build()
+	query = db.ReaderDB().Rebind(query)
+
+	tags := []model.TagDTO{}
+	err := db.ReaderDB().SelectContext(ctx, &tags, query, args...)
 	if err != nil && err != sql.ErrNoRows {
-		return nil, errors.WithStack(err)
+		return nil, fmt.Errorf("failed to get tags: %w", err)
 	}
 
 	return tags, nil
 }
 
-// RenameTag change the name of a tag.
-func (db *MySQLDatabase) RenameTag(ctx context.Context, id int, newName string) error {
-	err := db.withTx(ctx, func(tx *sqlx.Tx) error {
-		_, err := db.ExecContext(ctx, `UPDATE tag SET name = ? WHERE id = ?`, newName, id)
-		return errors.WithStack(err)
-	})
+// GetTag fetch a tag by its ID.
+func (db *MySQLDatabase) GetTag(ctx context.Context, id int) (model.TagDTO, bool, error) {
+	sb := sqlbuilder.MySQL.NewSelectBuilder()
+	sb.Select("t.id", "t.name", "COUNT(bt.tag_id) bookmark_count")
+	sb.From("tag t")
+	sb.JoinWithOption(sqlbuilder.LeftJoin, "bookmark_tag bt", "bt.tag_id = t.id")
+	sb.Where(sb.Equal("t.id", id))
+	sb.GroupBy("t.id")
+	sb.OrderBy("t.name")
 
-	return errors.WithStack(err)
+	query, args := sb.Build()
+	query = db.ReaderDB().Rebind(query)
+
+	var tag model.TagDTO
+	err := db.ReaderDB().GetContext(ctx, &tag, query, args...)
+	if err == sql.ErrNoRows {
+		return model.TagDTO{}, false, nil
+	}
+	if err != nil {
+		return model.TagDTO{}, false, fmt.Errorf("failed to get tag: %w", err)
+	}
+
+	return tag, true, nil
+}
+
+// UpdateTag updates a tag in the database.
+func (db *MySQLDatabase) UpdateTag(ctx context.Context, tag model.Tag) error {
+	sb := sqlbuilder.NewUpdateBuilder()
+	sb.Update("tag")
+	sb.Set(sb.Assign("name", tag.Name))
+	sb.Where(sb.Equal("id", tag.ID))
+
+	query, args := sb.Build()
+	query = db.WriterDB().Rebind(query)
+
+	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
+		_, err := tx.ExecContext(ctx, query, args...)
+		if err != nil {
+			return fmt.Errorf("failed to update tag: %w", err)
+		}
+		return nil
+	}); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// DeleteTag removes a tag from the database.
+func (db *MySQLDatabase) DeleteTag(ctx context.Context, id int) error {
+	// First, check if the tag exists
+	_, exists, err := db.GetTag(ctx, id)
+	if err != nil {
+		return fmt.Errorf("failed to check if tag exists: %w", err)
+	}
+	if !exists {
+		return ErrNotFound
+	}
+
+	// Delete all bookmark_tag associations
+	deleteAssocSb := sqlbuilder.NewDeleteBuilder()
+	deleteAssocSb.DeleteFrom("bookmark_tag")
+	deleteAssocSb.Where(deleteAssocSb.Equal("tag_id", id))
+
+	deleteAssocQuery, deleteAssocArgs := deleteAssocSb.Build()
+	deleteAssocQuery = db.WriterDB().Rebind(deleteAssocQuery)
+
+	// Then, delete the tag itself
+	deleteTagSb := sqlbuilder.NewDeleteBuilder()
+	deleteTagSb.DeleteFrom("tag")
+	deleteTagSb.Where(deleteTagSb.Equal("id", id))
+
+	deleteTagQuery, deleteTagArgs := deleteTagSb.Build()
+	deleteTagQuery = db.WriterDB().Rebind(deleteTagQuery)
+
+	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
+		// Delete bookmark_tag associations
+		_, err := tx.ExecContext(ctx, deleteAssocQuery, deleteAssocArgs...)
+		if err != nil {
+			return fmt.Errorf("failed to delete tag associations: %w", err)
+		}
+
+		// Delete the tag
+		_, err = tx.ExecContext(ctx, deleteTagQuery, deleteTagArgs...)
+		if err != nil {
+			return fmt.Errorf("failed to delete tag: %w", err)
+		}
+
+		return nil
+	}); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// SaveBookmark saves a single bookmark to database without handling tags.
+// It only updates the bookmark data in the database.
+func (db *MySQLDatabase) SaveBookmark(ctx context.Context, bookmark model.Bookmark) error {
+	if bookmark.ID <= 0 {
+		return fmt.Errorf("bookmark ID must be greater than 0")
+	}
+
+	// Prepare modified time if not set
+	if bookmark.ModifiedAt == "" {
+		bookmark.ModifiedAt = time.Now().UTC().Format(model.DatabaseDateFormat)
+	}
+
+	// Check URL and title
+	if bookmark.URL == "" {
+		return errors.New("URL must not be empty")
+	}
+
+	if bookmark.Title == "" {
+		return errors.New("title must not be empty")
+	}
+
+	// Use sqlbuilder to build the update query
+	sb := sqlbuilder.NewUpdateBuilder()
+	sb.Update("bookmark")
+	sb.Set(
+		sb.Assign("url", bookmark.URL),
+		sb.Assign("title", bookmark.Title),
+		sb.Assign("excerpt", bookmark.Excerpt),
+		sb.Assign("author", bookmark.Author),
+		sb.Assign("public", bookmark.Public),
+		sb.Assign("modified_at", bookmark.ModifiedAt),
+		sb.Assign("has_content", bookmark.HasContent),
+	)
+	sb.Where(sb.Equal("id", bookmark.ID))
+
+	query, args := sb.Build()
+	query = db.WriterDB().Rebind(query)
+
+	return db.withTx(ctx, func(tx *sqlx.Tx) error {
+		// Update bookmark
+		_, err := tx.ExecContext(ctx, query, args...)
+		if err != nil {
+			return fmt.Errorf("failed to update bookmark: %w", err)
+		}
+
+		return nil
+	})
+}
+
+func (db *MySQLDatabase) SaveBookmarkTags(ctx context.Context, bookmarkID int, tagIDs []int) error {
+	return db.withTx(ctx, func(tx *sqlx.Tx) error {
+		// Prepare statements
+		stmtDeleteAllBookmarkTags, err := tx.PreparexContext(ctx, `DELETE FROM bookmark_tag WHERE bookmark_id = ?`)
+		if err != nil {
+			return fmt.Errorf("failed to prepare delete all bookmark tags statement: %w", err)
+		}
+
+		stmtInsertBookTag, err := tx.PreparexContext(ctx, `INSERT IGNORE INTO bookmark_tag
+			(tag_id, bookmark_id) VALUES (?, ?)`)
+		if err != nil {
+			return fmt.Errorf("failed to prepare insert book tag statement: %w", err)
+		}
+
+		// Delete all existing tags for this bookmark
+		_, err = stmtDeleteAllBookmarkTags.ExecContext(ctx, bookmarkID)
+		if err != nil {
+			return fmt.Errorf("failed to delete existing bookmark tags: %w", err)
+		}
+
+		// Insert new tags
+		for _, tagID := range tagIDs {
+			_, err := stmtInsertBookTag.ExecContext(ctx, tagID, bookmarkID)
+			if err != nil {
+				return fmt.Errorf("failed to insert bookmark tag: %w", err)
+			}
+		}
+
+		return nil
+	})
+}
+
+// BulkUpdateBookmarkTags updates tags for multiple bookmarks.
+// It ensures that all bookmarks and tags exist before proceeding.
+func (db *MySQLDatabase) BulkUpdateBookmarkTags(ctx context.Context, bookmarkIDs []int, tagIDs []int) error {
+	if len(bookmarkIDs) == 0 || len(tagIDs) == 0 {
+		return nil
+	}
+
+	// Convert int slices to interface slices for sqlbuilder
+	bookmarkIDsIface := make([]interface{}, len(bookmarkIDs))
+	for i, id := range bookmarkIDs {
+		bookmarkIDsIface[i] = id
+	}
+
+	tagIDsIface := make([]interface{}, len(tagIDs))
+	for i, id := range tagIDs {
+		tagIDsIface[i] = id
+	}
+
+	// Verify all bookmarks exist
+	bookmarkSb := sqlbuilder.NewSelectBuilder()
+	bookmarkSb.Select("id")
+	bookmarkSb.From("bookmark")
+	bookmarkSb.Where(bookmarkSb.In("id", bookmarkIDsIface...))
+
+	bookmarkQuery, bookmarkArgs := bookmarkSb.Build()
+	bookmarkQuery = db.ReaderDB().Rebind(bookmarkQuery)
+
+	var existingBookmarkIDs []int
+	err := db.ReaderDB().SelectContext(ctx, &existingBookmarkIDs, bookmarkQuery, bookmarkArgs...)
+	if err != nil {
+		return fmt.Errorf("failed to check bookmarks: %w", err)
+	}
+
+	if len(existingBookmarkIDs) != len(bookmarkIDs) {
+		// Find which bookmarks don't exist
+		missingBookmarkIDs := model.SliceDifference(bookmarkIDs, existingBookmarkIDs)
+		return fmt.Errorf("some bookmarks do not exist: %v", missingBookmarkIDs)
+	}
+
+	// Verify all tags exist
+	tagSb := sqlbuilder.NewSelectBuilder()
+	tagSb.Select("id")
+	tagSb.From("tag")
+	tagSb.Where(tagSb.In("id", tagIDsIface...))
+
+	tagQuery, tagArgs := tagSb.Build()
+	tagQuery = db.ReaderDB().Rebind(tagQuery)
+
+	var existingTagIDs []int
+	err = db.ReaderDB().SelectContext(ctx, &existingTagIDs, tagQuery, tagArgs...)
+	if err != nil {
+		return fmt.Errorf("failed to check tags: %w", err)
+	}
+
+	if len(existingTagIDs) != len(tagIDs) {
+		// Find which tags don't exist
+		missingTagIDs := model.SliceDifference(tagIDs, existingTagIDs)
+		return fmt.Errorf("some tags do not exist: %v", missingTagIDs)
+	}
+
+	return db.withTx(ctx, func(tx *sqlx.Tx) error {
+		// Delete existing bookmark-tag associations
+		deleteSb := sqlbuilder.NewDeleteBuilder()
+		deleteSb.DeleteFrom("bookmark_tag")
+		deleteSb.Where(deleteSb.In("bookmark_id", bookmarkIDsIface...))
+
+		deleteQuery, deleteArgs := deleteSb.Build()
+		deleteQuery = tx.Rebind(deleteQuery)
+
+		_, err := tx.ExecContext(ctx, deleteQuery, deleteArgs...)
+		if err != nil {
+			return fmt.Errorf("failed to delete existing bookmark tags: %w", err)
+		}
+
+		// Insert new bookmark-tag associations
+		if len(tagIDs) > 0 {
+			// Build values for bulk insert
+			insertSb := sqlbuilder.NewInsertBuilder()
+			insertSb.InsertInto("bookmark_tag")
+			// Fix column order to match database schema
+			insertSb.Cols("bookmark_id", "tag_id")
+
+			for _, bookmarkID := range bookmarkIDs {
+				for _, tagID := range tagIDs {
+					// Match the column order in Values
+					insertSb.Values(bookmarkID, tagID)
+				}
+			}
+
+			insertQuery, insertArgs := insertSb.Build()
+			// Add MySQL-specific INSERT IGNORE INTO syntax
+			insertQuery = strings.Replace(insertQuery, "INSERT INTO", "INSERT IGNORE INTO", 1)
+			insertQuery = tx.Rebind(insertQuery)
+
+			_, err = tx.ExecContext(ctx, insertQuery, insertArgs...)
+			if err != nil {
+				return fmt.Errorf("failed to insert bookmark tags: %w", err)
+			}
+		}
+
+		return nil
+	})
 }

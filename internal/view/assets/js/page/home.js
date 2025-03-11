@@ -888,7 +888,7 @@ export default {
 					};
 
 					this.dialog.loading = true;
-					fetch(new URL("api/bookmarks/tags", document.baseURI), {
+					fetch(new URL("api/v1/bookmarks/tags", document.baseURI), {
 						method: "put",
 						body: JSON.stringify(request),
 						headers: {
@@ -961,16 +961,10 @@ export default {
 							? `"#${data.newName}"`
 							: `#${data.newName}`;
 
-					// Send data
-					var newData = {
-						id: tag.id,
-						name: data.newName,
-					};
-
 					this.dialog.loading = true;
-					fetch(new URL("api/tags", document.baseURI), {
+					fetch(new URL("api/v1/tags/" + tag.id, document.baseURI), {
 						method: "PUT",
-						body: JSON.stringify(newData),
+						body: JSON.stringify({ name: data.newName }),
 						headers: {
 							"Content-Type": "application/json",
 							Authorization: "Bearer " + localStorage.getItem("shiori-token"),

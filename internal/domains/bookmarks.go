@@ -98,6 +98,21 @@ func (d *BookmarksDomain) UpdateBookmarkCache(ctx context.Context, bookmark mode
 	return &processedBookmark, nil
 }
 
+// BulkUpdateBookmarkTags updates tags for multiple bookmarks using tag IDs
+func (d *BookmarksDomain) BulkUpdateBookmarkTags(ctx context.Context, bookmarkIDs []int, tagIDs []int) error {
+	if len(bookmarkIDs) == 0 {
+		return nil
+	}
+
+	// Call the database method directly
+	err := d.deps.Database().BulkUpdateBookmarkTags(ctx, bookmarkIDs, tagIDs)
+	if err != nil {
+		return fmt.Errorf("failed to update bookmark tags: %w", err)
+	}
+
+	return nil
+}
+
 func NewBookmarksDomain(deps model.Dependencies) *BookmarksDomain {
 	return &BookmarksDomain{
 		deps: deps,

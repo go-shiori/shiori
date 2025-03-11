@@ -29,6 +29,10 @@ type DB interface {
 	// SaveBookmarks saves bookmarks data to database.
 	SaveBookmarks(ctx context.Context, create bool, bookmarks ...BookmarkDTO) ([]BookmarkDTO, error)
 
+	// SaveBookmark saves a single bookmark to database without handling tags.
+	// It only updates the bookmark data in the database.
+	SaveBookmark(ctx context.Context, bookmark Bookmark) error
+
 	// GetBookmarks fetch list of bookmarks based on submitted options.
 	GetBookmarks(ctx context.Context, opts DBGetBookmarksOptions) ([]BookmarkDTO, error)
 
@@ -57,13 +61,29 @@ type DB interface {
 	DeleteAccount(ctx context.Context, id DBID) error
 
 	// CreateTags creates new tags in database.
-	CreateTags(ctx context.Context, tags ...Tag) error
+	CreateTags(ctx context.Context, tags ...Tag) ([]Tag, error)
+
+	// CreateTag creates a new tag in database.
+	CreateTag(ctx context.Context, tag Tag) (Tag, error)
 
 	// GetTags fetch list of tags and its frequency from database.
 	GetTags(ctx context.Context) ([]TagDTO, error)
 
 	// RenameTag change the name of a tag.
 	RenameTag(ctx context.Context, id int, newName string) error
+
+	// GetTag fetch a tag by its ID.
+	GetTag(ctx context.Context, id int) (TagDTO, bool, error)
+
+	// UpdateTag updates a tag in the database.
+	UpdateTag(ctx context.Context, tag Tag) error
+
+	// DeleteTag removes a tag from the database.
+	DeleteTag(ctx context.Context, id int) error
+
+	// BulkUpdateBookmarkTags updates tags for multiple bookmarks.
+	// It ensures that all bookmarks and tags exist before proceeding.
+	BulkUpdateBookmarkTags(ctx context.Context, bookmarkIDs []int, tagIDs []int) error
 }
 
 // DBOrderMethod is the order method for getting bookmarks
@@ -100,4 +120,10 @@ type DBListAccountsOptions struct {
 	Owner bool
 	// Retrieve password content
 	WithPassword bool
+}
+
+// DBListTagsOptions is options for fetching tags from database.
+type DBListTagsOptions struct {
+	BookmarkID        int
+	WithBookmarkCount bool
 }

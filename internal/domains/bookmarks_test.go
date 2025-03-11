@@ -207,3 +207,70 @@ func TestBookmarkDomain(t *testing.T) {
 		})
 	})
 }
+
+func TestBookmarksDomain_BulkUpdateBookmarkTags(t *testing.T) {
+	ctx := context.Background()
+	logger := logrus.New()
+	_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+
+	domain := domains.NewBookmarksDomain(deps)
+
+	t.Run("empty_bookmark_ids", func(t *testing.T) {
+		err := domain.BulkUpdateBookmarkTags(ctx, []int{}, []int{1, 2, 3})
+		require.NoError(t, err) // Should not return an error for empty bookmark IDs
+	})
+
+	t.Run("empty_tag_ids", func(t *testing.T) {
+		err := domain.BulkUpdateBookmarkTags(ctx, []int{1, 2, 3}, []int{})
+		require.NoError(t, err) // Should not return an error for empty tag IDs
+	})
+
+	t.Run("non_existent_bookmarks", func(t *testing.T) {
+		err := domain.BulkUpdateBookmarkTags(ctx, []int{999, 1000}, []int{1, 2, 3})
+		require.Error(t, err)
+	})
+
+	t.Run("successful_update", func(t *testing.T) {
+		// Create test bookmarks
+		bookmark1 := testutil.GetValidBookmark()
+		bookmark2 := testutil.GetValidBookmark()
+		bookmark2.URL = "https://example.com/different"
+
+		savedBookmarks, err := deps.Database().SaveBookmarks(ctx, true, *bookmark1, *bookmark2)
+		require.NoError(t, err)
+		require.Len(t, savedBookmarks, 2)
+
+		// Create test tags
+		tag1 := model.Tag{Name: "test-tag-1"}
+		tag2 := model.Tag{Name: "test-tag-2"}
+		createdTags, err := deps.Database().CreateTags(ctx, tag1, tag2)
+		require.NoError(t, err)
+		require.Len(t, createdTags, 2)
+
+		// Get the bookmark and tag IDs
+		bookmarkIDs := []int{savedBookmarks[0].ID, savedBookmarks[1].ID}
+		tagIDs := []int{createdTags[0].ID, createdTags[1].ID}
+
+		// Update the bookmarks with the tags
+		err = domain.BulkUpdateBookmarkTags(ctx, bookmarkIDs, tagIDs)
+		require.NoError(t, err)
+
+		// Verify the bookmarks have the tags
+		for _, bookmarkID := range bookmarkIDs {
+			bookmark, err := domain.GetBookmark(ctx, model.DBID(bookmarkID))
+			require.NoError(t, err)
+
+			// Check that the bookmark has both tags
+			require.Len(t, bookmark.Tags, 2)
+
+			// Verify tag IDs match
+			tagIDsMap := make(map[int]bool)
+			for _, tag := range bookmark.Tags {
+				tagIDsMap[tag.ID] = true
+			}
+
+			assert.True(t, tagIDsMap[createdTags[0].ID], "Bookmark should have the first tag")
+			assert.True(t, tagIDsMap[createdTags[1].ID], "Bookmark should have the second tag")
+		}
+	})
+}

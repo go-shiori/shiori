@@ -138,6 +138,22 @@ func (s *HttpServer) Setup(cfg *config.Config, deps *dependencies.Dependencies) 
 		api_v1.HandleListTags,
 		globalMiddleware...,
 	))
+	s.mux.HandleFunc("GET /api/v1/tags/{id}", ToHTTPHandler(deps,
+		api_v1.HandleGetTag,
+		globalMiddleware...,
+	))
+	s.mux.HandleFunc("POST /api/v1/tags", ToHTTPHandler(deps,
+		api_v1.HandleCreateTag,
+		globalMiddleware...,
+	))
+	s.mux.HandleFunc("PUT /api/v1/tags/{id}", ToHTTPHandler(deps,
+		api_v1.HandleUpdateTag,
+		globalMiddleware...,
+	))
+	s.mux.HandleFunc("DELETE /api/v1/tags/{id}", ToHTTPHandler(deps,
+		api_v1.HandleDeleteTag,
+		globalMiddleware...,
+	))
 	// Bookmarks
 	s.mux.HandleFunc("PUT /api/v1/bookmarks/cache", ToHTTPHandler(deps,
 		api_v1.HandleUpdateCache,
@@ -145,6 +161,10 @@ func (s *HttpServer) Setup(cfg *config.Config, deps *dependencies.Dependencies) 
 	))
 	s.mux.HandleFunc("GET /api/v1/bookmarks/{id}/readable", ToHTTPHandler(deps,
 		api_v1.HandleBookmarkReadable,
+		globalMiddleware...,
+	))
+	s.mux.HandleFunc("PUT /api/v1/bookmarks/bulk/tags", ToHTTPHandler(deps,
+		api_v1.HandleBulkUpdateBookmarkTags,
 		globalMiddleware...,
 	))
 
