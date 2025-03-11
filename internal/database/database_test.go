@@ -1133,6 +1133,10 @@ func testBulkUpdateBookmarkTags(t *testing.T, db model.DB) {
 		URL:   "https://example2.com",
 		Title: "Example 2",
 	}
+	bookmark3 := model.BookmarkDTO{
+		URL:   "https://example3.com",
+		Title: "Example 3",
+	}
 
 	results1, err := db.SaveBookmarks(ctx, true, bookmark1)
 	require.NoError(t, err)
@@ -1142,16 +1146,24 @@ func testBulkUpdateBookmarkTags(t *testing.T, db model.DB) {
 	require.NoError(t, err)
 	bookmark2ID := results2[0].ID
 
+	results3, err := db.SaveBookmarks(ctx, true, bookmark3)
+	require.NoError(t, err)
+	bookmark3ID := results3[0].ID
+
 	// Create test tags
 	tag1 := model.Tag{Name: "tag1-bulk-test"}
 	tag2 := model.Tag{Name: "tag2-bulk-test"}
+	tag3 := model.Tag{Name: "tag3-bulk-test"}
+	tag4 := model.Tag{Name: "tag4-bulk-test"}
 
-	createdTags, err := db.CreateTags(ctx, tag1, tag2)
+	createdTags, err := db.CreateTags(ctx, tag1, tag2, tag3, tag4)
 	require.NoError(t, err)
-	require.Len(t, createdTags, 2)
+	require.Len(t, createdTags, 4)
 
 	tag1ID := createdTags[0].ID
 	tag2ID := createdTags[1].ID
+	tag3ID := createdTags[2].ID
+	tag4ID := createdTags[3].ID
 
 	t.Run("empty_bookmark_ids", func(t *testing.T) {
 		err := db.BulkUpdateBookmarkTags(ctx, []int{}, []int{tag1ID, tag2ID})
@@ -1180,6 +1192,18 @@ func testBulkUpdateBookmarkTags(t *testing.T, db model.DB) {
 		nonExistentID := 9999
 		err := db.BulkUpdateBookmarkTags(ctx, []int{bookmark1ID}, []int{nonExistentID})
 		require.Error(t, err, "Non-existent tag ID should cause an error")
+		assert.Contains(t, err.Error(), "some tags do not exist")
+	})
+
+	t.Run("multiple_non_existent_bookmarks", func(t *testing.T) {
+		err := db.BulkUpdateBookmarkTags(ctx, []int{bookmark1ID, 9998, 9999}, []int{tag1ID})
+		require.Error(t, err, "Multiple non-existent bookmark IDs should cause an error")
+		assert.Contains(t, err.Error(), "some bookmarks do not exist")
+	})
+
+	t.Run("multiple_non_existent_tags", func(t *testing.T) {
+		err := db.BulkUpdateBookmarkTags(ctx, []int{bookmark1ID}, []int{tag1ID, 9998, 9999})
+		require.Error(t, err, "Multiple non-existent tag IDs should cause an error")
 		assert.Contains(t, err.Error(), "some tags do not exist")
 	})
 
@@ -1224,5 +1248,92 @@ func testBulkUpdateBookmarkTags(t *testing.T, db model.DB) {
 		require.NoError(t, err)
 		require.True(t, exists)
 		assert.Len(t, bookmark2.Tags, 2, "Bookmark 2 should still have 2 tags")
+	})
+
+	t.Run("multiple_updates", func(t *testing.T) {
+		// First update
+		err := db.BulkUpdateBookmarkTags(ctx, []int{bookmark3ID}, []int{tag1ID, tag2ID})
+		require.NoError(t, err, "First update should succeed")
+
+		// Verify bookmark3 has both tags
+		bookmark3, exists, err := db.GetBookmark(ctx, bookmark3ID, "")
+		require.NoError(t, err)
+		require.True(t, exists)
+		assert.Len(t, bookmark3.Tags, 2, "Bookmark 3 should have 2 tags after first update")
+
+		// Second update with different tags
+		err = db.BulkUpdateBookmarkTags(ctx, []int{bookmark3ID}, []int{tag3ID, tag4ID})
+		require.NoError(t, err, "Second update should succeed")
+
+		// Verify bookmark3 now has the new tags and not the old ones
+		bookmark3, exists, err = db.GetBookmark(ctx, bookmark3ID, "")
+		require.NoError(t, err)
+		require.True(t, exists)
+		assert.Len(t, bookmark3.Tags, 2, "Bookmark 3 should have 2 tags after second update")
+
+		// Check tag names
+		tagNames := make(map[string]bool)
+		for _, tag := range bookmark3.Tags {
+			tagNames[tag.Name] = true
+		}
+		assert.False(t, tagNames[tag1.Name], "Bookmark 3 should not have tag1 after second update")
+		assert.False(t, tagNames[tag2.Name], "Bookmark 3 should not have tag2 after second update")
+		assert.True(t, tagNames[tag3.Name], "Bookmark 3 should have tag3 after second update")
+		assert.True(t, tagNames[tag4.Name], "Bookmark 3 should have tag4 after second update")
+	})
+
+	t.Run("update_multiple_bookmarks_with_different_initial_tags", func(t *testing.T) {
+		// Setup: bookmark1 has tag1, bookmark2 has tag1 and tag2
+		err := db.BulkUpdateBookmarkTags(ctx, []int{bookmark1ID}, []int{tag1ID})
+		require.NoError(t, err)
+
+		err = db.BulkUpdateBookmarkTags(ctx, []int{bookmark2ID}, []int{tag1ID, tag2ID})
+		require.NoError(t, err)
+
+		// Verify initial state
+		bookmark1, exists, err := db.GetBookmark(ctx, bookmark1ID, "")
+		require.NoError(t, err)
+		require.True(t, exists)
+		assert.Len(t, bookmark1.Tags, 1, "Bookmark 1 should have 1 tag initially")
+
+		bookmark2, exists, err := db.GetBookmark(ctx, bookmark2ID, "")
+		require.NoError(t, err)
+		require.True(t, exists)
+		assert.Len(t, bookmark2.Tags, 2, "Bookmark 2 should have 2 tags initially")
+
+		// Update both bookmarks with tag3 and tag4
+		err = db.BulkUpdateBookmarkTags(ctx, []int{bookmark1ID, bookmark2ID}, []int{tag3ID, tag4ID})
+		require.NoError(t, err, "Bulk update should succeed")
+
+		// Verify both bookmarks now have tag3 and tag4 only
+		bookmark1, exists, err = db.GetBookmark(ctx, bookmark1ID, "")
+		require.NoError(t, err)
+		require.True(t, exists)
+		assert.Len(t, bookmark1.Tags, 2, "Bookmark 1 should have 2 tags after update")
+
+		bookmark2, exists, err = db.GetBookmark(ctx, bookmark2ID, "")
+		require.NoError(t, err)
+		require.True(t, exists)
+		assert.Len(t, bookmark2.Tags, 2, "Bookmark 2 should have 2 tags after update")
+
+		// Check tag names for bookmark1
+		tagNames1 := make(map[string]bool)
+		for _, tag := range bookmark1.Tags {
+			tagNames1[tag.Name] = true
+		}
+		assert.False(t, tagNames1[tag1.Name], "Bookmark 1 should not have tag1 after update")
+		assert.False(t, tagNames1[tag2.Name], "Bookmark 1 should not have tag2 after update")
+		assert.True(t, tagNames1[tag3.Name], "Bookmark 1 should have tag3 after update")
+		assert.True(t, tagNames1[tag4.Name], "Bookmark 1 should have tag4 after update")
+
+		// Check tag names for bookmark2
+		tagNames2 := make(map[string]bool)
+		for _, tag := range bookmark2.Tags {
+			tagNames2[tag.Name] = true
+		}
+		assert.False(t, tagNames2[tag1.Name], "Bookmark 2 should not have tag1 after update")
+		assert.False(t, tagNames2[tag2.Name], "Bookmark 2 should not have tag2 after update")
+		assert.True(t, tagNames2[tag3.Name], "Bookmark 2 should have tag3 after update")
+		assert.True(t, tagNames2[tag4.Name], "Bookmark 2 should have tag4 after update")
 	})
 }
