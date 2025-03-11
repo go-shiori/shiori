@@ -29,7 +29,7 @@ func sqliteTestDatabaseFactory(t *testing.T, ctx context.Context) (model.DB, err
 
 func TestSqliteDatabase(t *testing.T) {
 	testDatabase(t, sqliteTestDatabaseFactory)
-	// testSqliteGetBookmarksWithDash(t)
+	testSqliteGetBookmarksWithDash(t)
 }
 
 // testSqliteGetBookmarksWithDash ad-hoc test for SQLite that checks that a match search against
