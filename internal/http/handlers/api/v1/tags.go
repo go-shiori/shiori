@@ -15,11 +15,11 @@ import (
 // @Tags						Tags
 // @securityDefinitions.apikey	ApiKeyAuth
 // @Produce					json
-// @Param                      with_bookmark_count   query   boolean  false  "Include bookmark count for each tag"
-// @Param                      bookmark_id           query   integer  false  "Filter tags by bookmark ID"
-// @Success					200	{array}		model.TagDTO
-// @Failure					403	{object}	nil	"Authentication required"
-// @Failure					500	{object}	nil	"Internal server error"
+// @Param						with_bookmark_count	query		boolean	false	"Include bookmark count for each tag"
+// @Param						bookmark_id			query		integer	false	"Filter tags by bookmark ID"
+// @Success					200					{array}		model.TagDTO
+// @Failure					403					{object}	nil	"Authentication required"
+// @Failure					500					{object}	nil	"Internal server error"
 // @Router						/api/v1/tags [get]
 func HandleListTags(deps model.Dependencies, c model.WebContext) {
 	if err := middleware.RequireLoggedInUser(deps, c); err != nil {
@@ -94,7 +94,7 @@ func HandleGetTag(deps model.Dependencies, c model.WebContext) {
 // @Description				Create a new tag
 // @Tags						Tags
 // @securityDefinitions.apikey	ApiKeyAuth
-// @Accept					json
+// @Accept						json
 // @Produce					json
 // @Param						tag	body		model.TagDTO	true	"Tag data"
 // @Success					201	{object}	model.TagDTO
@@ -133,9 +133,9 @@ func HandleCreateTag(deps model.Dependencies, c model.WebContext) {
 // @Description				Update an existing tag
 // @Tags						Tags
 // @securityDefinitions.apikey	ApiKeyAuth
-// @Accept					json
+// @Accept						json
 // @Produce					json
-// @Param						id	path		int			true	"Tag ID"
+// @Param						id	path		int				true	"Tag ID"
 // @Param						tag	body		model.TagDTO	true	"Tag data"
 // @Success					200	{object}	model.TagDTO
 // @Failure					400	{object}	nil	"Invalid request"
