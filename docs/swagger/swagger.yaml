@@ -441,6 +441,15 @@ paths:
   /api/v1/tags:
     get:
       description: List all tags
+      parameters:
+      - description: Include bookmark count for each tag
+        in: query
+        name: with_bookmark_count
+        type: boolean
+      - description: Filter tags by bookmark ID
+        in: query
+        name: bookmark_id
+        type: integer
       produces:
       - application/json
       responses:
