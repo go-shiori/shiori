@@ -257,12 +257,16 @@ export default {
 
 					// Fetch tags if requested
 					if (fetchTags) {
-						return fetch(new URL("api/v1/tags?with_bookmark_count=true", document.baseURI), {
-							headers: {
-								"Content-Type": "application/json",
-								Authorization: "Bearer " + localStorage.getItem("shiori-token"),
+						return fetch(
+							new URL("api/v1/tags?with_bookmark_count=true", document.baseURI),
+							{
+								headers: {
+									"Content-Type": "application/json",
+									Authorization:
+										"Bearer " + localStorage.getItem("shiori-token"),
+								},
 							},
-						});
+						);
 					} else {
 						this.loading = false;
 						throw skipFetchTags;
