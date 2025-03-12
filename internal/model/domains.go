@@ -48,7 +48,7 @@ type StorageDomain interface {
 }
 
 type TagsDomain interface {
-	ListTags(ctx context.Context) ([]TagDTO, error)
+	ListTags(ctx context.Context, opts ListTagsOptions) ([]TagDTO, error)
 	CreateTag(ctx context.Context, tag TagDTO) (TagDTO, error)
 	GetTag(ctx context.Context, id int) (TagDTO, error)
 	UpdateTag(ctx context.Context, tag TagDTO) (TagDTO, error)

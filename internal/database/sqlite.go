@@ -69,8 +69,7 @@ var sqliteMigrations = []migration{
 // SQLiteDatabase is implementation of Database interface
 // for connecting to SQLite3 database.
 type SQLiteDatabase struct {
-	writer *dbbase
-	reader *dbbase
+	dbbase
 }
 
 // withTx executes the given function within a transaction.
@@ -123,7 +122,7 @@ func (db *SQLiteDatabase) withTxRetry(ctx context.Context, fn func(tx *sqlx.Tx) 
 // Init sets up the SQLite database with optimal settings for both reader and writer connections
 func (db *SQLiteDatabase) Init(ctx context.Context) error {
 	// Initialize both connections with appropriate settings
-	for _, conn := range []*dbbase{db.writer, db.reader} {
+	for _, conn := range []*sqlx.DB{db.WriterDB(), db.ReaderDB()} {
 		// Reuse connections for up to one hour
 		conn.SetConnMaxLifetime(time.Hour)
 
@@ -168,12 +167,12 @@ type bookmarkContent struct {
 
 // DBX returns the underlying sqlx.DB object for writes
 func (db *SQLiteDatabase) WriterDB() *sqlx.DB {
-	return db.writer.DB
+	return db.dbbase.WriterDB()
 }
 
 // ReaderDBx returns the underlying sqlx.DB object for reading
 func (db *SQLiteDatabase) ReaderDB() *sqlx.DB {
-	return db.reader.DB
+	return db.dbbase.ReaderDB()
 }
 
 // Migrate runs migrations for this database engine
@@ -1048,27 +1047,6 @@ func (db *SQLiteDatabase) RenameTag(ctx context.Context, id int, newName string)
 	}
 
 	return nil
-}
-
-// GetTags fetch list of tags and their frequency.
-func (db *SQLiteDatabase) GetTags(ctx context.Context) ([]model.TagDTO, error) {
-	sb := sqlbuilder.SQLite.NewSelectBuilder()
-	sb.Select("t.id", "t.name", "COUNT(bt.tag_id) AS bookmark_count")
-	sb.From("tag t")
-	sb.JoinWithOption(sqlbuilder.LeftJoin, "bookmark_tag bt", "bt.tag_id = t.id")
-	sb.GroupBy("t.id")
-	sb.OrderBy("t.name")
-
-	query, args := sb.Build()
-	query = db.ReaderDB().Rebind(query)
-
-	tags := []model.TagDTO{}
-	err := db.ReaderDB().SelectContext(ctx, &tags, query, args...)
-	if err != nil && err != sql.ErrNoRows {
-		return nil, fmt.Errorf("failed to get tags: %w", err)
-	}
-
-	return tags, nil
 }
 
 // GetTag fetch a tag by its ID.

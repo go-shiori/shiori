@@ -2,12 +2,14 @@ package database
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log"
 	"net/url"
 	"strings"
 
 	"github.com/go-shiori/shiori/internal/model"
+	"github.com/huandu/go-sqlbuilder"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 )
@@ -39,11 +41,25 @@ func Connect(ctx context.Context, dbURL string) (model.DB, error) {
 }
 
 type dbbase struct {
-	*sqlx.DB
+	flavor sqlbuilder.Flavor
+	reader *sqlx.DB
+	writer *sqlx.DB
+}
+
+func (db *dbbase) Flavor() sqlbuilder.Flavor {
+	return db.flavor
+}
+
+func (db *dbbase) ReaderDB() *sqlx.DB {
+	return db.reader
+}
+
+func (db *dbbase) WriterDB() *sqlx.DB {
+	return db.writer
 }
 
 func (db *dbbase) withTx(ctx context.Context, fn func(tx *sqlx.Tx) error) error {
-	tx, err := db.BeginTxx(ctx, nil)
+	tx, err := db.writer.BeginTxx(ctx, nil)
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -63,4 +79,33 @@ func (db *dbbase) withTx(ctx context.Context, fn func(tx *sqlx.Tx) error) error 
 	}
 
 	return err
+}
+
+func (db *dbbase) GetContext(ctx context.Context, dest any, query string, args ...any) error {
+	return db.reader.GetContext(ctx, dest, query, args...)
+}
+
+// Deprecated: Use SelectContext instead.
+func (db *dbbase) Select(dest any, query string, args ...any) error {
+	return db.reader.Select(dest, query, args...)
+}
+
+func (db *dbbase) SelectContext(ctx context.Context, dest any, query string, args ...any) error {
+	return db.reader.SelectContext(ctx, dest, query, args...)
+}
+
+func (db *dbbase) ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error) {
+	return db.writer.ExecContext(ctx, query, args...)
+}
+
+func (db *dbbase) MustBegin() *sqlx.Tx {
+	return db.writer.MustBegin()
+}
+
+func NewDBBase(reader, writer *sqlx.DB, flavor sqlbuilder.Flavor) dbbase {
+	return dbbase{
+		reader: reader,
+		writer: writer,
+		flavor: flavor,
+	}
 }

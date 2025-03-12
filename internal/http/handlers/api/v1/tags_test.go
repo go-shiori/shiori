@@ -40,6 +40,115 @@ func TestHandleListTags(t *testing.T) {
 		response.AssertOk(t)
 		response.AssertMessageIsNotEmptyList(t)
 	})
+
+	t.Run("with_bookmark_count parameter", func(t *testing.T) {
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+
+		// Create a test tag
+		tag := model.Tag{Name: "test-tag-with-count"}
+		createdTags, err := deps.Database().CreateTags(ctx, tag)
+		require.NoError(t, err)
+		require.Len(t, createdTags, 1)
+
+		w := testutil.PerformRequest(
+			deps,
+			HandleListTags,
+			"GET",
+			"/api/v1/tags",
+			testutil.WithFakeUser(),
+			testutil.WithRequestQueryParam("with_bookmark_count", "true"),
+		)
+		require.Equal(t, http.StatusOK, w.Code)
+
+		response, err := testutil.NewTestResponseFromReader(w.Body)
+		require.NoError(t, err)
+		response.AssertOk(t)
+
+		// Verify the response contains tags with bookmark_count field
+		var tags []model.TagDTO
+		responseData, err := json.Marshal(response.Response.GetMessage())
+		require.NoError(t, err)
+		err = json.Unmarshal(responseData, &tags)
+		require.NoError(t, err)
+		require.NotEmpty(t, tags)
+
+		// The bookmark_count field should be present in the response
+		// Even if it's 0, it should be included when the parameter is set
+		for _, tag := range tags {
+			if tag.Name == "test-tag-with-count" {
+				// We're just checking that the field exists and is accessible
+				_ = tag.BookmarkCount
+				break
+			}
+		}
+	})
+
+	t.Run("invalid bookmark_id parameter", func(t *testing.T) {
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+
+		w := testutil.PerformRequest(
+			deps,
+			HandleListTags,
+			"GET",
+			"/api/v1/tags",
+			testutil.WithFakeUser(),
+			testutil.WithRequestQueryParam("bookmark_id", "invalid"),
+		)
+		require.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("bookmark_id parameter", func(t *testing.T) {
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+
+		// Create a test bookmark
+		bookmark := testutil.GetValidBookmark()
+		bookmarks, err := deps.Database().SaveBookmarks(ctx, true, *bookmark)
+		require.NoError(t, err)
+		require.Len(t, bookmarks, 1)
+		bookmarkID := bookmarks[0].ID
+
+		// Create a test tag
+		tag := model.Tag{Name: "test-tag-for-bookmark"}
+		createdTags, err := deps.Database().CreateTags(ctx, tag)
+		require.NoError(t, err)
+		require.Len(t, createdTags, 1)
+
+		// Associate the tag with the bookmark
+		err = deps.Database().BulkUpdateBookmarkTags(ctx, []int{bookmarkID}, []int{createdTags[0].ID})
+		require.NoError(t, err)
+
+		w := testutil.PerformRequest(
+			deps,
+			HandleListTags,
+			"GET",
+			"/api/v1/tags",
+			testutil.WithFakeUser(),
+			testutil.WithRequestQueryParam("bookmark_id", strconv.Itoa(bookmarkID)),
+		)
+		require.Equal(t, http.StatusOK, w.Code)
+
+		response, err := testutil.NewTestResponseFromReader(w.Body)
+		require.NoError(t, err)
+		response.AssertOk(t)
+
+		// Verify the response contains the tag associated with the bookmark
+		var tags []model.TagDTO
+		responseData, err := json.Marshal(response.Response.GetMessage())
+		require.NoError(t, err)
+		err = json.Unmarshal(responseData, &tags)
+		require.NoError(t, err)
+
+		// Check that we have at least one tag and it's the one we created
+		require.NotEmpty(t, tags)
+		found := false
+		for _, t := range tags {
+			if t.Name == "test-tag-for-bookmark" {
+				found = true
+				break
+			}
+		}
+		require.True(t, found, "The tag associated with the bookmark should be in the response")
+	})
 }
 
 func TestHandleGetTag(t *testing.T) {

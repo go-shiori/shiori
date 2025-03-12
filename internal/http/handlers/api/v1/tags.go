@@ -15,6 +15,8 @@ import (
 // @Tags						Tags
 // @securityDefinitions.apikey	ApiKeyAuth
 // @Produce					json
+// @Param                      with_bookmark_count   query   boolean  false  "Include bookmark count for each tag"
+// @Param                      bookmark_id           query   integer  false  "Filter tags by bookmark ID"
 // @Success					200	{array}		model.TagDTO
 // @Failure					403	{object}	nil	"Authentication required"
 // @Failure					500	{object}	nil	"Internal server error"
@@ -24,7 +26,24 @@ func HandleListTags(deps model.Dependencies, c model.WebContext) {
 		return
 	}
 
-	tags, err := deps.Domains().Tags().ListTags(c.Request().Context())
+	// Parse query parameters
+	withBookmarkCount := c.Request().URL.Query().Get("with_bookmark_count") == "true"
+
+	var bookmarkID int
+	if bookmarkIDStr := c.Request().URL.Query().Get("bookmark_id"); bookmarkIDStr != "" {
+		var err error
+		bookmarkID, err = strconv.Atoi(bookmarkIDStr)
+		if err != nil {
+			response.SendError(c, http.StatusBadRequest, "Invalid bookmark ID", nil)
+			return
+		}
+	}
+
+	tags, err := deps.Domains().Tags().ListTags(c.Request().Context(), model.ListTagsOptions{
+		WithBookmarkCount: withBookmarkCount,
+		BookmarkID:        bookmarkID,
+		OrderBy:           model.DBTagOrderByTagName,
+	})
 	if err != nil {
 		deps.Logger().WithError(err).Error("failed to get tags")
 		response.SendInternalServerError(c)

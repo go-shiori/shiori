@@ -16,8 +16,8 @@ func NewTagsDomain(deps model.Dependencies) model.TagsDomain {
 	return &tagsDomain{deps: deps}
 }
 
-func (d *tagsDomain) ListTags(ctx context.Context) ([]model.TagDTO, error) {
-	tags, err := d.deps.Database().GetTags(ctx)
+func (d *tagsDomain) ListTags(ctx context.Context, opts model.ListTagsOptions) ([]model.TagDTO, error) {
+	tags, err := d.deps.Database().GetTags(ctx, model.DBListTagsOptions(opts))
 	if err != nil {
 		return nil, err
 	}

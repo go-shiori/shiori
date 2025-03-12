@@ -87,18 +87,8 @@ func OpenMySQLDatabase(ctx context.Context, connString string) (mysqlDB *MySQLDa
 	db.SetMaxOpenConns(100)
 	db.SetConnMaxLifetime(time.Second) // in case mysql client has longer timeout (driver issue #674)
 
-	mysqlDB = &MySQLDatabase{dbbase: dbbase{db}}
+	mysqlDB = &MySQLDatabase{dbbase: NewDBBase(db, db, sqlbuilder.MySQL)}
 	return mysqlDB, err
-}
-
-// WriterDB returns the underlying sqlx.DB object
-func (db *MySQLDatabase) WriterDB() *sqlx.DB {
-	return db.DB
-}
-
-// ReaderDB returns the underlying sqlx.DB object
-func (db *MySQLDatabase) ReaderDB() *sqlx.DB {
-	return db.DB
 }
 
 // Init initializes the database
@@ -870,27 +860,6 @@ func (db *MySQLDatabase) RenameTag(ctx context.Context, id int, newName string) 
 	}
 
 	return nil
-}
-
-// GetTags fetch list of tags and their frequency.
-func (db *MySQLDatabase) GetTags(ctx context.Context) ([]model.TagDTO, error) {
-	sb := sqlbuilder.MySQL.NewSelectBuilder()
-	sb.Select("t.id", "t.name", "COUNT(bt.tag_id) AS bookmark_count")
-	sb.From("tag t")
-	sb.JoinWithOption(sqlbuilder.LeftJoin, "bookmark_tag bt", "bt.tag_id = t.id")
-	sb.GroupBy("t.id")
-	sb.OrderBy("t.name")
-
-	query, args := sb.Build()
-	query = db.ReaderDB().Rebind(query)
-
-	tags := []model.TagDTO{}
-	err := db.ReaderDB().SelectContext(ctx, &tags, query, args...)
-	if err != nil && err != sql.ErrNoRows {
-		return nil, fmt.Errorf("failed to get tags: %w", err)
-	}
-
-	return tags, nil
 }
 
 // GetTag fetch a tag by its ID.
