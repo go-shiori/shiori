@@ -35,10 +35,11 @@ func testDatabase(t *testing.T, dbFactory testDatabaseFactory) {
 		"testSaveBookmark":                      testSaveBookmark,
 		"testBulkUpdateBookmarkTags":            testBulkUpdateBookmarkTags,
 		// Tags
-		"testCreateTag":            testCreateTag,
-		"testCreateTags":           testCreateTags,
-		"testGetTags":              testGetTags,
-		"testGetTagsBookmarkCount": testGetTagsBookmarkCount,
+		"testCreateTag":       testCreateTag,
+		"testCreateTags":      testCreateTags,
+		"testGetTags":         testGetTags,
+		"testGetTagsFunction": testGetTagsFunction,
+		// "testGetTagsBookmarkCount": testGetTagsBookmarkCount,
 		"testGetTag":               testGetTag,
 		"testGetTagNotExistent":    testGetTagNotExistent,
 		"testUpdateTag":            testUpdateTag,
@@ -947,170 +948,6 @@ func testDeleteTagNotExistent(t *testing.T, db model.DB) {
 	err := db.DeleteTag(ctx, 9999)
 	require.Error(t, err)
 	assert.ErrorIs(t, err, ErrNotFound, "Error should be ErrNotFound")
-}
-
-func testGetTagsBookmarkCount(t *testing.T, db model.DB) {
-	ctx := context.TODO()
-
-	// Create test tags
-	tags := []model.Tag{
-		{Name: "tag1-count"},
-		{Name: "tag2-count"},
-	}
-
-	_, err := db.CreateTags(ctx, model.Tag{Name: "tag3-count"})
-	require.NoError(t, err)
-
-	// Create bookmarks with different tag combinations
-	bookmark1 := model.BookmarkDTO{
-		URL:   "https://example1.com",
-		Title: "Example 1",
-		Tags: []model.TagDTO{
-			{Tag: model.Tag{Name: tags[0].Name}}, // tag1
-			{Tag: model.Tag{Name: tags[1].Name}}, // tag2
-		},
-	}
-
-	bookmark2 := model.BookmarkDTO{
-		URL:   "https://example2.com",
-		Title: "Example 2",
-		Tags: []model.TagDTO{
-			{Tag: model.Tag{Name: tags[0].Name}}, // tag1
-		},
-	}
-
-	bookmark3 := model.BookmarkDTO{
-		URL:   "https://example3.com",
-		Title: "Example 3",
-		Tags: []model.TagDTO{
-			{Tag: model.Tag{Name: tags[1].Name}}, // tag2
-		},
-	}
-
-	// Save bookmarks
-	bookmarks, err := db.SaveBookmarks(ctx, true, bookmark1, bookmark2, bookmark3)
-	require.NoError(t, err)
-
-	t.Run("GetBookmarks", func(t *testing.T) {
-		result, err := db.GetBookmarks(ctx, model.DBGetBookmarksOptions{
-			Tags: []string{tags[0].Name},
-		})
-		require.NoError(t, err)
-		require.NotEmpty(t, result)
-	})
-
-	t.Run("GetTag", func(t *testing.T) {
-		tag, exists, err := db.GetTag(ctx, bookmarks[0].Tags[0].ID)
-		require.NoError(t, err)
-		require.True(t, exists)
-		assert.Equal(t, tags[0].Name, tag.Name)
-		assert.Equal(t, int64(2), tag.BookmarkCount)
-	})
-
-	// Test GetTags
-	t.Run("GetTagsWithBookmarkCount", func(t *testing.T) {
-		fetchedTags, err := db.GetTags(ctx, model.DBListTagsOptions{
-			WithBookmarkCount: true,
-		})
-		require.NoError(t, err)
-		require.GreaterOrEqual(t, len(fetchedTags), 3)
-
-		// Create a map of tag name to bookmark count
-		tagCounts := make(map[string]int64)
-		for _, tag := range fetchedTags {
-			tagCounts[tag.Name] = tag.BookmarkCount
-		}
-
-		// Verify counts
-		assert.Equal(t, int64(2), tagCounts["tag1-count"])
-		assert.Equal(t, int64(2), tagCounts["tag2-count"])
-		assert.Equal(t, int64(0), tagCounts["tag3-count"])
-	})
-
-	// Test count updates after bookmark deletion
-	t.Run("CountAfterDeletion", func(t *testing.T) {
-		// Get the first bookmark that has tag1
-		bookmarks, err := db.GetBookmarks(ctx, model.DBGetBookmarksOptions{
-			Tags: []string{tags[0].Name},
-		})
-		require.NoError(t, err)
-		require.NotEmpty(t, bookmarks)
-		require.NotEmpty(t, bookmarks[0].Tags)
-
-		tagID := bookmarks[0].Tags[0].ID
-
-		// Delete the first bookmark
-		err = db.DeleteBookmarks(ctx, bookmarks[0].ID)
-		require.NoError(t, err)
-
-		// Verify updated counts
-		tag1, exists, err := db.GetTag(ctx, tagID)
-		require.NoError(t, err)
-		require.True(t, exists)
-		assert.Equal(t, int64(1), tag1.BookmarkCount, "tag1-count should have 1 bookmark after deletion")
-	})
-
-	// Test filtering tags by bookmark ID
-	t.Run("FilterByBookmarkID", func(t *testing.T) {
-		// Find a bookmark with multiple tags
-		var bookmarkWithMultipleTags model.BookmarkDTO
-		for _, b := range bookmarks {
-			if len(b.Tags) > 1 {
-				bookmarkWithMultipleTags = b
-				break
-			}
-		}
-		require.NotZero(t, bookmarkWithMultipleTags.ID, "Should find a bookmark with multiple tags")
-
-		// Get tags for this specific bookmark
-		fetchedTags, err := db.GetTags(ctx, model.DBListTagsOptions{
-			BookmarkID: bookmarkWithMultipleTags.ID,
-		})
-		require.NoError(t, err)
-		require.NotEmpty(t, fetchedTags)
-
-		// Verify that the number of tags matches what's in the bookmark
-		assert.Equal(t, len(bookmarkWithMultipleTags.Tags), len(fetchedTags),
-			"Number of tags returned should match the bookmark's tags")
-
-		// Verify that all tags in the bookmark are present in the result
-		tagMap := make(map[int]bool)
-		for _, tag := range fetchedTags {
-			tagMap[tag.ID] = true
-		}
-
-		for _, bookmarkTag := range bookmarkWithMultipleTags.Tags {
-			assert.True(t, tagMap[bookmarkTag.ID],
-				"Tag ID %d from bookmark should be in the filtered results", bookmarkTag.ID)
-		}
-	})
-
-	// Test combining both options
-	t.Run("CombineOptions", func(t *testing.T) {
-		// Find a bookmark with tags
-		var bookmarkWithTags model.BookmarkDTO
-		for _, b := range bookmarks {
-			if len(b.Tags) > 0 {
-				bookmarkWithTags = b
-				break
-			}
-		}
-		require.NotZero(t, bookmarkWithTags.ID, "Should find a bookmark with tags")
-
-		// Get tags for this specific bookmark with counts
-		fetchedTags, err := db.GetTags(ctx, model.DBListTagsOptions{
-			BookmarkID:        bookmarkWithTags.ID,
-			WithBookmarkCount: true,
-		})
-		require.NoError(t, err)
-		require.NotEmpty(t, fetchedTags)
-
-		// Verify that all returned tags have a bookmark count
-		for _, tag := range fetchedTags {
-			assert.GreaterOrEqual(t, tag.BookmarkCount, int64(1),
-				"Tag should have at least 1 bookmark count")
-		}
-	})
 }
 
 func testSaveBookmark(t *testing.T, db model.DB) {

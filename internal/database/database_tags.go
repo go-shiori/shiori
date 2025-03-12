@@ -59,7 +59,7 @@ func (db *dbbase) GetTags(ctx context.Context, opts model.DBListTagsOptions) ([]
 
 	slog.Info("GetTags query", "query", query, "args", args)
 
-	tags := []model.TagDTO{}
+	var tags []model.TagDTO
 	err := db.ReaderDB().SelectContext(ctx, &tags, query, args...)
 	if err != nil && err != sql.ErrNoRows {
 		return nil, fmt.Errorf("failed to get tags: %w", err)
