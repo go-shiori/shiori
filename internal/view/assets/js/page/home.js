@@ -81,7 +81,7 @@ var template = `
         <a @click="filterTag('*')">(all tagged)</a>
         <a @click="filterTag('*', true)">(all untagged)</a>
         <a v-for="tag in tags" @click="dialogTagClicked($event, tag)">
-            #{{tag.name}}<span>{{tag.nBookmarks}}</span>
+            #{{tag.name}}<span>{{tag.bookmark_count}}</span>
         </a>
     </custom-dialog>
     <custom-dialog v-bind="dialog"/>
@@ -257,7 +257,7 @@ export default {
 
 					// Fetch tags if requested
 					if (fetchTags) {
-						return fetch(new URL("api/v1/tags", document.baseURI), {
+						return fetch(new URL("api/v1/tags?with_bookmark_count=true", document.baseURI), {
 							headers: {
 								"Content-Type": "application/json",
 								Authorization: "Bearer " + localStorage.getItem("shiori-token"),
