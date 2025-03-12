@@ -417,6 +417,20 @@ const docTemplate = `{
                     "Tags"
                 ],
                 "summary": "List tags",
+                "parameters": [
+                    {
+                        "type": "boolean",
+                        "description": "Include bookmark count for each tag",
+                        "name": "with_bookmark_count",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Filter tags by bookmark ID",
+                        "name": "bookmark_id",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",

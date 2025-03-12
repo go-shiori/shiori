@@ -52,7 +52,7 @@ func mysqlTestDatabaseFactory(envKey string) testDatabaseFactory {
 			return nil, err
 		}
 
-		if _, err := db.Exec("USE " + dbname); err != nil {
+		if _, err := db.ExecContext(ctx, "USE "+dbname); err != nil {
 			return nil, err
 		}
 

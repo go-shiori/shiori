@@ -25,7 +25,7 @@ func postgresqlTestDatabaseFactory(_ *testing.T, ctx context.Context) (model.DB,
 		return nil, err
 	}
 
-	_, err = db.Exec("DROP SCHEMA public CASCADE; CREATE SCHEMA public;")
+	_, err = db.ExecContext(ctx, "DROP SCHEMA public CASCADE; CREATE SCHEMA public;")
 	if err != nil {
 		return nil, err
 	}

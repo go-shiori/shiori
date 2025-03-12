@@ -34,3 +34,10 @@ func (t *TagDTO) ToTag() Tag {
 		Name: t.Name,
 	}
 }
+
+// ListTagsOptions is options for fetching tags from database.
+type ListTagsOptions struct {
+	BookmarkID        int
+	WithBookmarkCount bool
+	OrderBy           DBTagOrderBy
+}

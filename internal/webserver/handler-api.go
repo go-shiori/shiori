@@ -131,7 +131,9 @@ func (h *Handler) ApiGetTags(w http.ResponseWriter, r *http.Request, ps httprout
 	checkError(err)
 
 	// Fetch all tags
-	tags, err := h.DB.GetTags(ctx)
+	tags, err := h.DB.GetTags(ctx, model.DBListTagsOptions{
+		WithBookmarkCount: true,
+	})
 	checkError(err)
 
 	w.Header().Set("Content-Type", "application/json")

@@ -61,9 +61,19 @@ func WithFakeAccount(isAdmin bool) Option {
 	}
 }
 
+// WithRequestPathValue adds a path value to the request
 func WithRequestPathValue(key, value string) Option {
 	return func(c model.WebContext) {
 		c.Request().SetPathValue(key, value)
+	}
+}
+
+// WithRequestQueryParam adds a query parameter to the request
+func WithRequestQueryParam(key, value string) Option {
+	return func(c model.WebContext) {
+		q := c.Request().URL.Query()
+		q.Add(key, value)
+		c.Request().URL.RawQuery = q.Encode()
 	}
 }
 

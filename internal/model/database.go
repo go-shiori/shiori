@@ -6,6 +6,8 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+type DBID int
+
 // DB is interface for accessing and manipulating data in database.
 type DB interface {
 	// WriterDB is the underlying sqlx.DB
@@ -13,6 +15,9 @@ type DB interface {
 
 	// ReaderDB is the underlying sqlx.DB
 	ReaderDB() *sqlx.DB
+
+	// Flavor is the flavor of the database
+	// Flavor() sqlbuilder.Flavor
 
 	// Init initializes the database
 	Init(ctx context.Context) error
@@ -67,7 +72,7 @@ type DB interface {
 	CreateTag(ctx context.Context, tag Tag) (Tag, error)
 
 	// GetTags fetch list of tags and its frequency from database.
-	GetTags(ctx context.Context) ([]TagDTO, error)
+	GetTags(ctx context.Context, opts DBListTagsOptions) ([]TagDTO, error)
 
 	// RenameTag change the name of a tag.
 	RenameTag(ctx context.Context, id int, newName string) error
@@ -122,8 +127,15 @@ type DBListAccountsOptions struct {
 	WithPassword bool
 }
 
+type DBTagOrderBy string
+
+const (
+	DBTagOrderByTagName DBTagOrderBy = "name"
+)
+
 // DBListTagsOptions is options for fetching tags from database.
 type DBListTagsOptions struct {
 	BookmarkID        int
 	WithBookmarkCount bool
+	OrderBy           DBTagOrderBy
 }

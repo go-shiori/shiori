@@ -35,13 +35,132 @@ func TestTagsDomain(t *testing.T) {
 		require.Len(t, createdTags, 2)
 
 		// List the tags
-		tags, err := tagsDomain.ListTags(ctx)
+		tags, err := tagsDomain.ListTags(ctx, model.ListTagsOptions{})
 		require.NoError(t, err)
 		require.Len(t, tags, 2)
 
 		// Verify the tags
 		assert.Equal(t, "tag1", tags[0].Name)
 		assert.Equal(t, "tag2", tags[1].Name)
+	})
+
+	// Test ListTags with WithBookmarkCount
+	t.Run("ListTags_WithBookmarkCount", func(t *testing.T) {
+		// Create a test tag
+		tag := model.Tag{Name: "tag-with-count"}
+		createdTags, err := db.CreateTags(ctx, tag)
+		require.NoError(t, err)
+		require.Len(t, createdTags, 1)
+
+		// Create a bookmark with this tag
+		bookmark := model.BookmarkDTO{
+			URL:   "https://example-count.com",
+			Title: "Example for Count",
+			Tags: []model.TagDTO{
+				{Tag: model.Tag{Name: tag.Name}},
+			},
+		}
+		_, err = db.SaveBookmarks(ctx, true, bookmark)
+		require.NoError(t, err)
+
+		// List tags with bookmark count
+		tags, err := tagsDomain.ListTags(ctx, model.ListTagsOptions{
+			WithBookmarkCount: true,
+		})
+		require.NoError(t, err)
+		require.NotEmpty(t, tags)
+
+		// Find our test tag and verify it has a bookmark count
+		var foundTag model.TagDTO
+		for _, t := range tags {
+			if t.Name == tag.Name {
+				foundTag = t
+				break
+			}
+		}
+
+		require.NotZero(t, foundTag.ID, "Should find the test tag")
+		assert.Equal(t, int64(1), foundTag.BookmarkCount, "Tag should have a bookmark count of 1")
+	})
+
+	// Test ListTags with BookmarkID
+	t.Run("ListTags_WithBookmarkID", func(t *testing.T) {
+		// Create test tags
+		testTags := []model.Tag{
+			{Name: "tag-for-bookmark1"},
+			{Name: "tag-for-bookmark2"},
+		}
+		createdTags, err := db.CreateTags(ctx, testTags...)
+		require.NoError(t, err)
+		require.Len(t, createdTags, 2)
+
+		// Create bookmarks with different tags
+		bookmark1 := model.BookmarkDTO{
+			URL:   "https://example-bookmark1.com",
+			Title: "Example Bookmark 1",
+			Tags: []model.TagDTO{
+				{Tag: model.Tag{Name: testTags[0].Name}},
+			},
+		}
+
+		bookmark2 := model.BookmarkDTO{
+			URL:   "https://example-bookmark2.com",
+			Title: "Example Bookmark 2",
+			Tags: []model.TagDTO{
+				{Tag: model.Tag{Name: testTags[1].Name}},
+			},
+		}
+
+		savedBookmarks, err := db.SaveBookmarks(ctx, true, bookmark1, bookmark2)
+		require.NoError(t, err)
+		require.Len(t, savedBookmarks, 2)
+
+		// Get tags for the first bookmark
+		tags, err := tagsDomain.ListTags(ctx, model.ListTagsOptions{
+			BookmarkID: savedBookmarks[0].ID,
+		})
+		require.NoError(t, err)
+		require.Len(t, tags, 1, "Should return exactly one tag for the bookmark")
+		assert.Equal(t, testTags[0].Name, tags[0].Name, "Should return the correct tag for the bookmark")
+
+		// Get tags for the second bookmark
+		tags, err = tagsDomain.ListTags(ctx, model.ListTagsOptions{
+			BookmarkID: savedBookmarks[1].ID,
+		})
+		require.NoError(t, err)
+		require.Len(t, tags, 1, "Should return exactly one tag for the bookmark")
+		assert.Equal(t, testTags[1].Name, tags[0].Name, "Should return the correct tag for the bookmark")
+	})
+
+	// Test ListTags with both options
+	t.Run("ListTags_WithBothOptions", func(t *testing.T) {
+		// Create a test tag
+		tag := model.Tag{Name: "tag-with-both-options"}
+		createdTags, err := db.CreateTags(ctx, tag)
+		require.NoError(t, err)
+		require.Len(t, createdTags, 1)
+
+		// Create a bookmark with this tag
+		bookmark := model.BookmarkDTO{
+			URL:   "https://example-both-options.com",
+			Title: "Example for Both Options",
+			Tags: []model.TagDTO{
+				{Tag: model.Tag{Name: tag.Name}},
+			},
+		}
+		savedBookmarks, err := db.SaveBookmarks(ctx, true, bookmark)
+		require.NoError(t, err)
+		require.Len(t, savedBookmarks, 1)
+
+		// List tags with both options
+		tags, err := tagsDomain.ListTags(ctx, model.ListTagsOptions{
+			BookmarkID:        savedBookmarks[0].ID,
+			WithBookmarkCount: true,
+		})
+		require.NoError(t, err)
+		require.Len(t, tags, 1, "Should return exactly one tag")
+		assert.Equal(t, tag.Name, tags[0].Name, "Should return the correct tag")
+		assert.Equal(t, int64(1), tags[0].BookmarkCount, "Tag should have a bookmark count of 1")
 	})
 
 	// Test CreateTag
@@ -59,9 +178,9 @@ func TestTagsDomain(t *testing.T) {
 		assert.Greater(t, createdTag.ID, 0, "The created tag should have a valid ID")
 
 		// Verify the tag was created in the database
-		allTags, err := db.GetTags(ctx)
+		allTags, err := db.GetTags(ctx, model.DBListTagsOptions{})
 		require.NoError(t, err)
-		require.Len(t, allTags, 3) // 2 from previous test + 1 new
+		require.GreaterOrEqual(t, len(allTags), 1) // At least our new tag
 
 		// Find the created tag in the list
 		var found bool
@@ -78,7 +197,7 @@ func TestTagsDomain(t *testing.T) {
 	// Test GetTag - Success
 	t.Run("GetTag_Success", func(t *testing.T) {
 		// Get all tags to find an ID
-		allTags, err := db.GetTags(ctx)
+		allTags, err := db.GetTags(ctx, model.DBListTagsOptions{})
 		require.NoError(t, err)
 		require.NotEmpty(t, allTags)
 
@@ -102,7 +221,7 @@ func TestTagsDomain(t *testing.T) {
 	// Test UpdateTag
 	t.Run("UpdateTag", func(t *testing.T) {
 		// Get all tags to find an ID
-		allTags, err := db.GetTags(ctx)
+		allTags, err := db.GetTags(ctx, model.DBListTagsOptions{})
 		require.NoError(t, err)
 		require.NotEmpty(t, allTags)
 
@@ -131,7 +250,7 @@ func TestTagsDomain(t *testing.T) {
 	// Test DeleteTag
 	t.Run("DeleteTag", func(t *testing.T) {
 		// Get all tags to find an ID
-		allTags, err := db.GetTags(ctx)
+		allTags, err := db.GetTags(ctx, model.DBListTagsOptions{})
 		require.NoError(t, err)
 		require.NotEmpty(t, allTags)
 

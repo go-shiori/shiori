@@ -89,18 +89,8 @@ func OpenPGDatabase(ctx context.Context, connString string) (pgDB *PGDatabase, e
 	db.SetMaxOpenConns(100)
 	db.SetConnMaxLifetime(time.Second)
 
-	pgDB = &PGDatabase{dbbase: dbbase{db}}
+	pgDB = &PGDatabase{dbbase: NewDBBase(db, db, sqlbuilder.PostgreSQL)}
 	return pgDB, err
-}
-
-// WriterDB returns the underlying sqlx.DB object
-func (db *PGDatabase) WriterDB() *sqlx.DB {
-	return db.DB
-}
-
-// ReaderDB returns the underlying sqlx.DB object
-func (db *PGDatabase) ReaderDB() *sqlx.DB {
-	return db.DB
 }
 
 // Init initializes the database
@@ -398,7 +388,7 @@ func (db *PGDatabase) GetBookmarks(ctx context.Context, opts model.DBGetBookmark
 	if err != nil {
 		return nil, fmt.Errorf("failed to expand query: %v", err)
 	}
-	query = db.Rebind(query)
+	query = db.ReaderDB().Rebind(query)
 
 	// Fetch bookmarks
 	bookmarks := []model.BookmarkDTO{}
@@ -408,7 +398,7 @@ func (db *PGDatabase) GetBookmarks(ctx context.Context, opts model.DBGetBookmark
 	}
 
 	// Fetch tags for each bookmarks
-	stmtGetTags, err := db.PreparexContext(ctx, `SELECT t.id, t.name
+	stmtGetTags, err := db.ReaderDB().PreparexContext(ctx, `SELECT t.id, t.name
 		FROM bookmark_tag bt
 		LEFT JOIN tag t ON bt.tag_id = t.id
 		WHERE bt.bookmark_id = $1
@@ -521,7 +511,7 @@ func (db *PGDatabase) GetBookmarksCount(ctx context.Context, opts model.DBGetBoo
 	if err != nil {
 		return 0, errors.WithStack(err)
 	}
-	query = db.Rebind(query)
+	query = db.ReaderDB().Rebind(query)
 
 	// Fetch count
 	var nBookmarks int
@@ -897,27 +887,6 @@ func (db *PGDatabase) RenameTag(ctx context.Context, id int, newName string) err
 	}
 
 	return nil
-}
-
-// GetTags fetch list of tags and their frequency.
-func (db *PGDatabase) GetTags(ctx context.Context) ([]model.TagDTO, error) {
-	sb := sqlbuilder.PostgreSQL.NewSelectBuilder()
-	sb.Select("t.id", "t.name", "COUNT(bt.tag_id) bookmark_count")
-	sb.From("tag t")
-	sb.JoinWithOption(sqlbuilder.LeftJoin, "bookmark_tag bt", "bt.tag_id = t.id")
-	sb.GroupBy("t.id")
-	sb.OrderBy("t.name")
-
-	query, args := sb.Build()
-	query = db.ReaderDB().Rebind(query)
-
-	tags := []model.TagDTO{}
-	err := db.ReaderDB().SelectContext(ctx, &tags, query, args...)
-	if err != nil && err != sql.ErrNoRows {
-		return nil, fmt.Errorf("failed to get tags: %w", err)
-	}
-
-	return tags, nil
 }
 
 // GetTag fetch a tag by its ID.
