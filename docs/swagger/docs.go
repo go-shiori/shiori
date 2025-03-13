@@ -384,6 +384,96 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/bookmarks/{id}/tags": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Get tags for a bookmark.",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.TagDTO"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Token not provided/invalid"
+                    },
+                    "404": {
+                        "description": "Bookmark not found"
+                    }
+                }
+            },
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Add a tag to a bookmark.",
+                "parameters": [
+                    {
+                        "description": "Add Tag Payload",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api_v1.bookmarkTagPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "403": {
+                        "description": "Token not provided/invalid"
+                    },
+                    "404": {
+                        "description": "Bookmark or tag not found"
+                    }
+                }
+            },
+            "delete": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Remove a tag from a bookmark.",
+                "parameters": [
+                    {
+                        "description": "Remove Tag Payload",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api_v1.bookmarkTagPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "403": {
+                        "description": "Token not provided/invalid"
+                    },
+                    "404": {
+                        "description": "Bookmark not found"
+                    }
+                }
+            }
+        },
         "/api/v1/system/info": {
             "get": {
                 "description": "Get general system information like Shiori version, database, and OS",
@@ -428,6 +518,12 @@ const docTemplate = `{
                         "type": "integer",
                         "description": "Filter tags by bookmark ID",
                         "name": "bookmark_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search tags by name",
+                        "name": "search",
                         "in": "query"
                     }
                 ],
@@ -612,6 +708,17 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "api_v1.bookmarkTagPayload": {
+            "type": "object",
+            "required": [
+                "tag_id"
+            ],
+            "properties": {
+                "tag_id": {
+                    "type": "integer"
+                }
+            }
+        },
         "api_v1.bulkUpdateBookmarkTagsPayload": {
             "type": "object",
             "required": [

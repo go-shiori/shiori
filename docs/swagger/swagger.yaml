@@ -1,4 +1,11 @@
 definitions:
+  api_v1.bookmarkTagPayload:
+    properties:
+      tag_id:
+        type: integer
+    required:
+    - tag_id
+    type: object
   api_v1.bulkUpdateBookmarkTagsPayload:
     properties:
       bookmark_ids:
@@ -360,6 +367,64 @@ paths:
       summary: Refresh a token for an account
       tags:
       - Auth
+  /api/v1/bookmarks/{id}/tags:
+    delete:
+      parameters:
+      - description: Remove Tag Payload
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/api_v1.bookmarkTagPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "403":
+          description: Token not provided/invalid
+        "404":
+          description: Bookmark not found
+      summary: Remove a tag from a bookmark.
+      tags:
+      - Auth
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.TagDTO'
+            type: array
+        "403":
+          description: Token not provided/invalid
+        "404":
+          description: Bookmark not found
+      summary: Get tags for a bookmark.
+      tags:
+      - Auth
+    post:
+      parameters:
+      - description: Add Tag Payload
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/api_v1.bookmarkTagPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "403":
+          description: Token not provided/invalid
+        "404":
+          description: Bookmark or tag not found
+      summary: Add a tag to a bookmark.
+      tags:
+      - Auth
   /api/v1/bookmarks/bulk/tags:
     put:
       parameters:
@@ -450,6 +515,10 @@ paths:
         in: query
         name: bookmark_id
         type: integer
+      - description: Search tags by name
+        in: query
+        name: search
+        type: string
       produces:
       - application/json
       responses:
