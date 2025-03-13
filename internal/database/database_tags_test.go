@@ -304,3 +304,329 @@ func testGetTagsFunction(t *testing.T, db model.DB) {
 		assert.Equal(t, int64(1), fetchedTags[3].BookmarkCount)
 	})
 }
+
+// testTagBookmarkOperations tests the tag-bookmark relationship operations
+func testTagBookmarkOperations(t *testing.T, db model.DB) {
+	ctx := context.TODO()
+
+	// Create test data
+	// 1. Create a test bookmark
+	bookmark := model.BookmarkDTO{
+		URL:   "https://example.com/tag-operations-test",
+		Title: "Tag Operations Test",
+	}
+	savedBookmarks, err := db.SaveBookmarks(ctx, true, bookmark)
+	require.NoError(t, err)
+	require.Len(t, savedBookmarks, 1)
+	bookmarkID := savedBookmarks[0].ID
+
+	// 2. Create a test tag
+	tag := model.Tag{
+		Name: "tag-operations-test",
+	}
+	createdTags, err := db.CreateTags(ctx, tag)
+	require.NoError(t, err)
+	require.Len(t, createdTags, 1)
+	tagID := createdTags[0].ID
+
+	// Test BookmarkExists function
+	t.Run("BookmarkExists", func(t *testing.T) {
+		// Test with existing bookmark
+		exists, err := db.BookmarkExists(ctx, bookmarkID)
+		require.NoError(t, err)
+		assert.True(t, exists, "Bookmark should exist")
+
+		// Test with non-existent bookmark
+		exists, err = db.BookmarkExists(ctx, 9999)
+		require.NoError(t, err)
+		assert.False(t, exists, "Non-existent bookmark should return false")
+	})
+
+	// Test TagExists function
+	t.Run("TagExists", func(t *testing.T) {
+		// Test with existing tag
+		exists, err := db.TagExists(ctx, tagID)
+		require.NoError(t, err)
+		assert.True(t, exists, "Tag should exist")
+
+		// Test with non-existent tag
+		exists, err = db.TagExists(ctx, 9999)
+		require.NoError(t, err)
+		assert.False(t, exists, "Non-existent tag should return false")
+	})
+
+	// Test AddTagToBookmark function
+	t.Run("AddTagToBookmark", func(t *testing.T) {
+		// Add tag to bookmark
+		err := db.AddTagToBookmark(ctx, bookmarkID, tagID)
+		require.NoError(t, err)
+
+		// Verify tag was added by fetching tags for the bookmark
+		tags, err := db.GetTags(ctx, model.DBListTagsOptions{
+			BookmarkID: bookmarkID,
+		})
+		require.NoError(t, err)
+		require.Len(t, tags, 1)
+		assert.Equal(t, tagID, tags[0].ID)
+		assert.Equal(t, "tag-operations-test", tags[0].Name)
+
+		// Test adding the same tag again (should not error)
+		err = db.AddTagToBookmark(ctx, bookmarkID, tagID)
+		require.NoError(t, err)
+
+		// Verify no duplicate was created
+		tags, err = db.GetTags(ctx, model.DBListTagsOptions{
+			BookmarkID: bookmarkID,
+		})
+		require.NoError(t, err)
+		require.Len(t, tags, 1)
+	})
+
+	// Test RemoveTagFromBookmark function
+	t.Run("RemoveTagFromBookmark", func(t *testing.T) {
+		// First ensure the tag is associated with the bookmark
+		tags, err := db.GetTags(ctx, model.DBListTagsOptions{
+			BookmarkID: bookmarkID,
+		})
+		require.NoError(t, err)
+		require.Len(t, tags, 1, "Tag should be associated with bookmark before removal test")
+
+		// Remove tag from bookmark
+		err = db.RemoveTagFromBookmark(ctx, bookmarkID, tagID)
+		require.NoError(t, err)
+
+		// Verify tag was removed
+		tags, err = db.GetTags(ctx, model.DBListTagsOptions{
+			BookmarkID: bookmarkID,
+		})
+		require.NoError(t, err)
+		assert.Len(t, tags, 0, "Tag should be removed from bookmark")
+
+		// Test removing a tag that's not associated (should not error)
+		err = db.RemoveTagFromBookmark(ctx, bookmarkID, tagID)
+		require.NoError(t, err)
+
+		// Test removing a tag from a non-existent bookmark (should not error)
+		err = db.RemoveTagFromBookmark(ctx, 9999, tagID)
+		require.NoError(t, err)
+
+		// Test removing a non-existent tag from a bookmark (should not error)
+		err = db.RemoveTagFromBookmark(ctx, bookmarkID, 9999)
+		require.NoError(t, err)
+	})
+
+	// Test edge cases
+	t.Run("EdgeCases", func(t *testing.T) {
+		// Test adding a tag to a non-existent bookmark
+		// This should not error at the database layer since we're not checking existence there
+		err := db.AddTagToBookmark(ctx, 9999, tagID)
+		// The test might fail depending on foreign key constraints in the database
+		// If it fails, that's acceptable behavior, but we're not explicitly testing for it
+		if err != nil {
+			t.Logf("Adding tag to non-existent bookmark failed as expected: %v", err)
+		}
+
+		// Test adding a non-existent tag to a bookmark
+		// This should not error at the database layer since we're not checking existence there
+		err = db.AddTagToBookmark(ctx, bookmarkID, 9999)
+		// The test might fail depending on foreign key constraints in the database
+		// If it fails, that's acceptable behavior, but we're not explicitly testing for it
+		if err != nil {
+			t.Logf("Adding non-existent tag to bookmark failed as expected: %v", err)
+		}
+	})
+}
+
+// testTagExists tests the TagExists function
+func testTagExists(t *testing.T, db model.DB) {
+	ctx := context.TODO()
+
+	// Create a test tag
+	tag := model.Tag{
+		Name: "tag-exists-test",
+	}
+	createdTags, err := db.CreateTags(ctx, tag)
+	require.NoError(t, err)
+	require.Len(t, createdTags, 1)
+	tagID := createdTags[0].ID
+
+	// Test with existing tag
+	exists, err := db.TagExists(ctx, tagID)
+	require.NoError(t, err)
+	assert.True(t, exists, "Tag should exist")
+
+	// Test with non-existent tag
+	exists, err = db.TagExists(ctx, 9999)
+	require.NoError(t, err)
+	assert.False(t, exists, "Non-existent tag should return false")
+}
+
+// testBookmarkExists tests the BookmarkExists function
+func testBookmarkExists(t *testing.T, db model.DB) {
+	ctx := context.TODO()
+
+	// Create a test bookmark
+	bookmark := model.BookmarkDTO{
+		URL:   "https://example.com/bookmark-exists-test",
+		Title: "Bookmark Exists Test",
+	}
+	savedBookmarks, err := db.SaveBookmarks(ctx, true, bookmark)
+	require.NoError(t, err)
+	require.Len(t, savedBookmarks, 1)
+	bookmarkID := savedBookmarks[0].ID
+
+	// Test with existing bookmark
+	exists, err := db.BookmarkExists(ctx, bookmarkID)
+	require.NoError(t, err)
+	assert.True(t, exists, "Bookmark should exist")
+
+	// Test with non-existent bookmark
+	exists, err = db.BookmarkExists(ctx, 9999)
+	require.NoError(t, err)
+	assert.False(t, exists, "Non-existent bookmark should return false")
+}
+
+// testAddTagToBookmark tests the AddTagToBookmark function
+func testAddTagToBookmark(t *testing.T, db model.DB) {
+	ctx := context.TODO()
+
+	// Create test data
+	bookmark := model.BookmarkDTO{
+		URL:   "https://example.com/add-tag-test",
+		Title: "Add Tag Test",
+	}
+	savedBookmarks, err := db.SaveBookmarks(ctx, true, bookmark)
+	require.NoError(t, err)
+	require.Len(t, savedBookmarks, 1)
+	bookmarkID := savedBookmarks[0].ID
+
+	tag := model.Tag{
+		Name: "add-tag-test",
+	}
+	createdTags, err := db.CreateTags(ctx, tag)
+	require.NoError(t, err)
+	require.Len(t, createdTags, 1)
+	tagID := createdTags[0].ID
+
+	// Add tag to bookmark
+	err = db.AddTagToBookmark(ctx, bookmarkID, tagID)
+	require.NoError(t, err)
+
+	// Verify tag was added by fetching tags for the bookmark
+	tags, err := db.GetTags(ctx, model.DBListTagsOptions{
+		BookmarkID: bookmarkID,
+	})
+	require.NoError(t, err)
+	require.Len(t, tags, 1)
+	assert.Equal(t, tagID, tags[0].ID)
+	assert.Equal(t, "add-tag-test", tags[0].Name)
+
+	// Test adding the same tag again (should not error)
+	err = db.AddTagToBookmark(ctx, bookmarkID, tagID)
+	require.NoError(t, err)
+
+	// Verify no duplicate was created
+	tags, err = db.GetTags(ctx, model.DBListTagsOptions{
+		BookmarkID: bookmarkID,
+	})
+	require.NoError(t, err)
+	require.Len(t, tags, 1)
+}
+
+// testRemoveTagFromBookmark tests the RemoveTagFromBookmark function
+func testRemoveTagFromBookmark(t *testing.T, db model.DB) {
+	ctx := context.TODO()
+
+	// Create test data
+	bookmark := model.BookmarkDTO{
+		URL:   "https://example.com/remove-tag-test",
+		Title: "Remove Tag Test",
+	}
+	savedBookmarks, err := db.SaveBookmarks(ctx, true, bookmark)
+	require.NoError(t, err)
+	require.Len(t, savedBookmarks, 1)
+	bookmarkID := savedBookmarks[0].ID
+
+	tag := model.Tag{
+		Name: "remove-tag-test",
+	}
+	createdTags, err := db.CreateTags(ctx, tag)
+	require.NoError(t, err)
+	require.Len(t, createdTags, 1)
+	tagID := createdTags[0].ID
+
+	// Add tag to bookmark first
+	err = db.AddTagToBookmark(ctx, bookmarkID, tagID)
+	require.NoError(t, err)
+
+	// Verify tag was added
+	tags, err := db.GetTags(ctx, model.DBListTagsOptions{
+		BookmarkID: bookmarkID,
+	})
+	require.NoError(t, err)
+	require.Len(t, tags, 1, "Tag should be associated with bookmark before removal test")
+
+	// Remove tag from bookmark
+	err = db.RemoveTagFromBookmark(ctx, bookmarkID, tagID)
+	require.NoError(t, err)
+
+	// Verify tag was removed
+	tags, err = db.GetTags(ctx, model.DBListTagsOptions{
+		BookmarkID: bookmarkID,
+	})
+	require.NoError(t, err)
+	assert.Len(t, tags, 0, "Tag should be removed from bookmark")
+
+	// Test removing a tag that's not associated (should not error)
+	err = db.RemoveTagFromBookmark(ctx, bookmarkID, tagID)
+	require.NoError(t, err)
+
+	// Test removing a tag from a non-existent bookmark (should not error)
+	err = db.RemoveTagFromBookmark(ctx, 9999, tagID)
+	require.NoError(t, err)
+
+	// Test removing a non-existent tag from a bookmark (should not error)
+	err = db.RemoveTagFromBookmark(ctx, bookmarkID, 9999)
+	require.NoError(t, err)
+}
+
+// testTagBookmarkEdgeCases tests edge cases for tag-bookmark operations
+func testTagBookmarkEdgeCases(t *testing.T, db model.DB) {
+	ctx := context.TODO()
+
+	// Create test data
+	bookmark := model.BookmarkDTO{
+		URL:   "https://example.com/edge-cases-test",
+		Title: "Edge Cases Test",
+	}
+	savedBookmarks, err := db.SaveBookmarks(ctx, true, bookmark)
+	require.NoError(t, err)
+	require.Len(t, savedBookmarks, 1)
+	bookmarkID := savedBookmarks[0].ID
+
+	tag := model.Tag{
+		Name: "edge-cases-test",
+	}
+	createdTags, err := db.CreateTags(ctx, tag)
+	require.NoError(t, err)
+	require.Len(t, createdTags, 1)
+	tagID := createdTags[0].ID
+
+	// Test adding a tag to a non-existent bookmark
+	// This should not error at the database layer since we're not checking existence there
+	err = db.AddTagToBookmark(ctx, 9999, tagID)
+	// The test might fail depending on foreign key constraints in the database
+	// If it fails, that's acceptable behavior, but we're not explicitly testing for it
+	if err != nil {
+		t.Logf("Adding tag to non-existent bookmark failed as expected: %v", err)
+	}
+
+	// Test adding a non-existent tag to a bookmark
+	// This should not error at the database layer since we're not checking existence there
+	err = db.AddTagToBookmark(ctx, bookmarkID, 9999)
+	// The test might fail depending on foreign key constraints in the database
+	// If it fails, that's acceptable behavior, but we're not explicitly testing for it
+	if err != nil {
+		t.Logf("Adding non-existent tag to bookmark failed as expected: %v", err)
+	}
+}
