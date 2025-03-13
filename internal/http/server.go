@@ -167,6 +167,19 @@ func (s *HttpServer) Setup(cfg *config.Config, deps *dependencies.Dependencies) 
 		api_v1.HandleBulkUpdateBookmarkTags,
 		globalMiddleware...,
 	))
+	// Bookmark tags endpoints
+	s.mux.HandleFunc("GET /api/v1/bookmarks/{id}/tags", ToHTTPHandler(deps,
+		api_v1.HandleGetBookmarkTags,
+		globalMiddleware...,
+	))
+	s.mux.HandleFunc("POST /api/v1/bookmarks/{id}/tags", ToHTTPHandler(deps,
+		api_v1.HandleAddTagToBookmark,
+		globalMiddleware...,
+	))
+	s.mux.HandleFunc("DELETE /api/v1/bookmarks/{id}/tags", ToHTTPHandler(deps,
+		api_v1.HandleRemoveTagFromBookmark,
+		globalMiddleware...,
+	))
 
 	s.server = &http.Server{
 		Addr:    fmt.Sprintf("%s%d", cfg.Http.Address, cfg.Http.Port),
