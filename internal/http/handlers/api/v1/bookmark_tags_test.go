@@ -546,6 +546,64 @@ func TestBookmarkTagsAPI(t *testing.T) {
 			testResp.AssertMessageEquals(t, "Invalid bookmark ID")
 		})
 
+		// Test invalid bookmark ID for AddTagToBookmark
+		t.Run("InvalidBookmarkIDForAddTag", func(t *testing.T) {
+			// Create a request with an invalid bookmark ID
+			payload := bookmarkTagPayload{
+				TagID: tagID,
+			}
+			payloadBytes, err := json.Marshal(payload)
+			require.NoError(t, err)
+
+			rec := testutil.PerformRequest(
+				deps,
+				api_v1.HandleAddTagToBookmark,
+				http.MethodPost,
+				"/api/v1/bookmarks/invalid/tags",
+				testutil.WithFakeAdmin(),
+				testutil.WithRequestPathValue("id", "invalid"),
+				testutil.WithBody(string(payloadBytes)),
+			)
+
+			// Check the response
+			require.Equal(t, http.StatusBadRequest, rec.Code)
+
+			// Parse the response
+			testResp, err := testutil.NewTestResponseFromRecorder(rec)
+			require.NoError(t, err)
+			testResp.AssertNotOk(t)
+			testResp.AssertMessageEquals(t, "Invalid bookmark ID")
+		})
+
+		// Test invalid bookmark ID for RemoveTagFromBookmark
+		t.Run("InvalidBookmarkIDForRemoveTag", func(t *testing.T) {
+			// Create a request with an invalid bookmark ID
+			payload := bookmarkTagPayload{
+				TagID: tagID,
+			}
+			payloadBytes, err := json.Marshal(payload)
+			require.NoError(t, err)
+
+			rec := testutil.PerformRequest(
+				deps,
+				api_v1.HandleRemoveTagFromBookmark,
+				http.MethodDelete,
+				"/api/v1/bookmarks/invalid/tags",
+				testutil.WithFakeAdmin(),
+				testutil.WithRequestPathValue("id", "invalid"),
+				testutil.WithBody(string(payloadBytes)),
+			)
+
+			// Check the response
+			require.Equal(t, http.StatusBadRequest, rec.Code)
+
+			// Parse the response
+			testResp, err := testutil.NewTestResponseFromRecorder(rec)
+			require.NoError(t, err)
+			testResp.AssertNotOk(t)
+			testResp.AssertMessageEquals(t, "Invalid bookmark ID")
+		})
+
 		// Test invalid payload
 		t.Run("InvalidPayload", func(t *testing.T) {
 			// Create a request with an invalid payload
