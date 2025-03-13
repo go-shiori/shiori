@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"log/slog"
 
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/huandu/go-sqlbuilder"
@@ -63,8 +62,6 @@ func (db *dbbase) GetTags(ctx context.Context, opts model.DBListTagsOptions) ([]
 
 	query, args := sb.Build()
 	query = db.ReaderDB().Rebind(query)
-
-	slog.Info("GetTags query", "query", query, "args", args)
 
 	tags := []model.TagDTO{}
 	err := db.ReaderDB().SelectContext(ctx, &tags, query, args...)
