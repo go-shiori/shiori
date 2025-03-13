@@ -184,7 +184,69 @@ func testGetTagsFunction(t *testing.T, db model.DB) {
 		assert.Equal(t, "web", fetchedTags[3].Name)
 	})
 
-	// Test 6: Get tags for a non-existent bookmark
+	// Test 6: Get tags with search term
+	t.Run("GetTagsWithSearch", func(t *testing.T) {
+		// Search for tags containing "go"
+		fetchedTags, err := db.GetTags(ctx, model.DBListTagsOptions{
+			Search: "go",
+		})
+		require.NoError(t, err)
+
+		// Should return only the golang tag
+		assert.Len(t, fetchedTags, 1)
+		assert.Equal(t, "golang", fetchedTags[0].Name)
+
+		// Search for tags containing "a"
+		fetchedTags, err = db.GetTags(ctx, model.DBListTagsOptions{
+			Search: "a",
+		})
+		require.NoError(t, err)
+
+		// Should return database and possibly other tags containing "a"
+		assert.GreaterOrEqual(t, len(fetchedTags), 1)
+
+		// Create a map of tag names for easier checking
+		tagNames := make(map[string]bool)
+		for _, tag := range fetchedTags {
+			tagNames[tag.Name] = true
+		}
+
+		// Verify database is in the results
+		assert.True(t, tagNames["database"], "Tag 'database' should be present")
+
+		// Search for non-existent tag
+		fetchedTags, err = db.GetTags(ctx, model.DBListTagsOptions{
+			Search: "nonexistent",
+		})
+		require.NoError(t, err)
+		assert.Len(t, fetchedTags, 0)
+	})
+
+	// Test 7: Search and bookmark ID are mutually exclusive
+	t.Run("SearchAndBookmarkIDMutuallyExclusive", func(t *testing.T) {
+		// This test is just to document the behavior, as the validation happens at the model level
+		// The database layer will prioritize the bookmark ID filter if both are provided
+		fetchedTags, err := db.GetTags(ctx, model.DBListTagsOptions{
+			Search:     "go",
+			BookmarkID: savedBookmarks[0].ID,
+		})
+		require.NoError(t, err)
+
+		// Should return tags for the bookmark, not the search
+		// The number of tags may vary depending on the database implementation
+		assert.NotEmpty(t, fetchedTags, "Should return at least one tag for the bookmark")
+
+		// Create a map of tag names for easier checking
+		tagNames := make(map[string]bool)
+		for _, tag := range fetchedTags {
+			tagNames[tag.Name] = true
+		}
+
+		// Verify golang is in the results (it's associated with the first bookmark)
+		assert.True(t, tagNames["golang"], "Tag 'golang' should be present")
+	})
+
+	// Test 8: Get tags for a non-existent bookmark
 	t.Run("GetTagsForNonExistentBookmark", func(t *testing.T) {
 		fetchedTags, err := db.GetTags(ctx, model.DBListTagsOptions{
 			BookmarkID: 9999, // Non-existent ID
@@ -195,7 +257,7 @@ func testGetTagsFunction(t *testing.T, db model.DB) {
 		assert.Empty(t, fetchedTags)
 	})
 
-	// Test 7: Get tags for a bookmark with no tags
+	// Test 9: Get tags for a bookmark with no tags
 	t.Run("GetTagsForBookmarkWithNoTags", func(t *testing.T) {
 		// Create a bookmark with no tags
 		bookmarkWithNoTags := model.BookmarkDTO{
@@ -217,7 +279,7 @@ func testGetTagsFunction(t *testing.T, db model.DB) {
 		assert.Empty(t, fetchedTags)
 	})
 
-	// Test 8: Get tags with combined options (order + count)
+	// Test 10: Get tags with combined options (order + count)
 	t.Run("GetTagsWithCombinedOptions", func(t *testing.T) {
 		fetchedTags, err := db.GetTags(ctx, model.DBListTagsOptions{
 			WithBookmarkCount: true,

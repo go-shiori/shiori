@@ -50,6 +50,12 @@ func (db *dbbase) GetTags(ctx context.Context, opts model.DBListTagsOptions) ([]
 		sb.Where(sb.IsNotNull("t.id"))
 	}
 
+	// Add search condition if search term is provided
+	if opts.Search != "" {
+		// Note: Search and BookmarkID filtering are mutually exclusive as per requirements
+		sb.Where(sb.Like("t.name", "%"+opts.Search+"%"))
+	}
+
 	if opts.OrderBy == model.DBTagOrderByTagName {
 		sb.OrderBy("t.name")
 	}

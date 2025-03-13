@@ -1,5 +1,9 @@
 package model
 
+import (
+	"errors"
+)
+
 // BookmarkTag is the relationship between a bookmark and a tag.
 type BookmarkTag struct {
 	BookmarkID int `db:"bookmark_id"`
@@ -40,4 +44,15 @@ type ListTagsOptions struct {
 	BookmarkID        int
 	WithBookmarkCount bool
 	OrderBy           DBTagOrderBy
+	Search            string
+}
+
+// IsValid validates the ListTagsOptions.
+// Returns an error if the options are invalid, nil otherwise.
+// Currently, it checks that Search and BookmarkID are not used together.
+func (o ListTagsOptions) IsValid() error {
+	if o.Search != "" && o.BookmarkID > 0 {
+		return errors.New("search and bookmark ID filtering cannot be used together")
+	}
+	return nil
 }

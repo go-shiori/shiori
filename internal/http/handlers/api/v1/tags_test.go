@@ -10,6 +10,7 @@ import (
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/go-shiori/shiori/internal/testutil"
 	"github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -148,6 +149,109 @@ func TestHandleListTags(t *testing.T) {
 			}
 		}
 		require.True(t, found, "The tag associated with the bookmark should be in the response")
+	})
+
+	t.Run("search parameter", func(t *testing.T) {
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+
+		// Create test tags with different names
+		tags := []model.Tag{
+			{Name: "golang"},
+			{Name: "python"},
+			{Name: "javascript"},
+		}
+		createdTags, err := deps.Database().CreateTags(ctx, tags...)
+		require.NoError(t, err)
+		require.Len(t, createdTags, 3)
+
+		// Test searching for "go"
+		w := testutil.PerformRequest(
+			deps,
+			HandleListTags,
+			"GET",
+			"/api/v1/tags",
+			testutil.WithFakeUser(),
+			testutil.WithRequestQueryParam("search", "go"),
+		)
+		require.Equal(t, http.StatusOK, w.Code)
+
+		response, err := testutil.NewTestResponseFromReader(w.Body)
+		require.NoError(t, err)
+		response.AssertOk(t)
+
+		// Verify the response contains only the golang tag
+		var tags1 []model.TagDTO
+		responseData, err := json.Marshal(response.Response.GetMessage())
+		require.NoError(t, err)
+		err = json.Unmarshal(responseData, &tags1)
+		require.NoError(t, err)
+
+		require.Len(t, tags1, 1)
+		assert.Equal(t, "golang", tags1[0].Name)
+
+		// Test searching for "on"
+		w = testutil.PerformRequest(
+			deps,
+			HandleListTags,
+			"GET",
+			"/api/v1/tags",
+			testutil.WithFakeUser(),
+			testutil.WithRequestQueryParam("search", "on"),
+		)
+		require.Equal(t, http.StatusOK, w.Code)
+
+		response, err = testutil.NewTestResponseFromReader(w.Body)
+		require.NoError(t, err)
+		response.AssertOk(t)
+
+		// Verify the response contains tags with "on" in their name
+		var tags2 []model.TagDTO
+		responseData, err = json.Marshal(response.Response.GetMessage())
+		require.NoError(t, err)
+		err = json.Unmarshal(responseData, &tags2)
+		require.NoError(t, err)
+
+		// Should have at least one tag
+		require.NotEmpty(t, tags2)
+
+		// Create a map of tag names for easier checking
+		tagNames := make(map[string]bool)
+		for _, tag := range tags2 {
+			tagNames[tag.Name] = true
+		}
+
+		// Verify python is in the results
+		assert.True(t, tagNames["python"], "Tag 'python' should be present")
+	})
+
+	t.Run("search and bookmark_id parameters together", func(t *testing.T) {
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+
+		// Create a test bookmark
+		bookmark := testutil.GetValidBookmark()
+		bookmarks, err := deps.Database().SaveBookmarks(ctx, true, *bookmark)
+		require.NoError(t, err)
+		require.Len(t, bookmarks, 1)
+		bookmarkID := bookmarks[0].ID
+
+		// Test using both search and bookmark_id parameters
+		w := testutil.PerformRequest(
+			deps,
+			HandleListTags,
+			"GET",
+			"/api/v1/tags",
+			testutil.WithFakeUser(),
+			testutil.WithRequestQueryParam("search", "go"),
+			testutil.WithRequestQueryParam("bookmark_id", strconv.Itoa(bookmarkID)),
+		)
+		require.Equal(t, http.StatusBadRequest, w.Code)
+
+		response, err := testutil.NewTestResponseFromReader(w.Body)
+		require.NoError(t, err)
+		response.AssertNotOk(t)
+
+		// Verify the error message
+		assert.Contains(t, response.Response.Message, "search and bookmark ID filtering cannot be used together")
 	})
 }
 

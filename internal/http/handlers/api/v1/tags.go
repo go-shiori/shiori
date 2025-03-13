@@ -17,6 +17,7 @@ import (
 // @Produce					json
 // @Param						with_bookmark_count	query		boolean	false	"Include bookmark count for each tag"
 // @Param						bookmark_id			query		integer	false	"Filter tags by bookmark ID"
+// @Param						search				query		string	false	"Search tags by name"
 // @Success					200					{array}		model.TagDTO
 // @Failure					403					{object}	nil	"Authentication required"
 // @Failure					500					{object}	nil	"Internal server error"
@@ -28,6 +29,7 @@ func HandleListTags(deps model.Dependencies, c model.WebContext) {
 
 	// Parse query parameters
 	withBookmarkCount := c.Request().URL.Query().Get("with_bookmark_count") == "true"
+	search := c.Request().URL.Query().Get("search")
 
 	var bookmarkID int
 	if bookmarkIDStr := c.Request().URL.Query().Get("bookmark_id"); bookmarkIDStr != "" {
@@ -39,11 +41,20 @@ func HandleListTags(deps model.Dependencies, c model.WebContext) {
 		}
 	}
 
-	tags, err := deps.Domains().Tags().ListTags(c.Request().Context(), model.ListTagsOptions{
+	// Create options and validate
+	opts := model.ListTagsOptions{
 		WithBookmarkCount: withBookmarkCount,
 		BookmarkID:        bookmarkID,
 		OrderBy:           model.DBTagOrderByTagName,
-	})
+		Search:            search,
+	}
+
+	if err := opts.IsValid(); err != nil {
+		response.SendError(c, http.StatusBadRequest, err.Error(), nil)
+		return
+	}
+
+	tags, err := deps.Domains().Tags().ListTags(c.Request().Context(), opts)
 	if err != nil {
 		deps.Logger().WithError(err).Error("failed to get tags")
 		response.SendInternalServerError(c)

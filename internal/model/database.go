@@ -138,4 +138,5 @@ type DBListTagsOptions struct {
 	BookmarkID        int
 	WithBookmarkCount bool
 	OrderBy           DBTagOrderBy
+	Search            string
 }
