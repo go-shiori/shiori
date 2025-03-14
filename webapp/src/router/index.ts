@@ -2,17 +2,12 @@ import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw, NavigationGuardNext as NavigationGuard, RouteLocationNormalized } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import LoginView from '../views/LoginView.vue'
-
-// Simple auth guard
-const isAuthenticated = (): boolean => {
-  // For now, just check if there's a token in localStorage
-  return !!localStorage.getItem('token')
-}
+import { useAuthStore } from '@/stores/auth'
 
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
-    redirect: '/login'
+    redirect: '/home'
   },
   {
     path: '/home',
@@ -23,12 +18,19 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/login',
     name: 'login',
-    component: LoginView
+    component: LoginView,
+    props: (route) => ({ dst: route.query.dst })
   },
   {
     path: '/tags',
     name: 'tags',
     component: () => import('../views/TagsView.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/folders',
+    name: 'folders',
+    component: () => import('../views/FoldersView.vue'),
     meta: { requiresAuth: true }
   },
   {
@@ -43,10 +45,10 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import('../views/SettingsView.vue'),
     meta: { requiresAuth: true }
   },
-  // Redirect any unmatched routes to login
+  // Redirect any unmatched routes to home (which will redirect to login if not authenticated)
   {
     path: '/:pathMatch(.*)*',
-    redirect: '/login'
+    redirect: '/home'
   }
 ]
 
@@ -56,14 +58,38 @@ const router = createRouter({
 })
 
 // Navigation guard
-router.beforeEach((to: RouteLocationNormalized, from: RouteLocationNormalized, next) => {
-  if (to.matched.some((record: any) => record.meta.requiresAuth)) {
-    if (!isAuthenticated()) {
-      next({ name: 'login' })
+router.beforeEach(async (to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuard) => {
+  const authStore = useAuthStore()
+
+  // Check if the route requires authentication
+  if (to.matched.some((record) => record.meta.requiresAuth)) {
+    // If we have a token, validate it
+    if (authStore.token) {
+      const isValid = await authStore.validateToken()
+
+      if (isValid) {
+        // Token is valid, proceed to the requested route
+        next()
+      } else {
+        // Token is invalid, redirect to login with destination
+        const destination = to.fullPath
+        authStore.setRedirectDestination(destination)
+        next({
+          name: 'login',
+          query: { dst: destination }
+        })
+      }
     } else {
-      next()
+      // No token, redirect to login with destination
+      const destination = to.fullPath
+      authStore.setRedirectDestination(destination)
+      next({
+        name: 'login',
+        query: { dst: destination }
+      })
     }
   } else {
+    // Route doesn't require auth, proceed
     next()
   }
 })
