@@ -370,6 +370,11 @@ paths:
   /api/v1/bookmarks/{id}/tags:
     delete:
       parameters:
+      - description: Bookmark ID
+        in: path
+        name: id
+        required: true
+        type: integer
       - description: Remove Tag Payload
         in: body
         name: payload
@@ -389,6 +394,12 @@ paths:
       tags:
       - Auth
     get:
+      parameters:
+      - description: Bookmark ID
+        in: path
+        name: id
+        required: true
+        type: integer
       produces:
       - application/json
       responses:
@@ -407,6 +418,11 @@ paths:
       - Auth
     post:
       parameters:
+      - description: Bookmark ID
+        in: path
+        name: id
+        required: true
+        type: integer
       - description: Add Tag Payload
         in: body
         name: payload

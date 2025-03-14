@@ -393,6 +393,15 @@ const docTemplate = `{
                     "Auth"
                 ],
                 "summary": "Get tags for a bookmark.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Bookmark ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -420,6 +429,13 @@ const docTemplate = `{
                 ],
                 "summary": "Add a tag to a bookmark.",
                 "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Bookmark ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
                     {
                         "description": "Add Tag Payload",
                         "name": "payload",
@@ -451,6 +467,13 @@ const docTemplate = `{
                 ],
                 "summary": "Remove a tag from a bookmark.",
                 "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Bookmark ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
                     {
                         "description": "Remove Tag Payload",
                         "name": "payload",

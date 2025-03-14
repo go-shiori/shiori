@@ -1,7 +1,8 @@
 {
     "swagger": "2.0",
     "info": {
-        "contact": {}
+        "contact": {},
+        "title": "Shiori API"
     },
     "paths": {
         "/api/v1/accounts": {
@@ -382,6 +383,15 @@
                     "Auth"
                 ],
                 "summary": "Get tags for a bookmark.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Bookmark ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -409,6 +419,13 @@
                 ],
                 "summary": "Add a tag to a bookmark.",
                 "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Bookmark ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
                     {
                         "description": "Add Tag Payload",
                         "name": "payload",
@@ -440,6 +457,13 @@
                 ],
                 "summary": "Remove a tag from a bookmark.",
                 "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Bookmark ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
                     {
                         "description": "Remove Tag Payload",
                         "name": "payload",
