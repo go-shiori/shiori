@@ -183,6 +183,7 @@ func (p *bulkUpdateBookmarkTagsPayload) IsValid() error {
 //	@Tags						Auth
 //	@securityDefinitions.apikey	ApiKeyAuth
 //	@Produce					json
+//	@Param						id	path		int	true	"Bookmark ID"
 //	@Success					200	{array}		model.TagDTO
 //	@Failure					403	{object}	nil	"Token not provided/invalid"
 //	@Failure					404	{object}	nil	"Bookmark not found"
@@ -239,6 +240,7 @@ func (p *bookmarkTagPayload) IsValid() error {
 //	@Summary					Add a tag to a bookmark.
 //	@Tags						Auth
 //	@securityDefinitions.apikey	ApiKeyAuth
+//	@Param						id	path		int	true	"Bookmark ID"
 //	@Param						payload	body	bookmarkTagPayload	true	"Add Tag Payload"
 //	@Produce					json
 //	@Success					200	{object}	nil
@@ -292,6 +294,7 @@ func HandleAddTagToBookmark(deps model.Dependencies, c model.WebContext) {
 //	@Summary					Remove a tag from a bookmark.
 //	@Tags						Auth
 //	@securityDefinitions.apikey	ApiKeyAuth
+//	@Param						id	path		int	true	"Bookmark ID"
 //	@Param						payload	body	bookmarkTagPayload	true	"Remove Tag Payload"
 //	@Produce					json
 //	@Success					200	{object}	nil
