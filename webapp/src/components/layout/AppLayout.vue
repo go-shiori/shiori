@@ -20,7 +20,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-100 flex flex-col">
+  <div class="min-h-screen flex flex-col bg-gray-100 dark:bg-gray-900">
     <!-- Mobile Top Bar (only visible on mobile) -->
     <TopBar v-if="isMobile" />
 
@@ -29,7 +29,7 @@ onUnmounted(() => {
       <Sidebar :is-mobile="isMobile" />
 
       <!-- Main Content -->
-      <main class="flex-1 p-6">
+      <main class="flex-1 p-6 pb-24 md:pb-6 overflow-auto">
         <!-- Header slot for page-specific headers -->
         <header v-if="$slots.header" class="mb-6">
           <slot name="header"></slot>
@@ -41,8 +41,19 @@ onUnmounted(() => {
     </div>
 
     <!-- Mobile Navigation (only visible on mobile) -->
-    <nav v-if="isMobile" class="bg-white border-t border-gray-200 fixed bottom-0 left-0 right-0 z-10">
+    <nav v-if="isMobile"
+      class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 fixed bottom-0 left-0 right-0 z-10">
       <!-- Mobile navigation content will be rendered by Sidebar component -->
     </nav>
   </div>
 </template>
+
+<style>
+/* Ensure the layout takes up the full viewport height */
+html,
+body,
+#app {
+  height: 100%;
+  min-height: 100vh;
+}
+</style>

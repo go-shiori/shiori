@@ -82,62 +82,71 @@ const icons = {
 </script>
 
 <template>
-    <!-- Desktop Sidebar -->
-    <aside v-if="!isMobile" class="w-20 bg-white border-r border-gray-200 flex flex-col items-center py-6">
-        <!-- Logo -->
-        <div class="mb-8 text-red-500 flex flex-col items-center">
-            <div class="text-red-500 font-bold text-2xl">栞</div>
-            <span class="text-xs mt-1">shiori</span>
-        </div>
-
-        <!-- Navigation -->
-        <nav class="flex flex-col items-center space-y-6 flex-1">
-            <RouterLink v-for="item in navItems" :key="item.name" :to="item.route"
-                class="text-gray-500 hover:text-red-500 p-2 rounded-md hover:bg-gray-100 transition-colors flex flex-col items-center"
-                :title="item.name">
-                <div v-html="icons[item.icon]"></div>
-                <span class="text-xs mt-1">{{ item.name }}</span>
-            </RouterLink>
-
-            <!-- Spacer -->
-            <div class="flex-1"></div>
-
-            <!-- User Menu -->
-            <div class="relative mt-auto" ref="menuRef">
-                <button @click.stop="toggleMenu"
-                    class="text-gray-500 hover:text-red-500 p-2 rounded-md hover:bg-gray-100 transition-colors flex flex-col items-center"
-                    title="User Menu">
-                    <div v-html="icons.user"></div>
-                    <span class="text-xs mt-1">User</span>
-                </button>
-
-                <!-- Dropdown Menu -->
-                <div v-if="isMenuOpen"
-                    class="absolute left-20 bottom-0 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
-                    <div class="px-4 py-2 text-sm text-gray-500 border-b border-gray-200">
-                        <div class="font-medium">{{ authStore.user?.username || 'User' }}</div>
-                    </div>
-                    <router-link to="/settings" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                        Settings
-                    </router-link>
-                    <button @click="handleLogout"
-                        class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                        Logout
-                    </button>
+    <div>
+        <template v-if="!isMobile">
+            <!-- Desktop Sidebar -->
+            <aside
+                class="w-20 h-screen bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col items-center py-6 sticky top-0">
+                <!-- Logo -->
+                <div class="mb-8 flex flex-col items-center">
+                    <div class="text-red-500 font-bold text-2xl">栞</div>
+                    <span class="text-xs mt-1 dark:text-gray-300">shiori</span>
                 </div>
-            </div>
-        </nav>
-    </aside>
 
-    <!-- Mobile Sidebar -->
-    <div v-else class="bg-white border-t border-gray-200 fixed bottom-0 left-0 right-0 z-10">
-        <nav class="flex justify-around py-2">
-            <RouterLink v-for="item in navItems" :key="item.name" :to="item.route"
-                class="text-gray-500 hover:text-red-500 p-2 flex flex-col items-center text-xs">
-                <div v-html="icons[item.icon]"></div>
-                <span class="mt-1">{{ item.name }}</span>
-            </RouterLink>
-        </nav>
+                <!-- Navigation -->
+                <nav class="flex flex-col items-center space-y-6 flex-1">
+                    <RouterLink v-for="item in navItems" :key="item.name" :to="item.route"
+                        class="text-gray-500 dark:text-gray-400 hover:text-red-500 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex flex-col items-center"
+                        :title="item.name">
+                        <div v-html="icons[item.icon]"></div>
+                        <span class="text-xs mt-1 dark:text-gray-300">{{ item.name }}</span>
+                    </RouterLink>
+
+                    <!-- Spacer -->
+                    <div class="flex-1"></div>
+
+                    <!-- User Menu -->
+                    <div class="relative mt-auto" ref="menuRef">
+                        <button @click.stop="toggleMenu"
+                            class="text-gray-500 dark:text-gray-400 hover:text-red-500 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex flex-col items-center"
+                            title="User Menu">
+                            <div v-html="icons.user"></div>
+                            <span class="text-xs mt-1 dark:text-gray-300">User</span>
+                        </button>
+
+                        <!-- Dropdown Menu -->
+                        <div v-if="isMenuOpen"
+                            class="absolute left-20 bottom-0 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 z-50 border border-gray-200 dark:border-gray-700">
+                            <div
+                                class="px-4 py-2 text-sm text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
+                                <div class="font-medium dark:text-gray-300">{{ authStore.user?.username || 'User' }}
+                                </div>
+                            </div>
+                            <router-link to="/settings"
+                                class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                Settings
+                            </router-link>
+                            <button @click="handleLogout"
+                                class="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                Logout
+                            </button>
+                        </div>
+                    </div>
+                </nav>
+            </aside>
+        </template>
+
+        <template v-else>
+            <!-- Mobile Bottom Navigation -->
+            <nav
+                class="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 flex justify-around py-2 z-10">
+                <RouterLink v-for="item in navItems" :key="item.name" :to="item.route"
+                    class="text-gray-500 dark:text-gray-400 hover:text-red-500 p-2 flex flex-col items-center">
+                    <div v-html="icons[item.icon]"></div>
+                    <span class="text-xs mt-1 dark:text-gray-300">{{ item.name }}</span>
+                </RouterLink>
+            </nav>
+        </template>
     </div>
 </template>
 
