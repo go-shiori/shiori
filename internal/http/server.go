@@ -27,7 +27,7 @@ type HttpServer struct {
 func (s *HttpServer) Setup(cfg *config.Config, deps *dependencies.Dependencies) (*HttpServer, error) {
 	s.mux = http.NewServeMux()
 
-	if err := templates.SetupTemplates(); err != nil {
+	if err := templates.SetupTemplates(cfg); err != nil {
 		return nil, fmt.Errorf("failed to setup templates: %w", err)
 	}
 

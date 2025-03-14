@@ -1,0 +1,23 @@
+@import "tailwindcss";
+
+/* Custom styles */
+:root {
+  --primary-color: #f44336;
+  --secondary-color: #ffffff;
+  --text-color: #333333;
+  --background-color: #f5f5f5;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  color: var(--text-color);
+  background-color: var(--background-color);
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+#app {
+  width: 100%;
+  min-height: 100vh;
+}
