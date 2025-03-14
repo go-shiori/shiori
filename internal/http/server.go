@@ -34,6 +34,7 @@ func (s *HttpServer) Setup(cfg *config.Config, deps *dependencies.Dependencies) 
 	globalMiddleware := []model.HttpMiddleware{
 		middleware.NewAuthMiddleware(deps),
 		middleware.NewRequestIDMiddleware(deps),
+		middleware.NewCORSMiddleware([]string{"*"}),
 	}
 
 	if cfg.Http.AccessLog {
