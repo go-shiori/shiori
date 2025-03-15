@@ -49,15 +49,16 @@ func readDotEnv(logger *logrus.Logger) map[string]string {
 }
 
 type HttpConfig struct {
-	Enabled      bool   `env:"HTTP_ENABLED,default=True"`
-	Port         int    `env:"HTTP_PORT,default=8080"`
-	Address      string `env:"HTTP_ADDRESS,default=:"`
-	RootPath     string `env:"HTTP_ROOT_PATH,default=/"`
-	AccessLog    bool   `env:"HTTP_ACCESS_LOG,default=True"`
-	ServeWebUI   bool   `env:"HTTP_SERVE_WEB_UI,default=True"`
-	ServeWebUIV2 bool   `env:"HTTP_SERVE_WEB_UI_V2,default=False"`
-	ServeSwagger bool   `env:"HTTP_SERVE_SWAGGER,default=False"`
-	SecretKey    []byte `env:"HTTP_SECRET_KEY"`
+	Enabled               bool   `env:"HTTP_ENABLED,default=True"`
+	Port                  int    `env:"HTTP_PORT,default=8080"`
+	Address               string `env:"HTTP_ADDRESS,default=:"`
+	RootPath              string `env:"HTTP_ROOT_PATH,default=/"`
+	AccessLog             bool   `env:"HTTP_ACCESS_LOG,default=True"`
+	ServeWebUI            bool   `env:"HTTP_SERVE_WEB_UI,default=True"`
+	ServeWebUIV2          bool   `env:"HTTP_SERVE_WEB_UI_V2,default=False"`
+	LegacyMessageResponse bool   `env:"HTTP_LEGACY_MESSAGE_RESPONSE,default=True"`
+	ServeSwagger          bool   `env:"HTTP_SERVE_SWAGGER,default=False"`
+	SecretKey             []byte `env:"HTTP_SECRET_KEY"`
 	// Fiber Specific
 	BodyLimit                    int           `env:"HTTP_BODY_LIMIT,default=1024"`
 	ReadTimeout                  time.Duration `env:"HTTP_READ_TIMEOUT,default=10s"`
@@ -145,6 +146,7 @@ func (c *Config) DebugConfiguration(logger *logrus.Logger) {
 	logger.Debugf(" SHIORI_HTTP_ACCESS_LOG: %t", c.Http.AccessLog)
 	logger.Debugf(" SHIORI_HTTP_SERVE_WEB_UI: %t", c.Http.ServeWebUI)
 	logger.Debugf(" SHIORI_HTTP_SERVE_WEB_UI_V2: %t", c.Http.ServeWebUIV2)
+	logger.Debugf(" SHIORI_HTTP_LEGACY_MESSAGE_RESPONSE: %t", c.Http.LegacyMessageResponse)
 	logger.Debugf(" SHIORI_HTTP_SECRET_KEY: %d characters", len(c.Http.SecretKey))
 	logger.Debugf(" SHIORI_HTTP_BODY_LIMIT: %d", c.Http.BodyLimit)
 	logger.Debugf(" SHIORI_HTTP_READ_TIMEOUT: %s", c.Http.ReadTimeout)

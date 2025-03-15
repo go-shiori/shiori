@@ -16,6 +16,7 @@ const (
 type WebContext interface {
 	Request() *http.Request
 	ResponseWriter() http.ResponseWriter
+	SetResponseWriter(w http.ResponseWriter)
 	GetAccount() *AccountDTO
 	SetAccount(*AccountDTO)
 	UserIsLogged() bool
