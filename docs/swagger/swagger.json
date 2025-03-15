@@ -1,8 +1,7 @@
 {
     "swagger": "2.0",
     "info": {
-        "contact": {},
-        "title": "Shiori API"
+        "contact": {}
     },
     "paths": {
         "/api/v1/accounts": {
