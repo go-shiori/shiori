@@ -2,7 +2,10 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
+import { useI18n } from 'vue-i18n';
+import LanguageSelector from './LanguageSelector.vue';
 
+const { t } = useI18n();
 const isMenuOpen = ref(false);
 const authStore = useAuthStore();
 const router = useRouter();
@@ -49,13 +52,16 @@ onUnmounted(() => {
     <!-- Search -->
     <div class="flex-1 mx-4">
       <div class="relative">
-        <input type="text" placeholder="Search..."
+        <input type="text" :placeholder="t('common.search')"
           class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-1 focus:outline-none focus:ring-2 focus:ring-red-500" />
       </div>
     </div>
 
     <!-- Actions -->
     <div class="flex items-center space-x-2">
+      <!-- Language Selector -->
+      <LanguageSelector />
+
       <!-- User Menu -->
       <div class="relative" ref="menuRef">
         <button @click="toggleMenu"
@@ -76,7 +82,7 @@ onUnmounted(() => {
           <hr class="border-gray-200 dark:border-gray-700">
           <a href="#" @click.prevent="handleLogout"
             class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-            Logout
+            {{ t('auth.logout') }}
           </a>
         </div>
       </div>

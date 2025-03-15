@@ -1,0 +1,65 @@
+{
+  "common": {
+    "loading": "Chargement...",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "search": "Rechercher",
+    "add": "Ajouter",
+    "remove": "Supprimer",
+    "close": "Fermer"
+  },
+  "auth": {
+    "login": "Connexion",
+    "logout": "Déconnexion",
+    "username": "Nom d'utilisateur",
+    "password": "Mot de passe",
+    "remember_me": "Se souvenir de moi",
+    "login_failed": "Échec de la connexion. Veuillez vérifier vos identifiants."
+  },
+  "navigation": {
+    "home": "Accueil",
+    "archive": "Archives",
+    "tags": "Tags",
+    "folders": "Dossiers",
+    "settings": "Paramètres",
+    "about": "À propos"
+  },
+  "bookmarks": {
+    "title": "Favoris",
+    "add_bookmark": "Ajouter un favori",
+    "edit_bookmark": "Modifier le favori",
+    "delete_bookmark": "Supprimer le favori",
+    "url": "URL",
+    "title": "Titre",
+    "excerpt": "Extrait",
+    "tags": "Tags",
+    "add_tag": "Ajouter un tag",
+    "no_bookmarks": "Aucun favori trouvé"
+  },
+  "tags": {
+    "title": "Tags",
+    "add_tag": "Ajouter un tag",
+    "edit_tag": "Modifier le tag",
+    "delete_tag": "Supprimer le tag",
+    "name": "Nom",
+    "no_tags": "Aucun tag trouvé"
+  },
+  "folders": {
+    "title": "Dossiers",
+    "add_folder": "Ajouter un dossier",
+    "edit_folder": "Modifier le dossier",
+    "delete_folder": "Supprimer le dossier",
+    "name": "Nom",
+    "no_folders": "Aucun dossier trouvé"
+  },
+  "settings": {
+    "title": "Paramètres",
+    "language": "Langue",
+    "theme": "Thème",
+    "light": "Clair",
+    "dark": "Sombre",
+    "system": "Système"
+  }
+}

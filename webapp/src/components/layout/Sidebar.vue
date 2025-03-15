@@ -3,29 +3,31 @@ import { RouterLink } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import { useRouter } from 'vue-router';
 import { ref, onMounted, onUnmounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 // Define props using the compiler macro (no import needed)
 defineProps<{
     isMobile: boolean;
 }>();
 
+const { t } = useI18n();
 const authStore = useAuthStore();
 const router = useRouter();
 const isMenuOpen = ref(false);
 const menuRef = ref<HTMLElement | null>(null);
 
 interface NavItem {
-    name: string;
+    nameKey: string;
     icon: 'home' | 'tag' | 'folder' | 'archive' | 'settings';
     route: string;
 }
 
 const navItems: NavItem[] = [
-    { name: 'Home', icon: 'home', route: '/home' },
-    { name: 'Tags', icon: 'tag', route: '/tags' },
-    { name: 'Folders', icon: 'folder', route: '/folders' },
-    { name: 'Archive', icon: 'archive', route: '/archive' },
-    { name: 'Settings', icon: 'settings', route: '/settings' },
+    { nameKey: 'navigation.home', icon: 'home', route: '/home' },
+    { nameKey: 'navigation.tags', icon: 'tag', route: '/tags' },
+    { nameKey: 'navigation.folders', icon: 'folder', route: '/folders' },
+    { nameKey: 'navigation.archive', icon: 'archive', route: '/archive' },
+    { nameKey: 'navigation.settings', icon: 'settings', route: '/settings' },
 ];
 
 // Toggle menu
@@ -95,11 +97,11 @@ const icons = {
 
                 <!-- Navigation -->
                 <nav class="flex flex-col items-center space-y-6 flex-1">
-                    <RouterLink v-for="item in navItems" :key="item.name" :to="item.route"
+                    <RouterLink v-for="item in navItems" :key="item.nameKey" :to="item.route"
                         class="text-gray-500 dark:text-gray-400 hover:text-red-500 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex flex-col items-center"
-                        :title="item.name">
+                        :title="t(item.nameKey)">
                         <div v-html="icons[item.icon]"></div>
-                        <span class="text-xs mt-1 dark:text-gray-300">{{ item.name }}</span>
+                        <span class="text-xs mt-1 dark:text-gray-300">{{ t(item.nameKey) }}</span>
                     </RouterLink>
 
                     <!-- Spacer -->
@@ -109,9 +111,10 @@ const icons = {
                     <div class="relative mt-auto" ref="menuRef">
                         <button @click.stop="toggleMenu"
                             class="text-gray-500 dark:text-gray-400 hover:text-red-500 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex flex-col items-center"
-                            title="User Menu">
+                            :title="t('auth.user')">
                             <div v-html="icons.user"></div>
-                            <span class="text-xs mt-1 dark:text-gray-300">User</span>
+                            <span class="text-xs mt-1 dark:text-gray-300">{{ authStore.user?.username || t('auth.user')
+                                }}</span>
                         </button>
 
                         <!-- Dropdown Menu -->
@@ -119,16 +122,17 @@ const icons = {
                             class="absolute left-20 bottom-0 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 z-50 border border-gray-200 dark:border-gray-700">
                             <div
                                 class="px-4 py-2 text-sm text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
-                                <div class="font-medium dark:text-gray-300">{{ authStore.user?.username || 'User' }}
+                                <div class="font-medium dark:text-gray-300">{{ authStore.user?.username ||
+                                    t('auth.user') }}
                                 </div>
                             </div>
                             <router-link to="/settings"
                                 class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-                                Settings
+                                {{ t('navigation.settings') }}
                             </router-link>
                             <button @click="handleLogout"
                                 class="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-                                Logout
+                                {{ t('auth.logout') }}
                             </button>
                         </div>
                     </div>
@@ -140,10 +144,10 @@ const icons = {
             <!-- Mobile Bottom Navigation -->
             <nav
                 class="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 flex justify-around py-2 z-10">
-                <RouterLink v-for="item in navItems" :key="item.name" :to="item.route"
+                <RouterLink v-for="item in navItems" :key="item.nameKey" :to="item.route"
                     class="text-gray-500 dark:text-gray-400 hover:text-red-500 p-2 flex flex-col items-center">
                     <div v-html="icons[item.icon]"></div>
-                    <span class="text-xs mt-1 dark:text-gray-300">{{ item.name }}</span>
+                    <span class="text-xs mt-1 dark:text-gray-300">{{ t(item.nameKey) }}</span>
                 </RouterLink>
             </nav>
         </template>

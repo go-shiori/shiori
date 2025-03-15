@@ -18,6 +18,7 @@
     "@vueuse/core": "^13.0.0",
     "pinia": "^3.0.1",
     "vue": "^3.5.13",
+    "vue-i18n": "^9.14.3",
     "vue-router": "4"
   },
   "devDependencies": {

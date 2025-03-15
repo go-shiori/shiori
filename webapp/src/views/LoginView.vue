@@ -2,12 +2,14 @@
 import { ref, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
+import { useI18n } from 'vue-i18n';
 
 // Props for destination
 const props = defineProps<{
   dst?: string
 }>();
 
+const { t } = useI18n();
 const username = ref('');
 const password = ref('');
 const rememberMe = ref(false);
@@ -34,7 +36,7 @@ onMounted(async () => {
 
 const login = async () => {
   if (!username.value || !password.value) {
-    errorMessage.value = 'Please enter both username and password';
+    errorMessage.value = t('auth.login_failed');
     return;
   }
 
@@ -49,11 +51,11 @@ const login = async () => {
       redirectAfterLogin();
     } else {
       // Display the error message from the auth store
-      errorMessage.value = authStore.error || 'Login failed. Please check your credentials.';
+      errorMessage.value = authStore.error || t('auth.login_failed');
     }
   } catch (error: any) {
     console.error('Login error:', error);
-    errorMessage.value = error.message || 'An unexpected error occurred';
+    errorMessage.value = error.message || t('auth.login_failed');
   } finally {
     isLoading.value = false;
   }
@@ -92,38 +94,39 @@ const redirectAfterLogin = () => {
 
         <div v-if="isLoading && authStore.token"
           class="mb-4 p-3 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-md text-sm text-center">
-          Verifying your session...
+          {{ t('common.loading') }}
         </div>
 
         <form @submit.prevent="login">
           <div class="mb-6">
             <div class="flex items-center mb-4">
-              <div class="w-28 text-right mr-4 text-gray-700 dark:text-gray-300">Username:</div>
+              <div class="w-28 text-right mr-4 text-gray-700 dark:text-gray-300">{{ t('auth.username') }}:</div>
               <input v-model="username" type="text"
                 class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-                placeholder="Username" required />
+                :placeholder="t('auth.username')" required />
             </div>
 
             <div class="flex items-center">
-              <div class="w-28 text-right mr-4 text-gray-700 dark:text-gray-300">Password:</div>
+              <div class="w-28 text-right mr-4 text-gray-700 dark:text-gray-300">{{ t('auth.password') }}:</div>
               <input v-model="password" type="password"
                 class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-                placeholder="Password" required />
+                :placeholder="t('auth.password')" required />
             </div>
           </div>
 
           <div class="flex justify-center items-center mb-6">
             <input id="remember-me" v-model="rememberMe" type="checkbox"
               class="h-4 w-4 text-red-500 focus:ring-red-500 border-gray-300 dark:border-gray-600 rounded" />
-            <label for="remember-me" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">Remember me</label>
+            <label for="remember-me" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">{{
+              t('auth.remember_me') }}</label>
           </div>
 
           <div class="flex justify-center">
             <button type="submit"
               class="w-full bg-gray-800 dark:bg-gray-700 text-white py-2 px-4 rounded-md hover:bg-gray-700 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 uppercase font-medium"
               :disabled="isLoading">
-              <span v-if="isLoading">LOGGING IN...</span>
-              <span v-else>LOG IN</span>
+              <span v-if="isLoading">{{ t('common.loading') }}</span>
+              <span v-else>{{ t('auth.login') }}</span>
             </button>
           </div>
         </form>
