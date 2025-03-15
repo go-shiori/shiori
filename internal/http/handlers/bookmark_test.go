@@ -17,7 +17,7 @@ func TestGetBookmark(t *testing.T) {
 	logger := logrus.New()
 	_, deps := testutil.GetTestConfigurationAndDependencies(t, context.TODO(), logger)
 
-	err := templates.SetupTemplates()
+	err := templates.SetupTemplates(deps.Config())
 	require.NoError(t, err)
 
 	// Create a private and a public bookmark to use in tests
@@ -75,7 +75,7 @@ func TestBookmarkContentHandler(t *testing.T) {
 	logger := logrus.New()
 	_, deps := testutil.GetTestConfigurationAndDependencies(t, context.Background(), logger)
 
-	err := templates.SetupTemplates()
+	err := templates.SetupTemplates(deps.Config())
 	require.NoError(t, err)
 
 	bookmark := testutil.GetValidBookmark()
@@ -105,7 +105,7 @@ func TestBookmarkFileHandlers(t *testing.T) {
 	logger := logrus.New()
 	_, deps := testutil.GetTestConfigurationAndDependencies(t, context.Background(), logger)
 
-	err := templates.SetupTemplates()
+	err := templates.SetupTemplates(deps.Config())
 	require.NoError(t, err)
 
 	bookmark := testutil.GetValidBookmark()

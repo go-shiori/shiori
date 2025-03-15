@@ -43,18 +43,18 @@ type loginResponseMessage struct {
 func HandleLogin(deps model.Dependencies, c model.WebContext) {
 	var payload loginRequestPayload
 	if err := json.NewDecoder(c.Request().Body).Decode(&payload); err != nil {
-		response.SendError(c, http.StatusBadRequest, "Invalid JSON payload", nil)
+		response.SendError(c, http.StatusBadRequest, "Invalid JSON payload")
 		return
 	}
 
 	if err := payload.IsValid(); err != nil {
-		response.SendError(c, http.StatusBadRequest, err.Error(), nil)
+		response.SendError(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	account, err := deps.Domains().Auth().GetAccountFromCredentials(c.Request().Context(), payload.Username, payload.Password)
 	if err != nil {
-		response.SendError(c, http.StatusBadRequest, err.Error(), nil)
+		response.SendError(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -71,7 +71,7 @@ func HandleLogin(deps model.Dependencies, c model.WebContext) {
 		return
 	}
 
-	response.Send(c, http.StatusOK, loginResponseMessage{
+	response.SendJSON(c, http.StatusOK, loginResponseMessage{
 		Token:      token,
 		Expiration: expirationTime.Unix(),
 	})
@@ -89,7 +89,7 @@ func HandleRefreshToken(deps model.Dependencies, c model.WebContext) {
 		return
 	}
 
-	expiration := time.Now().Add(time.Hour * 72)
+	expiration := time.Now().UTC().Add(time.Hour * 24 * 30)
 	account := c.GetAccount()
 	token, err := deps.Domains().Auth().CreateTokenForAccount(account, expiration)
 	if err != nil {
@@ -97,8 +97,9 @@ func HandleRefreshToken(deps model.Dependencies, c model.WebContext) {
 		return
 	}
 
-	response.Send(c, http.StatusAccepted, loginResponseMessage{
-		Token: token,
+	response.SendJSON(c, http.StatusAccepted, loginResponseMessage{
+		Token:      token,
+		Expiration: expiration.Unix(),
 	})
 }
 
@@ -113,7 +114,7 @@ func HandleGetMe(deps model.Dependencies, c model.WebContext) {
 	if err := middleware.RequireLoggedInUser(deps, c); err != nil {
 		return
 	}
-	response.Send(c, http.StatusOK, c.GetAccount())
+	response.SendJSON(c, http.StatusOK, c.GetAccount())
 }
 
 type updateAccountPayload struct {
@@ -132,7 +133,9 @@ func (p *updateAccountPayload) IsValid() error {
 }
 
 func (p *updateAccountPayload) ToAccountDTO() model.AccountDTO {
-	account := model.AccountDTO{}
+	account := model.AccountDTO{
+		Config: p.Config,
+	}
 	if p.NewPassword != "" {
 		account.Password = p.NewPassword
 	}
@@ -168,7 +171,7 @@ func HandleUpdateLoggedAccount(deps model.Dependencies, c model.WebContext) {
 	}
 
 	if err := payload.IsValid(); err != nil {
-		response.SendError(c, http.StatusBadRequest, err.Error(), nil)
+		response.SendError(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -177,11 +180,14 @@ func HandleUpdateLoggedAccount(deps model.Dependencies, c model.WebContext) {
 	if payload.NewPassword != "" {
 		_, err := deps.Domains().Auth().GetAccountFromCredentials(c.Request().Context(), account.Username, payload.OldPassword)
 		if err != nil {
-			response.SendError(c, http.StatusBadRequest, "Old password is incorrect", nil)
+			response.SendError(c, http.StatusBadRequest, "Old password is incorrect")
 			return
 		}
 	}
 
+	// TODO: Use a method in the AccountDTO to apply the updates directly:
+	// account := domains.Accounts().GetAccount(...)
+	// account.ApplyUpdates(payload)
 	updatedAccount := payload.ToAccountDTO()
 	updatedAccount.ID = account.ID
 
@@ -192,7 +198,7 @@ func HandleUpdateLoggedAccount(deps model.Dependencies, c model.WebContext) {
 		return
 	}
 
-	response.Send(c, http.StatusOK, account)
+	response.SendJSON(c, http.StatusOK, account)
 }
 
 // @Summary					Logout from the current session
@@ -213,5 +219,5 @@ func HandleLogout(deps model.Dependencies, c model.WebContext) {
 		Value: "",
 	})
 
-	response.Send(c, http.StatusOK, nil)
+	response.SendJSON(c, http.StatusOK, nil)
 }

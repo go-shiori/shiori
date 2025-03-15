@@ -64,11 +64,14 @@ func TestHandleLogin(t *testing.T) {
 		w := testutil.PerformRequest(deps, HandleLogin, "POST", "/login", testutil.WithBody(body))
 		require.Equal(t, http.StatusOK, w.Code)
 
-		response, err := testutil.NewTestResponseFromReader(w.Body)
-		require.NoError(t, err)
+		response := testutil.NewTestResponseFromRecorder(w)
 		response.AssertOk(t)
-		response.AssertMessageContains(t, "token")
-		response.AssertMessageContains(t, "expires")
+		response.AssertMessageJSONKeyValue(t, "token", func(t *testing.T, value any) {
+			require.NotEmpty(t, value)
+		})
+		response.AssertMessageJSONKeyValue(t, "expires", func(t *testing.T, value any) {
+			require.NotEmpty(t, value)
+		})
 	})
 }
 
@@ -90,10 +93,14 @@ func TestHandleRefreshToken(t *testing.T) {
 		w := testutil.PerformRequest(deps, HandleRefreshToken, "POST", "/refresh", testutil.WithAccount(&account))
 		require.Equal(t, http.StatusAccepted, w.Code)
 
-		response, err := testutil.NewTestResponseFromReader(w.Body)
-		require.NoError(t, err)
+		response := testutil.NewTestResponseFromRecorder(w)
 		response.AssertOk(t)
-		response.AssertMessageContains(t, "token")
+		response.AssertMessageJSONKeyValue(t, "token", func(t *testing.T, value any) {
+			require.NotEmpty(t, value)
+		})
+		response.AssertMessageJSONKeyValue(t, "expires", func(t *testing.T, value any) {
+			require.NotZero(t, value)
+		})
 	})
 }
 
@@ -113,10 +120,30 @@ func TestHandleGetMe(t *testing.T) {
 		HandleGetMe(deps, c)
 		require.Equal(t, http.StatusOK, w.Code)
 
-		response, err := testutil.NewTestResponseFromReader(w.Body)
-		require.NoError(t, err)
+		response := testutil.NewTestResponseFromRecorder(w)
 		response.AssertOk(t)
-		response.AssertMessageContains(t, "username")
+		response.AssertMessageJSONKeyValue(t, "username", func(t *testing.T, value any) {
+			require.Equal(t, "user", value)
+		})
+		response.AssertMessageJSONKeyValue(t, "owner", func(t *testing.T, value any) {
+			require.False(t, value.(bool))
+		})
+	})
+
+	t.Run("returns admin info", func(t *testing.T) {
+		c, w := testutil.NewTestWebContext()
+		testutil.SetFakeAdmin(c)
+		HandleGetMe(deps, c)
+		require.Equal(t, http.StatusOK, w.Code)
+
+		response := testutil.NewTestResponseFromRecorder(w)
+		response.AssertOk(t)
+		response.AssertMessageJSONKeyValue(t, "username", func(t *testing.T, value any) {
+			require.Equal(t, "user", value)
+		})
+		response.AssertMessageJSONKeyValue(t, "owner", func(t *testing.T, value any) {
+			require.True(t, value.(bool))
+		})
 	})
 }
 
@@ -173,17 +200,23 @@ func TestHandleUpdateLoggedAccount(t *testing.T) {
 			"old_password": "gopher",
 			"new_password": "newpass",
 			"config": {
-				"show_id": true,
-				"list_mode": true
+				"ShowId": true,
+				"ListMode": true
 			}
 		}`
 		w := testutil.PerformRequest(deps, HandleUpdateLoggedAccount, "PATCH", "/account", testutil.WithBody(body), testutil.WithAccount(account))
 		require.Equal(t, http.StatusOK, w.Code)
 
-		response, err := testutil.NewTestResponseFromReader(w.Body)
-		require.NoError(t, err)
+		response := testutil.NewTestResponseFromRecorder(w)
 		response.AssertOk(t)
-		response.AssertMessageContains(t, "config")
+		response.AssertMessageJSONKeyValue(t, "username", func(t *testing.T, value any) {
+			require.Equal(t, "shiori", value)
+		})
+		response.AssertMessageJSONKeyValue(t, "config", func(t *testing.T, value any) {
+			config := value.(map[string]any)
+			require.True(t, config["ShowId"].(bool))
+			require.True(t, config["ListMode"].(bool))
+		})
 	})
 }
 

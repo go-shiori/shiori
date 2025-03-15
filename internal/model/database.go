@@ -89,6 +89,18 @@ type DB interface {
 	// BulkUpdateBookmarkTags updates tags for multiple bookmarks.
 	// It ensures that all bookmarks and tags exist before proceeding.
 	BulkUpdateBookmarkTags(ctx context.Context, bookmarkIDs []int, tagIDs []int) error
+
+	// AddTagToBookmark adds a tag to a bookmark
+	AddTagToBookmark(ctx context.Context, bookmarkID int, tagID int) error
+
+	// RemoveTagFromBookmark removes a tag from a bookmark
+	RemoveTagFromBookmark(ctx context.Context, bookmarkID int, tagID int) error
+
+	// TagExists checks if a tag with the given ID exists in the database
+	TagExists(ctx context.Context, tagID int) (bool, error)
+
+	// BookmarkExists checks if a bookmark with the given ID exists in the database
+	BookmarkExists(ctx context.Context, bookmarkID int) (bool, error)
 }
 
 // DBOrderMethod is the order method for getting bookmarks
@@ -138,4 +150,5 @@ type DBListTagsOptions struct {
 	BookmarkID        int
 	WithBookmarkCount bool
 	OrderBy           DBTagOrderBy
+	Search            string
 }

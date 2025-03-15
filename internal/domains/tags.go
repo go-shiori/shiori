@@ -75,3 +75,8 @@ func (d *tagsDomain) DeleteTag(ctx context.Context, id int) error {
 
 	return nil
 }
+
+// TagExists checks if a tag with the given ID exists
+func (d *tagsDomain) TagExists(ctx context.Context, id int) (bool, error) {
+	return d.deps.Database().TagExists(ctx, id)
+}

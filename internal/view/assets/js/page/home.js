@@ -277,7 +277,7 @@ export default {
 					return response.json();
 				})
 				.then((json) => {
-					this.tags = json.message;
+					this.tags = json;
 					this.loading = false;
 				})
 				.catch((err) => {
@@ -697,7 +697,7 @@ export default {
 				.then((json) => {
 					this.selection = [];
 					this.editMode = false;
-					json.message.forEach((book) => {
+					json.forEach((book) => {
 						// download ebooks
 						const id = book.id;
 						if (book.hasEbook) {
@@ -799,7 +799,7 @@ export default {
 
 							let faildedUpdateArchives = [];
 							let faildedCreateEbook = [];
-							json.message.forEach((book) => {
+							json.forEach((book) => {
 								var item = items.find((el) => el.id === book.id);
 								this.bookmarks.splice(item.index, 1, book);
 

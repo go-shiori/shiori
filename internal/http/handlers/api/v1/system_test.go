@@ -35,12 +35,17 @@ func TestHandleSystemInfo(t *testing.T) {
 		require.Equal(t, http.StatusOK, w.Code)
 		require.Equal(t, "application/json", w.Header().Get("Content-Type"))
 
-		response, err := testutil.NewTestResponseFromReader(w.Body)
-		require.NoError(t, err)
+		response := testutil.NewTestResponseFromRecorder(w)
 
 		response.AssertOk(t)
-		response.AssertMessageContains(t, "version")
-		response.AssertMessageContains(t, "database")
-		response.AssertMessageContains(t, "os")
+		response.AssertMessageJSONKeyValue(t, "version", func(t *testing.T, value any) {
+			require.NotEmpty(t, value)
+		})
+		response.AssertMessageJSONKeyValue(t, "database", func(t *testing.T, value any) {
+			require.NotEmpty(t, value)
+		})
+		response.AssertMessageJSONKeyValue(t, "os", func(t *testing.T, value any) {
+			require.NotEmpty(t, value)
+		})
 	})
 }

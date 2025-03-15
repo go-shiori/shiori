@@ -27,13 +27,14 @@ type HttpServer struct {
 func (s *HttpServer) Setup(cfg *config.Config, deps *dependencies.Dependencies) (*HttpServer, error) {
 	s.mux = http.NewServeMux()
 
-	if err := templates.SetupTemplates(); err != nil {
+	if err := templates.SetupTemplates(cfg); err != nil {
 		return nil, fmt.Errorf("failed to setup templates: %w", err)
 	}
 
 	globalMiddleware := []model.HttpMiddleware{
 		middleware.NewAuthMiddleware(deps),
 		middleware.NewRequestIDMiddleware(deps),
+		middleware.NewCORSMiddleware([]string{"*"}),
 	}
 
 	if cfg.Http.AccessLog {
@@ -165,6 +166,19 @@ func (s *HttpServer) Setup(cfg *config.Config, deps *dependencies.Dependencies) 
 	))
 	s.mux.HandleFunc("PUT /api/v1/bookmarks/bulk/tags", ToHTTPHandler(deps,
 		api_v1.HandleBulkUpdateBookmarkTags,
+		globalMiddleware...,
+	))
+	// Bookmark tags endpoints
+	s.mux.HandleFunc("GET /api/v1/bookmarks/{id}/tags", ToHTTPHandler(deps,
+		api_v1.HandleGetBookmarkTags,
+		globalMiddleware...,
+	))
+	s.mux.HandleFunc("POST /api/v1/bookmarks/{id}/tags", ToHTTPHandler(deps,
+		api_v1.HandleAddTagToBookmark,
+		globalMiddleware...,
+	))
+	s.mux.HandleFunc("DELETE /api/v1/bookmarks/{id}/tags", ToHTTPHandler(deps,
+		api_v1.HandleRemoveTagFromBookmark,
 		globalMiddleware...,
 	))
 

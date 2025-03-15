@@ -151,7 +151,7 @@ export default {
 					return response.json();
 				})
 				.then((responseData) => {
-					const responseString = JSON.stringify(responseData.message);
+					const responseString = JSON.stringify(responseData);
 					localStorage.setItem("shiori-account", responseString);
 				})
 				.catch((err) => {
@@ -176,7 +176,7 @@ export default {
 				})
 				.then((json) => {
 					this.loading = false;
-					this.accounts = json.message;
+					this.accounts = json;
 				})
 				.catch((err) => {
 					this.loading = false;
@@ -199,7 +199,7 @@ export default {
 					return response.json();
 				})
 				.then((json) => {
-					this.system = json.message;
+					this.system = json;
 				})
 				.catch((err) => {
 					this.getErrorMessage(err).then((msg) => {
@@ -277,7 +277,7 @@ export default {
 							this.dialog.loading = false;
 							this.dialog.visible = false;
 
-							this.accounts.push(json.message);
+							this.accounts.push(json);
 							this.accounts.sort((a, b) => {
 								var nameA = a.username.toLowerCase(),
 									nameB = b.username.toLowerCase();

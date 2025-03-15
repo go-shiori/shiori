@@ -58,10 +58,9 @@ func TestHandleListAccounts(t *testing.T) {
 		HandleListAccounts(deps, c)
 		require.Equal(t, http.StatusOK, w.Code)
 
-		response, err := testutil.NewTestResponseFromReader(w.Body)
-		require.NoError(t, err)
+		response := testutil.NewTestResponseFromRecorder(w)
 		response.AssertOk(t)
-		require.Len(t, response.Response.Message, 1) // Admin + created account
+		response.AssertMessageIsListLength(t, 1) // Admin + created account
 	})
 }
 
@@ -146,11 +145,11 @@ func TestHandleCreateAccount(t *testing.T) {
 		}, "POST", "/api/v1/accounts", testutil.WithBody(body))
 		require.Equal(t, http.StatusCreated, w.Code)
 
-		response, err := testutil.NewTestResponseFromReader(w.Body)
-		require.NoError(t, err)
+		response := testutil.NewTestResponseFromRecorder(w)
 		response.AssertOk(t)
-		response.AssertMessageContains(t, "id")
-		require.NotZero(t, response.Response.Message.(map[string]interface{})["id"])
+		response.AssertMessageJSONKeyValue(t, "id", func(t *testing.T, value any) {
+			require.NotZero(t, value)
+		})
 	})
 }
 
@@ -279,11 +278,11 @@ func TestHandleUpdateAccount(t *testing.T) {
 		}, "PATCH", "/api/v1/accounts/"+strconv.Itoa(int(account.ID)), testutil.WithBody(body))
 		require.Equal(t, http.StatusOK, w.Code)
 
-		response, err := testutil.NewTestResponseFromReader(w.Body)
-		require.NoError(t, err)
+		response := testutil.NewTestResponseFromRecorder(w)
 		response.AssertOk(t)
-		response.AssertMessageContains(t, "owner")
-		require.True(t, response.Response.Message.(map[string]any)["owner"].(bool))
+		response.AssertMessageJSONKeyValue(t, "owner", func(t *testing.T, value any) {
+			require.True(t, value.(bool))
+		})
 	})
 
 	t.Run("update with empty payload", func(t *testing.T) {
@@ -310,8 +309,7 @@ func TestHandleUpdateAccount(t *testing.T) {
 		require.Equal(t, http.StatusBadRequest, w.Code)
 
 		// Verify no changes were made
-		response, err := testutil.NewTestResponseFromReader(w.Body)
-		require.NoError(t, err)
+		response := testutil.NewTestResponseFromRecorder(w)
 		response.AssertNotOk(t)
 	})
 
@@ -332,10 +330,11 @@ func TestHandleUpdateAccount(t *testing.T) {
 		}, "PATCH", "/api/v1/accounts/"+strconv.Itoa(int(account.ID)), testutil.WithBody(body))
 		require.Equal(t, http.StatusOK, w.Code)
 
-		response, err := testutil.NewTestResponseFromReader(w.Body)
-		require.NoError(t, err)
+		response := testutil.NewTestResponseFromRecorder(w)
 		response.AssertOk(t)
-		require.Equal(t, "newname", response.Response.Message.(map[string]any)["username"])
+		response.AssertMessageJSONKeyValue(t, "username", func(t *testing.T, value any) {
+			require.Equal(t, "newname", value)
+		})
 	})
 
 	t.Run("update password only", func(t *testing.T) {
@@ -412,20 +411,20 @@ func TestHandleUpdateAccount(t *testing.T) {
 		}, "PATCH", "/api/v1/accounts/"+strconv.Itoa(int(account.ID)), testutil.WithBody(body))
 		require.Equal(t, http.StatusOK, w.Code)
 
-		response, err := testutil.NewTestResponseFromReader(w.Body)
-		require.NoError(t, err)
+		response := testutil.NewTestResponseFromRecorder(w)
 		response.AssertOk(t)
-
-		config := response.Response.Message.(map[string]any)["config"].(map[string]any)
-		require.True(t, config["ShowId"].(bool))
-		require.True(t, config["ListMode"].(bool))
-		require.True(t, config["HideThumbnail"].(bool))
-		require.True(t, config["HideExcerpt"].(bool))
-		require.Equal(t, "dark", config["Theme"])
-		require.True(t, config["KeepMetadata"].(bool))
-		require.True(t, config["UseArchive"].(bool))
-		require.True(t, config["CreateEbook"].(bool))
-		require.True(t, config["MakePublic"].(bool))
+		response.AssertMessageJSONKeyValue(t, "config", func(t *testing.T, value any) {
+			config := value.(map[string]any)
+			require.True(t, config["ShowId"].(bool))
+			require.True(t, config["ListMode"].(bool))
+			require.True(t, config["HideThumbnail"].(bool))
+			require.True(t, config["HideExcerpt"].(bool))
+			require.Equal(t, "dark", config["Theme"])
+			require.True(t, config["KeepMetadata"].(bool))
+			require.True(t, config["UseArchive"].(bool))
+			require.True(t, config["CreateEbook"].(bool))
+			require.True(t, config["MakePublic"].(bool))
+		})
 	})
 
 	t.Run("update all fields", func(t *testing.T) {
@@ -461,20 +460,22 @@ func TestHandleUpdateAccount(t *testing.T) {
 		}, "PATCH", "/api/v1/accounts/"+strconv.Itoa(int(account.ID)), testutil.WithBody(body))
 		require.Equal(t, http.StatusOK, w.Code)
 
-		response, err := testutil.NewTestResponseFromReader(w.Body)
-		require.NoError(t, err)
+		response := testutil.NewTestResponseFromRecorder(w)
 		response.AssertOk(t)
-
-		msg := response.Response.Message.(map[string]any)
-		require.Equal(t, "updated", msg["username"])
-		require.True(t, msg["owner"].(bool))
-
-		config := msg["config"].(map[string]any)
-		require.True(t, config["ShowId"].(bool))
-		require.True(t, config["ListMode"].(bool))
-		require.True(t, config["HideThumbnail"].(bool))
-		require.True(t, config["HideExcerpt"].(bool))
-		require.Equal(t, "dark", config["Theme"])
+		response.AssertMessageJSONKeyValue(t, "username", func(t *testing.T, value any) {
+			require.Equal(t, "updated", value)
+		})
+		response.AssertMessageJSONKeyValue(t, "owner", func(t *testing.T, value any) {
+			require.True(t, value.(bool))
+		})
+		response.AssertMessageJSONKeyValue(t, "config", func(t *testing.T, value any) {
+			config := value.(map[string]any)
+			require.True(t, config["ShowId"].(bool))
+			require.True(t, config["ListMode"].(bool))
+			require.True(t, config["HideThumbnail"].(bool))
+			require.True(t, config["HideExcerpt"].(bool))
+			require.Equal(t, "dark", config["Theme"])
+		})
 
 		// Verify password change
 		loginBody := `{"username": "updated", "password": "newpass"}`

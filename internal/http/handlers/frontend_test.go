@@ -15,7 +15,7 @@ func TestHandleFrontend(t *testing.T) {
 	logger := logrus.New()
 	_, deps := testutil.GetTestConfigurationAndDependencies(t, context.Background(), logger)
 
-	err := templates.SetupTemplates()
+	err := templates.SetupTemplates(deps.Config())
 	require.NoError(t, err)
 
 	t.Run("serves index page", func(t *testing.T) {

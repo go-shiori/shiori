@@ -2,9 +2,9 @@ package api_v1
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/go-shiori/shiori/internal/model"
@@ -35,8 +35,7 @@ func TestHandleListTags(t *testing.T) {
 		w := testutil.PerformRequest(deps, HandleListTags, "GET", "/api/v1/tags", testutil.WithFakeUser())
 		require.Equal(t, http.StatusOK, w.Code)
 
-		response, err := testutil.NewTestResponseFromReader(w.Body)
-		require.NoError(t, err)
+		response := testutil.NewTestResponseFromRecorder(w)
 		response.AssertOk(t)
 		response.AssertMessageIsNotEmptyList(t)
 	})
@@ -50,6 +49,15 @@ func TestHandleListTags(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, createdTags, 1)
 
+		// Create a bookmark with this tag
+		bookmark := model.BookmarkDTO{
+			URL:   "https://example.com/test",
+			Title: "Test Bookmark",
+			Tags:  []model.TagDTO{{Tag: model.Tag{Name: tag.Name}}},
+		}
+		_, err = deps.Database().SaveBookmarks(ctx, true, bookmark)
+		require.NoError(t, err)
+
 		w := testutil.PerformRequest(
 			deps,
 			HandleListTags,
@@ -60,27 +68,19 @@ func TestHandleListTags(t *testing.T) {
 		)
 		require.Equal(t, http.StatusOK, w.Code)
 
-		response, err := testutil.NewTestResponseFromReader(w.Body)
-		require.NoError(t, err)
+		response := testutil.NewTestResponseFromRecorder(w)
 		response.AssertOk(t)
 
-		// Verify the response contains tags with bookmark_count field
-		var tags []model.TagDTO
-		responseData, err := json.Marshal(response.Response.GetMessage())
-		require.NoError(t, err)
-		err = json.Unmarshal(responseData, &tags)
-		require.NoError(t, err)
-		require.NotEmpty(t, tags)
+		response.AssertMessageIsNotEmptyList(t)
 
-		// The bookmark_count field should be present in the response
-		// Even if it's 0, it should be included when the parameter is set
-		for _, tag := range tags {
-			if tag.Name == "test-tag-with-count" {
-				// We're just checking that the field exists and is accessible
-				_ = tag.BookmarkCount
-				break
+		response.ForEach(t, func(item map[string]any) {
+			t.Logf("item: %+v", item)
+			if tag, ok := item["name"].(string); ok {
+				if tag == "test-tag-with-count" {
+					require.NotZero(t, item["bookmark_count"])
+				}
 			}
-		}
+		})
 	})
 
 	t.Run("invalid bookmark_id parameter", func(t *testing.T) {
@@ -127,27 +127,116 @@ func TestHandleListTags(t *testing.T) {
 		)
 		require.Equal(t, http.StatusOK, w.Code)
 
-		response, err := testutil.NewTestResponseFromReader(w.Body)
-		require.NoError(t, err)
+		response := testutil.NewTestResponseFromRecorder(w)
 		response.AssertOk(t)
 
 		// Verify the response contains the tag associated with the bookmark
-		var tags []model.TagDTO
-		responseData, err := json.Marshal(response.Response.GetMessage())
-		require.NoError(t, err)
-		err = json.Unmarshal(responseData, &tags)
-		require.NoError(t, err)
-
-		// Check that we have at least one tag and it's the one we created
-		require.NotEmpty(t, tags)
 		found := false
-		for _, t := range tags {
-			if t.Name == "test-tag-for-bookmark" {
-				found = true
-				break
+		response.ForEach(t, func(item map[string]any) {
+			if tag, ok := item["name"].(string); ok {
+				if tag == "test-tag-for-bookmark" {
+					found = true
+				}
 			}
-		}
+		})
 		require.True(t, found, "The tag associated with the bookmark should be in the response")
+	})
+
+	t.Run("search parameter", func(t *testing.T) {
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+
+		// Create test tags with different names
+		tags := []model.Tag{
+			{Name: "golang"},
+			{Name: "python"},
+			{Name: "javascript"},
+		}
+		createdTags, err := deps.Database().CreateTags(ctx, tags...)
+		require.NoError(t, err)
+		require.Len(t, createdTags, 3)
+
+		// Test searching for "go"
+		w := testutil.PerformRequest(
+			deps,
+			HandleListTags,
+			"GET",
+			"/api/v1/tags",
+			testutil.WithFakeUser(),
+			testutil.WithRequestQueryParam("search", "go"),
+		)
+		require.Equal(t, http.StatusOK, w.Code)
+
+		response := testutil.NewTestResponseFromRecorder(w)
+		response.AssertOk(t)
+
+		response.AssertMessageIsNotEmptyList(t)
+
+		found := false
+		response.ForEach(t, func(item map[string]any) {
+			if tag, ok := item["name"].(string); ok {
+				if tag == "golang" {
+					found = true
+				}
+			}
+		})
+		require.True(t, found, "Tag 'golang' should be present")
+
+		// Test searching for "on"
+		w = testutil.PerformRequest(
+			deps,
+			HandleListTags,
+			"GET",
+			"/api/v1/tags",
+			testutil.WithFakeUser(),
+			testutil.WithRequestQueryParam("search", "on"),
+		)
+		require.Equal(t, http.StatusOK, w.Code)
+
+		response = testutil.NewTestResponseFromRecorder(w)
+		response.AssertOk(t)
+
+		response.AssertMessageIsNotEmptyList(t)
+
+		found = false
+		response.ForEach(t, func(item map[string]any) {
+			if tag, ok := item["name"].(string); ok {
+				if strings.Contains(tag, "python") {
+					found = true
+				}
+			}
+		})
+		require.True(t, found, "Tag 'python' should be present")
+	})
+
+	t.Run("search and bookmark_id parameters together", func(t *testing.T) {
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+
+		// Create a test bookmark
+		bookmark := testutil.GetValidBookmark()
+		bookmarks, err := deps.Database().SaveBookmarks(ctx, true, *bookmark)
+		require.NoError(t, err)
+		require.Len(t, bookmarks, 1)
+		bookmarkID := bookmarks[0].ID
+
+		// Test using both search and bookmark_id parameters
+		w := testutil.PerformRequest(
+			deps,
+			HandleListTags,
+			"GET",
+			"/api/v1/tags",
+			testutil.WithFakeUser(),
+			testutil.WithRequestQueryParam("search", "go"),
+			testutil.WithRequestQueryParam("bookmark_id", strconv.Itoa(bookmarkID)),
+		)
+		require.Equal(t, http.StatusBadRequest, w.Code)
+
+		response := testutil.NewTestResponseFromRecorder(w)
+		response.AssertNotOk(t)
+
+		// Verify the error message
+		response.AssertMessageJSONKeyValue(t, "error", func(t *testing.T, value any) {
+			require.Equal(t, "search and bookmark ID filtering cannot be used together", value)
+		})
 	})
 }
 
@@ -213,18 +302,16 @@ func TestHandleGetTag(t *testing.T) {
 		)
 		require.Equal(t, http.StatusOK, w.Code)
 
-		response, err := testutil.NewTestResponseFromReader(w.Body)
-		require.NoError(t, err)
+		response := testutil.NewTestResponseFromRecorder(w)
 		response.AssertOk(t)
 
 		// Verify the tag data
-		var tagDTO model.TagDTO
-		responseData, err := json.Marshal(response.Response.GetMessage())
-		require.NoError(t, err)
-		err = json.Unmarshal(responseData, &tagDTO)
-		require.NoError(t, err)
-		require.Equal(t, tagID, tagDTO.ID)
-		require.Equal(t, "test-tag", tagDTO.Name)
+		response.AssertMessageJSONKeyValue(t, "id", func(t *testing.T, value any) {
+			require.Equal(t, tagID, int(value.(float64))) // TODO: Float64??
+		})
+		response.AssertMessageJSONKeyValue(t, "name", func(t *testing.T, value any) {
+			require.Equal(t, "test-tag", value)
+		})
 	})
 }
 
@@ -276,18 +363,16 @@ func TestHandleCreateTag(t *testing.T) {
 		)
 		require.Equal(t, http.StatusCreated, w.Code)
 
-		response, err := testutil.NewTestResponseFromReader(w.Body)
-		require.NoError(t, err)
+		response := testutil.NewTestResponseFromRecorder(w)
 		response.AssertOk(t)
 
 		// Verify the created tag
-		var tagDTO model.TagDTO
-		responseData, err := json.Marshal(response.Response.GetMessage())
-		require.NoError(t, err)
-		err = json.Unmarshal(responseData, &tagDTO)
-		require.NoError(t, err)
-		require.Greater(t, tagDTO.ID, 0)
-		require.Equal(t, "new-test-tag", tagDTO.Name)
+		response.AssertMessageJSONKeyValue(t, "name", func(t *testing.T, value any) {
+			require.Equal(t, "new-test-tag", value)
+		})
+		response.AssertMessageJSONKeyValue(t, "id", func(t *testing.T, value any) {
+			require.Greater(t, value.(float64), float64(0)) // TODO: Float64??
+		})
 	})
 }
 
@@ -383,18 +468,19 @@ func TestHandleUpdateTag(t *testing.T) {
 		)
 		require.Equal(t, http.StatusOK, w.Code)
 
-		response, err := testutil.NewTestResponseFromReader(w.Body)
-		require.NoError(t, err)
+		response := testutil.NewTestResponseFromRecorder(w)
 		response.AssertOk(t)
 
 		// Verify the updated tag
-		var tagDTO model.TagDTO
-		responseData, err := json.Marshal(response.Response.GetMessage())
+		response.AssertMessageJSONKeyValue(t, "name", func(t *testing.T, value any) {
+			require.Equal(t, "updated-test-tag", value)
+		})
+
+		// Ensure database was updated
+		updatedTag, exists, err := deps.Database().GetTag(ctx, tagID)
 		require.NoError(t, err)
-		err = json.Unmarshal(responseData, &tagDTO)
-		require.NoError(t, err)
-		require.Equal(t, tagID, tagDTO.ID)
-		require.Equal(t, "updated-test-tag", tagDTO.Name)
+		require.True(t, exists)
+		require.Equal(t, "updated-test-tag", updatedTag.Name)
 	})
 }
 
