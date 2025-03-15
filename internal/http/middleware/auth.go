@@ -53,7 +53,7 @@ func (m *AuthMiddleware) OnResponse(deps model.Dependencies, c model.WebContext)
 // RequireLoggedInUser ensures a user is authenticated
 func RequireLoggedInUser(deps model.Dependencies, c model.WebContext) error {
 	if !c.UserIsLogged() {
-		response.SendError(c, http.StatusUnauthorized, "Authentication required", nil)
+		response.SendError(c, http.StatusUnauthorized, "Authentication required")
 		return fmt.Errorf("authentication required")
 	}
 	return nil
@@ -67,7 +67,7 @@ func RequireLoggedInAdmin(deps model.Dependencies, c model.WebContext) error {
 	}
 
 	if !account.IsOwner() {
-		response.SendError(c, http.StatusForbidden, "Admin access required", nil)
+		response.SendError(c, http.StatusForbidden, "Admin access required")
 		return fmt.Errorf("admin access required")
 	}
 

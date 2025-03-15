@@ -36,7 +36,7 @@ func HandleListTags(deps model.Dependencies, c model.WebContext) {
 		var err error
 		bookmarkID, err = strconv.Atoi(bookmarkIDStr)
 		if err != nil {
-			response.SendError(c, http.StatusBadRequest, "Invalid bookmark ID", nil)
+			response.SendError(c, http.StatusBadRequest, "Invalid bookmark ID")
 			return
 		}
 	}
@@ -50,7 +50,7 @@ func HandleListTags(deps model.Dependencies, c model.WebContext) {
 	}
 
 	if err := opts.IsValid(); err != nil {
-		response.SendError(c, http.StatusBadRequest, err.Error(), nil)
+		response.SendError(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -61,7 +61,7 @@ func HandleListTags(deps model.Dependencies, c model.WebContext) {
 		return
 	}
 
-	response.Send(c, http.StatusOK, tags)
+	response.SendJSON(c, http.StatusOK, tags)
 }
 
 // @Summary					Get tag
@@ -83,7 +83,7 @@ func HandleGetTag(deps model.Dependencies, c model.WebContext) {
 	idParam := c.Request().PathValue("id")
 	id, err := strconv.Atoi(idParam)
 	if err != nil {
-		response.SendError(c, http.StatusBadRequest, "Invalid tag ID", nil)
+		response.SendError(c, http.StatusBadRequest, "Invalid tag ID")
 		return
 	}
 
@@ -98,7 +98,7 @@ func HandleGetTag(deps model.Dependencies, c model.WebContext) {
 		return
 	}
 
-	response.Send(c, http.StatusOK, tag)
+	response.SendJSON(c, http.StatusOK, tag)
 }
 
 // @Summary					Create tag
@@ -121,12 +121,12 @@ func HandleCreateTag(deps model.Dependencies, c model.WebContext) {
 	var tag model.TagDTO
 	err := json.NewDecoder(c.Request().Body).Decode(&tag)
 	if err != nil {
-		response.SendError(c, http.StatusBadRequest, "Invalid request body", nil)
+		response.SendError(c, http.StatusBadRequest, "Invalid request body")
 		return
 	}
 
 	if tag.Name == "" {
-		response.SendError(c, http.StatusBadRequest, "Tag name is required", nil)
+		response.SendError(c, http.StatusBadRequest, "Tag name is required")
 		return
 	}
 
@@ -137,7 +137,7 @@ func HandleCreateTag(deps model.Dependencies, c model.WebContext) {
 		return
 	}
 
-	response.Send(c, http.StatusCreated, createdTag)
+	response.SendJSON(c, http.StatusCreated, createdTag)
 }
 
 // @Summary					Update tag
@@ -162,19 +162,19 @@ func HandleUpdateTag(deps model.Dependencies, c model.WebContext) {
 	idParam := c.Request().PathValue("id")
 	id, err := strconv.Atoi(idParam)
 	if err != nil {
-		response.SendError(c, http.StatusBadRequest, "Invalid tag ID", nil)
+		response.SendError(c, http.StatusBadRequest, "Invalid tag ID")
 		return
 	}
 
 	var tag model.TagDTO
 	err = json.NewDecoder(c.Request().Body).Decode(&tag)
 	if err != nil {
-		response.SendError(c, http.StatusBadRequest, "Invalid request body", nil)
+		response.SendError(c, http.StatusBadRequest, "Invalid request body")
 		return
 	}
 
 	if tag.Name == "" {
-		response.SendError(c, http.StatusBadRequest, "Tag name is required", nil)
+		response.SendError(c, http.StatusBadRequest, "Tag name is required")
 		return
 	}
 
@@ -192,7 +192,7 @@ func HandleUpdateTag(deps model.Dependencies, c model.WebContext) {
 		return
 	}
 
-	response.Send(c, http.StatusOK, updatedTag)
+	response.SendJSON(c, http.StatusOK, updatedTag)
 }
 
 // @Summary					Delete tag
@@ -213,7 +213,7 @@ func HandleDeleteTag(deps model.Dependencies, c model.WebContext) {
 	idParam := c.Request().PathValue("id")
 	id, err := strconv.Atoi(idParam)
 	if err != nil {
-		response.SendError(c, http.StatusBadRequest, "Invalid tag ID", nil)
+		response.SendError(c, http.StatusBadRequest, "Invalid tag ID")
 		return
 	}
 
@@ -228,5 +228,5 @@ func HandleDeleteTag(deps model.Dependencies, c model.WebContext) {
 		return
 	}
 
-	response.Send(c, http.StatusNoContent, nil)
+	response.SendJSON(c, http.StatusNoContent, nil)
 }

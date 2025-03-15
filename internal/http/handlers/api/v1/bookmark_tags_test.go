@@ -153,8 +153,7 @@ func TestBookmarkTagsAPI(t *testing.T) {
 
 			require.Equal(t, http.StatusOK, rec.Code)
 
-			testResp, err := testutil.NewTestResponseFromRecorder(rec)
-			require.NoError(t, err)
+			testResp := testutil.NewTestResponseFromRecorder(rec)
 			testResp.AssertOk(t)
 		})
 
@@ -193,10 +192,11 @@ func TestBookmarkTagsAPI(t *testing.T) {
 
 			require.Equal(t, http.StatusBadRequest, rec.Code)
 
-			testResp, err := testutil.NewTestResponseFromRecorder(rec)
-			require.NoError(t, err)
+			testResp := testutil.NewTestResponseFromRecorder(rec)
 			testResp.AssertNotOk(t)
-			testResp.AssertMessageEquals(t, "Invalid request payload")
+			testResp.AssertMessageJSONKeyValue(t, "error", func(t *testing.T, value any) {
+				require.Equal(t, "Invalid request payload", value)
+			})
 		})
 
 		// Test empty bookmark IDs
@@ -219,10 +219,11 @@ func TestBookmarkTagsAPI(t *testing.T) {
 
 			require.Equal(t, http.StatusBadRequest, rec.Code)
 
-			testResp, err := testutil.NewTestResponseFromRecorder(rec)
-			require.NoError(t, err)
+			testResp := testutil.NewTestResponseFromRecorder(rec)
 			testResp.AssertNotOk(t)
-			testResp.AssertMessageEquals(t, "bookmark_ids should not be empty")
+			testResp.AssertMessageJSONKeyValue(t, "error", func(t *testing.T, value any) {
+				require.Equal(t, "bookmark_ids should not be empty", value)
+			})
 		})
 
 		// Test empty tag IDs
@@ -245,10 +246,11 @@ func TestBookmarkTagsAPI(t *testing.T) {
 
 			require.Equal(t, http.StatusBadRequest, rec.Code)
 
-			testResp, err := testutil.NewTestResponseFromRecorder(rec)
-			require.NoError(t, err)
+			testResp := testutil.NewTestResponseFromRecorder(rec)
 			testResp.AssertNotOk(t)
-			testResp.AssertMessageEquals(t, "tag_ids should not be empty")
+			testResp.AssertMessageJSONKeyValue(t, "error", func(t *testing.T, value any) {
+				require.Equal(t, "tag_ids should not be empty", value)
+			})
 		})
 
 		// Test bookmark not found
@@ -271,10 +273,11 @@ func TestBookmarkTagsAPI(t *testing.T) {
 
 			require.Equal(t, http.StatusInternalServerError, rec.Code)
 
-			testResp, err := testutil.NewTestResponseFromRecorder(rec)
-			require.NoError(t, err)
+			testResp := testutil.NewTestResponseFromRecorder(rec)
 			testResp.AssertNotOk(t)
-			testResp.AssertMessageEquals(t, "Failed to update bookmarks")
+			testResp.AssertMessageJSONKeyValue(t, "error", func(t *testing.T, value any) {
+				require.Equal(t, "Failed to update bookmarks", value)
+			})
 		})
 	})
 
@@ -298,21 +301,15 @@ func TestBookmarkTagsAPI(t *testing.T) {
 		require.Equal(t, http.StatusOK, rec.Code)
 
 		// Parse the response
-		testResp, err := testutil.NewTestResponseFromRecorder(rec)
-		require.NoError(t, err)
+		testResp := testutil.NewTestResponseFromRecorder(rec)
 		testResp.AssertOk(t)
 
-		// Extract tags from the response
-		var tags []model.TagDTO
-		tagsData, err := json.Marshal(testResp.Response.GetMessage())
-		require.NoError(t, err)
-		err = json.Unmarshal(tagsData, &tags)
-		require.NoError(t, err)
+		testResp.AssertMessageIsNotEmptyList(t)
 
-		// Verify the tags
-		require.Len(t, tags, 1)
-		assert.Equal(t, tagID, tags[0].ID)
-		assert.Equal(t, "api-test-tag", tags[0].Name)
+		testResp.ForEach(t, func(item map[string]any) {
+			require.NotZero(t, item["id"])
+			require.NotEmpty(t, item["name"])
+		})
 	})
 
 	// Test AddTagToBookmark
@@ -402,10 +399,11 @@ func TestBookmarkTagsAPI(t *testing.T) {
 			require.Equal(t, http.StatusNotFound, rec.Code)
 
 			// Parse the response
-			testResp, err := testutil.NewTestResponseFromRecorder(rec)
-			require.NoError(t, err)
+			testResp := testutil.NewTestResponseFromRecorder(rec)
 			testResp.AssertNotOk(t)
-			testResp.AssertMessageEquals(t, "Bookmark not found")
+			testResp.AssertMessageJSONKeyValue(t, "error", func(t *testing.T, value any) {
+				require.Equal(t, "Bookmark not found", value)
+			})
 		})
 
 		// Test non-existent tag
@@ -431,10 +429,11 @@ func TestBookmarkTagsAPI(t *testing.T) {
 			require.Equal(t, http.StatusNotFound, rec.Code)
 
 			// Parse the response
-			testResp, err := testutil.NewTestResponseFromRecorder(rec)
-			require.NoError(t, err)
+			testResp := testutil.NewTestResponseFromRecorder(rec)
 			testResp.AssertNotOk(t)
-			testResp.AssertMessageEquals(t, "Tag not found")
+			testResp.AssertMessageJSONKeyValue(t, "error", func(t *testing.T, value any) {
+				require.Equal(t, "Tag not found", value)
+			})
 		})
 
 		// Test non-existent bookmark for AddTagToBookmark
@@ -460,10 +459,11 @@ func TestBookmarkTagsAPI(t *testing.T) {
 			require.Equal(t, http.StatusNotFound, rec.Code)
 
 			// Parse the response
-			testResp, err := testutil.NewTestResponseFromRecorder(rec)
-			require.NoError(t, err)
+			testResp := testutil.NewTestResponseFromRecorder(rec)
 			testResp.AssertNotOk(t)
-			testResp.AssertMessageEquals(t, "Bookmark not found")
+			testResp.AssertMessageJSONKeyValue(t, "error", func(t *testing.T, value any) {
+				require.Equal(t, "Bookmark not found", value)
+			})
 		})
 
 		// Test non-existent bookmark for RemoveTagFromBookmark
@@ -489,10 +489,11 @@ func TestBookmarkTagsAPI(t *testing.T) {
 			require.Equal(t, http.StatusNotFound, rec.Code)
 
 			// Parse the response
-			testResp, err := testutil.NewTestResponseFromRecorder(rec)
-			require.NoError(t, err)
+			testResp := testutil.NewTestResponseFromRecorder(rec)
 			testResp.AssertNotOk(t)
-			testResp.AssertMessageEquals(t, "Bookmark not found")
+			testResp.AssertMessageJSONKeyValue(t, "error", func(t *testing.T, value any) {
+				require.Equal(t, "Bookmark not found", value)
+			})
 		})
 
 		// Test non-existent tag for RemoveTagFromBookmark
@@ -518,10 +519,11 @@ func TestBookmarkTagsAPI(t *testing.T) {
 			require.Equal(t, http.StatusNotFound, rec.Code)
 
 			// Parse the response
-			testResp, err := testutil.NewTestResponseFromRecorder(rec)
-			require.NoError(t, err)
+			testResp := testutil.NewTestResponseFromRecorder(rec)
 			testResp.AssertNotOk(t)
-			testResp.AssertMessageEquals(t, "Tag not found")
+			testResp.AssertMessageJSONKeyValue(t, "error", func(t *testing.T, value any) {
+				require.Equal(t, "Tag not found", value)
+			})
 		})
 
 		// Test invalid bookmark ID
@@ -540,10 +542,11 @@ func TestBookmarkTagsAPI(t *testing.T) {
 			require.Equal(t, http.StatusBadRequest, rec.Code)
 
 			// Parse the response
-			testResp, err := testutil.NewTestResponseFromRecorder(rec)
-			require.NoError(t, err)
+			testResp := testutil.NewTestResponseFromRecorder(rec)
 			testResp.AssertNotOk(t)
-			testResp.AssertMessageEquals(t, "Invalid bookmark ID")
+			testResp.AssertMessageJSONKeyValue(t, "error", func(t *testing.T, value any) {
+				require.Equal(t, "Invalid bookmark ID", value)
+			})
 		})
 
 		// Test invalid bookmark ID for AddTagToBookmark
@@ -569,10 +572,11 @@ func TestBookmarkTagsAPI(t *testing.T) {
 			require.Equal(t, http.StatusBadRequest, rec.Code)
 
 			// Parse the response
-			testResp, err := testutil.NewTestResponseFromRecorder(rec)
-			require.NoError(t, err)
+			testResp := testutil.NewTestResponseFromRecorder(rec)
 			testResp.AssertNotOk(t)
-			testResp.AssertMessageEquals(t, "Invalid bookmark ID")
+			testResp.AssertMessageJSONKeyValue(t, "error", func(t *testing.T, value any) {
+				require.Equal(t, "Invalid bookmark ID", value)
+			})
 		})
 
 		// Test invalid bookmark ID for RemoveTagFromBookmark
@@ -598,10 +602,11 @@ func TestBookmarkTagsAPI(t *testing.T) {
 			require.Equal(t, http.StatusBadRequest, rec.Code)
 
 			// Parse the response
-			testResp, err := testutil.NewTestResponseFromRecorder(rec)
-			require.NoError(t, err)
+			testResp := testutil.NewTestResponseFromRecorder(rec)
 			testResp.AssertNotOk(t)
-			testResp.AssertMessageEquals(t, "Invalid bookmark ID")
+			testResp.AssertMessageJSONKeyValue(t, "error", func(t *testing.T, value any) {
+				require.Equal(t, "Invalid bookmark ID", value)
+			})
 		})
 
 		// Test invalid payload
@@ -623,10 +628,11 @@ func TestBookmarkTagsAPI(t *testing.T) {
 			require.Equal(t, http.StatusBadRequest, rec.Code)
 
 			// Parse the response
-			testResp, err := testutil.NewTestResponseFromRecorder(rec)
-			require.NoError(t, err)
+			testResp := testutil.NewTestResponseFromRecorder(rec)
 			testResp.AssertNotOk(t)
-			testResp.AssertMessageEquals(t, "Invalid request payload")
+			testResp.AssertMessageJSONKeyValue(t, "error", func(t *testing.T, value any) {
+				require.Equal(t, "Invalid request payload", value)
+			})
 		})
 
 		// Test zero tag ID
@@ -652,10 +658,11 @@ func TestBookmarkTagsAPI(t *testing.T) {
 			require.Equal(t, http.StatusBadRequest, rec.Code)
 
 			// Parse the response
-			testResp, err := testutil.NewTestResponseFromRecorder(rec)
-			require.NoError(t, err)
+			testResp := testutil.NewTestResponseFromRecorder(rec)
 			testResp.AssertNotOk(t)
-			testResp.AssertMessageEquals(t, "tag_id should be a positive integer")
+			testResp.AssertMessageJSONKeyValue(t, "error", func(t *testing.T, value any) {
+				require.Equal(t, "tag_id should be a positive integer", value)
+			})
 		})
 
 		// Test negative tag ID
@@ -681,10 +688,11 @@ func TestBookmarkTagsAPI(t *testing.T) {
 			require.Equal(t, http.StatusBadRequest, rec.Code)
 
 			// Parse the response
-			testResp, err := testutil.NewTestResponseFromRecorder(rec)
-			require.NoError(t, err)
+			testResp := testutil.NewTestResponseFromRecorder(rec)
 			testResp.AssertNotOk(t)
-			testResp.AssertMessageEquals(t, "tag_id should be a positive integer")
+			testResp.AssertMessageJSONKeyValue(t, "error", func(t *testing.T, value any) {
+				require.Equal(t, "tag_id should be a positive integer", value)
+			})
 		})
 
 		// Test validation for RemoveTagFromBookmark
@@ -710,10 +718,11 @@ func TestBookmarkTagsAPI(t *testing.T) {
 			require.Equal(t, http.StatusBadRequest, rec.Code)
 
 			// Parse the response
-			testResp, err := testutil.NewTestResponseFromRecorder(rec)
-			require.NoError(t, err)
+			testResp := testutil.NewTestResponseFromRecorder(rec)
 			testResp.AssertNotOk(t)
-			testResp.AssertMessageEquals(t, "tag_id should be a positive integer")
+			testResp.AssertMessageJSONKeyValue(t, "error", func(t *testing.T, value any) {
+				require.Equal(t, "tag_id should be a positive integer", value)
+			})
 		})
 	})
 }

@@ -78,7 +78,7 @@ export default {
 					// Handle new error messages
 					if (text[0] == "{") {
 						var json = JSON.parse(text);
-						return json.message;
+						return json.error
 					}
 
 					return `${text} (${err.status})`;

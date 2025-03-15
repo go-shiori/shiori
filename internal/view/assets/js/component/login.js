@@ -71,14 +71,14 @@ export default {
 		async getErrorMessage(err) {
 			switch (err.constructor) {
 				case Error:
-					return err.message;
+					return err.error;
 				case Response:
 					var text = await err.text();
 
 					// Handle new error messages
 					if (text[0] == "{") {
 						var json = JSON.parse(text);
-						return json.message;
+						return json.error;
 					}
 					return `${text} (${err.status})`;
 				default:
@@ -128,15 +128,15 @@ export default {
 				})
 				.then((json) => {
 					// Save session id
-					document.cookie = `token=${json.message.token}; Path=${
+					document.cookie = `token=${json.token}; Path=${
 						new URL(document.baseURI).pathname
-					}; Expires=${new Date(json.message.expires * 1000).toUTCString()}`;
+					}; Expires=${new Date(json.expires * 1000).toUTCString()}`;
 
 					// Save account data
-					localStorage.setItem("shiori-token", json.message.token);
+					localStorage.setItem("shiori-token", json.token);
 					localStorage.setItem(
 						"shiori-account",
-						JSON.stringify(this.parseJWT(json.message.token).account),
+						JSON.stringify(this.parseJWT(json.token).account),
 					);
 
 					this.visible = false;

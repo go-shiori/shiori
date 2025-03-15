@@ -32,7 +32,7 @@ func HandleSystemInfo(deps model.Dependencies, c model.WebContext) {
 		return
 	}
 
-	response.Send(c, http.StatusOK, infoResponse{
+	response.SendJSON(c, http.StatusOK, infoResponse{
 		Version: struct {
 			Tag    string `json:"tag"`
 			Commit string `json:"commit"`

@@ -15,17 +15,17 @@ import (
 func getBookmark(deps model.Dependencies, c model.WebContext) (*model.BookmarkDTO, error) {
 	bookmarkID, err := strconv.Atoi(c.Request().PathValue("id"))
 	if err != nil {
-		return nil, response.SendError(c, http.StatusNotFound, "Invalid bookmark ID", nil)
+		return nil, response.SendError(c, http.StatusNotFound, "Invalid bookmark ID")
 	}
 
 	if bookmarkID == 0 {
-		return nil, response.SendError(c, http.StatusNotFound, "Bookmark not found", nil)
+		return nil, response.SendError(c, http.StatusNotFound, "Bookmark not found")
 	}
 
 	// Get bookmark from database
 	bookmark, err := deps.Domains().Bookmarks().GetBookmark(c.Request().Context(), model.DBID(bookmarkID))
 	if err != nil {
-		return nil, response.SendError(c, http.StatusNotFound, "Bookmark not found", nil)
+		return nil, response.SendError(c, http.StatusNotFound, "Bookmark not found")
 	}
 
 	// Check access permissions
@@ -165,7 +165,7 @@ func HandleBookmarkEbook(deps model.Dependencies, c model.WebContext) {
 
 	ebookPath := model.GetEbookPath(bookmark)
 	if !deps.Domains().Storage().FileExists(ebookPath) {
-		response.SendError(c, http.StatusNotFound, "Ebook not found", nil)
+		response.SendError(c, http.StatusNotFound, "Ebook not found")
 		return
 	}
 

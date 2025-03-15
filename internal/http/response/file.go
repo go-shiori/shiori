@@ -18,7 +18,7 @@ type SendFileOptions struct {
 // SendFile sends a file from storage to the response writer
 func SendFile(c model.WebContext, storage model.StorageDomain, path string, options *SendFileOptions) error {
 	if !storage.FileExists(path) {
-		return SendError(c, http.StatusNotFound, "File not found", nil)
+		return SendError(c, http.StatusNotFound, "File not found")
 	}
 
 	file, err := storage.FS().Open(path)

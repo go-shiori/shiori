@@ -44,7 +44,7 @@ func HandleListAccounts(deps model.Dependencies, c model.WebContext) {
 		return
 	}
 
-	response.Send(c, http.StatusOK, accounts)
+	response.SendJSON(c, http.StatusOK, accounts)
 }
 
 // @Summary	Create an account
@@ -63,18 +63,18 @@ func HandleCreateAccount(deps model.Dependencies, c model.WebContext) {
 
 	var payload createAccountPayload
 	if err := json.NewDecoder(c.Request().Body).Decode(&payload); err != nil {
-		response.SendError(c, http.StatusBadRequest, "invalid json", nil)
+		response.SendError(c, http.StatusBadRequest, "invalid json")
 		return
 	}
 
 	account, err := deps.Domains().Accounts().CreateAccount(c.Request().Context(), payload.ToAccountDTO())
 	if err, isValidationErr := err.(model.ValidationError); isValidationErr {
-		response.SendError(c, http.StatusBadRequest, err.Error(), nil)
+		response.SendError(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	if errors.Is(err, model.ErrAlreadyExists) {
-		response.SendError(c, http.StatusConflict, "account already exists", nil)
+		response.SendError(c, http.StatusConflict, "account already exists")
 		return
 	}
 
@@ -84,7 +84,7 @@ func HandleCreateAccount(deps model.Dependencies, c model.WebContext) {
 		return
 	}
 
-	response.Send(c, http.StatusCreated, account)
+	response.SendJSON(c, http.StatusCreated, account)
 }
 
 // @Summary	Delete an account
@@ -103,13 +103,13 @@ func HandleDeleteAccount(deps model.Dependencies, c model.WebContext) {
 
 	id, err := strconv.Atoi(c.Request().PathValue("id"))
 	if err != nil {
-		response.SendError(c, http.StatusBadRequest, "invalid id", nil)
+		response.SendError(c, http.StatusBadRequest, "invalid id")
 		return
 	}
 
 	err = deps.Domains().Accounts().DeleteAccount(c.Request().Context(), id)
 	if errors.Is(err, model.ErrNotFound) {
-		response.SendError(c, http.StatusNotFound, "account not found", nil)
+		response.SendError(c, http.StatusNotFound, "account not found")
 		return
 	}
 
@@ -119,7 +119,7 @@ func HandleDeleteAccount(deps model.Dependencies, c model.WebContext) {
 		return
 	}
 
-	response.Send(c, http.StatusNoContent, nil)
+	response.SendJSON(c, http.StatusNoContent, nil)
 }
 
 // @Summary	Update an account
@@ -141,13 +141,13 @@ func HandleUpdateAccount(deps model.Dependencies, c model.WebContext) {
 
 	accountID, err := strconv.Atoi(c.Request().PathValue("id"))
 	if err != nil {
-		response.SendError(c, http.StatusBadRequest, "invalid id", nil)
+		response.SendError(c, http.StatusBadRequest, "invalid id")
 		return
 	}
 
 	var payload updateAccountPayload
 	if err := json.NewDecoder(c.Request().Body).Decode(&payload); err != nil {
-		response.SendError(c, http.StatusBadRequest, "invalid json", nil)
+		response.SendError(c, http.StatusBadRequest, "invalid json")
 		return
 	}
 
@@ -156,15 +156,15 @@ func HandleUpdateAccount(deps model.Dependencies, c model.WebContext) {
 
 	account, err := deps.Domains().Accounts().UpdateAccount(c.Request().Context(), updatedAccount)
 	if errors.Is(err, model.ErrNotFound) {
-		response.SendError(c, http.StatusNotFound, "account not found", nil)
+		response.SendError(c, http.StatusNotFound, "account not found")
 		return
 	}
 	if errors.Is(err, model.ErrAlreadyExists) {
-		response.SendError(c, http.StatusConflict, "account already exists", nil)
+		response.SendError(c, http.StatusConflict, "account already exists")
 		return
 	}
 	if err, isValidationErr := err.(model.ValidationError); isValidationErr {
-		response.SendError(c, http.StatusBadRequest, err.Error(), nil)
+		response.SendError(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -174,5 +174,5 @@ func HandleUpdateAccount(deps model.Dependencies, c model.WebContext) {
 		return
 	}
 
-	response.Send(c, http.StatusOK, account)
+	response.SendJSON(c, http.StatusOK, account)
 }
