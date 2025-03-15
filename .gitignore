@@ -16,7 +16,7 @@
 e2e-report.html
 
 # Dist files
-dist/
+/dist
 
 # macOS trash files
 .DS_Store

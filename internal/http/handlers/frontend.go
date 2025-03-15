@@ -8,19 +8,27 @@ import (
 	"github.com/go-shiori/shiori/internal/http/response"
 	"github.com/go-shiori/shiori/internal/model"
 	views "github.com/go-shiori/shiori/internal/view"
+	webapp "github.com/go-shiori/shiori/webapp"
 )
 
 type assetsFS struct {
 	http.FileSystem
+	serveWebUIV2 bool
 }
 
 func (fs assetsFS) Open(name string) (http.File, error) {
-	return fs.FileSystem.Open(path.Join("assets", name))
+	pathJoin := "assets"
+	if fs.serveWebUIV2 {
+		pathJoin = "dist/assets"
+	}
+
+	return fs.FileSystem.Open(path.Join(pathJoin, name))
 }
 
-func newAssetsFS(fs embed.FS) http.FileSystem {
+func newAssetsFS(fs embed.FS, serveWebUIV2 bool) http.FileSystem {
 	return assetsFS{
-		FileSystem: http.FS(fs),
+		FileSystem:   http.FS(fs),
+		serveWebUIV2: serveWebUIV2,
 	}
 }
 
@@ -38,6 +46,9 @@ func HandleFrontend(deps model.Dependencies, c model.WebContext) {
 
 // HandleAssets serves static assets
 func HandleAssets(deps model.Dependencies, c model.WebContext) {
-	fs := newAssetsFS(views.Assets)
-	http.StripPrefix("/assets/", http.FileServer(fs)).ServeHTTP(c.ResponseWriter(), c.Request())
+	fs := views.Assets
+	if deps.Config().Http.ServeWebUIV2 {
+		fs = webapp.Assets
+	}
+	http.StripPrefix("/assets/", http.FileServer(newAssetsFS(fs, deps.Config().Http.ServeWebUIV2))).ServeHTTP(c.ResponseWriter(), c.Request())
 }

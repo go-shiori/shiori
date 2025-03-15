@@ -36,10 +36,8 @@ func TestNewResponse(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			resp := NewResponse(tt.ok, tt.message, tt.errParams, tt.statusCode)
-			assert.Equal(t, tt.ok, resp.Ok)
-			assert.Equal(t, tt.message, resp.Message)
-			assert.Equal(t, tt.errParams, resp.ErrorParams)
+			resp := NewResponse(tt.message, tt.statusCode)
+			assert.Equal(t, tt.message, resp.GetData())
 			assert.Equal(t, tt.statusCode, resp.statusCode)
 		})
 	}
@@ -53,12 +51,12 @@ func TestResponse_IsError(t *testing.T) {
 	}{
 		{
 			name:     "successful response",
-			response: NewResponse(true, "success", nil, http.StatusOK),
+			response: NewResponse("success", http.StatusOK),
 			want:     false,
 		},
 		{
 			name:     "error response",
-			response: NewResponse(false, "error", nil, http.StatusBadRequest),
+			response: NewResponse("error", http.StatusBadRequest),
 			want:     true,
 		},
 	}
@@ -78,19 +76,19 @@ func TestResponse_GetMessage(t *testing.T) {
 	}{
 		{
 			name:     "string message",
-			response: NewResponse(true, "test message", nil, http.StatusOK),
+			response: NewResponse("test message", http.StatusOK),
 			want:     "test message",
 		},
 		{
 			name:     "struct message",
-			response: NewResponse(true, struct{ Data string }{Data: "test"}, nil, http.StatusOK),
+			response: NewResponse(struct{ Data string }{Data: "test"}, http.StatusOK),
 			want:     struct{ Data string }{Data: "test"},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, tt.want, tt.response.GetMessage())
+			assert.Equal(t, tt.want, tt.response.GetData())
 		})
 	}
 }
@@ -100,25 +98,22 @@ func TestResponse_Send(t *testing.T) {
 		name           string
 		response       *Response
 		expectedStatus int
-		expectedBody   map[string]any
+		expectedBody   any
 	}{
 		{
-			name:           "successful response",
-			response:       NewResponse(true, "success", nil, http.StatusOK),
+			name:           "plain response",
+			response:       NewResponse("success", http.StatusOK),
 			expectedStatus: http.StatusOK,
-			expectedBody: map[string]any{
-				"ok":      true,
-				"message": "success",
-			},
+			expectedBody:   "success",
 		},
 		{
-			name:           "error response with params",
-			response:       NewResponse(false, "error", map[string]string{"field": "invalid"}, http.StatusBadRequest),
-			expectedStatus: http.StatusBadRequest,
+			name: "json response",
+			response: NewResponse(map[string]any{
+				"message": "success",
+			}, http.StatusOK),
+			expectedStatus: http.StatusOK,
 			expectedBody: map[string]any{
-				"ok":           false,
-				"message":      "error",
-				"error_params": map[string]any{"field": "invalid"},
+				"message": "success",
 			},
 		},
 	}
@@ -129,13 +124,13 @@ func TestResponse_Send(t *testing.T) {
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
 			ctx := webcontext.NewWebContext(w, r)
 
-			err := tt.response.Send(ctx)
+			err := tt.response.SendJSON(ctx)
 			assert.NoError(t, err)
 
 			assert.Equal(t, tt.expectedStatus, w.Code)
 			assert.Equal(t, "application/json", w.Header().Get("Content-Type"))
 
-			var responseBody map[string]any
+			var responseBody any
 			err = json.NewDecoder(w.Body).Decode(&responseBody)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedBody, responseBody)

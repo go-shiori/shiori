@@ -55,6 +55,7 @@ type HttpConfig struct {
 	RootPath     string `env:"HTTP_ROOT_PATH,default=/"`
 	AccessLog    bool   `env:"HTTP_ACCESS_LOG,default=True"`
 	ServeWebUI   bool   `env:"HTTP_SERVE_WEB_UI,default=True"`
+	ServeWebUIV2 bool   `env:"HTTP_SERVE_WEB_UI_V2,default=False"`
 	ServeSwagger bool   `env:"HTTP_SERVE_SWAGGER,default=False"`
 	SecretKey    []byte `env:"HTTP_SECRET_KEY"`
 	// Fiber Specific
@@ -82,6 +83,10 @@ func (c *HttpConfig) SetDefaults(logger *logrus.Logger) {
 func (c *HttpConfig) IsValid() error {
 	if !strings.HasSuffix(c.RootPath, "/") {
 		return fmt.Errorf("root path should end with a slash")
+	}
+
+	if c.ServeWebUIV2 && !c.ServeWebUI {
+		return fmt.Errorf("You need to enable serving the Web UI to use the experimental Web UI v2")
 	}
 
 	return nil
@@ -139,6 +144,7 @@ func (c *Config) DebugConfiguration(logger *logrus.Logger) {
 	logger.Debugf(" SHIORI_HTTP_ROOT_PATH: %s", c.Http.RootPath)
 	logger.Debugf(" SHIORI_HTTP_ACCESS_LOG: %t", c.Http.AccessLog)
 	logger.Debugf(" SHIORI_HTTP_SERVE_WEB_UI: %t", c.Http.ServeWebUI)
+	logger.Debugf(" SHIORI_HTTP_SERVE_WEB_UI_V2: %t", c.Http.ServeWebUIV2)
 	logger.Debugf(" SHIORI_HTTP_SECRET_KEY: %d characters", len(c.Http.SecretKey))
 	logger.Debugf(" SHIORI_HTTP_BODY_LIMIT: %d", c.Http.BodyLimit)
 	logger.Debugf(" SHIORI_HTTP_READ_TIMEOUT: %s", c.Http.ReadTimeout)

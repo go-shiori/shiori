@@ -1,0 +1,65 @@
+{
+  "common": {
+    "loading": "Wird geladen...",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "search": "Suchen",
+    "add": "Hinzufügen",
+    "remove": "Entfernen",
+    "close": "Schließen"
+  },
+  "auth": {
+    "login": "Anmelden",
+    "logout": "Abmelden",
+    "username": "Benutzername",
+    "password": "Passwort",
+    "remember_me": "Angemeldet bleiben",
+    "login_failed": "Anmeldung fehlgeschlagen. Bitte überprüfen Sie Ihre Anmeldedaten."
+  },
+  "navigation": {
+    "home": "Startseite",
+    "archive": "Archiv",
+    "tags": "Tags",
+    "folders": "Ordner",
+    "settings": "Einstellungen",
+    "about": "Über"
+  },
+  "bookmarks": {
+    "title": "Lesezeichen",
+    "add_bookmark": "Lesezeichen hinzufügen",
+    "edit_bookmark": "Lesezeichen bearbeiten",
+    "delete_bookmark": "Lesezeichen löschen",
+    "url": "URL",
+    "title": "Titel",
+    "excerpt": "Auszug",
+    "tags": "Tags",
+    "add_tag": "Tag hinzufügen",
+    "no_bookmarks": "Keine Lesezeichen gefunden"
+  },
+  "tags": {
+    "title": "Tags",
+    "add_tag": "Tag hinzufügen",
+    "edit_tag": "Tag bearbeiten",
+    "delete_tag": "Tag löschen",
+    "name": "Name",
+    "no_tags": "Keine Tags gefunden"
+  },
+  "folders": {
+    "title": "Ordner",
+    "add_folder": "Ordner hinzufügen",
+    "edit_folder": "Ordner bearbeiten",
+    "delete_folder": "Ordner löschen",
+    "name": "Name",
+    "no_folders": "Keine Ordner gefunden"
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "language": "Sprache",
+    "theme": "Thema",
+    "light": "Hell",
+    "dark": "Dunkel",
+    "system": "System"
+  }
+}

@@ -13,105 +13,75 @@ import (
 
 func TestNew(t *testing.T) {
 	t.Run("creates successful response", func(t *testing.T) {
-		resp := response.New(true, http.StatusOK, "test data")
-		assert.True(t, resp.Ok)
-		assert.Equal(t, "test data", resp.Message)
-		assert.Nil(t, resp.ErrorParams)
+		resp := response.New(http.StatusOK, "test data")
+		assert.False(t, resp.IsError())
+		assert.Equal(t, "test data", resp.GetData())
 	})
 
 	t.Run("creates error response", func(t *testing.T) {
-		errorParams := map[string]string{"field": "error message"}
-		resp := response.NewResponse(false, "error data", errorParams, http.StatusBadRequest)
-		assert.False(t, resp.Ok)
-		assert.Equal(t, "error data", resp.Message)
-		assert.Equal(t, errorParams, resp.ErrorParams)
+		resp := response.New(http.StatusBadRequest, "error data")
+		assert.True(t, resp.IsError())
+		assert.Equal(t, "error data", resp.GetData())
 	})
 }
 
 func TestSend(t *testing.T) {
 	t.Run("sends successful response", func(t *testing.T) {
 		c, w := testutil.NewTestWebContext()
-		err := response.Send(c, http.StatusOK, "success message")
+		err := response.Send(c, http.StatusOK, "success message", "text/plain")
 		require.NoError(t, err)
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var resp response.Response
-		err = json.Unmarshal(w.Body.Bytes(), &resp)
-		require.NoError(t, err)
-
-		assert.True(t, resp.Ok)
-		assert.Equal(t, "success message", resp.Message)
-		assert.Nil(t, resp.ErrorParams)
+		response := testutil.NewTestResponseFromRecorder(w)
+		response.AssertOk(t)
+		response.AssertMessageIsBytes(t, []byte("success message"))
 	})
 
 	t.Run("sends error response for status >= 400", func(t *testing.T) {
+		message := "error message"
 		c, w := testutil.NewTestWebContext()
-		err := response.Send(c, http.StatusBadRequest, "error message")
+		err := response.Send(c, http.StatusBadRequest, message, "text/plain")
 		require.NoError(t, err)
-
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var resp response.Response
-		err = json.Unmarshal(w.Body.Bytes(), &resp)
-		require.NoError(t, err)
-
-		assert.False(t, resp.Ok)
-		assert.Equal(t, "error message", resp.Message)
-		assert.Nil(t, resp.ErrorParams)
+		response := response.NewResponse(message, http.StatusBadRequest)
+		assert.True(t, response.IsError())
+		assert.Equal(t, message, response.GetData())
 	})
 }
 
 func TestSendError(t *testing.T) {
 	t.Run("sends error response without params", func(t *testing.T) {
 		c, w := testutil.NewTestWebContext()
-		err := response.SendError(c, http.StatusBadRequest, "error message", nil)
+		err := response.SendError(c, http.StatusBadRequest, "error message")
 		require.NoError(t, err)
-
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var resp response.Response
-		err = json.Unmarshal(w.Body.Bytes(), &resp)
-		require.NoError(t, err)
+		responseBody := struct {
+			Error string `json:"error"`
+		}{Error: "error message"}
+		response := response.NewResponse(responseBody, http.StatusBadRequest)
 
-		assert.False(t, resp.Ok)
-		assert.Equal(t, "error message", resp.Message)
-		assert.Nil(t, resp.ErrorParams)
+		assert.True(t, response.IsError())
+		assert.Equal(t, responseBody, response.GetData())
 	})
 
 	t.Run("sends error response with params", func(t *testing.T) {
 		c, w := testutil.NewTestWebContext()
-		errorParams := map[string]string{"field": "validation error"}
-		err := response.SendError(c, http.StatusBadRequest, "error message", errorParams)
+		err := response.SendError(c, http.StatusBadRequest, "error message")
 		require.NoError(t, err)
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var resp response.Response
-		err = json.Unmarshal(w.Body.Bytes(), &resp)
-		require.NoError(t, err)
+		responseBody := struct {
+			Error string `json:"error"`
+		}{Error: "error message"}
+		response := response.NewResponse(responseBody, http.StatusBadRequest)
 
-		assert.False(t, resp.Ok)
-		assert.Equal(t, "error message", resp.Message)
-		assert.Equal(t, errorParams, resp.ErrorParams)
+		assert.True(t, response.IsError())
+		assert.Equal(t, responseBody, response.GetData())
 	})
-}
-
-func TestSendErrorWithParams(t *testing.T) {
-	c, w := testutil.NewTestWebContext()
-	errorParams := map[string]string{"field": "validation error"}
-	err := response.SendErrorWithParams(c, http.StatusBadRequest, "error message", errorParams)
-	require.NoError(t, err)
-
-	assert.Equal(t, http.StatusBadRequest, w.Code)
-
-	var resp response.Response
-	err = json.Unmarshal(w.Body.Bytes(), &resp)
-	require.NoError(t, err)
-
-	assert.False(t, resp.Ok)
-	assert.Equal(t, "error message", resp.Message)
-	assert.Equal(t, errorParams, resp.ErrorParams)
 }
 
 func TestSendInternalServerError(t *testing.T) {
@@ -121,13 +91,13 @@ func TestSendInternalServerError(t *testing.T) {
 
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 
-	var resp response.Response
-	err = json.Unmarshal(w.Body.Bytes(), &resp)
-	require.NoError(t, err)
+	responseBody := struct {
+		Error string `json:"error"`
+	}{Error: "Internal server error, please contact an administrator"}
+	response := response.NewResponse(responseBody, http.StatusInternalServerError)
 
-	assert.False(t, resp.Ok)
-	assert.Equal(t, "Internal server error, please contact an administrator", resp.Message)
-	assert.Nil(t, resp.ErrorParams)
+	assert.True(t, response.IsError())
+	assert.Equal(t, responseBody, response.GetData())
 }
 
 func TestRedirectToLogin(t *testing.T) {
@@ -175,24 +145,8 @@ func TestSendJSON(t *testing.T) {
 	t.Run("handles encoding error", func(t *testing.T) {
 		c, _ := testutil.NewTestWebContext()
 		// Create a value that can't be marshaled to JSON
-		data := map[string]interface{}{"fn": func() {}}
+		data := map[string]any{"fn": func() {}}
 		err := response.SendJSON(c, http.StatusOK, data)
 		assert.Error(t, err)
 	})
-}
-
-func TestSendErrorJSON(t *testing.T) {
-	c, w := testutil.NewTestWebContext()
-	err := response.SendErrorJSON(c, http.StatusBadRequest, "error message")
-	require.NoError(t, err)
-
-	assert.Equal(t, http.StatusBadRequest, w.Code)
-
-	var resp response.Response
-	err = json.Unmarshal(w.Body.Bytes(), &resp)
-	require.NoError(t, err)
-
-	assert.False(t, resp.Ok)
-	assert.Equal(t, "error message", resp.Message)
-	assert.Nil(t, resp.ErrorParams)
 }

@@ -1,0 +1,65 @@
+{
+  "common": {
+    "loading": "Cargando...",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "search": "Buscar",
+    "add": "Añadir",
+    "remove": "Eliminar",
+    "close": "Cerrar"
+  },
+  "auth": {
+    "login": "Iniciar sesión",
+    "logout": "Cerrar sesión",
+    "username": "Usuario",
+    "password": "Contraseña",
+    "remember_me": "Recordarme",
+    "login_failed": "Error al iniciar sesión. Por favor, verifica tus credenciales."
+  },
+  "navigation": {
+    "home": "Inicio",
+    "archive": "Archivo",
+    "tags": "Etiquetas",
+    "folders": "Carpetas",
+    "settings": "Configuración",
+    "about": "Acerca de"
+  },
+  "bookmarks": {
+    "title": "Marcadores",
+    "add_bookmark": "Añadir marcador",
+    "edit_bookmark": "Editar marcador",
+    "delete_bookmark": "Eliminar marcador",
+    "url": "URL",
+    "title": "Título",
+    "excerpt": "Extracto",
+    "tags": "Etiquetas",
+    "add_tag": "Añadir etiqueta",
+    "no_bookmarks": "No se encontraron marcadores"
+  },
+  "tags": {
+    "title": "Etiquetas",
+    "add_tag": "Añadir etiqueta",
+    "edit_tag": "Editar etiqueta",
+    "delete_tag": "Eliminar etiqueta",
+    "name": "Nombre",
+    "no_tags": "No se encontraron etiquetas"
+  },
+  "folders": {
+    "title": "Carpetas",
+    "add_folder": "Añadir carpeta",
+    "edit_folder": "Editar carpeta",
+    "delete_folder": "Eliminar carpeta",
+    "name": "Nombre",
+    "no_folders": "No se encontraron carpetas"
+  },
+  "settings": {
+    "title": "Configuración",
+    "language": "Idioma",
+    "theme": "Tema",
+    "light": "Claro",
+    "dark": "Oscuro",
+    "system": "Sistema"
+  }
+}

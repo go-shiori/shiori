@@ -1,0 +1,7 @@
+# Shiori Test Commands
+
+# Run the entire test suite
+make unittest
+
+# Run SQLite database tests only
+go test -timeout 10s -count=1 -tags test_sqlite_only ./internal/database

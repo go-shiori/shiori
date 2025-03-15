@@ -78,11 +78,14 @@ func TestHandleBookmarkReadable(t *testing.T) {
 		)
 		require.Equal(t, http.StatusOK, w.Code)
 
-		response, err := testutil.NewTestResponseFromBytes(w.Body.Bytes())
-		require.NoError(t, err)
+		response := testutil.NewTestResponseFromRecorder(w)
 		response.AssertOk(t)
-		require.Equal(t, bookmark.Content, response.Response.Message.(map[string]interface{})["content"])
-		require.Equal(t, bookmark.HTML, response.Response.Message.(map[string]interface{})["html"])
+		response.AssertMessageJSONKeyValue(t, "content", func(t *testing.T, value any) {
+			require.Equal(t, bookmark.Content, value)
+		})
+		response.AssertMessageJSONKeyValue(t, "html", func(t *testing.T, value any) {
+			require.Equal(t, bookmark.HTML, value)
+		})
 	})
 }
 
@@ -180,8 +183,7 @@ func TestHandleUpdateCache(t *testing.T) {
 		)
 		require.Equal(t, http.StatusOK, w.Code)
 
-		response, err := testutil.NewTestResponseFromBytes(w.Body.Bytes())
-		require.NoError(t, err)
+		response := testutil.NewTestResponseFromRecorder(w)
 		response.AssertOk(t)
 
 		// TODO: remove this sleep after refactoring into a job system
@@ -311,8 +313,7 @@ func TestHandleUpdateBookmarkTags(t *testing.T) {
 		require.Equal(t, http.StatusOK, w.Code)
 
 		// Verify the response
-		response, err := testutil.NewTestResponseFromBytes(w.Body.Bytes())
-		require.NoError(t, err)
+		response := testutil.NewTestResponseFromRecorder(w)
 		response.AssertOk(t)
 	})
 }
