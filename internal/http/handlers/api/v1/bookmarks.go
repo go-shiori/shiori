@@ -240,7 +240,7 @@ func (p *bookmarkTagPayload) IsValid() error {
 //	@Summary					Add a tag to a bookmark.
 //	@Tags						Auth
 //	@securityDefinitions.apikey	ApiKeyAuth
-//	@Param						id	path		int	true	"Bookmark ID"
+//	@Param						id		path	int					true	"Bookmark ID"
 //	@Param						payload	body	bookmarkTagPayload	true	"Add Tag Payload"
 //	@Produce					json
 //	@Success					200	{object}	nil
@@ -294,7 +294,7 @@ func HandleAddTagToBookmark(deps model.Dependencies, c model.WebContext) {
 //	@Summary					Remove a tag from a bookmark.
 //	@Tags						Auth
 //	@securityDefinitions.apikey	ApiKeyAuth
-//	@Param						id	path		int	true	"Bookmark ID"
+//	@Param						id		path	int					true	"Bookmark ID"
 //	@Param						payload	body	bookmarkTagPayload	true	"Remove Tag Payload"
 //	@Produce					json
 //	@Success					200	{object}	nil
