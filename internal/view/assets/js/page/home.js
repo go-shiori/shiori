@@ -92,6 +92,7 @@ import bookmarkItem from "../component/bookmark.js";
 import customDialog from "../component/dialog.js";
 import basePage from "./base.js";
 import EventBus from "../component/eventBus.js";
+import { apiRequest } from "../utils/api.js";
 
 Vue.prototype.$bus = EventBus;
 
@@ -167,7 +168,7 @@ export default {
 			this.search = "";
 			this.loadData(true, true);
 		},
-		loadData(saveState, fetchTags) {
+		async loadData(saveState, fetchTags) {
 			if (this.loading) return;
 
 			// Set default args
@@ -222,73 +223,45 @@ export default {
 			var skipFetchTags = Error("skip fetching tags");
 
 			this.loading = true;
-			fetch(url, {
-				headers: {
-					"Content-Type": "application/json",
-					Authorization: "Bearer " + localStorage.getItem("shiori-token"),
-				},
-			})
-				.then((response) => {
-					if (!response.ok) throw response;
-					return response.json();
-				})
-				.then((json) => {
-					// Set data
-					this.page = json.page;
-					this.maxPage = json.maxPage;
-					this.bookmarks = json.bookmarks;
+			try {
+				const json = await apiRequest(url);
 
-					// Save state and change URL if needed
-					if (saveState) {
-						var history = {
-							activePage: "page-home",
-							search: this.search,
-							page: this.page,
-						};
+				// Set data
+				this.page = json.page;
+				this.maxPage = json.maxPage;
+				this.bookmarks = json.bookmarks;
 
-						var url = new Url(document.baseURI);
-						url.hash = "home";
-						url.clearQuery();
-						if (this.page > 1) url.query.page = this.page;
-						if (this.search !== "") url.query.search = this.search;
+				// Save state and change URL if needed
+				if (saveState) {
+					var history = {
+						activePage: "page-home",
+						search: this.search,
+						page: this.page,
+					};
 
-						window.history.pushState(history, "page-home", url);
-					}
+					var url = new Url(document.baseURI);
+					url.hash = "home";
+					url.query = new URLSearchParams({
+						page: this.page,
+						search: this.search,
+					}).toString();
 
-					// Fetch tags if requested
-					if (fetchTags) {
-						return fetch(
-							new URL("api/v1/tags?with_bookmark_count=true", document.baseURI),
-							{
-								headers: {
-									"Content-Type": "application/json",
-									Authorization:
-										"Bearer " + localStorage.getItem("shiori-token"),
-								},
-							},
-						);
-					} else {
-						this.loading = false;
-						throw skipFetchTags;
-					}
-				})
-				.then((response) => {
-					if (!response.ok) throw response;
-					return response.json();
-				})
-				.then((json) => {
-					this.tags = json;
-					this.loading = false;
-				})
-				.catch((err) => {
-					this.loading = false;
+					window.history.pushState(history, null, url.toString());
+				}
 
-					if (err !== skipFetchTags) {
-						this.getErrorMessage(err).then((msg) => {
-							this.showErrorDialog(msg);
-						});
-					}
-				});
+				// Fetch tags if needed
+				if (!fetchTags) throw skipFetchTags;
+
+				const tagsUrl = new URL("api/tags", document.baseURI);
+				const tagsJson = await apiRequest(tagsUrl);
+				this.tags = tagsJson;
+			} catch (err) {
+				if (err !== skipFetchTags) {
+					this.showErrorDialog(err.message);
+				}
+			} finally {
+				this.loading = false;
+			}
 		},
 		searchBookmarks() {
 			this.page = 1;

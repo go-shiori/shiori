@@ -1,3 +1,5 @@
+import { apiRequest } from "../utils/api.js";
+
 const template = `
 <div id="login-scene">
     <p class="error-message" v-if="error !== ''">{{error}}</p>
@@ -68,23 +70,6 @@ export default {
 			}
 		},
 
-		async getErrorMessage(err) {
-			switch (err.constructor) {
-				case Error:
-					return err.error;
-				case Response:
-					var text = await err.text();
-
-					// Handle new error messages
-					if (text[0] == "{") {
-						var json = JSON.parse(text);
-						return json.error;
-					}
-					return `${text} (${err.status})`;
-				default:
-					return err;
-			}
-		},
 		parseJWT(token) {
 			try {
 				return JSON.parse(atob(token.split(".")[1]));
@@ -92,7 +77,8 @@ export default {
 				return null;
 			}
 		},
-		login() {
+
+		async login() {
 			// Get values directly from the form
 			const usernameInput = document.querySelector("#username");
 			const passwordInput = document.querySelector("#password");
@@ -113,45 +99,51 @@ export default {
 			// Send request
 			this.loading = true;
 
-			fetch(new URL("api/v1/auth/login", document.baseURI), {
-				method: "post",
-				body: JSON.stringify({
-					username: this.username,
-					password: this.password,
-					remember_me: this.remember == 1 ? true : false,
-				}),
-				headers: { "Content-Type": "application/json" },
-			})
-				.then((response) => {
-					if (!response.ok) throw response;
-					return response.json();
-				})
-				.then((json) => {
-					// Save session id
-					document.cookie = `token=${json.token}; Path=${
-						new URL(document.baseURI).pathname
-					}; Expires=${new Date(json.expires * 1000).toUTCString()}`;
-
-					// Save account data
-					localStorage.setItem("shiori-token", json.token);
-					localStorage.setItem(
-						"shiori-account",
-						JSON.stringify(this.parseJWT(json.token).account),
-					);
-
-					this.visible = false;
-					this.$emit("login-success");
-
-					// Redirect to sanitized destination
-					if (this.destination !== "/") window.location.href = this.destination;
-				})
-				.catch((err) => {
-					this.loading = false;
-					this.getErrorMessage(err).then((msg) => {
-						this.error = msg;
-					});
+			try {
+				const json = await apiRequest(new URL("api/v1/auth/login", document.baseURI), {
+					method: "post",
+					body: JSON.stringify({
+						username: this.username,
+						password: this.password,
+						remember_me: this.remember == 1 ? true : false,
+					}),
 				});
+
+				// Save session id
+				document.cookie = `token=${json.token}; Path=${
+					new URL(document.baseURI).pathname
+				}; Expires=${new Date(json.expires * 1000).toUTCString()}`;
+
+				// Save account data
+				localStorage.setItem("shiori-token", json.token);
+				localStorage.setItem(
+					"shiori-account",
+					JSON.stringify(this.parseJWT(json.token).account),
+				);
+
+				this.visible = false;
+				this.$emit("login-success");
+
+				// Redirect to sanitized destination
+				if (this.destination !== "/") window.location.href = this.destination;
+			} catch (err) {
+				this.error = err.message;
+			} finally {
+				this.loading = false;
+			}
 		},
+
+		async checkSession() {
+			const token = localStorage.getItem("shiori-token");
+			if (!token) return false;
+
+			try {
+				await apiRequest(new URL("api/v1/auth/me", document.baseURI));
+				return true;
+			} catch (err) {
+				return false;
+			}
+		}
 	},
 	async mounted() {
 		// Get and sanitize destination from URL parameters
@@ -159,27 +151,10 @@ export default {
 		const dst = urlParams.get("dst");
 		this.destination = dst ? this.sanitizeDestination(dst) : "/";
 
-		// Check if there's a valid session first
-		const token = localStorage.getItem("shiori-token");
-		if (token) {
-			try {
-				const response = await fetch(
-					new URL("api/v1/auth/me", document.baseURI),
-					{
-						headers: {
-							Authorization: `Bearer ${token}`,
-						},
-					},
-				);
-
-				if (response.ok) {
-					// Valid session exists, emit login success
-					this.$emit("login-success");
-					return;
-				}
-			} catch (err) {
-				// Continue with login form if check fails
-			}
+		// Check if there's a valid session
+		if (await this.checkSession()) {
+			this.$emit("login-success");
+			return;
 		}
 
 		// Clear session data if we reach here
