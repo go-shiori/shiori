@@ -31,11 +31,15 @@ func (s *HttpServer) Setup(cfg *config.Config, deps *dependencies.Dependencies) 
 		return nil, fmt.Errorf("failed to setup templates: %w", err)
 	}
 
-	globalMiddleware := []model.HttpMiddleware{
+	globalMiddleware := []model.HttpMiddleware{}
+
+	// Add message response middleware if legacy message response is enabled
+	globalMiddleware = append(globalMiddleware, []model.HttpMiddleware{
+		middleware.NewMessageResponseMiddleware(deps),
 		middleware.NewAuthMiddleware(deps),
 		middleware.NewRequestIDMiddleware(deps),
 		middleware.NewCORSMiddleware([]string{"*"}),
-	}
+	}...)
 
 	if cfg.Http.AccessLog {
 		globalMiddleware = append(globalMiddleware, middleware.NewLoggingMiddleware())

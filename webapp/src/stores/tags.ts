@@ -18,7 +18,8 @@ export const useTagsStore = defineStore('tags', () => {
       basePath: 'http://localhost:8080',
       accessToken: token || undefined,
       headers: token ? {
-        'Authorization': `Bearer ${token}`
+        'Authorization': `Bearer ${token}`,
+        'X-Shiori-Response-Format': 'new'
       } : undefined
     })
     return new TagsApi(config)

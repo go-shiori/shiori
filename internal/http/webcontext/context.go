@@ -36,6 +36,11 @@ func (c *WebContext) ResponseWriter() http.ResponseWriter {
 	return c.responseWriter
 }
 
+// SetResponseWriter sets the response writer for the context
+func (c *WebContext) SetResponseWriter(w http.ResponseWriter) {
+	c.responseWriter = w
+}
+
 func (c *WebContext) Request() *http.Request {
 	return c.request
 }

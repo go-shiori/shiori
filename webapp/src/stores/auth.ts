@@ -24,7 +24,8 @@ export const useAuthStore = defineStore('auth', () => {
       basePath: 'http://localhost:8080',
       accessToken: token.value || undefined,
       headers: token.value ? {
-        'Authorization': `Bearer ${token.value}`
+        'Authorization': `Bearer ${token.value}`,
+        'X-Shiori-Response-Format': 'new'
       } : undefined
     })
     return new AuthApi(config)
