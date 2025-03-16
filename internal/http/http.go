@@ -25,8 +25,9 @@ func ToHTTPHandler(deps model.Dependencies, h model.HttpHandler, middlewares ...
 		// Execute handler
 		h(deps, c)
 
-		// Execute OnResponse middlewares
-		for _, m := range middlewares {
+		// Execute OnResponse middlewares in reverse order
+		for i := len(middlewares) - 1; i >= 0; i-- {
+			m := middlewares[i]
 			if err := m.OnResponse(deps, c); err != nil {
 				deps.Logger().WithError(err).Error("middleware error in response")
 				return

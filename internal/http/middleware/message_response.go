@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/go-shiori/shiori/internal/model"
 )
@@ -14,14 +15,12 @@ type responseMiddlewareBody struct {
 }
 
 type MessageResponseMiddleware struct {
-	deps                   model.Dependencies
-	originalResponseWriter http.ResponseWriter
+	deps model.Dependencies
 }
 
 func (m *MessageResponseMiddleware) OnRequest(deps model.Dependencies, c model.WebContext) error {
 	// Create a response recorder and wrap the original ResponseWriter
-	m.originalResponseWriter = c.ResponseWriter()
-	recorder := newResponseRecorder(m.originalResponseWriter)
+	recorder := newResponseRecorder(c.ResponseWriter())
 	c.SetResponseWriter(recorder)
 	return nil
 }
@@ -37,13 +36,17 @@ func (m *MessageResponseMiddleware) OnResponse(deps model.Dependencies, c model.
 
 	// Copy all headers to the original response writer
 	for k, v := range recorder.header {
-		m.originalResponseWriter.Header()[k] = v
+		if k != "Content-Length" {
+			recorder.ResponseWriter.Header().Set(k, strings.Join(v, ""))
+		}
 	}
+
+	// Write the status code
+	recorder.ResponseWriter.WriteHeader(recorder.statusCode)
 
 	// If it's not a JSON response, write the original response and return
 	if ct := recorder.header.Get("Content-Type"); ct != "application/json" {
-		m.originalResponseWriter.WriteHeader(recorder.statusCode)
-		_, err := m.originalResponseWriter.Write(recorder.body.Bytes())
+		_, err := recorder.ResponseWriter.Write(recorder.body.Bytes())
 		return err
 	}
 
@@ -62,12 +65,8 @@ func (m *MessageResponseMiddleware) OnResponse(deps model.Dependencies, c model.
 		wrappedResponse.Message = originalBody
 	}
 
-	// Write the status code and content type
-	m.originalResponseWriter.Header().Set("Content-Type", "application/json")
-	m.originalResponseWriter.WriteHeader(recorder.statusCode)
-
-	// Write the wrapped response
-	return json.NewEncoder(m.originalResponseWriter).Encode(wrappedResponse)
+	// Write the status code and wrapped response
+	return json.NewEncoder(recorder.ResponseWriter).Encode(wrappedResponse)
 }
 
 func NewMessageResponseMiddleware(deps model.Dependencies) *MessageResponseMiddleware {
@@ -87,6 +86,7 @@ func newResponseRecorder(original http.ResponseWriter) *responseRecorder {
 		ResponseWriter: original,
 		statusCode:     http.StatusOK,
 		header:         make(http.Header),
+		body:           bytes.Buffer{},
 	}
 }
 
