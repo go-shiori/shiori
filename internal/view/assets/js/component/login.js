@@ -100,14 +100,17 @@ export default {
 			this.loading = true;
 
 			try {
-				const json = await apiRequest(new URL("api/v1/auth/login", document.baseURI), {
-					method: "post",
-					body: JSON.stringify({
-						username: this.username,
-						password: this.password,
-						remember_me: this.remember == 1 ? true : false,
-					}),
-				});
+				const json = await apiRequest(
+					new URL("api/v1/auth/login", document.baseURI),
+					{
+						method: "post",
+						body: JSON.stringify({
+							username: this.username,
+							password: this.password,
+							remember_me: this.remember == 1 ? true : false,
+						}),
+					},
+				);
 
 				// Save session id
 				document.cookie = `token=${json.token}; Path=${
@@ -143,7 +146,7 @@ export default {
 			} catch (err) {
 				return false;
 			}
-		}
+		},
 	},
 	async mounted() {
 		// Get and sanitize destination from URL parameters

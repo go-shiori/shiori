@@ -58,7 +58,7 @@ export default {
 		showDialog(opt) {
 			this.dialog = {
 				visible: true,
-				...opt
+				...opt,
 			};
 		},
 		async getErrorMessage(err) {
@@ -137,7 +137,7 @@ export default {
 		async logout() {
 			try {
 				await apiRequest(new URL("api/v1/auth/logout", document.baseURI), {
-					method: "POST"
+					method: "POST",
 				});
 
 				// Clear session data
@@ -153,6 +153,6 @@ export default {
 			} catch (err) {
 				this.showErrorDialog(err.message);
 			}
-		}
+		},
 	},
 };
