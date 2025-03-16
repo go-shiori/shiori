@@ -64,17 +64,20 @@ func (m *MessageResponseMiddleware) OnResponse(deps model.Dependencies, c model.
 		Message: nil,
 	}
 
-	// If there's a response body, parse it
-	if recorder.body.Len() > 0 {
+	// If there's a response body and status code allows body, parse it
+	if recorder.body.Len() > 0 && recorder.statusCode != http.StatusNoContent {
 		var originalBody any
 		if err := json.NewDecoder(&recorder.body).Decode(&originalBody); err != nil {
 			return err
 		}
 		wrappedResponse.Message = originalBody
+		// Write the status code and wrapped response
+		if err := json.NewEncoder(recorder.ResponseWriter).Encode(wrappedResponse); err != nil {
+			return err
+		}
 	}
 
-	// Write the status code and wrapped response
-	return json.NewEncoder(recorder.ResponseWriter).Encode(wrappedResponse)
+	return nil
 }
 
 func NewMessageResponseMiddleware(deps model.Dependencies) *MessageResponseMiddleware {
