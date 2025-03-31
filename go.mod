@@ -2,6 +2,7 @@ module github.com/go-shiori/shiori
 
 // +heroku goVersion go1.23.6
 go 1.23.6
+toolchain go1.24.1
 
 require (
 	git.sr.ht/~emersion/go-sqlite3-fts5 v0.0.0-20240124102820-f3a72e8b79b1
@@ -14,7 +15,7 @@ require (
 	github.com/go-shiori/warc v0.0.0-20200621032813-359908319d1d
 	github.com/go-sql-driver/mysql v1.9.0
 	github.com/gofrs/uuid/v5 v5.3.1
-	github.com/golang-jwt/jwt/v5 v5.2.1
+	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/huandu/go-sqlbuilder v1.34.0
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/julienschmidt/httprouter v1.3.0
