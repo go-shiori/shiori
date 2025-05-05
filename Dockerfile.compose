@@ -3,7 +3,7 @@
 # Please do not run this Dockerfile in any environment that is not
 # a local development scenario as this is not throroughly updated nor
 # tested.
-FROM docker.io/golang:1.22-alpine
+FROM docker.io/golang:1.23.6-alpine
 
 WORKDIR /src/shiori
 
