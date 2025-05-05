@@ -38,8 +38,8 @@ func queryEncodeWithoutEmptyValues(v nurl.Values) string {
 
 // Parse parses a URL. If it fails, it tries again with "https://" prefix.
 func Parse(url string) (*nurl.URL, error) {
-	tmp, err := nurl.Parse(url)
-	if err != nil || tmp.Scheme == "" || tmp.Hostname() == "" {
+	urlParsed, err := nurl.Parse(url)
+	if err != nil || urlParsed.Scheme == "" || urlParsed.Hostname() == "" {
 		if strings.HasPrefix(url, "https://") {
 			return nil, fmt.Errorf("URL is not valid")
 		}
@@ -47,7 +47,7 @@ func Parse(url string) (*nurl.URL, error) {
 		return Parse("https://" + url)
 	}
 
-	return tmp, nil
+	return urlParsed, err
 }
 
 // RemoveUTMParams removes the UTM parameters from URL.
