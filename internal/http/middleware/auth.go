@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"fmt"
+	"net"
 	"net/http"
 	"strings"
 
@@ -14,13 +15,35 @@ import (
 // request context.
 type AuthMiddleware struct {
 	deps model.Dependencies
+
+	trustedIPs []*net.IPNet
 }
 
 func NewAuthMiddleware(deps model.Dependencies) *AuthMiddleware {
-	return &AuthMiddleware{deps: deps}
+	plainIPs := deps.Config().Http.SSOTrustedProxy
+	trustedIPs := make([]*net.IPNet, len(plainIPs))
+	for i, ip := range plainIPs {
+		_, ipNet, err := net.ParseCIDR(ip)
+		if err != nil {
+			deps.Logger().WithError(err).WithField("ip", ip).Error("Failed to parse trusted ip cidr")
+			continue
+		}
+
+		trustedIPs[i] = ipNet
+	}
+
+	return &AuthMiddleware{
+		deps:       deps,
+		trustedIPs: trustedIPs,
+	}
 }
 
 func (m *AuthMiddleware) OnRequest(deps model.Dependencies, c model.WebContext) error {
+	if account, found := m.ssoAccount(deps, c); found {
+		c.SetAccount(account)
+		return nil
+	}
+
 	token := getTokenFromHeader(c.Request())
 	if token == "" {
 		token = getTokenFromCookie(c.Request())
@@ -44,6 +67,48 @@ func (m *AuthMiddleware) OnRequest(deps model.Dependencies, c model.WebContext) 
 
 	c.SetAccount(account)
 	return nil
+}
+
+func (m *AuthMiddleware) ssoAccount(deps model.Dependencies, c model.WebContext) (*model.AccountDTO, bool) {
+	if !deps.Config().Http.SSOEnable {
+		return nil, false
+	}
+
+	requestIP := net.ParseIP(c.Request().RemoteAddr)
+	if !m.isTrustedIP(requestIP) {
+		return nil, false
+	}
+
+	headerName := deps.Config().Http.SSOHeaderName
+	userName := c.Request().Header.Get(headerName)
+	if userName == "" {
+		return nil, false
+	}
+
+	accounts, err := deps.Database().ListAccounts(c.Request().Context(), model.DBListAccountsOptions{
+		Username: userName,
+	})
+	if err != nil {
+		deps.Logger().WithError(err).WithField("request_id", c.GetRequestID()).Error("Failed to get account from sso header")
+		return nil, false
+	}
+
+	if len(accounts) != 1 {
+		deps.Logger().WithError(err).WithField("request_id", c.GetRequestID()).Error("Failed to get account from sso header: username invalid")
+		return nil, false
+	}
+
+	account := accounts[0]
+
+	return model.Ptr(account.ToDTO()), true
+}
+func (m *AuthMiddleware) isTrustedIP(ip net.IP) bool {
+	for _, net := range m.trustedIPs {
+		if ok := net.Contains(ip); ok {
+			return true
+		}
+	}
+	return false
 }
 
 func (m *AuthMiddleware) OnResponse(deps model.Dependencies, c model.WebContext) error {
