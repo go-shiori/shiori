@@ -38,6 +38,30 @@ func TestAccountDomainsListAccounts(t *testing.T) {
 	})
 }
 
+func TestAccountDomainsGetAccountByUsername(t *testing.T) {
+	logger := logrus.New()
+	_, deps := testutil.GetTestConfigurationAndDependencies(t, context.TODO(), logger)
+
+	t.Run("empty", func(t *testing.T) {
+		account, err := deps.Domains().Accounts().GetAccountByUsername(context.Background(), "")
+		require.Error(t, err)
+		require.Nil(t, account)
+	})
+
+	t.Run("account found", func(t *testing.T) {
+		_, err := deps.Domains().Accounts().CreateAccount(context.TODO(), model.AccountDTO{
+			Username: "user1",
+			Password: "password1",
+		})
+		require.NoError(t, err)
+
+		account, err := deps.Domains().Accounts().GetAccountByUsername(context.Background(), "user1")
+		require.NoError(t, err)
+		require.NotNil(t, account)
+		require.Equal(t, "user1", account.Username)
+	})
+}
+
 func TestAccountDomainCreateAccount(t *testing.T) {
 	logger := logrus.New()
 	_, deps := testutil.GetTestConfigurationAndDependencies(t, context.TODO(), logger)

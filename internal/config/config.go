@@ -65,6 +65,10 @@ type HttpConfig struct {
 	IDLETimeout                  time.Duration `env:"HTTP_IDLE_TIMEOUT,default=10s"`
 	DisableKeepAlive             bool          `env:"HTTP_DISABLE_KEEP_ALIVE,default=true"`
 	DisablePreParseMultipartForm bool          `env:"HTTP_DISABLE_PARSE_MULTIPART_FORM,default=true"`
+
+	SSOEnabled      bool     `env:"SSO_ENABLED,default=false"`
+	SSOHeaderName   string   `env:"SSO_HEADER_NAME,default=Remote-User"`
+	SSOTrustedProxy []string `env:"SSO_TRUSTED_PROXY,default=10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, fc00::/7"`
 }
 
 // SetDefaults sets the default values for the configuration
@@ -152,6 +156,9 @@ func (c *Config) DebugConfiguration(logger *logrus.Logger) {
 	logger.Debugf(" SHIORI_HTTP_IDLE_TIMEOUT: %s", c.Http.IDLETimeout)
 	logger.Debugf(" SHIORI_HTTP_DISABLE_KEEP_ALIVE: %t", c.Http.DisableKeepAlive)
 	logger.Debugf(" SHIORI_HTTP_DISABLE_PARSE_MULTIPART_FORM: %t", c.Http.DisablePreParseMultipartForm)
+	logger.Debugf(" SHIORI_SSO_ENABLED: %t", c.Http.SSOEnabled)
+	logger.Debugf(" SHIORI_SSO_HEADER_NAME: %s", c.Http.SSOHeaderName)
+	logger.Debugf(" SHIORI_SSO_TRUSTED_PROXY: %v", c.Http.SSOTrustedProxy)
 }
 
 func (c *Config) IsValid() error {
