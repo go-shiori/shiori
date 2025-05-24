@@ -70,7 +70,7 @@ func (m *AuthMiddleware) OnRequest(deps model.Dependencies, c model.WebContext) 
 }
 
 func (m *AuthMiddleware) ssoAccount(deps model.Dependencies, c model.WebContext) *model.AccountDTO {
-	if !deps.Config().Http.SSOEnable {
+	if !deps.Config().Http.SSOEnabled {
 		return nil
 	}
 

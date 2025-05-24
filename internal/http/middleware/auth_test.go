@@ -102,10 +102,10 @@ func TestAuthMiddleware(t *testing.T) {
 func TestAuthMiddlewareWithSSO(t *testing.T) {
 	logger := logrus.New()
 	_, deps := testutil.GetTestConfigurationAndDependencies(t, context.TODO(), logger)
-	deps.Config().Http.SSOEnable = true
+	deps.Config().Http.SSOEnabled = true
 
 	account, err := deps.Domains().Accounts().CreateAccount(context.TODO(), model.AccountDTO{
-		ID: model.DBID(98),
+		ID:       model.DBID(98),
 		Username: "test_username",
 		Password: "super_secure_password",
 	})

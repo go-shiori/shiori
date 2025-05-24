@@ -37,7 +37,7 @@ func (d *AccountsDomain) GetAccountByUsername(ctx context.Context, username stri
 		return nil, fmt.Errorf("error getting accounts: %v", err)
 	}
 	if len(accounts) != 1 {
-		return nil, fmt.Errorf("got more than one account by username: %s", username) 
+		return nil, fmt.Errorf("got more than one account by username: %s", username)
 	}
 
 	return model.Ptr(accounts[0].ToDTO()), nil
