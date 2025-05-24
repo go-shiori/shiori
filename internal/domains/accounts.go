@@ -29,6 +29,20 @@ func (d *AccountsDomain) ListAccounts(ctx context.Context) ([]model.AccountDTO, 
 	return accountDTOs, nil
 }
 
+func (d *AccountsDomain) GetAccountByUsername(ctx context.Context, username string) (*model.AccountDTO, error) {
+	accounts, err := d.deps.Database().ListAccounts(ctx, model.DBListAccountsOptions{
+		Username: username,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("error getting accounts: %v", err)
+	}
+	if len(accounts) != 1 {
+		return nil, fmt.Errorf("got more than one account by username: %s", username) 
+	}
+
+	return model.Ptr(accounts[0].ToDTO()), nil
+}
+
 func (d *AccountsDomain) CreateAccount(ctx context.Context, account model.AccountDTO) (*model.AccountDTO, error) {
 	if err := account.IsValidCreate(); err != nil {
 		return nil, err

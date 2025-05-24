@@ -39,7 +39,7 @@ func NewAuthMiddleware(deps model.Dependencies) *AuthMiddleware {
 }
 
 func (m *AuthMiddleware) OnRequest(deps model.Dependencies, c model.WebContext) error {
-	if account, found := m.ssoAccount(deps, c); found {
+	if account := m.ssoAccount(deps, c); account != nil {
 		c.SetAccount(account)
 		return nil
 	}
@@ -69,38 +69,29 @@ func (m *AuthMiddleware) OnRequest(deps model.Dependencies, c model.WebContext) 
 	return nil
 }
 
-func (m *AuthMiddleware) ssoAccount(deps model.Dependencies, c model.WebContext) (*model.AccountDTO, bool) {
+func (m *AuthMiddleware) ssoAccount(deps model.Dependencies, c model.WebContext) *model.AccountDTO {
 	if !deps.Config().Http.SSOEnable {
-		return nil, false
+		return nil
 	}
 
 	requestIP := net.ParseIP(c.Request().RemoteAddr)
 	if !m.isTrustedIP(requestIP) {
-		return nil, false
+		return nil
 	}
 
 	headerName := deps.Config().Http.SSOHeaderName
 	userName := c.Request().Header.Get(headerName)
 	if userName == "" {
-		return nil, false
+		return nil
 	}
 
-	accounts, err := deps.Database().ListAccounts(c.Request().Context(), model.DBListAccountsOptions{
-		Username: userName,
-	})
+	account, err := deps.Domains().Accounts().GetAccountByUsername(c.Request().Context(), userName)
 	if err != nil {
 		deps.Logger().WithError(err).WithField("request_id", c.GetRequestID()).Error("Failed to get account from sso header")
-		return nil, false
+		return nil
 	}
 
-	if len(accounts) != 1 {
-		deps.Logger().WithError(err).WithField("request_id", c.GetRequestID()).Error("Failed to get account from sso header: username invalid")
-		return nil, false
-	}
-
-	account := accounts[0]
-
-	return model.Ptr(account.ToDTO()), true
+	return account
 }
 func (m *AuthMiddleware) isTrustedIP(ip net.IP) bool {
 	for _, net := range m.trustedIPs {
