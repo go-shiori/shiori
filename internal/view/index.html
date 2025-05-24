@@ -160,18 +160,14 @@
 				},
 
 				onLoginSuccess() {
-					this.loadSetting();
 					this.loadAccount();
+					this.loadSetting();
 					this.isLoggedIn = true;
 				},
 
 				async validateSession() {
 					const token = localStorage.getItem("shiori-token");
 					const account = localStorage.getItem("shiori-account");
-
-					if (!(token && account)) {
-						return false;
-					}
 
 					try {
 						const response = await fetch(new URL("api/v1/auth/me", document.baseURI), {
@@ -184,6 +180,12 @@
 							throw new Error('Invalid session');
 						}
 
+						const responseJSON = await response.json();
+						localStorage.setItem("shiori-token", "");
+						localStorage.setItem(
+							"shiori-account",
+							JSON.stringify(responseJSON.message),
+						);
 						return true;
 					} catch (err) {
 						// Clear invalid session data
