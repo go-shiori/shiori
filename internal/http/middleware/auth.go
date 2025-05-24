@@ -1,11 +1,11 @@
 package middleware
 
 import (
+	"errors"
 	"fmt"
 	"net"
 	"net/http"
 	"strings"
-	"errors"
 
 	"github.com/go-shiori/shiori/internal/http/response"
 	"github.com/go-shiori/shiori/internal/model"
@@ -81,7 +81,7 @@ func (m *AuthMiddleware) ssoAccount(deps model.Dependencies, c model.WebContext)
 		var addrErr *net.AddrError
 		if errors.As(err, &addrErr) && addrErr.Err == "missing port in address" {
 			ip = remoteAddr
-		}else{
+		} else {
 			deps.Logger().
 				WithError(err).
 				WithField("remote_addr", remoteAddr).

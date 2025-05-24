@@ -115,13 +115,14 @@ func (h *Handler) ssoAccount(r *http.Request) (*model.AccountDTO, error) {
 		var addrErr *net.AddrError
 		if errors.As(err, &addrErr) && addrErr.Err == "missing port in address" {
 			ip = remoteAddr
-		}else{
-			deps.Logger().
+		} else {
+			h.dependencies.Logger().
 				WithError(err).
 				WithField("remote_addr", remoteAddr).
-				WithField("request_id", c.GetRequestID()).
+				WithField("method", r.Method).
+				WithField("path", r.URL.Path).
 				Error("Could not parse remote ip")
-			return nil
+			return nil, nil
 		}
 	}
 	requestIP := net.ParseIP(ip)
