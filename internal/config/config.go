@@ -156,6 +156,9 @@ func (c *Config) DebugConfiguration(logger *logrus.Logger) {
 	logger.Debugf(" SHIORI_HTTP_IDLE_TIMEOUT: %s", c.Http.IDLETimeout)
 	logger.Debugf(" SHIORI_HTTP_DISABLE_KEEP_ALIVE: %t", c.Http.DisableKeepAlive)
 	logger.Debugf(" SHIORI_HTTP_DISABLE_PARSE_MULTIPART_FORM: %t", c.Http.DisablePreParseMultipartForm)
+	logger.Debugf(" SHIORI_SSO_ENABLE: %t", c.Http.SSOEnable)
+	logger.Debugf(" SHIORI_SSO_HEADER_NAME: %s", c.Http.SSOHeaderName)
+	logger.Debugf(" SHIORI_SSO_TRUSTED_PROXY: %v", c.Http.SSOTrustedProxy)
 }
 
 func (c *Config) IsValid() error {
