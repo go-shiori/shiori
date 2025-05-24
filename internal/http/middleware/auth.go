@@ -5,6 +5,7 @@ import (
 	"net"
 	"net/http"
 	"strings"
+	"errors"
 
 	"github.com/go-shiori/shiori/internal/http/response"
 	"github.com/go-shiori/shiori/internal/model"
@@ -77,12 +78,17 @@ func (m *AuthMiddleware) ssoAccount(deps model.Dependencies, c model.WebContext)
 	remoteAddr := c.Request().RemoteAddr
 	ip, _, err := net.SplitHostPort(remoteAddr)
 	if err != nil {
-		deps.Logger().
-			WithError(err).
-			WithField("remote_addr", remoteAddr).
-			WithField("request_id", c.GetRequestID()).
-			Error("Could not parse remote ip")
-		return nil
+		var addrErr *net.AddrError
+		if errors.As(err, &addrErr) && addrErr.Err == "missing port in address" {
+			ip = remoteAddr
+		}else{
+			deps.Logger().
+				WithError(err).
+				WithField("remote_addr", remoteAddr).
+				WithField("request_id", c.GetRequestID()).
+				Error("Could not parse remote ip")
+			return nil
+		}
 	}
 	requestIP := net.ParseIP(ip)
 	if !m.isTrustedIP(requestIP) {
