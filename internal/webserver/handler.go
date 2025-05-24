@@ -112,13 +112,17 @@ func (h *Handler) ssoAccount(r *http.Request) (*model.AccountDTO, error) {
 	remoteAddr := r.RemoteAddr
 	ip, _, err := net.SplitHostPort(remoteAddr)
 	if err != nil {
-		h.dependencies.Logger().
-			WithError(err).
-			WithField("remote_addr", remoteAddr).
-			WithField("method", r.Method).
-			WithField("path", r.URL.Path).
-			Error("Could not parse remote ip")
-		return nil, nil
+		var addrErr *net.AddrError
+		if errors.As(err, &addrErr) && addrErr.Err == "missing port in address" {
+			ip = remoteAddr
+		}else{
+			deps.Logger().
+				WithError(err).
+				WithField("remote_addr", remoteAddr).
+				WithField("request_id", c.GetRequestID()).
+				Error("Could not parse remote ip")
+			return nil
+		}
 	}
 	requestIP := net.ParseIP(ip)
 	if !h.isTrustedIP(requestIP) {
