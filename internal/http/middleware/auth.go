@@ -74,7 +74,17 @@ func (m *AuthMiddleware) ssoAccount(deps model.Dependencies, c model.WebContext)
 		return nil
 	}
 
-	requestIP := net.ParseIP(c.Request().RemoteAddr)
+	remoteAddr := c.Request().RemoteAddr
+	ip, _, err := net.SplitHostPort(remoteAddr)
+	if err != nil {
+		deps.Logger().
+			WithError(err).
+			WithField("remote_addr", remoteAddr).
+			WithField("request_id", c.GetRequestID()).
+			Error("Could not parse remote ip")
+		return nil
+	}
+	requestIP := net.ParseIP(ip)
 	if !m.isTrustedIP(requestIP) {
 		return nil
 	}
@@ -87,7 +97,10 @@ func (m *AuthMiddleware) ssoAccount(deps model.Dependencies, c model.WebContext)
 
 	account, err := deps.Domains().Accounts().GetAccountByUsername(c.Request().Context(), userName)
 	if err != nil {
-		deps.Logger().WithError(err).WithField("request_id", c.GetRequestID()).Error("Failed to get account from sso header")
+		deps.Logger().
+			WithError(err).
+			WithField("request_id", c.GetRequestID()).
+			Error("Failed to get account from sso header")
 		return nil
 	}
 
