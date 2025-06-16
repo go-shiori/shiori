@@ -178,7 +178,7 @@ func verifyMetadata(title, url, timeAddedStr, tags string) (string, string, time
 	// Parse time added
 	timeAddedInt, err := strconv.ParseInt(timeAddedStr, 10, 64)
 	if err != nil {
-		err = fmt.Errorf("Invalid time added, %w", err)
+		err = fmt.Errorf("invalid time added, %w", err)
 		return "", "", time.Time{}, nil, err
 	}
 	timeAdded := time.Unix(timeAddedInt, 0)
@@ -208,7 +208,7 @@ func handleDuplicates(ctx context.Context, db model.DB, mapURL map[string]struct
 
 	_, exists, err := db.GetBookmark(ctx, 0, url)
 	if err != nil {
-		return fmt.Errorf("Failed getting bookmark, %w", err)
+		return fmt.Errorf("failed getting bookmark, %w", err)
 	}
 
 	if exists {

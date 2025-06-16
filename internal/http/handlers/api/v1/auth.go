@@ -127,7 +127,7 @@ type updateAccountPayload struct {
 
 func (p *updateAccountPayload) IsValid() error {
 	if p.NewPassword != "" && p.OldPassword == "" {
-		return fmt.Errorf("To update the password the old one must be provided")
+		return fmt.Errorf("to update the password the old one must be provided")
 	}
 	return nil
 }
