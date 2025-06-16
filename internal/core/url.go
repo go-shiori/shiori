@@ -55,7 +55,7 @@ func RemoveUTMParams(url string) (string, error) {
 	// Parse string URL
 	tmp, err := Parse(url)
 	if err != nil {
-		return url, err
+		return url, fmt.Errorf("error removing utm params: %w", err)
 	}
 
 	// Remove UTM queries
