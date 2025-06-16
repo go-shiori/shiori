@@ -225,7 +225,9 @@ func (h *Handler) ApiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 	// Save bookmark to database
 	results, err := h.DB.SaveBookmarks(ctx, true, *book)
 	if err != nil || len(results) == 0 {
-		if strings.Contains(err.Error(), "UNIQUE constraint failed: bookmark.url") {
+                errStr := strings.ToLower(err.Error())
+		if (strings.Contains(errStr, "unique constraint failed") || strings.Contains(errStr, "duplicate entry")) && 
+   strings.Contains(errStr, "duplicate key value violates unique constraint") {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusConflict)
 			json.NewEncoder(w).Encode(model.ResponseHttpError{Error: "URL already exists"})
