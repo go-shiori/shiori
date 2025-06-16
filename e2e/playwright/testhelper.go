@@ -5,6 +5,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -189,6 +190,15 @@ func (pr *PlaywrightRequire) Error(t *testing.T, err error, msgAndArgs ...interf
 		return assertErr
 	}, msgAndArgs...)
 	pr.Assertions.Error(err, msgAndArgs...)
+}
+
+func (pr *PlaywrightRequire) Contains(t *testing.T, text, expected string, msgAndArgs ...interface{}) {
+	pr.Assert(t, func() error {
+		if !strings.Contains(text, expected) {
+			return fmt.Errorf("Expected text to contain '%s' but got '%s'", expected, text)
+		}
+		return nil
+	}, msgAndArgs...)
 }
 
 // Close cleans up resources and generates the report

@@ -91,7 +91,7 @@ func TestAuthDomainGetAccountFromCredentials(t *testing.T) {
 	_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
 	domain := domains.NewAuthDomain(deps)
 
-	_, err := deps.Domains.Accounts.CreateAccount(ctx, model.AccountDTO{
+	_, err := deps.Domains().Accounts().CreateAccount(ctx, model.AccountDTO{
 		Username: "test",
 		Password: "test",
 	})

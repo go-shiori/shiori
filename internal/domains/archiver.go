@@ -21,7 +21,7 @@ func (d *ArchiverDomain) DownloadBookmarkArchive(book model.BookmarkDTO) (*model
 	}
 
 	processRequest := core.ProcessRequest{
-		DataDir:     d.deps.Config.Storage.DataDir,
+		DataDir:     d.deps.Config().Storage.DataDir,
 		Bookmark:    book,
 		Content:     content,
 		ContentType: contentType,
@@ -40,12 +40,12 @@ func (d *ArchiverDomain) DownloadBookmarkArchive(book model.BookmarkDTO) (*model
 func (d *ArchiverDomain) GetBookmarkArchive(book *model.BookmarkDTO) (*warc.Archive, error) {
 	archivePath := model.GetArchivePath(book)
 
-	if !d.deps.Domains.Storage.FileExists(archivePath) {
+	if !d.deps.Domains().Storage().FileExists(archivePath) {
 		return nil, fmt.Errorf("archive for bookmark %d doesn't exist", book.ID)
 	}
 
 	// FIXME: This only works in local filesystem
-	return warc.Open(filepath.Join(d.deps.Config.Storage.DataDir, archivePath))
+	return warc.Open(filepath.Join(d.deps.Config().Storage.DataDir, archivePath))
 }
 
 func NewArchiverDomain(deps *dependencies.Dependencies) *ArchiverDomain {

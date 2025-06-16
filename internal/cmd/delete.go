@@ -54,7 +54,7 @@ func deleteHandler(cmd *cobra.Command, args []string) {
 	}
 
 	// Delete bookmarks from database
-	err = deps.Database.DeleteBookmarks(cmd.Context(), ids...)
+	err = deps.Database().DeleteBookmarks(cmd.Context(), ids...)
 	if err != nil {
 		cError.Printf("Failed to delete bookmarks: %v\n", err)
 		os.Exit(1)

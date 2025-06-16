@@ -1,0 +1,65 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "search": "Search",
+    "add": "Add",
+    "remove": "Remove",
+    "close": "Close"
+  },
+  "auth": {
+    "login": "Login",
+    "logout": "Logout",
+    "username": "Username",
+    "password": "Password",
+    "remember_me": "Remember me",
+    "login_failed": "Login failed. Please check your credentials."
+  },
+  "navigation": {
+    "home": "Home",
+    "archive": "Archive",
+    "tags": "Tags",
+    "folders": "Folders",
+    "settings": "Settings",
+    "about": "About"
+  },
+  "bookmarks": {
+    "title": "Bookmarks",
+    "add_bookmark": "Add Bookmark",
+    "edit_bookmark": "Edit Bookmark",
+    "delete_bookmark": "Delete Bookmark",
+    "url": "URL",
+    "title": "Title",
+    "excerpt": "Excerpt",
+    "tags": "Tags",
+    "add_tag": "Add Tag",
+    "no_bookmarks": "No bookmarks found"
+  },
+  "tags": {
+    "title": "Tags",
+    "add_tag": "Add Tag",
+    "edit_tag": "Edit Tag",
+    "delete_tag": "Delete Tag",
+    "name": "Name",
+    "no_tags": "No tags found"
+  },
+  "folders": {
+    "title": "Folders",
+    "add_folder": "Add Folder",
+    "edit_folder": "Edit Folder",
+    "delete_folder": "Delete Folder",
+    "name": "Name",
+    "no_folders": "No folders found"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "theme": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  }
+}

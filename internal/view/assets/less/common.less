@@ -11,7 +11,7 @@ select {
 
 .content-footer {
 	width: 100%;
-	padding: 20px;
+	padding: @padding-large;
 	max-width: 840px;
 	margin-bottom: 16px;
 	background-color: var(--contentBg);
@@ -19,6 +19,10 @@ select {
 	display: flex;
 	flex-flow: column;
 	align-items: center;
+
+	@media @display-mode-pwa {
+		padding-bottom: calc(@padding-large + env(safe-area-inset-bottom));
+	}
 }
 
 .metadata {
@@ -212,14 +216,18 @@ a {
 #main-scene {
 	min-height: 100%;
 	min-height: 100dvh;
-	padding-top: 60px;
-	padding-left: 60px;
+	padding-top: @header-height-desktop;
+	padding-left: @sidebar-width;
 	background-color: var(--bg);
+
+	@media @display-mode-pwa {
+		padding-bottom: env(safe-area-inset-bottom);
+	}
 
 	#main-sidebar {
 		top: 0;
 		left: 0;
-		width: 60px;
+		width: @sidebar-width;
 		height: 100%;
 		height: 100dvh;
 		position: fixed;
@@ -231,8 +239,8 @@ a {
 		a {
 			flex-shrink: 0;
 			display: block;
-			width: 60px;
-			line-height: 60px;
+			width: @sidebar-width;
+			line-height: @sidebar-height-desktop;
 			text-align: center;
 			font-size: 1em;
 			color: var(--colorSidebar);
@@ -253,19 +261,19 @@ a {
 
 	.page-header {
 		top: 0px;
-		left: 60px;
+		left: @sidebar-width;
 		right: 0px;
-		height: 60px;
+		height: @header-height-desktop;
 		position: fixed;
 		color: var(--color);
 		background-color: var(--headerBg);
 		border-bottom: 1px solid var(--border);
-		padding: 0 16px;
+		padding: 0 @padding-standard;
 		z-index: 10;
 	}
 
 	h1.page-header {
-		line-height: 60px;
+		line-height: @header-height-desktop;
 		font-size: 1.3em;
 		font-weight: 600;
 	}
@@ -279,17 +287,17 @@ a {
 			flex: 1 0;
 			font-size: 1.3em;
 			font-weight: 600;
-			line-height: 60px;
+			line-height: @header-height-desktop;
 			color: var(--color);
 		}
 
 		input[type="text"] {
 			flex: 1 0;
 			min-width: 0;
-			margin-right: 8px;
+			margin-right: @padding-small;
 			font-size: 1.1em;
 			font-weight: 500;
-			line-height: 59px;
+			line-height: calc(@header-height-desktop - 1px);
 			color: var(--color);
 			background-color: var(--contentBg);
 
@@ -306,7 +314,7 @@ a {
 			text-align: center;
 
 			&:not(:last-child) {
-				margin-right: 8px;
+				margin-right: @padding-small;
 			}
 
 			&:hover {
@@ -341,10 +349,10 @@ a {
 		}
 	}
 
-	@media (max-width: 600px) {
-		padding-top: 50px;
+	@media (max-width: @screen-sm-max) {
+		padding-top: @header-height-mobile;
 		padding-left: 0;
-		padding-bottom: 50px;
+		padding-bottom: @sidebar-height-mobile;
 
 		#main-sidebar {
 			top: auto;
@@ -352,9 +360,13 @@ a {
 			bottom: 0;
 			width: 100%;
 			width: 100dvw;
-			height: 50px;
+			height: @sidebar-height-mobile;
 			flex-flow: row nowrap;
 			border-top: 1px solid var(--border);
+
+			@media @display-mode-pwa {
+				height: calc(@sidebar-height-mobile + @inlet-bottom);
+			}
 
 			.spacer {
 				display: none;
@@ -363,7 +375,7 @@ a {
 			a {
 				width: auto;
 				flex: 1 0;
-				line-height: 50px;
+				line-height: @sidebar-height-mobile;
 
 				&:hover,
 				&:focus {
@@ -375,13 +387,13 @@ a {
 
 		.page-header {
 			left: 0;
-			height: 50px;
+			height: @header-height-mobile;
 		}
 
 		h1.page-header {
 			text-align: center;
 			font-size: 1em;
-			line-height: 50px;
+			line-height: @header-height-mobile;
 			text-transform: uppercase;
 		}
 

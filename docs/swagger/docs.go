@@ -44,6 +44,9 @@ const docTemplate = `{
                 }
             },
             "post": {
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -55,23 +58,17 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/model.AccountDTO"
-                            }
+                            "$ref": "#/definitions/model.AccountDTO"
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "string"
-                        }
+                        "description": "Bad Request"
+                    },
+                    "409": {
+                        "description": "Account already exists"
                     },
                     "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "string"
-                        }
+                        "description": "Internal Server Error"
                     }
                 }
             }
@@ -85,22 +82,34 @@ const docTemplate = `{
                     "accounts"
                 ],
                 "summary": "Delete an account",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Account ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "204": {
-                        "description": "No content",
-                        "schema": {
-                            "type": "string"
-                        }
+                        "description": "No content"
+                    },
+                    "400": {
+                        "description": "Invalid ID"
+                    },
+                    "404": {
+                        "description": "Account not found"
                     },
                     "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "string"
-                        }
+                        "description": "Internal Server Error"
                     }
                 }
             },
             "patch": {
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -108,27 +117,42 @@ const docTemplate = `{
                     "accounts"
                 ],
                 "summary": "Update an account",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Account ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Account data",
+                        "name": "account",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api_v1.updateAccountPayload"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/api_v1.updateAccountPayload"
-                            }
+                            "$ref": "#/definitions/model.AccountDTO"
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "string"
-                        }
+                        "description": "Invalid ID/data"
+                    },
+                    "404": {
+                        "description": "Account not found"
+                    },
+                    "409": {
+                        "description": "Account already exists"
                     },
                     "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "string"
-                        }
+                        "description": "Internal Server Error"
                     }
                 }
             }
@@ -263,6 +287,48 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/bookmarks/bulk/tags": {
+            "put": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Bulk update tags for multiple bookmarks.",
+                "parameters": [
+                    {
+                        "description": "Bulk Update Bookmark Tags Payload",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api_v1.bulkUpdateBookmarkTagsPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.BookmarkDTO"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request payload"
+                    },
+                    "403": {
+                        "description": "Token not provided/invalid"
+                    },
+                    "404": {
+                        "description": "No bookmarks found"
+                    }
+                }
+            }
+        },
         "/api/v1/bookmarks/cache": {
             "put": {
                 "produces": [
@@ -318,6 +384,119 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/bookmarks/{id}/tags": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Get tags for a bookmark.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Bookmark ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.TagDTO"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Token not provided/invalid"
+                    },
+                    "404": {
+                        "description": "Bookmark not found"
+                    }
+                }
+            },
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Add a tag to a bookmark.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Bookmark ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Add Tag Payload",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api_v1.bookmarkTagPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "403": {
+                        "description": "Token not provided/invalid"
+                    },
+                    "404": {
+                        "description": "Bookmark or tag not found"
+                    }
+                }
+            },
+            "delete": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Remove a tag from a bookmark.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Bookmark ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Remove Tag Payload",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api_v1.bookmarkTagPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "403": {
+                        "description": "Token not provided/invalid"
+                    },
+                    "404": {
+                        "description": "Bookmark not found"
+                    }
+                }
+            }
+        },
         "/api/v1/system/info": {
             "get": {
                 "description": "Get general system information like Shiori version, database, and OS",
@@ -325,7 +504,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "system"
+                    "System"
                 ],
                 "summary": "Get general system information",
                 "responses": {
@@ -343,6 +522,7 @@ const docTemplate = `{
         },
         "/api/v1/tags": {
             "get": {
+                "description": "List all tags",
                 "produces": [
                     "application/json"
                 ],
@@ -350,19 +530,49 @@ const docTemplate = `{
                     "Tags"
                 ],
                 "summary": "List tags",
+                "parameters": [
+                    {
+                        "type": "boolean",
+                        "description": "Include bookmark count for each tag",
+                        "name": "with_bookmark_count",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Filter tags by bookmark ID",
+                        "name": "bookmark_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search tags by name",
+                        "name": "search",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
-                        "description": "List of tags",
+                        "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/model.Tag"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.TagDTO"
+                            }
                         }
                     },
                     "403": {
-                        "description": "Token not provided/invalid"
+                        "description": "Authentication required"
+                    },
+                    "500": {
+                        "description": "Internal server error"
                     }
                 }
             },
             "post": {
+                "description": "Create a new tag",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -370,24 +580,189 @@ const docTemplate = `{
                     "Tags"
                 ],
                 "summary": "Create tag",
-                "responses": {
-                    "200": {
-                        "description": "Created tag",
+                "parameters": [
+                    {
+                        "description": "Tag data",
+                        "name": "tag",
+                        "in": "body",
+                        "required": true,
                         "schema": {
-                            "$ref": "#/definitions/model.Tag"
+                            "$ref": "#/definitions/model.TagDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/model.TagDTO"
                         }
                     },
                     "400": {
-                        "description": "Token not provided/invalid"
+                        "description": "Invalid request"
                     },
                     "403": {
-                        "description": "Token not provided/invalid"
+                        "description": "Authentication required"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/api/v1/tags/{id}": {
+            "get": {
+                "description": "Get a tag by ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tags"
+                ],
+                "summary": "Get tag",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Tag ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.TagDTO"
+                        }
+                    },
+                    "403": {
+                        "description": "Authentication required"
+                    },
+                    "404": {
+                        "description": "Tag not found"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            },
+            "put": {
+                "description": "Update an existing tag",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tags"
+                ],
+                "summary": "Update tag",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Tag ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Tag data",
+                        "name": "tag",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.TagDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.TagDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request"
+                    },
+                    "403": {
+                        "description": "Authentication required"
+                    },
+                    "404": {
+                        "description": "Tag not found"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete a tag",
+                "tags": [
+                    "Tags"
+                ],
+                "summary": "Delete tag",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Tag ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "403": {
+                        "description": "Authentication required"
+                    },
+                    "404": {
+                        "description": "Tag not found"
+                    },
+                    "500": {
+                        "description": "Internal server error"
                     }
                 }
             }
         }
     },
     "definitions": {
+        "api_v1.bookmarkTagPayload": {
+            "type": "object",
+            "required": [
+                "tag_id"
+            ],
+            "properties": {
+                "tag_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "api_v1.bulkUpdateBookmarkTagsPayload": {
+            "type": "object",
+            "required": [
+                "bookmark_ids",
+                "tag_ids"
+            ],
+            "properties": {
+                "bookmark_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "tag_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
         "api_v1.infoResponse": {
             "type": "object",
             "properties": {
@@ -415,10 +790,6 @@ const docTemplate = `{
         },
         "api_v1.loginRequestPayload": {
             "type": "object",
-            "required": [
-                "password",
-                "username"
-            ],
             "properties": {
                 "password": {
                     "type": "string"
@@ -435,12 +806,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "expires": {
-                    "description": "Deprecated, used only for legacy APIs",
                     "type": "integer"
-                },
-                "session": {
-                    "description": "Deprecated, used only for legacy APIs",
-                    "type": "string"
                 },
                 "token": {
                     "type": "string"
@@ -592,7 +958,7 @@ const docTemplate = `{
                 "tags": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/model.Tag"
+                        "$ref": "#/definitions/model.TagDTO"
                     }
                 },
                 "title": {
@@ -603,13 +969,18 @@ const docTemplate = `{
                 }
             }
         },
-        "model.Tag": {
+        "model.TagDTO": {
             "type": "object",
             "properties": {
-                "id": {
+                "bookmark_count": {
+                    "description": "Number of bookmarks with this tag",
                     "type": "integer"
                 },
-                "nBookmarks": {
+                "deleted": {
+                    "description": "Marks when a tag is deleted from a bookmark",
+                    "type": "boolean"
+                },
+                "id": {
                     "type": "integer"
                 },
                 "name": {
@@ -620,31 +991,31 @@ const docTemplate = `{
         "model.UserConfig": {
             "type": "object",
             "properties": {
-                "CreateEbook": {
+                "createEbook": {
                     "type": "boolean"
                 },
-                "HideExcerpt": {
+                "hideExcerpt": {
                     "type": "boolean"
                 },
-                "HideThumbnail": {
+                "hideThumbnail": {
                     "type": "boolean"
                 },
-                "KeepMetadata": {
+                "keepMetadata": {
                     "type": "boolean"
                 },
-                "ListMode": {
+                "listMode": {
                     "type": "boolean"
                 },
-                "MakePublic": {
+                "makePublic": {
                     "type": "boolean"
                 },
-                "ShowId": {
+                "showId": {
                     "type": "boolean"
                 },
-                "Theme": {
+                "theme": {
                     "type": "string"
                 },
-                "UseArchive": {
+                "useArchive": {
                     "type": "boolean"
                 }
             }

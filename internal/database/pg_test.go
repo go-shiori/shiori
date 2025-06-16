@@ -8,6 +8,8 @@ import (
 	"log"
 	"os"
 	"testing"
+
+	"github.com/go-shiori/shiori/internal/model"
 )
 
 func init() {
@@ -17,13 +19,13 @@ func init() {
 	}
 }
 
-func postgresqlTestDatabaseFactory(_ *testing.T, ctx context.Context) (DB, error) {
+func postgresqlTestDatabaseFactory(_ *testing.T, ctx context.Context) (model.DB, error) {
 	db, err := OpenPGDatabase(ctx, os.Getenv("SHIORI_TEST_PG_URL"))
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = db.Exec("DROP SCHEMA public CASCADE; CREATE SCHEMA public;")
+	_, err = db.ExecContext(ctx, "DROP SCHEMA public CASCADE; CREATE SCHEMA public;")
 	if err != nil {
 		return nil, err
 	}
