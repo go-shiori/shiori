@@ -13,7 +13,7 @@ jobs:
       - name: golangci-lint
         uses: golangci/golangci-lint-action@55c2c1448f86e01eaae002a5a3a9624417608d84 # 6.5.2
         with:
-          version: latest
+          version: "v2.1.6"
 
           # Optional: working directory, useful for monorepos
           # working-directory: somedir
