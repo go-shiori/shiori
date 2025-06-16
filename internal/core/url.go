@@ -38,7 +38,6 @@ func queryEncodeWithoutEmptyValues(v nurl.Values) string {
 
 // Parse parses a URL. If no scheme, it sets "https://".
 func Parse(url string) (*nurl.URL, error) {
-
 	urlParsed, err := nurl.Parse(url)
 	if err != nil {
 		return nil, err
