@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"github.com/go-shiori/shiori/internal/core"
+	"github.com/go-shiori/shiori/internal/http/response"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/julienschmidt/httprouter"
 )
@@ -225,12 +226,12 @@ func (h *Handler) ApiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 	// Save bookmark to database
 	results, err := h.DB.SaveBookmarks(ctx, true, *book)
 	if err != nil || len(results) == 0 {
-                errStr := strings.ToLower(err.Error())
-		if (strings.Contains(errStr, "unique constraint failed") || strings.Contains(errStr, "duplicate entry")) && 
-   strings.Contains(errStr, "duplicate key value violates unique constraint") {
+		errStr := strings.ToLower(err.Error())
+		if (strings.Contains(errStr, "unique constraint failed") || strings.Contains(errStr, "duplicate entry")) &&
+			strings.Contains(errStr, "duplicate key value violates unique constraint") {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusConflict)
-			json.NewEncoder(w).Encode(model.ResponseHttpError{Error: "URL already exists"})
+			json.NewEncoder(w).Encode(response.ErrorResponse{Error: "URL already exists"})
 
 			return
 		}
