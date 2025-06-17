@@ -142,7 +142,6 @@ jobs:
           run: |
             sudo pkg_add -u
             sudo pkg_add gmake git
-            curl -L https://go.dev/dl/go1.24.3.freebsd-amd64.tar.gz | sudo tar -C /usr/local -xzf -
+            curl -L https://go.dev/dl/go1.24.3.openbsd-amd64.tar.gz | sudo tar -C /usr/local -xzf -
             export PATH=$PATH:/usr/local/go/bin
-            sudo chmod +x /usr/local/go/bin/go
             gmake unittest GO_TEST_FLAGS="-tags test_sqlite_only -v -count=1"
