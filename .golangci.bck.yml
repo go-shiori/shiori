@@ -1,0 +1,30 @@
+# Docs: https://golangci-lint.run/usage/configuration/#config-file
+run:
+  timeout: 5m
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+  exclude-dirs:
+    - internal/mocks
+
+linters-settings:
+  gofmt:
+    simplify: true
+  govet:
+    enable-all: true
+    disable:
+      - fieldalignment
+
+linters:
+  disable-all: true
+  enable:
+    - copyloopvar
+    - gofmt
+    - gosimple
+    # - govet # Re-enable when all shadow declarations are fixed
+    - ineffassign
+    - predeclared
+    - staticcheck
+    - unconvert
+    - unused
