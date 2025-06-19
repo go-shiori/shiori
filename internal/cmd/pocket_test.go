@@ -25,7 +25,7 @@ func Test_parseCsvExport_old_format(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			file, err := os.Open("../../testdata/pocket-old.csv")
+			file, err := os.Open("../../testdata/" + tt.fileName)
 			if err != nil {
 				t.Errorf(err.Error())
 			}
