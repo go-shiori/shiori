@@ -57,7 +57,7 @@ func (m *AuthSSOProxyMiddleware) OnRequest(deps model.Dependencies, c model.WebC
 	return nil
 }
 
-func (m *AuthSSOProxyMiddleware) ssoAccount(deps model.Dependencies, c model.WebContext) (*model.AccountDTO,error) {
+func (m *AuthSSOProxyMiddleware) ssoAccount(deps model.Dependencies, c model.WebContext) (*model.AccountDTO, error) {
 	if !deps.Config().Http.SSOProxyAuth {
 		return nil, nil
 	}
@@ -69,12 +69,12 @@ func (m *AuthSSOProxyMiddleware) ssoAccount(deps model.Dependencies, c model.Web
 		if errors.As(err, &addrErr) && addrErr.Err == "missing port in address" {
 			ip = remoteAddr
 		} else {
-			return nil,err
+			return nil, err
 		}
 	}
 	requestIP := net.ParseIP(ip)
 	if !m.isTrustedIP(requestIP) {
-		return nil, errors.New("remoteAddr is not a trusted ip") 
+		return nil, errors.New("remoteAddr is not a trusted ip")
 	}
 
 	headerName := deps.Config().Http.SSOProxyAuthHeaderName

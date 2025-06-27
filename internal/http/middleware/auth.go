@@ -50,7 +50,6 @@ func (m *AuthMiddleware) OnRequest(deps model.Dependencies, c model.WebContext) 
 	return nil
 }
 
-
 func (m *AuthMiddleware) OnResponse(deps model.Dependencies, c model.WebContext) error {
 	return nil
 }
