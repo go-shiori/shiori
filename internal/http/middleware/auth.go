@@ -21,7 +21,7 @@ type AuthMiddleware struct {
 }
 
 func NewAuthMiddleware(deps model.Dependencies) *AuthMiddleware {
-	plainIPs := deps.Config().Http.SSOTrustedProxy
+	plainIPs := deps.Config().Http.SSOProxyAuthTrusted
 	trustedIPs := make([]*net.IPNet, len(plainIPs))
 	for i, ip := range plainIPs {
 		_, ipNet, err := net.ParseCIDR(ip)
@@ -71,7 +71,7 @@ func (m *AuthMiddleware) OnRequest(deps model.Dependencies, c model.WebContext) 
 }
 
 func (m *AuthMiddleware) ssoAccount(deps model.Dependencies, c model.WebContext) *model.AccountDTO {
-	if !deps.Config().Http.SSOEnabled {
+	if !deps.Config().Http.SSOProxyAuth {
 		return nil
 	}
 
@@ -95,7 +95,7 @@ func (m *AuthMiddleware) ssoAccount(deps model.Dependencies, c model.WebContext)
 		return nil
 	}
 
-	headerName := deps.Config().Http.SSOHeaderName
+	headerName := deps.Config().Http.SSOProxyAuthHeaderName
 	userName := c.Request().Header.Get(headerName)
 	if userName == "" {
 		return nil

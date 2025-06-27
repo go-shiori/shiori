@@ -42,9 +42,9 @@ Most configuration can be set directly using environment variables or flags. The
 | `SHIORI_HTTP_IDLE_TIMEOUT`                 | 10s            | No       | Maximum amount of time to wait for the next request   |
 | `SHIORI_HTTP_DISABLE_KEEP_ALIVE`           | true           | No       | Disable HTTP keep-alive connections                   |
 | `SHIORI_HTTP_DISABLE_PARSE_MULTIPART_FORM` | true           | No       | Disable pre-parsing of multipart form                 |
-| `SHIORI_SSO_ENABLED`                       | false          | No       | Enable SSO Auth Proxy Header                          |
-| `SHIORI_SSO_HEADER_NAME`                   | Remote-User    | No       | List of CIDRs of trusted proxies                      |
-| `SHIORI_SSO_TRUSTED_PROXY`                 | 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, fc00::/7    | No       | List of CIDRs of trusted proxies                 |
+| `SHIORI_SSO_PROXY_AUTH_ENABLED`            | false          | No       | Enable SSO Auth Proxy Header                          |
+| `SHIORI_SSO_PROXY_AUTH_HEADER_NAME`        | Remote-User    | No       | List of CIDRs of trusted proxies                      |
+| `SHIORI_SSO_PROXY_AUTH_TRUSTED`            | 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, fc00::/7    | No       | List of CIDRs of trusted proxies                 |
 
 ### Storage Configuration
 

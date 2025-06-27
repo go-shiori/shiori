@@ -20,7 +20,7 @@ type Config struct {
 
 // GetLegacyHandler returns a legacy handler to use with the new webserver
 func GetLegacyHandler(cfg Config, dependencies model.Dependencies) *Handler {
-	plainIPs := dependencies.Config().Http.SSOTrustedProxy
+	plainIPs := dependencies.Config().Http.SSOProxyAuthTrusted
 	trustedIPs := make([]*net.IPNet, len(plainIPs))
 	for i, ip := range plainIPs {
 		_, ipNet, err := net.ParseCIDR(ip)

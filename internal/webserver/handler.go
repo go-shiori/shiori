@@ -51,7 +51,7 @@ func (h *Handler) validateSession(r *http.Request) error {
 	var account *model.AccountDTO
 	var err error
 
-	if h.dependencies.Config().Http.SSOEnabled {
+	if h.dependencies.Config().Http.SSOProxyAuth {
 		account, err = h.ssoAccount(r)
 		if err != nil {
 			return err
@@ -130,7 +130,7 @@ func (h *Handler) ssoAccount(r *http.Request) (*model.AccountDTO, error) {
 		return nil, nil
 	}
 
-	headerName := h.dependencies.Config().Http.SSOHeaderName
+	headerName := h.dependencies.Config().Http.SSOProxyAuthHeaderName
 	userName := r.Header.Get(headerName)
 	if userName == "" {
 		return nil, nil
