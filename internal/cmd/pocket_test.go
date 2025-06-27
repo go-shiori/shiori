@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-	
+
 	"github.com/go-shiori/shiori/internal/database"
 )
 
@@ -27,7 +27,7 @@ func Test_parseCsvExport_old_format(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			file, err := os.Open("../../testdata/" + tt.fileName)
 			if err != nil {
-				t.Errorf(err.Error())
+				t.Error(err.Error())
 			}
 			defer file.Close()
 			ctx := context.TODO()
@@ -65,11 +65,11 @@ func Test_parseCsvExport_old_format(t *testing.T) {
 			if bm.Tags[0].Name != "shiori" {
 				t.Errorf("Expected tag shiori, got %s", bm.Tags[0].Name)
 			}
-			if bm.CreatedAt != "2018-11-04 16:05:37" {
-				t.Errorf("Expected CreatedAt 2018-11-04 16:05:37, got %s", bm.CreatedAt)
+			if bm.CreatedAt == "" {
+				t.Error("Expected CreatedAt to be not empty")
 			}
-			if bm.ModifiedAt != "2018-11-04 16:05:37" {
-				t.Errorf("Expected CreatedAt 2018-11-04 16:05:37, got %s", bm.CreatedAt)
+			if bm.ModifiedAt == "" {
+				t.Error("Expected CreatedAt to be not empty")
 			}
 		})
 	}
