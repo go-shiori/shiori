@@ -40,7 +40,15 @@ func NewAuthMiddleware(deps model.Dependencies) *AuthMiddleware {
 }
 
 func (m *AuthMiddleware) OnRequest(deps model.Dependencies, c model.WebContext) error {
-	if account := m.ssoAccount(deps, c); account != nil {
+	account, err := m.ssoAccount(deps, c)
+	if err != nil {
+		deps.Logger().
+			WithError(err).
+			WithField("remote_addr", c.Request().RemoteAddr).
+			WithField("request_id", c.GetRequestID()).
+			Error("getting sso account")
+	}
+	if account != nil {
 		c.SetAccount(account)
 		return nil
 	}
@@ -54,7 +62,7 @@ func (m *AuthMiddleware) OnRequest(deps model.Dependencies, c model.WebContext) 
 		return nil
 	}
 
-	account, err := deps.Domains().Auth().CheckToken(c.Request().Context(), token)
+	account, err = deps.Domains().Auth().CheckToken(c.Request().Context(), token)
 	if err != nil {
 		// If we fail to check token, remove the token cookie and redirect to login
 		deps.Logger().WithError(err).WithField("request_id", c.GetRequestID()).Error("Failed to check token")
@@ -70,9 +78,9 @@ func (m *AuthMiddleware) OnRequest(deps model.Dependencies, c model.WebContext) 
 	return nil
 }
 
-func (m *AuthMiddleware) ssoAccount(deps model.Dependencies, c model.WebContext) *model.AccountDTO {
+func (m *AuthMiddleware) ssoAccount(deps model.Dependencies, c model.WebContext) (*model.AccountDTO,error) {
 	if !deps.Config().Http.SSOProxyAuth {
-		return nil
+		return nil, nil
 	}
 
 	remoteAddr := c.Request().RemoteAddr
@@ -82,35 +90,26 @@ func (m *AuthMiddleware) ssoAccount(deps model.Dependencies, c model.WebContext)
 		if errors.As(err, &addrErr) && addrErr.Err == "missing port in address" {
 			ip = remoteAddr
 		} else {
-			deps.Logger().
-				WithError(err).
-				WithField("remote_addr", remoteAddr).
-				WithField("request_id", c.GetRequestID()).
-				Error("Could not parse remote ip")
-			return nil
+			return nil,err
 		}
 	}
 	requestIP := net.ParseIP(ip)
 	if !m.isTrustedIP(requestIP) {
-		return nil
+		return nil, errors.New("remoteAddr is not a trusted ip") 
 	}
 
 	headerName := deps.Config().Http.SSOProxyAuthHeaderName
 	userName := c.Request().Header.Get(headerName)
 	if userName == "" {
-		return nil
+		return nil, nil
 	}
 
 	account, err := deps.Domains().Accounts().GetAccountByUsername(c.Request().Context(), userName)
 	if err != nil {
-		deps.Logger().
-			WithError(err).
-			WithField("request_id", c.GetRequestID()).
-			Error("Failed to get account from sso header")
-		return nil
+		return nil, err
 	}
 
-	return account
+	return account, nil
 }
 func (m *AuthMiddleware) isTrustedIP(ip net.IP) bool {
 	for _, net := range m.trustedIPs {
