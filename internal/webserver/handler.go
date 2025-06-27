@@ -54,7 +54,7 @@ func (h *Handler) validateSession(r *http.Request) error {
 	if h.dependencies.Config().Http.SSOProxyAuth {
 		account, err = h.ssoAccount(r)
 		if err != nil {
-			return err
+			h.dependencies.Logger().WithError(err).Error("getting sso account")
 		}
 	}
 
@@ -116,18 +116,12 @@ func (h *Handler) ssoAccount(r *http.Request) (*model.AccountDTO, error) {
 		if errors.As(err, &addrErr) && addrErr.Err == "missing port in address" {
 			ip = remoteAddr
 		} else {
-			h.dependencies.Logger().
-				WithError(err).
-				WithField("remote_addr", remoteAddr).
-				WithField("method", r.Method).
-				WithField("path", r.URL.Path).
-				Error("Could not parse remote ip")
-			return nil, nil
+			return nil, err
 		}
 	}
 	requestIP := net.ParseIP(ip)
 	if !h.isTrustedIP(requestIP) {
-		return nil, nil
+		return nil, fmt.Errorf("'%s' is not a trusted ip", r.RemoteAddr)
 	}
 
 	headerName := h.dependencies.Config().Http.SSOProxyAuthHeaderName
@@ -138,11 +132,6 @@ func (h *Handler) ssoAccount(r *http.Request) (*model.AccountDTO, error) {
 
 	account, err := h.dependencies.Domains().Accounts().GetAccountByUsername(r.Context(), userName)
 	if err != nil {
-		h.dependencies.Logger().
-			WithError(err).
-			WithField("method", r.Method).
-			WithField("path", r.URL.Path).
-			Error("Failed to get account from sso header")
 		return nil, err
 	}
 
