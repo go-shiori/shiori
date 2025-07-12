@@ -1,7 +1,9 @@
 package webserver
 
 import (
+	"errors"
 	"fmt"
+	"net"
 	"net/http"
 	"strings"
 
@@ -21,6 +23,7 @@ type Handler struct {
 	Log          bool
 
 	dependencies model.Dependencies
+	trustedIPs   []*net.IPNet
 }
 
 func (h *Handler) PrepareSessionCache() {
@@ -45,30 +48,20 @@ func (h *Handler) PrepareSessionCache() {
 
 // validateSession checks whether user session is still valid or not
 func (h *Handler) validateSession(r *http.Request) error {
-	authorization := r.Header.Get(model.AuthorizationHeader)
-	if authorization == "" {
-		// Get token from cookie
-		tokenCookie, err := r.Cookie("token")
-		if err != nil {
-			return fmt.Errorf("session is not exist")
-		}
+	var account *model.AccountDTO
+	var err error
 
-		authorization = tokenCookie.Value
+	if h.dependencies.Config().Http.SSOProxyAuth {
+		account, err = h.ssoAccount(r)
+		if err != nil {
+			h.dependencies.Logger().WithError(err).Error("getting sso account")
+		}
 	}
 
-	var account *model.AccountDTO
-
-	if authorization != "" {
-		var err error
-
-		authParts := strings.SplitN(authorization, " ", 2)
-		if len(authParts) != 2 && authParts[0] != model.AuthorizationTokenType {
-			return fmt.Errorf("session has been expired")
-		}
-
-		account, err = h.dependencies.Domains().Auth().CheckToken(r.Context(), authParts[1])
+	if account == nil {
+		account, err = h.tokenAccount(r)
 		if err != nil {
-			return fmt.Errorf("session has been expired")
+			return err
 		}
 	}
 
@@ -84,4 +77,71 @@ func (h *Handler) validateSession(r *http.Request) error {
 
 	return nil
 
+}
+
+func (h *Handler) tokenAccount(r *http.Request) (*model.AccountDTO, error) {
+	authorization := r.Header.Get(model.AuthorizationHeader)
+	if authorization == "" {
+		// Get token from cookie
+		tokenCookie, err := r.Cookie("token")
+		if err != nil {
+			return nil, fmt.Errorf("session is not exist")
+		}
+
+		authorization = tokenCookie.Value
+	}
+
+	if authorization != "" {
+		authParts := strings.SplitN(authorization, " ", 2)
+		if len(authParts) != 2 || authParts[0] != model.AuthorizationTokenType {
+			return nil, fmt.Errorf("session has been expired")
+		}
+
+		account, err := h.dependencies.Domains().Auth().CheckToken(r.Context(), authParts[1])
+		if err != nil {
+			return nil, fmt.Errorf("session has been expired")
+		}
+
+		return account, nil
+	}
+
+	return nil, errors.New("session has been expired")
+}
+
+func (h *Handler) ssoAccount(r *http.Request) (*model.AccountDTO, error) {
+	remoteAddr := r.RemoteAddr
+	ip, _, err := net.SplitHostPort(remoteAddr)
+	if err != nil {
+		var addrErr *net.AddrError
+		if errors.As(err, &addrErr) && addrErr.Err == "missing port in address" {
+			ip = remoteAddr
+		} else {
+			return nil, err
+		}
+	}
+	requestIP := net.ParseIP(ip)
+	if !h.isTrustedIP(requestIP) {
+		return nil, fmt.Errorf("'%s' is not a trusted ip", r.RemoteAddr)
+	}
+
+	headerName := h.dependencies.Config().Http.SSOProxyAuthHeaderName
+	userName := r.Header.Get(headerName)
+	if userName == "" {
+		return nil, nil
+	}
+
+	account, err := h.dependencies.Domains().Accounts().GetAccountByUsername(r.Context(), userName)
+	if err != nil {
+		return nil, err
+	}
+
+	return account, nil
+}
+func (h *Handler) isTrustedIP(ip net.IP) bool {
+	for _, net := range h.trustedIPs {
+		if ok := net.Contains(ip); ok {
+			return true
+		}
+	}
+	return false
 }
