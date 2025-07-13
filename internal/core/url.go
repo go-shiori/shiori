@@ -36,12 +36,26 @@ func queryEncodeWithoutEmptyValues(v nurl.Values) string {
 	return buf.String()
 }
 
+// Parse parses a URL. If no scheme, it sets "https://".
+func Parse(url string) (*nurl.URL, error) {
+	urlParsed, err := nurl.Parse(url)
+	if err != nil {
+		return nil, err
+	}
+
+	if urlParsed.Scheme == "" {
+		urlParsed.Scheme = "https"
+	}
+
+	return urlParsed, nil
+}
+
 // RemoveUTMParams removes the UTM parameters from URL.
 func RemoveUTMParams(url string) (string, error) {
 	// Parse string URL
-	tmp, err := nurl.Parse(url)
-	if err != nil || tmp.Scheme == "" || tmp.Hostname() == "" {
-		return url, fmt.Errorf("URL is not valid")
+	tmp, err := Parse(url)
+	if err != nil {
+		return url, fmt.Errorf("error removing utm params: %w", err)
 	}
 
 	// Remove UTM queries
