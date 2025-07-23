@@ -36,16 +36,40 @@ func queryEncodeWithoutEmptyValues(v nurl.Values) string {
 	return buf.String()
 }
 
+func urlSchemeOk(url string) bool {
+	if strings.HasPrefix(url, "https://") {
+		return true
+	}
+
+	if strings.HasPrefix(url, "http://") {
+		return true
+	}
+
+	/*** * * ***/
+
+	return false
+}
+
 // Parse parses a URL. If no scheme, it sets "https://".
 func Parse(url string) (*nurl.URL, error) {
-	urlParsed, err := nurl.Parse(url)
+	var urlParsed *nurl.URL
+	var err error
+
+	/*** * * ***/
+
+	// prevents nurl's undefined behaviour on lack of scheme
+	if !urlSchemeOk(url) {
+		url = "https://" + url
+	}
+
+	/*** * * ***/
+
+	urlParsed, err = nurl.Parse(url)
 	if err != nil {
 		return nil, err
 	}
 
-	if urlParsed.Scheme == "" {
-		urlParsed.Scheme = "https"
-	}
+	/*** * * ***/
 
 	return urlParsed, nil
 }
