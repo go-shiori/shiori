@@ -55,6 +55,84 @@ func TestQueryEncodeWithoutEmptyValues(t *testing.T) {
 	})
 }
 
+func TestUrlSchemeOk(t *testing.T) {
+	var cases []struct {
+		reqUrl   string
+		expected bool
+	}
+
+	/*** * * ***/
+
+	cases = []struct {
+		reqUrl   string
+		expected bool
+	}{
+		// Explicit http(s) schemes
+		{"https://example.com", true},
+		{"http://example.com", true},
+		{"https://example", true},
+		{"http://example", true},
+
+		// Other schemes with ://
+		{"ftp://example.com", true},
+		{"custom+scheme://resource", true},
+		{"git+ssh://github.com/user/repo", true},
+
+		// Reject exactly "://"
+		{"://", false},
+
+		// Reject those *starting* exactly with "://"
+		{"://example.com", false},
+		{"://example", false},
+
+		// Reject those *starting* exactly with ":/" (one /)
+		{":/example.com", false},
+		{":/example", false},
+
+		// No scheme, no : before //, nothing(!)
+		{"example.com", false},
+		{"example", false},
+		{"//example.com", false},
+		{"//example", false},
+		{"", false},
+
+		// Edge cases: missing slash in http(s)
+		{"https:/example.com", false},
+		{"https:/example", false},
+		{"http:/example.com", false},
+		{"http:/example", false},
+
+		// Accept random with scheme before ://
+		{"a://", true},
+		{"1://", true},
+		{"!://", true},
+		{"abcdefg://", true},
+		{"12345://", true},
+		{"!@#$%://", true},
+
+		// Reject random without scheme
+		{"a", false},
+		{"1", false},
+		{"!", false},
+		{"abcdefg", false},
+		{"12345", false},
+		{"!@#$%", false},
+	}
+
+	/*** * * ***/
+
+	for _, c := range cases {
+		t.Run(c.reqUrl, func(t *testing.T) {
+			assert.Equal(
+				t, // t
+
+				c.expected,            // expected
+				urlSchemeOk(c.reqUrl), // actual
+			)
+		})
+	}
+}
+
 func TestParse(t *testing.T) {
 	t.Run("Parses full URL with scheme", func(t *testing.T) {
 		var resUrl *url.URL

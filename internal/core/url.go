@@ -45,6 +45,18 @@ func urlSchemeOk(url string) bool {
 		return true
 	}
 
+	if strings.Contains(url, "://") {
+		if url == "://" {
+			return false
+		}
+
+		if strings.HasPrefix(url, "://") {
+			return false
+		}
+
+		return true
+	}
+
 	/*** * * ***/
 
 	return false
