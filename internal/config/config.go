@@ -90,7 +90,7 @@ func (c *HttpConfig) IsValid() error {
 	}
 
 	if c.ServeWebUIV2 && !c.ServeWebUI {
-		return fmt.Errorf("You need to enable serving the Web UI to use the experimental Web UI v2")
+		return fmt.Errorf("you need to enable serving the Web UI to use the experimental Web UI v2")
 	}
 
 	return nil
