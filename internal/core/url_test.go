@@ -62,6 +62,8 @@ func TestUrlSchemeOk(t *testing.T) {
 	}
 	type typeCases []typeCase
 
+	/*** * * ***/
+
 	var cases typeCases
 
 	/*** * * ***/
