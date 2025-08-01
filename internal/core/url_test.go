@@ -56,67 +56,67 @@ func TestQueryEncodeWithoutEmptyValues(t *testing.T) {
 }
 
 func TestUrlSchemeOk(t *testing.T) {
-	var cases []struct {
+	type typeCase struct {
 		reqUrl   string
 		expected bool
 	}
+	type typeCases []typeCase
+
+	var cases typeCases
 
 	/*** * * ***/
 
-	cases = []struct {
-		reqUrl   string
-		expected bool
-	}{
+	cases = typeCases{
 		// Explicit http(s) schemes
-		{"https://example.com", true},
-		{"http://example.com", true},
-		{"https://example", true},
-		{"http://example", true},
+		typeCase{"https://example.com", true},
+		typeCase{"http://example.com", true},
+		typeCase{"https://example", true},
+		typeCase{"http://example", true},
 
 		// Other schemes with ://
-		{"ftp://example.com", true},
-		{"custom+scheme://resource", true},
-		{"git+ssh://github.com/user/repo", true},
+		typeCase{"ftp://example.com", true},
+		typeCase{"custom+scheme://resource", true},
+		typeCase{"git+ssh://github.com/user/repo", true},
 
 		// Reject exactly "://"
-		{"://", false},
+		typeCase{"://", false},
 
 		// Reject those *starting* exactly with "://"
-		{"://example.com", false},
-		{"://example", false},
+		typeCase{"://example.com", false},
+		typeCase{"://example", false},
 
 		// Reject those *starting* exactly with ":/" (one /)
-		{":/example.com", false},
-		{":/example", false},
+		typeCase{":/example.com", false},
+		typeCase{":/example", false},
 
 		// No scheme, no : before //, nothing(!)
-		{"example.com", false},
-		{"example", false},
-		{"//example.com", false},
-		{"//example", false},
-		{"", false},
+		typeCase{"example.com", false},
+		typeCase{"example", false},
+		typeCase{"//example.com", false},
+		typeCase{"//example", false},
+		typeCase{"", false},
 
 		// Edge cases: missing slash in http(s)
-		{"https:/example.com", false},
-		{"https:/example", false},
-		{"http:/example.com", false},
-		{"http:/example", false},
+		typeCase{"https:/example.com", false},
+		typeCase{"https:/example", false},
+		typeCase{"http:/example.com", false},
+		typeCase{"http:/example", false},
 
 		// Accept random with scheme before ://
-		{"a://", true},
-		{"1://", true},
-		{"!://", true},
-		{"abcdefg://", true},
-		{"12345://", true},
-		{"!@#$%://", true},
+		typeCase{"a://", true},
+		typeCase{"1://", true},
+		typeCase{"!://", true},
+		typeCase{"abcdefg://", true},
+		typeCase{"12345://", true},
+		typeCase{"!@#$%://", true},
 
 		// Reject random without scheme
-		{"a", false},
-		{"1", false},
-		{"!", false},
-		{"abcdefg", false},
-		{"12345", false},
-		{"!@#$%", false},
+		typeCase{"a", false},
+		typeCase{"1", false},
+		typeCase{"!", false},
+		typeCase{"abcdefg", false},
+		typeCase{"12345", false},
+		typeCase{"!@#$%", false},
 	}
 
 	/*** * * ***/
