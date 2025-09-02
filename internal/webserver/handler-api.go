@@ -226,15 +226,38 @@ func (h *Handler) ApiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 	// Save bookmark to database
 	results, err := h.DB.SaveBookmarks(ctx, true, *book)
 	if err != nil || len(results) == 0 {
-		errStr := strings.ToLower(err.Error())
-		if (strings.Contains(errStr, "unique constraint failed") || strings.Contains(errStr, "duplicate entry")) &&
-			strings.Contains(errStr, "duplicate key value violates unique constraint") {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusConflict)
-			json.NewEncoder(w).Encode(response.ErrorResponse{Error: "URL already exists"})
+		var errStr string
 
-			return
+		var duplicateErrStrs []string
+
+		/*** * * ***/
+
+		errStr = strings.ToLower(err.Error())
+
+		duplicateErrStrs = []string{
+			"unique constraint failed",                       // SQLite
+			"duplicate entry",                                // MySQL
+			"duplicate key value violates unique constraint", // PostgreSQL
 		}
+
+		/*** * * ***/
+
+		for _, duplicateErrStr := range duplicateErrStrs {
+			if strings.Contains(errStr, duplicateErrStr) {
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusConflict)
+
+				json.NewEncoder(w).Encode(
+					response.ErrorResponse{
+						Error: "URL already exists",
+					},
+				)
+
+				return
+			}
+		}
+
+		/*** * * ***/
 
 		panic(fmt.Errorf("failed to save bookmark: %v", err))
 	}
