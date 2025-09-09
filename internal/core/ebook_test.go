@@ -25,7 +25,7 @@ func TestGenerateEbook(t *testing.T) {
 
 			deps.Domains().SetStorage(domains.NewStorageDomain(deps, afero.NewBasePathFs(afero.NewOsFs(), tmpDir)))
 
-			mockRequest := model.EbookProcessRequest{
+			mockRequest := core.ProcessRequest{
 				Bookmark: model.BookmarkDTO{
 					ID:       1,
 					Title:    "Example Bookmark",
@@ -47,7 +47,7 @@ func TestGenerateEbook(t *testing.T) {
 				ID:       2,
 				HasEbook: false,
 			}
-			mockRequest := model.EbookProcessRequest{
+			mockRequest := core.ProcessRequest{
 				Bookmark: bookmark,
 			}
 			// Create the thumbnail file
@@ -75,7 +75,7 @@ func TestGenerateEbook(t *testing.T) {
 				ID:       3,
 				HasEbook: false,
 			}
-			mockRequest := model.EbookProcessRequest{
+			mockRequest := core.ProcessRequest{
 				Bookmark: bookmark,
 			}
 			// Create the archive file
@@ -94,7 +94,7 @@ func TestGenerateEbook(t *testing.T) {
 	})
 	t.Run("specific ebook generate case", func(t *testing.T) {
 		t.Run("invalid bookmarkId that return Error", func(t *testing.T) {
-			mockRequest := model.EbookProcessRequest{
+			mockRequest := core.ProcessRequest{
 				Bookmark: model.BookmarkDTO{
 					ID:       0,
 					HasEbook: false,
@@ -118,7 +118,7 @@ func TestGenerateEbook(t *testing.T) {
 				ID:       1,
 				HasEbook: false,
 			}
-			mockRequest := model.EbookProcessRequest{
+			mockRequest := core.ProcessRequest{
 				Bookmark: bookmark,
 			}
 			// Create the ebook file
