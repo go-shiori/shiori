@@ -19,7 +19,7 @@ func (a *PDFArchiver) Matches(archiverReq *model.ArchiverRequest) bool {
 func (a *PDFArchiver) Archive(archiverReq *model.ArchiverRequest) (*model.BookmarkDTO, error) {
 	bookmark := &archiverReq.Bookmark
 
-	if err := a.deps.Domains.Storage.WriteData(model.GetArchivePath(bookmark), archiverReq.Content); err != nil {
+	if err := a.deps.Domains().Storage().WriteData(model.GetArchivePath(bookmark), archiverReq.Content); err != nil {
 		return nil, fmt.Errorf("error saving pdf archive: %v", err)
 	}
 
@@ -33,11 +33,11 @@ func (a *PDFArchiver) Archive(archiverReq *model.ArchiverRequest) (*model.Bookma
 func (a *PDFArchiver) GetArchiveFile(bookmark model.BookmarkDTO, resourcePath string) (*model.ArchiveFile, error) {
 	archivePath := model.GetArchivePath(&bookmark)
 
-	if !a.deps.Domains.Storage.FileExists(archivePath) {
+	if !a.deps.Domains().Storage().FileExists(archivePath) {
 		return nil, fmt.Errorf("archive for bookmark %d doesn't exist", bookmark.ID)
 	}
 
-	archiveFile, err := a.deps.Domains.Storage.FS().Open(archivePath)
+	archiveFile, err := a.deps.Domains().Storage().FS().Open(archivePath)
 	if err != nil {
 		return nil, fmt.Errorf("error opening pdf archive: %w", err)
 	}

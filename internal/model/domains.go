@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/go-shiori/warc"
 	"github.com/spf13/afero"
 )
 
@@ -42,6 +43,7 @@ type ArchiverDomain interface {
 	GenerateBookmarkEbook(book EbookProcessRequest) error
 	ProcessBookmarkArchive(*ArchiverRequest) (*BookmarkDTO, error)
 	GetBookmarkArchiveFile(book *BookmarkDTO, archivePath string) (*ArchiveFile, error)
+	GetBookmarkArchive(book *BookmarkDTO) (*warc.Archive, error)
 }
 
 type StorageDomain interface {

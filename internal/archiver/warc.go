@@ -27,7 +27,7 @@ func (a *WARCArchiver) Matches(archiverReq *model.ArchiverRequest) bool {
 
 func (a *WARCArchiver) Archive(archiverReq *model.ArchiverRequest) (*model.BookmarkDTO, error) {
 	processRequest := core.ProcessRequest{
-		DataDir:     a.deps.Config.Storage.DataDir,
+		DataDir:     a.deps.Config().Storage.DataDir,
 		Bookmark:    archiverReq.Bookmark,
 		Content:     bytes.NewReader(archiverReq.Content),
 		ContentType: archiverReq.ContentType,
@@ -45,11 +45,11 @@ func (a *WARCArchiver) Archive(archiverReq *model.ArchiverRequest) (*model.Bookm
 func (a *WARCArchiver) GetArchiveFile(bookmark model.BookmarkDTO, resourcePath string) (*model.ArchiveFile, error) {
 	archivePath := model.GetArchivePath(&bookmark)
 
-	if !a.deps.Domains.Storage.FileExists(archivePath) {
+	if !a.deps.Domains().Storage().FileExists(archivePath) {
 		return nil, fmt.Errorf("archive for bookmark %d doesn't exist", bookmark.ID)
 	}
 
-	warcFile, err := warc.Open(filepath.Join(a.deps.Config.Storage.DataDir, archivePath))
+	warcFile, err := warc.Open(filepath.Join(a.deps.Config().Storage.DataDir, archivePath))
 	if err != nil {
 		return nil, fmt.Errorf("error opening warc file: %w", err)
 	}

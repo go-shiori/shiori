@@ -55,6 +55,35 @@ func (d *ArchiverDomain) GetBookmarkArchive(book *model.BookmarkDTO) (*warc.Arch
 	return warc.Open(filepath.Join(d.deps.Config().Storage.DataDir, archivePath))
 }
 
+// GenerateBookmarkEbook implements the interface method
+func (d *ArchiverDomain) GenerateBookmarkEbook(request model.EbookProcessRequest) error {
+	// For now, just return nil - this can be implemented later
+	return nil
+}
+
+// ProcessBookmarkArchive implements the interface method
+func (d *ArchiverDomain) ProcessBookmarkArchive(archiverReq *model.ArchiverRequest) (*model.BookmarkDTO, error) {
+	// Use the archiver system to process the request
+	for _, archiver := range d.archivers {
+		if archiver.Matches(archiverReq) {
+			return archiver.Archive(archiverReq)
+		}
+	}
+	return nil, fmt.Errorf("no suitable archiver found for request")
+}
+
+// GetBookmarkArchiveFile implements the interface method
+func (d *ArchiverDomain) GetBookmarkArchiveFile(book *model.BookmarkDTO, resourcePath string) (*model.ArchiveFile, error) {
+	// Try to find an appropriate archiver for this bookmark
+	for _, archiver := range d.archivers {
+		// For now, try all archivers - this could be improved with better detection
+		if archiveFile, err := archiver.GetArchiveFile(*book, resourcePath); err == nil {
+			return archiveFile, nil
+		}
+	}
+	return nil, fmt.Errorf("no archive file found for bookmark %d at path %s", book.ID, resourcePath)
+}
+
 func NewArchiverDomain(deps *dependencies.Dependencies) *ArchiverDomain {
 	archivers := map[string]model.Archiver{
 		model.ArchiverPDF:  archiver.NewPDFArchiver(deps),

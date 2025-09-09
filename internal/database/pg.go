@@ -84,7 +84,7 @@ type PGDatabase struct {
 }
 
 func postgresDatabaseFromDB(db *sqlx.DB) *PGDatabase {
-	return &PGDatabase{dbbase: dbbase{db}}
+	return &PGDatabase{dbbase: NewDBBase(db, db, sqlbuilder.PostgreSQL)}
 }
 
 // OpenPGDatabase creates and opens connection to a PostgreSQL Database.

@@ -80,12 +80,8 @@ func (h *Handler) ApiInsertViaExtension(w http.ResponseWriter, r *http.Request, 
 	// Time to process it.
 	var result *model.BookmarkDTO
 	var errArchiver error
-	if request.HTML != "" {
-		archiverReq := model.NewArchiverRequest(book, "text/html; charset=UTF-8", []byte(request.HTML))
-		result, errArchiver = h.dependencies.Domains.Archiver.ProcessBookmarkArchive(archiverReq)
-	} else {
-		result, errArchiver = h.dependencies.Domains.Archiver.GenerateBookmarkArchive(book)
-	}
+	// Always use GenerateBookmarkArchive since ProcessBookmarkArchive was removed
+	result, errArchiver = h.dependencies.Domains().Archiver().GenerateBookmarkArchive(book)
 	if errArchiver != nil {
 		log.Printf("error downloading bookmark cache: %s", errArchiver)
 		w.WriteHeader(http.StatusInternalServerError)

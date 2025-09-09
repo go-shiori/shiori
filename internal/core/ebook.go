@@ -23,7 +23,8 @@ func GenerateEbook(deps model.Dependencies, req ProcessRequest) (book model.Book
 		return book, errors.New("bookmark ID is not valid")
 	}
 
-	if deps.Domains.Storage.FileExists(dstPath) && req.SkipExisting {
+	if deps.Domains().Storage().FileExists(dstPath) {
+		book.HasEbook = true
 		return book, nil
 	}
 

@@ -82,7 +82,7 @@ type MySQLDatabase struct {
 }
 
 func mysqlDatabaseFromDB(db *sqlx.DB) *MySQLDatabase {
-	return &MySQLDatabase{dbbase: dbbase{db}}
+	return &MySQLDatabase{dbbase: NewDBBase(db, db, sqlbuilder.MySQL)}
 }
 
 // OpenMySQLDatabase creates and opens connection to a MySQL Database.
