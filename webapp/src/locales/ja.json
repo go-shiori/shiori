@@ -1,0 +1,65 @@
+{
+  "common": {
+    "loading": "読み込み中...",
+    "save": "保存",
+    "cancel": "キャンセル",
+    "delete": "削除",
+    "edit": "編集",
+    "search": "検索",
+    "add": "追加",
+    "remove": "削除",
+    "close": "閉じる"
+  },
+  "auth": {
+    "login": "ログイン",
+    "logout": "ログアウト",
+    "username": "ユーザー名",
+    "password": "パスワード",
+    "remember_me": "ログイン状態を保持する",
+    "login_failed": "ログインに失敗しました。認証情報を確認してください。"
+  },
+  "navigation": {
+    "home": "ホーム",
+    "archive": "アーカイブ",
+    "tags": "タグ",
+    "folders": "フォルダ",
+    "settings": "設定",
+    "about": "概要"
+  },
+  "bookmarks": {
+    "title": "ブックマーク",
+    "add_bookmark": "ブックマークを追加",
+    "edit_bookmark": "ブックマークを編集",
+    "delete_bookmark": "ブックマークを削除",
+    "url": "URL",
+    "title": "タイトル",
+    "excerpt": "抜粋",
+    "tags": "タグ",
+    "add_tag": "タグを追加",
+    "no_bookmarks": "ブックマークが見つかりません"
+  },
+  "tags": {
+    "title": "タグ",
+    "add_tag": "タグを追加",
+    "edit_tag": "タグを編集",
+    "delete_tag": "タグを削除",
+    "name": "名前",
+    "no_tags": "タグが見つかりません"
+  },
+  "folders": {
+    "title": "フォルダ",
+    "add_folder": "フォルダを追加",
+    "edit_folder": "フォルダを編集",
+    "delete_folder": "フォルダを削除",
+    "name": "名前",
+    "no_folders": "フォルダが見つかりません"
+  },
+  "settings": {
+    "title": "設定",
+    "language": "言語",
+    "theme": "テーマ",
+    "light": "ライト",
+    "dark": "ダーク",
+    "system": "システム"
+  }
+}

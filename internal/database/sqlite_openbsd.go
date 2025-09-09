@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/huandu/go-sqlbuilder"
 	"github.com/jmoiron/sqlx"
 
 	_ "git.sr.ht/~emersion/go-sqlite3-fts5"
@@ -27,8 +28,11 @@ func OpenSQLiteDatabase(ctx context.Context, databasePath string) (sqliteDB *SQL
 	}
 
 	sqliteDB = &SQLiteDatabase{
-		writer: &dbbase{rwDB},
-		reader: &dbbase{rDB},
+		dbbase: dbbase{
+			writer: rwDB,
+			reader: rDB,
+			flavor: sqlbuilder.SQLite,
+		},
 	}
 
 	if err := sqliteDB.Init(ctx); err != nil {

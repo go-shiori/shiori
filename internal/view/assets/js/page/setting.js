@@ -100,6 +100,7 @@ var template = `
 
 import customDialog from "../component/dialog.js";
 import basePage from "./base.js";
+import { apiRequest } from "../utils/api.js";
 
 export default {
 	template: template,
@@ -151,7 +152,7 @@ export default {
 					return response.json();
 				})
 				.then((responseData) => {
-					const responseString = JSON.stringify(responseData.message);
+					const responseString = JSON.stringify(responseData);
 					localStorage.setItem("shiori-account", responseString);
 				})
 				.catch((err) => {
@@ -160,52 +161,32 @@ export default {
 					});
 				});
 		},
-		loadAccounts() {
+		async loadAccounts() {
 			if (this.loading) return;
 
 			this.loading = true;
-			fetch(new URL("api/v1/accounts", document.baseURI), {
-				headers: {
-					"Content-Type": "application/json",
-					Authorization: "Bearer " + localStorage.getItem("shiori-token"),
-				},
-			})
-				.then((response) => {
-					if (!response.ok) throw response;
-					return response.json();
-				})
-				.then((json) => {
-					this.loading = false;
-					this.accounts = json.message;
-				})
-				.catch((err) => {
-					this.loading = false;
-					this.getErrorMessage(err).then((msg) => {
-						this.showErrorDialog(msg);
-					});
-				});
+			try {
+				const json = await apiRequest(
+					new URL("api/v1/accounts", document.baseURI),
+				);
+				this.loading = false;
+				this.accounts = json;
+			} catch (err) {
+				this.loading = false;
+				this.showErrorDialog(err.message);
+			}
 		},
-		loadSystemInfo() {
+		async loadSystemInfo() {
 			if (this.system.version !== undefined) return;
 
-			fetch(new URL("api/v1/system/info", document.baseURI), {
-				headers: {
-					"Content-Type": "application/json",
-					Authorization: "Bearer " + localStorage.getItem("shiori-token"),
-				},
-			})
-				.then((response) => {
-					if (!response.ok) throw response;
-					return response.json();
-				})
-				.then((json) => {
-					this.system = json.message;
-				})
-				.catch((err) => {
-					this.getErrorMessage(err).then((msg) => {
-						this.showErrorDialog(msg);
-					});
-				});
+			try {
+				const json = await apiRequest(
+					new URL("api/v1/system/info", document.baseURI),
+				);
+				this.system = json;
+			} catch (err) {
+				this.showErrorDialog(err.message);
+			}
 		},
 		showDialogNewAccount() {
 			this.showDialog({
@@ -238,19 +219,8 @@ export default {
 				],
 				mainText: "OK",
 				secondText: "Cancel",
-				mainClick: (data) => {
+				mainClick: async (data) => {
 					if (data.username === "") {
-						this.showErrorDialog("Username must not empty");
-						return;
-					}
-
-					if (data.password === "") {
-						this.showErrorDialog("Password must not empty");
-						return;
-					}
-
-					if (data.password !== data.repeat_password) {
-						this.showErrorDialog("Password does not match");
 						return;
 					}
 
@@ -261,44 +231,37 @@ export default {
 					};
 
 					this.dialog.loading = true;
-					fetch(new URL("api/v1/accounts", document.baseURI), {
-						method: "post",
-						body: JSON.stringify(request),
-						headers: {
-							"Content-Type": "application/json",
-							Authorization: "Bearer " + localStorage.getItem("shiori-token"),
-						},
-					})
-						.then((response) => {
-							if (!response.ok) throw response;
-							return response.json();
-						})
-						.then((json) => {
-							this.dialog.loading = false;
-							this.dialog.visible = false;
+					try {
+						const json = await apiRequest(
+							new URL("api/v1/accounts", document.baseURI),
+							{
+								method: "post",
+								body: JSON.stringify(request),
+							},
+						);
 
-							this.accounts.push(json.message);
-							this.accounts.sort((a, b) => {
-								var nameA = a.username.toLowerCase(),
-									nameB = b.username.toLowerCase();
+						this.dialog.loading = false;
+						this.dialog.visible = false;
 
-								if (nameA < nameB) {
-									return -1;
-								}
+						this.accounts.push(json);
+						this.accounts.sort((a, b) => {
+							var nameA = a.username.toLowerCase(),
+								nameB = b.username.toLowerCase();
 
-								if (nameA > nameB) {
-									return 1;
-								}
+							if (nameA < nameB) {
+								return -1;
+							}
 
-								return 0;
-							});
-						})
-						.catch((err) => {
-							this.dialog.loading = false;
-							this.getErrorMessage(err).then((msg) => {
-								this.showErrorDialog(msg);
-							});
+							if (nameA > nameB) {
+								return 1;
+							}
+
+							return 0;
 						});
+					} catch (err) {
+						this.dialog.loading = false;
+						this.showErrorDialog(err.message);
+					}
 				},
 			});
 		},
@@ -339,7 +302,7 @@ export default {
 				fields: fields,
 				mainText: "OK",
 				secondText: "Cancel",
-				mainClick: (data) => {
+				mainClick: async (data) => {
 					if (requiresOldPassword) {
 						if (data.old_password === "") {
 							this.showErrorDialog("You must provide the current password.");
@@ -370,34 +333,24 @@ export default {
 					}
 
 					this.dialog.loading = true;
-					fetch(new URL(url, document.baseURI), {
-						method: "PATCH",
-						body: JSON.stringify(request),
-						headers: {
-							"Content-Type": "application/json",
-							Authorization: "Bearer " + localStorage.getItem("shiori-token"),
-						},
-					})
-						.then((response) => {
-							if (!response.ok) throw response;
-							return response;
-						})
-						.then(() => {
-							this.showDialog({
-								title: "Password Changed",
-								content: "Password has been changed.",
-								mainText: "OK",
-								mainClick: () => {
-									this.dialog.visible = false;
-								},
-							});
-						})
-						.catch((err) => {
-							this.dialog.loading = false;
-							this.getErrorMessage(err).then((msg) => {
-								this.showErrorDialog(msg);
-							});
+					try {
+						await apiRequest(new URL(url, document.baseURI), {
+							method: "PATCH",
+							body: JSON.stringify(request),
 						});
+
+						this.showDialog({
+							title: "Password Changed",
+							content: "Password has been changed.",
+							mainText: "OK",
+							mainClick: () => {
+								this.dialog.visible = false;
+							},
+						});
+					} catch (err) {
+						this.dialog.loading = false;
+						this.showErrorDialog(err.message);
+					}
 				},
 			});
 		},
@@ -407,30 +360,20 @@ export default {
 				content: `Delete account "${account.username}" ?`,
 				mainText: "Yes",
 				secondText: "No",
-				mainClick: () => {
+				mainClick: async () => {
 					this.dialog.loading = true;
-					fetch(`api/v1/accounts/${account.id}`, {
-						method: "DELETE",
-						headers: {
-							"Content-Type": "application/json",
-							Authorization: "Bearer " + localStorage.getItem("shiori-token"),
-						},
-					})
-						.then((response) => {
-							if (!response.ok) throw response;
-							return response;
-						})
-						.then(() => {
-							this.dialog.loading = false;
-							this.dialog.visible = false;
-							this.accounts.splice(idx, 1);
-						})
-						.catch((err) => {
-							this.dialog.loading = false;
-							this.getErrorMessage(err).then((msg) => {
-								this.showErrorDialog(msg);
-							});
+					try {
+						await apiRequest(`api/v1/accounts/${account.id}`, {
+							method: "DELETE",
 						});
+
+						this.dialog.loading = false;
+						this.dialog.visible = false;
+						this.accounts.splice(idx, 1);
+					} catch (err) {
+						this.dialog.loading = false;
+						this.showErrorDialog(err.message);
+					}
 				},
 			});
 		},

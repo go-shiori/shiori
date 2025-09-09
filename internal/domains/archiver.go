@@ -3,12 +3,13 @@ package domains
 import (
 	"context"
 	"fmt"
-	"io"
+	"path/filepath"
 
 	"github.com/go-shiori/shiori/internal/archiver"
 	"github.com/go-shiori/shiori/internal/core"
 	"github.com/go-shiori/shiori/internal/dependencies"
 	"github.com/go-shiori/shiori/internal/model"
+	"github.com/go-shiori/warc"
 )
 
 type ArchiverDomain struct {
@@ -22,20 +23,20 @@ func (d *ArchiverDomain) GenerateBookmarkArchive(book model.BookmarkDTO) (*model
 		return nil, fmt.Errorf("error downloading url: %s", err)
 	}
 
-	contentBytes, err := io.ReadAll(content)
-	if err != nil {
-		return nil, fmt.Errorf("error reading content: %s", err)
+	processRequest := core.ProcessRequest{
+		DataDir:     d.deps.Config().Storage.DataDir,
+		Bookmark:    book,
+		Content:     content,
+		ContentType: contentType,
 	}
 	content.Close()
 
-	archiverReq := model.NewArchiverRequest(book, contentType, contentBytes)
-
-	processedBookmark, err := d.ProcessBookmarkArchive(archiverReq)
+	processedBookmark, _, err := core.ProcessBookmark(d.deps, processRequest)
 	if err != nil {
 		return nil, fmt.Errorf("error processing bookmark archive: %w", err)
 	}
 
-	saved, err := d.deps.Database.SaveBookmarks(context.Background(), false, *processedBookmark)
+	saved, err := d.deps.Database().SaveBookmarks(context.Background(), false, processedBookmark)
 	if err != nil {
 		return nil, fmt.Errorf("error saving bookmark: %w", err)
 	}
@@ -43,50 +44,15 @@ func (d *ArchiverDomain) GenerateBookmarkArchive(book model.BookmarkDTO) (*model
 	return &saved[0], nil
 }
 
-func (d *ArchiverDomain) GenerateBookmarkEbook(request model.EbookProcessRequest) error {
-	_, err := core.GenerateEbook(d.deps, request)
-	if err != nil {
-		return fmt.Errorf("error generating ebook: %s", err)
+func (d *ArchiverDomain) GetBookmarkArchive(book *model.BookmarkDTO) (*warc.Archive, error) {
+	archivePath := model.GetArchivePath(book)
+
+	if !d.deps.Domains().Storage().FileExists(archivePath) {
+		return nil, fmt.Errorf("archive for bookmark %d doesn't exist", book.ID)
 	}
 
-	return nil
-}
-
-func (d *ArchiverDomain) ProcessBookmarkArchive(archiverRequest *model.ArchiverRequest) (*model.BookmarkDTO, error) {
-	for _, archiver := range d.archivers {
-		if archiver.Matches(archiverRequest) {
-			book, err := archiver.Archive(archiverRequest)
-			if err != nil {
-				d.deps.Log.Errorf("Error archiving bookmark with archviver: %s", err)
-				continue
-			}
-			return book, nil
-		}
-	}
-
-	return nil, fmt.Errorf("no archiver found for request: %s", archiverRequest.String())
-}
-
-func (d *ArchiverDomain) GetBookmarkArchiveFile(book *model.BookmarkDTO, resourcePath string) (*model.ArchiveFile, error) {
-	archiver, err := d.GetArchiver(book.Archiver)
-	if err != nil {
-		return nil, err
-	}
-
-	archiveFile, err := archiver.GetArchiveFile(*book, resourcePath)
-	if err != nil {
-		return nil, fmt.Errorf("error getting archive file: %w", err)
-	}
-
-	return archiveFile, nil
-}
-
-func (d *ArchiverDomain) GetArchiver(name string) (model.Archiver, error) {
-	archiver, ok := d.archivers[name]
-	if !ok {
-		return nil, fmt.Errorf("archiver %s not found", name)
-	}
-	return archiver, nil
+	// FIXME: This only works in local filesystem
+	return warc.Open(filepath.Join(d.deps.Config().Storage.DataDir, archivePath))
 }
 
 func NewArchiverDomain(deps *dependencies.Dependencies) *ArchiverDomain {

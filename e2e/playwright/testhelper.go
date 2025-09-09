@@ -5,6 +5,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -136,7 +137,7 @@ func (pr *PlaywrightRequire) True(t *testing.T, value bool, msgAndArgs ...interf
 	pr.Assert(t, func() error {
 		var err error
 		if !value {
-			err = fmt.Errorf("Expected value to be true but got false in test '%s'", t.Name())
+			err = fmt.Errorf("expected value to be true but got false in test '%s'", t.Name())
 		}
 		return err
 	}, msgAndArgs...)
@@ -148,7 +149,7 @@ func (pr *PlaywrightRequire) False(t *testing.T, value bool, msgAndArgs ...inter
 	pr.Assert(t, func() error {
 		var err error
 		if value {
-			err = fmt.Errorf("Expected value to be false but got true in test '%s'", t.Name())
+			err = fmt.Errorf("expected value to be false but got true in test '%s'", t.Name())
 		}
 		return err
 	}, msgAndArgs...)
@@ -160,7 +161,7 @@ func (pr *PlaywrightRequire) Equal(t *testing.T, expected, actual interface{}, m
 	pr.Assert(t, func() error {
 		var err error
 		if expected != actual {
-			err = fmt.Errorf("Expected values to be equal in test '%s':\nexpected: %v\nactual: %v", t.Name(), expected, actual)
+			err = fmt.Errorf("expected values to be equal in test '%s':\nexpected: %v\nactual: %v", t.Name(), expected, actual)
 		}
 		return err
 	}, msgAndArgs...)
@@ -172,7 +173,7 @@ func (pr *PlaywrightRequire) NoError(t *testing.T, err error, msgAndArgs ...inte
 	pr.Assert(t, func() error {
 		var assertErr error
 		if err != nil {
-			assertErr = fmt.Errorf("Expected no error but got error in test '%s': %v", t.Name(), err)
+			assertErr = fmt.Errorf("expected no error but got error in test '%s': %v", t.Name(), err)
 		}
 		return assertErr
 	}, msgAndArgs...)
@@ -184,11 +185,20 @@ func (pr *PlaywrightRequire) Error(t *testing.T, err error, msgAndArgs ...interf
 	pr.Assert(t, func() error {
 		var assertErr error
 		if err == nil {
-			assertErr = fmt.Errorf("Expected error but got none in test '%s'", t.Name())
+			assertErr = fmt.Errorf("expected error but got none in test '%s'", t.Name())
 		}
 		return assertErr
 	}, msgAndArgs...)
 	pr.Assertions.Error(err, msgAndArgs...)
+}
+
+func (pr *PlaywrightRequire) Contains(t *testing.T, text, expected string, msgAndArgs ...interface{}) {
+	pr.Assert(t, func() error {
+		if !strings.Contains(text, expected) {
+			return fmt.Errorf("expected text to contain '%s' but got '%s'", expected, text)
+		}
+		return nil
+	}, msgAndArgs...)
 }
 
 // Close cleans up resources and generates the report

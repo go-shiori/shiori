@@ -1,6 +1,7 @@
 package webserver
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -13,27 +14,33 @@ import (
 	"strings"
 
 	"github.com/go-shiori/shiori/internal/core"
-	"github.com/go-shiori/shiori/internal/database"
-	"github.com/go-shiori/shiori/internal/dependencies"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/julienschmidt/httprouter"
 )
 
-func downloadBookmarkContent(deps *dependencies.Dependencies, book *model.BookmarkDTO, keepTitle, keepExcerpt bool) (*model.BookmarkDTO, error) {
-	result, err := deps.Domains.Archiver.GenerateBookmarkArchive(*book)
+func downloadBookmarkContent(deps model.Dependencies, book *model.BookmarkDTO, dataDir string, _ *http.Request, keepTitle, keepExcerpt bool) (*model.BookmarkDTO, error) {
+	content, contentType, err := core.DownloadBookmark(book.URL)
 	if err != nil {
-		return nil, fmt.Errorf("error archiving url: %s", err)
+		return nil, fmt.Errorf("error downloading url: %s", err)
 	}
 
-	if keepTitle {
-		result.Title = book.Title
+	processRequest := core.ProcessRequest{
+		DataDir:     dataDir,
+		Bookmark:    *book,
+		Content:     content,
+		ContentType: contentType,
+		KeepTitle:   keepTitle,
+		KeepExcerpt: keepExcerpt,
 	}
 
-	if keepExcerpt {
-		result.Excerpt = book.Excerpt
+	result, isFatalErr, err := core.ProcessBookmark(deps, processRequest)
+	content.Close()
+
+	if err != nil && isFatalErr {
+		return nil, fmt.Errorf("failed to process: %v", err)
 	}
 
-	return result, err
+	return &result, err
 }
 
 // ApiGetBookmarks is handler for GET /api/bookmarks
@@ -66,13 +73,13 @@ func (h *Handler) ApiGetBookmarks(w http.ResponseWriter, r *http.Request, ps htt
 	}
 
 	// Prepare filter for database
-	searchOptions := database.GetBookmarksOptions{
+	searchOptions := model.DBGetBookmarksOptions{
 		Tags:         tags,
 		ExcludedTags: excludedTags,
 		Keyword:      keyword,
 		Limit:        30,
 		Offset:       (page - 1) * 30,
-		OrderMethod:  database.ByLastAdded,
+		OrderMethod:  model.ByLastAdded,
 	}
 
 	// Calculate max page
@@ -124,7 +131,9 @@ func (h *Handler) ApiGetTags(w http.ResponseWriter, r *http.Request, ps httprout
 	checkError(err)
 
 	// Fetch all tags
-	tags, err := h.DB.GetTags(ctx)
+	tags, err := h.DB.GetTags(ctx, model.DBListTagsOptions{
+		WithBookmarkCount: true,
+	})
 	checkError(err)
 
 	w.Header().Set("Content-Type", "application/json")
@@ -191,10 +200,14 @@ func (h *Handler) ApiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 		URL:           payload.URL,
 		Title:         payload.Title,
 		Excerpt:       payload.Excerpt,
-		Tags:          payload.Tags,
+		Tags:          make([]model.TagDTO, len(payload.Tags)),
 		Public:        payload.MakePublic,
 		CreateArchive: payload.CreateArchive,
 		CreateEbook:   payload.CreateEbook,
+	}
+
+	for i, tag := range payload.Tags {
+		book.Tags[i] = tag.ToDTO()
 	}
 
 	// Clean up bookmark URL
@@ -219,25 +232,29 @@ func (h *Handler) ApiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 
 	if payload.Async {
 		go func() {
-			book, err = downloadBookmarkContent(h.dependencies, book, userHasDefinedTitle, book.Excerpt != "")
+			bookmark, err := downloadBookmarkContent(h.dependencies, book, h.DataDir, r, userHasDefinedTitle, book.Excerpt != "")
 			if err != nil {
 				log.Printf("error downloading boorkmark: %s", err)
 				return
 			}
-
+			if _, err := h.DB.SaveBookmarks(context.Background(), false, *bookmark); err != nil {
+				log.Printf("failed to save bookmark: %s", err)
+			}
 		}()
 	} else {
 		// Workaround. Download content after saving the bookmark so we have the proper database
 		// id already set in the object regardless of the database engine.
-		book, err = downloadBookmarkContent(h.dependencies, book, userHasDefinedTitle, book.Excerpt != "")
+		book, err = downloadBookmarkContent(h.dependencies, book, h.DataDir, r, userHasDefinedTitle, book.Excerpt != "")
 		if err != nil {
 			log.Printf("error downloading boorkmark: %s", err)
+		} else if _, err := h.DB.SaveBookmarks(ctx, false, *book); err != nil {
+			log.Printf("failed to save bookmark: %s", err)
 		}
 	}
 
 	// Return the new bookmark
 	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(book)
+	err = json.NewEncoder(w).Encode(results[0])
 	checkError(err)
 }
 
@@ -292,7 +309,7 @@ func (h *Handler) ApiUpdateBookmark(w http.ResponseWriter, r *http.Request, ps h
 	}
 
 	// Get existing bookmark from database
-	filter := database.GetBookmarksOptions{
+	filter := model.DBGetBookmarksOptions{
 		IDs:         []int{request.ID},
 		WithContent: true,
 	}
@@ -376,7 +393,7 @@ func (h *Handler) ApiUpdateBookmarkTags(w http.ResponseWriter, r *http.Request, 
 	}
 
 	// Get existing bookmark from database
-	filter := database.GetBookmarksOptions{
+	filter := model.DBGetBookmarksOptions{
 		IDs:         request.IDs,
 		WithContent: true,
 	}
@@ -398,7 +415,7 @@ func (h *Handler) ApiUpdateBookmarkTags(w http.ResponseWriter, r *http.Request, 
 			}
 
 			if newTag.ID == 0 {
-				book.Tags = append(book.Tags, newTag)
+				book.Tags = append(book.Tags, newTag.ToDTO())
 			}
 		}
 

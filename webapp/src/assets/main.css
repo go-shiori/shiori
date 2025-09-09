@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+/* Custom styles */
+:root {
+  --primary-color: #f44336;
+  --secondary-color: #ffffff;
+  --text-color: #333333;
+  --background-color: #f5f5f5;
+  --card-background: #ffffff;
+  --border-color: #e0e0e0;
+}
+
+/* Dark mode variables */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --primary-color: #f44336;
+    --secondary-color: #1f1f1f;
+    --text-color: #f5f5f5;
+    --background-color: #121212;
+    --card-background: #1e1e1e;
+    --border-color: #333333;
+  }
+}
+
+/* Base styles for full height layout */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  color: var(--text-color);
+  background-color: var(--background-color);
+  min-height: 100vh;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}

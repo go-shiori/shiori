@@ -16,7 +16,7 @@ type AccountsDomain struct {
 }
 
 func (d *AccountsDomain) ListAccounts(ctx context.Context) ([]model.AccountDTO, error) {
-	accounts, err := d.deps.Database.ListAccounts(ctx, database.ListAccountsOptions{})
+	accounts, err := d.deps.Database().ListAccounts(ctx, model.DBListAccountsOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("error getting accounts: %v", err)
 	}
@@ -27,6 +27,24 @@ func (d *AccountsDomain) ListAccounts(ctx context.Context) ([]model.AccountDTO, 
 	}
 
 	return accountDTOs, nil
+}
+
+func (d *AccountsDomain) GetAccountByUsername(ctx context.Context, username string) (*model.AccountDTO, error) {
+	if username == "" {
+		return nil, errors.New("empty username")
+	}
+
+	accounts, err := d.deps.Database().ListAccounts(ctx, model.DBListAccountsOptions{
+		Username: username,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("error getting accounts: %v", err)
+	}
+	if len(accounts) != 1 {
+		return nil, fmt.Errorf("got none or more than one account by username: %s", username)
+	}
+
+	return model.Ptr(accounts[0].ToDTO()), nil
 }
 
 func (d *AccountsDomain) CreateAccount(ctx context.Context, account model.AccountDTO) (*model.AccountDTO, error) {
@@ -50,7 +68,7 @@ func (d *AccountsDomain) CreateAccount(ctx context.Context, account model.Accoun
 		acc.Config = *account.Config
 	}
 
-	storedAccount, err := d.deps.Database.CreateAccount(ctx, acc)
+	storedAccount, err := d.deps.Database().CreateAccount(ctx, acc)
 	if errors.Is(err, database.ErrAlreadyExists) {
 		return nil, model.ErrAlreadyExists
 	}
@@ -65,7 +83,7 @@ func (d *AccountsDomain) CreateAccount(ctx context.Context, account model.Accoun
 }
 
 func (d *AccountsDomain) DeleteAccount(ctx context.Context, id int) error {
-	err := d.deps.Database.DeleteAccount(ctx, model.DBID(id))
+	err := d.deps.Database().DeleteAccount(ctx, model.DBID(id))
 	if errors.Is(err, database.ErrNotFound) {
 		return model.ErrNotFound
 	}
@@ -83,7 +101,7 @@ func (d *AccountsDomain) UpdateAccount(ctx context.Context, account model.Accoun
 	}
 
 	// Get account from database
-	storedAccount, _, err := d.deps.Database.GetAccount(ctx, account.ID)
+	storedAccount, _, err := d.deps.Database().GetAccount(ctx, account.ID)
 	if errors.Is(err, database.ErrNotFound) {
 		return nil, model.ErrNotFound
 	}
@@ -113,7 +131,7 @@ func (d *AccountsDomain) UpdateAccount(ctx context.Context, account model.Accoun
 	}
 
 	// Save updated account
-	err = d.deps.Database.UpdateAccount(ctx, *storedAccount)
+	err = d.deps.Database().UpdateAccount(ctx, *storedAccount)
 	if errors.Is(err, database.ErrAlreadyExists) {
 		return nil, model.ErrAlreadyExists
 	}
@@ -123,7 +141,7 @@ func (d *AccountsDomain) UpdateAccount(ctx context.Context, account model.Accoun
 	}
 
 	// Get updated account from database
-	updatedAccount, _, err := d.deps.Database.GetAccount(ctx, account.ID)
+	updatedAccount, _, err := d.deps.Database().GetAccount(ctx, account.ID)
 	if err != nil {
 		return nil, fmt.Errorf("error getting updated account: %w", err)
 	}

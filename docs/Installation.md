@@ -85,10 +85,6 @@ spec:
       labels:
         app: shiori
     spec:
-      securityContext:
-        runAsUser: 1000
-        runAsGroup: 1000
-        fsGroup: 1000
       volumes:
       - name: app
         hostPath:
@@ -99,25 +95,23 @@ spec:
       containers:
       - name: shiori
         image: ghcr.io/go-shiori/shiori:latest
-        command: ["/usr/bin/shiori", "serve", "--webroot", "/shiori"]
+        command: ["/usr/bin/shiori", "serve"]
         imagePullPolicy: Always
         ports:
         - containerPort: 8080
+        env:
+        - name: SHIORI_DIR
+          value: /srv/shiori
         volumeMounts:
         - mountPath: /srv/shiori
           name: app
         - mountPath: /tmp
           name: tmp
-        env:
-        - name: SHIORI_DIR
-          value: /srv/shiori
-        - name: HTTP_ROOT_PATH
-          value: "/shiori"
 ```
 
 Here we are using a local directory to persist Shiori's data. You will need
 to replace `/path/to/data/dir` with the path to the directory where you want
-to keep your data. We are also mounting an `EmptyDir` volume for `/tmp` so 
+to keep your data. We are also mounting an `EmptyDir` volume for `/tmp` so
 we can successfully generate ebooks.
 
 Since we haven't configured a database in particular,
@@ -126,11 +120,28 @@ such an app, but that's up to you. If you decide to use SQLite, I strongly
 suggest to keep `replicas` set to 1 since SQLite usually allows at most
 one writer to proceed concurrently.
 
-Also, not that we're serving the app on the `/shiori` suffix. This is
-only necessary if you want to access Shiori with an URL that looks like:
-`http://your_domain_name/shiori`. This is also why we override the container's
-command: to pass the webroot. If you want to use such suffix, you'll probably
-need to deploy an ingress as well:
+To route requests to your deployment, you will need a `Service` that gets used
+by an `Ingress` to handle routing. If you wand to add a path suffix or use a
+sub domain, you can do so through the ingress config. We only show the bare
+minimum config to get you started.
+
+`service.yaml`
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: shiori
+spec:
+  type: LoadBalancer
+  selector:
+    app: shiori
+  ports:
+    - port: 8080
+      targetPort: 8080
+```
+
+This is using a `LoadBalancer` type which gives the most flexibility.
 
 `ingress.yaml`:
 
@@ -144,7 +155,7 @@ spec:
   rules:
   - http:
       paths:
-      - path: /shiori
+      - path: /
         pathType: Prefix
         backend:
           service:
@@ -153,35 +164,20 @@ spec:
               number: 8080
 ```
 
-Finally, here is the service's config:
-
-`service.yaml`
-
-```yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: shiori
-spec:
-  type: NodePort
-  selector:
-    app: shiori
-  ports:
-  - protocol: TCP
-    port: 8080
-    targetPort: 8080
-    nodePort: 32654
-```
-
-I'm using the NodePort type for the service so I can access it easily on
-my local network, but it's not necessary if you setup the ingress.
-
 ## Managed Hosting
 
 If you don't manage your own server, the below providers will host Shiori for you. None are endorsed by or affiliated with the team. Support is provided by the providers.
 
+### CloudBreak
+
+[CloudBreak](https://cloudbreak.app/products/shiori?utm_medium=referral&utm_source=shiori-docs&rby=shiori-docs) offers Shiori hosting from $12/year ($1/month).  Get $3 off with coupon `SHIORI`.
+
+<a href="https://cloudbreak.app/products/shiori?utm_medium=referral&utm_source=shiori-docs&rby=shiori-docs">
+  <img src="https://cloudbreak.app/external/subscribe-button.png" alt="Subscribe on CloudBreak" width="149" height="64">
+</a>
+
 ### PikaPods
 
-[PikaPods](https://www.pikapods.com/) offers Shiori hosting from $1/month with $5 free welcome credit. EU and US regions available. Updates are applied weekly and user data backed up daily.
+[PikaPods](https://www.pikapods.com/) offers Shiori hosting from $1.20/month with $5 free welcome credit. EU and US regions available. Updates are applied weekly and user data backed up daily.
 
 [![Run on PikaPods](https://www.pikapods.com/static/run-button.svg)](https://www.pikapods.com/pods?run=shiori)

@@ -1,3 +1,5 @@
+import { apiRequest } from "../utils/api.js";
+
 export default {
 	props: {
 		activeAccount: {
@@ -53,20 +55,11 @@ export default {
 				},
 			};
 		},
-		showDialog(cfg) {
-			var base = this.defaultDialog();
-			base.visible = true;
-			if (cfg.loading) base.loading = cfg.loading;
-			if (cfg.title) base.title = cfg.title;
-			if (cfg.content) base.content = cfg.content;
-			if (cfg.fields) base.fields = cfg.fields;
-			if (cfg.showLabel) base.showLabel = cfg.showLabel;
-			if (cfg.mainText) base.mainText = cfg.mainText;
-			if (cfg.secondText) base.secondText = cfg.secondText;
-			if (cfg.mainClick) base.mainClick = cfg.mainClick;
-			if (cfg.secondClick) base.secondClick = cfg.secondClick;
-			if (cfg.escPressed) base.escPressed = cfg.escPressed;
-			this.dialog = base;
+		showDialog(opt) {
+			this.dialog = {
+				visible: true,
+				...opt,
+			};
 		},
 		async getErrorMessage(err) {
 			switch (err.constructor) {
@@ -78,7 +71,7 @@ export default {
 					// Handle new error messages
 					if (text[0] == "{") {
 						var json = JSON.parse(text);
-						return json.message;
+						return json.error;
 					}
 
 					return `${text} (${err.status})`;
@@ -119,29 +112,47 @@ export default {
 			}
 		},
 		showErrorDialog(msg) {
-			var sessionError = this.isSessionError(msg),
-				dialogContent = sessionError
-					? "Session has expired, please login again."
-					: msg;
-
 			this.showDialog({
-				visible: true,
 				title: "Error",
-				content: dialogContent,
+				content: msg,
 				mainText: "OK",
 				mainClick: () => {
 					this.dialog.visible = false;
-					if (sessionError) {
-						var loginUrl = new Url("login", document.baseURI);
-						loginUrl.query.dst = window.location.href;
-
-						document.cookie = `session-id=; Path=${
-							new URL(document.baseURI).pathname
-						}; Expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
-						location.href = loginUrl.toString();
-					}
+				},
+				escPressed: () => {
+					this.dialog.visible = false;
 				},
 			});
+		},
+		async saveSetting(key, value) {
+			try {
+				await apiRequest(new URL("api/v1/settings", document.baseURI), {
+					method: "PUT",
+					body: JSON.stringify({ [key]: value }),
+				});
+			} catch (err) {
+				this.showErrorDialog(err.message);
+			}
+		},
+		async logout() {
+			try {
+				await apiRequest(new URL("api/v1/auth/logout", document.baseURI), {
+					method: "POST",
+				});
+
+				// Clear session data
+				document.cookie = `token=; Path=${
+					new URL(document.baseURI).pathname
+				}; Expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
+
+				localStorage.removeItem("shiori-account");
+				localStorage.removeItem("shiori-token");
+
+				// Reload page
+				window.location.reload();
+			} catch (err) {
+				this.showErrorDialog(err.message);
+			}
 		},
 	},
 };

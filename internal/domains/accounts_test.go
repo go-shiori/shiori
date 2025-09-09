@@ -17,24 +17,48 @@ func TestAccountDomainsListAccounts(t *testing.T) {
 	_, deps := testutil.GetTestConfigurationAndDependencies(t, context.TODO(), logger)
 
 	t.Run("empty", func(t *testing.T) {
-		accounts, err := deps.Domains.Accounts.ListAccounts(context.Background())
+		accounts, err := deps.Domains().Accounts().ListAccounts(context.Background())
 		require.NoError(t, err)
 		require.Empty(t, accounts)
 	})
 
 	t.Run("some accounts", func(t *testing.T) {
 		for i := 0; i < 3; i++ {
-			_, err := deps.Domains.Accounts.CreateAccount(context.TODO(), model.AccountDTO{
+			_, err := deps.Domains().Accounts().CreateAccount(context.TODO(), model.AccountDTO{
 				Username: fmt.Sprintf("user%d", i),
 				Password: fmt.Sprintf("password%d", i),
 			})
 			require.NoError(t, err)
 		}
 
-		accounts, err := deps.Domains.Accounts.ListAccounts(context.Background())
+		accounts, err := deps.Domains().Accounts().ListAccounts(context.Background())
 		require.NoError(t, err)
 		require.Len(t, accounts, 3)
 		require.Equal(t, "", accounts[0].Password)
+	})
+}
+
+func TestAccountDomainsGetAccountByUsername(t *testing.T) {
+	logger := logrus.New()
+	_, deps := testutil.GetTestConfigurationAndDependencies(t, context.TODO(), logger)
+
+	t.Run("empty", func(t *testing.T) {
+		account, err := deps.Domains().Accounts().GetAccountByUsername(context.Background(), "")
+		require.Error(t, err)
+		require.Nil(t, account)
+	})
+
+	t.Run("account found", func(t *testing.T) {
+		_, err := deps.Domains().Accounts().CreateAccount(context.TODO(), model.AccountDTO{
+			Username: "user1",
+			Password: "password1",
+		})
+		require.NoError(t, err)
+
+		account, err := deps.Domains().Accounts().GetAccountByUsername(context.Background(), "user1")
+		require.NoError(t, err)
+		require.NotNil(t, account)
+		require.Equal(t, "user1", account.Username)
 	})
 }
 
@@ -43,7 +67,7 @@ func TestAccountDomainCreateAccount(t *testing.T) {
 	_, deps := testutil.GetTestConfigurationAndDependencies(t, context.TODO(), logger)
 
 	t.Run("create account", func(t *testing.T) {
-		acc, err := deps.Domains.Accounts.CreateAccount(context.TODO(), model.AccountDTO{
+		acc, err := deps.Domains().Accounts().CreateAccount(context.TODO(), model.AccountDTO{
 			Username: "user",
 			Password: "password",
 			Owner:    model.Ptr(true),
@@ -58,7 +82,7 @@ func TestAccountDomainCreateAccount(t *testing.T) {
 	})
 
 	t.Run("create account with empty username", func(t *testing.T) {
-		_, err := deps.Domains.Accounts.CreateAccount(context.TODO(), model.AccountDTO{
+		_, err := deps.Domains().Accounts().CreateAccount(context.TODO(), model.AccountDTO{
 			Username: "",
 			Password: "password",
 		})
@@ -68,7 +92,7 @@ func TestAccountDomainCreateAccount(t *testing.T) {
 	})
 
 	t.Run("create account with empty password", func(t *testing.T) {
-		_, err := deps.Domains.Accounts.CreateAccount(context.TODO(), model.AccountDTO{
+		_, err := deps.Domains().Accounts().CreateAccount(context.TODO(), model.AccountDTO{
 			Username: "user",
 			Password: "",
 		})
@@ -83,13 +107,13 @@ func TestAccountDomainUpdateAccount(t *testing.T) {
 	_, deps := testutil.GetTestConfigurationAndDependencies(t, context.TODO(), logger)
 
 	t.Run("update account", func(t *testing.T) {
-		acc, err := deps.Domains.Accounts.CreateAccount(context.TODO(), model.AccountDTO{
+		acc, err := deps.Domains().Accounts().CreateAccount(context.TODO(), model.AccountDTO{
 			Username: "user",
 			Password: "password",
 		})
 		require.NoError(t, err)
 
-		acc, err = deps.Domains.Accounts.UpdateAccount(context.TODO(), model.AccountDTO{
+		acc, err = deps.Domains().Accounts().UpdateAccount(context.TODO(), model.AccountDTO{
 			ID:       acc.ID,
 			Username: "user2",
 			Password: "password2",
@@ -104,7 +128,7 @@ func TestAccountDomainUpdateAccount(t *testing.T) {
 	})
 
 	t.Run("update non-existing account", func(t *testing.T) {
-		_, err := deps.Domains.Accounts.UpdateAccount(context.TODO(), model.AccountDTO{
+		_, err := deps.Domains().Accounts().UpdateAccount(context.TODO(), model.AccountDTO{
 			ID:       999,
 			Username: "user",
 			Password: "password",
@@ -114,13 +138,13 @@ func TestAccountDomainUpdateAccount(t *testing.T) {
 	})
 
 	t.Run("try to update with no changes", func(t *testing.T) {
-		acc, err := deps.Domains.Accounts.CreateAccount(context.TODO(), model.AccountDTO{
+		acc, err := deps.Domains().Accounts().CreateAccount(context.TODO(), model.AccountDTO{
 			Username: "user",
 			Password: "password",
 		})
 		require.NoError(t, err)
 
-		_, err = deps.Domains.Accounts.UpdateAccount(context.TODO(), model.AccountDTO{
+		_, err = deps.Domains().Accounts().UpdateAccount(context.TODO(), model.AccountDTO{
 			ID: acc.ID,
 		})
 		require.Error(t, err)
@@ -134,29 +158,29 @@ func TestAccountDomainDeleteAccount(t *testing.T) {
 	_, deps := testutil.GetTestConfigurationAndDependencies(t, context.TODO(), logger)
 
 	t.Run("delete account", func(t *testing.T) {
-		acc, err := deps.Domains.Accounts.CreateAccount(context.TODO(), model.AccountDTO{
+		acc, err := deps.Domains().Accounts().CreateAccount(context.TODO(), model.AccountDTO{
 			Username: "user",
 			Password: "password",
 		})
 		require.NoError(t, err)
 
-		err = deps.Domains.Accounts.DeleteAccount(context.TODO(), int(acc.ID))
+		err = deps.Domains().Accounts().DeleteAccount(context.TODO(), int(acc.ID))
 		require.NoError(t, err)
 
-		accounts, err := deps.Domains.Accounts.ListAccounts(context.Background())
+		accounts, err := deps.Domains().Accounts().ListAccounts(context.Background())
 		require.NoError(t, err)
 		require.Empty(t, accounts)
 	})
 
 	t.Run("delete non-existing account", func(t *testing.T) {
-		err := deps.Domains.Accounts.DeleteAccount(context.TODO(), 999)
+		err := deps.Domains().Accounts().DeleteAccount(context.TODO(), 999)
 		require.Error(t, err)
 		require.ErrorIs(t, err, model.ErrNotFound)
 	})
 
 	t.Run("valid account", func(t *testing.T) {
 		account := testutil.GetValidAccount().ToDTO()
-		token, err := deps.Domains.Auth.CreateTokenForAccount(
+		token, err := deps.Domains().Auth().CreateTokenForAccount(
 			&account,
 			time.Now().Add(time.Hour*1),
 		)
@@ -165,7 +189,7 @@ func TestAccountDomainDeleteAccount(t *testing.T) {
 	})
 
 	t.Run("nil account", func(t *testing.T) {
-		token, err := deps.Domains.Auth.CreateTokenForAccount(
+		token, err := deps.Domains().Auth().CreateTokenForAccount(
 			nil,
 			time.Now().Add(time.Hour*1),
 		)
@@ -177,13 +201,13 @@ func TestAccountDomainDeleteAccount(t *testing.T) {
 		ctx := context.TODO()
 		account := testutil.GetValidAccount().ToDTO()
 		expiration := time.Now().Add(time.Hour * 9)
-		token, err := deps.Domains.Auth.CreateTokenForAccount(
+		token, err := deps.Domains().Auth().CreateTokenForAccount(
 			&account,
 			expiration,
 		)
 		require.NoError(t, err)
 		require.NotEmpty(t, token)
-		tokenAccount, err := deps.Domains.Auth.CheckToken(ctx, token)
+		tokenAccount, err := deps.Domains().Auth().CheckToken(ctx, token)
 		require.NoError(t, err)
 		require.NotNil(t, tokenAccount)
 	})

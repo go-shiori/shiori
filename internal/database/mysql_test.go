@@ -9,6 +9,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/go-shiori/shiori/internal/model"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -17,10 +18,15 @@ func init() {
 	if connString == "" {
 		log.Fatal("mysql tests can't run without a MysQL database, set SHIORI_TEST_MYSQL_URL environment variable")
 	}
+
+	connStringMariaDB := os.Getenv("SHIORI_TEST_MARIADB_URL")
+	if connStringMariaDB == "" {
+		log.Fatal("mysql tests can't run without a MariaDB database, set SHIORI_TEST_MARIADB_URL environment variable")
+	}
 }
 
 func mysqlTestDatabaseFactory(envKey string) testDatabaseFactory {
-	return func(_ *testing.T, ctx context.Context) (DB, error) {
+	return func(_ *testing.T, ctx context.Context) (model.DB, error) {
 		connString := os.Getenv(envKey)
 		db, err := OpenMySQLDatabase(ctx, connString)
 		if err != nil {
@@ -46,7 +52,7 @@ func mysqlTestDatabaseFactory(envKey string) testDatabaseFactory {
 			return nil, err
 		}
 
-		if _, err := db.Exec("USE " + dbname); err != nil {
+		if _, err := db.ExecContext(ctx, "USE "+dbname); err != nil {
 			return nil, err
 		}
 

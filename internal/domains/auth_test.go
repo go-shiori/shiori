@@ -82,7 +82,7 @@ func TestAuthDomainCheckTokenInvalidMethod(t *testing.T) {
 	acc, err := domain.CheckToken(ctx, tokenString)
 	require.Error(t, err)
 	require.Nil(t, acc)
-	require.Contains(t, err.Error(), "Unexpected signing method")
+	require.Contains(t, err.Error(), "unexpected signing method")
 }
 
 func TestAuthDomainGetAccountFromCredentials(t *testing.T) {
@@ -91,7 +91,7 @@ func TestAuthDomainGetAccountFromCredentials(t *testing.T) {
 	_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
 	domain := domains.NewAuthDomain(deps)
 
-	_, err := deps.Domains.Accounts.CreateAccount(ctx, model.AccountDTO{
+	_, err := deps.Domains().Accounts().CreateAccount(ctx, model.AccountDTO{
 		Username: "test",
 		Password: "test",
 	})

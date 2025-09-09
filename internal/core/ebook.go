@@ -4,9 +4,9 @@ import (
 	"os"
 	fp "path/filepath"
 	"strconv"
+	"strings"
 
 	epub "github.com/go-shiori/go-epub"
-	"github.com/go-shiori/shiori/internal/dependencies"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/pkg/errors"
 )
@@ -14,7 +14,7 @@ import (
 // GenerateEbook receives a `ProcessRequest` and generates an ebook file in the destination path specified.
 // The destination path `dstPath` should include file name with ".epub" extension
 // The bookmark model will be used to update the UI based on whether this function is successful or not.
-func GenerateEbook(deps *dependencies.Dependencies, req model.EbookProcessRequest) (book model.BookmarkDTO, err error) {
+func GenerateEbook(deps model.Dependencies, req ProcessRequest) (book model.BookmarkDTO, err error) {
 	book = req.Bookmark
 	dstPath := model.GetEbookPath(&book)
 
@@ -32,10 +32,21 @@ func GenerateEbook(deps *dependencies.Dependencies, req model.EbookProcessReques
 
 	bookmarkThumbnailPath := model.GetThumbnailPath(&book)
 
-	if deps.Domains.Storage.FileExists(bookmarkThumbnailPath) {
+	if deps.Domains().Storage().FileExists(bookmarkThumbnailPath) {
 		book.ImageURL = fp.Join("/", "bookmark", strID, "thumb")
 	}
 
+	bookmarkArchivePath := model.GetArchivePath(&book)
+	if deps.Domains().Storage().FileExists(bookmarkArchivePath) {
+		book.HasArchive = true
+	}
+
+	// This function create ebook from reader mode of bookmark so
+	// we can't create ebook from PDF so we return error here if bookmark is a pdf
+	contentType := req.ContentType
+	if strings.Contains(contentType, "application/pdf") {
+		return book, errors.New("can't create ebook for pdf")
+	}
 	// Create temporary epub file
 	tmpFile, err := os.CreateTemp("", "ebook")
 	if err != nil {
@@ -54,9 +65,9 @@ func GenerateEbook(deps *dependencies.Dependencies, req model.EbookProcessReques
 
 	ebook.SetTitle(book.Title)
 	ebook.SetAuthor(book.Author)
-	if deps.Domains.Storage.FileExists(bookmarkThumbnailPath) {
+	if deps.Domains().Storage().FileExists(bookmarkThumbnailPath) {
 		// TODO: Use `deps.Domains.Storage` to retrieve the file.
-		absoluteCoverPath := fp.Join(deps.Config.Storage.DataDir, bookmarkThumbnailPath)
+		absoluteCoverPath := fp.Join(deps.Config().Storage.DataDir, bookmarkThumbnailPath)
 		coverPath, _ := ebook.AddImage(absoluteCoverPath, "cover.jpg")
 		ebook.SetCover(coverPath, "")
 	}
@@ -74,7 +85,7 @@ func GenerateEbook(deps *dependencies.Dependencies, req model.EbookProcessReques
 	defer tmpFile.Close()
 
 	// If everything go well we move ebook to dstPath
-	err = deps.Domains.Storage.WriteFile(dstPath, tmpFile)
+	err = deps.Domains().Storage().WriteFile(dstPath, tmpFile)
 	if err != nil {
 		return book, errors.Wrap(err, "failed move ebook to destination")
 	}
