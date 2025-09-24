@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"sync"
 
 	"github.com/go-shiori/shiori/internal/http/middleware"
@@ -343,6 +344,310 @@ func HandleRemoveTagFromBookmark(deps model.Dependencies, c model.WebContext) {
 	response.SendJSON(c, http.StatusOK, nil)
 }
 
+// Bookmark CRUD operations
+
+type createBookmarkPayload struct {
+	URL         string   `json:"url" validate:"required"`
+	Title       string   `json:"title"`
+	Excerpt     string   `json:"excerpt"`
+	Tags        []string `json:"tags"`
+	CreateEbook bool     `json:"create_ebook"`
+	Public      int      `json:"public"`
+}
+
+func (p *createBookmarkPayload) IsValid() error {
+	if strings.TrimSpace(p.URL) == "" {
+		return fmt.Errorf("url should not be empty")
+	}
+	return nil
+}
+
+// HandleCreateBookmark creates a new bookmark
+//
+//	@Summary			Create a new bookmark.
+//	@Tags				Auth
+//	@securityDefinitions.apikey	ApiKeyAuth
+//	@Param				payload	body		createBookmarkPayload	true	"Create Bookmark Payload"
+//	@Produce			json
+//	@Success			201	{object}	model.BookmarkDTO
+//	@Failure			403	{object}	nil	"Token not provided/invalid"
+//	@Failure			400	{object}	nil	"Invalid request payload"
+//	@Router				/api/v1/bookmarks [post]
+func HandleCreateBookmark(deps model.Dependencies, c model.WebContext) {
+	if err := middleware.RequireLoggedInUser(deps, c); err != nil {
+		response.SendError(c, http.StatusForbidden, err.Error())
+		return
+	}
+
+	// Parse request payload
+	var payload createBookmarkPayload
+	if err := json.NewDecoder(c.Request().Body).Decode(&payload); err != nil {
+		response.SendError(c, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+
+	if err := payload.IsValid(); err != nil {
+		response.SendError(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	// Create bookmark DTO
+	bookmark := model.BookmarkDTO{
+		URL:         payload.URL,
+		Title:       payload.Title,
+		Excerpt:     payload.Excerpt,
+		Public:      payload.Public,
+		CreateEbook: payload.CreateEbook,
+	}
+
+	// Create the bookmark
+	createdBookmark, err := deps.Domains().Bookmarks().CreateBookmark(c.Request().Context(), bookmark, payload.Tags)
+	if err != nil {
+		response.SendError(c, http.StatusInternalServerError, "Failed to create bookmark")
+		return
+	}
+
+	response.SendJSON(c, http.StatusCreated, createdBookmark)
+}
+
+// HandleListBookmarks lists bookmarks with optional filtering
+//
+//	@Summary			List bookmarks with optional filtering.
+//	@Tags				Auth
+//	@securityDefinitions.apikey	ApiKeyAuth
+//	@Param				keyword	query		string	false	"Search keyword"
+//	@Param				tags	query		string	false	"Comma-separated list of tags to include"
+//	@Param				exclude	query		string	false	"Comma-separated list of tags to exclude"
+//	@Param				page	query		int		false	"Page number (default: 1)"
+//	@Param				limit	query		int		false	"Items per page (default: 30, max: 100)"
+//	@Produce			json
+//	@Success			200	{array}		model.BookmarkDTO
+//	@Failure			403	{object}	nil	"Token not provided/invalid"
+//	@Router				/api/v1/bookmarks [get]
+func HandleListBookmarks(deps model.Dependencies, c model.WebContext) {
+	if err := middleware.RequireLoggedInUser(deps, c); err != nil {
+		response.SendError(c, http.StatusForbidden, err.Error())
+		return
+	}
+
+	// Parse query parameters
+	query := c.Request().URL.Query()
+	keyword := query.Get("keyword")
+	tagsStr := query.Get("tags")
+	excludedTagsStr := query.Get("exclude")
+	pageStr := query.Get("page")
+	limitStr := query.Get("limit")
+
+	// Parse tags
+	var tags []string
+	if tagsStr != "" {
+		tags = strings.Split(tagsStr, ",")
+	}
+
+	var excludedTags []string
+	if excludedTagsStr != "" {
+		excludedTags = strings.Split(excludedTagsStr, ",")
+	}
+
+	// Parse page and limit
+	page := 1
+	if pageStr != "" {
+		if p, err := strconv.Atoi(pageStr); err == nil && p > 0 {
+			page = p
+		}
+	}
+
+	limit := 30
+	if limitStr != "" {
+		if l, err := strconv.Atoi(limitStr); err == nil && l > 0 && l <= 100 {
+			limit = l
+		}
+	}
+
+	// Prepare search options
+	searchOptions := model.DBGetBookmarksOptions{
+		Tags:         tags,
+		ExcludedTags: excludedTags,
+		Keyword:      keyword,
+		Limit:        limit,
+		Offset:       (page - 1) * limit,
+		OrderMethod:  model.ByLastAdded,
+	}
+
+	// Get bookmarks
+	bookmarks, err := deps.Database().GetBookmarks(c.Request().Context(), searchOptions)
+	if err != nil {
+		response.SendError(c, http.StatusInternalServerError, "Failed to get bookmarks")
+		return
+	}
+
+	response.SendJSON(c, http.StatusOK, bookmarks)
+}
+
+// HandleGetBookmark gets a single bookmark by ID
+//
+//	@Summary			Get a bookmark by ID.
+//	@Tags				Auth
+//	@securityDefinitions.apikey	ApiKeyAuth
+//	@Param				id	path		int	true	"Bookmark ID"
+//	@Produce			json
+//	@Success			200	{object}	model.BookmarkDTO
+//	@Failure			403	{object}	nil	"Token not provided/invalid"
+//	@Failure			404	{object}	nil	"Bookmark not found"
+//	@Router				/api/v1/bookmarks/{id} [get]
+func HandleGetBookmark(deps model.Dependencies, c model.WebContext) {
+	if err := middleware.RequireLoggedInUser(deps, c); err != nil {
+		response.SendError(c, http.StatusForbidden, err.Error())
+		return
+	}
+
+	bookmarkID, err := strconv.Atoi(c.Request().PathValue("id"))
+	if err != nil {
+		response.SendError(c, http.StatusBadRequest, "Invalid bookmark ID")
+		return
+	}
+
+	bookmark, err := deps.Domains().Bookmarks().GetBookmark(c.Request().Context(), model.DBID(bookmarkID))
+	if err != nil {
+		response.SendError(c, http.StatusNotFound, "Bookmark not found")
+		return
+	}
+
+	response.SendJSON(c, http.StatusOK, bookmark)
+}
+
+type updateBookmarkPayload struct {
+	URL         *string  `json:"url"`
+	Title       *string  `json:"title"`
+	Excerpt     *string  `json:"excerpt"`
+	Tags        []string `json:"tags"`
+	CreateEbook *bool    `json:"create_ebook"`
+	Public      *int     `json:"public"`
+}
+
+// HandleUpdateBookmark updates an existing bookmark
+//
+//	@Summary			Update an existing bookmark.
+//	@Tags				Auth
+//	@securityDefinitions.apikey	ApiKeyAuth
+//	@Param				id		path		int						true	"Bookmark ID"
+//	@Param				payload	body		updateBookmarkPayload	true	"Update Bookmark Payload"
+//	@Produce			json
+//	@Success			200	{object}	model.BookmarkDTO
+//	@Failure			403	{object}	nil	"Token not provided/invalid"
+//	@Failure			404	{object}	nil	"Bookmark not found"
+//	@Failure			400	{object}	nil	"Invalid request payload"
+//	@Router				/api/v1/bookmarks/{id} [put]
+func HandleUpdateBookmark(deps model.Dependencies, c model.WebContext) {
+	if err := middleware.RequireLoggedInUser(deps, c); err != nil {
+		response.SendError(c, http.StatusForbidden, err.Error())
+		return
+	}
+
+	bookmarkID, err := strconv.Atoi(c.Request().PathValue("id"))
+	if err != nil {
+		response.SendError(c, http.StatusBadRequest, "Invalid bookmark ID")
+		return
+	}
+
+	// Parse request payload
+	var payload updateBookmarkPayload
+	if err := json.NewDecoder(c.Request().Body).Decode(&payload); err != nil {
+		response.SendError(c, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+
+	// Get existing bookmark
+	existingBookmark, err := deps.Domains().Bookmarks().GetBookmark(c.Request().Context(), model.DBID(bookmarkID))
+	if err != nil {
+		response.SendError(c, http.StatusNotFound, "Bookmark not found")
+		return
+	}
+
+	// Update fields if provided
+	if payload.URL != nil {
+		existingBookmark.URL = *payload.URL
+	}
+	if payload.Title != nil {
+		existingBookmark.Title = *payload.Title
+	}
+	if payload.Excerpt != nil {
+		existingBookmark.Excerpt = *payload.Excerpt
+	}
+	if payload.CreateEbook != nil {
+		existingBookmark.CreateEbook = *payload.CreateEbook
+	}
+	if payload.Public != nil {
+		existingBookmark.Public = *payload.Public
+	}
+
+	// Update the bookmark
+	updatedBookmark, err := deps.Domains().Bookmarks().UpdateBookmark(c.Request().Context(), *existingBookmark, payload.Tags)
+	if err != nil {
+		response.SendError(c, http.StatusInternalServerError, "Failed to update bookmark")
+		return
+	}
+
+	response.SendJSON(c, http.StatusOK, updatedBookmark)
+}
+
+type deleteBookmarksPayload struct {
+	IDs []int `json:"ids" validate:"required"`
+}
+
+func (p *deleteBookmarksPayload) IsValid() error {
+	if len(p.IDs) == 0 {
+		return fmt.Errorf("ids should not be empty")
+	}
+	for _, id := range p.IDs {
+		if id <= 0 {
+			return fmt.Errorf("id should not be 0 or negative")
+		}
+	}
+	return nil
+}
+
+// HandleDeleteBookmarks deletes one or more bookmarks
+//
+//	@Summary			Delete one or more bookmarks.
+//	@Tags				Auth
+//	@securityDefinitions.apikey	ApiKeyAuth
+//	@Param				payload	body		deleteBookmarksPayload	true	"Delete Bookmarks Payload"
+//	@Produce			json
+//	@Success			200	{object}	nil
+//	@Failure			403	{object}	nil	"Token not provided/invalid"
+//	@Failure			400	{object}	nil	"Invalid request payload"
+//	@Router				/api/v1/bookmarks [delete]
+func HandleDeleteBookmarks(deps model.Dependencies, c model.WebContext) {
+	if err := middleware.RequireLoggedInUser(deps, c); err != nil {
+		response.SendError(c, http.StatusForbidden, err.Error())
+		return
+	}
+
+	// Parse request payload
+	var payload deleteBookmarksPayload
+	if err := json.NewDecoder(c.Request().Body).Decode(&payload); err != nil {
+		response.SendError(c, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+
+	if err := payload.IsValid(); err != nil {
+		response.SendError(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	// Delete bookmarks
+	err := deps.Domains().Bookmarks().DeleteBookmarks(c.Request().Context(), payload.IDs)
+	if err != nil {
+		response.SendError(c, http.StatusInternalServerError, "Failed to delete bookmarks")
+		return
+	}
+
+	response.SendJSON(c, http.StatusOK, nil)
+}
+
+
+
 // HandleBulkUpdateBookmarkTags updates the tags for multiple bookmarks
 //
 //	@Summary					Bulk update tags for multiple bookmarks.
@@ -386,3 +691,4 @@ func HandleBulkUpdateBookmarkTags(deps model.Dependencies, c model.WebContext) {
 
 	response.SendJSON(c, http.StatusOK, nil)
 }
+

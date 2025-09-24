@@ -166,6 +166,187 @@ func (d *BookmarksDomain) BookmarkExists(ctx context.Context, id int) (bool, err
 	return d.deps.Database().BookmarkExists(ctx, id)
 }
 
+// CreateBookmark creates a new bookmark with optional tags
+func (d *BookmarksDomain) CreateBookmark(ctx context.Context, bookmark model.BookmarkDTO, tags []string) (*model.BookmarkDTO, error) {
+	// Save bookmark to database
+	savedBookmarks, err := d.deps.Database().SaveBookmarks(ctx, true, bookmark)
+	if err != nil {
+		return nil, fmt.Errorf("failed to save bookmark: %w", err)
+	}
+
+	if len(savedBookmarks) == 0 {
+		return nil, fmt.Errorf("no bookmark was saved")
+	}
+
+	savedBookmark := savedBookmarks[0]
+
+	// Add tags if provided
+	if len(tags) > 0 {
+		// Get or create tags and get their IDs
+		var tagIDs []int
+		for _, tagName := range tags {
+			// Try to create the tag, but ignore if it already exists
+			tag, err := d.deps.Database().CreateTag(ctx, model.Tag{Name: tagName})
+			if err != nil {
+				// If tag creation failed, try to find existing tag
+				existingTags, err := d.deps.Database().GetTags(ctx, model.DBListTagsOptions{
+					Search: tagName,
+				})
+				if err != nil {
+					return nil, fmt.Errorf("failed to get existing tag %s: %w", tagName, err)
+				}
+				if len(existingTags) > 0 && existingTags[0].Name == tagName {
+					tagIDs = append(tagIDs, existingTags[0].ID)
+				} else {
+					return nil, fmt.Errorf("failed to create or find tag %s: %w", tagName, err)
+				}
+			} else {
+				tagIDs = append(tagIDs, tag.ID)
+			}
+		}
+
+		// Associate tags with bookmark
+		err = d.deps.Database().BulkUpdateBookmarkTags(ctx, []int{savedBookmark.ID}, tagIDs)
+		if err != nil {
+			return nil, fmt.Errorf("failed to save bookmark tags: %w", err)
+		}
+	}
+
+	// Set additional properties
+	savedBookmark.HasEbook = d.HasEbook(&savedBookmark)
+	savedBookmark.HasArchive = d.HasArchive(&savedBookmark)
+	
+	// Get tags for the bookmark if any were added
+	if len(tags) > 0 {
+		bookmarkTags, err := d.deps.Database().GetTags(ctx, model.DBListTagsOptions{
+			BookmarkID: savedBookmark.ID,
+		})
+		if err == nil {
+			savedBookmark.Tags = make([]model.TagDTO, len(bookmarkTags))
+			for i, tag := range bookmarkTags {
+				savedBookmark.Tags[i] = model.TagDTO{
+					Tag: model.Tag{
+						ID:   tag.ID,
+						Name: tag.Name,
+					},
+				}
+			}
+		}
+	}
+	
+	return &savedBookmark, nil
+}
+
+// UpdateBookmark updates an existing bookmark with optional tags
+func (d *BookmarksDomain) UpdateBookmark(ctx context.Context, bookmark model.BookmarkDTO, tags []string) (*model.BookmarkDTO, error) {
+	// Check if bookmark exists first
+	exists, err := d.BookmarkExists(ctx, bookmark.ID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check bookmark existence: %w", err)
+	}
+	if !exists {
+		return nil, model.ErrBookmarkNotFound
+	}
+
+	// Update bookmark in database
+	savedBookmarks, err := d.deps.Database().SaveBookmarks(ctx, false, bookmark)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update bookmark: %w", err)
+	}
+
+	if len(savedBookmarks) == 0 {
+		return nil, fmt.Errorf("no bookmark was updated")
+	}
+
+	savedBookmark := savedBookmarks[0]
+
+	// Update tags if provided (including empty array to clear tags)
+	if tags != nil {
+		if len(tags) == 0 {
+			// Clear all tags for this bookmark by getting existing tags and removing them
+			existingBookmark, err := d.GetBookmark(ctx, model.DBID(savedBookmark.ID))
+			if err != nil {
+				return nil, fmt.Errorf("failed to get existing bookmark for tag clearing: %w", err)
+			}
+			
+			// Remove each existing tag
+			for _, tag := range existingBookmark.Tags {
+				err = d.RemoveTagFromBookmark(ctx, savedBookmark.ID, tag.ID)
+				if err != nil {
+					return nil, fmt.Errorf("failed to remove tag %d from bookmark: %w", tag.ID, err)
+				}
+			}
+		} else {
+			// Get or create tags and get their IDs
+			var tagIDs []int
+			for _, tagName := range tags {
+				// Try to create the tag, but ignore if it already exists
+				tag, err := d.deps.Database().CreateTag(ctx, model.Tag{Name: tagName})
+				if err != nil {
+					// If tag creation failed, try to find existing tag
+					existingTags, err := d.deps.Database().GetTags(ctx, model.DBListTagsOptions{
+						Search: tagName,
+					})
+					if err != nil {
+						return nil, fmt.Errorf("failed to get existing tag %s: %w", tagName, err)
+					}
+					if len(existingTags) > 0 && existingTags[0].Name == tagName {
+						tagIDs = append(tagIDs, existingTags[0].ID)
+					} else {
+						return nil, fmt.Errorf("failed to create or find tag %s: %w", tagName, err)
+					}
+				} else {
+					tagIDs = append(tagIDs, tag.ID)
+				}
+			}
+
+			// Associate tags with bookmark
+			err = d.deps.Database().BulkUpdateBookmarkTags(ctx, []int{savedBookmark.ID}, tagIDs)
+			if err != nil {
+				return nil, fmt.Errorf("failed to update bookmark tags: %w", err)
+			}
+		}
+	}
+
+	// Set additional properties
+	savedBookmark.HasEbook = d.HasEbook(&savedBookmark)
+	savedBookmark.HasArchive = d.HasArchive(&savedBookmark)
+	
+	// Get tags for the bookmark if any were added
+	if len(tags) > 0 {
+		bookmarkTags, err := d.deps.Database().GetTags(ctx, model.DBListTagsOptions{
+			BookmarkID: savedBookmark.ID,
+		})
+		if err == nil {
+			savedBookmark.Tags = make([]model.TagDTO, len(bookmarkTags))
+			for i, tag := range bookmarkTags {
+				savedBookmark.Tags[i] = model.TagDTO{
+					Tag: model.Tag{
+						ID:   tag.ID,
+						Name: tag.Name,
+					},
+				}
+			}
+		}
+	}
+	
+	return &savedBookmark, nil
+}
+
+// DeleteBookmarks deletes multiple bookmarks by their IDs
+func (d *BookmarksDomain) DeleteBookmarks(ctx context.Context, ids []int) error {
+	if len(ids) == 0 {
+		return nil
+	}
+
+	err := d.deps.Database().DeleteBookmarks(ctx, ids...)
+	if err != nil {
+		return fmt.Errorf("failed to delete bookmarks: %w", err)
+	}
+
+	return nil
+}
+
 func NewBookmarksDomain(deps model.Dependencies) *BookmarksDomain {
 	return &BookmarksDomain{
 		deps: deps,

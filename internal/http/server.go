@@ -163,7 +163,28 @@ func (s *HttpServer) Setup(cfg *config.Config, deps *dependencies.Dependencies) 
 		api_v1.HandleDeleteTag,
 		globalMiddleware...,
 	))
-	// Bookmarks
+	// Bookmarks CRUD
+	s.mux.HandleFunc("GET /api/v1/bookmarks", ToHTTPHandler(deps,
+		api_v1.HandleListBookmarks,
+		globalMiddleware...,
+	))
+	s.mux.HandleFunc("POST /api/v1/bookmarks", ToHTTPHandler(deps,
+		api_v1.HandleCreateBookmark,
+		globalMiddleware...,
+	))
+	s.mux.HandleFunc("GET /api/v1/bookmarks/{id}", ToHTTPHandler(deps,
+		api_v1.HandleGetBookmark,
+		globalMiddleware...,
+	))
+	s.mux.HandleFunc("PUT /api/v1/bookmarks/{id}", ToHTTPHandler(deps,
+		api_v1.HandleUpdateBookmark,
+		globalMiddleware...,
+	))
+	s.mux.HandleFunc("DELETE /api/v1/bookmarks", ToHTTPHandler(deps,
+		api_v1.HandleDeleteBookmarks,
+		globalMiddleware...,
+	))
+	// Bookmark operations
 	s.mux.HandleFunc("PUT /api/v1/bookmarks/cache", ToHTTPHandler(deps,
 		api_v1.HandleUpdateCache,
 		globalMiddleware...,
