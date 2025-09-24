@@ -42,6 +42,7 @@ jobs:
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         run: |
           REPO=ghcr.io/${{ github.repository }}
+          DOCKERHUB_REPO=shioriapp/shiori
           TAG=$(git describe --tags)
           if [[ "$TAG" == *"rc"* ]]
           then
@@ -49,7 +50,7 @@ jobs:
           else
             TAG2="latest"
           fi
-          echo "tag_flags=--tag $REPO:${{ inputs.tag_prefix }}$TAG --tag $REPO:${{ inputs.tag_prefix }}$TAG2" >> $GITHUB_ENV
+          echo "tag_flags=--tag $REPO:${{ inputs.tag_prefix }}$TAG --tag $REPO:${{ inputs.tag_prefix }}$TAG2 --tag $DOCKERHUB_REPO:${{ inputs.tag_prefix }}$TAG --tag $DOCKERHUB_REPO:${{ inputs.tag_prefix }}$TAG2" >> $GITHUB_ENV
 
       # Every pull request
       - name: Prepare pull request tags
@@ -63,4 +64,8 @@ jobs:
         run: |
           set -x
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login -u "${{ github.repository_owner }}" --password-stdin ghcr.io
+          # Login to DockerHub for versioned releases
+          if [[ "${{ github.event_name }}" == "push" && "${{ github.ref }}" == refs/tags/v* ]]; then
+            echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+          fi
           make buildx CONTAINERFILE_NAME=${{ inputs.dockerfile }} CONTAINER_BUILDX_OPTIONS="--push ${{ env.tag_flags }}"
