@@ -2,7 +2,9 @@ package e2eutil
 
 import (
 	"context"
+	"io"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -77,11 +79,60 @@ func NewShioriContainer(t *testing.T, tag string) ShioriContainer {
 	container, err := testcontainers.GenericContainer(context.Background(), containerDefinition)
 	require.NoError(t, err)
 	t.Cleanup(func() {
-		require.NoError(t, container.Terminate(context.Background()))
+		// Print container logs on test failure for debugging
+		if t.Failed() {
+			printContainerLogs(t, container, "Container logs on test failure:")
+		}
+
+		// Terminate container with error handling
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		if err := container.Terminate(ctx); err != nil {
+			// Log the error but don't fail the test cleanup
+			t.Logf("Warning: Failed to terminate container: %v", err)
+		}
 	})
 
 	return ShioriContainer{
 		t:         t,
 		Container: container,
+	}
+}
+
+// printContainerLogs prints the container logs for debugging purposes
+func printContainerLogs(t *testing.T, container testcontainers.Container, prefix string) {
+	if container == nil {
+		t.Logf("%s Container is nil, cannot retrieve logs", prefix)
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	logs, err := container.Logs(ctx)
+	if err != nil {
+		t.Logf("%s Failed to get container logs: %v", prefix, err)
+		return
+	}
+	defer logs.Close()
+
+	logBytes, err := io.ReadAll(logs)
+	if err != nil {
+		t.Logf("%s Failed to read container logs: %v", prefix, err)
+		return
+	}
+
+	if len(logBytes) == 0 {
+		t.Logf("%s No container logs available", prefix)
+		return
+	}
+
+	// Split logs into lines and add prefix
+	logLines := strings.Split(strings.TrimSpace(string(logBytes)), "\n")
+	t.Logf("%s", prefix)
+	for i, line := range logLines {
+		if line != "" {
+			t.Logf("  [%d] %s", i+1, line)
+		}
 	}
 }
