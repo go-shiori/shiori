@@ -33,6 +33,10 @@ func (s *HttpServer) Setup(cfg *config.Config, deps *dependencies.Dependencies) 
 
 	globalMiddleware := []model.HttpMiddleware{}
 
+	if cfg.Http.SSOProxyAuth {
+		globalMiddleware = append(globalMiddleware, middleware.NewAuthSSOProxyMiddleware(deps))
+	}
+
 	// Add message response middleware if legacy message response is enabled
 	globalMiddleware = append(globalMiddleware, []model.HttpMiddleware{
 		middleware.NewMessageResponseMiddleware(deps),

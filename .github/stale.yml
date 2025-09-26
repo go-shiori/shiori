@@ -1,7 +1,7 @@
 # Number of days of inactivity before an issue becomes stale
 daysUntilStale: 30
 # Number of days of inactivity before a stale issue is closed
-daysUntilClose: 10
+daysUntilClose: -1
 # Issues with these labels will never be considered stale
 exemptLabels:
 - tag:no-stale
@@ -23,6 +23,6 @@ closeComment: false
 
 pulls:
   daysUntilStale: 10
-  daysUntilClose: 10
+  daysUntilClose: -1
   onlyLabels:
     - tag:stalebot

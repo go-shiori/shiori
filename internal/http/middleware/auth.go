@@ -21,6 +21,10 @@ func NewAuthMiddleware(deps model.Dependencies) *AuthMiddleware {
 }
 
 func (m *AuthMiddleware) OnRequest(deps model.Dependencies, c model.WebContext) error {
+	if c.UserIsLogged() {
+		return nil
+	}
+
 	token := getTokenFromHeader(c.Request())
 	if token == "" {
 		token = getTokenFromCookie(c.Request())

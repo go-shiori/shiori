@@ -10,7 +10,6 @@ import (
 	"regexp"
 	"slices"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
@@ -123,19 +122,23 @@ func parseCsvExport(ctx context.Context, db model.DB, srcFile *os.File) []model.
 		os.Exit(1)
 	}
 
+	var titleIdx, urlIdx, timeAddedIdx, tagsIdx int
 	for i, cols := range records {
 		// Check and skip header
 		if i == 0 {
-			expected := []string{"title", "url", "time_added", "cursor", "tags", "status"}
-			if slices.Compare(cols, expected) != 0 {
-				cError.Printf("Invalid CSV format. Header must be: %s\n", strings.Join(expected, ","))
+			titleIdx = slices.Index(cols, "title")
+			urlIdx = slices.Index(cols, "url")
+			timeAddedIdx = slices.Index(cols, "time_added")
+			tagsIdx = slices.Index(cols, "tags")
+			if titleIdx == -1 || urlIdx == -1 || timeAddedIdx == -1 || tagsIdx == -1 {
+				cError.Printf("Invalid CSV format. Header must contain: title, url, time_added, tags\n")
 				os.Exit(1)
 			}
 			continue
 		}
 
 		// Get metadata
-		title, url, timeAdded, tags, err := verifyMetadata(cols[0], cols[1], cols[2], cols[4])
+		title, url, timeAdded, tags, err := verifyMetadata(cols[titleIdx], cols[urlIdx], cols[timeAddedIdx], cols[tagsIdx])
 		if err != nil {
 			cError.Printf("Skip %s: %v\n", url, err)
 			continue
