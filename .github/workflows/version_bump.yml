@@ -36,9 +36,15 @@ jobs:
   call-buildx:
     needs: call-gorelease
     uses: ./.github/workflows/_buildx.yml
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
   call-buildx-alpine:
     needs: call-gorelease
     uses: ./.github/workflows/_buildx.yml
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
     with:
       tag_prefix: alpine-
       dockerfile: Dockerfile.alpine
