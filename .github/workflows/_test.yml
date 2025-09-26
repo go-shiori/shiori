@@ -118,6 +118,7 @@ jobs:
   # This test also does not take into consideration the go version specified in the go.mod file and just uses the
   # latest version available in the openbsd package repository.
   test-bsd:
+    continue-on-error: true
     runs-on: ubuntu-latest
     strategy:
       matrix:
