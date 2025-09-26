@@ -125,7 +125,6 @@ jobs:
           - name: openbsd
             architecture: x86-64
             version: "7.7"
-
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
@@ -142,6 +141,6 @@ jobs:
           run: |
             sudo pkg_add -u
             sudo pkg_add gmake git
-            curl -L https://go.dev/dl/go1.24.3.openbsd-amd64.tar.gz | sudo tar -C /usr/local -xzf -
+            curl -L https://go.dev/dl/go1.25.1.openbsd-amd64.tar.gz | sudo tar -C /usr/local -xzf -
             export PATH=$PATH:/usr/local/go/bin
             gmake unittest GO_TEST_FLAGS="-tags test_sqlite_only -v -count=1"
