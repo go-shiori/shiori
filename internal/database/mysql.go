@@ -187,27 +187,27 @@ func (db *MySQLDatabase) SaveBookmarks(ctx context.Context, create bool, bookmar
 
 		for _, book := range bookmarks {
 			// Check URL and title
-			if book.URL == "" {
+			if book.Bookmark.URL == "" {
 				return errors.New("URL must not be empty")
 			}
 
-			if book.Title == "" {
+			if book.Bookmark.Title == "" {
 				return errors.New("title must not be empty")
 			}
 
 			// Set modified time
-			if book.ModifiedAt == "" {
-				book.ModifiedAt = modifiedTime
+			if book.Bookmark.ModifiedAt == "" {
+				book.Bookmark.ModifiedAt = modifiedTime
 			}
 
 			// Save bookmark
 			var err error
 			if create {
-				book.CreatedAt = modifiedTime
+				book.Bookmark.CreatedAt = modifiedTime
 				var res sql.Result
 				res, err = stmtInsertBook.ExecContext(ctx,
-					book.URL, book.Title, book.Excerpt, book.Author,
-					book.Public, book.Content, book.HTML, book.ModifiedAt, book.CreatedAt)
+					book.Bookmark.URL, book.Bookmark.Title, book.Bookmark.Excerpt, book.Bookmark.Author,
+					book.Bookmark.Public, book.Bookmark.Content, book.Bookmark.HTML, book.Bookmark.ModifiedAt, book.Bookmark.CreatedAt)
 				if err != nil {
 					return errors.WithStack(err)
 				}
@@ -215,11 +215,11 @@ func (db *MySQLDatabase) SaveBookmarks(ctx context.Context, create bool, bookmar
 				if err != nil {
 					return errors.WithStack(err)
 				}
-				book.ID = int(bookID)
+				book.Bookmark.ID = int(bookID)
 			} else {
 				_, err = stmtUpdateBook.ExecContext(ctx,
-					book.URL, book.Title, book.Excerpt, book.Author,
-					book.Public, book.Content, book.HTML, book.ModifiedAt, book.ID)
+					book.Bookmark.URL, book.Bookmark.Title, book.Bookmark.Excerpt, book.Bookmark.Author,
+					book.Bookmark.Public, book.Bookmark.Content, book.Bookmark.HTML, book.Bookmark.ModifiedAt, book.Bookmark.ID)
 			}
 			if err != nil {
 				return errors.WithStack(err)

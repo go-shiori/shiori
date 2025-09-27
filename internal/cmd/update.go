@@ -143,7 +143,7 @@ func updateHandler(cmd *cobra.Command, args []string) {
 
 			// If used, use submitted URL
 			if url != "" {
-				book.URL = url
+				book.Bookmark.URL = url
 			}
 
 			go func(i int, book model.BookmarkDTO) {
@@ -157,10 +157,10 @@ func updateHandler(cmd *cobra.Command, args []string) {
 				}()
 
 				// Download data from internet
-				content, contentType, err := core.DownloadBookmark(book.URL)
+				content, contentType, err := core.DownloadBookmark(book.Bookmark.URL)
 				if err != nil {
-					chProblem <- book.ID
-					chMessage <- fmt.Errorf("failed to download %s: %v", book.URL, err)
+					chProblem <- book.Bookmark.ID
+					chMessage <- fmt.Errorf("failed to download %s: %v", book.Bookmark.URL, err)
 					return
 				}
 
@@ -178,13 +178,13 @@ func updateHandler(cmd *cobra.Command, args []string) {
 				content.Close()
 
 				if err != nil {
-					chProblem <- book.ID
-					chMessage <- fmt.Errorf("failed to process %s: %v", book.URL, err)
+					chProblem <- book.Bookmark.ID
+					chMessage <- fmt.Errorf("failed to process %s: %v", book.Bookmark.URL, err)
 					return
 				}
 
 				// Send success message
-				chMessage <- fmt.Sprintf("Downloaded %s", book.URL)
+				chMessage <- fmt.Sprintf("Downloaded %s", book.Bookmark.URL)
 
 				// Save parse result to bookmark
 				mx.Lock()
@@ -241,20 +241,20 @@ func updateHandler(cmd *cobra.Command, args []string) {
 	for i, book := range bookmarks {
 		// If user submit his own title or excerpt, use it
 		if title != "" {
-			book.Title = title
+			book.Bookmark.Title = title
 		}
 
 		if excerpt != "" {
-			book.Excerpt = excerpt
+			book.Bookmark.Excerpt = excerpt
 		}
 
 		// If user submits url, use it
 		if url != "" {
-			book.URL = url
+			book.Bookmark.URL = url
 		}
 
 		// Make sure title is valid and not empty
-		book.Title = validateTitle(book.Title, book.URL)
+		book.Bookmark.Title = validateTitle(book.Bookmark.Title, book.Bookmark.URL)
 
 		// Generate new tags
 		tmpAddedTags := make(map[string]struct{})

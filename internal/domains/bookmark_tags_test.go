@@ -23,8 +23,10 @@ func TestBookmarkTagOperations(t *testing.T) {
 
 	// Create a test bookmark
 	bookmark := model.BookmarkDTO{
-		URL:   "https://example.com/bookmark-tags-test",
-		Title: "Bookmark Tags Test",
+		Bookmark: model.Bookmark{
+			URL:   "https://example.com/bookmark-tags-test",
+			Title: "Bookmark Tags Test",
+		},
 	}
 	savedBookmarks, err := db.SaveBookmarks(ctx, true, bookmark)
 	require.NoError(t, err)

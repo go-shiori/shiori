@@ -19,7 +19,7 @@ import (
 )
 
 func downloadBookmarkContent(deps model.Dependencies, book *model.BookmarkDTO, dataDir string, _ *http.Request, keepTitle, keepExcerpt bool) (*model.BookmarkDTO, error) {
-	content, contentType, err := core.DownloadBookmark(book.URL)
+	content, contentType, err := core.DownloadBookmark(book.Bookmark.URL)
 	if err != nil {
 		return nil, fmt.Errorf("error downloading url: %s", err)
 	}
@@ -197,11 +197,13 @@ func (h *Handler) ApiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 	checkError(err)
 
 	book := &model.BookmarkDTO{
-		URL:           payload.URL,
-		Title:         payload.Title,
-		Excerpt:       payload.Excerpt,
+		Bookmark: model.Bookmark{
+			URL:     payload.URL,
+			Title:   payload.Title,
+			Excerpt: payload.Excerpt,
+			Public:  payload.MakePublic,
+		},
 		Tags:          make([]model.TagDTO, len(payload.Tags)),
-		Public:        payload.MakePublic,
 		CreateArchive: payload.CreateArchive,
 		CreateEbook:   payload.CreateEbook,
 	}
@@ -211,15 +213,15 @@ func (h *Handler) ApiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 	}
 
 	// Clean up bookmark URL
-	book.URL, err = core.RemoveUTMParams(book.URL)
+	book.Bookmark.URL, err = core.RemoveUTMParams(book.Bookmark.URL)
 	if err != nil {
 		panic(fmt.Errorf("failed to clean URL: %v", err))
 	}
 
-	userHasDefinedTitle := book.Title != ""
+	userHasDefinedTitle := book.Bookmark.Title != ""
 	// Make sure bookmark's title not empty
-	if book.Title == "" {
-		book.Title = book.URL
+	if book.Bookmark.Title == "" {
+		book.Bookmark.Title = book.Bookmark.URL
 	}
 
 	// Save bookmark to database
@@ -232,7 +234,7 @@ func (h *Handler) ApiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 
 	if payload.Async {
 		go func() {
-			bookmark, err := downloadBookmarkContent(h.dependencies, book, h.DataDir, r, userHasDefinedTitle, book.Excerpt != "")
+			bookmark, err := downloadBookmarkContent(h.dependencies, book, h.DataDir, r, userHasDefinedTitle, book.Bookmark.Excerpt != "")
 			if err != nil {
 				log.Printf("error downloading boorkmark: %s", err)
 				return
@@ -244,7 +246,7 @@ func (h *Handler) ApiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 	} else {
 		// Workaround. Download content after saving the bookmark so we have the proper database
 		// id already set in the object regardless of the database engine.
-		book, err = downloadBookmarkContent(h.dependencies, book, h.DataDir, r, userHasDefinedTitle, book.Excerpt != "")
+		book, err = downloadBookmarkContent(h.dependencies, book, h.DataDir, r, userHasDefinedTitle, book.Bookmark.Excerpt != "")
 		if err != nil {
 			log.Printf("error downloading boorkmark: %s", err)
 		} else if _, err := h.DB.SaveBookmarks(ctx, false, *book); err != nil {
@@ -304,13 +306,13 @@ func (h *Handler) ApiUpdateBookmark(w http.ResponseWriter, r *http.Request, ps h
 	checkError(err)
 
 	// Validate input
-	if request.Title == "" {
+	if request.Bookmark.Title == "" {
 		panic(fmt.Errorf("title must not empty"))
 	}
 
 	// Get existing bookmark from database
 	filter := model.DBGetBookmarksOptions{
-		IDs:         []int{request.ID},
+		IDs:         []int{request.Bookmark.ID},
 		WithContent: true,
 	}
 
@@ -322,13 +324,13 @@ func (h *Handler) ApiUpdateBookmark(w http.ResponseWriter, r *http.Request, ps h
 
 	// Set new bookmark data
 	book := bookmarks[0]
-	book.URL = request.URL
-	book.Title = request.Title
-	book.Excerpt = request.Excerpt
-	book.Public = request.Public
+	book.Bookmark.URL = request.Bookmark.URL
+	book.Bookmark.Title = request.Bookmark.Title
+	book.Bookmark.Excerpt = request.Bookmark.Excerpt
+	book.Bookmark.Public = request.Bookmark.Public
 
 	// Clean up bookmark URL
-	book.URL, err = core.RemoveUTMParams(book.URL)
+	book.Bookmark.URL, err = core.RemoveUTMParams(book.Bookmark.URL)
 	if err != nil {
 		panic(fmt.Errorf("failed to clean URL: %v", err))
 	}
@@ -353,7 +355,7 @@ func (h *Handler) ApiUpdateBookmark(w http.ResponseWriter, r *http.Request, ps h
 	}
 
 	// Set bookmark modified
-	book.ModifiedAt = ""
+	book.Bookmark.ModifiedAt = ""
 
 	// Update database
 	res, err := h.DB.SaveBookmarks(ctx, false, book)
@@ -361,7 +363,7 @@ func (h *Handler) ApiUpdateBookmark(w http.ResponseWriter, r *http.Request, ps h
 
 	// Add thumbnail image to the saved bookmarks again
 	newBook := res[0]
-	newBook.ImageURL = request.ImageURL
+	newBook.ImageURL = request.Bookmark.ImageURL
 	newBook.HasArchive = request.HasArchive
 
 	// Return new saved result

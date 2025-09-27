@@ -140,10 +140,12 @@ func importHandler(cmd *cobra.Command, args []string) {
 
 		// Add item to list
 		bookmark := model.BookmarkDTO{
-			URL:        url,
-			Title:      title,
-			Tags:       tags,
-			ModifiedAt: modifiedDate.Format(model.DatabaseDateFormat),
+			Bookmark: model.Bookmark{
+				URL:        url,
+				Title:      title,
+				ModifiedAt: modifiedDate.Format(model.DatabaseDateFormat),
+			},
+			Tags: tags,
 		}
 
 		mapURL[url] = struct{}{}

@@ -46,9 +46,11 @@ func addHandler(cmd *cobra.Command, args []string) {
 
 	// Create bookmark item
 	book := model.BookmarkDTO{
-		URL:           url,
-		Title:         title,
-		Excerpt:       excerpt,
+		Bookmark: model.Bookmark{
+			URL:     url,
+			Title:   title,
+			Excerpt: excerpt,
+		},
 		CreateArchive: !noArchival,
 	}
 

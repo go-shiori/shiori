@@ -51,8 +51,10 @@ func GetTestConfigurationAndDependencies(t *testing.T, ctx context.Context, logg
 func GetValidBookmark() *model.BookmarkDTO {
 	uuidV4, _ := uuid.NewV4()
 	return &model.BookmarkDTO{
-		URL:   "https://github.com/go-shiori/shiori#" + uuidV4.String(),
-		Title: "Shiori repository",
+		Bookmark: model.Bookmark{
+			URL:   "https://github.com/go-shiori/shiori#" + uuidV4.String(),
+			Title: "Shiori repository",
+		},
 	}
 }
 

@@ -191,30 +191,30 @@ func (db *PGDatabase) SaveBookmarks(ctx context.Context, create bool, bookmarks 
 		result = []model.BookmarkDTO{}
 		for _, book := range bookmarks {
 			// URL and title
-			if book.URL == "" {
+			if book.Bookmark.URL == "" {
 				return errors.New("URL must not be empty")
 			}
 
-			if book.Title == "" {
+			if book.Bookmark.Title == "" {
 				return errors.New("title must not be empty")
 			}
 
 			// Set modified time
-			if book.ModifiedAt == "" {
-				book.ModifiedAt = modifiedTime
+			if book.Bookmark.ModifiedAt == "" {
+				book.Bookmark.ModifiedAt = modifiedTime
 			}
 
 			// Save bookmark
 			var err error
 			if create {
-				book.CreatedAt = modifiedTime
+				book.Bookmark.CreatedAt = modifiedTime
 				err = stmtInsertBook.QueryRowContext(ctx,
-					book.URL, book.Title, book.Excerpt, book.Author,
-					book.Public, book.Content, book.HTML, book.ModifiedAt, book.CreatedAt).Scan(&book.ID)
+					book.Bookmark.URL, book.Bookmark.Title, book.Bookmark.Excerpt, book.Bookmark.Author,
+					book.Bookmark.Public, book.Bookmark.Content, book.Bookmark.HTML, book.Bookmark.ModifiedAt, book.Bookmark.CreatedAt).Scan(&book.Bookmark.ID)
 			} else {
 				_, err = stmtUpdateBook.ExecContext(ctx,
-					book.URL, book.Title, book.Excerpt, book.Author,
-					book.Public, book.Content, book.HTML, book.ModifiedAt, book.ID)
+					book.Bookmark.URL, book.Bookmark.Title, book.Bookmark.Excerpt, book.Bookmark.Author,
+					book.Bookmark.Public, book.Bookmark.Content, book.Bookmark.HTML, book.Bookmark.ModifiedAt, book.Bookmark.ID)
 			}
 			if err != nil {
 				return errors.WithStack(err)

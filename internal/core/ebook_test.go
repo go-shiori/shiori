@@ -28,9 +28,11 @@ func TestGenerateEbook(t *testing.T) {
 
 			mockRequest := core.ProcessRequest{
 				Bookmark: model.BookmarkDTO{
-					ID:       1,
-					Title:    "Example Bookmark",
-					HTML:     "<html><body>Example HTML</body></html>",
+					Bookmark: model.Bookmark{
+						ID:    1,
+						Title: "Example Bookmark",
+						HTML:  "<html><body>Example HTML</body></html>",
+					},
 					HasEbook: false,
 				},
 				DataDir:     tmpDir,
@@ -48,7 +50,9 @@ func TestGenerateEbook(t *testing.T) {
 			deps.Domains().SetStorage(domains.NewStorageDomain(deps, afero.NewBasePathFs(afero.NewOsFs(), tmpDir)))
 
 			bookmark := model.BookmarkDTO{
-				ID:       2,
+				Bookmark: model.Bookmark{
+					ID: 2,
+				},
 				HasEbook: false,
 			}
 			mockRequest := core.ProcessRequest{
@@ -79,7 +83,9 @@ func TestGenerateEbook(t *testing.T) {
 			deps.Domains().SetStorage(domains.NewStorageDomain(deps, afero.NewBasePathFs(afero.NewOsFs(), tmpDir)))
 
 			bookmark := model.BookmarkDTO{
-				ID:       3,
+				Bookmark: model.Bookmark{
+					ID: 3,
+				},
 				HasEbook: false,
 			}
 			mockRequest := core.ProcessRequest{
@@ -108,7 +114,9 @@ func TestGenerateEbook(t *testing.T) {
 			tmpDir := t.TempDir()
 			mockRequest := core.ProcessRequest{
 				Bookmark: model.BookmarkDTO{
-					ID:       0,
+					Bookmark: model.Bookmark{
+						ID: 0,
+					},
 					HasEbook: false,
 				},
 				DataDir:     tmpDir,
@@ -118,7 +126,9 @@ func TestGenerateEbook(t *testing.T) {
 			bookmark, err := core.GenerateEbook(deps, mockRequest, dstFile)
 
 			assert.Equal(t, model.BookmarkDTO{
-				ID:       0,
+				Bookmark: model.Bookmark{
+					ID: 0,
+				},
 				HasEbook: false,
 			}, bookmark)
 			assert.EqualError(t, err, "bookmark ID is not valid")
@@ -130,7 +140,9 @@ func TestGenerateEbook(t *testing.T) {
 			deps.Domains().SetStorage(domains.NewStorageDomain(deps, afero.NewBasePathFs(afero.NewOsFs(), tmpDir)))
 
 			bookmark := model.BookmarkDTO{
-				ID:       1,
+				Bookmark: model.Bookmark{
+					ID: 1,
+				},
 				HasEbook: false,
 			}
 			mockRequest := core.ProcessRequest{
@@ -159,7 +171,9 @@ func TestGenerateEbook(t *testing.T) {
 
 			mockRequest := core.ProcessRequest{
 				Bookmark: model.BookmarkDTO{
-					ID:       1,
+					Bookmark: model.Bookmark{
+						ID: 1,
+					},
 					HasEbook: false,
 				},
 				DataDir:     tmpDir,

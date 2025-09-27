@@ -277,30 +277,30 @@ func (db *SQLiteDatabase) SaveBookmarks(ctx context.Context, create bool, bookma
 
 		for _, book := range bookmarks {
 			// Check URL and title
-			if book.URL == "" {
+			if book.Bookmark.URL == "" {
 				return errors.New("URL must not be empty")
 			}
 
-			if book.Title == "" {
+			if book.Bookmark.Title == "" {
 				return errors.New("title must not be empty")
 			}
 
 			// Set modified time
-			if book.ModifiedAt == "" {
-				book.ModifiedAt = modifiedTime
+			if book.Bookmark.ModifiedAt == "" {
+				book.Bookmark.ModifiedAt = modifiedTime
 			}
 
-			hasContent := book.Content != ""
+			hasContent := book.Bookmark.Content != ""
 
 			// Create or update bookmark
 			var err error
 			if create {
-				book.CreatedAt = modifiedTime
+				book.Bookmark.CreatedAt = modifiedTime
 				err = stmtInsertBook.QueryRowContext(ctx,
-					book.URL, book.Title, book.Excerpt, book.Author, book.Public, book.ModifiedAt, hasContent, book.CreatedAt).Scan(&book.ID)
+					book.Bookmark.URL, book.Bookmark.Title, book.Bookmark.Excerpt, book.Bookmark.Author, book.Bookmark.Public, book.Bookmark.ModifiedAt, hasContent, book.Bookmark.CreatedAt).Scan(&book.Bookmark.ID)
 			} else {
 				_, err = stmtUpdateBook.ExecContext(ctx,
-					book.URL, book.Title, book.Excerpt, book.Author, book.Public, book.ModifiedAt, hasContent, book.ID)
+					book.Bookmark.URL, book.Bookmark.Title, book.Bookmark.Excerpt, book.Bookmark.Author, book.Bookmark.Public, book.Bookmark.ModifiedAt, hasContent, book.Bookmark.ID)
 			}
 			if err != nil {
 				return fmt.Errorf("failed to delete bookmark content: %w", err)
@@ -308,7 +308,7 @@ func (db *SQLiteDatabase) SaveBookmarks(ctx context.Context, create bool, bookma
 
 			// Try to update it first to check for existence, we can't do an UPSERT here because
 			// bookmant_content is a virtual table
-			res, err := stmtUpdateBookContent.ExecContext(ctx, book.Title, book.Content, book.HTML, book.ID)
+			res, err := stmtUpdateBookContent.ExecContext(ctx, book.Bookmark.Title, book.Bookmark.Content, book.Bookmark.HTML, book.Bookmark.ID)
 			if err != nil {
 				return fmt.Errorf("failed to delete bookmark tag: %w", err)
 			}
@@ -319,7 +319,7 @@ func (db *SQLiteDatabase) SaveBookmarks(ctx context.Context, create bool, bookma
 			}
 
 			if rows == 0 {
-				_, err = stmtInsertBookContent.ExecContext(ctx, book.ID, book.Title, book.Content, book.HTML)
+				_, err = stmtInsertBookContent.ExecContext(ctx, book.Bookmark.ID, book.Bookmark.Title, book.Bookmark.Content, book.Bookmark.HTML)
 				if err != nil {
 					return fmt.Errorf("failed to execute delete bookmark tag statement: %w", err)
 				}

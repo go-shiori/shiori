@@ -134,7 +134,7 @@ func HandleUpdateCache(deps model.Dependencies, c model.WebContext) {
 			updatedBook, err := deps.Domains().Bookmarks().UpdateBookmarkCache(c.Request().Context(), book, payload.KeepMetadata, payload.SkipExist)
 			if err != nil {
 				deps.Logger().WithError(err).Error("error updating bookmark cache")
-				chProblem <- book.ID
+				chProblem <- book.Bookmark.ID
 				return
 			}
 
@@ -391,20 +391,54 @@ func HandleCreateBookmark(deps model.Dependencies, c model.WebContext) {
 		return
 	}
 
-	// Create bookmark DTO
-	bookmark := model.BookmarkDTO{
-		URL:         payload.URL,
-		Title:       payload.Title,
-		Excerpt:     payload.Excerpt,
-		Public:      payload.Public,
-		CreateEbook: payload.CreateEbook,
+	// Create bookmark for domain operations
+	bookmark := model.Bookmark{
+		URL:     payload.URL,
+		Title:   payload.Title,
+		Excerpt: payload.Excerpt,
+		Public:  payload.Public,
 	}
 
 	// Create the bookmark
-	createdBookmark, err := deps.Domains().Bookmarks().CreateBookmark(c.Request().Context(), bookmark, payload.Tags)
+	createdBookmark, err := deps.Domains().Bookmarks().CreateBookmark(c.Request().Context(), bookmark)
 	if err != nil {
 		response.SendError(c, http.StatusInternalServerError, "Failed to create bookmark")
 		return
+	}
+
+	// Handle tags if provided
+	if len(payload.Tags) > 0 {
+		var addedTags []model.TagDTO
+		for _, tagName := range payload.Tags {
+			// Create or get tag
+			tag, err := deps.Database().CreateTag(c.Request().Context(), model.Tag{Name: tagName})
+			if err != nil {
+				// Try to find existing tag if creation failed
+				existingTags, getErr := deps.Database().GetTags(c.Request().Context(), model.DBListTagsOptions{
+					Search: tagName,
+				})
+				if getErr != nil || len(existingTags) == 0 || existingTags[0].Name != tagName {
+					response.SendError(c, http.StatusInternalServerError, fmt.Sprintf("Failed to create or find tag %s", tagName))
+					return
+				}
+				tag = model.Tag{ID: existingTags[0].ID, Name: existingTags[0].Name}
+			}
+
+			// Add tag to bookmark
+			err = deps.Domains().Bookmarks().AddTagToBookmark(c.Request().Context(), createdBookmark.ID, tag.ID)
+			if err != nil {
+				response.SendError(c, http.StatusInternalServerError, fmt.Sprintf("Failed to add tag %s to bookmark", tagName))
+				return
+			}
+
+			// Add to response tags
+			addedTags = append(addedTags, model.TagDTO{
+				Tag: tag,
+			})
+		}
+
+		// Add tags to response
+		createdBookmark.Tags = addedTags
 	}
 
 	response.SendJSON(c, http.StatusCreated, createdBookmark)
@@ -564,28 +598,98 @@ func HandleUpdateBookmark(deps model.Dependencies, c model.WebContext) {
 		return
 	}
 
+	// Convert to Bookmark for domain operations
+	bookmark := existingBookmark.ToBookmark()
+
 	// Update fields if provided
 	if payload.URL != nil {
-		existingBookmark.URL = *payload.URL
+		bookmark.URL = *payload.URL
 	}
 	if payload.Title != nil {
-		existingBookmark.Title = *payload.Title
+		bookmark.Title = *payload.Title
 	}
 	if payload.Excerpt != nil {
-		existingBookmark.Excerpt = *payload.Excerpt
-	}
-	if payload.CreateEbook != nil {
-		existingBookmark.CreateEbook = *payload.CreateEbook
+		bookmark.Excerpt = *payload.Excerpt
 	}
 	if payload.Public != nil {
-		existingBookmark.Public = *payload.Public
+		bookmark.Public = *payload.Public
 	}
 
 	// Update the bookmark
-	updatedBookmark, err := deps.Domains().Bookmarks().UpdateBookmark(c.Request().Context(), *existingBookmark, payload.Tags)
+	updatedBookmark, err := deps.Domains().Bookmarks().UpdateBookmark(c.Request().Context(), bookmark)
 	if err != nil {
 		response.SendError(c, http.StatusInternalServerError, "Failed to update bookmark")
 		return
+	}
+
+	// Handle tags if provided
+	if payload.Tags != nil {
+		// Clear existing tags if empty array provided
+		if len(payload.Tags) == 0 {
+			for _, tag := range existingBookmark.Tags {
+				err = deps.Domains().Bookmarks().RemoveTagFromBookmark(c.Request().Context(), bookmarkID, tag.ID)
+				if err != nil {
+					response.SendError(c, http.StatusInternalServerError, fmt.Sprintf("Failed to remove tag %s", tag.Name))
+					return
+				}
+			}
+		} else {
+			// Clear existing tags first
+			for _, tag := range existingBookmark.Tags {
+				err = deps.Domains().Bookmarks().RemoveTagFromBookmark(c.Request().Context(), bookmarkID, tag.ID)
+				if err != nil {
+					response.SendError(c, http.StatusInternalServerError, fmt.Sprintf("Failed to remove existing tag %s", tag.Name))
+					return
+				}
+			}
+
+			// Add new tags
+			for _, tagName := range payload.Tags {
+				// Create or get tag
+				tag, err := deps.Database().CreateTag(c.Request().Context(), model.Tag{Name: tagName})
+				if err != nil {
+					// Try to find existing tag if creation failed
+					existingTags, getErr := deps.Database().GetTags(c.Request().Context(), model.DBListTagsOptions{
+						Search: tagName,
+					})
+					if getErr != nil || len(existingTags) == 0 || existingTags[0].Name != tagName {
+						response.SendError(c, http.StatusInternalServerError, fmt.Sprintf("Failed to create or find tag %s", tagName))
+						return
+					}
+					tag = model.Tag{ID: existingTags[0].ID, Name: existingTags[0].Name}
+				}
+
+				// Add tag to bookmark
+				err = deps.Domains().Bookmarks().AddTagToBookmark(c.Request().Context(), bookmarkID, tag.ID)
+				if err != nil {
+					response.SendError(c, http.StatusInternalServerError, fmt.Sprintf("Failed to add tag %s to bookmark", tagName))
+					return
+				}
+			}
+		}
+
+		// Add tags to response if any were added
+		if len(payload.Tags) > 0 {
+			var addedTags []model.TagDTO
+			for _, tagName := range payload.Tags {
+				// Find the tag (it should exist since we just added it)
+				existingTags, err := deps.Database().GetTags(c.Request().Context(), model.DBListTagsOptions{
+					Search: tagName,
+				})
+				if err == nil && len(existingTags) > 0 && existingTags[0].Name == tagName {
+					addedTags = append(addedTags, model.TagDTO{
+						Tag: model.Tag{
+							ID:   existingTags[0].ID,
+							Name: existingTags[0].Name,
+						},
+					})
+				}
+			}
+			updatedBookmark.Tags = addedTags
+		} else {
+			// Clear tags in response
+			updatedBookmark.Tags = []model.TagDTO{}
+		}
 	}
 
 	response.SendJSON(c, http.StatusOK, updatedBookmark)

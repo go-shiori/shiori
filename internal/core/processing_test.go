@@ -76,10 +76,12 @@ func TestProcessBookmark(t *testing.T) {
 		tmpDir := t.TempDir()
 		t.Run("Normal without image", func(t *testing.T) {
 			bookmark := model.BookmarkDTO{
-				ID:            1,
-				URL:           "https://example.com",
-				Title:         "Example",
-				Excerpt:       "This is an example article",
+				Bookmark: model.Bookmark{
+					ID:      1,
+					URL:     "https://example.com",
+					Title:   "Example",
+					Excerpt: "This is an example article",
+				},
 				CreateEbook:   true,
 				CreateArchive: true,
 			}
@@ -120,10 +122,12 @@ func TestProcessBookmark(t *testing.T) {
 		  </body>
 		</html>`
 			bookmark := model.BookmarkDTO{
-				ID:            1,
-				URL:           "https://example.com",
-				Title:         "Example",
-				Excerpt:       "This is an example article",
+				Bookmark: model.Bookmark{
+					ID:      1,
+					URL:     "https://example.com",
+					Title:   "Example",
+					Excerpt: "This is an example article",
+				},
 				CreateEbook:   true,
 				CreateArchive: true,
 			}
@@ -164,10 +168,12 @@ func TestProcessBookmark(t *testing.T) {
   			</body>
 			</html>`
 			bookmark := model.BookmarkDTO{
-				ID:            1,
-				URL:           "https://example.com",
-				Title:         "Example",
-				Excerpt:       "This is an example article",
+				Bookmark: model.Bookmark{
+					ID:      1,
+					URL:     "https://example.com",
+					Title:   "Example",
+					Excerpt: "This is an example article",
+				},
 				CreateEbook:   true,
 				CreateArchive: true,
 			}
@@ -198,10 +204,12 @@ func TestProcessBookmark(t *testing.T) {
 		t.Run("ProcessRequest sucssesful with empty title ", func(t *testing.T) {
 			tmpDir := t.TempDir()
 			bookmark := model.BookmarkDTO{
-				ID:            1,
-				URL:           "https://example.com",
-				Title:         "",
-				Excerpt:       "This is an example article",
+				Bookmark: model.Bookmark{
+					ID:      1,
+					URL:     "https://example.com",
+					Title:   "",
+					Excerpt: "This is an example article",
+				},
 				CreateEbook:   true,
 				CreateArchive: true,
 			}
@@ -232,10 +240,12 @@ func TestProcessBookmark(t *testing.T) {
 		t.Run("ProcessRequest sucssesful with empty Excerpt", func(t *testing.T) {
 			tmpDir := t.TempDir()
 			bookmark := model.BookmarkDTO{
-				ID:            1,
-				URL:           "https://example.com",
-				Title:         "",
-				Excerpt:       "This is an example article",
+				Bookmark: model.Bookmark{
+					ID:      1,
+					URL:     "https://example.com",
+					Title:   "",
+					Excerpt: "This is an example article",
+				},
 				CreateEbook:   true,
 				CreateArchive: true,
 			}
@@ -268,10 +278,12 @@ func TestProcessBookmark(t *testing.T) {
 			t.Run("ProcessRequest with ID zero", func(t *testing.T) {
 
 				bookmark := model.BookmarkDTO{
-					ID:            0,
-					URL:           "https://example.com",
-					Title:         "Example",
-					Excerpt:       "This is an example article",
+					Bookmark: model.Bookmark{
+						ID:      0,
+						URL:     "https://example.com",
+						Title:   "Example",
+						Excerpt: "This is an example article",
+					},
 					CreateEbook:   true,
 					CreateArchive: true,
 				}
@@ -293,10 +305,12 @@ func TestProcessBookmark(t *testing.T) {
 			t.Run("ProcessRequest that content type not zero", func(t *testing.T) {
 				tmpDir := t.TempDir()
 				bookmark := model.BookmarkDTO{
-					ID:            1,
-					URL:           "https://example.com",
-					Title:         "Example",
-					Excerpt:       "This is an example article",
+					Bookmark: model.Bookmark{
+						ID:      1,
+						URL:     "https://example.com",
+						Title:   "Example",
+						Excerpt: "This is an example article",
+					},
 					CreateEbook:   true,
 					CreateArchive: true,
 				}
