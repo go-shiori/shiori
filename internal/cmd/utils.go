@@ -44,21 +44,21 @@ func isURLValid(s string) bool {
 func printBookmarks(bookmarks ...model.BookmarkDTO) {
 	for _, bookmark := range bookmarks {
 		// Create bookmark index
-		strBookmarkIndex := fmt.Sprintf("%d. ", bookmark.ID)
+		strBookmarkIndex := fmt.Sprintf("%d. ", bookmark.Bookmark.ID)
 		strSpace := strings.Repeat(" ", len(strBookmarkIndex))
 
 		// Print bookmark title
 		cIndex.Print(strBookmarkIndex)
-		cTitle.Println(bookmark.Title)
+		cTitle.Println(bookmark.Bookmark.Title)
 
 		// Print bookmark URL
 		cSymbol.Print(strSpace + "> ")
-		cURL.Println(bookmark.URL)
+		cURL.Println(bookmark.Bookmark.URL)
 
 		// Print bookmark excerpt
-		if bookmark.Excerpt != "" {
+		if bookmark.Bookmark.Excerpt != "" {
 			cSymbol.Print(strSpace + "+ ")
-			cExcerpt.Println(bookmark.Excerpt)
+			cExcerpt.Println(bookmark.Bookmark.Excerpt)
 		}
 
 		// Print bookmark tags

@@ -287,13 +287,135 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/bookmarks": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Bookmarks"
+                ],
+                "summary": "List bookmarks with optional filtering.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Search keyword",
+                        "name": "keyword",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Comma-separated list of tags to include",
+                        "name": "tags",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Comma-separated list of tags to exclude",
+                        "name": "exclude",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page number (default: 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Items per page (default: 30, max: 100)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.BookmarkDTO"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Token not provided/invalid"
+                    }
+                }
+            },
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Bookmarks"
+                ],
+                "summary": "Create a new bookmark.",
+                "parameters": [
+                    {
+                        "description": "Create Bookmark Payload",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api_v1.createBookmarkPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/model.BookmarkDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request payload"
+                    },
+                    "403": {
+                        "description": "Token not provided/invalid"
+                    }
+                }
+            },
+            "delete": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Bookmarks"
+                ],
+                "summary": "Delete one or more bookmarks.",
+                "parameters": [
+                    {
+                        "description": "Delete Bookmarks Payload",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api_v1.deleteBookmarksPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Invalid request payload"
+                    },
+                    "403": {
+                        "description": "Token not provided/invalid"
+                    }
+                }
+            }
+        },
         "/api/v1/bookmarks/bulk/tags": {
             "put": {
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Auth"
+                    "Bookmarks"
                 ],
                 "summary": "Bulk update tags for multiple bookmarks.",
                 "parameters": [
@@ -335,7 +457,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Auth"
+                    "Bookmarks"
                 ],
                 "summary": "Update Cache and Ebook on server.",
                 "parameters": [
@@ -368,7 +490,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Auth"
+                    "Bookmarks"
                 ],
                 "summary": "Get readable version of bookmark.",
                 "responses": {
@@ -384,13 +506,91 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/bookmarks/{id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Bookmarks"
+                ],
+                "summary": "Get a bookmark by ID.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Bookmark ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.BookmarkDTO"
+                        }
+                    },
+                    "403": {
+                        "description": "Token not provided/invalid"
+                    },
+                    "404": {
+                        "description": "Bookmark not found"
+                    }
+                }
+            },
+            "put": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Bookmarks"
+                ],
+                "summary": "Update an existing bookmark.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Bookmark ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update Bookmark Payload",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api_v1.updateBookmarkPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.BookmarkDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request payload"
+                    },
+                    "403": {
+                        "description": "Token not provided/invalid"
+                    },
+                    "404": {
+                        "description": "Bookmark not found"
+                    }
+                }
+            }
+        },
         "/api/v1/bookmarks/{id}/tags": {
             "get": {
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Auth"
+                    "Bookmarks"
                 ],
                 "summary": "Get tags for a bookmark.",
                 "parameters": [
@@ -425,7 +625,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Auth"
+                    "Bookmarks"
                 ],
                 "summary": "Add a tag to a bookmark.",
                 "parameters": [
@@ -463,7 +663,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Auth"
+                    "Bookmarks"
                 ],
                 "summary": "Remove a tag from a bookmark.",
                 "parameters": [
@@ -763,6 +963,49 @@ const docTemplate = `{
                 }
             }
         },
+        "api_v1.createBookmarkPayload": {
+            "type": "object",
+            "required": [
+                "url"
+            ],
+            "properties": {
+                "create_ebook": {
+                    "type": "boolean"
+                },
+                "excerpt": {
+                    "type": "string"
+                },
+                "public": {
+                    "type": "integer"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "title": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "api_v1.deleteBookmarksPayload": {
+            "type": "object",
+            "required": [
+                "ids"
+            ],
+            "properties": {
+                "ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
         "api_v1.infoResponse": {
             "type": "object",
             "properties": {
@@ -844,6 +1087,32 @@ const docTemplate = `{
                 }
             }
         },
+        "api_v1.updateBookmarkPayload": {
+            "type": "object",
+            "properties": {
+                "create_ebook": {
+                    "type": "boolean"
+                },
+                "excerpt": {
+                    "type": "string"
+                },
+                "public": {
+                    "type": "integer"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "title": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
         "api_v1.updateCachePayload": {
             "type": "object",
             "required": [
@@ -918,11 +1187,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "create_archive": {
-                    "description": "TODO: migrate outside the DTO",
                     "type": "boolean"
                 },
                 "create_ebook": {
-                    "description": "TODO: migrate outside the DTO",
                     "type": "boolean"
                 },
                 "createdAt": {

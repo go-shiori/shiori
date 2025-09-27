@@ -51,9 +51,11 @@ func TestHandleListTags(t *testing.T) {
 
 		// Create a bookmark with this tag
 		bookmark := model.BookmarkDTO{
-			URL:   "https://example.com/test",
-			Title: "Test Bookmark",
-			Tags:  []model.TagDTO{{Tag: model.Tag{Name: tag.Name}}},
+			Bookmark: model.Bookmark{
+				URL:   "https://example.com/test",
+				Title: "Test Bookmark",
+			},
+			Tags: []model.TagDTO{{Tag: model.Tag{Name: tag.Name}}},
 		}
 		_, err = deps.Database().SaveBookmarks(ctx, true, bookmark)
 		require.NoError(t, err)

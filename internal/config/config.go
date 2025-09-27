@@ -156,6 +156,7 @@ func (c *Config) DebugConfiguration(logger *logrus.Logger) {
 	logger.Debugf(" SHIORI_HTTP_IDLE_TIMEOUT: %s", c.Http.IDLETimeout)
 	logger.Debugf(" SHIORI_HTTP_DISABLE_KEEP_ALIVE: %t", c.Http.DisableKeepAlive)
 	logger.Debugf(" SHIORI_HTTP_DISABLE_PARSE_MULTIPART_FORM: %t", c.Http.DisablePreParseMultipartForm)
+	logger.Debugf(" SHIORI_HTTP_SERVE_SWAGGER: %t", c.Http.ServeSwagger)
 	logger.Debugf(" SHIORI_SSO_PROXY_AUTH_ENABLED: %t", c.Http.SSOProxyAuth)
 	logger.Debugf(" SHIORI_SSO_PROXY_AUTH_HEADER_NAME: %s", c.Http.SSOProxyAuthHeaderName)
 	logger.Debugf(" SHIORI_SSO_PROXY_AUTH_TRUSTED: %v", c.Http.SSOProxyAuthTrusted)

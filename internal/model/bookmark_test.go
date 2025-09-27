@@ -49,18 +49,20 @@ func TestBookmarkToDTO(t *testing.T) {
 func TestBookmarkDTOToBookmark(t *testing.T) {
 	// Create a test BookmarkDTO with all fields populated
 	dto := BookmarkDTO{
-		ID:            123,
-		URL:           "https://example.com",
-		Title:         "Example Title",
-		Excerpt:       "This is an excerpt",
-		Author:        "John Doe",
-		Public:        1,
-		CreatedAt:     "2023-01-01 12:00:00",
-		ModifiedAt:    "2023-01-02 12:00:00",
-		Content:       "This is the content",
-		HTML:          "<p>This is HTML</p>",
-		ImageURL:      "https://example.com/image.jpg",
-		HasContent:    true,
+		Bookmark: Bookmark{
+			ID:         123,
+			URL:        "https://example.com",
+			Title:      "Example Title",
+			Excerpt:    "This is an excerpt",
+			Author:     "John Doe",
+			Public:     1,
+			CreatedAt:  "2023-01-01 12:00:00",
+			ModifiedAt: "2023-01-02 12:00:00",
+			Content:    "This is the content",
+			HTML:       "<p>This is HTML</p>",
+			ImageURL:   "https://example.com/image.jpg",
+			HasContent: true,
+		},
 		Tags:          []TagDTO{{Tag: Tag{ID: 1, Name: "tag1"}}, {Tag: Tag{ID: 2, Name: "tag2"}}},
 		HasArchive:    true,
 		HasEbook:      true,
@@ -96,14 +98,14 @@ func TestGetThumbnailPath(t *testing.T) {
 		{
 			name: "With ID",
 			bookmark: BookmarkDTO{
-				ID: 123,
+				Bookmark: Bookmark{ID: 123},
 			},
 			expected: filepath.Join("thumb", "123"),
 		},
 		{
 			name: "With zero ID",
 			bookmark: BookmarkDTO{
-				ID: 0,
+				Bookmark: Bookmark{ID: 0},
 			},
 			expected: filepath.Join("thumb", "0"),
 		},
@@ -128,14 +130,14 @@ func TestGetEbookPath(t *testing.T) {
 		{
 			name: "With ID",
 			bookmark: BookmarkDTO{
-				ID: 123,
+				Bookmark: Bookmark{ID: 123},
 			},
 			expected: filepath.Join("ebook", "123.epub"),
 		},
 		{
 			name: "With zero ID",
 			bookmark: BookmarkDTO{
-				ID: 0,
+				Bookmark: Bookmark{ID: 0},
 			},
 			expected: filepath.Join("ebook", "0.epub"),
 		},
@@ -160,14 +162,14 @@ func TestGetArchivePath(t *testing.T) {
 		{
 			name: "With ID",
 			bookmark: BookmarkDTO{
-				ID: 123,
+				Bookmark: Bookmark{ID: 123},
 			},
 			expected: filepath.Join("archive", "123"),
 		},
 		{
 			name: "With zero ID",
 			bookmark: BookmarkDTO{
-				ID: 0,
+				Bookmark: Bookmark{ID: 0},
 			},
 			expected: filepath.Join("archive", "0"),
 		},

@@ -47,7 +47,7 @@ func ProcessBookmark(deps model.Dependencies, req ProcessRequest) (book model.Bo
 	contentType := req.ContentType
 
 	// Make sure bookmark ID is defined
-	if book.ID == 0 {
+	if book.Bookmark.ID == 0 {
 		return book, true, fmt.Errorf("bookmark ID is not valid")
 	}
 
@@ -69,13 +69,13 @@ func ProcessBookmark(deps model.Dependencies, req ProcessRequest) (book model.Bo
 	}
 
 	// If this is HTML, parse for readable content
-	strID := strconv.Itoa(book.ID)
+	strID := strconv.Itoa(book.Bookmark.ID)
 	imgPath := model.GetThumbnailPath(&book)
 	var imageURLs []string
 	if strings.Contains(contentType, "text/html") {
 		isReadable := readability.Check(readabilityCheckInput)
 
-		nurl, err := url.Parse(book.URL)
+		nurl, err := url.Parse(book.Bookmark.URL)
 		if err != nil {
 			return book, true, fmt.Errorf("failed to parse url: %v", err)
 		}
@@ -85,22 +85,22 @@ func ProcessBookmark(deps model.Dependencies, req ProcessRequest) (book model.Bo
 			return book, false, fmt.Errorf("failed to parse article: %v", err)
 		}
 
-		book.Author = article.Byline
-		book.Content = article.TextContent
-		book.HTML = article.Content
+		book.Bookmark.Author = article.Byline
+		book.Bookmark.Content = article.TextContent
+		book.Bookmark.HTML = article.Content
 
 		// If title and excerpt doesnt have submitted value, use from article
-		if !req.KeepTitle || book.Title == "" {
-			book.Title = article.Title
+		if !req.KeepTitle || book.Bookmark.Title == "" {
+			book.Bookmark.Title = article.Title
 		}
 
-		if !req.KeepExcerpt || book.Excerpt == "" {
-			book.Excerpt = article.Excerpt
+		if !req.KeepExcerpt || book.Bookmark.Excerpt == "" {
+			book.Bookmark.Excerpt = article.Excerpt
 		}
 
 		// Sometimes article doesn't have any title, so make sure it is not empty
-		if book.Title == "" {
-			book.Title = book.URL
+		if book.Bookmark.Title == "" {
+			book.Bookmark.Title = book.Bookmark.URL
 		}
 
 		// Get image URL
@@ -115,11 +115,11 @@ func ProcessBookmark(deps model.Dependencies, req ProcessRequest) (book model.Bo
 		}
 
 		if !isReadable {
-			book.Content = ""
+			book.Bookmark.Content = ""
 		}
 
-		book.HasContent = book.Content != ""
-		book.ModifiedAt = ""
+		book.Bookmark.HasContent = book.Bookmark.Content != ""
+		book.Bookmark.ModifiedAt = ""
 	}
 
 	// Save article image to local disk
@@ -136,8 +136,8 @@ func ProcessBookmark(deps model.Dependencies, req ProcessRequest) (book model.Bo
 			continue
 		}
 		if err == nil {
-			book.ImageURL = fp.Join("/", "bookmark", strID, "thumb")
-			book.ModifiedAt = ""
+			book.Bookmark.ImageURL = fp.Join("/", "bookmark", strID, "thumb")
+			book.Bookmark.ModifiedAt = ""
 			break
 		}
 	}
@@ -155,7 +155,7 @@ func ProcessBookmark(deps model.Dependencies, req ProcessRequest) (book model.Bo
 				return book, true, errors.Wrap(err, "failed to create ebook")
 			}
 			book.HasEbook = true
-			book.ModifiedAt = ""
+			book.Bookmark.ModifiedAt = ""
 		}
 	}
 
@@ -168,7 +168,7 @@ func ProcessBookmark(deps model.Dependencies, req ProcessRequest) (book model.Bo
 		defer os.Remove(tmpFile.Name())
 
 		archivalRequest := warc.ArchivalRequest{
-			URL:         book.URL,
+			URL:         book.Bookmark.URL,
 			Reader:      archivalInput,
 			ContentType: contentType,
 			UserAgent:   userAgent,
@@ -187,7 +187,7 @@ func ProcessBookmark(deps model.Dependencies, req ProcessRequest) (book model.Bo
 		}
 
 		book.HasArchive = true
-		book.ModifiedAt = ""
+		book.Bookmark.ModifiedAt = ""
 	}
 
 	return book, false, nil

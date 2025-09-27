@@ -42,7 +42,7 @@ type readableResponseMessage struct {
 // HandleBookmarkReadable returns the readable version of a bookmark
 //
 //	@Summary					Get readable version of bookmark.
-//	@Tags						Auth
+//	@Tags						Bookmarks
 //	@securityDefinitions.apikey	ApiKeyAuth
 //	@Produce					json
 //	@Success					200	{object}	readableResponseMessage
@@ -75,7 +75,7 @@ func HandleBookmarkReadable(deps model.Dependencies, c model.WebContext) {
 // HandleUpdateCache updates the cache and ebook for bookmarks
 //
 //	@Summary					Update Cache and Ebook on server.
-//	@Tags						Auth
+//	@Tags						Bookmarks
 //	@securityDefinitions.apikey	ApiKeyAuth
 //	@Param						payload	body	updateCachePayload	true	"Update Cache Payload"
 //	@Produce					json
@@ -134,7 +134,7 @@ func HandleUpdateCache(deps model.Dependencies, c model.WebContext) {
 			updatedBook, err := deps.Domains().Bookmarks().UpdateBookmarkCache(c.Request().Context(), book, payload.KeepMetadata, payload.SkipExist)
 			if err != nil {
 				deps.Logger().WithError(err).Error("error updating bookmark cache")
-				chProblem <- book.ID
+				chProblem <- book.Bookmark.ID
 				return
 			}
 
@@ -181,7 +181,7 @@ func (p *bulkUpdateBookmarkTagsPayload) IsValid() error {
 // HandleGetBookmarkTags gets the tags for a bookmark
 //
 //	@Summary					Get tags for a bookmark.
-//	@Tags						Auth
+//	@Tags						Bookmarks
 //	@securityDefinitions.apikey	ApiKeyAuth
 //	@Produce					json
 //	@Param						id	path		int	true	"Bookmark ID"
@@ -239,7 +239,7 @@ func (p *bookmarkTagPayload) IsValid() error {
 // HandleAddTagToBookmark adds a tag to a bookmark
 //
 //	@Summary					Add a tag to a bookmark.
-//	@Tags						Auth
+//	@Tags						Bookmarks
 //	@securityDefinitions.apikey	ApiKeyAuth
 //	@Param						id		path	int					true	"Bookmark ID"
 //	@Param						payload	body	bookmarkTagPayload	true	"Add Tag Payload"
@@ -293,7 +293,7 @@ func HandleAddTagToBookmark(deps model.Dependencies, c model.WebContext) {
 // HandleRemoveTagFromBookmark removes a tag from a bookmark
 //
 //	@Summary					Remove a tag from a bookmark.
-//	@Tags						Auth
+//	@Tags						Bookmarks
 //	@securityDefinitions.apikey	ApiKeyAuth
 //	@Param						id		path	int					true	"Bookmark ID"
 //	@Param						payload	body	bookmarkTagPayload	true	"Remove Tag Payload"
@@ -365,7 +365,7 @@ func (p *createBookmarkPayload) IsValid() error {
 // HandleCreateBookmark creates a new bookmark
 //
 //	@Summary			Create a new bookmark.
-//	@Tags				Auth
+//	@Tags				Bookmarks
 //	@securityDefinitions.apikey	ApiKeyAuth
 //	@Param				payload	body		createBookmarkPayload	true	"Create Bookmark Payload"
 //	@Produce			json
@@ -391,20 +391,54 @@ func HandleCreateBookmark(deps model.Dependencies, c model.WebContext) {
 		return
 	}
 
-	// Create bookmark DTO
-	bookmark := model.BookmarkDTO{
-		URL:         payload.URL,
-		Title:       payload.Title,
-		Excerpt:     payload.Excerpt,
-		Public:      payload.Public,
-		CreateEbook: payload.CreateEbook,
+	// Create bookmark for domain operations
+	bookmark := model.Bookmark{
+		URL:     payload.URL,
+		Title:   payload.Title,
+		Excerpt: payload.Excerpt,
+		Public:  payload.Public,
 	}
 
 	// Create the bookmark
-	createdBookmark, err := deps.Domains().Bookmarks().CreateBookmark(c.Request().Context(), bookmark, payload.Tags)
+	createdBookmark, err := deps.Domains().Bookmarks().CreateBookmark(c.Request().Context(), bookmark)
 	if err != nil {
 		response.SendError(c, http.StatusInternalServerError, "Failed to create bookmark")
 		return
+	}
+
+	// Handle tags if provided
+	if len(payload.Tags) > 0 {
+		var addedTags []model.TagDTO
+		for _, tagName := range payload.Tags {
+			// Create or get tag
+			tag, err := deps.Database().CreateTag(c.Request().Context(), model.Tag{Name: tagName})
+			if err != nil {
+				// Try to find existing tag if creation failed
+				existingTags, getErr := deps.Database().GetTags(c.Request().Context(), model.DBListTagsOptions{
+					Search: tagName,
+				})
+				if getErr != nil || len(existingTags) == 0 || existingTags[0].Name != tagName {
+					response.SendError(c, http.StatusInternalServerError, fmt.Sprintf("Failed to create or find tag %s", tagName))
+					return
+				}
+				tag = model.Tag{ID: existingTags[0].ID, Name: existingTags[0].Name}
+			}
+
+			// Add tag to bookmark
+			err = deps.Domains().Bookmarks().AddTagToBookmark(c.Request().Context(), createdBookmark.ID, tag.ID)
+			if err != nil {
+				response.SendError(c, http.StatusInternalServerError, fmt.Sprintf("Failed to add tag %s to bookmark", tagName))
+				return
+			}
+
+			// Add to response tags
+			addedTags = append(addedTags, model.TagDTO{
+				Tag: tag,
+			})
+		}
+
+		// Add tags to response
+		createdBookmark.Tags = addedTags
 	}
 
 	response.SendJSON(c, http.StatusCreated, createdBookmark)
@@ -413,7 +447,7 @@ func HandleCreateBookmark(deps model.Dependencies, c model.WebContext) {
 // HandleListBookmarks lists bookmarks with optional filtering
 //
 //	@Summary			List bookmarks with optional filtering.
-//	@Tags				Auth
+//	@Tags				Bookmarks
 //	@securityDefinitions.apikey	ApiKeyAuth
 //	@Param				keyword	query		string	false	"Search keyword"
 //	@Param				tags	query		string	false	"Comma-separated list of tags to include"
@@ -487,7 +521,7 @@ func HandleListBookmarks(deps model.Dependencies, c model.WebContext) {
 // HandleGetBookmark gets a single bookmark by ID
 //
 //	@Summary			Get a bookmark by ID.
-//	@Tags				Auth
+//	@Tags				Bookmarks
 //	@securityDefinitions.apikey	ApiKeyAuth
 //	@Param				id	path		int	true	"Bookmark ID"
 //	@Produce			json
@@ -528,7 +562,7 @@ type updateBookmarkPayload struct {
 // HandleUpdateBookmark updates an existing bookmark
 //
 //	@Summary			Update an existing bookmark.
-//	@Tags				Auth
+//	@Tags				Bookmarks
 //	@securityDefinitions.apikey	ApiKeyAuth
 //	@Param				id		path		int						true	"Bookmark ID"
 //	@Param				payload	body		updateBookmarkPayload	true	"Update Bookmark Payload"
@@ -564,28 +598,98 @@ func HandleUpdateBookmark(deps model.Dependencies, c model.WebContext) {
 		return
 	}
 
+	// Convert to Bookmark for domain operations
+	bookmark := existingBookmark.ToBookmark()
+
 	// Update fields if provided
 	if payload.URL != nil {
-		existingBookmark.URL = *payload.URL
+		bookmark.URL = *payload.URL
 	}
 	if payload.Title != nil {
-		existingBookmark.Title = *payload.Title
+		bookmark.Title = *payload.Title
 	}
 	if payload.Excerpt != nil {
-		existingBookmark.Excerpt = *payload.Excerpt
-	}
-	if payload.CreateEbook != nil {
-		existingBookmark.CreateEbook = *payload.CreateEbook
+		bookmark.Excerpt = *payload.Excerpt
 	}
 	if payload.Public != nil {
-		existingBookmark.Public = *payload.Public
+		bookmark.Public = *payload.Public
 	}
 
 	// Update the bookmark
-	updatedBookmark, err := deps.Domains().Bookmarks().UpdateBookmark(c.Request().Context(), *existingBookmark, payload.Tags)
+	updatedBookmark, err := deps.Domains().Bookmarks().UpdateBookmark(c.Request().Context(), bookmark)
 	if err != nil {
 		response.SendError(c, http.StatusInternalServerError, "Failed to update bookmark")
 		return
+	}
+
+	// Handle tags if provided
+	if payload.Tags != nil {
+		// Clear existing tags if empty array provided
+		if len(payload.Tags) == 0 {
+			for _, tag := range existingBookmark.Tags {
+				err = deps.Domains().Bookmarks().RemoveTagFromBookmark(c.Request().Context(), bookmarkID, tag.ID)
+				if err != nil {
+					response.SendError(c, http.StatusInternalServerError, fmt.Sprintf("Failed to remove tag %s", tag.Name))
+					return
+				}
+			}
+		} else {
+			// Clear existing tags first
+			for _, tag := range existingBookmark.Tags {
+				err = deps.Domains().Bookmarks().RemoveTagFromBookmark(c.Request().Context(), bookmarkID, tag.ID)
+				if err != nil {
+					response.SendError(c, http.StatusInternalServerError, fmt.Sprintf("Failed to remove existing tag %s", tag.Name))
+					return
+				}
+			}
+
+			// Add new tags
+			for _, tagName := range payload.Tags {
+				// Create or get tag
+				tag, err := deps.Database().CreateTag(c.Request().Context(), model.Tag{Name: tagName})
+				if err != nil {
+					// Try to find existing tag if creation failed
+					existingTags, getErr := deps.Database().GetTags(c.Request().Context(), model.DBListTagsOptions{
+						Search: tagName,
+					})
+					if getErr != nil || len(existingTags) == 0 || existingTags[0].Name != tagName {
+						response.SendError(c, http.StatusInternalServerError, fmt.Sprintf("Failed to create or find tag %s", tagName))
+						return
+					}
+					tag = model.Tag{ID: existingTags[0].ID, Name: existingTags[0].Name}
+				}
+
+				// Add tag to bookmark
+				err = deps.Domains().Bookmarks().AddTagToBookmark(c.Request().Context(), bookmarkID, tag.ID)
+				if err != nil {
+					response.SendError(c, http.StatusInternalServerError, fmt.Sprintf("Failed to add tag %s to bookmark", tagName))
+					return
+				}
+			}
+		}
+
+		// Add tags to response if any were added
+		if len(payload.Tags) > 0 {
+			var addedTags []model.TagDTO
+			for _, tagName := range payload.Tags {
+				// Find the tag (it should exist since we just added it)
+				existingTags, err := deps.Database().GetTags(c.Request().Context(), model.DBListTagsOptions{
+					Search: tagName,
+				})
+				if err == nil && len(existingTags) > 0 && existingTags[0].Name == tagName {
+					addedTags = append(addedTags, model.TagDTO{
+						Tag: model.Tag{
+							ID:   existingTags[0].ID,
+							Name: existingTags[0].Name,
+						},
+					})
+				}
+			}
+			updatedBookmark.Tags = addedTags
+		} else {
+			// Clear tags in response
+			updatedBookmark.Tags = []model.TagDTO{}
+		}
 	}
 
 	response.SendJSON(c, http.StatusOK, updatedBookmark)
@@ -610,7 +714,7 @@ func (p *deleteBookmarksPayload) IsValid() error {
 // HandleDeleteBookmarks deletes one or more bookmarks
 //
 //	@Summary			Delete one or more bookmarks.
-//	@Tags				Auth
+//	@Tags				Bookmarks
 //	@securityDefinitions.apikey	ApiKeyAuth
 //	@Param				payload	body		deleteBookmarksPayload	true	"Delete Bookmarks Payload"
 //	@Produce			json
@@ -646,12 +750,10 @@ func HandleDeleteBookmarks(deps model.Dependencies, c model.WebContext) {
 	response.SendJSON(c, http.StatusOK, nil)
 }
 
-
-
 // HandleBulkUpdateBookmarkTags updates the tags for multiple bookmarks
 //
 //	@Summary					Bulk update tags for multiple bookmarks.
-//	@Tags						Auth
+//	@Tags						Bookmarks
 //	@securityDefinitions.apikey	ApiKeyAuth
 //	@Param						payload	body	bulkUpdateBookmarkTagsPayload	true	"Bulk Update Bookmark Tags Payload"
 //	@Produce					json
@@ -691,4 +793,3 @@ func HandleBulkUpdateBookmarkTags(deps model.Dependencies, c model.WebContext) {
 
 	response.SendJSON(c, http.StatusOK, nil)
 }
-

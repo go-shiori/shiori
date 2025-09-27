@@ -33,28 +33,28 @@ func TestBookmarkDomain(t *testing.T) {
 	domain := domains.NewBookmarksDomain(deps)
 	t.Run("HasEbook", func(t *testing.T) {
 		t.Run("Yes", func(t *testing.T) {
-			require.True(t, domain.HasEbook(&model.BookmarkDTO{ID: 1}))
+			require.True(t, domain.HasEbook(&model.BookmarkDTO{Bookmark: model.Bookmark{ID: 1}}))
 		})
 		t.Run("No", func(t *testing.T) {
-			require.False(t, domain.HasEbook(&model.BookmarkDTO{ID: 2}))
+			require.False(t, domain.HasEbook(&model.BookmarkDTO{Bookmark: model.Bookmark{ID: 2}}))
 		})
 	})
 
 	t.Run("HasArchive", func(t *testing.T) {
 		t.Run("Yes", func(t *testing.T) {
-			require.True(t, domain.HasArchive(&model.BookmarkDTO{ID: 1}))
+			require.True(t, domain.HasArchive(&model.BookmarkDTO{Bookmark: model.Bookmark{ID: 1}}))
 		})
 		t.Run("No", func(t *testing.T) {
-			require.False(t, domain.HasArchive(&model.BookmarkDTO{ID: 2}))
+			require.False(t, domain.HasArchive(&model.BookmarkDTO{Bookmark: model.Bookmark{ID: 2}}))
 		})
 	})
 
 	t.Run("HasThumbnail", func(t *testing.T) {
 		t.Run("Yes", func(t *testing.T) {
-			require.True(t, domain.HasThumbnail(&model.BookmarkDTO{ID: 1}))
+			require.True(t, domain.HasThumbnail(&model.BookmarkDTO{Bookmark: model.Bookmark{ID: 1}}))
 		})
 		t.Run("No", func(t *testing.T) {
-			require.False(t, domain.HasThumbnail(&model.BookmarkDTO{ID: 2}))
+			require.False(t, domain.HasThumbnail(&model.BookmarkDTO{Bookmark: model.Bookmark{ID: 2}}))
 		})
 	})
 
@@ -159,9 +159,11 @@ func TestBookmarkDomain(t *testing.T) {
 
 		// Create a test bookmark
 		bookmark := model.BookmarkDTO{
-			ID:            1,
-			URL:           "https://example.com",
-			Title:         "Example",
+			Bookmark: model.Bookmark{
+				ID:    1,
+				URL:   "https://example.com",
+				Title: "Example",
+			},
 			CreateEbook:   true,
 			CreateArchive: true,
 		}
@@ -215,16 +217,15 @@ func TestBookmarksDomain_CreateBookmark(t *testing.T) {
 
 	domain := domains.NewBookmarksDomain(deps)
 
-	t.Run("successful creation without tags", func(t *testing.T) {
-		bookmark := model.BookmarkDTO{
-			URL:         "https://example.com/create-test",
-			Title:       "Create Test",
-			Excerpt:     "Test excerpt",
-			Public:      1,
-			CreateEbook: true,
+	t.Run("successful creation", func(t *testing.T) {
+		bookmark := model.Bookmark{
+			URL:     "https://example.com/create-test",
+			Title:   "Create Test",
+			Excerpt: "Test excerpt",
+			Public:  1,
 		}
 
-		createdBookmark, err := domain.CreateBookmark(ctx, bookmark, []string{})
+		createdBookmark, err := domain.CreateBookmark(ctx, bookmark)
 		require.NoError(t, err)
 		require.NotNil(t, createdBookmark)
 		require.NotZero(t, createdBookmark.ID)
@@ -232,66 +233,49 @@ func TestBookmarksDomain_CreateBookmark(t *testing.T) {
 		require.Equal(t, bookmark.Title, createdBookmark.Title)
 		require.Equal(t, bookmark.Excerpt, createdBookmark.Excerpt)
 		require.Equal(t, bookmark.Public, createdBookmark.Public)
-		require.Equal(t, bookmark.CreateEbook, createdBookmark.CreateEbook)
 	})
 
-	t.Run("successful creation with tags", func(t *testing.T) {
-		bookmark := model.BookmarkDTO{
-			URL:     "https://example.com/create-with-tags",
-			Title:   "Create With Tags Test",
-			Excerpt: "Test excerpt with tags",
+	t.Run("creation with different fields", func(t *testing.T) {
+		bookmark := model.Bookmark{
+			URL:     "https://example.com/create-with-fields",
+			Title:   "Create With Fields Test",
+			Excerpt: "Test excerpt with fields",
+			Author:  "Test Author",
+			Public:  0,
 		}
 
-		tags := []string{"test-tag", "create-tag", "domain-test"}
-		createdBookmark, err := domain.CreateBookmark(ctx, bookmark, tags)
+		createdBookmark, err := domain.CreateBookmark(ctx, bookmark)
 		require.NoError(t, err)
 		require.NotNil(t, createdBookmark)
 		require.NotZero(t, createdBookmark.ID)
 		require.Equal(t, bookmark.URL, createdBookmark.URL)
 		require.Equal(t, bookmark.Title, createdBookmark.Title)
-
-		// Verify tags were created and associated
-		require.Len(t, createdBookmark.Tags, len(tags))
-		tagNames := make([]string, len(createdBookmark.Tags))
-		for i, tag := range createdBookmark.Tags {
-			tagNames[i] = tag.Name
-		}
-		for _, expectedTag := range tags {
-			require.Contains(t, tagNames, expectedTag)
-		}
+		require.Equal(t, bookmark.Author, createdBookmark.Author)
+		require.Equal(t, bookmark.Public, createdBookmark.Public)
 	})
 
-	t.Run("creation with duplicate tags", func(t *testing.T) {
-		bookmark := model.BookmarkDTO{
-			URL:   "https://example.com/duplicate-tags",
-			Title: "Duplicate Tags Test",
+	t.Run("creation with minimal fields", func(t *testing.T) {
+		bookmark := model.Bookmark{
+			URL:   "https://example.com/minimal-fields",
+			Title: "Minimal", // Title is required
 		}
 
-		// Create a tag first
-		existingTag, err := deps.Database().CreateTag(ctx, model.Tag{Name: "existing-tag"})
-		require.NoError(t, err)
-
-		tags := []string{"existing-tag", "new-tag"}
-		createdBookmark, err := domain.CreateBookmark(ctx, bookmark, tags)
+		createdBookmark, err := domain.CreateBookmark(ctx, bookmark)
 		require.NoError(t, err)
 		require.NotNil(t, createdBookmark)
-
-		// Should handle existing tags gracefully
-		require.Len(t, createdBookmark.Tags, 2)
-		tagIDs := make([]int, len(createdBookmark.Tags))
-		for i, tag := range createdBookmark.Tags {
-			tagIDs[i] = tag.ID
-		}
-		require.Contains(t, tagIDs, existingTag.ID)
+		require.NotZero(t, createdBookmark.ID)
+		require.Equal(t, bookmark.URL, createdBookmark.URL)
+		require.Equal(t, bookmark.Title, createdBookmark.Title)
+		require.Equal(t, "", createdBookmark.Author) // Other fields should be empty
 	})
 
 	t.Run("creation failure", func(t *testing.T) {
 		// Create a bookmark with invalid data to trigger failure
-		bookmark := model.BookmarkDTO{
+		bookmark := model.Bookmark{
 			URL: "", // Empty URL should cause validation error
 		}
 
-		createdBookmark, err := domain.CreateBookmark(ctx, bookmark, []string{})
+		createdBookmark, err := domain.CreateBookmark(ctx, bookmark)
 		require.Error(t, err)
 		require.Nil(t, createdBookmark)
 	})
@@ -304,7 +288,7 @@ func TestBookmarksDomain_UpdateBookmark(t *testing.T) {
 
 	domain := domains.NewBookmarksDomain(deps)
 
-	t.Run("successful update without tags", func(t *testing.T) {
+	t.Run("successful update", func(t *testing.T) {
 		// Create initial bookmark
 		bookmark := testutil.GetValidBookmark()
 		bookmark.Title = "Original Title"
@@ -313,78 +297,65 @@ func TestBookmarksDomain_UpdateBookmark(t *testing.T) {
 		require.Len(t, savedBookmarks, 1)
 
 		// Update the bookmark
-		updatedBookmark := savedBookmarks[0]
-		updatedBookmark.Title = "Updated Title"
-		updatedBookmark.Excerpt = "Updated excerpt"
+		updateData := savedBookmarks[0].ToBookmark()
+		updateData.Title = "Updated Title"
+		updateData.Excerpt = "Updated excerpt"
 
-		result, err := domain.UpdateBookmark(ctx, updatedBookmark, nil)
+		result, err := domain.UpdateBookmark(ctx, updateData)
 		require.NoError(t, err)
 		require.NotNil(t, result)
-		require.Equal(t, updatedBookmark.ID, result.ID)
+		require.Equal(t, updateData.ID, result.ID)
 		require.Equal(t, "Updated Title", result.Title)
 		require.Equal(t, "Updated excerpt", result.Excerpt)
 	})
 
-	t.Run("successful update with tags", func(t *testing.T) {
+	t.Run("update with different fields", func(t *testing.T) {
 		// Create initial bookmark
 		bookmark := testutil.GetValidBookmark()
-		bookmark.Title = "Update With Tags"
+		bookmark.Title = "Update With Fields"
 		savedBookmarks, err := deps.Database().SaveBookmarks(ctx, true, *bookmark)
 		require.NoError(t, err)
 		require.Len(t, savedBookmarks, 1)
 
-		// Update with tags
-		updatedBookmark := savedBookmarks[0]
-		tags := []string{"updated-tag", "test-tag"}
+		// Update with different fields
+		updateData := savedBookmarks[0].ToBookmark()
+		updateData.Author = "Updated Author"
+		updateData.Public = 1
 
-		result, err := domain.UpdateBookmark(ctx, updatedBookmark, tags)
+		result, err := domain.UpdateBookmark(ctx, updateData)
 		require.NoError(t, err)
 		require.NotNil(t, result)
-		require.Equal(t, updatedBookmark.ID, result.ID)
-
-		// Verify tags were updated
-		require.Len(t, result.Tags, len(tags))
-		tagNames := make([]string, len(result.Tags))
-		for i, tag := range result.Tags {
-			tagNames[i] = tag.Name
-		}
-		for _, expectedTag := range tags {
-			require.Contains(t, tagNames, expectedTag)
-		}
+		require.Equal(t, updateData.ID, result.ID)
+		require.Equal(t, "Updated Author", result.Author)
+		require.Equal(t, 1, result.Public)
 	})
 
-	t.Run("update with empty tags array", func(t *testing.T) {
-		// Create initial bookmark with tags
+	t.Run("update with same values", func(t *testing.T) {
+		// Create initial bookmark
 		bookmark := testutil.GetValidBookmark()
-		bookmark.Title = "Clear Tags Test"
+		bookmark.Title = "Same Values Test"
 		savedBookmarks, err := deps.Database().SaveBookmarks(ctx, true, *bookmark)
 		require.NoError(t, err)
 		require.Len(t, savedBookmarks, 1)
 
-		// Add some tags first
-		tag, err := deps.Database().CreateTag(ctx, model.Tag{Name: "to-be-removed"})
-		require.NoError(t, err)
-		err = deps.Database().AddTagToBookmark(ctx, savedBookmarks[0].ID, tag.ID)
-		require.NoError(t, err)
+		// Update with same values
+		updateData := savedBookmarks[0].ToBookmark()
 
-		// Update with empty tags
-		updatedBookmark := savedBookmarks[0]
-		result, err := domain.UpdateBookmark(ctx, updatedBookmark, []string{})
+		result, err := domain.UpdateBookmark(ctx, updateData)
 		require.NoError(t, err)
 		require.NotNil(t, result)
-
-		// Tags should be cleared
-		require.Len(t, result.Tags, 0)
+		require.Equal(t, updateData.ID, result.ID)
+		require.Equal(t, updateData.Title, result.Title)
 	})
 
 	t.Run("update non-existent bookmark", func(t *testing.T) {
-		nonExistentBookmark := model.BookmarkDTO{
+		nonExistentBookmark := model.Bookmark{
 			ID:    999999,
 			URL:   "https://example.com/non-existent",
 			Title: "Non-existent",
 		}
 
-		result, err := domain.UpdateBookmark(ctx, nonExistentBookmark, nil)
+		result, err := domain.UpdateBookmark(ctx, nonExistentBookmark)
 		require.Error(t, err)
 		require.Nil(t, result)
 	})
