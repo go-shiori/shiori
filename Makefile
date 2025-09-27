@@ -145,6 +145,20 @@ coverage:
 	$(GO) test $(GO_TEST_FLAGS) -coverprofile=coverage.txt $(SOURCE_FILES)
 	$(GO) tool cover -html=coverage.txt
 
+## Generate TypeScript client
+.PHONY: generate-client
+generate-client: swagger
+	rm -rf ./clients/ts
+	openapi-generator generate -i $(SWAGGER_DOCS_PATH)/swagger.json -g typescript-fetch -o ./clients/ts --skip-validate-spec \
+		--additional-properties=typescriptThreePlus=true,supportsES6=true,npmName=shiori-api,npmVersion=1.0.0
+
+## Build TypeScript client to JavaScript for frontend
+.PHONY: build-client
+build-client: generate-client
+	cd ./clients/ts && bun install && bun run build
+	mkdir -p ./internal/view/assets/js/client
+	cd ./clients/ts && bun build ./wrapper.js --outfile=../../internal/view/assets/js/client/shiori-api.js --format=iife
+
 ## Run generate accross the project
 .PHONY: generate
 generate:
