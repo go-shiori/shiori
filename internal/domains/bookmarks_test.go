@@ -18,8 +18,8 @@ func TestBookmarkDomain(t *testing.T) {
 	fs := afero.NewMemMapFs()
 	ctx := context.Background()
 	logger := logrus.New()
-	_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
 
+	_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
 	deps.Domains().SetStorage(domains.NewStorageDomain(deps, fs))
 
 	fs.MkdirAll("thumb", 0755)

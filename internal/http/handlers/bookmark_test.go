@@ -116,7 +116,7 @@ func TestBookmarkFileHandlers(t *testing.T) {
 	bookmarks, err := deps.Database().SaveBookmarks(context.TODO(), true, *bookmark)
 	require.NoError(t, err)
 
-	bookmark, err = deps.Domains().Archiver().DownloadBookmarkArchive(bookmarks[0])
+	bookmark, err = deps.Domains().Archiver().GenerateBookmarkArchive(bookmarks[0])
 	require.NoError(t, err)
 
 	bookmarks, err = deps.Database().SaveBookmarks(context.TODO(), false, *bookmark)

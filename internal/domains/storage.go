@@ -96,3 +96,26 @@ func (d *StorageDomain) WriteFile(dst string, tmpFile *os.File) error {
 
 	return nil
 }
+
+// WriteReader writes a reader to storage.
+func (d *StorageDomain) WriteReader(dst string, reader io.Reader) error {
+	if dst != "" && !d.DirExists(dst) {
+		err := d.fs.MkdirAll(filepath.Dir(dst), model.DataDirPerm)
+		if err != nil {
+			return fmt.Errorf("failed to create destination dir: %v", err)
+		}
+	}
+
+	dstFile, err := d.fs.Create(dst)
+	if err != nil {
+		return fmt.Errorf("failed to create destination file: %v", err)
+	}
+	defer dstFile.Close()
+
+	_, err = io.Copy(dstFile, reader)
+	if err != nil {
+		return fmt.Errorf("failed to copy file to the destination")
+	}
+
+	return nil
+}
