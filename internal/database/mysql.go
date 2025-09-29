@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-shiori/shiori/internal/database/migrations"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/huandu/go-sqlbuilder"
 	"github.com/jmoiron/sqlx"
@@ -68,12 +69,20 @@ var mysqlMigrations = []migration{
 	newFileMigration("0.8.2", "0.8.3", "mysql/0008_set_modified_at_equal_created_at"),
 	newFileMigration("0.8.3", "0.8.4", "mysql/0009_index_for_created_at"),
 	newFileMigration("0.8.4", "0.8.5", "mysql/0010_index_for_modified_at"),
+	newFileMigration("0.8.5", "0.9.0", "mysql/0011_bookmark_archiver"),
+	newFuncMigration("0.9.0", "0.9.1", func(db *sql.DB) error {
+		return migrations.MigrateArchiverMigration(db, "mysql")
+	}),
 }
 
 // MySQLDatabase is implementation of Database interface
 // for connecting to MySQL or MariaDB database.
 type MySQLDatabase struct {
 	dbbase
+}
+
+func mysqlDatabaseFromDB(db *sqlx.DB) *MySQLDatabase {
+	return &MySQLDatabase{dbbase: NewDBBase(db, db, sqlbuilder.MySQL)}
 }
 
 // OpenMySQLDatabase creates and opens connection to a MySQL Database.
@@ -138,8 +147,8 @@ func (db *MySQLDatabase) SaveBookmarks(ctx context.Context, create bool, bookmar
 	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
 		// Prepare statement
 		stmtInsertBook, err := tx.Preparex(`INSERT INTO bookmark
-			(url, title, excerpt, author, public, content, html, modified_at, created_at)
-			VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+			(url, title, excerpt, author, public, content, html, modified_at, created_at, archiver, archive_path)
+			VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
 		if err != nil {
 			return errors.WithStack(err)
 		}
@@ -152,7 +161,9 @@ func (db *MySQLDatabase) SaveBookmarks(ctx context.Context, create bool, bookmar
 			public   = ?,
 			content  = ?,
 			html     = ?,
-			modified_at = ?
+			modified_at = ?,
+			archiver = ?,
+			archive_path = ?
 		WHERE id = ?`)
 		if err != nil {
 			return errors.WithStack(err)
@@ -207,7 +218,8 @@ func (db *MySQLDatabase) SaveBookmarks(ctx context.Context, create bool, bookmar
 				var res sql.Result
 				res, err = stmtInsertBook.ExecContext(ctx,
 					book.URL, book.Title, book.Excerpt, book.Author,
-					book.Public, book.Content, book.HTML, book.ModifiedAt, book.CreatedAt)
+					book.Public, book.Content, book.HTML, book.ModifiedAt, book.CreatedAt,
+					book.Archiver, book.ArchivePath)
 				if err != nil {
 					return errors.WithStack(err)
 				}
@@ -219,7 +231,8 @@ func (db *MySQLDatabase) SaveBookmarks(ctx context.Context, create bool, bookmar
 			} else {
 				_, err = stmtUpdateBook.ExecContext(ctx,
 					book.URL, book.Title, book.Excerpt, book.Author,
-					book.Public, book.Content, book.HTML, book.ModifiedAt, book.ID)
+					book.Public, book.Content, book.HTML, book.ModifiedAt,
+					book.Archiver, book.ArchivePath, book.ID)
 			}
 			if err != nil {
 				return errors.WithStack(err)
@@ -573,7 +586,7 @@ func (db *MySQLDatabase) GetBookmark(ctx context.Context, id int, url string) (m
 	sb := sqlbuilder.NewSelectBuilder()
 	sb.Select(
 		"id", "url", "title", "excerpt", "author", `public`, "modified_at",
-		"content", "html", "created_at", "has_content")
+		"content", "html", "created_at", "content <> '' as has_content")
 	sb.From("bookmark")
 
 	// Add conditions

@@ -118,6 +118,10 @@ definitions:
     type: object
   model.BookmarkDTO:
     properties:
+      archivePath:
+        type: string
+      archiver:
+        type: string
       author:
         type: string
       create_archive:

@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-shiori/shiori/internal/database/migrations"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/huandu/go-sqlbuilder"
 	"github.com/jmoiron/sqlx"
@@ -70,12 +71,20 @@ var postgresMigrations = []migration{
 		return nil
 	}),
 	newFileMigration("0.3.0", "0.4.0", "postgres/0002_created_time"),
+	newFileMigration("0.4.0", "0.5.0", "postgres/0003_bookmark_archiver"),
+	newFuncMigration("0.5.0", "0.5.1", func(db *sql.DB) error {
+		return migrations.MigrateArchiverMigration(db, "postgres")
+	}),
 }
 
 // PGDatabase is implementation of Database interface
 // for connecting to PostgreSQL database.
 type PGDatabase struct {
 	dbbase
+}
+
+func postgresDatabaseFromDB(db *sqlx.DB) *PGDatabase {
+	return &PGDatabase{dbbase: NewDBBase(db, db, sqlbuilder.PostgreSQL)}
 }
 
 // OpenPGDatabase creates and opens connection to a PostgreSQL Database.
@@ -141,8 +150,8 @@ func (db *PGDatabase) SaveBookmarks(ctx context.Context, create bool, bookmarks 
 	if err := db.withTx(ctx, func(tx *sqlx.Tx) error {
 		// Prepare statement
 		stmtInsertBook, err := tx.Preparex(`INSERT INTO bookmark
-			(url, title, excerpt, author, public, content, html, modified_at, created_at)
-			VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9)
+			(url, title, excerpt, author, public, content, html, modified_at, created_at, archiver, archive_path)
+			VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
 		RETURNING id`)
 		if err != nil {
 			return errors.WithStack(err)
@@ -156,8 +165,10 @@ func (db *PGDatabase) SaveBookmarks(ctx context.Context, create bool, bookmarks 
 			public   = $5,
 			content  = $6,
 			html     = $7,
-			modified_at = $8
-			WHERE id = $9`)
+			modified_at = $8,
+			archiver = $9,
+			archive_path = $10
+			WHERE id = $11`)
 		if err != nil {
 			return errors.WithStack(err)
 		}
@@ -210,11 +221,14 @@ func (db *PGDatabase) SaveBookmarks(ctx context.Context, create bool, bookmarks 
 				book.CreatedAt = modifiedTime
 				err = stmtInsertBook.QueryRowContext(ctx,
 					book.URL, book.Title, book.Excerpt, book.Author,
-					book.Public, book.Content, book.HTML, book.ModifiedAt, book.CreatedAt).Scan(&book.ID)
+					book.Public, book.Content, book.HTML, book.ModifiedAt, book.CreatedAt,
+					book.Archiver, book.ArchivePath).Scan(&book.ID)
 			} else {
 				_, err = stmtUpdateBook.ExecContext(ctx,
 					book.URL, book.Title, book.Excerpt, book.Author,
-					book.Public, book.Content, book.HTML, book.ModifiedAt, book.ID)
+					book.Public, book.Content, book.HTML, book.ModifiedAt,
+					book.Archiver, book.ArchivePath,
+					book.ID)
 			}
 			if err != nil {
 				return errors.WithStack(err)
@@ -286,9 +300,11 @@ func (db *PGDatabase) GetBookmarks(ctx context.Context, opts model.DBGetBookmark
 		`excerpt`,
 		`author`,
 		`public`,
-		`created_at`,
 		`modified_at`,
-		`content <> '' has_content`}
+		`created_at`,
+		`content <> '' has_content,
+		archiver,
+		archive_path`}
 
 	if opts.WithContent {
 		columns = append(columns, `content`, `html`)
@@ -582,7 +598,7 @@ func (db *PGDatabase) GetBookmark(ctx context.Context, id int, url string) (mode
 	sb := sqlbuilder.PostgreSQL.NewSelectBuilder()
 	sb.Select(
 		"id", "url", "title", "excerpt", "author", `"public"`, "modified_at",
-		"content", "html", "created_at", "has_content")
+		"content", "html", "created_at", "content <> '' as has_content")
 	sb.From("bookmark")
 
 	// Add conditions

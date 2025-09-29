@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+	"io"
 	"io/fs"
 	"os"
 	"time"
@@ -38,17 +39,22 @@ type AccountsDomain interface {
 }
 
 type ArchiverDomain interface {
-	DownloadBookmarkArchive(book BookmarkDTO) (*BookmarkDTO, error)
+	GenerateBookmarkArchive(book BookmarkDTO) (*BookmarkDTO, error)
+	GenerateBookmarkEbook(book EbookProcessRequest) error
+	ProcessBookmarkArchive(*ArchiverRequest) (*BookmarkDTO, error)
+	GetBookmarkArchiveFile(book *BookmarkDTO, archivePath string) (*ArchiveFile, error)
 	GetBookmarkArchive(book *BookmarkDTO) (*warc.Archive, error)
 }
 
 type StorageDomain interface {
+	// Open(name string) (os.File, error)
 	Stat(name string) (fs.FileInfo, error)
 	FS() afero.Fs
 	FileExists(path string) bool
 	DirExists(path string) bool
 	WriteData(dst string, data []byte) error
 	WriteFile(dst string, src *os.File) error
+	WriteReader(dst string, src io.Reader) error
 }
 
 type TagsDomain interface {

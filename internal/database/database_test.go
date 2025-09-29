@@ -250,8 +250,10 @@ func testGetBookmark(t *testing.T, db model.DB) {
 	ctx := context.TODO()
 
 	book := model.BookmarkDTO{
-		URL:   "https://github.com/go-shiori/shiori",
-		Title: "shiori",
+		URL:         "https://github.com/go-shiori/shiori",
+		Title:       "shiori",
+		Archiver:    model.ArchiverPDF,
+		ArchivePath: "test",
 	}
 
 	result, err := db.SaveBookmarks(ctx, true, book)
@@ -262,6 +264,9 @@ func testGetBookmark(t *testing.T, db model.DB) {
 	assert.True(t, exists, "Bookmark should exist")
 	assert.Equal(t, result[0].ID, savedBookmark.ID, "Retrieved bookmark should be the same")
 	assert.Equal(t, book.URL, savedBookmark.URL, "Retrieved bookmark should be the same")
+	assert.Equal(t, book.Title, savedBookmark.Title, "Retrieved bookmark should be the same")
+	assert.Equal(t, book.Archiver, savedBookmark.Archiver, "Retrieved bookmark should be the same")
+	assert.Equal(t, book.ArchivePath, savedBookmark.ArchivePath, "Retrieved bookmark should be the same")
 }
 
 func testGetBookmarkNotExistent(t *testing.T, db model.DB) {

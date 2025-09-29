@@ -14,24 +14,30 @@ import (
 // GenerateEbook receives a `ProcessRequest` and generates an ebook file in the destination path specified.
 // The destination path `dstPath` should include file name with ".epub" extension
 // The bookmark model will be used to update the UI based on whether this function is successful or not.
-func GenerateEbook(deps model.Dependencies, req ProcessRequest, dstPath string) (book model.BookmarkDTO, err error) {
+func GenerateEbook(deps model.Dependencies, req ProcessRequest) (book model.BookmarkDTO, err error) {
 	book = req.Bookmark
+	dstPath := model.GetEbookPath(&book)
 
 	// Make sure bookmark ID is defined
 	if book.ID == 0 {
 		return book, errors.New("bookmark ID is not valid")
 	}
 
+	if deps.Domains().Storage().FileExists(dstPath) {
+		book.HasEbook = true
+		return book, nil
+	}
+
 	// Get current state of bookmark cheak archive and thumb
 	strID := strconv.Itoa(book.ID)
 
 	bookmarkThumbnailPath := model.GetThumbnailPath(&book)
-	bookmarkArchivePath := model.GetArchivePath(&book)
 
 	if deps.Domains().Storage().FileExists(bookmarkThumbnailPath) {
 		book.ImageURL = fp.Join("/", "bookmark", strID, "thumb")
 	}
 
+	bookmarkArchivePath := model.GetArchivePath(&book)
 	if deps.Domains().Storage().FileExists(bookmarkArchivePath) {
 		book.HasArchive = true
 	}
@@ -42,7 +48,6 @@ func GenerateEbook(deps model.Dependencies, req ProcessRequest, dstPath string) 
 	if strings.Contains(contentType, "application/pdf") {
 		return book, errors.New("can't create ebook for pdf")
 	}
-
 	// Create temporary epub file
 	tmpFile, err := os.CreateTemp("", "ebook")
 	if err != nil {
