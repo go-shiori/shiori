@@ -102,16 +102,17 @@ func HandleGetTag(deps model.Dependencies, c model.WebContext) {
 }
 
 // @Summary					Create tag
-// @Description				Create a new tag
+// @Description				Create a new tag. If a tag with the same name already exists, returns 204 No Content.
 // @Tags						Tags
 // @securityDefinitions.apikey	ApiKeyAuth
 // @Accept						json
 // @Produce					json
 // @Param						tag	body		model.TagDTO	true	"Tag data"
-// @Success					201	{object}	model.TagDTO
-// @Failure					400	{object}	nil	"Invalid request"
-// @Failure					403	{object}	nil	"Authentication required"
-// @Failure					500	{object}	nil	"Internal server error"
+// @Success					201	{object}	model.TagDTO	"Tag created"
+// @Success					204	{object}	nil				"Tag already exists"
+// @Failure					400	{object}	nil				"Invalid request"
+// @Failure					403	{object}	nil				"Authentication required"
+// @Failure					500	{object}	nil				"Internal server error"
 // @Router						/api/v1/tags [post]
 func HandleCreateTag(deps model.Dependencies, c model.WebContext) {
 	if err := middleware.RequireLoggedInUser(deps, c); err != nil {
@@ -130,6 +131,26 @@ func HandleCreateTag(deps model.Dependencies, c model.WebContext) {
 		return
 	}
 
+	// Check if tag with the same name already exists
+	existingTags, err := deps.Domains().Tags().ListTags(c.Request().Context(), model.ListTagsOptions{
+		Search: tag.Name,
+	})
+	if err != nil {
+		deps.Logger().WithError(err).Error("failed to check existing tags")
+		response.SendInternalServerError(c)
+		return
+	}
+
+	// Look for exact match
+	for _, existingTag := range existingTags {
+		if existingTag.Name == tag.Name {
+			// Tag already exists, return 204 No Content
+			response.SendJSON(c, http.StatusNoContent, nil)
+			return
+		}
+	}
+
+	// Tag doesn't exist, create it
 	createdTag, err := deps.Domains().Tags().CreateTag(c.Request().Context(), tag)
 	if err != nil {
 		deps.Logger().WithError(err).Error("failed to create tag")

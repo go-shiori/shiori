@@ -22,16 +22,10 @@ definitions:
     type: object
   api_v1.createBookmarkPayload:
     properties:
-      create_ebook:
-        type: boolean
       excerpt:
         type: string
       public:
         type: integer
-      tags:
-        items:
-          type: string
-        type: array
       title:
         type: string
       url:
@@ -102,16 +96,10 @@ definitions:
     type: object
   api_v1.updateBookmarkPayload:
     properties:
-      create_ebook:
-        type: boolean
       excerpt:
         type: string
       public:
         type: integer
-      tags:
-        items:
-          type: string
-        type: array
       title:
         type: string
       url:
@@ -727,7 +715,8 @@ paths:
     post:
       consumes:
       - application/json
-      description: Create a new tag
+      description: Create a new tag. If a tag with the same name already exists, returns
+        204 No Content.
       parameters:
       - description: Tag data
         in: body
@@ -739,9 +728,11 @@ paths:
       - application/json
       responses:
         "201":
-          description: Created
+          description: Tag created
           schema:
             $ref: '#/definitions/model.TagDTO'
+        "204":
+          description: Tag already exists
         "400":
           description: Invalid request
         "403":

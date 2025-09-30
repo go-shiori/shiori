@@ -161,5 +161,5 @@ build-client: generate-client
 
 ## Run generate accross the project
 .PHONY: generate
-generate:
+generate: styles
 	$(GO) generate ./...

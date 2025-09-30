@@ -376,6 +376,41 @@ func TestHandleCreateTag(t *testing.T) {
 			require.Greater(t, value.(float64), float64(0)) // TODO: Float64??
 		})
 	})
+
+	t.Run("tag already exists returns 204", func(t *testing.T) {
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+
+		// Create a tag first
+		tag := model.Tag{Name: "duplicate-test-tag"}
+		createdTags, err := deps.Database().CreateTags(ctx, tag)
+		require.NoError(t, err)
+		require.Len(t, createdTags, 1)
+
+		// Try to create the same tag again via API
+		w := testutil.PerformRequest(
+			deps,
+			HandleCreateTag,
+			"POST",
+			"/api/v1/tags",
+			testutil.WithFakeUser(),
+			testutil.WithBody(`{"name": "duplicate-test-tag"}`),
+		)
+		require.Equal(t, http.StatusNoContent, w.Code)
+
+		// Verify no duplicate was created by searching for the tag
+		tags, err := deps.Domains().Tags().ListTags(ctx, model.ListTagsOptions{
+			Search: "duplicate-test-tag",
+		})
+		require.NoError(t, err)
+
+		duplicateCount := 0
+		for _, t := range tags {
+			if t.Name == "duplicate-test-tag" {
+				duplicateCount++
+			}
+		}
+		require.Equal(t, 1, duplicateCount, "Should only have one tag with this name")
+	})
 }
 
 func TestHandleUpdateTag(t *testing.T) {

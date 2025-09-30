@@ -92,7 +92,12 @@ import bookmarkItem from "../component/bookmark.js";
 import customDialog from "../component/dialog.js";
 import basePage from "./base.js";
 import EventBus from "../component/eventBus.js";
-import { apiRequest } from "../utils/api.js";
+import {
+	apiRequest,
+	bookmarksApi,
+	tagsApi,
+	getErrorMessage,
+} from "../utils/api.js";
 
 Vue.prototype.$bus = EventBus;
 
@@ -162,6 +167,39 @@ export default {
 			this.search = "";
 			this.searchBookmarks();
 		},
+		async createOrFindTag(tagName) {
+			// First, try to find existing tag
+			const tags = await tagsApi.apiV1TagsGet({
+				search: tagName,
+			});
+
+			// Find exact match
+			const existingTag = tags.find((t) => t.name === tagName);
+			if (existingTag) {
+				return existingTag.id;
+			}
+
+			// Tag doesn't exist, create it
+			const tag = await tagsApi.apiV1TagsPost({
+				tag: { name: tagName },
+			});
+
+			// If tag was created (201), return the ID
+			if (tag && tag.id) {
+				return tag.id;
+			}
+
+			// If tag already exists (204 No Content - race condition), search again
+			const tagsRetry = await tagsApi.apiV1TagsGet({
+				search: tagName,
+			});
+			const existingTagRetry = tagsRetry.find((t) => t.name === tagName);
+			if (existingTagRetry) {
+				return existingTagRetry.id;
+			}
+
+			throw new Error(`Tag "${tagName}" not found after creation`);
+		},
 		reloadData() {
 			if (this.loading) return;
 			this.page = 1;
@@ -181,7 +219,7 @@ export default {
 				rxExcludeTagB = /(^|\s)-tag:(\S+)/i, // -tag:without-space
 				rxIncludeTagA = /(^|\s)tag:["']([^"']+)["']/i, // tag:"with space"
 				rxIncludeTagB = /(^|\s)tag:(\S+)/i, // tag:without-space
-				tags = [],
+				searchTags = [],
 				excludedTags = [],
 				rxResult;
 
@@ -199,37 +237,34 @@ export default {
 			// Get included tags
 			while ((rxResult = rxIncludeTagA.exec(keyword))) {
 				keyword = keyword.replace(rxResult[0], "");
-				tags.push(rxResult[2]);
+				searchTags.push(rxResult[2]);
 			}
 
 			while ((rxResult = rxIncludeTagB.exec(keyword))) {
 				keyword = keyword.replace(rxResult[0], "");
-				tags.push(rxResult[2]);
+				searchTags.push(rxResult[2]);
 			}
 
 			// Trim keyword
 			keyword = keyword.trim().replace(/\s+/g, " ");
 
-			// Prepare URL for API
-			var url = new URL("api/bookmarks", document.baseURI);
-			url.search = new URLSearchParams({
-				keyword: keyword,
-				tags: tags.join(","),
-				exclude: excludedTags.join(","),
-				page: this.page,
-			});
-
-			// Fetch data from API
+			// Fetch data from API using new BookmarksApi
 			var skipFetchTags = Error("skip fetching tags");
 
 			this.loading = true;
 			try {
-				const json = await apiRequest(url);
+				const bookmarks = await bookmarksApi.apiV1BookmarksGet({
+					keyword: keyword,
+					tags: searchTags.join(","),
+					exclude: excludedTags.join(","),
+					page: this.page,
+					limit: 30,
+				});
 
-				// Set data
-				this.page = json.page;
-				this.maxPage = json.maxPage;
-				this.bookmarks = json.bookmarks;
+				// Set data - new API returns direct array, no pagination info yet
+				this.bookmarks = bookmarks;
+				// TODO: Update when pagination is implemented in v1 API
+				this.maxPage = 1;
 
 				// Save state and change URL if needed
 				if (saveState) {
@@ -252,12 +287,11 @@ export default {
 				// Fetch tags if needed
 				if (!fetchTags) throw skipFetchTags;
 
-				const tagsUrl = new URL("api/tags", document.baseURI);
-				const tagsJson = await apiRequest(tagsUrl);
-				this.tags = tagsJson;
+				const allTags = await tagsApi.apiV1TagsGet();
+				this.tags = allTags;
 			} catch (err) {
 				if (err !== skipFetchTags) {
-					this.showErrorDialog(err.message);
+					this.showErrorDialog(getErrorMessage(err));
 				}
 			} finally {
 				this.loading = false;
@@ -409,43 +443,67 @@ export default {
 						return;
 					}
 
-					// Prepare tags
-					var tags = data.tags
+					// Parse tag names
+					var tagNames = data.tags
 						.toLowerCase()
 						.replace(/\s+/g, " ")
 						.split(/\s*,\s*/g)
 						.filter((tag) => tag.trim() !== "")
-						.map((tag) => ({
-							name: tag.trim(),
-						}));
-
-					// Send data
-					var requestData = {
-						url: data.url.trim(),
-						title: data.title.trim(),
-						excerpt: data.excerpt.trim(),
-						public: data.makePublic ? 1 : 0,
-						tags: tags,
-						create_archive: data.create_archive,
-						create_ebook: data.create_ebook,
-					};
+						.map((tag) => tag.trim());
 
 					this.dialog.loading = true;
 					try {
-						const json = await apiRequest(
-							new URL("api/bookmarks", document.baseURI),
-							{
-								method: "post",
-								body: JSON.stringify(requestData),
+						// 1. Create bookmark
+						const bookmark = await bookmarksApi.apiV1BookmarksPost({
+							payload: {
+								url: data.url.trim(),
+								title: data.title.trim(),
+								excerpt: data.excerpt.trim(),
+								_public: data.makePublic ? 1 : 0,
 							},
-						);
+						});
+
+						// 2. Associate tags if provided
+						if (tagNames.length > 0) {
+							for (const tagName of tagNames) {
+								try {
+									const tagId = await this.createOrFindTag(tagName);
+									await bookmarksApi.apiV1BookmarksIdTagsPost({
+										id: bookmark.id,
+										payload: { tagId: tagId },
+									});
+								} catch (tagErr) {
+									console.error(`Failed to add tag "${tagName}":`, tagErr);
+									// Continue with other tags
+								}
+							}
+							// Refresh bookmark to get updated tags
+							const refreshedBookmark = await bookmarksApi.apiV1BookmarksIdGet({
+								id: bookmark.id,
+							});
+							this.bookmarks.splice(0, 0, refreshedBookmark);
+						} else {
+							this.bookmarks.splice(0, 0, bookmark);
+						}
+
+						// 3. Update cache if needed
+						if (data.create_archive || data.create_ebook) {
+							await bookmarksApi.apiV1BookmarksCachePut({
+								payload: {
+									ids: [bookmark.id],
+									createArchive: data.create_archive,
+									createEbook: data.create_ebook,
+									keepMetadata: false,
+									skipExist: false,
+								},
+							});
+						}
 
 						this.dialog.loading = false;
 						this.dialog.visible = false;
-						this.bookmarks.splice(0, 0, json);
 					} catch (err) {
 						this.dialog.loading = false;
-						this.showErrorDialog(err.message);
+						this.showErrorDialog(getErrorMessage(err));
 					}
 				},
 			});
@@ -504,40 +562,67 @@ export default {
 					// Validate input
 					if (data.title.trim() === "") return;
 
-					// Prepare tags
-					var tags = data.tags
+					// Parse tag names
+					var tagNames = data.tags
 						.toLowerCase()
 						.replace(/\s+/g, " ")
 						.split(/\s*,\s*/g)
 						.filter((tag) => tag.trim() !== "")
-						.map((tag) => ({
-							name: tag.trim(),
-						}));
+						.map((tag) => tag.trim());
 
-					// Set new data
-					book.url = data.url.trim();
-					book.title = data.title.trim();
-					book.excerpt = data.excerpt.trim();
-					book.public = data.makePublic ? 1 : 0;
-					book.tags = tags;
-
-					// Send data
 					this.dialog.loading = true;
 					try {
-						const json = await apiRequest(
-							new URL("api/bookmarks", document.baseURI),
-							{
-								method: "put",
-								body: JSON.stringify(book),
+						// 1. Update bookmark fields
+						await bookmarksApi.apiV1BookmarksIdPut({
+							id: id,
+							payload: {
+								url: data.url.trim(),
+								title: data.title.trim(),
+								excerpt: data.excerpt.trim(),
+								_public: data.makePublic ? 1 : 0,
 							},
-						);
+						});
+
+						// 2. Get existing tags
+						const existingTags = await bookmarksApi.apiV1BookmarksIdTagsGet({
+							id: id,
+						});
+
+						// 3. Remove all existing tags
+						for (const tag of existingTags) {
+							await bookmarksApi.apiV1BookmarksIdTagsDelete({
+								id: id,
+								payload: { tagId: tag.id },
+							});
+						}
+
+						// 4. Add new tags
+						if (tagNames.length > 0) {
+							for (const tagName of tagNames) {
+								try {
+									const tagId = await this.createOrFindTag(tagName);
+									await bookmarksApi.apiV1BookmarksIdTagsPost({
+										id: id,
+										payload: { tagId: tagId },
+									});
+								} catch (tagErr) {
+									console.error(`Failed to add tag "${tagName}":`, tagErr);
+									// Continue with other tags
+								}
+							}
+						}
+
+						// 5. Refresh bookmark to get updated data
+						const updatedBookmark = await bookmarksApi.apiV1BookmarksIdGet({
+							id: id,
+						});
 
 						this.dialog.loading = false;
 						this.dialog.visible = false;
-						this.bookmarks.splice(index, 1, json);
+						this.bookmarks.splice(index, 1, updatedBookmark);
 					} catch (err) {
 						this.dialog.loading = false;
-						this.showErrorDialog(err.message);
+						this.showErrorDialog(getErrorMessage(err));
 					}
 				},
 			});
@@ -579,9 +664,8 @@ export default {
 				mainClick: async () => {
 					this.dialog.loading = true;
 					try {
-						await apiRequest(new URL("api/bookmarks", document.baseURI), {
-							method: "delete",
-							body: JSON.stringify(ids),
+						await bookmarksApi.apiV1BookmarksDelete({
+							payload: { ids: ids },
 						});
 
 						this.selection = [];
@@ -597,7 +681,7 @@ export default {
 						this.selection = [];
 						this.editMode = false;
 						this.dialog.loading = false;
-						this.showErrorDialog(err.message);
+						this.showErrorDialog(getErrorMessage(err));
 					}
 				},
 			});
@@ -805,48 +889,63 @@ export default {
 				mainText: "OK",
 				secondText: "Cancel",
 				mainClick: async (data) => {
-					// Validate input
-					var tags = data.tags
+					// Parse tag names
+					var tagNames = data.tags
 						.toLowerCase()
 						.replace(/\s+/g, " ")
 						.split(/\s*,\s*/g)
 						.filter((tag) => tag.trim() !== "")
-						.map((tag) => ({
-							name: tag.trim(),
-						}));
+						.map((tag) => tag.trim());
 
-					if (tags.length === 0) return;
-
-					// Send data
-					var request = {
-						ids: items.map((item) => item.id),
-						tags: tags,
-					};
+					if (tagNames.length === 0) return;
 
 					this.dialog.loading = true;
 					try {
-						const json = await apiRequest(
-							new URL("api/v1/bookmarks/tags", document.baseURI),
-							{
-								method: "put",
-								body: JSON.stringify(request),
+						// 1. Create or find all tags to get their IDs
+						const tagIds = [];
+						for (const tagName of tagNames) {
+							try {
+								const tagId = await this.createOrFindTag(tagName);
+								tagIds.push(tagId);
+							} catch (tagErr) {
+								console.error(
+									`Failed to create/find tag "${tagName}":`,
+									tagErr,
+								);
+								// Continue with other tags
+							}
+						}
+
+						if (tagIds.length === 0) {
+							throw new Error("No valid tags to add");
+						}
+
+						// 2. Use bulk update endpoint
+						const bookmarkIds = items.map((item) => item.id);
+						await bookmarksApi.apiV1BookmarksBulkTagsPut({
+							payload: {
+								bookmarkIds: bookmarkIds,
+								tagIds: tagIds,
 							},
-						);
+						});
+
+						// 3. Refresh each bookmark to get updated tags
+						for (const item of items) {
+							const updatedBookmark = await bookmarksApi.apiV1BookmarksIdGet({
+								id: item.id,
+							});
+							this.bookmarks.splice(item.index, 1, updatedBookmark);
+						}
 
 						this.selection = [];
 						this.editMode = false;
 						this.dialog.loading = false;
 						this.dialog.visible = false;
-
-						json.forEach((book) => {
-							var item = items.find((el) => el.id === book.id);
-							this.bookmarks.splice(item.index, 1, book);
-						});
 					} catch (err) {
 						this.selection = [];
 						this.editMode = false;
 						this.dialog.loading = false;
-						this.showErrorDialog(err.message);
+						this.showErrorDialog(getErrorMessage(err));
 					}
 				},
 			});

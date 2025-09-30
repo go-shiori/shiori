@@ -769,7 +769,7 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "description": "Create a new tag",
+                "description": "Create a new tag. If a tag with the same name already exists, returns 204 No Content.",
                 "consumes": [
                     "application/json"
                 ],
@@ -793,10 +793,13 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "201": {
-                        "description": "Created",
+                        "description": "Tag created",
                         "schema": {
                             "$ref": "#/definitions/model.TagDTO"
                         }
+                    },
+                    "204": {
+                        "description": "Tag already exists"
                     },
                     "400": {
                         "description": "Invalid request"
@@ -969,20 +972,11 @@ const docTemplate = `{
                 "url"
             ],
             "properties": {
-                "create_ebook": {
-                    "type": "boolean"
-                },
                 "excerpt": {
                     "type": "string"
                 },
                 "public": {
                     "type": "integer"
-                },
-                "tags": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
                 },
                 "title": {
                     "type": "string"
@@ -1090,20 +1084,11 @@ const docTemplate = `{
         "api_v1.updateBookmarkPayload": {
             "type": "object",
             "properties": {
-                "create_ebook": {
-                    "type": "boolean"
-                },
                 "excerpt": {
                     "type": "string"
                 },
                 "public": {
                     "type": "integer"
-                },
-                "tags": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
                 },
                 "title": {
                     "type": "string"

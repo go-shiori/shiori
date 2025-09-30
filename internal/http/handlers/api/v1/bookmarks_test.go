@@ -371,8 +371,6 @@ func TestHandleCreateBookmark(t *testing.T) {
 			"url": "https://example.com/test",
 			"title": "Test Bookmark",
 			"excerpt": "Test excerpt",
-			"tags": ["test", "example"],
-			"create_ebook": true,
 			"public": 1
 		}`
 		w := testutil.PerformRequest(
@@ -392,6 +390,34 @@ func TestHandleCreateBookmark(t *testing.T) {
 		})
 		response.AssertMessageJSONKeyValue(t, "title", func(t *testing.T, value any) {
 			require.Equal(t, "Test Bookmark", value)
+		})
+	})
+
+	t.Run("creation without title defaults to URL", func(t *testing.T) {
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+		payload := `{
+			"url": "https://example.com/no-title",
+			"excerpt": "Test excerpt",
+			"public": 0
+		}`
+		w := testutil.PerformRequest(
+			deps,
+			HandleCreateBookmark,
+			http.MethodPost,
+			"/api/v1/bookmarks",
+			testutil.WithFakeUser(),
+			testutil.WithBody(payload),
+		)
+		require.Equal(t, http.StatusCreated, w.Code)
+
+		response := testutil.NewTestResponseFromRecorder(w)
+		response.AssertOk(t)
+		response.AssertMessageJSONKeyValue(t, "url", func(t *testing.T, value any) {
+			require.Equal(t, "https://example.com/no-title", value)
+		})
+		// Verify title defaults to URL when not provided
+		response.AssertMessageJSONKeyValue(t, "title", func(t *testing.T, value any) {
+			require.Equal(t, "https://example.com/no-title", value)
 		})
 	})
 }
@@ -627,8 +653,7 @@ func TestHandleUpdateBookmark(t *testing.T) {
 
 		payload := `{
 			"title": "Updated Title",
-			"excerpt": "Updated excerpt",
-			"tags": ["updated", "test"]
+			"excerpt": "Updated excerpt"
 		}`
 		w := testutil.PerformRequest(
 			deps,
@@ -854,8 +879,7 @@ func TestBookmarkHandlersEdgeCases(t *testing.T) {
 			payload := `{
 				"url": "https://example.com/test",
 				"title": "Test with 特殊字符 and émojis 🚀",
-				"excerpt": "Content with <script>alert('xss')</script>",
-				"tags": ["tag-with-dash", "tag_with_underscore", "tag with spaces"]
+				"excerpt": "Content with <script>alert('xss')</script>"
 			}`
 			w := testutil.PerformRequest(
 				deps,
@@ -868,12 +892,11 @@ func TestBookmarkHandlersEdgeCases(t *testing.T) {
 			require.Equal(t, http.StatusCreated, w.Code)
 		})
 
-		t.Run("empty tags array", func(t *testing.T) {
+		t.Run("empty payload fields", func(t *testing.T) {
 			_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
 			payload := `{
 				"url": "https://example.com/test",
-				"title": "Test",
-				"tags": []
+				"title": "Test"
 			}`
 			w := testutil.PerformRequest(
 				deps,

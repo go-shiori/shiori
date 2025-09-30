@@ -41,6 +41,11 @@ func (d *BookmarksDomain) GetBookmark(ctx context.Context, id model.DBID) (*mode
 	bookmark.HasEbook = d.HasEbook(&bookmark)
 	bookmark.HasArchive = d.HasArchive(&bookmark)
 
+	// Set thumbnail URL if thumbnail exists
+	if d.HasThumbnail(&bookmark) {
+		bookmark.ImageURL = model.GetThumbnailPath(&bookmark)
+	}
+
 	return &bookmark, nil
 }
 
@@ -58,6 +63,12 @@ func (d *BookmarksDomain) GetBookmarks(ctx context.Context, ids []int) ([]model.
 		// Check if it has ebook and archive
 		bookmark.HasEbook = d.HasEbook(&bookmark)
 		bookmark.HasArchive = d.HasArchive(&bookmark)
+
+		// Set thumbnail URL if thumbnail exists
+		if d.HasThumbnail(&bookmark) {
+			bookmark.ImageURL = model.GetThumbnailPath(&bookmark)
+		}
+
 		bookmarks = append(bookmarks, bookmark)
 	}
 	return bookmarks, nil
@@ -170,7 +181,7 @@ func (d *BookmarksDomain) BookmarkExists(ctx context.Context, id int) (bool, err
 func (d *BookmarksDomain) CreateBookmark(ctx context.Context, bookmark model.Bookmark) (*model.BookmarkDTO, error) {
 	// Convert to DTO for database operations
 	dto := bookmark.ToDTO()
-	
+
 	// Save bookmark to database
 	savedBookmarks, err := d.deps.Database().SaveBookmarks(ctx, true, dto)
 	if err != nil {
@@ -186,7 +197,7 @@ func (d *BookmarksDomain) CreateBookmark(ctx context.Context, bookmark model.Boo
 	// Set additional properties
 	savedBookmark.HasEbook = d.HasEbook(&savedBookmark)
 	savedBookmark.HasArchive = d.HasArchive(&savedBookmark)
-	
+
 	return &savedBookmark, nil
 }
 
@@ -219,7 +230,7 @@ func (d *BookmarksDomain) UpdateBookmark(ctx context.Context, bookmark model.Boo
 	// Set additional properties
 	savedBookmark.HasEbook = d.HasEbook(&savedBookmark)
 	savedBookmark.HasArchive = d.HasArchive(&savedBookmark)
-	
+
 	return &savedBookmark, nil
 }
 

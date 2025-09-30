@@ -21,12 +21,6 @@ import { mapValues } from '../runtime';
 export interface ApiV1UpdateBookmarkPayload {
     /**
      * 
-     * @type {boolean}
-     * @memberof ApiV1UpdateBookmarkPayload
-     */
-    createEbook?: boolean;
-    /**
-     * 
      * @type {string}
      * @memberof ApiV1UpdateBookmarkPayload
      */
@@ -37,12 +31,6 @@ export interface ApiV1UpdateBookmarkPayload {
      * @memberof ApiV1UpdateBookmarkPayload
      */
     _public?: number;
-    /**
-     * 
-     * @type {Array<string>}
-     * @memberof ApiV1UpdateBookmarkPayload
-     */
-    tags?: Array<string>;
     /**
      * 
      * @type {string}
@@ -74,10 +62,8 @@ export function ApiV1UpdateBookmarkPayloadFromJSONTyped(json: any, ignoreDiscrim
     }
     return {
         
-        'createEbook': json['create_ebook'] == null ? undefined : json['create_ebook'],
         'excerpt': json['excerpt'] == null ? undefined : json['excerpt'],
         '_public': json['public'] == null ? undefined : json['public'],
-        'tags': json['tags'] == null ? undefined : json['tags'],
         'title': json['title'] == null ? undefined : json['title'],
         'url': json['url'] == null ? undefined : json['url'],
     };
@@ -94,10 +80,8 @@ export function ApiV1UpdateBookmarkPayloadToJSONTyped(value?: ApiV1UpdateBookmar
 
     return {
         
-        'create_ebook': value['createEbook'],
         'excerpt': value['excerpt'],
         'public': value['_public'],
-        'tags': value['tags'],
         'title': value['title'],
         'url': value['url'],
     };
