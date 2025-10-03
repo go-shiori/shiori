@@ -14,7 +14,7 @@ type Account struct {
 	Username string     `db:"username" json:"username"`
 	Password string     `db:"password" json:"password,omitempty"`
 	Owner    bool       `db:"owner"    json:"owner"`
-	Config   UserConfig `db:"config"               json:"config"`
+	Config   UserConfig `db:"config"   json:"config"`
 }
 
 type UserConfig struct {
