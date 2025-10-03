@@ -26,6 +26,8 @@ export interface ApiV1TagsGetRequest {
     withBookmarkCount?: boolean;
     bookmarkId?: number;
     search?: string;
+    page?: number;
+    limit?: number;
 }
 
 export interface ApiV1TagsIdDeleteRequest {
@@ -67,6 +69,14 @@ export class TagsApi extends runtime.BaseAPI {
 
         if (requestParameters['search'] != null) {
             queryParameters['search'] = requestParameters['search'];
+        }
+
+        if (requestParameters['page'] != null) {
+            queryParameters['page'] = requestParameters['page'];
+        }
+
+        if (requestParameters['limit'] != null) {
+            queryParameters['limit'] = requestParameters['limit'];
         }
 
         const headerParameters: runtime.HTTPHeaders = {};

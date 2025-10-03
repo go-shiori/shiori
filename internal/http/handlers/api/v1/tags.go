@@ -18,6 +18,8 @@ import (
 // @Param						with_bookmark_count	query		boolean	false	"Include bookmark count for each tag"
 // @Param						bookmark_id			query		integer	false	"Filter tags by bookmark ID"
 // @Param						search				query		string	false	"Search tags by name"
+// @Param						page				query		integer	false	"Page number (default: 1)"
+// @Param						limit				query		integer	false	"Items per page (default: 30, max: 100)"
 // @Success					200					{array}		model.TagDTO
 // @Failure					403					{object}	nil	"Authentication required"
 // @Failure					500					{object}	nil	"Internal server error"
@@ -28,16 +30,32 @@ func HandleListTags(deps model.Dependencies, c model.WebContext) {
 	}
 
 	// Parse query parameters
-	withBookmarkCount := c.Request().URL.Query().Get("with_bookmark_count") == "true"
-	search := c.Request().URL.Query().Get("search")
+	query := c.Request().URL.Query()
+	withBookmarkCount := query.Get("with_bookmark_count") == "true"
+	search := query.Get("search")
 
 	var bookmarkID int
-	if bookmarkIDStr := c.Request().URL.Query().Get("bookmark_id"); bookmarkIDStr != "" {
+	if bookmarkIDStr := query.Get("bookmark_id"); bookmarkIDStr != "" {
 		var err error
 		bookmarkID, err = strconv.Atoi(bookmarkIDStr)
 		if err != nil {
 			response.SendError(c, http.StatusBadRequest, "Invalid bookmark ID")
 			return
+		}
+	}
+
+	// Parse page and limit
+	page := 1
+	if pageStr := query.Get("page"); pageStr != "" {
+		if p, err := strconv.Atoi(pageStr); err == nil && p > 0 {
+			page = p
+		}
+	}
+
+	limit := 30
+	if limitStr := query.Get("limit"); limitStr != "" {
+		if l, err := strconv.Atoi(limitStr); err == nil && l > 0 && l <= 100 {
+			limit = l
 		}
 	}
 
@@ -47,6 +65,8 @@ func HandleListTags(deps model.Dependencies, c model.WebContext) {
 		BookmarkID:        bookmarkID,
 		OrderBy:           model.DBTagOrderByTagName,
 		Search:            search,
+		Limit:             limit,
+		Offset:            (page - 1) * limit,
 	}
 
 	if err := opts.IsValid(); err != nil {

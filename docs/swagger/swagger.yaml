@@ -785,6 +785,14 @@ paths:
         in: query
         name: search
         type: string
+      - description: 'Page number (default: 1)'
+        in: query
+        name: page
+        type: integer
+      - description: 'Items per page (default: 30, max: 100)'
+        in: query
+        name: limit
+        type: integer
       produces:
       - application/json
       responses:

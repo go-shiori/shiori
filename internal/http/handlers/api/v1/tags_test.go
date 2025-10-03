@@ -240,6 +240,94 @@ func TestHandleListTags(t *testing.T) {
 			require.Equal(t, "search and bookmark ID filtering cannot be used together", value)
 		})
 	})
+
+	t.Run("pagination with page and limit", func(t *testing.T) {
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+
+		// Create multiple tags
+		tags := []model.Tag{}
+		for i := 1; i <= 10; i++ {
+			tags = append(tags, model.Tag{Name: "pagination-tag-" + strconv.Itoa(i)})
+		}
+		createdTags, err := deps.Database().CreateTags(ctx, tags...)
+		require.NoError(t, err)
+		require.Len(t, createdTags, 10)
+
+		// Test first page with limit 3
+		w := testutil.PerformRequest(
+			deps,
+			HandleListTags,
+			"GET",
+			"/api/v1/tags",
+			testutil.WithFakeUser(),
+			testutil.WithRequestQueryParam("page", "1"),
+			testutil.WithRequestQueryParam("limit", "3"),
+		)
+		require.Equal(t, http.StatusOK, w.Code)
+
+		response := testutil.NewTestResponseFromRecorder(w)
+		response.AssertOk(t)
+		response.AssertMessageIsNotEmptyList(t)
+
+		// Count items in first page
+		count := 0
+		response.ForEach(t, func(item map[string]any) {
+			count++
+		})
+		require.LessOrEqual(t, count, 3, "Should have at most 3 items per page")
+
+		// Test second page
+		w = testutil.PerformRequest(
+			deps,
+			HandleListTags,
+			"GET",
+			"/api/v1/tags",
+			testutil.WithFakeUser(),
+			testutil.WithRequestQueryParam("page", "2"),
+			testutil.WithRequestQueryParam("limit", "3"),
+		)
+		require.Equal(t, http.StatusOK, w.Code)
+
+		response = testutil.NewTestResponseFromRecorder(w)
+		response.AssertOk(t)
+	})
+
+	t.Run("pagination with invalid parameters", func(t *testing.T) {
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+
+		// Test invalid page parameter (should default to 1)
+		w := testutil.PerformRequest(
+			deps,
+			HandleListTags,
+			"GET",
+			"/api/v1/tags",
+			testutil.WithFakeUser(),
+			testutil.WithRequestQueryParam("page", "invalid"),
+		)
+		require.Equal(t, http.StatusOK, w.Code) // Should default to page 1
+
+		// Test negative page parameter (should default to 1)
+		w = testutil.PerformRequest(
+			deps,
+			HandleListTags,
+			"GET",
+			"/api/v1/tags",
+			testutil.WithFakeUser(),
+			testutil.WithRequestQueryParam("page", "-1"),
+		)
+		require.Equal(t, http.StatusOK, w.Code) // Should default to page 1
+
+		// Test limit exceeds maximum (should cap at 100)
+		w = testutil.PerformRequest(
+			deps,
+			HandleListTags,
+			"GET",
+			"/api/v1/tags",
+			testutil.WithFakeUser(),
+			testutil.WithRequestQueryParam("limit", "200"),
+		)
+		require.Equal(t, http.StatusOK, w.Code) // Should cap at 100
+	})
 }
 
 func TestHandleGetTag(t *testing.T) {

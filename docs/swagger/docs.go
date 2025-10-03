@@ -832,6 +832,18 @@ const docTemplate = `{
                         "description": "Search tags by name",
                         "name": "search",
                         "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page number (default: 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Items per page (default: 30, max: 100)",
+                        "name": "limit",
+                        "in": "query"
                     }
                 ],
                 "responses": {

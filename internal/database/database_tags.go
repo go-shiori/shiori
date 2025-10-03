@@ -60,6 +60,14 @@ func (db *dbbase) GetTags(ctx context.Context, opts model.DBListTagsOptions) ([]
 		sb.OrderBy("t.name")
 	}
 
+	// Add pagination if limit is specified
+	if opts.Limit > 0 {
+		sb.Limit(opts.Limit)
+		if opts.Offset > 0 {
+			sb.Offset(opts.Offset)
+		}
+	}
+
 	query, args := sb.Build()
 	query = db.ReaderDB().Rebind(query)
 

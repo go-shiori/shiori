@@ -4,11 +4,13 @@ import { useTagsStore } from '@/stores/tags';
 import { useAuthStore } from '@/stores/auth';
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { storeToRefs } from 'pinia';
 
 const tagsStore = useTagsStore();
 const authStore = useAuthStore();
 const router = useRouter();
-const { tags, isLoading, error, fetchTags, createTag, updateTag, deleteTag } = tagsStore;
+const { tags, isLoading, error } = storeToRefs(tagsStore);
+const { fetchTags, createTag, updateTag, deleteTag } = tagsStore;
 
 // New tag form
 const showNewTagForm = ref(false);
