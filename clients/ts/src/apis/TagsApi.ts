@@ -220,7 +220,7 @@ export class TagsApi extends runtime.BaseAPI {
     }
 
     /**
-     * Create a new tag
+     * Create a new tag. If a tag with the same name already exists, returns 204 No Content.
      * Create tag
      */
     async apiV1TagsPostRaw(requestParameters: ApiV1TagsPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ModelTagDTO>> {
@@ -252,12 +252,19 @@ export class TagsApi extends runtime.BaseAPI {
     }
 
     /**
-     * Create a new tag
+     * Create a new tag. If a tag with the same name already exists, returns 204 No Content.
      * Create tag
      */
-    async apiV1TagsPost(requestParameters: ApiV1TagsPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ModelTagDTO> {
+    async apiV1TagsPost(requestParameters: ApiV1TagsPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ModelTagDTO | null | undefined > {
         const response = await this.apiV1TagsPostRaw(requestParameters, initOverrides);
-        return await response.value();
+        switch (response.raw.status) {
+            case 201:
+                return await response.value();
+            case 204:
+                return null;
+            default:
+                return await response.value();
+        }
     }
 
 }
