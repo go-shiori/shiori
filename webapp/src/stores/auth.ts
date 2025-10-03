@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { AuthApi } from '@/client/apis/AuthApi'
 import type { ApiV1LoginRequestPayload } from '@/client/models/ApiV1LoginRequestPayload'
-import { Configuration } from '@/client/runtime'
+import { getApiConfig } from '@/utils/api-config'
 
 export const useAuthStore = defineStore('auth', () => {
   const token = ref<string | null>(localStorage.getItem('token'))
@@ -20,15 +20,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   // Create API client with auth token
   const getApiClient = () => {
-    const config = new Configuration({
-      basePath: 'http://localhost:8080',
-      accessToken: token.value || undefined,
-      headers: token.value ? {
-        'Authorization': `Bearer ${token.value}`,
-        'X-Shiori-Response-Format': 'new'
-      } : undefined
-    })
-    return new AuthApi(config)
+    return new AuthApi(getApiConfig(token.value))
   }
 
   // Validate token by fetching user info

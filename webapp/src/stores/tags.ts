@@ -1,8 +1,9 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { Configuration, TagsApi } from '@/client'
+import { TagsApi } from '@/client'
 import type { ModelTagDTO } from '@/client/models'
 import { useAuthStore } from './auth'
+import { getApiConfig } from '@/utils/api-config'
 
 export const useTagsStore = defineStore('tags', () => {
   const tags = ref<ModelTagDTO[]>([])
@@ -12,17 +13,7 @@ export const useTagsStore = defineStore('tags', () => {
   // API client
   const getTagsApi = () => {
     const authStore = useAuthStore()
-    const token = authStore.token
-
-    const config = new Configuration({
-      basePath: 'http://localhost:8080',
-      accessToken: token || undefined,
-      headers: token ? {
-        'Authorization': `Bearer ${token}`,
-        'X-Shiori-Response-Format': 'new'
-      } : undefined
-    })
-    return new TagsApi(config)
+    return new TagsApi(getApiConfig(authStore.token))
   }
 
   // Get all tags
