@@ -160,6 +160,16 @@ build-client: generate-client
 	mkdir -p ./internal/view/assets/js/client
 	cd ./clients/ts && bun build ./wrapper.js --outfile=../../internal/view/assets/js/client/shiori-api.js --format=iife
 
+## Build Vue webapp
+.PHONY: build-webapp
+build-webapp: generate-client
+	cd webapp && bun install && bun run build
+
+## Run Vue webapp dev server
+.PHONY: dev-webapp
+dev-webapp: generate-client
+	cd webapp && bun install && bun run dev
+
 ## Run generate accross the project
 .PHONY: generate
 generate: styles
