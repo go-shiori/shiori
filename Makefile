@@ -73,7 +73,7 @@ clean:
 ## Runs server for local development
 .PHONY: run-server
 run-server: generate
-	HIORI_DEVELOPMENT=$(SHIORI_DEVELOPMENT) SHIORI_HTTP_SERVE_SWAGGER=true go run main.go server --log-level debug
+	HIORI_DEVELOPMENT=$(SHIORI_DEVELOPMENT) SHIORI_CORS_ORIGINS=http://127.0.0.1:5173,http://localhost:5173,http://localhost:8080 SHIORI_HTTP_SERVE_SWAGGER=true go run main.go server --log-level debug
 
 ## Runs server for local development with v2 web UI
 .PHONY: run-server-v2

@@ -69,6 +69,10 @@ type HttpConfig struct {
 	SSOProxyAuth           bool     `env:"SSO_PROXY_AUTH_ENABLED,default=false"`
 	SSOProxyAuthHeaderName string   `env:"SSO_PROXY_AUTH_HEADER_NAME,default=Remote-User"`
 	SSOProxyAuthTrusted    []string `env:"SSO_PROXY_AUTH_TRUSTED,default=10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, fc00::/7"`
+
+	CORSEnabled          bool     `env:"CORS_ENABLED,default=true"`
+	CORSOrigins          []string `env:"CORS_ORIGINS,default=*"`
+	CORSAllowCredentials bool     `env:"CORS_ALLOW_CREDENTIALS,default=true"`
 }
 
 // SetDefaults sets the default values for the configuration
