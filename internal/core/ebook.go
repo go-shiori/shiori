@@ -3,7 +3,6 @@ package core
 import (
 	"os"
 	fp "path/filepath"
-	"strconv"
 	"strings"
 
 	epub "github.com/go-shiori/go-epub"
@@ -23,13 +22,11 @@ func GenerateEbook(deps model.Dependencies, req ProcessRequest, dstPath string) 
 	}
 
 	// Get current state of bookmark cheak archive and thumb
-	strID := strconv.Itoa(book.Bookmark.ID)
-
 	bookmarkThumbnailPath := model.GetThumbnailPath(&book)
 	bookmarkArchivePath := model.GetArchivePath(&book)
 
 	if deps.Domains().Storage().FileExists(bookmarkThumbnailPath) {
-		book.ImageURL = fp.Join("/", "bookmark", strID, "thumb")
+		book.HasThumbnail = true
 	}
 
 	if deps.Domains().Storage().FileExists(bookmarkArchivePath) {

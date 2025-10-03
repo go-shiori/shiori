@@ -13,6 +13,8 @@ definitions:
         type: boolean
       hasEbook:
         type: boolean
+      hasThumbnail:
+        type: boolean
       html:
         type: string
       imageURL:
@@ -199,12 +201,12 @@ definitions:
         type: boolean
       hasEbook:
         type: boolean
+      hasThumbnail:
+        type: boolean
       html:
         type: string
       id:
         type: integer
-      imageURL:
-        type: string
       modifiedAt:
         type: string
       public:

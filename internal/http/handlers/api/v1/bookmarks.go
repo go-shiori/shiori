@@ -48,14 +48,15 @@ type updateBookmarkDataPayload struct {
 }
 
 type bookmarkDataResponse struct {
-	Content    string `json:"content"`
-	HTML       string `json:"html"`
-	ImageURL   string `json:"imageURL"`
-	ArchiveURL string `json:"archiveURL"`
-	EbookURL   string `json:"ebookURL"`
-	HasContent bool   `json:"hasContent"`
-	HasArchive bool   `json:"hasArchive"`
-	HasEbook   bool   `json:"hasEbook"`
+	Content      string `json:"content"`
+	HTML         string `json:"html"`
+	ImageURL     string `json:"imageURL"`
+	ArchiveURL   string `json:"archiveURL"`
+	EbookURL     string `json:"ebookURL"`
+	HasContent   bool   `json:"hasContent"`
+	HasArchive   bool   `json:"hasArchive"`
+	HasEbook     bool   `json:"hasEbook"`
+	HasThumbnail bool   `json:"hasThumbnail"`
 }
 
 // HandleBookmarkReadable returns the readable version of a bookmark
@@ -124,23 +125,29 @@ func HandleGetBookmarkData(deps model.Dependencies, c model.WebContext) {
 	// Build resource URLs
 	archiveURL := ""
 	if bookmark.HasArchive {
-		archiveURL = fmt.Sprintf("/bookmark/%d/archive", bookmark.ID)
+		archiveURL = model.GetArchiveURL(bookmark)
 	}
 
 	ebookURL := ""
 	if bookmark.HasEbook {
-		ebookURL = fmt.Sprintf("/bookmark/%d/ebook", bookmark.ID)
+		ebookURL = model.GetEbookURL(bookmark)
+	}
+
+	imageURL := ""
+	if bookmark.HasThumbnail {
+		imageURL = model.GetThumbnailURL(bookmark)
 	}
 
 	response.SendJSON(c, http.StatusOK, bookmarkDataResponse{
-		Content:    bookmark.Content,
-		HTML:       bookmark.HTML,
-		ImageURL:   bookmark.ImageURL,
-		ArchiveURL: archiveURL,
-		EbookURL:   ebookURL,
-		HasContent: bookmark.HasContent,
-		HasArchive: bookmark.HasArchive,
-		HasEbook:   bookmark.HasEbook,
+		Content:      bookmark.Content,
+		HTML:         bookmark.HTML,
+		ImageURL:     imageURL,
+		ArchiveURL:   archiveURL,
+		EbookURL:     ebookURL,
+		HasContent:   bookmark.HasContent,
+		HasArchive:   bookmark.HasArchive,
+		HasEbook:     bookmark.HasEbook,
+		HasThumbnail: bookmark.HasThumbnail,
 	})
 }
 
@@ -217,23 +224,29 @@ func HandleUpdateBookmarkData(deps model.Dependencies, c model.WebContext) {
 	// Build resource URLs
 	archiveURL := ""
 	if bookmark.HasArchive {
-		archiveURL = fmt.Sprintf("/bookmark/%d/archive", bookmark.ID)
+		archiveURL = model.GetArchiveURL(bookmark)
 	}
 
 	ebookURL := ""
 	if bookmark.HasEbook {
-		ebookURL = fmt.Sprintf("/bookmark/%d/ebook", bookmark.ID)
+		ebookURL = model.GetEbookURL(bookmark)
+	}
+
+	imageURL := ""
+	if bookmark.HasThumbnail {
+		imageURL = model.GetThumbnailURL(bookmark)
 	}
 
 	response.SendJSON(c, http.StatusOK, bookmarkDataResponse{
-		Content:    bookmark.Content,
-		HTML:       bookmark.HTML,
-		ImageURL:   bookmark.ImageURL,
-		ArchiveURL: archiveURL,
-		EbookURL:   ebookURL,
-		HasContent: bookmark.HasContent,
-		HasArchive: bookmark.HasArchive,
-		HasEbook:   bookmark.HasEbook,
+		Content:      bookmark.Content,
+		HTML:         bookmark.HTML,
+		ImageURL:     imageURL,
+		ArchiveURL:   archiveURL,
+		EbookURL:     ebookURL,
+		HasContent:   bookmark.HasContent,
+		HasArchive:   bookmark.HasArchive,
+		HasEbook:     bookmark.HasEbook,
+		HasThumbnail: bookmark.HasThumbnail,
 	})
 }
 

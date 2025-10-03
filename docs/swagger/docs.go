@@ -1039,6 +1039,9 @@ const docTemplate = `{
                 "hasEbook": {
                     "type": "boolean"
                 },
+                "hasThumbnail": {
+                    "type": "boolean"
+                },
                 "html": {
                     "type": "string"
                 },
@@ -1325,14 +1328,14 @@ const docTemplate = `{
                 "hasEbook": {
                     "type": "boolean"
                 },
+                "hasThumbnail": {
+                    "type": "boolean"
+                },
                 "html": {
                     "type": "string"
                 },
                 "id": {
                     "type": "integer"
-                },
-                "imageURL": {
-                    "type": "string"
                 },
                 "modifiedAt": {
                     "type": "string"

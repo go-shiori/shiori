@@ -27,9 +27,9 @@ type BookmarkDTO struct {
 	Tags          []TagDTO `json:"tags"`
 	HasArchive    bool     `json:"hasArchive"`
 	HasEbook      bool     `json:"hasEbook"`
+	HasThumbnail  bool     `json:"hasThumbnail"`
 	CreateArchive bool     `json:"create_archive"`
 	CreateEbook   bool     `json:"create_ebook"`
-	ImageURL      string   `json:"imageURL"`
 }
 
 // ToBookmark extracts the embedded Bookmark from BookmarkDTO
@@ -58,4 +58,19 @@ func GetEbookPath(bookmark *BookmarkDTO) string {
 // GetArchivePath returns the relative path to the archive of a bookmark in the filesystem
 func GetArchivePath(bookmark *BookmarkDTO) string {
 	return filepath.Join("archive", strconv.Itoa(bookmark.ID))
+}
+
+// GetThumbnailURL returns the URL path to the thumbnail of a bookmark
+func GetThumbnailURL(bookmark *BookmarkDTO) string {
+	return "/bookmark/" + strconv.Itoa(bookmark.ID) + "/thumb"
+}
+
+// GetEbookURL returns the URL path to the ebook of a bookmark
+func GetEbookURL(bookmark *BookmarkDTO) string {
+	return "/bookmark/" + strconv.Itoa(bookmark.ID) + "/ebook"
+}
+
+// GetArchiveURL returns the URL path to the archive of a bookmark
+func GetArchiveURL(bookmark *BookmarkDTO) string {
+	return "/bookmark/" + strconv.Itoa(bookmark.ID) + "/archive"
 }

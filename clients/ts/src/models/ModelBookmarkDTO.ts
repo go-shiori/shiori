@@ -77,6 +77,12 @@ export interface ModelBookmarkDTO {
     hasEbook?: boolean;
     /**
      * 
+     * @type {boolean}
+     * @memberof ModelBookmarkDTO
+     */
+    hasThumbnail?: boolean;
+    /**
+     * 
      * @type {string}
      * @memberof ModelBookmarkDTO
      */
@@ -87,12 +93,6 @@ export interface ModelBookmarkDTO {
      * @memberof ModelBookmarkDTO
      */
     id?: number;
-    /**
-     * 
-     * @type {string}
-     * @memberof ModelBookmarkDTO
-     */
-    imageURL?: string;
     /**
      * 
      * @type {string}
@@ -150,9 +150,9 @@ export function ModelBookmarkDTOFromJSONTyped(json: any, ignoreDiscriminator: bo
         'hasArchive': json['hasArchive'] == null ? undefined : json['hasArchive'],
         'hasContent': json['hasContent'] == null ? undefined : json['hasContent'],
         'hasEbook': json['hasEbook'] == null ? undefined : json['hasEbook'],
+        'hasThumbnail': json['hasThumbnail'] == null ? undefined : json['hasThumbnail'],
         'html': json['html'] == null ? undefined : json['html'],
         'id': json['id'] == null ? undefined : json['id'],
-        'imageURL': json['imageURL'] == null ? undefined : json['imageURL'],
         'modifiedAt': json['modifiedAt'] == null ? undefined : json['modifiedAt'],
         '_public': json['public'] == null ? undefined : json['public'],
         'tags': json['tags'] == null ? undefined : ((json['tags'] as Array<any>).map(ModelTagDTOFromJSON)),
@@ -180,9 +180,9 @@ export function ModelBookmarkDTOToJSONTyped(value?: ModelBookmarkDTO | null, ign
         'hasArchive': value['hasArchive'],
         'hasContent': value['hasContent'],
         'hasEbook': value['hasEbook'],
+        'hasThumbnail': value['hasThumbnail'],
         'html': value['html'],
         'id': value['id'],
-        'imageURL': value['imageURL'],
         'modifiedAt': value['modifiedAt'],
         'public': value['_public'],
         'tags': value['tags'] == null ? undefined : ((value['tags'] as Array<any>).map(ModelTagDTOToJSON)),

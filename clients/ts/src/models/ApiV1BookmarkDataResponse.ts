@@ -57,6 +57,12 @@ export interface ApiV1BookmarkDataResponse {
     hasEbook?: boolean;
     /**
      * 
+     * @type {boolean}
+     * @memberof ApiV1BookmarkDataResponse
+     */
+    hasThumbnail?: boolean;
+    /**
+     * 
      * @type {string}
      * @memberof ApiV1BookmarkDataResponse
      */
@@ -92,6 +98,7 @@ export function ApiV1BookmarkDataResponseFromJSONTyped(json: any, ignoreDiscrimi
         'hasArchive': json['hasArchive'] == null ? undefined : json['hasArchive'],
         'hasContent': json['hasContent'] == null ? undefined : json['hasContent'],
         'hasEbook': json['hasEbook'] == null ? undefined : json['hasEbook'],
+        'hasThumbnail': json['hasThumbnail'] == null ? undefined : json['hasThumbnail'],
         'html': json['html'] == null ? undefined : json['html'],
         'imageURL': json['imageURL'] == null ? undefined : json['imageURL'],
     };
@@ -114,6 +121,7 @@ export function ApiV1BookmarkDataResponseToJSONTyped(value?: ApiV1BookmarkDataRe
         'hasArchive': value['hasArchive'],
         'hasContent': value['hasContent'],
         'hasEbook': value['hasEbook'],
+        'hasThumbnail': value['hasThumbnail'],
         'html': value['html'],
         'imageURL': value['imageURL'],
     };

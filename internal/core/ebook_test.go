@@ -71,10 +71,9 @@ func TestGenerateEbook(t *testing.T) {
 			defer file.Close()
 
 			bookmark, err = core.GenerateEbook(deps, mockRequest, dstFile)
-			expectedImagePath := string(fp.Separator) + fp.Join("bookmark", "2", "thumb")
 			assert.NoError(t, err)
 			assert.True(t, bookmark.HasEbook)
-			assert.Equalf(t, expectedImagePath, bookmark.ImageURL, "Expected imageURL %s, but got %s", expectedImagePath, bookmark.ImageURL)
+			assert.Truef(t, bookmark.HasThumbnail, "Expected hasThumbnail to be true")
 		})
 		t.Run("generate ebook valid BookmarkID EbookExist ReturnHasArchiveTrue", func(t *testing.T) {
 			dstFile := "/ebook/3.epub"

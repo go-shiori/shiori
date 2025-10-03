@@ -38,7 +38,7 @@ func TestBookmarkToDTO(t *testing.T) {
 	// Verify default values for fields not in Bookmark
 	assert.Empty(t, dto.Content, "Content should be empty")
 	assert.Empty(t, dto.HTML, "HTML should be empty")
-	assert.Empty(t, dto.ImageURL, "ImageURL should be empty")
+	assert.False(t, dto.HasThumbnail, "HasThumbnail should be false")
 	assert.Empty(t, dto.Tags, "Tags should be empty")
 	assert.False(t, dto.HasArchive, "HasArchive should be false")
 	assert.False(t, dto.HasEbook, "HasEbook should be false")
@@ -67,7 +67,7 @@ func TestBookmarkDTOToBookmark(t *testing.T) {
 		HasEbook:      true,
 		CreateArchive: true,
 		CreateEbook:   true,
-		ImageURL:      "https://example.com/image.jpg",
+		HasThumbnail:  true,
 	}
 
 	// Convert to Bookmark

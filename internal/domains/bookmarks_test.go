@@ -274,9 +274,9 @@ func TestBookmarksDomain_SearchBookmarks(t *testing.T) {
 
 		// Verify domain-specific fields are populated
 		for _, bookmark := range bookmarks {
-			// Check that ImageURL is populated for bookmark with ID 1
+			// Check that HasThumbnail is populated for bookmark with ID 1
 			if bookmark.ID == 1 {
-				assert.NotEmpty(t, bookmark.ImageURL)
+				assert.True(t, bookmark.HasThumbnail)
 				assert.True(t, deps.Domains().Bookmarks().HasThumbnail(&bookmark))
 			}
 			assert.False(t, bookmark.HasArchive) // No archive files created

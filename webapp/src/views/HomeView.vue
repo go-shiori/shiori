@@ -5,6 +5,7 @@ import { storeToRefs } from 'pinia';
 import AppLayout from '@/components/layout/AppLayout.vue';
 import { useBookmarksStore } from '@/stores/bookmarks';
 import { useAuthStore } from '@/stores/auth';
+import AuthenticatedImage from '@/components/ui/AuthenticatedImage.vue';
 
 const bookmarksStore = useBookmarksStore();
 const authStore = useAuthStore();
@@ -44,6 +45,7 @@ const getBookmarkTags = (bookmark: any) => {
   // Tags will need to be fetched separately per bookmark
   return [];
 };
+
 </script>
 
 <template>
@@ -56,11 +58,7 @@ const getBookmarkTags = (bookmark: any) => {
             Add Bookmark
           </button>
           <div class="relative">
-            <input
-              v-model="searchKeyword"
-              @keyup.enter="handleSearch"
-              type="text"
-              placeholder="Search..."
+            <input v-model="searchKeyword" @keyup.enter="handleSearch" type="text" placeholder="Search..."
               class="border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-1 focus:outline-none focus:ring-2 focus:ring-red-500" />
           </div>
         </div>
@@ -92,12 +90,12 @@ const getBookmarkTags = (bookmark: any) => {
           <div class="flex gap-4">
             <!-- Thumbnail -->
             <div class="flex-shrink-0">
-              <div v-if="bookmark.imageURL" class="w-24 h-24 rounded-md overflow-hidden bg-gray-100 dark:bg-gray-700">
-                <img :src="bookmark.imageURL" :alt="bookmark.title || 'Bookmark thumbnail'"
-                  class="w-full h-full object-cover" />
+              <div v-if="bookmark.hasThumbnail"
+                class="w-24 h-24 rounded-md overflow-hidden bg-gray-100 dark:bg-gray-700">
+                <AuthenticatedImage :bookmark-id="bookmark.id || 0" :auth-token="authStore.token || undefined"
+                  :alt="bookmark.title || 'Bookmark thumbnail'" class="w-full h-full" />
               </div>
-              <div v-else
-                class="w-24 h-24 rounded-md bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+              <div v-else class="w-24 h-24 rounded-md bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-400 dark:text-gray-500" fill="none"
                   viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
