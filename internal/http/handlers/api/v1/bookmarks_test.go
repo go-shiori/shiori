@@ -1171,3 +1171,192 @@ func TestBookmarkHandlersEdgeCases(t *testing.T) {
 		})
 	})
 }
+
+func TestHandleGetBookmarkData(t *testing.T) {
+	logger := logrus.New()
+	ctx := context.Background()
+
+	t.Run("requires authentication", func(t *testing.T) {
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+		w := testutil.PerformRequest(
+			deps,
+			HandleGetBookmarkData,
+			http.MethodGet,
+			"/api/v1/bookmarks/1/data",
+			testutil.WithRequestPathValue("id", "1"),
+		)
+		require.Equal(t, http.StatusUnauthorized, w.Code)
+	})
+
+	t.Run("invalid bookmark id", func(t *testing.T) {
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+		w := testutil.PerformRequest(
+			deps,
+			HandleGetBookmarkData,
+			http.MethodGet,
+			"/api/v1/bookmarks/invalid/data",
+			testutil.WithFakeUser(),
+			testutil.WithRequestPathValue("id", "invalid"),
+		)
+		require.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("bookmark not found", func(t *testing.T) {
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+		w := testutil.PerformRequest(
+			deps,
+			HandleGetBookmarkData,
+			http.MethodGet,
+			"/api/v1/bookmarks/999/data",
+			testutil.WithFakeUser(),
+			testutil.WithRequestPathValue("id", "999"),
+		)
+		require.Equal(t, http.StatusNotFound, w.Code)
+	})
+
+	t.Run("success returns data without resources", func(t *testing.T) {
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+
+		// Create test bookmark
+		bookmark := testutil.GetValidBookmark()
+		bookmark.Content = "test content"
+		bookmark.HTML = "<p>test content</p>"
+		bookmark.HasContent = true
+		savedBookmark, err := deps.Database().SaveBookmarks(ctx, true, *bookmark)
+		require.NoError(t, err)
+		require.Len(t, savedBookmark, 1)
+
+		w := testutil.PerformRequest(
+			deps,
+			HandleGetBookmarkData,
+			http.MethodGet,
+			"/api/v1/bookmarks/"+strconv.Itoa(savedBookmark[0].ID)+"/data",
+			testutil.WithFakeUser(),
+			testutil.WithRequestPathValue("id", strconv.Itoa(savedBookmark[0].ID)),
+		)
+		require.Equal(t, http.StatusOK, w.Code)
+
+		response := testutil.NewTestResponseFromRecorder(w)
+		response.AssertOk(t)
+		response.AssertMessageJSONKeyValue(t, "content", func(t *testing.T, value any) {
+			require.Equal(t, bookmark.Content, value)
+		})
+		response.AssertMessageJSONKeyValue(t, "html", func(t *testing.T, value any) {
+			require.Equal(t, bookmark.HTML, value)
+		})
+		response.AssertMessageJSONKeyValue(t, "hasContent", func(t *testing.T, value any) {
+			require.Equal(t, true, value)
+		})
+		response.AssertMessageJSONKeyValue(t, "hasArchive", func(t *testing.T, value any) {
+			require.Equal(t, false, value)
+		})
+		response.AssertMessageJSONKeyValue(t, "hasEbook", func(t *testing.T, value any) {
+			require.Equal(t, false, value)
+		})
+		response.AssertMessageJSONKeyValue(t, "archiveURL", func(t *testing.T, value any) {
+			require.Equal(t, "", value)
+		})
+		response.AssertMessageJSONKeyValue(t, "ebookURL", func(t *testing.T, value any) {
+			require.Equal(t, "", value)
+		})
+	})
+}
+
+func TestHandleUpdateBookmarkData(t *testing.T) {
+	logger := logrus.New()
+	ctx := context.Background()
+
+	t.Run("requires authentication", func(t *testing.T) {
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+		w := testutil.PerformRequest(
+			deps,
+			HandleUpdateBookmarkData,
+			http.MethodPut,
+			"/api/v1/bookmarks/1/data",
+			testutil.WithRequestPathValue("id", "1"),
+			testutil.WithBody(`{"update_readable": true}`),
+		)
+		require.Equal(t, http.StatusUnauthorized, w.Code)
+	})
+
+	t.Run("invalid bookmark id", func(t *testing.T) {
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+		w := testutil.PerformRequest(
+			deps,
+			HandleUpdateBookmarkData,
+			http.MethodPut,
+			"/api/v1/bookmarks/invalid/data",
+			testutil.WithFakeUser(),
+			testutil.WithRequestPathValue("id", "invalid"),
+			testutil.WithBody(`{"update_readable": true}`),
+		)
+		require.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("invalid request payload", func(t *testing.T) {
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+
+		// Create test bookmark
+		bookmark := testutil.GetValidBookmark()
+		savedBookmark, err := deps.Database().SaveBookmarks(ctx, true, *bookmark)
+		require.NoError(t, err)
+		require.Len(t, savedBookmark, 1)
+
+		w := testutil.PerformRequest(
+			deps,
+			HandleUpdateBookmarkData,
+			http.MethodPut,
+			"/api/v1/bookmarks/"+strconv.Itoa(savedBookmark[0].ID)+"/data",
+			testutil.WithFakeUser(),
+			testutil.WithRequestPathValue("id", strconv.Itoa(savedBookmark[0].ID)),
+			testutil.WithBody(`invalid json`),
+		)
+		require.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("bookmark not found", func(t *testing.T) {
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+		w := testutil.PerformRequest(
+			deps,
+			HandleUpdateBookmarkData,
+			http.MethodPut,
+			"/api/v1/bookmarks/999/data",
+			testutil.WithFakeUser(),
+			testutil.WithRequestPathValue("id", "999"),
+			testutil.WithBody(`{"update_readable": true}`),
+		)
+		require.Equal(t, http.StatusNotFound, w.Code)
+	})
+
+	t.Run("success with no flags returns current data", func(t *testing.T) {
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+
+		// Create test bookmark
+		bookmark := testutil.GetValidBookmark()
+		bookmark.Content = "test content"
+		bookmark.HTML = "<p>test content</p>"
+		savedBookmark, err := deps.Database().SaveBookmarks(ctx, true, *bookmark)
+		require.NoError(t, err)
+		require.Len(t, savedBookmark, 1)
+
+		w := testutil.PerformRequest(
+			deps,
+			HandleUpdateBookmarkData,
+			http.MethodPut,
+			"/api/v1/bookmarks/"+strconv.Itoa(savedBookmark[0].ID)+"/data",
+			testutil.WithFakeUser(),
+			testutil.WithRequestPathValue("id", strconv.Itoa(savedBookmark[0].ID)),
+			testutil.WithBody(`{"update_readable": false, "create_archive": false, "create_ebook": false}`),
+		)
+		require.Equal(t, http.StatusOK, w.Code)
+
+		response := testutil.NewTestResponseFromRecorder(w)
+		response.AssertOk(t)
+		response.AssertMessageJSONKeyValue(t, "content", func(t *testing.T, value any) {
+			require.Equal(t, bookmark.Content, value)
+		})
+		response.AssertMessageJSONKeyValue(t, "html", func(t *testing.T, value any) {
+			require.Equal(t, bookmark.HTML, value)
+		})
+	})
+}

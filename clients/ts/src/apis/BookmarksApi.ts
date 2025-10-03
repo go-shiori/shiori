@@ -15,17 +15,21 @@
 
 import * as runtime from '../runtime';
 import type {
+  ApiV1BookmarkDataResponse,
   ApiV1BookmarkTagPayload,
   ApiV1BulkUpdateBookmarkTagsPayload,
   ApiV1CreateBookmarkPayload,
   ApiV1DeleteBookmarksPayload,
   ApiV1ReadableResponseMessage,
+  ApiV1UpdateBookmarkDataPayload,
   ApiV1UpdateBookmarkPayload,
   ApiV1UpdateCachePayload,
   ModelBookmarkDTO,
   ModelTagDTO,
 } from '../models/index';
 import {
+    ApiV1BookmarkDataResponseFromJSON,
+    ApiV1BookmarkDataResponseToJSON,
     ApiV1BookmarkTagPayloadFromJSON,
     ApiV1BookmarkTagPayloadToJSON,
     ApiV1BulkUpdateBookmarkTagsPayloadFromJSON,
@@ -36,6 +40,8 @@ import {
     ApiV1DeleteBookmarksPayloadToJSON,
     ApiV1ReadableResponseMessageFromJSON,
     ApiV1ReadableResponseMessageToJSON,
+    ApiV1UpdateBookmarkDataPayloadFromJSON,
+    ApiV1UpdateBookmarkDataPayloadToJSON,
     ApiV1UpdateBookmarkPayloadFromJSON,
     ApiV1UpdateBookmarkPayloadToJSON,
     ApiV1UpdateCachePayloadFromJSON,
@@ -64,6 +70,15 @@ export interface ApiV1BookmarksGetRequest {
     exclude?: string;
     page?: number;
     limit?: number;
+}
+
+export interface ApiV1BookmarksIdDataGetRequest {
+    id: number;
+}
+
+export interface ApiV1BookmarksIdDataPutRequest {
+    id: number;
+    payload: ApiV1UpdateBookmarkDataPayload;
 }
 
 export interface ApiV1BookmarksIdGetRequest {
@@ -260,6 +275,90 @@ export class BookmarksApi extends runtime.BaseAPI {
      */
     async apiV1BookmarksGet(requestParameters: ApiV1BookmarksGetRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<ModelBookmarkDTO>> {
         const response = await this.apiV1BookmarksGetRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Get bookmark data and resource URLs.
+     */
+    async apiV1BookmarksIdDataGetRaw(requestParameters: ApiV1BookmarksIdDataGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiV1BookmarkDataResponse>> {
+        if (requestParameters['id'] == null) {
+            throw new runtime.RequiredError(
+                'id',
+                'Required parameter "id" was null or undefined when calling apiV1BookmarksIdDataGet().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+
+        let urlPath = `/api/v1/bookmarks/{id}/data`;
+        urlPath = urlPath.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ApiV1BookmarkDataResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Get bookmark data and resource URLs.
+     */
+    async apiV1BookmarksIdDataGet(requestParameters: ApiV1BookmarksIdDataGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiV1BookmarkDataResponse> {
+        const response = await this.apiV1BookmarksIdDataGetRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Update bookmark data (content, archive, ebook).
+     */
+    async apiV1BookmarksIdDataPutRaw(requestParameters: ApiV1BookmarksIdDataPutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiV1BookmarkDataResponse>> {
+        if (requestParameters['id'] == null) {
+            throw new runtime.RequiredError(
+                'id',
+                'Required parameter "id" was null or undefined when calling apiV1BookmarksIdDataPut().'
+            );
+        }
+
+        if (requestParameters['payload'] == null) {
+            throw new runtime.RequiredError(
+                'payload',
+                'Required parameter "payload" was null or undefined when calling apiV1BookmarksIdDataPut().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+
+        let urlPath = `/api/v1/bookmarks/{id}/data`;
+        urlPath = urlPath.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'PUT',
+            headers: headerParameters,
+            query: queryParameters,
+            body: ApiV1UpdateBookmarkDataPayloadToJSON(requestParameters['payload']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ApiV1BookmarkDataResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Update bookmark data (content, archive, ebook).
+     */
+    async apiV1BookmarksIdDataPut(requestParameters: ApiV1BookmarksIdDataPutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiV1BookmarkDataResponse> {
+        const response = await this.apiV1BookmarksIdDataPutRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

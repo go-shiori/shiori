@@ -584,6 +584,90 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/bookmarks/{id}/data": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Bookmarks"
+                ],
+                "summary": "Get bookmark data and resource URLs.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Bookmark ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api_v1.bookmarkDataResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid bookmark ID"
+                    },
+                    "403": {
+                        "description": "Token not provided/invalid"
+                    },
+                    "404": {
+                        "description": "Bookmark not found"
+                    }
+                }
+            },
+            "put": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Bookmarks"
+                ],
+                "summary": "Update bookmark data (content, archive, ebook).",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Bookmark ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update Bookmark Data Payload",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api_v1.updateBookmarkDataPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api_v1.bookmarkDataResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid bookmark ID or payload"
+                    },
+                    "403": {
+                        "description": "Token not provided/invalid"
+                    },
+                    "404": {
+                        "description": "Bookmark not found"
+                    },
+                    "500": {
+                        "description": "Failed to update bookmark data"
+                    }
+                }
+            }
+        },
         "/api/v1/bookmarks/{id}/tags": {
             "get": {
                 "produces": [
@@ -934,6 +1018,35 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "api_v1.bookmarkDataResponse": {
+            "type": "object",
+            "properties": {
+                "archiveURL": {
+                    "type": "string"
+                },
+                "content": {
+                    "type": "string"
+                },
+                "ebookURL": {
+                    "type": "string"
+                },
+                "hasArchive": {
+                    "type": "boolean"
+                },
+                "hasContent": {
+                    "type": "boolean"
+                },
+                "hasEbook": {
+                    "type": "boolean"
+                },
+                "html": {
+                    "type": "string"
+                },
+                "imageURL": {
+                    "type": "string"
+                }
+            }
+        },
         "api_v1.bookmarkTagPayload": {
             "type": "object",
             "required": [
@@ -1078,6 +1191,26 @@ const docTemplate = `{
                 },
                 "username": {
                     "type": "string"
+                }
+            }
+        },
+        "api_v1.updateBookmarkDataPayload": {
+            "type": "object",
+            "properties": {
+                "create_archive": {
+                    "type": "boolean"
+                },
+                "create_ebook": {
+                    "type": "boolean"
+                },
+                "keep_metadata": {
+                    "type": "boolean"
+                },
+                "skip_existing": {
+                    "type": "boolean"
+                },
+                "update_readable": {
+                    "type": "boolean"
                 }
             }
         },

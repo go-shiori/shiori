@@ -1,4 +1,23 @@
 definitions:
+  api_v1.bookmarkDataResponse:
+    properties:
+      archiveURL:
+        type: string
+      content:
+        type: string
+      ebookURL:
+        type: string
+      hasArchive:
+        type: boolean
+      hasContent:
+        type: boolean
+      hasEbook:
+        type: boolean
+      html:
+        type: string
+      imageURL:
+        type: string
+    type: object
   api_v1.bookmarkTagPayload:
     properties:
       tag_id:
@@ -93,6 +112,19 @@ definitions:
         type: boolean
       username:
         type: string
+    type: object
+  api_v1.updateBookmarkDataPayload:
+    properties:
+      create_archive:
+        type: boolean
+      create_ebook:
+        type: boolean
+      keep_metadata:
+        type: boolean
+      skip_existing:
+        type: boolean
+      update_readable:
+        type: boolean
     type: object
   api_v1.updateBookmarkPayload:
     properties:
@@ -526,6 +558,61 @@ paths:
         "404":
           description: Bookmark not found
       summary: Update an existing bookmark.
+      tags:
+      - Bookmarks
+  /api/v1/bookmarks/{id}/data:
+    get:
+      parameters:
+      - description: Bookmark ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api_v1.bookmarkDataResponse'
+        "400":
+          description: Invalid bookmark ID
+        "403":
+          description: Token not provided/invalid
+        "404":
+          description: Bookmark not found
+      summary: Get bookmark data and resource URLs.
+      tags:
+      - Bookmarks
+    put:
+      parameters:
+      - description: Bookmark ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Update Bookmark Data Payload
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/api_v1.updateBookmarkDataPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api_v1.bookmarkDataResponse'
+        "400":
+          description: Invalid bookmark ID or payload
+        "403":
+          description: Token not provided/invalid
+        "404":
+          description: Bookmark not found
+        "500":
+          description: Failed to update bookmark data
+      summary: Update bookmark data (content, archive, ebook).
       tags:
       - Bookmarks
   /api/v1/bookmarks/{id}/tags:

@@ -39,6 +39,25 @@ type readableResponseMessage struct {
 	HTML    string `json:"html"`
 }
 
+type updateBookmarkDataPayload struct {
+	UpdateReadable bool `json:"update_readable"`
+	CreateArchive  bool `json:"create_archive"`
+	CreateEbook    bool `json:"create_ebook"`
+	KeepMetadata   bool `json:"keep_metadata"`
+	SkipExisting   bool `json:"skip_existing"`
+}
+
+type bookmarkDataResponse struct {
+	Content    string `json:"content"`
+	HTML       string `json:"html"`
+	ImageURL   string `json:"imageURL"`
+	ArchiveURL string `json:"archiveURL"`
+	EbookURL   string `json:"ebookURL"`
+	HasContent bool   `json:"hasContent"`
+	HasArchive bool   `json:"hasArchive"`
+	HasEbook   bool   `json:"hasEbook"`
+}
+
 // HandleBookmarkReadable returns the readable version of a bookmark
 //
 //	@Summary					Get readable version of bookmark.
@@ -69,6 +88,152 @@ func HandleBookmarkReadable(deps model.Dependencies, c model.WebContext) {
 	response.SendJSON(c, http.StatusOK, readableResponseMessage{
 		Content: bookmark.Content,
 		HTML:    bookmark.HTML,
+	})
+}
+
+// HandleGetBookmarkData returns the data and resource URLs for a bookmark
+//
+//	@Summary					Get bookmark data and resource URLs.
+//	@Tags						Bookmarks
+//	@securityDefinitions.apikey	ApiKeyAuth
+//	@Param						id	path	int	true	"Bookmark ID"
+//	@Produce					json
+//	@Success					200	{object}	bookmarkDataResponse
+//	@Failure					400	{object}	nil	"Invalid bookmark ID"
+//	@Failure					403	{object}	nil	"Token not provided/invalid"
+//	@Failure					404	{object}	nil	"Bookmark not found"
+//	@Router						/api/v1/bookmarks/{id}/data [get]
+func HandleGetBookmarkData(deps model.Dependencies, c model.WebContext) {
+	if err := middleware.RequireLoggedInUser(deps, c); err != nil {
+		response.SendError(c, http.StatusForbidden, err.Error())
+		return
+	}
+
+	bookmarkID, err := strconv.Atoi(c.Request().PathValue("id"))
+	if err != nil {
+		response.SendError(c, http.StatusBadRequest, "Invalid bookmark ID")
+		return
+	}
+
+	bookmark, err := deps.Domains().Bookmarks().GetBookmark(c.Request().Context(), model.DBID(bookmarkID))
+	if err != nil {
+		response.SendError(c, http.StatusNotFound, "Bookmark not found")
+		return
+	}
+
+	// Build resource URLs
+	archiveURL := ""
+	if bookmark.HasArchive {
+		archiveURL = fmt.Sprintf("/bookmark/%d/archive", bookmark.ID)
+	}
+
+	ebookURL := ""
+	if bookmark.HasEbook {
+		ebookURL = fmt.Sprintf("/bookmark/%d/ebook", bookmark.ID)
+	}
+
+	response.SendJSON(c, http.StatusOK, bookmarkDataResponse{
+		Content:    bookmark.Content,
+		HTML:       bookmark.HTML,
+		ImageURL:   bookmark.ImageURL,
+		ArchiveURL: archiveURL,
+		EbookURL:   ebookURL,
+		HasContent: bookmark.HasContent,
+		HasArchive: bookmark.HasArchive,
+		HasEbook:   bookmark.HasEbook,
+	})
+}
+
+// HandleUpdateBookmarkData updates the data for a bookmark (readable content, archive, ebook)
+//
+//	@Summary					Update bookmark data (content, archive, ebook).
+//	@Tags						Bookmarks
+//	@securityDefinitions.apikey	ApiKeyAuth
+//	@Param						id		path	int							true	"Bookmark ID"
+//	@Param						payload	body	updateBookmarkDataPayload	true	"Update Bookmark Data Payload"
+//	@Produce					json
+//	@Success					200	{object}	bookmarkDataResponse
+//	@Failure					400	{object}	nil	"Invalid bookmark ID or payload"
+//	@Failure					403	{object}	nil	"Token not provided/invalid"
+//	@Failure					404	{object}	nil	"Bookmark not found"
+//	@Failure					500	{object}	nil	"Failed to update bookmark data"
+//	@Router						/api/v1/bookmarks/{id}/data [put]
+func HandleUpdateBookmarkData(deps model.Dependencies, c model.WebContext) {
+	if err := middleware.RequireLoggedInUser(deps, c); err != nil {
+		response.SendError(c, http.StatusForbidden, err.Error())
+		return
+	}
+
+	bookmarkID, err := strconv.Atoi(c.Request().PathValue("id"))
+	if err != nil {
+		response.SendError(c, http.StatusBadRequest, "Invalid bookmark ID")
+		return
+	}
+
+	// Parse request payload
+	var payload updateBookmarkDataPayload
+	if err := json.NewDecoder(c.Request().Body).Decode(&payload); err != nil {
+		response.SendError(c, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+
+	// Get bookmark from database
+	bookmark, err := deps.Domains().Bookmarks().GetBookmark(c.Request().Context(), model.DBID(bookmarkID))
+	if err != nil {
+		response.SendError(c, http.StatusNotFound, "Bookmark not found")
+		return
+	}
+
+	// Only update if at least one of the flags is true
+	if payload.UpdateReadable || payload.CreateArchive || payload.CreateEbook {
+		// Set flags on bookmark
+		bookmark.CreateArchive = payload.CreateArchive
+		bookmark.CreateEbook = payload.CreateEbook
+
+		// Update bookmark cache
+		updatedBookmark, err := deps.Domains().Bookmarks().UpdateBookmarkCache(
+			c.Request().Context(),
+			*bookmark,
+			payload.KeepMetadata,
+			payload.SkipExisting,
+		)
+		if err != nil {
+			deps.Logger().WithError(err).Error("failed to update bookmark data")
+			response.SendError(c, http.StatusInternalServerError, "Failed to update bookmark data")
+			return
+		}
+
+		// Save updated bookmark to database
+		_, err = deps.Domains().Bookmarks().UpdateBookmark(c.Request().Context(), updatedBookmark.Bookmark)
+		if err != nil {
+			deps.Logger().WithError(err).Error("failed to save updated bookmark")
+			response.SendError(c, http.StatusInternalServerError, "Failed to save bookmark")
+			return
+		}
+
+		bookmark = updatedBookmark
+	}
+
+	// Build resource URLs
+	archiveURL := ""
+	if bookmark.HasArchive {
+		archiveURL = fmt.Sprintf("/bookmark/%d/archive", bookmark.ID)
+	}
+
+	ebookURL := ""
+	if bookmark.HasEbook {
+		ebookURL = fmt.Sprintf("/bookmark/%d/ebook", bookmark.ID)
+	}
+
+	response.SendJSON(c, http.StatusOK, bookmarkDataResponse{
+		Content:    bookmark.Content,
+		HTML:       bookmark.HTML,
+		ImageURL:   bookmark.ImageURL,
+		ArchiveURL: archiveURL,
+		EbookURL:   ebookURL,
+		HasContent: bookmark.HasContent,
+		HasArchive: bookmark.HasArchive,
+		HasEbook:   bookmark.HasEbook,
 	})
 }
 

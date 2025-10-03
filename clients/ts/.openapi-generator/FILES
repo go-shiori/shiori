@@ -10,6 +10,7 @@ src/apis/SystemApi.ts
 src/apis/TagsApi.ts
 src/apis/index.ts
 src/index.ts
+src/models/ApiV1BookmarkDataResponse.ts
 src/models/ApiV1BookmarkTagPayload.ts
 src/models/ApiV1BulkUpdateBookmarkTagsPayload.ts
 src/models/ApiV1CreateBookmarkPayload.ts
@@ -20,6 +21,7 @@ src/models/ApiV1LoginRequestPayload.ts
 src/models/ApiV1LoginResponseMessage.ts
 src/models/ApiV1ReadableResponseMessage.ts
 src/models/ApiV1UpdateAccountPayload.ts
+src/models/ApiV1UpdateBookmarkDataPayload.ts
 src/models/ApiV1UpdateBookmarkPayload.ts
 src/models/ApiV1UpdateCachePayload.ts
 src/models/ModelAccount.ts

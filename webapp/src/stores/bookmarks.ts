@@ -218,6 +218,58 @@ export const useBookmarksStore = defineStore('bookmarks', () => {
     }
   }
 
+  // Get bookmark data (content, archive, ebook info)
+  const getBookmarkData = async (id: number) => {
+    try {
+      const api = getBookmarksApi()
+      const data = await api.apiV1BookmarksIdDataGet({ id })
+      return data
+    } catch (err) {
+      console.error('Failed to get bookmark data:', err)
+      throw err
+    }
+  }
+
+  // Update bookmark data (generate/update readable content, archive, ebook)
+  const updateBookmarkData = async (
+    id: number,
+    options: {
+      updateReadable?: boolean
+      createArchive?: boolean
+      createEbook?: boolean
+      keepMetadata?: boolean
+      skipExisting?: boolean
+    }
+  ) => {
+    isLoading.value = true
+    error.value = null
+
+    try {
+      const api = getBookmarksApi()
+      const data = await api.apiV1BookmarksIdDataPut({
+        id,
+        payload: {
+          updateReadable: options.updateReadable || false,
+          createArchive: options.createArchive || false,
+          createEbook: options.createEbook || false,
+          keepMetadata: options.keepMetadata || false,
+          skipExisting: options.skipExisting || false
+        }
+      })
+      return data
+    } catch (err) {
+      console.error('Failed to update bookmark data:', err)
+      if (err instanceof Error && err.message.includes('401')) {
+        error.value = 'Authentication error. Please log in again.'
+      } else {
+        error.value = 'Failed to update bookmark data. Please try again.'
+      }
+      throw err
+    } finally {
+      isLoading.value = false
+    }
+  }
+
   return {
     bookmarks,
     isLoading,
@@ -232,6 +284,8 @@ export const useBookmarksStore = defineStore('bookmarks', () => {
     deleteBookmarks,
     getBookmarkTags,
     addTagToBookmark,
-    removeTagFromBookmark
+    removeTagFromBookmark,
+    getBookmarkData,
+    updateBookmarkData
   }
 })

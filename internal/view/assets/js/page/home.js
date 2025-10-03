@@ -486,15 +486,16 @@ export default {
 							this.bookmarks.splice(0, 0, bookmark);
 						}
 
-						// 3. Update cache if needed
+						// 3. Update bookmark data (archive/ebook) if needed
 						if (data.create_archive || data.create_ebook) {
-							await bookmarksApi.apiV1BookmarksCachePut({
+							await bookmarksApi.apiV1BookmarksIdDataPut({
+								id: bookmark.id,
 								payload: {
-									ids: [bookmark.id],
+									updateReadable: true,
 									createArchive: data.create_archive,
 									createEbook: data.create_ebook,
 									keepMetadata: false,
-									skipExist: false,
+									skipExisting: false,
 								},
 							});
 						}

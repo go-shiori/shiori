@@ -55,6 +55,10 @@ export SHIORI_TEST_MARIADB_URL
 export SHIORI_TEST_PG_URL
 export SHIORI_DIR
 
+export SHIORI_TEST_PG_URL=postgres://shiori:shiori@127.0.0.1:5432/shiori?sslmode=disable
+export SHIORI_TEST_MARIADB_URL=shiori:shiori@tcp(127.0.0.1:3307)/shiori
+export SHIORI_TEST_MYSQL_URL=shiori:shiori@tcp(127.0.0.1:3306)/shiori
+
 # Help documentatin à la https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 .PHONY: help
 help:
@@ -68,12 +72,12 @@ clean:
 ## Runs server for local development
 .PHONY: run-server
 run-server: generate
-	HIORI_DEVELOPMENT=$(SHIORI_DEVELOPMENT) go run main.go server --log-level debug
+	HIORI_DEVELOPMENT=$(SHIORI_DEVELOPMENT) SHIORI_HTTP_SERVE_SWAGGER=true go run main.go server --log-level debug
 
 ## Runs server for local development with v2 web UI
 .PHONY: run-server-v2
 run-server-v2: generate
-	SHIORI_DEVELOPMENT=$(SHIORI_DEVELOPMENT) SHIORI_HTTP_SERVE_WEB_UI_V2=true go run main.go server --log-level debug
+	SHIORI_DEVELOPMENT=$(SHIORI_DEVELOPMENT) SHIORI_HTTP_SERVE_SWAGGER=true SHIORI_HTTP_SERVE_WEB_UI_V2=true go run main.go server --log-level debug
 
 ## Generate swagger docs
 .PHONY: swagger

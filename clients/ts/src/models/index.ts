@@ -1,5 +1,6 @@
 /* tslint:disable */
 /* eslint-disable */
+export * from './ApiV1BookmarkDataResponse';
 export * from './ApiV1BookmarkTagPayload';
 export * from './ApiV1BulkUpdateBookmarkTagsPayload';
 export * from './ApiV1CreateBookmarkPayload';
@@ -10,6 +11,7 @@ export * from './ApiV1LoginRequestPayload';
 export * from './ApiV1LoginResponseMessage';
 export * from './ApiV1ReadableResponseMessage';
 export * from './ApiV1UpdateAccountPayload';
+export * from './ApiV1UpdateBookmarkDataPayload';
 export * from './ApiV1UpdateBookmarkPayload';
 export * from './ApiV1UpdateCachePayload';
 export * from './ModelAccount';
