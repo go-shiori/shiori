@@ -164,19 +164,21 @@ const handlePerPageChange = async (perPage: number) => {
     </template>
 
     <!-- New Tag Form -->
-    <div v-if="showNewTagForm" class="bg-white p-4 rounded-md shadow-sm mb-6">
-      <h2 class="text-lg font-medium mb-3">{{ t('tags.add_tag') }}</h2>
+    <div v-if="showNewTagForm" class="bg-white dark:bg-gray-800 p-4 rounded-md shadow-sm mb-6">
+      <h2 class="text-lg font-medium mb-3 text-gray-900 dark:text-gray-100">{{ t('tags.add_tag') }}</h2>
       <form @submit.prevent="handleCreateTag" class="flex flex-col space-y-3">
         <div>
-          <label for="tagName" class="block text-sm font-medium text-gray-700 mb-1">{{ t('tags.name') }}</label>
+          <label for="tagName" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('tags.name')
+          }}</label>
           <input id="tagName" v-model="newTagName" type="text"
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
             :placeholder="t('tags.name')" :disabled="isSubmitting" />
-          <p v-if="formError" class="mt-1 text-sm text-red-600">{{ formError }}</p>
+          <p v-if="formError" class="mt-1 text-sm text-red-600 dark:text-red-400">{{ formError }}</p>
         </div>
         <div class="flex justify-end space-x-2">
           <button type="button" @click="showNewTagForm = false"
-            class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50" :disabled="isSubmitting">
+            class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+            :disabled="isSubmitting">
             {{ t('common.cancel') }}
           </button>
           <button type="submit"
@@ -189,18 +191,20 @@ const handlePerPageChange = async (perPage: number) => {
     </div>
 
     <!-- Error Message -->
-    <div v-if="error" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md mb-6">
+    <div v-if="error"
+      class="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-md mb-6">
       {{ error }}
     </div>
 
     <!-- Loading State -->
-    <div v-if="isLoading && !tags.length" class="bg-white p-6 rounded-md shadow-sm flex justify-center">
-      <div class="animate-pulse text-gray-500">{{ t('common.loading') }}</div>
+    <div v-if="isLoading && !tags.length"
+      class="bg-white dark:bg-gray-800 p-6 rounded-md shadow-sm flex justify-center">
+      <div class="animate-pulse text-gray-500 dark:text-gray-400">{{ t('common.loading') }}</div>
     </div>
 
     <!-- Empty State -->
-    <div v-else-if="!isLoading && !tags.length" class="bg-white p-6 rounded-md shadow-sm text-center">
-      <p class="text-gray-500 mb-4">{{ t('tags.create_first_tag') }}</p>
+    <div v-else-if="!isLoading && !tags.length" class="bg-white dark:bg-gray-800 p-6 rounded-md shadow-sm text-center">
+      <p class="text-gray-500 dark:text-gray-400 mb-4">{{ t('tags.create_first_tag') }}</p>
       <button v-if="!showNewTagForm" @click="showNewTagForm = true"
         class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
         {{ t('tags.add_tag') }}
@@ -211,19 +215,21 @@ const handlePerPageChange = async (perPage: number) => {
     <div v-else class="mt-6">
       <ul class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <li v-for="tag in tags" :key="tag.id"
-          class="bg-white p-4 rounded-md shadow-sm hover:shadow-md transition-shadow border border-gray-200">
+          class="bg-white dark:bg-gray-800 p-4 rounded-md shadow-sm hover:shadow-md transition-shadow border border-gray-200 dark:border-gray-700">
           <!-- Edit Mode -->
           <div v-if="editingTagId === tag.id" class="flex items-center">
             <input v-model="editTagName" type="text"
-              class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
               :disabled="isSubmitting" />
             <div class="flex ml-2 space-x-1">
-              <button @click="handleUpdateTag(tag.id!)" class="text-blue-500 hover:text-blue-700 p-1"
+              <button @click="handleUpdateTag(tag.id!)"
+                class="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 p-1"
                 :disabled="isSubmitting" title="Save">
                 <CheckIcon class="h-5 w-5" />
               </button>
-              <button @click="cancelEdit" class="text-gray-500 hover:text-gray-700 p-1" :disabled="isSubmitting"
-                title="Cancel">
+              <button @click="cancelEdit"
+                class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 p-1"
+                :disabled="isSubmitting" title="Cancel">
                 <XIcon class="h-5 w-5" />
               </button>
             </div>
@@ -235,15 +241,19 @@ const handlePerPageChange = async (perPage: number) => {
               <TagIcon class="h-6 w-6" />
             </div>
             <div class="flex-1">
-              <h3 class="font-medium text-lg">{{ tag.name }}</h3>
-              <p class="text-sm text-gray-500">{{ tag.bookmarkCount || 0 }} {{ t('tags.bookmarks_count') }}</p>
+              <h3 class="font-medium text-lg text-gray-900 dark:text-gray-100">{{ tag.name }}</h3>
+              <p class="text-sm text-gray-500 dark:text-gray-400">{{ tag.bookmarkCount || 0 }} {{
+                t('tags.bookmarks_count')
+              }}</p>
             </div>
             <div class="flex space-x-1">
-              <button @click="startEditTag(tag.id!, tag.name!)" class="text-gray-400 hover:text-gray-600 p-1"
+              <button @click="startEditTag(tag.id!, tag.name!)"
+                class="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 p-1"
                 :title="t('common.edit')">
                 <PencilIcon class="h-5 w-5" />
               </button>
-              <button @click="confirmDeleteTag(tag.id!)" class="text-gray-400 hover:text-red-500 p-1"
+              <button @click="confirmDeleteTag(tag.id!)"
+                class="text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 p-1"
                 :title="t('common.delete')">
                 <TrashIcon class="h-5 w-5" />
               </button>
@@ -259,12 +269,12 @@ const handlePerPageChange = async (perPage: number) => {
 
     <!-- Delete Confirmation Modal -->
     <div v-if="tagToDelete !== null" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white rounded-lg p-6 max-w-md w-full">
-        <h3 class="text-lg font-medium mb-4">{{ t('tags.delete_tag') }}</h3>
-        <p class="mb-6">{{ t('tags.confirm_delete') }}</p>
+      <div class="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full">
+        <h3 class="text-lg font-medium mb-4 text-gray-900 dark:text-gray-100">{{ t('tags.delete_tag') }}</h3>
+        <p class="mb-6 text-gray-700 dark:text-gray-300">{{ t('tags.confirm_delete') }}</p>
         <div class="flex justify-end space-x-3">
           <button @click="tagToDelete = null"
-            class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+            class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
             {{ t('common.cancel') }}
           </button>
           <button @click="handleDeleteTag" class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600">

@@ -135,7 +135,7 @@ const changeItemsPerPage = (event: Event) => {
             <button @click="previousPage" :disabled="currentPage === 1" :class="[
                 'px-3 py-2 rounded-md text-sm font-medium transition-colors',
                 currentPage === 1
-                    ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed'
+                    ? 'text-gray-400 dark:text-gray-500 cursor-not-allowed'
                     : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
             ]" :aria-label="t('pagination.previous')">
                 <ChevronLeftIcon class="h-5 w-5" />
@@ -161,7 +161,7 @@ const changeItemsPerPage = (event: Event) => {
             <button @click="nextPage" :disabled="currentPage === totalPages" :class="[
                 'px-3 py-2 rounded-md text-sm font-medium transition-colors',
                 currentPage === totalPages
-                    ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed'
+                    ? 'text-gray-400 dark:text-gray-500 cursor-not-allowed'
                     : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
             ]" :aria-label="t('pagination.next')">
                 <ChevronRightIcon class="h-5 w-5" />
