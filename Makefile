@@ -58,6 +58,7 @@ export SHIORI_DIR
 export SHIORI_TEST_PG_URL=postgres://shiori:shiori@127.0.0.1:5432/shiori?sslmode=disable
 export SHIORI_TEST_MARIADB_URL=shiori:shiori@tcp(127.0.0.1:3307)/shiori
 export SHIORI_TEST_MYSQL_URL=shiori:shiori@tcp(127.0.0.1:3306)/shiori
+export SHIORI_HTTP_SECRET_KEY=shiori
 
 # Help documentatin à la https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 .PHONY: help
