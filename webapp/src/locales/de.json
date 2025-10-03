@@ -61,5 +61,27 @@
     "light": "Hell",
     "dark": "Dunkel",
     "system": "System"
+  },
+  "pagination": {
+    "showing": "Anzeige",
+    "to": "bis",
+    "of": "von",
+    "items": "Elementen",
+    "per_page": "Pro Seite:",
+    "previous": "Vorherige",
+    "next": "Nächste",
+    "go_to_page": "Zur Seite gehen"
+  },
+  "tags": {
+    "title": "Tags",
+    "add_tag": "Tag hinzufügen",
+    "edit_tag": "Tag bearbeiten",
+    "delete_tag": "Tag löschen",
+    "name": "Name",
+    "no_tags": "Keine Tags gefunden",
+    "bookmarks_count": "Lesezeichen",
+    "create_first_tag": "Erstellen Sie Ihren ersten Tag, um Ihre Lesezeichen zu organisieren.",
+    "confirm_delete": "Sind Sie sicher, dass Sie diesen Tag löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
+    "tag_name_required": "Der Tag-Name darf nicht leer sein"
   }
 }

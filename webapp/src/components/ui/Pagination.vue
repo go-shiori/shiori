@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { ChevronLeftIcon, ChevronRightIcon } from '@/components/icons';
+
+const { t } = useI18n();
 
 interface Props {
     currentPage: number;
@@ -110,11 +113,12 @@ const changeItemsPerPage = (event: Event) => {
         <!-- Info text and per page selector -->
         <div class="flex flex-col sm:flex-row items-center gap-3">
             <div class="text-sm text-gray-600 dark:text-gray-400">
-                Showing {{ startItem }} to {{ endItem }} of {{ totalItems }} items
+                {{ t('pagination.showing') }} {{ startItem }} {{ t('pagination.to') }} {{ endItem }} {{
+                    t('pagination.of') }} {{ totalItems }} {{ t('pagination.items') }}
             </div>
             <div class="flex items-center gap-2">
                 <label for="items-per-page" class="text-sm text-gray-600 dark:text-gray-400">
-                    Per page:
+                    {{ t('pagination.per_page') }}
                 </label>
                 <select id="items-per-page" :value="itemsPerPage" @change="changeItemsPerPage"
                     class="px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -133,7 +137,7 @@ const changeItemsPerPage = (event: Event) => {
                 currentPage === 1
                     ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed'
                     : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-            ]" :aria-label="'Go to previous page'">
+            ]" :aria-label="t('pagination.previous')">
                 <ChevronLeftIcon class="h-5 w-5" />
             </button>
 
@@ -147,7 +151,8 @@ const changeItemsPerPage = (event: Event) => {
                     page === currentPage
                         ? 'bg-blue-500 text-white'
                         : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                ]" :aria-label="'Go to page ' + page" :aria-current="page === currentPage ? 'page' : undefined">
+                ]" :aria-label="t('pagination.go_to_page') + ' ' + page"
+                    :aria-current="page === currentPage ? 'page' : undefined">
                     {{ page }}
                 </button>
             </template>
@@ -158,7 +163,7 @@ const changeItemsPerPage = (event: Event) => {
                 currentPage === totalPages
                     ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed'
                     : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-            ]" :aria-label="'Go to next page'">
+            ]" :aria-label="t('pagination.next')">
                 <ChevronRightIcon class="h-5 w-5" />
             </button>
         </nav>

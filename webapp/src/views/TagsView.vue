@@ -6,8 +6,10 @@ import { useAuthStore } from '@/stores/auth';
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
+import { useI18n } from 'vue-i18n';
 import { CheckIcon, XIcon, TagIcon, PencilIcon, TrashIcon } from '@/components/icons';
 
+const { t } = useI18n();
 const tagsStore = useTagsStore();
 const authStore = useAuthStore();
 const router = useRouter();
@@ -59,7 +61,7 @@ const handleApiError = (err: any) => {
 // Handle new tag submission
 const handleCreateTag = async () => {
   if (!newTagName.value.trim()) {
-    formError.value = 'Tag name cannot be empty';
+    formError.value = t('tags.tag_name_required');
     return;
   }
 
@@ -151,11 +153,11 @@ const handlePerPageChange = async (perPage: number) => {
   <AppLayout>
     <template #header>
       <div class="flex justify-between items-center">
-        <h1 class="text-xl font-bold">Tags</h1>
+        <h1 class="text-xl font-bold">{{ t('tags.title') }}</h1>
         <div class="flex space-x-2">
           <button @click="showNewTagForm = !showNewTagForm"
             class="bg-blue-500 text-white px-3 py-1 rounded-md hover:bg-blue-600 transition">
-            {{ showNewTagForm ? 'Cancel' : 'New Tag' }}
+            {{ showNewTagForm ? t('common.cancel') : t('tags.add_tag') }}
           </button>
         </div>
       </div>
@@ -163,24 +165,24 @@ const handlePerPageChange = async (perPage: number) => {
 
     <!-- New Tag Form -->
     <div v-if="showNewTagForm" class="bg-white p-4 rounded-md shadow-sm mb-6">
-      <h2 class="text-lg font-medium mb-3">Create New Tag</h2>
+      <h2 class="text-lg font-medium mb-3">{{ t('tags.add_tag') }}</h2>
       <form @submit.prevent="handleCreateTag" class="flex flex-col space-y-3">
         <div>
-          <label for="tagName" class="block text-sm font-medium text-gray-700 mb-1">Tag Name</label>
+          <label for="tagName" class="block text-sm font-medium text-gray-700 mb-1">{{ t('tags.name') }}</label>
           <input id="tagName" v-model="newTagName" type="text"
             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Enter tag name" :disabled="isSubmitting" />
+            :placeholder="t('tags.name')" :disabled="isSubmitting" />
           <p v-if="formError" class="mt-1 text-sm text-red-600">{{ formError }}</p>
         </div>
         <div class="flex justify-end space-x-2">
           <button type="button" @click="showNewTagForm = false"
             class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50" :disabled="isSubmitting">
-            Cancel
+            {{ t('common.cancel') }}
           </button>
           <button type="submit"
             class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50"
             :disabled="isSubmitting">
-            Create
+            {{ isSubmitting ? t('common.loading') : t('common.save') }}
           </button>
         </div>
       </form>
@@ -193,15 +195,15 @@ const handlePerPageChange = async (perPage: number) => {
 
     <!-- Loading State -->
     <div v-if="isLoading && !tags.length" class="bg-white p-6 rounded-md shadow-sm flex justify-center">
-      <div class="animate-pulse text-gray-500">Loading tags...</div>
+      <div class="animate-pulse text-gray-500">{{ t('common.loading') }}</div>
     </div>
 
     <!-- Empty State -->
     <div v-else-if="!isLoading && !tags.length" class="bg-white p-6 rounded-md shadow-sm text-center">
-      <p class="text-gray-500 mb-4">No tags found. Create your first tag to organize your bookmarks.</p>
+      <p class="text-gray-500 mb-4">{{ t('tags.create_first_tag') }}</p>
       <button v-if="!showNewTagForm" @click="showNewTagForm = true"
         class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
-        Create Tag
+        {{ t('tags.add_tag') }}
       </button>
     </div>
 
@@ -234,14 +236,15 @@ const handlePerPageChange = async (perPage: number) => {
             </div>
             <div class="flex-1">
               <h3 class="font-medium text-lg">{{ tag.name }}</h3>
-              <p class="text-sm text-gray-500">{{ tag.bookmarkCount || 0 }} bookmarks</p>
+              <p class="text-sm text-gray-500">{{ tag.bookmarkCount || 0 }} {{ t('tags.bookmarks_count') }}</p>
             </div>
             <div class="flex space-x-1">
               <button @click="startEditTag(tag.id!, tag.name!)" class="text-gray-400 hover:text-gray-600 p-1"
-                title="Edit">
+                :title="t('common.edit')">
                 <PencilIcon class="h-5 w-5" />
               </button>
-              <button @click="confirmDeleteTag(tag.id!)" class="text-gray-400 hover:text-red-500 p-1" title="Delete">
+              <button @click="confirmDeleteTag(tag.id!)" class="text-gray-400 hover:text-red-500 p-1"
+                :title="t('common.delete')">
                 <TrashIcon class="h-5 w-5" />
               </button>
             </div>
@@ -257,15 +260,15 @@ const handlePerPageChange = async (perPage: number) => {
     <!-- Delete Confirmation Modal -->
     <div v-if="tagToDelete !== null" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div class="bg-white rounded-lg p-6 max-w-md w-full">
-        <h3 class="text-lg font-medium mb-4">Confirm Delete</h3>
-        <p class="mb-6">Are you sure you want to delete this tag? This action cannot be undone.</p>
+        <h3 class="text-lg font-medium mb-4">{{ t('tags.delete_tag') }}</h3>
+        <p class="mb-6">{{ t('tags.confirm_delete') }}</p>
         <div class="flex justify-end space-x-3">
           <button @click="tagToDelete = null"
             class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
-            Cancel
+            {{ t('common.cancel') }}
           </button>
           <button @click="handleDeleteTag" class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600">
-            Delete
+            {{ t('common.delete') }}
           </button>
         </div>
       </div>

@@ -61,5 +61,27 @@
     "light": "Clair",
     "dark": "Sombre",
     "system": "Système"
+  },
+  "pagination": {
+    "showing": "Affichage",
+    "to": "à",
+    "of": "de",
+    "items": "éléments",
+    "per_page": "Par page :",
+    "previous": "Précédent",
+    "next": "Suivant",
+    "go_to_page": "Aller à la page"
+  },
+  "tags": {
+    "title": "Étiquettes",
+    "add_tag": "Ajouter une étiquette",
+    "edit_tag": "Modifier l'étiquette",
+    "delete_tag": "Supprimer l'étiquette",
+    "name": "Nom",
+    "no_tags": "Aucune étiquette trouvée",
+    "bookmarks_count": "signets",
+    "create_first_tag": "Créez votre première étiquette pour organiser vos signets.",
+    "confirm_delete": "Êtes-vous sûr de vouloir supprimer cette étiquette ? Cette action ne peut pas être annulée.",
+    "tag_name_required": "Le nom de l'étiquette ne peut pas être vide"
   }
 }

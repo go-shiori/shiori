@@ -61,5 +61,27 @@
     "light": "Light",
     "dark": "Dark",
     "system": "System"
+  },
+  "pagination": {
+    "showing": "Showing",
+    "to": "to",
+    "of": "of",
+    "items": "items",
+    "per_page": "Per page:",
+    "previous": "Previous",
+    "next": "Next",
+    "go_to_page": "Go to page"
+  },
+  "tags": {
+    "title": "Tags",
+    "add_tag": "Add Tag",
+    "edit_tag": "Edit Tag",
+    "delete_tag": "Delete Tag",
+    "name": "Name",
+    "no_tags": "No tags found",
+    "bookmarks_count": "bookmarks",
+    "create_first_tag": "Create your first tag to organize your bookmarks.",
+    "confirm_delete": "Are you sure you want to delete this tag? This action cannot be undone.",
+    "tag_name_required": "Tag name cannot be empty"
   }
 }

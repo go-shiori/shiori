@@ -61,5 +61,27 @@
     "light": "Claro",
     "dark": "Oscuro",
     "system": "Sistema"
+  },
+  "pagination": {
+    "showing": "Mostrando",
+    "to": "a",
+    "of": "de",
+    "items": "elementos",
+    "per_page": "Por página:",
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "go_to_page": "Ir a la página"
+  },
+  "tags": {
+    "title": "Etiquetas",
+    "add_tag": "Añadir etiqueta",
+    "edit_tag": "Editar etiqueta",
+    "delete_tag": "Eliminar etiqueta",
+    "name": "Nombre",
+    "no_tags": "No se encontraron etiquetas",
+    "bookmarks_count": "marcadores",
+    "create_first_tag": "Crea tu primera etiqueta para organizar tus marcadores.",
+    "confirm_delete": "¿Estás seguro de que quieres eliminar esta etiqueta? Esta acción no se puede deshacer.",
+    "tag_name_required": "El nombre de la etiqueta no puede estar vacío"
   }
 }

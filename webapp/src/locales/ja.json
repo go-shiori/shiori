@@ -61,5 +61,27 @@
     "light": "ライト",
     "dark": "ダーク",
     "system": "システム"
+  },
+  "pagination": {
+    "showing": "表示中",
+    "to": "から",
+    "of": "の",
+    "items": "項目",
+    "per_page": "ページあたり:",
+    "previous": "前へ",
+    "next": "次へ",
+    "go_to_page": "ページに移動"
+  },
+  "tags": {
+    "title": "タグ",
+    "add_tag": "タグを追加",
+    "edit_tag": "タグを編集",
+    "delete_tag": "タグを削除",
+    "name": "名前",
+    "no_tags": "タグが見つかりません",
+    "bookmarks_count": "ブックマーク",
+    "create_first_tag": "ブックマークを整理するために最初のタグを作成してください。",
+    "confirm_delete": "このタグを削除してもよろしいですか？この操作は元に戻せません。",
+    "tag_name_required": "タグ名は空にできません"
   }
 }
