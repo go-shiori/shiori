@@ -136,7 +136,7 @@ func ProcessBookmark(deps model.Dependencies, req ProcessRequest) (book model.Bo
 			continue
 		}
 		if err == nil {
-			book.Bookmark.ImageURL = fp.Join("/", "bookmark", strID, "thumb")
+			book.ImageURL = fp.Join("/", "bookmark", strID, "thumb")
 			book.Bookmark.ModifiedAt = ""
 			break
 		}

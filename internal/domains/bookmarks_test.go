@@ -210,6 +210,145 @@ func TestBookmarkDomain(t *testing.T) {
 	})
 }
 
+func TestBookmarksDomain_SearchBookmarks(t *testing.T) {
+	ctx := context.Background()
+	logger := logrus.New()
+	_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+
+	fs := afero.NewMemMapFs()
+	deps.Domains().SetStorage(domains.NewStorageDomain(deps, fs))
+
+	// Create test bookmarks in database
+	testBookmarks := []model.BookmarkDTO{
+		{
+			Bookmark: model.Bookmark{
+				URL:       "https://example.com/1",
+				Title:     "Bookmark One",
+				Excerpt:   "This is bookmark one",
+				Author:    "Author One",
+				Public:    1,
+				CreatedAt: "2024-01-01",
+			},
+		},
+		{
+			Bookmark: model.Bookmark{
+				URL:       "https://example.com/2",
+				Title:     "Bookmark Two",
+				Excerpt:   "This is bookmark two",
+				Author:    "Author Two",
+				Public:    0,
+				CreatedAt: "2024-01-02",
+			},
+		},
+		{
+			Bookmark: model.Bookmark{
+				URL:       "https://example.com/search",
+				Title:     "Search Result",
+				Excerpt:   "This bookmark contains search keyword",
+				Author:    "Search Author",
+				Public:    1,
+				CreatedAt: "2024-01-03",
+			},
+		},
+	}
+
+	// Save bookmarks to database
+	savedBookmarks, err := deps.Database().SaveBookmarks(ctx, true, testBookmarks...)
+	require.NoError(t, err)
+	require.Len(t, savedBookmarks, 3)
+
+	// Create thumbnail for one bookmark to test ImageURL population
+	fs.MkdirAll("thumb", 0755)
+	fs.Create("thumb/1")
+
+	t.Run("Basic search returns all bookmarks", func(t *testing.T) {
+		options := model.BookmarksSearchOptions{
+			Limit:       10,
+			OrderMethod: model.ByLastAddedSearchOrder,
+		}
+
+		bookmarks, err := deps.Domains().Bookmarks().SearchBookmarks(ctx, options)
+
+		require.NoError(t, err)
+		assert.Len(t, bookmarks, 3)
+
+		// Verify domain-specific fields are populated
+		for _, bookmark := range bookmarks {
+			// Check that ImageURL is populated for bookmark with ID 1
+			if bookmark.ID == 1 {
+				assert.NotEmpty(t, bookmark.ImageURL)
+				assert.True(t, deps.Domains().Bookmarks().HasThumbnail(&bookmark))
+			}
+			assert.False(t, bookmark.HasArchive) // No archive files created
+			assert.False(t, bookmark.HasEbook)   // No ebook files created
+
+			// Verify tags are populated (even if empty)
+			assert.NotNil(t, bookmark.Tags)
+		}
+	})
+
+	t.Run("Keyword search filters results", func(t *testing.T) {
+		options := model.BookmarksSearchOptions{
+			Keyword:     "search",
+			OrderMethod: model.DefaultSearchOrder,
+		}
+
+		bookmarks, err := deps.Domains().Bookmarks().SearchBookmarks(ctx, options)
+
+		require.NoError(t, err)
+		assert.Len(t, bookmarks, 1)
+		assert.Equal(t, "Search Result", bookmarks[0].Title)
+
+		// Verify domain processing still happens
+		assert.False(t, bookmarks[0].HasArchive)
+		assert.False(t, bookmarks[0].HasEbook)
+	})
+
+	t.Run("Search with limit and offset", func(t *testing.T) {
+		options := model.BookmarksSearchOptions{
+			Limit:       2,
+			Offset:      1,
+			OrderMethod: model.ByLastAddedSearchOrder,
+		}
+
+		bookmarks, err := deps.Domains().Bookmarks().SearchBookmarks(ctx, options)
+
+		require.NoError(t, err)
+		assert.Len(t, bookmarks, 2)
+	})
+
+	t.Run("Search with IDs filter", func(t *testing.T) {
+		options := model.BookmarksSearchOptions{
+			IDs:         []int{1, 3},
+			OrderMethod: model.DefaultSearchOrder,
+		}
+
+		bookmarks, err := deps.Domains().Bookmarks().SearchBookmarks(ctx, options)
+
+		require.NoError(t, err)
+		assert.Len(t, bookmarks, 2)
+
+		ids := make([]int, len(bookmarks))
+		for i, b := range bookmarks {
+			ids[i] = b.ID
+		}
+		assert.Contains(t, ids, 1)
+		assert.Contains(t, ids, 3)
+	})
+
+	t.Run("Empty search returns empty results", func(t *testing.T) {
+		options := model.BookmarksSearchOptions{
+			Keyword:     "nonexistent",
+			OrderMethod: model.DefaultSearchOrder,
+		}
+
+		bookmarks, err := deps.Domains().Bookmarks().SearchBookmarks(ctx, options)
+
+		require.NoError(t, err)
+		assert.Len(t, bookmarks, 0)
+	})
+}
+
 func TestBookmarksDomain_CreateBookmark(t *testing.T) {
 	ctx := context.Background()
 	logger := logrus.New()
@@ -619,4 +758,3 @@ func TestBookmarksDomain_BulkUpdateBookmarkTags(t *testing.T) {
 		}
 	})
 }
-

@@ -27,6 +27,15 @@ func (d *BookmarksDomain) HasThumbnail(b *model.BookmarkDTO) bool {
 	return d.deps.Domains().Storage().FileExists(thumbnailPath)
 }
 
+// populateAdditionalFields sets HasEbook, HasArchive, and ImageURL fields on the bookmark
+func (d *BookmarksDomain) populateAdditionalFields(bookmark *model.BookmarkDTO) {
+	bookmark.HasEbook = d.HasEbook(bookmark)
+	bookmark.HasArchive = d.HasArchive(bookmark)
+	if d.HasThumbnail(bookmark) {
+		bookmark.ImageURL = model.GetThumbnailPath(bookmark)
+	}
+}
+
 func (d *BookmarksDomain) GetBookmark(ctx context.Context, id model.DBID) (*model.BookmarkDTO, error) {
 	bookmark, exists, err := d.deps.Database().GetBookmark(ctx, int(id), "")
 	if err != nil {
@@ -37,14 +46,8 @@ func (d *BookmarksDomain) GetBookmark(ctx context.Context, id model.DBID) (*mode
 		return nil, model.ErrBookmarkNotFound
 	}
 
-	// Check if it has ebook and archive.
-	bookmark.HasEbook = d.HasEbook(&bookmark)
-	bookmark.HasArchive = d.HasArchive(&bookmark)
-
-	// Set thumbnail URL if thumbnail exists
-	if d.HasThumbnail(&bookmark) {
-		bookmark.ImageURL = model.GetThumbnailPath(&bookmark)
-	}
+	// Populate additional fields
+	d.populateAdditionalFields(&bookmark)
 
 	return &bookmark, nil
 }
@@ -60,17 +63,29 @@ func (d *BookmarksDomain) GetBookmarks(ctx context.Context, ids []int) ([]model.
 			continue
 		}
 
-		// Check if it has ebook and archive
-		bookmark.HasEbook = d.HasEbook(&bookmark)
-		bookmark.HasArchive = d.HasArchive(&bookmark)
-
-		// Set thumbnail URL if thumbnail exists
-		if d.HasThumbnail(&bookmark) {
-			bookmark.ImageURL = model.GetThumbnailPath(&bookmark)
-		}
+		// Populate additional fields
+		d.populateAdditionalFields(&bookmark)
 
 		bookmarks = append(bookmarks, bookmark)
 	}
+	return bookmarks, nil
+}
+
+func (d *BookmarksDomain) SearchBookmarks(ctx context.Context, options model.BookmarksSearchOptions) ([]model.BookmarkDTO, error) {
+	// Convert domain options to database options
+	dbOptions := options.ToDBGetBookmarksOptions()
+
+	// Get bookmarks from database with search options (this already includes tags)
+	bookmarks, err := d.deps.Database().GetBookmarks(ctx, dbOptions)
+	if err != nil {
+		return nil, fmt.Errorf("failed to search bookmarks")
+	}
+
+	// Populate domain-specific fields for each bookmark (ImageURL, HasArchive, HasEbook)
+	for i := range bookmarks {
+		d.populateAdditionalFields(&bookmarks[i])
+	}
+
 	return bookmarks, nil
 }
 
@@ -194,9 +209,8 @@ func (d *BookmarksDomain) CreateBookmark(ctx context.Context, bookmark model.Boo
 
 	savedBookmark := savedBookmarks[0]
 
-	// Set additional properties
-	savedBookmark.HasEbook = d.HasEbook(&savedBookmark)
-	savedBookmark.HasArchive = d.HasArchive(&savedBookmark)
+	// Populate additional properties
+	d.populateAdditionalFields(&savedBookmark)
 
 	return &savedBookmark, nil
 }
@@ -227,9 +241,8 @@ func (d *BookmarksDomain) UpdateBookmark(ctx context.Context, bookmark model.Boo
 
 	savedBookmark := savedBookmarks[0]
 
-	// Set additional properties
-	savedBookmark.HasEbook = d.HasEbook(&savedBookmark)
-	savedBookmark.HasArchive = d.HasArchive(&savedBookmark)
+	// Populate additional properties
+	d.populateAdditionalFields(&savedBookmark)
 
 	return &savedBookmark, nil
 }

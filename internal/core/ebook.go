@@ -29,7 +29,7 @@ func GenerateEbook(deps model.Dependencies, req ProcessRequest, dstPath string) 
 	bookmarkArchivePath := model.GetArchivePath(&book)
 
 	if deps.Domains().Storage().FileExists(bookmarkThumbnailPath) {
-		book.Bookmark.ImageURL = fp.Join("/", "bookmark", strID, "thumb")
+		book.ImageURL = fp.Join("/", "bookmark", strID, "thumb")
 	}
 
 	if deps.Domains().Storage().FileExists(bookmarkArchivePath) {

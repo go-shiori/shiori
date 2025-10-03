@@ -17,7 +17,6 @@ type Bookmark struct {
 	ModifiedAt string `db:"modified_at" json:"modifiedAt"`
 	Content    string `db:"content"    json:"-"`
 	HTML       string `db:"html"       json:"html,omitempty"`
-	ImageURL   string `db:"image_url"  json:"imageURL"`
 	HasContent bool   `db:"has_content" json:"hasContent"`
 }
 
@@ -30,6 +29,7 @@ type BookmarkDTO struct {
 	HasEbook      bool     `json:"hasEbook"`
 	CreateArchive bool     `json:"create_archive"`
 	CreateEbook   bool     `json:"create_ebook"`
+	ImageURL      string   `json:"imageURL"`
 }
 
 // ToBookmark extracts the embedded Bookmark from BookmarkDTO

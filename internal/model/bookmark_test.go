@@ -60,7 +60,6 @@ func TestBookmarkDTOToBookmark(t *testing.T) {
 			ModifiedAt: "2023-01-02 12:00:00",
 			Content:    "This is the content",
 			HTML:       "<p>This is HTML</p>",
-			ImageURL:   "https://example.com/image.jpg",
 			HasContent: true,
 		},
 		Tags:          []TagDTO{{Tag: Tag{ID: 1, Name: "tag1"}}, {Tag: Tag{ID: 2, Name: "tag2"}}},
@@ -68,6 +67,7 @@ func TestBookmarkDTOToBookmark(t *testing.T) {
 		HasEbook:      true,
 		CreateArchive: true,
 		CreateEbook:   true,
+		ImageURL:      "https://example.com/image.jpg",
 	}
 
 	// Convert to Bookmark

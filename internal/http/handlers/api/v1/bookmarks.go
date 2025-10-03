@@ -632,20 +632,20 @@ func HandleListBookmarks(deps model.Dependencies, c model.WebContext) {
 		}
 	}
 
-	// Prepare search options
-	searchOptions := model.DBGetBookmarksOptions{
+	// Prepare search options using domain-level options
+	searchOptions := model.BookmarksSearchOptions{
 		Tags:         tags,
 		ExcludedTags: excludedTags,
 		Keyword:      keyword,
 		Limit:        limit,
 		Offset:       (page - 1) * limit,
-		OrderMethod:  model.ByLastAdded,
+		OrderMethod:  model.ByLastAddedSearchOrder,
 	}
 
-	// Get bookmarks
-	bookmarks, err := deps.Database().GetBookmarks(c.Request().Context(), searchOptions)
+	// Search bookmarks through domain layer
+	bookmarks, err := deps.Domains().Bookmarks().SearchBookmarks(c.Request().Context(), searchOptions)
 	if err != nil {
-		response.SendError(c, http.StatusInternalServerError, "Failed to get bookmarks")
+		response.SendError(c, http.StatusInternalServerError, "Failed to search bookmarks")
 		return
 	}
 

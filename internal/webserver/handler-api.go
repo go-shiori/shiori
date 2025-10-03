@@ -363,7 +363,7 @@ func (h *Handler) ApiUpdateBookmark(w http.ResponseWriter, r *http.Request, ps h
 
 	// Add thumbnail image to the saved bookmarks again
 	newBook := res[0]
-	newBook.ImageURL = request.Bookmark.ImageURL
+	newBook.ImageURL = request.ImageURL
 	newBook.HasArchive = request.HasArchive
 
 	// Return new saved result
