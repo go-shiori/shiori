@@ -74,6 +74,9 @@ type DB interface {
 	// GetTags fetch list of tags and its frequency from database.
 	GetTags(ctx context.Context, opts DBListTagsOptions) ([]TagDTO, error)
 
+	// GetTagsCount get count of tags in database.
+	GetTagsCount(ctx context.Context, opts DBListTagsOptions) (int, error)
+
 	// RenameTag change the name of a tag.
 	RenameTag(ctx context.Context, id int, newName string) error
 

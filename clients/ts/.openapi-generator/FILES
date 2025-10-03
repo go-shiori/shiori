@@ -27,6 +27,8 @@ src/models/ApiV1UpdateCachePayload.ts
 src/models/ModelAccount.ts
 src/models/ModelAccountDTO.ts
 src/models/ModelBookmarkDTO.ts
+src/models/ModelPaginatedResponseModelBookmarkDTO.ts
+src/models/ModelPaginatedResponseModelTagDTO.ts
 src/models/ModelTagDTO.ts
 src/models/ModelUserConfig.ts
 src/models/index.ts

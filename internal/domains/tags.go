@@ -25,6 +25,24 @@ func (d *tagsDomain) ListTags(ctx context.Context, opts model.ListTagsOptions) (
 	return tags, nil
 }
 
+func (d *tagsDomain) CountTags(ctx context.Context, opts model.ListTagsOptions) (int, error) {
+	// Convert to DB options (without pagination parameters for counting)
+	dbOpts := model.DBListTagsOptions{
+		BookmarkID:        opts.BookmarkID,
+		WithBookmarkCount: false, // Not needed for counting
+		OrderBy:           opts.OrderBy,
+		Search:            opts.Search,
+		// Deliberately omit Limit and Offset for counting
+	}
+
+	count, err := d.deps.Database().GetTagsCount(ctx, dbOpts)
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
+}
+
 func (d *tagsDomain) CreateTag(ctx context.Context, tagDTO model.TagDTO) (model.TagDTO, error) {
 	tag := tagDTO.ToTag()
 	createdTag, err := d.deps.Database().CreateTag(ctx, tag)

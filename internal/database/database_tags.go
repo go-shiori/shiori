@@ -80,6 +80,43 @@ func (db *dbbase) GetTags(ctx context.Context, opts model.DBListTagsOptions) ([]
 	return tags, nil
 }
 
+// GetTagsCount returns the count of tags matching the specified options.
+// This is a lightweight alternative to GetTags when only the count is needed.
+func (db *dbbase) GetTagsCount(ctx context.Context, opts model.DBListTagsOptions) (int, error) {
+	sb := db.Flavor().NewSelectBuilder()
+
+	sb.Select("COUNT(DISTINCT t.id)")
+	sb.From("tag t")
+
+	// Handle bookmark filtering
+	if opts.BookmarkID > 0 {
+		// Join with bookmark_tag and filter by bookmark ID
+		sb.JoinWithOption(sqlbuilder.RightJoin, "bookmark_tag bt",
+			sb.And(
+				"bt.tag_id = t.id",
+				sb.Equal("bt.bookmark_id", opts.BookmarkID),
+			),
+		)
+		sb.Where(sb.IsNotNull("t.id"))
+	}
+
+	// Add search condition if search term is provided
+	if opts.Search != "" {
+		sb.Where(sb.Like("t.name", "%"+opts.Search+"%"))
+	}
+
+	query, args := sb.Build()
+	query = db.ReaderDB().Rebind(query)
+
+	var count int
+	err := db.ReaderDB().GetContext(ctx, &count, query, args...)
+	if err != nil {
+		return 0, fmt.Errorf("failed to get tags count: %w", err)
+	}
+
+	return count, nil
+}
+
 // AddTagToBookmark adds a tag to a bookmark
 func (db *dbbase) AddTagToBookmark(ctx context.Context, bookmarkID int, tagID int) error {
 	// Insert the bookmark-tag association

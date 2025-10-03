@@ -11,7 +11,7 @@ import (
 )
 
 // @Summary					List tags
-// @Description				List all tags
+// @Description				List all tags with pagination
 // @Tags						Tags
 // @securityDefinitions.apikey	ApiKeyAuth
 // @Produce					json
@@ -20,7 +20,7 @@ import (
 // @Param						search				query		string	false	"Search tags by name"
 // @Param						page				query		integer	false	"Page number (default: 1)"
 // @Param						limit				query		integer	false	"Items per page (default: 30, max: 100)"
-// @Success					200					{array}		model.TagDTO
+// @Success					200					{object}	model.PaginatedResponse[model.TagDTO]
 // @Failure					403					{object}	nil	"Authentication required"
 // @Failure					500					{object}	nil	"Internal server error"
 // @Router						/api/v1/tags [get]
@@ -74,6 +74,7 @@ func HandleListTags(deps model.Dependencies, c model.WebContext) {
 		return
 	}
 
+	// Get tags
 	tags, err := deps.Domains().Tags().ListTags(c.Request().Context(), opts)
 	if err != nil {
 		deps.Logger().WithError(err).Error("failed to get tags")
@@ -81,7 +82,25 @@ func HandleListTags(deps model.Dependencies, c model.WebContext) {
 		return
 	}
 
-	response.SendJSON(c, http.StatusOK, tags)
+	// Get total count
+	countOpts := model.ListTagsOptions{
+		BookmarkID: bookmarkID,
+		Search:     search,
+	}
+	totalCount, err := deps.Domains().Tags().CountTags(c.Request().Context(), countOpts)
+	if err != nil {
+		deps.Logger().WithError(err).Error("failed to get tags count")
+		response.SendInternalServerError(c)
+		return
+	}
+
+	// Return paginated response
+	paginatedResponse := model.PaginatedResponse[model.TagDTO]{
+		Items: tags,
+		Total: totalCount,
+	}
+
+	response.SendJSON(c, http.StatusOK, paginatedResponse)
 }
 
 // @Summary					Get tag

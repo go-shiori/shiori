@@ -87,6 +87,25 @@ func (d *BookmarksDomain) SearchBookmarks(ctx context.Context, options model.Boo
 	return bookmarks, nil
 }
 
+func (d *BookmarksDomain) CountBookmarks(ctx context.Context, options model.BookmarksSearchOptions) (int, error) {
+	// Convert domain options to database options (without pagination)
+	dbOptions := model.DBGetBookmarksOptions{
+		IDs:          options.IDs,
+		Tags:         options.Tags,
+		ExcludedTags: options.ExcludedTags,
+		Keyword:      options.Keyword,
+		WithContent:  options.WithContent,
+		// Deliberately omit Limit and Offset for counting
+	}
+
+	count, err := d.deps.Database().GetBookmarksCount(ctx, dbOptions)
+	if err != nil {
+		return 0, fmt.Errorf("failed to count bookmarks: %w", err)
+	}
+
+	return count, nil
+}
+
 func (d *BookmarksDomain) UpdateBookmarkCache(ctx context.Context, bookmark model.BookmarkDTO, keepMetadata bool, skipExist bool) (*model.BookmarkDTO, error) {
 	// Download data from internet
 	content, contentType, err := core.DownloadBookmark(bookmark.Bookmark.URL)

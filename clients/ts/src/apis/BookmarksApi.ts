@@ -25,6 +25,7 @@ import type {
   ApiV1UpdateBookmarkPayload,
   ApiV1UpdateCachePayload,
   ModelBookmarkDTO,
+  ModelPaginatedResponseModelBookmarkDTO,
   ModelTagDTO,
 } from '../models/index';
 import {
@@ -48,6 +49,8 @@ import {
     ApiV1UpdateCachePayloadToJSON,
     ModelBookmarkDTOFromJSON,
     ModelBookmarkDTOToJSON,
+    ModelPaginatedResponseModelBookmarkDTOFromJSON,
+    ModelPaginatedResponseModelBookmarkDTOToJSON,
     ModelTagDTOFromJSON,
     ModelTagDTOToJSON,
 } from '../models/index';
@@ -230,9 +233,9 @@ export class BookmarksApi extends runtime.BaseAPI {
     }
 
     /**
-     * List bookmarks with optional filtering.
+     * List bookmarks with optional filtering and pagination.
      */
-    async apiV1BookmarksGetRaw(requestParameters: ApiV1BookmarksGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<ModelBookmarkDTO>>> {
+    async apiV1BookmarksGetRaw(requestParameters: ApiV1BookmarksGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ModelPaginatedResponseModelBookmarkDTO>> {
         const queryParameters: any = {};
 
         if (requestParameters['keyword'] != null) {
@@ -267,13 +270,13 @@ export class BookmarksApi extends runtime.BaseAPI {
             query: queryParameters,
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(ModelBookmarkDTOFromJSON));
+        return new runtime.JSONApiResponse(response, (jsonValue) => ModelPaginatedResponseModelBookmarkDTOFromJSON(jsonValue));
     }
 
     /**
-     * List bookmarks with optional filtering.
+     * List bookmarks with optional filtering and pagination.
      */
-    async apiV1BookmarksGet(requestParameters: ApiV1BookmarksGetRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<ModelBookmarkDTO>> {
+    async apiV1BookmarksGet(requestParameters: ApiV1BookmarksGetRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ModelPaginatedResponseModelBookmarkDTO> {
         const response = await this.apiV1BookmarksGetRaw(requestParameters, initOverrides);
         return await response.value();
     }

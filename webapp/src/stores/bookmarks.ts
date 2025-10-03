@@ -1,9 +1,10 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { BookmarksApi } from '@/client'
-import type { ModelBookmarkDTO } from '@/client/models'
-import { useAuthStore } from './auth'
-import { getApiConfig } from '@/utils/api-config'
+import type { ModelBookmarkDTO } from '@/client'
+import type { ModelPaginatedResponseModelBookmarkDTO } from '@/client/models/ModelPaginatedResponseModelBookmarkDTO'
+import { usePagination } from '@/composables/usePagination'
+import { useApiStore, createApiClient } from '@/composables/useApiStore'
 
 export interface BookmarksFilters {
   keyword?: string
@@ -15,109 +16,96 @@ export interface BookmarksFilters {
 
 export const useBookmarksStore = defineStore('bookmarks', () => {
   const bookmarks = ref<ModelBookmarkDTO[]>([])
-  const isLoading = ref(false)
-  const error = ref<string | null>(null)
-  const totalCount = ref(0)
-  const currentPage = ref(1)
-  const pageLimit = ref(30)
+
+  // Use standardized pagination composable
+  const {
+    currentPage,
+    pageLimit,
+    totalCount,
+    isLoading,
+    error,
+    updatePagination
+  } = usePagination(20)
+
+  // Use API store composable
+  const { executeWithLoading } = useApiStore()
 
   // API client
   const getBookmarksApi = () => {
-    const authStore = useAuthStore()
-    return new BookmarksApi(getApiConfig(authStore.token))
+    const { getAuthToken } = useApiStore()
+    return createApiClient(BookmarksApi, getAuthToken())
   }
 
   // Get bookmarks with filters
   const fetchBookmarks = async (filters: BookmarksFilters = {}) => {
-    isLoading.value = true
-    error.value = null
+    return executeWithLoading(
+      isLoading,
+      error,
+      async () => {
+        const api = getBookmarksApi()
+        const page = filters.page || currentPage.value
+        const limit = filters.limit || pageLimit.value
 
-    try {
-      const api = getBookmarksApi()
-      const response = await api.apiV1BookmarksGet({
-        keyword: filters.keyword,
-        tags: filters.tags,
-        exclude: filters.exclude,
-        page: filters.page || currentPage.value,
-        limit: filters.limit || pageLimit.value
-      })
+        const response = await api.apiV1BookmarksGet({
+          keyword: filters.keyword,
+          tags: filters.tags,
+          exclude: filters.exclude,
+          page: page,
+          limit: limit
+        })
 
-      // Ensure response is an array before assigning
-      if (Array.isArray(response)) {
-        bookmarks.value = response
-        totalCount.value = response.length
-      } else {
-        console.error('Expected array response but got:', typeof response)
-        bookmarks.value = []
-        totalCount.value = 0
-      }
+        // Update pagination state
+        updatePagination({ page, limit, total: (response as any).total || 0 })
 
-      return bookmarks.value
-    } catch (err) {
-      console.error('Failed to fetch bookmarks:', err)
-      if (err instanceof Error && err.message.includes('401')) {
-        error.value = 'Authentication error. Please log in again.'
-      } else {
-        error.value = 'Failed to load bookmarks. Please try again.'
-      }
-      throw err
-    } finally {
-      isLoading.value = false
-    }
+        // Response is now a paginated response with items and total
+        if (response && (response as any).items) {
+          bookmarks.value = (response as any).items
+        } else {
+          console.error('Unexpected response format:', response)
+          bookmarks.value = []
+        }
+
+        return bookmarks.value
+      },
+      'Failed to load bookmarks. Please try again.'
+    )
   }
 
   // Get single bookmark by ID
   const getBookmark = async (id: number) => {
-    isLoading.value = true
-    error.value = null
-
-    try {
-      const api = getBookmarksApi()
-      const bookmark = await api.apiV1BookmarksIdGet({ id })
-      return bookmark
-    } catch (err) {
-      console.error('Failed to get bookmark:', err)
-      if (err instanceof Error && err.message.includes('401')) {
-        error.value = 'Authentication error. Please log in again.'
-      } else {
-        error.value = 'Failed to load bookmark. Please try again.'
-      }
-      throw err
-    } finally {
-      isLoading.value = false
-    }
+    return executeWithLoading(
+      isLoading,
+      error,
+      async () => {
+        const api = getBookmarksApi()
+        return await api.apiV1BookmarksIdGet({ id })
+      },
+      'Failed to load bookmark. Please try again.'
+    )
   }
 
   // Create a new bookmark
   const createBookmark = async (url: string, title?: string, excerpt?: string, isPublic?: number) => {
-    isLoading.value = true
-    error.value = null
+    return executeWithLoading(
+      isLoading,
+      error,
+      async () => {
+        const api = getBookmarksApi()
+        const newBookmark = await api.apiV1BookmarksPost({
+          payload: {
+            url,
+            title,
+            excerpt,
+            _public: isPublic
+          }
+        })
 
-    try {
-      const api = getBookmarksApi()
-      const newBookmark = await api.apiV1BookmarksPost({
-        payload: {
-          url,
-          title,
-          excerpt,
-          _public: isPublic
-        }
-      })
-
-      bookmarks.value.unshift(newBookmark)
-      totalCount.value++
-      return newBookmark
-    } catch (err) {
-      console.error('Failed to create bookmark:', err)
-      if (err instanceof Error && err.message.includes('401')) {
-        error.value = 'Authentication error. Please log in again.'
-      } else {
-        error.value = 'Failed to create bookmark. Please try again.'
-      }
-      throw err
-    } finally {
-      isLoading.value = false
-    }
+        bookmarks.value.unshift(newBookmark)
+        totalCount.value++
+        return newBookmark
+      },
+      'Failed to create bookmark. Please try again.'
+    )
   }
 
   // Update a bookmark
@@ -125,109 +113,101 @@ export const useBookmarksStore = defineStore('bookmarks', () => {
     id: number,
     updates: { url?: string; title?: string; excerpt?: string; public?: number }
   ) => {
-    isLoading.value = true
-    error.value = null
+    return executeWithLoading(
+      isLoading,
+      error,
+      async () => {
+        const api = getBookmarksApi()
+        const updatedBookmark = await api.apiV1BookmarksIdPut({
+          id,
+          payload: updates
+        })
 
-    try {
-      const api = getBookmarksApi()
-      const updatedBookmark = await api.apiV1BookmarksIdPut({
-        id,
-        payload: updates
-      })
+        const index = bookmarks.value.findIndex(bookmark => bookmark.id === id)
+        if (index !== -1) {
+          bookmarks.value[index] = updatedBookmark
+        }
 
-      const index = bookmarks.value.findIndex(bookmark => bookmark.id === id)
-      if (index !== -1) {
-        bookmarks.value[index] = updatedBookmark
-      }
-
-      return updatedBookmark
-    } catch (err) {
-      console.error('Failed to update bookmark:', err)
-      if (err instanceof Error && err.message.includes('401')) {
-        error.value = 'Authentication error. Please log in again.'
-      } else {
-        error.value = 'Failed to update bookmark. Please try again.'
-      }
-      throw err
-    } finally {
-      isLoading.value = false
-    }
+        return updatedBookmark
+      },
+      'Failed to update bookmark. Please try again.'
+    )
   }
 
   // Delete bookmarks
   const deleteBookmarks = async (ids: number[]) => {
-    isLoading.value = true
-    error.value = null
+    return executeWithLoading(
+      isLoading,
+      error,
+      async () => {
+        const api = getBookmarksApi()
+        await api.apiV1BookmarksDelete({ payload: { ids } })
 
-    try {
-      const api = getBookmarksApi()
-      await api.apiV1BookmarksDelete({ payload: { ids } })
-
-      bookmarks.value = bookmarks.value.filter(bookmark => !ids.includes(bookmark.id || 0))
-      totalCount.value -= ids.length
-    } catch (err) {
-      console.error('Failed to delete bookmarks:', err)
-      if (err instanceof Error && err.message.includes('401')) {
-        error.value = 'Authentication error. Please log in again.'
-      } else {
-        error.value = 'Failed to delete bookmarks. Please try again.'
-      }
-      throw err
-    } finally {
-      isLoading.value = false
-    }
+        bookmarks.value = bookmarks.value.filter(bookmark => !ids.includes(bookmark.id || 0))
+        totalCount.value -= ids.length
+      },
+      'Failed to delete bookmarks. Please try again.'
+    )
   }
 
   // Get bookmark tags
   const getBookmarkTags = async (id: number) => {
-    try {
-      const api = getBookmarksApi()
-      const tags = await api.apiV1BookmarksIdTagsGet({ id })
-      return tags
-    } catch (err) {
-      console.error('Failed to get bookmark tags:', err)
-      throw err
-    }
+    return executeWithLoading(
+      isLoading,
+      error,
+      async () => {
+        const api = getBookmarksApi()
+        const tags = await api.apiV1BookmarksIdTagsGet({ id })
+        return tags
+      },
+      'Failed to get bookmark tags. Please try again.'
+    )
   }
 
   // Add tag to bookmark
   const addTagToBookmark = async (bookmarkId: number, tagId: number) => {
-    try {
-      const api = getBookmarksApi()
-      await api.apiV1BookmarksIdTagsPost({
-        id: bookmarkId,
-        payload: { tagId }
-      })
-    } catch (err) {
-      console.error('Failed to add tag to bookmark:', err)
-      throw err
-    }
+    return executeWithLoading(
+      isLoading,
+      error,
+      async () => {
+        const api = getBookmarksApi()
+        await api.apiV1BookmarksIdTagsPost({
+          id: bookmarkId,
+          payload: { tagId }
+        })
+      },
+      'Failed to add tag to bookmark. Please try again.'
+    )
   }
 
   // Remove tag from bookmark
   const removeTagFromBookmark = async (bookmarkId: number, tagId: number) => {
-    try {
-      const api = getBookmarksApi()
-      await api.apiV1BookmarksIdTagsDelete({
-        id: bookmarkId,
-        payload: { tagId }
-      })
-    } catch (err) {
-      console.error('Failed to remove tag from bookmark:', err)
-      throw err
-    }
+    return executeWithLoading(
+      isLoading,
+      error,
+      async () => {
+        const api = getBookmarksApi()
+        await api.apiV1BookmarksIdTagsDelete({
+          id: bookmarkId,
+          payload: { tagId }
+        })
+      },
+      'Failed to remove tag to bookmark. Please try again.'
+    )
   }
 
   // Get bookmark data (content, archive, ebook info)
   const getBookmarkData = async (id: number) => {
-    try {
-      const api = getBookmarksApi()
-      const data = await api.apiV1BookmarksIdDataGet({ id })
-      return data
-    } catch (err) {
-      console.error('Failed to get bookmark data:', err)
-      throw err
-    }
+    return executeWithLoading(
+      isLoading,
+      error,
+      async () => {
+        const api = getBookmarksApi()
+        const data = await api.apiV1BookmarksIdDataGet({ id })
+        return data
+      },
+      'Failed to get bookmark data. Please try again.'
+    )
   }
 
   // Update bookmark data (generate/update readable content, archive, ebook)
@@ -241,33 +221,25 @@ export const useBookmarksStore = defineStore('bookmarks', () => {
       skipExisting?: boolean
     }
   ) => {
-    isLoading.value = true
-    error.value = null
-
-    try {
-      const api = getBookmarksApi()
-      const data = await api.apiV1BookmarksIdDataPut({
-        id,
-        payload: {
-          updateReadable: options.updateReadable || false,
-          createArchive: options.createArchive || false,
-          createEbook: options.createEbook || false,
-          keepMetadata: options.keepMetadata || false,
-          skipExisting: options.skipExisting || false
-        }
-      })
-      return data
-    } catch (err) {
-      console.error('Failed to update bookmark data:', err)
-      if (err instanceof Error && err.message.includes('401')) {
-        error.value = 'Authentication error. Please log in again.'
-      } else {
-        error.value = 'Failed to update bookmark data. Please try again.'
-      }
-      throw err
-    } finally {
-      isLoading.value = false
-    }
+    return executeWithLoading(
+      isLoading,
+      error,
+      async () => {
+        const api = getBookmarksApi()
+        const data = await api.apiV1BookmarksIdDataPut({
+          id,
+          payload: {
+            updateReadable: options.updateReadable || false,
+            createArchive: options.createArchive || false,
+            createEbook: options.createEbook || false,
+            keepMetadata: options.keepMetadata || false,
+            skipExisting: options.skipExisting || false
+          }
+        })
+        return data
+      },
+      'Failed to update bookmark data. Please try again.'
+    )
   }
 
   return {

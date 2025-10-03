@@ -15,9 +15,12 @@
 
 import * as runtime from '../runtime';
 import type {
+  ModelPaginatedResponseModelTagDTO,
   ModelTagDTO,
 } from '../models/index';
 import {
+    ModelPaginatedResponseModelTagDTOFromJSON,
+    ModelPaginatedResponseModelTagDTOToJSON,
     ModelTagDTOFromJSON,
     ModelTagDTOToJSON,
 } from '../models/index';
@@ -53,10 +56,10 @@ export interface ApiV1TagsPostRequest {
 export class TagsApi extends runtime.BaseAPI {
 
     /**
-     * List all tags
+     * List all tags with pagination
      * List tags
      */
-    async apiV1TagsGetRaw(requestParameters: ApiV1TagsGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<ModelTagDTO>>> {
+    async apiV1TagsGetRaw(requestParameters: ApiV1TagsGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ModelPaginatedResponseModelTagDTO>> {
         const queryParameters: any = {};
 
         if (requestParameters['withBookmarkCount'] != null) {
@@ -91,14 +94,14 @@ export class TagsApi extends runtime.BaseAPI {
             query: queryParameters,
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(ModelTagDTOFromJSON));
+        return new runtime.JSONApiResponse(response, (jsonValue) => ModelPaginatedResponseModelTagDTOFromJSON(jsonValue));
     }
 
     /**
-     * List all tags
+     * List all tags with pagination
      * List tags
      */
-    async apiV1TagsGet(requestParameters: ApiV1TagsGetRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<ModelTagDTO>> {
+    async apiV1TagsGet(requestParameters: ApiV1TagsGetRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ModelPaginatedResponseModelTagDTO> {
         const response = await this.apiV1TagsGetRaw(requestParameters, initOverrides);
         return await response.value();
     }

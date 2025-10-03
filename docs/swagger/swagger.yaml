@@ -220,6 +220,24 @@ definitions:
       url:
         type: string
     type: object
+  model.PaginatedResponse-model_BookmarkDTO:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/model.BookmarkDTO'
+        type: array
+      total:
+        type: integer
+    type: object
+  model.PaginatedResponse-model_TagDTO:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/model.TagDTO'
+        type: array
+      total:
+        type: integer
+    type: object
   model.TagDTO:
     properties:
       bookmark_count:
@@ -481,12 +499,10 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/model.BookmarkDTO'
-            type: array
+            $ref: '#/definitions/model.PaginatedResponse-model_BookmarkDTO'
         "403":
           description: Token not provided/invalid
-      summary: List bookmarks with optional filtering.
+      summary: List bookmarks with optional filtering and pagination.
       tags:
       - Bookmarks
     post:
@@ -771,7 +787,7 @@ paths:
       - System
   /api/v1/tags:
     get:
-      description: List all tags
+      description: List all tags with pagination
       parameters:
       - description: Include bookmark count for each tag
         in: query
@@ -799,9 +815,7 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/model.TagDTO'
-            type: array
+            $ref: '#/definitions/model.PaginatedResponse-model_TagDTO'
         "403":
           description: Authentication required
         "500":

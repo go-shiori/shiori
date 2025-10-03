@@ -55,6 +55,7 @@ type BookmarksDomain interface {
 	GetBookmark(ctx context.Context, id DBID) (*BookmarkDTO, error)
 	GetBookmarks(ctx context.Context, ids []int) ([]BookmarkDTO, error)
 	SearchBookmarks(ctx context.Context, options BookmarksSearchOptions) ([]BookmarkDTO, error)
+	CountBookmarks(ctx context.Context, options BookmarksSearchOptions) (int, error)
 	UpdateBookmarkCache(ctx context.Context, bookmark BookmarkDTO, keepMetadata bool, skipExist bool) (*BookmarkDTO, error)
 	BulkUpdateBookmarkTags(ctx context.Context, bookmarkIDs []int, tagIDs []int) error
 	AddTagToBookmark(ctx context.Context, bookmarkID int, tagID int) error
@@ -95,6 +96,7 @@ type StorageDomain interface {
 
 type TagsDomain interface {
 	ListTags(ctx context.Context, opts ListTagsOptions) ([]TagDTO, error)
+	CountTags(ctx context.Context, opts ListTagsOptions) (int, error)
 	CreateTag(ctx context.Context, tag TagDTO) (TagDTO, error)
 	GetTag(ctx context.Context, id int) (TagDTO, error)
 	UpdateTag(ctx context.Context, tag TagDTO) (TagDTO, error)

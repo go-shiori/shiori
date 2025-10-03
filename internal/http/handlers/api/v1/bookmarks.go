@@ -593,7 +593,7 @@ func HandleCreateBookmark(deps model.Dependencies, c model.WebContext) {
 
 // HandleListBookmarks lists bookmarks with optional filtering
 //
-//	@Summary			List bookmarks with optional filtering.
+//	@Summary			List bookmarks with optional filtering and pagination.
 //	@Tags				Bookmarks
 //	@securityDefinitions.apikey	ApiKeyAuth
 //	@Param				keyword	query		string	false	"Search keyword"
@@ -602,7 +602,7 @@ func HandleCreateBookmark(deps model.Dependencies, c model.WebContext) {
 //	@Param				page	query		int		false	"Page number (default: 1)"
 //	@Param				limit	query		int		false	"Items per page (default: 30, max: 100)"
 //	@Produce			json
-//	@Success			200	{array}		model.BookmarkDTO
+//	@Success			200	{object}	model.PaginatedResponse[model.BookmarkDTO]
 //	@Failure			403	{object}	nil	"Token not provided/invalid"
 //	@Router				/api/v1/bookmarks [get]
 func HandleListBookmarks(deps model.Dependencies, c model.WebContext) {
@@ -662,7 +662,26 @@ func HandleListBookmarks(deps model.Dependencies, c model.WebContext) {
 		return
 	}
 
-	response.SendJSON(c, http.StatusOK, bookmarks)
+	// Get total count
+	countOptions := model.BookmarksSearchOptions{
+		Tags:         tags,
+		ExcludedTags: excludedTags,
+		Keyword:      keyword,
+	}
+	totalCount, err := deps.Domains().Bookmarks().CountBookmarks(c.Request().Context(), countOptions)
+	if err != nil {
+		deps.Logger().WithError(err).Error("failed to get bookmarks count")
+		response.SendError(c, http.StatusInternalServerError, "Failed to get bookmarks count")
+		return
+	}
+
+	// Return paginated response
+	paginatedResponse := model.PaginatedResponse[model.BookmarkDTO]{
+		Items: bookmarks,
+		Total: totalCount,
+	}
+
+	response.SendJSON(c, http.StatusOK, paginatedResponse)
 }
 
 // HandleGetBookmark gets a single bookmark by ID

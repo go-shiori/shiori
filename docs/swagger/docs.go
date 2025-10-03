@@ -295,7 +295,7 @@ const docTemplate = `{
                 "tags": [
                     "Bookmarks"
                 ],
-                "summary": "List bookmarks with optional filtering.",
+                "summary": "List bookmarks with optional filtering and pagination.",
                 "parameters": [
                     {
                         "type": "string",
@@ -332,10 +332,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/model.BookmarkDTO"
-                            }
+                            "$ref": "#/definitions/model.PaginatedResponse-model_BookmarkDTO"
                         }
                     },
                     "403": {
@@ -806,7 +803,7 @@ const docTemplate = `{
         },
         "/api/v1/tags": {
             "get": {
-                "description": "List all tags",
+                "description": "List all tags with pagination",
                 "produces": [
                     "application/json"
                 ],
@@ -850,10 +847,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/model.TagDTO"
-                            }
+                            "$ref": "#/definitions/model.PaginatedResponse-model_TagDTO"
                         }
                     },
                     "403": {
@@ -1366,6 +1360,34 @@ const docTemplate = `{
                 },
                 "url": {
                     "type": "string"
+                }
+            }
+        },
+        "model.PaginatedResponse-model_BookmarkDTO": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.BookmarkDTO"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "model.PaginatedResponse-model_TagDTO": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.TagDTO"
+                    }
+                },
+                "total": {
+                    "type": "integer"
                 }
             }
         },

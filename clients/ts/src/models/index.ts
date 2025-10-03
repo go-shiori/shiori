@@ -17,5 +17,7 @@ export * from './ApiV1UpdateCachePayload';
 export * from './ModelAccount';
 export * from './ModelAccountDTO';
 export * from './ModelBookmarkDTO';
+export * from './ModelPaginatedResponseModelBookmarkDTO';
+export * from './ModelPaginatedResponseModelTagDTO';
 export * from './ModelTagDTO';
 export * from './ModelUserConfig';

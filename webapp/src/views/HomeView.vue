@@ -3,15 +3,17 @@ import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import AppLayout from '@/components/layout/AppLayout.vue';
+import Pagination from '@/components/ui/Pagination.vue';
 import { useBookmarksStore } from '@/stores/bookmarks';
 import { useAuthStore } from '@/stores/auth';
 import AuthenticatedImage from '@/components/ui/AuthenticatedImage.vue';
+import { ImageIcon, PencilIcon, TrashIcon } from '@/components/icons';
 
 const bookmarksStore = useBookmarksStore();
 const authStore = useAuthStore();
 const router = useRouter();
 
-const { bookmarks, isLoading, error } = storeToRefs(bookmarksStore);
+const { bookmarks, isLoading, error, totalCount, currentPage, pageLimit } = storeToRefs(bookmarksStore);
 const { fetchBookmarks } = bookmarksStore;
 
 const searchKeyword = ref('');
@@ -33,9 +35,27 @@ onMounted(async () => {
 // Search bookmarks
 const handleSearch = async () => {
   try {
-    await fetchBookmarks({ keyword: searchKeyword.value });
+    await fetchBookmarks({ keyword: searchKeyword.value, page: 1 }); // Reset to page 1 when searching
   } catch (err) {
     console.error('Error searching bookmarks:', err);
+  }
+};
+
+// Handle page change
+const handlePageChange = async (page: number) => {
+  try {
+    await fetchBookmarks({ page, limit: pageLimit.value, keyword: searchKeyword.value });
+  } catch (err) {
+    console.error('Error changing page:', err);
+  }
+};
+
+// Handle per page change
+const handlePerPageChange = async (perPage: number) => {
+  try {
+    await fetchBookmarks({ page: 1, limit: perPage, keyword: searchKeyword.value });
+  } catch (err) {
+    console.error('Error changing items per page:', err);
   }
 };
 
@@ -96,11 +116,7 @@ const getBookmarkTags = (bookmark: any) => {
                   :alt="bookmark.title || 'Bookmark thumbnail'" class="w-full h-full" />
               </div>
               <div v-else class="w-24 h-24 rounded-md bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-400 dark:text-gray-500" fill="none"
-                  viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
+                <ImageIcon class="h-10 w-10 text-gray-400 dark:text-gray-500" />
               </div>
             </div>
 
@@ -114,18 +130,11 @@ const getBookmarkTags = (bookmark: any) => {
                 <div class="flex space-x-2 ml-4 flex-shrink-0">
                   <button class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
                     <span class="sr-only">Edit</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path
-                        d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                    </svg>
+                    <PencilIcon class="h-5 w-5" />
                   </button>
                   <button class="text-gray-500 dark:text-gray-400 hover:text-red-500">
                     <span class="sr-only">Delete</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fill-rule="evenodd"
-                        d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-                        clip-rule="evenodd" />
-                    </svg>
+                    <TrashIcon class="h-5 w-5" />
                   </button>
                 </div>
               </div>
@@ -137,6 +146,10 @@ const getBookmarkTags = (bookmark: any) => {
           </div>
         </li>
       </ul>
+
+      <!-- Pagination -->
+      <Pagination v-if="totalCount > pageLimit" :current-page="currentPage" :total-items="totalCount"
+        :items-per-page="pageLimit" @page-change="handlePageChange" @per-page-change="handlePerPageChange" />
     </div>
   </AppLayout>
 </template>
