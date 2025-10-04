@@ -9,7 +9,7 @@ import BookmarkCard from '@/components/ui/BookmarkCard.vue';
 import { useBookmarksStore } from '@/stores/bookmarks';
 import { useAuthStore } from '@/stores/auth';
 import AuthenticatedImage from '@/components/ui/AuthenticatedImage.vue';
-import { ImageIcon, PencilIcon, TrashIcon } from '@/components/icons';
+import { ImageIcon, PencilIcon, TrashIcon, ArchiveIcon, BookIcon, FileTextIcon } from '@/components/icons';
 
 const bookmarksStore = useBookmarksStore();
 const authStore = useAuthStore();
@@ -174,11 +174,19 @@ onUnmounted(() => {
 
             <!-- Content -->
             <div class="flex-1 min-w-0">
-              <div class="flex justify-between">
-                <a :href="bookmark.url" target="_blank"
-                  class="text-blue-600 dark:text-blue-400 hover:underline font-medium truncate">
-                  {{ bookmark.title || bookmark.url }}
-                </a>
+              <div class="flex justify-between items-start">
+                <div class="flex items-start gap-2 flex-1 min-w-0">
+                  <a :href="bookmark.url" target="_blank"
+                    class="text-blue-600 dark:text-blue-400 hover:underline font-medium truncate">
+                    {{ bookmark.title || bookmark.url }}
+                  </a>
+                  <!-- Feature icons -->
+                  <div class="flex items-center gap-1 flex-shrink-0">
+                    <FileTextIcon v-if="bookmark.hasContent" class="h-4 w-4 text-gray-500 dark:text-gray-400" title="Has readable content" />
+                    <ArchiveIcon v-if="bookmark.hasArchive" class="h-4 w-4 text-gray-500 dark:text-gray-400" title="Has archive" />
+                    <BookIcon v-if="bookmark.hasEbook" class="h-4 w-4 text-gray-500 dark:text-gray-400" title="Has ebook" />
+                  </div>
+                </div>
                 <div class="flex space-x-2 ml-4 flex-shrink-0">
                   <button class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
                     <span class="sr-only">Edit</span>

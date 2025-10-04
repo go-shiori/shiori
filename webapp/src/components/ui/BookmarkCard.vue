@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import AuthenticatedImage from '@/components/ui/AuthenticatedImage.vue';
-import { ImageIcon, PencilIcon, TrashIcon } from '@/components/icons';
+import { ImageIcon, PencilIcon, TrashIcon, ArchiveIcon, BookIcon, FileTextIcon } from '@/components/icons';
+import type { ModelBookmarkDTO } from '@/client';
 
 interface Props {
-    bookmark: any;
+    bookmark: ModelBookmarkDTO;
     authToken?: string;
 }
 
@@ -26,10 +27,18 @@ defineProps<Props>();
         <!-- Details at the bottom -->
         <div class="p-4">
             <!-- Title -->
-            <a :href="bookmark.url" target="_blank"
-                class="text-blue-600 dark:text-blue-400 hover:underline font-medium text-sm line-clamp-2 block mb-2">
-                {{ bookmark.title || bookmark.url }}
-            </a>
+            <div class="flex items-start justify-between gap-2 mb-2">
+                <a :href="bookmark.url" target="_blank"
+                    class="text-blue-600 dark:text-blue-400 hover:underline font-medium text-sm line-clamp-2 flex-1">
+                    {{ bookmark.title || bookmark.url }}
+                </a>
+                <!-- Feature icons -->
+                <div class="flex items-center gap-1 flex-shrink-0">
+                    <FileTextIcon v-if="bookmark.hasContent" class="h-3 w-3 text-gray-500 dark:text-gray-400" title="Has readable content" />
+                    <ArchiveIcon v-if="bookmark.hasArchive" class="h-3 w-3 text-gray-500 dark:text-gray-400" title="Has archive" />
+                    <BookIcon v-if="bookmark.hasEbook" class="h-3 w-3 text-gray-500 dark:text-gray-400" title="Has ebook" />
+                </div>
+            </div>
 
             <!-- URL -->
             <div class="text-gray-500 dark:text-gray-400 text-xs truncate mb-2">
