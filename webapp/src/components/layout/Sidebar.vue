@@ -98,7 +98,7 @@ onUnmounted(() => {
                             :title="t('auth.user')">
                             <UserIcon class="h-6 w-6" />
                             <span class="text-xs mt-1 dark:text-gray-300">{{ authStore.user?.username || t('auth.user')
-                            }}</span>
+                                }}</span>
                         </button>
 
                         <!-- Dropdown Menu -->
@@ -110,10 +110,10 @@ onUnmounted(() => {
                                     t('auth.user') }}
                                 </div>
                             </div>
-                            <router-link to="/settings"
+                            <RouterLink to="/settings"
                                 class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
                                 {{ t('navigation.settings') }}
-                            </router-link>
+                            </RouterLink>
                             <button @click="handleLogout"
                                 class="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
                                 {{ t('auth.logout') }}
