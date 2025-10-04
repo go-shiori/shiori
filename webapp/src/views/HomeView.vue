@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import AppLayout from '@/components/layout/AppLayout.vue';
 import Pagination from '@/components/ui/Pagination.vue';
+import ViewSelector from '@/components/ui/ViewSelector.vue';
+import BookmarkCard from '@/components/ui/BookmarkCard.vue';
 import { useBookmarksStore } from '@/stores/bookmarks';
 import { useAuthStore } from '@/stores/auth';
 import AuthenticatedImage from '@/components/ui/AuthenticatedImage.vue';
@@ -18,10 +20,43 @@ const { fetchBookmarks } = bookmarksStore;
 
 const searchKeyword = ref('');
 
+// Initialize view from localStorage or default to 'list'
+const getStoredView = (): 'list' | 'card' => {
+  if (typeof window !== 'undefined') {
+    const stored = localStorage.getItem('shiori-view-preference');
+    return (stored === 'list' || stored === 'card') ? stored : 'list';
+  }
+  return 'list';
+};
+
+const currentView = ref<'list' | 'card'>(getStoredView());
+const isMobile = ref(false);
+
+// Detect mobile screen size
+const checkMobile = () => {
+  isMobile.value = window.innerWidth < 768; // md breakpoint
+};
+
+// Handle view change with persistence
+const handleViewChange = (view: 'list' | 'card') => {
+  currentView.value = view;
+  // Store the preference in localStorage
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('shiori-view-preference', view);
+  }
+};
+
+// Computed property for effective view (force card on mobile)
+const effectiveView = computed(() => {
+  return isMobile.value ? 'card' : currentView.value;
+});
+
 // Fetch bookmarks on mount
 onMounted(async () => {
   try {
     await fetchBookmarks();
+    checkMobile(); // Check mobile on mount
+    window.addEventListener('resize', checkMobile); // Listen for resize events
   } catch (err) {
     console.error('Error loading bookmarks:', err);
     // Handle authentication errors
@@ -66,6 +101,11 @@ const getBookmarkTags = (bookmark: any) => {
   return [];
 };
 
+// Cleanup resize listener
+onUnmounted(() => {
+  window.removeEventListener('resize', checkMobile);
+});
+
 </script>
 
 <template>
@@ -86,6 +126,18 @@ const getBookmarkTags = (bookmark: any) => {
     </template>
 
     <div class="mt-6">
+      <!-- View Selector -->
+      <div class="flex justify-between items-center mb-4">
+        <div class="flex items-center space-x-4">
+          <!-- Hide view selector on mobile, force card view -->
+          <ViewSelector v-if="!isMobile" :current-view="currentView" :on-view-change="handleViewChange" />
+          <!-- Mobile: Force card view -->
+          <div v-else class="text-sm text-gray-500 dark:text-gray-400">
+            Card view
+          </div>
+        </div>
+      </div>
+
       <!-- Loading state -->
       <div v-if="isLoading" class="text-center py-8">
         <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-red-500"></div>
@@ -103,8 +155,8 @@ const getBookmarkTags = (bookmark: any) => {
         <p class="text-gray-500 dark:text-gray-500 text-sm mt-2">Create your first bookmark to get started</p>
       </div>
 
-      <!-- Bookmarks list -->
-      <ul v-else class="space-y-4">
+      <!-- List View -->
+      <ul v-else-if="effectiveView === 'list'" class="space-y-4">
         <li v-for="bookmark in bookmarks" :key="bookmark.id"
           class="bg-white dark:bg-gray-800 p-4 rounded-md shadow-sm hover:shadow-md transition-shadow">
           <div class="flex gap-4">
@@ -146,6 +198,12 @@ const getBookmarkTags = (bookmark: any) => {
           </div>
         </li>
       </ul>
+
+      <!-- Card View -->
+      <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+        <BookmarkCard v-for="bookmark in bookmarks" :key="bookmark.id" :bookmark="bookmark"
+          :auth-token="authStore.token || undefined" />
+      </div>
 
       <!-- Pagination -->
       <Pagination v-if="totalCount > pageLimit" :current-page="currentPage" :total-items="totalCount"

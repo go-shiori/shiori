@@ -3,6 +3,8 @@
 
 export { default as ArchiveIcon } from './ArchiveIcon.vue';
 export { default as CheckCircleIcon } from './CheckCircleIcon.vue';
+export { default as ViewGridIcon } from './ViewGridIcon.vue';
+export { default as ViewListIcon } from './ViewListIcon.vue';
 export { default as CheckIcon } from './CheckIcon.vue';
 export { default as ChevronDownIcon } from './ChevronDownIcon.vue';
 export { default as ChevronLeftIcon } from './ChevronLeftIcon.vue';
