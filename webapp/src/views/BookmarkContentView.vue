@@ -161,15 +161,39 @@ onMounted(() => {
   </AppLayout>
 </template>
 
-<style scoped>
+<style>
 .prose-content {
   color: rgb(17 24 39);
   /* text-gray-900 */
+  line-height: 1.7;
+  font-size: 1rem;
+  max-width: none;
 }
 
+/* Dark mode support - both class-based and system preference */
 .dark .prose-content {
   color: rgb(243 244 246);
   /* text-gray-100 */
+  line-height: 1.7;
+}
+
+@media (prefers-color-scheme: dark) {
+  .prose-content {
+    color: rgb(243 244 246);
+    /* text-gray-100 */
+    line-height: 1.7;
+  }
+}
+
+/* Specific overrides for text elements only */
+.dark .prose-content p {
+  color: rgb(243 244 246);
+}
+
+@media (prefers-color-scheme: dark) {
+  .prose-content p {
+    color: rgb(243 244 246);
+  }
 }
 
 .prose-content h1,
@@ -198,6 +222,19 @@ onMounted(() => {
   /* text-gray-100 */
 }
 
+@media (prefers-color-scheme: dark) {
+
+  .prose-content h1,
+  .prose-content h2,
+  .prose-content h3,
+  .prose-content h4,
+  .prose-content h5,
+  .prose-content h6 {
+    color: rgb(243 244 246);
+    /* text-gray-100 */
+  }
+}
+
 .prose-content h1 {
   font-size: 1.5rem;
   line-height: 2rem;
@@ -220,8 +257,19 @@ onMounted(() => {
 .prose-content p {
   margin-bottom: 1rem;
   /* mb-4 */
-  line-height: 1.625;
+  line-height: 1.7;
   /* leading-relaxed */
+  color: inherit;
+}
+
+.dark .prose-content p {
+  color: rgb(243 244 246);
+}
+
+@media (prefers-color-scheme: dark) {
+  .prose-content p {
+    color: rgb(243 244 246);
+  }
 }
 
 .prose-content a {
