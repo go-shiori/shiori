@@ -171,8 +171,8 @@ build-webapp: generate-client
 	cd webapp && bun install && bun run build
 
 ## Run Vue webapp dev server
-.PHONY: dev-webapp
-dev-webapp: generate-client
+.PHONY: run-webapp
+run-webapp: generate-client
 	cd webapp && bun install && VITE_API_BASE_URL=http://localhost:8080 bun run dev
 
 ## Run generate accross the project
