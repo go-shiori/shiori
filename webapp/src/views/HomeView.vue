@@ -114,7 +114,10 @@ onUnmounted(() => {
       <div class="flex justify-between items-center">
         <h1 class="text-xl font-bold text-gray-800 dark:text-white">My Bookmarks</h1>
         <div class="flex space-x-2">
-          <button class="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600">
+          <button
+            @click="$router.push('/add-bookmark')"
+            class="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600"
+          >
             Add Bookmark
           </button>
           <div class="relative">

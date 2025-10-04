@@ -57,6 +57,12 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import('../views/BookmarkArchiveView.vue'),
     meta: { requiresAuth: true }
   },
+  {
+    path: '/add-bookmark',
+    name: 'add-bookmark',
+    component: () => import('../views/AddBookmarkView.vue'),
+    meta: { requiresAuth: true }
+  },
   // Redirect any unmatched routes to home (which will redirect to login if not authenticated)
   {
     path: '/:pathMatch(.*)*',

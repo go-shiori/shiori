@@ -8,7 +8,8 @@
     "search": "Search",
     "add": "Add",
     "remove": "Remove",
-    "close": "Close"
+    "close": "Close",
+    "back": "Back"
   },
   "auth": {
     "login": "Login",
@@ -32,19 +33,26 @@
     "edit_bookmark": "Edit Bookmark",
     "delete_bookmark": "Delete Bookmark",
     "url": "URL",
-    "title": "Title",
+    "bookmark_title": "Title",
     "excerpt": "Excerpt",
     "tags": "Tags",
     "add_tag": "Add Tag",
-    "no_bookmarks": "No bookmarks found"
-  },
-  "tags": {
-    "title": "Tags",
-    "add_tag": "Add Tag",
-    "edit_tag": "Edit Tag",
-    "delete_tag": "Delete Tag",
-    "name": "Name",
-    "no_tags": "No tags found"
+    "no_bookmarks": "No bookmarks found",
+    "view_content": "View Content",
+    "download_ebook": "Download eBook",
+    "view_archive": "View Archive",
+    "open_original": "Open original URL",
+    "by": "By",
+    "unknown_author": "Unknown",
+    "archived_version": "Archived Version",
+    "archived_content": "Archived content",
+    "no_readable_content": "No readable content available for this bookmark.",
+    "view_original_page": "View Original Page",
+    "error": {
+      "invalid_id": "Invalid bookmark ID",
+      "no_archive": "No archive available for this bookmark",
+      "load_failed": "Failed to load bookmark"
+    }
   },
   "folders": {
     "title": "Folders",
