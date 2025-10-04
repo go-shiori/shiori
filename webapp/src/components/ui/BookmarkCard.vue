@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import AuthenticatedImage from '@/components/ui/AuthenticatedImage.vue';
-import { ImageIcon, PencilIcon, TrashIcon, ArchiveIcon, BookIcon, FileTextIcon } from '@/components/icons';
+import { ImageIcon, PencilIcon, TrashIcon, ArchiveIcon, BookIcon, FileTextIcon, ExternalLinkIcon } from '@/components/icons';
 import type { ModelBookmarkDTO } from '@/client';
 
 interface Props {
@@ -12,7 +12,8 @@ defineProps<Props>();
 </script>
 
 <template>
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden cursor-pointer"
+         @click="$router.push(`/bookmark/${bookmark.id}/content`)">
         <!-- Image at the top -->
         <div class="aspect-[2/1] bg-gray-100 dark:bg-gray-700">
             <div v-if="bookmark.hasThumbnail" class="w-full h-full">
@@ -28,10 +29,9 @@ defineProps<Props>();
         <div class="p-4">
             <!-- Title -->
             <div class="flex items-start justify-between gap-2 mb-2">
-                <a :href="bookmark.url" target="_blank"
-                    class="text-blue-600 dark:text-blue-400 hover:underline font-medium text-sm line-clamp-2 flex-1">
+                <h3 class="text-blue-600 dark:text-blue-400 font-medium text-sm line-clamp-2 flex-1">
                     {{ bookmark.title || bookmark.url }}
-                </a>
+                </h3>
                 <!-- Feature icons -->
                 <div class="flex items-center gap-1 flex-shrink-0">
                     <FileTextIcon v-if="bookmark.hasContent" class="h-3 w-3 text-gray-500 dark:text-gray-400" title="Has readable content" />
@@ -52,11 +52,17 @@ defineProps<Props>();
 
             <!-- Actions -->
             <div class="flex justify-end space-x-2">
-                <button class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
+                <a v-if="bookmark.url" :href="bookmark.url" target="_blank"
+                   @click.stop
+                   class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
+                    <span class="sr-only">Open original URL</span>
+                    <ExternalLinkIcon class="h-4 w-4" />
+                </a>
+                <button @click.stop class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
                     <span class="sr-only">Edit</span>
                     <PencilIcon class="h-4 w-4" />
                 </button>
-                <button class="text-gray-500 dark:text-gray-400 hover:text-red-500">
+                <button @click.stop class="text-gray-500 dark:text-gray-400 hover:text-red-500">
                     <span class="sr-only">Delete</span>
                     <TrashIcon class="h-4 w-4" />
                 </button>

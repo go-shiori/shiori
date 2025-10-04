@@ -2,6 +2,7 @@
 // This file exports all icon components for easy importing
 
 export { default as ArchiveIcon } from './ArchiveIcon.vue';
+export { default as ArrowLeftIcon } from './ArrowLeftIcon.vue';
 export { default as BookIcon } from './BookIcon.vue';
 export { default as CheckCircleIcon } from './CheckCircleIcon.vue';
 export { default as ViewGridIcon } from './ViewGridIcon.vue';
@@ -10,6 +11,8 @@ export { default as CheckIcon } from './CheckIcon.vue';
 export { default as ChevronDownIcon } from './ChevronDownIcon.vue';
 export { default as ChevronLeftIcon } from './ChevronLeftIcon.vue';
 export { default as ChevronRightIcon } from './ChevronRightIcon.vue';
+export { default as DownloadIcon } from './DownloadIcon.vue';
+export { default as ExternalLinkIcon } from './ExternalLinkIcon.vue';
 export { default as FileTextIcon } from './FileTextIcon.vue';
 export { default as FolderIcon } from './FolderIcon.vue';
 export { default as HomeIcon } from './HomeIcon.vue';

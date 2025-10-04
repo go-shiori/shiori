@@ -9,7 +9,7 @@ import BookmarkCard from '@/components/ui/BookmarkCard.vue';
 import { useBookmarksStore } from '@/stores/bookmarks';
 import { useAuthStore } from '@/stores/auth';
 import AuthenticatedImage from '@/components/ui/AuthenticatedImage.vue';
-import { ImageIcon, PencilIcon, TrashIcon, ArchiveIcon, BookIcon, FileTextIcon } from '@/components/icons';
+import { ImageIcon, PencilIcon, TrashIcon, ArchiveIcon, BookIcon, FileTextIcon, ExternalLinkIcon } from '@/components/icons';
 
 const bookmarksStore = useBookmarksStore();
 const authStore = useAuthStore();
@@ -158,7 +158,8 @@ onUnmounted(() => {
       <!-- List View -->
       <ul v-else-if="effectiveView === 'list'" class="space-y-4">
         <li v-for="bookmark in bookmarks" :key="bookmark.id"
-          class="bg-white dark:bg-gray-800 p-4 rounded-md shadow-sm hover:shadow-md transition-shadow">
+          class="bg-white dark:bg-gray-800 p-4 rounded-md shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+          @click="$router.push(`/bookmark/${bookmark.id}/content`)">
           <div class="flex gap-4">
             <!-- Thumbnail -->
             <div class="flex-shrink-0">
@@ -176,10 +177,9 @@ onUnmounted(() => {
             <div class="flex-1 min-w-0">
               <div class="flex justify-between items-start">
                 <div class="flex items-start gap-2 flex-1 min-w-0">
-                  <a :href="bookmark.url" target="_blank"
-                    class="text-blue-600 dark:text-blue-400 hover:underline font-medium truncate">
+                  <h3 class="text-blue-600 dark:text-blue-400 font-medium truncate">
                     {{ bookmark.title || bookmark.url }}
-                  </a>
+                  </h3>
                   <!-- Feature icons -->
                   <div class="flex items-center gap-1 flex-shrink-0">
                     <FileTextIcon v-if="bookmark.hasContent" class="h-4 w-4 text-gray-500 dark:text-gray-400" title="Has readable content" />
@@ -188,11 +188,17 @@ onUnmounted(() => {
                   </div>
                 </div>
                 <div class="flex space-x-2 ml-4 flex-shrink-0">
-                  <button class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
+                  <a v-if="bookmark.url" :href="bookmark.url" target="_blank"
+                     @click.stop
+                     class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
+                    <span class="sr-only">Open original URL</span>
+                    <ExternalLinkIcon class="h-5 w-5" />
+                  </a>
+                  <button @click.stop class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
                     <span class="sr-only">Edit</span>
                     <PencilIcon class="h-5 w-5" />
                   </button>
-                  <button class="text-gray-500 dark:text-gray-400 hover:text-red-500">
+                  <button @click.stop class="text-gray-500 dark:text-gray-400 hover:text-red-500">
                     <span class="sr-only">Delete</span>
                     <TrashIcon class="h-5 w-5" />
                   </button>
