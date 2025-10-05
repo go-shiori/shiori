@@ -9,7 +9,10 @@
     "add": "Add",
     "remove": "Remove",
     "close": "Close",
-    "back": "Back"
+    "back": "Back",
+    "user": "User",
+    "processing": "Processing...",
+    "note": "Note"
   },
   "auth": {
     "login": "Login",
@@ -29,6 +32,7 @@
   },
   "bookmarks": {
     "title": "Bookmarks",
+    "my_bookmarks": "My Bookmarks",
     "add_bookmark": "Add Bookmark",
     "edit_bookmark": "Edit Bookmark",
     "delete_bookmark": "Delete Bookmark",
@@ -38,6 +42,27 @@
     "tags": "Tags",
     "add_tag": "Add Tag",
     "no_bookmarks": "No bookmarks found",
+    "search_placeholder": "Search...",
+    "loading_bookmarks": "Loading bookmarks...",
+    "no_bookmarks_found": "No bookmarks found",
+    "create_first_bookmark": "Create your first bookmark to get started",
+    "card_view": "Card view",
+    "open_original_url": "Open original URL",
+    "edit_bookmark_action": "Edit",
+    "delete_bookmark_action": "Delete",
+    "has_readable_content": "Has readable content",
+    "has_archive": "Has archive",
+    "has_ebook": "Has ebook",
+    "bookmark_thumbnail": "Bookmark thumbnail",
+    "url_placeholder": "https://example.com",
+    "url_description": "The URL will be used as both the bookmark URL and title. After creating the bookmark, Shiori will automatically:",
+    "fetch_content": "Fetch and generate readable content",
+    "create_archive": "Create an archive of the page",
+    "generate_ebook": "Generate an ebook version",
+    "extract_metadata": "Extract the proper title and metadata",
+    "please_enter_url": "Please enter a URL",
+    "please_enter_valid_url": "Please enter a valid URL",
+    "failed_to_create_bookmark": "Failed to create bookmark",
     "view_content": "View Content",
     "download_ebook": "Download eBook",
     "view_archive": "View Archive",
@@ -60,7 +85,14 @@
     "edit_folder": "Edit Folder",
     "delete_folder": "Delete Folder",
     "name": "Name",
-    "no_folders": "No folders found"
+    "no_folders": "No folders found",
+    "new_folder": "New Folder",
+    "no_folders_yet": "No folders yet. Create your first folder to organize your bookmarks.",
+    "bookmarks_count": "bookmarks",
+    "sample_work": "Work",
+    "sample_personal": "Personal",
+    "sample_research": "Research",
+    "sample_reading_list": "Reading List"
   },
   "settings": {
     "title": "Settings",
@@ -78,7 +110,8 @@
     "per_page": "Per page:",
     "previous": "Previous",
     "next": "Next",
-    "go_to_page": "Go to page"
+    "go_to_page": "Go to page",
+    "aria_label": "Pagination"
   },
   "tags": {
     "title": "Tags",
@@ -91,5 +124,16 @@
     "create_first_tag": "Create your first tag to organize your bookmarks.",
     "confirm_delete": "Are you sure you want to delete this tag? This action cannot be undone.",
     "tag_name_required": "Tag name cannot be empty"
+  },
+  "views": {
+    "list_view": "List view",
+    "card_view": "Card view"
+  },
+  "archive": {
+    "title": "Archive",
+    "coming_soon": "Archive view - Coming soon"
+  },
+  "about": {
+    "title": "This is an about page"
   }
 }

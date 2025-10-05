@@ -8,7 +8,11 @@
     "search": "Buscar",
     "add": "Añadir",
     "remove": "Eliminar",
-    "close": "Cerrar"
+    "close": "Cerrar",
+    "back": "Atrás",
+    "user": "Usuario",
+    "processing": "Procesando...",
+    "note": "Nota"
   },
   "auth": {
     "login": "Iniciar sesión",
@@ -28,23 +32,52 @@
   },
   "bookmarks": {
     "title": "Marcadores",
+    "my_bookmarks": "Mis Marcadores",
     "add_bookmark": "Añadir marcador",
     "edit_bookmark": "Editar marcador",
     "delete_bookmark": "Eliminar marcador",
     "url": "URL",
-    "title": "Título",
+    "bookmark_title": "Título",
     "excerpt": "Extracto",
     "tags": "Etiquetas",
     "add_tag": "Añadir etiqueta",
-    "no_bookmarks": "No se encontraron marcadores"
-  },
-  "tags": {
-    "title": "Etiquetas",
-    "add_tag": "Añadir etiqueta",
-    "edit_tag": "Editar etiqueta",
-    "delete_tag": "Eliminar etiqueta",
-    "name": "Nombre",
-    "no_tags": "No se encontraron etiquetas"
+    "no_bookmarks": "No se encontraron marcadores",
+    "search_placeholder": "Buscar...",
+    "loading_bookmarks": "Cargando marcadores...",
+    "no_bookmarks_found": "No se encontraron marcadores",
+    "create_first_bookmark": "Crea tu primer marcador para comenzar",
+    "card_view": "Vista de tarjetas",
+    "open_original_url": "Abrir URL original",
+    "edit_bookmark_action": "Editar",
+    "delete_bookmark_action": "Eliminar",
+    "has_readable_content": "Tiene contenido legible",
+    "has_archive": "Tiene archivo",
+    "has_ebook": "Tiene ebook",
+    "bookmark_thumbnail": "Miniatura del marcador",
+    "url_placeholder": "https://ejemplo.com",
+    "url_description": "La URL se utilizará tanto como URL del marcador como título. Después de crear el marcador, Shiori automáticamente:",
+    "fetch_content": "Obtener y generar contenido legible",
+    "create_archive": "Crear un archivo de la página",
+    "generate_ebook": "Generar una versión de ebook",
+    "extract_metadata": "Extraer el título y metadatos apropiados",
+    "please_enter_url": "Por favor, introduce una URL",
+    "please_enter_valid_url": "Por favor, introduce una URL válida",
+    "failed_to_create_bookmark": "Error al crear el marcador",
+    "view_content": "Ver contenido",
+    "download_ebook": "Descargar ebook",
+    "view_archive": "Ver versión archivada",
+    "open_original": "Abrir URL original",
+    "by": "Por",
+    "unknown_author": "Desconocido",
+    "archived_version": "Versión archivada",
+    "archived_content": "Contenido archivado",
+    "no_readable_content": "No hay contenido legible disponible para este marcador.",
+    "view_original_page": "Ver página original",
+    "error": {
+      "invalid_id": "ID de marcador inválido",
+      "no_archive": "No hay archivo disponible para este marcador",
+      "load_failed": "Error al cargar el marcador"
+    }
   },
   "folders": {
     "title": "Carpetas",
@@ -52,7 +85,14 @@
     "edit_folder": "Editar carpeta",
     "delete_folder": "Eliminar carpeta",
     "name": "Nombre",
-    "no_folders": "No se encontraron carpetas"
+    "no_folders": "No se encontraron carpetas",
+    "new_folder": "Nueva carpeta",
+    "no_folders_yet": "Aún no hay carpetas. Crea tu primera carpeta para organizar tus marcadores.",
+    "bookmarks_count": "marcadores",
+    "sample_work": "Trabajo",
+    "sample_personal": "Personal",
+    "sample_research": "Investigación",
+    "sample_reading_list": "Lista de lectura"
   },
   "settings": {
     "title": "Configuración",
@@ -70,7 +110,8 @@
     "per_page": "Por página:",
     "previous": "Anterior",
     "next": "Siguiente",
-    "go_to_page": "Ir a la página"
+    "go_to_page": "Ir a la página",
+    "aria_label": "Paginación"
   },
   "tags": {
     "title": "Etiquetas",
@@ -83,5 +124,16 @@
     "create_first_tag": "Crea tu primera etiqueta para organizar tus marcadores.",
     "confirm_delete": "¿Estás seguro de que quieres eliminar esta etiqueta? Esta acción no se puede deshacer.",
     "tag_name_required": "El nombre de la etiqueta no puede estar vacío"
+  },
+  "views": {
+    "list_view": "Vista de lista",
+    "card_view": "Vista de tarjetas"
+  },
+  "archive": {
+    "title": "Archivo",
+    "coming_soon": "Vista de archivo - Próximamente"
+  },
+  "about": {
+    "title": "Esta es una página de información"
   }
 }

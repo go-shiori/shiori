@@ -8,7 +8,11 @@
     "search": "Suchen",
     "add": "Hinzufügen",
     "remove": "Entfernen",
-    "close": "Schließen"
+    "close": "Schließen",
+    "back": "Zurück",
+    "user": "Benutzer",
+    "processing": "Verarbeitung...",
+    "note": "Hinweis"
   },
   "auth": {
     "login": "Anmelden",
@@ -28,23 +32,52 @@
   },
   "bookmarks": {
     "title": "Lesezeichen",
+    "my_bookmarks": "Meine Lesezeichen",
     "add_bookmark": "Lesezeichen hinzufügen",
     "edit_bookmark": "Lesezeichen bearbeiten",
     "delete_bookmark": "Lesezeichen löschen",
     "url": "URL",
-    "title": "Titel",
+    "bookmark_title": "Titel",
     "excerpt": "Auszug",
     "tags": "Tags",
     "add_tag": "Tag hinzufügen",
-    "no_bookmarks": "Keine Lesezeichen gefunden"
-  },
-  "tags": {
-    "title": "Tags",
-    "add_tag": "Tag hinzufügen",
-    "edit_tag": "Tag bearbeiten",
-    "delete_tag": "Tag löschen",
-    "name": "Name",
-    "no_tags": "Keine Tags gefunden"
+    "no_bookmarks": "Keine Lesezeichen gefunden",
+    "search_placeholder": "Suchen...",
+    "loading_bookmarks": "Lesezeichen werden geladen...",
+    "no_bookmarks_found": "Keine Lesezeichen gefunden",
+    "create_first_bookmark": "Erstellen Sie Ihr erstes Lesezeichen, um zu beginnen",
+    "card_view": "Kartenansicht",
+    "open_original_url": "Original-URL öffnen",
+    "edit_bookmark_action": "Bearbeiten",
+    "delete_bookmark_action": "Löschen",
+    "has_readable_content": "Hat lesbaren Inhalt",
+    "has_archive": "Hat Archiv",
+    "has_ebook": "Hat E-Book",
+    "bookmark_thumbnail": "Lesezeichen-Miniaturansicht",
+    "url_placeholder": "https://beispiel.com",
+    "url_description": "Die URL wird sowohl als Lesezeichen-URL als auch als Titel verwendet. Nach der Erstellung des Lesezeichens wird Shiori automatisch:",
+    "fetch_content": "Lesbaren Inhalt abrufen und generieren",
+    "create_archive": "Ein Archiv der Seite erstellen",
+    "generate_ebook": "Eine E-Book-Version generieren",
+    "extract_metadata": "Den richtigen Titel und Metadaten extrahieren",
+    "please_enter_url": "Bitte geben Sie eine URL ein",
+    "please_enter_valid_url": "Bitte geben Sie eine gültige URL ein",
+    "failed_to_create_bookmark": "Fehler beim Erstellen des Lesezeichens",
+    "view_content": "Inhalt anzeigen",
+    "download_ebook": "E-Book herunterladen",
+    "view_archive": "Archiv anzeigen",
+    "open_original": "Original-URL öffnen",
+    "by": "Von",
+    "unknown_author": "Unbekannt",
+    "archived_version": "Archivierte Version",
+    "archived_content": "Archivierter Inhalt",
+    "no_readable_content": "Kein lesbarer Inhalt für dieses Lesezeichen verfügbar.",
+    "view_original_page": "Originalseite anzeigen",
+    "error": {
+      "invalid_id": "Ungültige Lesezeichen-ID",
+      "no_archive": "Kein Archiv für dieses Lesezeichen verfügbar",
+      "load_failed": "Fehler beim Laden des Lesezeichens"
+    }
   },
   "folders": {
     "title": "Ordner",
@@ -52,7 +85,14 @@
     "edit_folder": "Ordner bearbeiten",
     "delete_folder": "Ordner löschen",
     "name": "Name",
-    "no_folders": "Keine Ordner gefunden"
+    "no_folders": "Keine Ordner gefunden",
+    "new_folder": "Neuer Ordner",
+    "no_folders_yet": "Noch keine Ordner. Erstellen Sie Ihren ersten Ordner, um Ihre Lesezeichen zu organisieren.",
+    "bookmarks_count": "Lesezeichen",
+    "sample_work": "Arbeit",
+    "sample_personal": "Persönlich",
+    "sample_research": "Forschung",
+    "sample_reading_list": "Leseliste"
   },
   "settings": {
     "title": "Einstellungen",
@@ -70,7 +110,8 @@
     "per_page": "Pro Seite:",
     "previous": "Vorherige",
     "next": "Nächste",
-    "go_to_page": "Zur Seite gehen"
+    "go_to_page": "Zur Seite gehen",
+    "aria_label": "Seitennummerierung"
   },
   "tags": {
     "title": "Tags",
@@ -83,5 +124,16 @@
     "create_first_tag": "Erstellen Sie Ihren ersten Tag, um Ihre Lesezeichen zu organisieren.",
     "confirm_delete": "Sind Sie sicher, dass Sie diesen Tag löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
     "tag_name_required": "Der Tag-Name darf nicht leer sein"
+  },
+  "views": {
+    "list_view": "Listenansicht",
+    "card_view": "Kartenansicht"
+  },
+  "archive": {
+    "title": "Archiv",
+    "coming_soon": "Archivansicht - Kommt bald"
+  },
+  "about": {
+    "title": "Dies ist eine Über-Seite"
   }
 }

@@ -8,7 +8,11 @@
     "search": "Rechercher",
     "add": "Ajouter",
     "remove": "Supprimer",
-    "close": "Fermer"
+    "close": "Fermer",
+    "back": "Retour",
+    "user": "Utilisateur",
+    "processing": "Traitement...",
+    "note": "Note"
   },
   "auth": {
     "login": "Connexion",
@@ -28,23 +32,52 @@
   },
   "bookmarks": {
     "title": "Favoris",
+    "my_bookmarks": "Mes Favoris",
     "add_bookmark": "Ajouter un favori",
     "edit_bookmark": "Modifier le favori",
     "delete_bookmark": "Supprimer le favori",
     "url": "URL",
-    "title": "Titre",
+    "bookmark_title": "Titre",
     "excerpt": "Extrait",
     "tags": "Tags",
     "add_tag": "Ajouter un tag",
-    "no_bookmarks": "Aucun favori trouvé"
-  },
-  "tags": {
-    "title": "Tags",
-    "add_tag": "Ajouter un tag",
-    "edit_tag": "Modifier le tag",
-    "delete_tag": "Supprimer le tag",
-    "name": "Nom",
-    "no_tags": "Aucun tag trouvé"
+    "no_bookmarks": "Aucun favori trouvé",
+    "search_placeholder": "Rechercher...",
+    "loading_bookmarks": "Chargement des favoris...",
+    "no_bookmarks_found": "Aucun favori trouvé",
+    "create_first_bookmark": "Créez votre premier favori pour commencer",
+    "card_view": "Vue en cartes",
+    "open_original_url": "Ouvrir l'URL originale",
+    "edit_bookmark_action": "Modifier",
+    "delete_bookmark_action": "Supprimer",
+    "has_readable_content": "A du contenu lisible",
+    "has_archive": "A un fichier d'archive",
+    "has_ebook": "A un livre électronique",
+    "bookmark_thumbnail": "Miniature du favori",
+    "url_placeholder": "https://exemple.com",
+    "url_description": "L'URL sera utilisée à la fois comme URL du favori et comme titre. Après avoir créé le favori, Shiori va automatiquement :",
+    "fetch_content": "Récupérer et générer du contenu lisible",
+    "create_archive": "Créer une archive de la page",
+    "generate_ebook": "Générer une version livre électronique",
+    "extract_metadata": "Extraire le titre et les métadonnées appropriés",
+    "please_enter_url": "Veuillez saisir une URL",
+    "please_enter_valid_url": "Veuillez saisir une URL valide",
+    "failed_to_create_bookmark": "Échec de la création du favori",
+    "view_content": "Voir le contenu",
+    "download_ebook": "Télécharger le livre électronique",
+    "view_archive": "Voir l'archive",
+    "open_original": "Ouvrir l'URL originale",
+    "by": "Par",
+    "unknown_author": "Inconnu",
+    "archived_version": "Version archivée",
+    "archived_content": "Contenu archivé",
+    "no_readable_content": "Aucun contenu lisible disponible pour ce favori.",
+    "view_original_page": "Voir la page originale",
+    "error": {
+      "invalid_id": "ID de favori invalide",
+      "no_archive": "Aucune archive disponible pour ce favori",
+      "load_failed": "Échec du chargement du favori"
+    }
   },
   "folders": {
     "title": "Dossiers",
@@ -52,7 +85,14 @@
     "edit_folder": "Modifier le dossier",
     "delete_folder": "Supprimer le dossier",
     "name": "Nom",
-    "no_folders": "Aucun dossier trouvé"
+    "no_folders": "Aucun dossier trouvé",
+    "new_folder": "Nouveau dossier",
+    "no_folders_yet": "Aucun dossier pour le moment. Créez votre premier dossier pour organiser vos favoris.",
+    "bookmarks_count": "favoris",
+    "sample_work": "Travail",
+    "sample_personal": "Personnel",
+    "sample_research": "Recherche",
+    "sample_reading_list": "Liste de lecture"
   },
   "settings": {
     "title": "Paramètres",
@@ -70,7 +110,8 @@
     "per_page": "Par page :",
     "previous": "Précédent",
     "next": "Suivant",
-    "go_to_page": "Aller à la page"
+    "go_to_page": "Aller à la page",
+    "aria_label": "Pagination"
   },
   "tags": {
     "title": "Étiquettes",
@@ -83,5 +124,16 @@
     "create_first_tag": "Créez votre première étiquette pour organiser vos signets.",
     "confirm_delete": "Êtes-vous sûr de vouloir supprimer cette étiquette ? Cette action ne peut pas être annulée.",
     "tag_name_required": "Le nom de l'étiquette ne peut pas être vide"
+  },
+  "views": {
+    "list_view": "Vue en liste",
+    "card_view": "Vue en cartes"
+  },
+  "archive": {
+    "title": "Archives",
+    "coming_soon": "Vue d'archives - Bientôt disponible"
+  },
+  "about": {
+    "title": "Ceci est une page à propos"
   }
 }
