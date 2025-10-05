@@ -40,11 +40,22 @@ func (s *HttpServer) Setup(cfg *config.Config, deps *dependencies.Dependencies) 
 	globalMiddleware = append(globalMiddleware, []model.HttpMiddleware{
 		middleware.NewAuthMiddleware(deps),
 		middleware.NewRequestIDMiddleware(deps),
-		middleware.NewCORSMiddleware(cfg.Http.CORSEnabled, cfg.Http.CORSOrigins, cfg.Http.CORSAllowCredentials),
 	}...)
 
 	if cfg.Http.AccessLog {
 		globalMiddleware = append(globalMiddleware, middleware.NewLoggingMiddleware())
+	}
+
+	if cfg.Http.CORSEnabled {
+		globalMiddleware = append(globalMiddleware, middleware.NewCORSMiddleware(cfg.Http.CORSEnabled, cfg.Http.CORSOrigins, cfg.Http.CORSAllowCredentials))
+
+		// CORS preflight
+		s.mux.HandleFunc("OPTIONS /", ToHTTPHandler(deps,
+			func(_ model.Dependencies, c model.WebContext) {
+				c.ResponseWriter().WriteHeader(http.StatusOK)
+			},
+			globalMiddleware...,
+		))
 	}
 
 	// System routes with logging middleware
@@ -54,15 +65,15 @@ func (s *HttpServer) Setup(cfg *config.Config, deps *dependencies.Dependencies) 
 	))
 
 	// Bookmark routes
-	s.mux.HandleFunc("GET /bookmark/{id}/content", ToHTTPHandler(deps, handlers.HandleBookmarkContent, globalMiddleware...))
-	s.mux.HandleFunc("GET /bookmark/{id}/archive", ToHTTPHandler(deps, handlers.HandleBookmarkArchive, globalMiddleware...))
+	// s.mux.HandleFunc("GET /bookmark/{id}/content", ToHTTPHandler(deps, handlers.HandleBookmarkContent, globalMiddleware...))
+	// s.mux.HandleFunc("GET /bookmark/{id}/archive", ToHTTPHandler(deps, handlers.HandleBookmarkArchive, globalMiddleware...))
 	s.mux.HandleFunc("GET /bookmark/{id}/archive/file/{path...}", ToHTTPHandler(deps, handlers.HandleBookmarkArchiveFile, globalMiddleware...))
 	s.mux.HandleFunc("GET /bookmark/{id}/thumb", ToHTTPHandler(deps, handlers.HandleBookmarkThumbnail, globalMiddleware...))
 	s.mux.HandleFunc("GET /bookmark/{id}/ebook", ToHTTPHandler(deps, handlers.HandleBookmarkEbook, globalMiddleware...))
 
 	// Add this inside Setup() where other routes are registered
 	if cfg.Http.ServeSwagger {
-		s.mux.HandleFunc("/swagger/", ToHTTPHandler(deps,
+		s.mux.HandleFunc("GET /swagger/", ToHTTPHandler(deps,
 			handlers.HandleSwagger,
 			globalMiddleware...,
 		))
@@ -89,7 +100,7 @@ func (s *HttpServer) Setup(cfg *config.Config, deps *dependencies.Dependencies) 
 	s.mux.HandleFunc("DELETE /api/bookmarks/ext", ToHTTPHandler(deps, legacyHandler.HandleDeleteViaExtension, globalMiddleware...))
 
 	// Register routes using standard http handlers
-	if cfg.Http.ServeWebUI {
+	if cfg.Http.ServeWebUI && false {
 		// Frontend routes
 		s.mux.HandleFunc("/", ToHTTPHandler(deps,
 			handlers.HandleFrontend,
