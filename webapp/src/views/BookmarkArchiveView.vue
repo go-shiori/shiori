@@ -136,27 +136,16 @@ onMounted(() => {
       <div v-else-if="bookmark" class="space-y-6">
         <!-- Header -->
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mx-6">
-          <div class="flex items-start justify-between mb-4">
-            <button @click="goBack" class="flex items-center text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">
-              <ArrowLeftIcon class="h-5 w-5 mr-2" />
-              {{ t('common.back') }}
-            </button>
-
+          <div class="flex items-start justify-end mb-4">
             <div class="flex items-center gap-2">
-              <button
-                v-if="hasContent"
-                @click="goToContent"
-                class="flex items-center px-3 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
-              >
+              <button v-if="hasContent" @click="goToContent"
+                class="flex items-center px-3 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors">
                 <FileTextIcon class="h-4 w-4 mr-2" />
                 {{ t('bookmarks.view_content') }}
               </button>
 
-              <button
-                v-if="hasEbook"
-                @click="downloadEbook"
-                class="flex items-center px-3 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 transition-colors"
-              >
+              <button v-if="hasEbook" @click="downloadEbook"
+                class="flex items-center px-3 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 transition-colors">
                 <DownloadIcon class="h-4 w-4 mr-2" />
                 {{ t('bookmarks.download_ebook') }}
               </button>
@@ -165,12 +154,8 @@ onMounted(() => {
 
           <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
             {{ bookmark.title }}
-            <button
-              v-if="bookmark.url"
-              @click="goToOriginal"
-              class="ml-2 text-blue-500 hover:text-blue-600 transition-colors"
-              :title="t('bookmarks.open_original')"
-            >
+            <button v-if="bookmark.url" @click="goToOriginal"
+              class="ml-2 text-blue-500 hover:text-blue-600 transition-colors" :title="t('bookmarks.open_original')">
               <ExternalLinkIcon class="h-5 w-5 inline" />
             </button>
           </h1>
@@ -194,13 +179,8 @@ onMounted(() => {
         <!-- Archive Frame -->
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden mx-6">
           <div class="min-h-[600px]">
-            <iframe
-              ref="iframeRef"
-              :src="`/bookmark/${bookmarkId}/archive/file/`"
-              class="w-full border-0"
-              :title="t('bookmarks.archived_content')"
-              @load="onIframeLoad"
-            ></iframe>
+            <iframe ref="iframeRef" :src="`/bookmark/${bookmarkId}/archive/file/`" class="w-full border-0"
+              :title="t('bookmarks.archived_content')" @load="onIframeLoad"></iframe>
           </div>
         </div>
       </div>

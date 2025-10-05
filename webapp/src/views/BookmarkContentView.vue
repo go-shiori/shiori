@@ -83,7 +83,7 @@ onMounted(() => {
 
 <template>
   <AppLayout>
-    <div class="max-w-4xl mx-auto p-6">
+    <div class="w-full">
       <!-- Loading state -->
       <div v-if="isLoading" class="text-center py-12">
         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
@@ -102,13 +102,7 @@ onMounted(() => {
       <div v-else-if="bookmark" class="space-y-6">
         <!-- Header -->
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-          <div class="flex items-start justify-between mb-4">
-            <button @click="goBack"
-              class="flex items-center text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">
-              <ArrowLeftIcon class="h-5 w-5 mr-2" />
-              {{ t('common.back') }}
-            </button>
-
+          <div class="flex items-start justify-end mb-4">
             <div class="flex items-center gap-2">
               <button v-if="hasEbook" @click="downloadEbook"
                 class="flex items-center px-3 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors">
@@ -144,17 +138,19 @@ onMounted(() => {
         </div>
 
         <!-- Content -->
-        <div v-if="hasContent" class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-          <div class="prose-content max-w-none" v-html="bookmark.html"></div>
-        </div>
+        <div class=" max-w-4xl mx-auto p-6">
+          <div v-if="hasContent" class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+            <div class="prose-content max-w-none" v-html="bookmark.html"></div>
+          </div>
 
-        <!-- No content message -->
-        <div v-else class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 text-center">
-          <p class="text-gray-600 dark:text-gray-400 mb-4">{{ t('bookmarks.no_readable_content') }}</p>
-          <button @click="goToOriginal"
-            class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors">
-            {{ t('bookmarks.view_original_page') }}
-          </button>
+          <!-- No content message -->
+          <div v-else class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 text-center">
+            <p class="text-gray-600 dark:text-gray-400 mb-4">{{ t('bookmarks.no_readable_content') }}</p>
+            <button @click="goToOriginal"
+              class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors">
+              {{ t('bookmarks.view_original_page') }}
+            </button>
+          </div>
         </div>
       </div>
     </div>
