@@ -5,7 +5,7 @@ import { useRouter } from 'vue-router';
 import { ref, onMounted, onUnmounted, type Component } from 'vue';
 import { useI18n } from 'vue-i18n';
 import {
-    HomeIcon,
+    BookmarksIcon,
     TagIcon,
     SettingsIcon,
     UserIcon
@@ -29,7 +29,7 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-    { nameKey: 'navigation.home', icon: HomeIcon, route: '/home' },
+    { nameKey: 'navigation.library', icon: BookmarksIcon, route: '/library' },
     { nameKey: 'navigation.tags', icon: TagIcon, route: '/tags' },
     { nameKey: 'navigation.settings', icon: SettingsIcon, route: '/settings' },
 ];

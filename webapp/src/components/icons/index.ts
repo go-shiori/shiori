@@ -3,6 +3,7 @@
 
 export { default as ArchiveIcon } from './ArchiveIcon.vue';
 export { default as ArrowLeftIcon } from './ArrowLeftIcon.vue';
+export { default as BookmarksIcon } from './BookmarksIcon.vue';
 export { default as BookIcon } from './BookIcon.vue';
 export { default as CheckCircleIcon } from './CheckCircleIcon.vue';
 export { default as ViewGridIcon } from './ViewGridIcon.vue';
