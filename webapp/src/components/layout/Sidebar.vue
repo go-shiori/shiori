@@ -7,8 +7,6 @@ import { useI18n } from 'vue-i18n';
 import {
     HomeIcon,
     TagIcon,
-    FolderIcon,
-    ArchiveIcon,
     SettingsIcon,
     UserIcon
 } from '@/components/icons';
@@ -33,8 +31,6 @@ interface NavItem {
 const navItems: NavItem[] = [
     { nameKey: 'navigation.home', icon: HomeIcon, route: '/home' },
     { nameKey: 'navigation.tags', icon: TagIcon, route: '/tags' },
-    { nameKey: 'navigation.folders', icon: FolderIcon, route: '/folders' },
-    { nameKey: 'navigation.archive', icon: ArchiveIcon, route: '/archive' },
     { nameKey: 'navigation.settings', icon: SettingsIcon, route: '/settings' },
 ];
 
@@ -98,7 +94,7 @@ onUnmounted(() => {
                             :title="t('auth.user')">
                             <UserIcon class="h-6 w-6" />
                             <span class="text-xs mt-1 dark:text-gray-300">{{ authStore.user?.username || t('auth.user')
-                                }}</span>
+                            }}</span>
                         </button>
 
                         <!-- Dropdown Menu -->
