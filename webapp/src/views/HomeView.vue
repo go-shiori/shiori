@@ -2,6 +2,7 @@
 import { ref, onMounted, computed, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
+import { useI18n } from 'vue-i18n';
 import AppLayout from '@/components/layout/AppLayout.vue';
 import Pagination from '@/components/ui/Pagination.vue';
 import ViewSelector from '@/components/ui/ViewSelector.vue';
@@ -9,11 +10,12 @@ import BookmarkCard from '@/components/ui/BookmarkCard.vue';
 import { useBookmarksStore } from '@/stores/bookmarks';
 import { useAuthStore } from '@/stores/auth';
 import AuthenticatedImage from '@/components/ui/AuthenticatedImage.vue';
-import { ImageIcon, PencilIcon, TrashIcon, ArchiveIcon, BookIcon, FileTextIcon, ExternalLinkIcon } from '@/components/icons';
+import { ImageIcon, PencilIcon, TrashIcon, ArchiveIcon, BookIcon, FileTextIcon, ExternalLinkIcon, PlusIcon } from '@/components/icons';
 
 const bookmarksStore = useBookmarksStore();
 const authStore = useAuthStore();
 const router = useRouter();
+const { t } = useI18n();
 
 const { bookmarks, isLoading, error, totalCount, currentPage, pageLimit } = storeToRefs(bookmarksStore);
 const { fetchBookmarks } = bookmarksStore;
@@ -112,16 +114,16 @@ onUnmounted(() => {
   <AppLayout>
     <template #header>
       <div class="flex justify-between items-center">
-        <h1 class="text-xl font-bold text-gray-800 dark:text-white">My Bookmarks</h1>
+        <h1 class="text-xl font-bold text-gray-800 dark:text-white">{{ t('bookmarks.my_bookmarks') }}</h1>
         <div class="flex space-x-2">
-          <button
-            @click="$router.push('/add-bookmark')"
-            class="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600"
-          >
-            Add Bookmark
+          <button @click="$router.push('/add-bookmark')"
+            class="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 flex items-center space-x-2">
+            <PlusIcon size="16" />
+            <span>{{ t('bookmarks.add_bookmark') }}</span>
           </button>
           <div class="relative">
-            <input v-model="searchKeyword" @keyup.enter="handleSearch" type="text" placeholder="Search..."
+            <input v-model="searchKeyword" @keyup.enter="handleSearch" type="text"
+              :placeholder="t('bookmarks.search_placeholder')"
               class="border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-1 focus:outline-none focus:ring-2 focus:ring-red-500" />
           </div>
         </div>
@@ -136,7 +138,7 @@ onUnmounted(() => {
           <ViewSelector v-if="!isMobile" :current-view="currentView" :on-view-change="handleViewChange" />
           <!-- Mobile: Force card view -->
           <div v-else class="text-sm text-gray-500 dark:text-gray-400">
-            Card view
+            {{ t('bookmarks.card_view') }}
           </div>
         </div>
       </div>
@@ -144,7 +146,7 @@ onUnmounted(() => {
       <!-- Loading state -->
       <div v-if="isLoading" class="text-center py-8">
         <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-red-500"></div>
-        <p class="mt-2 text-gray-600 dark:text-gray-400">Loading bookmarks...</p>
+        <p class="mt-2 text-gray-600 dark:text-gray-400">{{ t('bookmarks.loading_bookmarks') }}</p>
       </div>
 
       <!-- Error state -->
@@ -154,8 +156,8 @@ onUnmounted(() => {
 
       <!-- Empty state -->
       <div v-else-if="bookmarks.length === 0" class="text-center py-12">
-        <p class="text-gray-600 dark:text-gray-400 text-lg">No bookmarks found</p>
-        <p class="text-gray-500 dark:text-gray-500 text-sm mt-2">Create your first bookmark to get started</p>
+        <p class="text-gray-600 dark:text-gray-400 text-lg">{{ t('bookmarks.no_bookmarks_found') }}</p>
+        <p class="text-gray-500 dark:text-gray-500 text-sm mt-2">{{ t('bookmarks.create_first_bookmark') }}</p>
       </div>
 
       <!-- List View -->
@@ -185,19 +187,22 @@ onUnmounted(() => {
                   </h3>
                   <!-- Feature icons -->
                   <div class="flex items-center gap-1 flex-shrink-0">
-                    <FileTextIcon v-if="bookmark.hasContent" class="h-4 w-4 text-gray-500 dark:text-gray-400" title="Has readable content" />
-                    <ArchiveIcon v-if="bookmark.hasArchive" class="h-4 w-4 text-gray-500 dark:text-gray-400" title="Has archive" />
-                    <BookIcon v-if="bookmark.hasEbook" class="h-4 w-4 text-gray-500 dark:text-gray-400" title="Has ebook" />
+                    <FileTextIcon v-if="bookmark.hasContent" class="h-4 w-4 text-gray-500 dark:text-gray-400"
+                      :title="t('bookmarks.has_readable_content')" />
+                    <ArchiveIcon v-if="bookmark.hasArchive" class="h-4 w-4 text-gray-500 dark:text-gray-400"
+                      :title="t('bookmarks.has_archive')" />
+                    <BookIcon v-if="bookmark.hasEbook" class="h-4 w-4 text-gray-500 dark:text-gray-400"
+                      :title="t('bookmarks.has_ebook')" />
                   </div>
                 </div>
                 <div class="flex space-x-2 ml-4 flex-shrink-0">
-                  <a v-if="bookmark.url" :href="bookmark.url" target="_blank"
-                     @click.stop
-                     class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
+                  <a v-if="bookmark.url" :href="bookmark.url" target="_blank" @click.stop
+                    class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
                     <span class="sr-only">Open original URL</span>
                     <ExternalLinkIcon class="h-5 w-5" />
                   </a>
-                  <button @click.stop class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
+                  <button @click.stop
+                    class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
                     <span class="sr-only">Edit</span>
                     <PencilIcon class="h-5 w-5" />
                   </button>
