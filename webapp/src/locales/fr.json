@@ -12,7 +12,8 @@
     "back": "Retour",
     "user": "Utilisateur",
     "processing": "Traitement...",
-    "note": "Note"
+    "note": "Note",
+    "ok": "OK"
   },
   "auth": {
     "login": "Connexion",
@@ -24,9 +25,7 @@
   },
   "navigation": {
     "home": "Accueil",
-    "archive": "Archives",
     "tags": "Tags",
-    "folders": "Dossiers",
     "settings": "Paramètres",
     "about": "À propos"
   },
@@ -63,6 +62,22 @@
     "please_enter_url": "Veuillez saisir une URL",
     "please_enter_valid_url": "Veuillez saisir une URL valide",
     "failed_to_create_bookmark": "Échec de la création du favori",
+    "new_bookmark": "Nouveau favori",
+    "create_new_bookmark": "Créer un nouveau favori",
+    "url_label": "URL, commencer par http://...",
+    "custom_title_label": "Titre personnalisé (optionnel)",
+    "custom_title_placeholder": "Saisir un titre personnalisé",
+    "custom_excerpt_label": "Extrait personnalisé (optionnel)",
+    "custom_excerpt_placeholder": "Saisir un extrait personnalisé",
+    "tags_label": "Tags séparés par des virgules (optionnel)",
+    "tags_placeholder": "tag1, tag2, tag3",
+    "available_tags": "Tags disponibles",
+    "make_public": "Rendre le favori public",
+    "visibility_label": "Visibilité",
+    "visibility_internal": "Interne (accessible à tous les utilisateurs de Shiori)",
+    "visibility_public": "Public (accessible aux utilisateurs non enregistrés)",
+    "visibility_description": "Les favoris internes sont visibles par tous les utilisateurs enregistrés. Les favoris publics peuvent être consultés par n'importe qui.",
+    "create_ebook": "Créer un livre électronique",
     "view_content": "Voir le contenu",
     "download_ebook": "Télécharger le livre électronique",
     "view_archive": "Voir l'archive",
@@ -77,22 +92,12 @@
       "invalid_id": "ID de favori invalide",
       "no_archive": "Aucune archive disponible pour ce favori",
       "load_failed": "Échec du chargement du favori"
+    },
+    "errors": {
+      "already_exists": {
+        "bookmark": "Un favori avec cette URL existe déjà"
+      }
     }
-  },
-  "folders": {
-    "title": "Dossiers",
-    "add_folder": "Ajouter un dossier",
-    "edit_folder": "Modifier le dossier",
-    "delete_folder": "Supprimer le dossier",
-    "name": "Nom",
-    "no_folders": "Aucun dossier trouvé",
-    "new_folder": "Nouveau dossier",
-    "no_folders_yet": "Aucun dossier pour le moment. Créez votre premier dossier pour organiser vos favoris.",
-    "bookmarks_count": "favoris",
-    "sample_work": "Travail",
-    "sample_personal": "Personnel",
-    "sample_research": "Recherche",
-    "sample_reading_list": "Liste de lecture"
   },
   "settings": {
     "title": "Paramètres",
@@ -120,18 +125,21 @@
     "delete_tag": "Supprimer l'étiquette",
     "name": "Nom",
     "no_tags": "Aucune étiquette trouvée",
+    "search_placeholder": "Rechercher des étiquettes...",
+    "searching": "Recherche d'étiquettes...",
     "bookmarks_count": "signets",
     "create_first_tag": "Créez votre première étiquette pour organiser vos signets.",
     "confirm_delete": "Êtes-vous sûr de vouloir supprimer cette étiquette ? Cette action ne peut pas être annulée.",
-    "tag_name_required": "Le nom de l'étiquette ne peut pas être vide"
+    "tag_name_required": "Le nom de l'étiquette ne peut pas être vide",
+    "errors": {
+      "already_exists": {
+        "tag": "Une étiquette avec ce nom existe déjà"
+      }
+    }
   },
   "views": {
     "list_view": "Vue en liste",
     "card_view": "Vue en cartes"
-  },
-  "archive": {
-    "title": "Archives",
-    "coming_soon": "Vue d'archives - Bientôt disponible"
   },
   "about": {
     "title": "Ceci est une page à propos"

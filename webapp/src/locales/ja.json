@@ -12,7 +12,8 @@
     "back": "戻る",
     "user": "ユーザー",
     "processing": "処理中...",
-    "note": "注意"
+    "note": "注意",
+    "ok": "OK"
   },
   "auth": {
     "login": "ログイン",
@@ -24,9 +25,7 @@
   },
   "navigation": {
     "home": "ホーム",
-    "archive": "アーカイブ",
     "tags": "タグ",
-    "folders": "フォルダ",
     "settings": "設定",
     "about": "概要"
   },
@@ -63,6 +62,22 @@
     "please_enter_url": "URLを入力してください",
     "please_enter_valid_url": "有効なURLを入力してください",
     "failed_to_create_bookmark": "ブックマークの作成に失敗しました",
+    "new_bookmark": "新しいブックマーク",
+    "create_new_bookmark": "新しいブックマークを作成",
+    "url_label": "URL（http:// で始めてください）",
+    "custom_title_label": "カスタムタイトル（任意）",
+    "custom_title_placeholder": "カスタムタイトルを入力",
+    "custom_excerpt_label": "カスタム抜粋（任意）",
+    "custom_excerpt_placeholder": "カスタム抜粋を入力",
+    "tags_label": "カンマ区切りのタグ（任意）",
+    "tags_placeholder": "タグ1, タグ2, タグ3",
+    "available_tags": "利用可能なタグ",
+    "make_public": "ブックマークを公開する",
+    "visibility_label": "可視性",
+    "visibility_internal": "内部（すべてのShioriユーザーがアクセス可能）",
+    "visibility_public": "公開（未登録ユーザーもアクセス可能）",
+    "visibility_description": "内部ブックマークはすべての登録ユーザーに表示されます。公開ブックマークは誰でもアクセスできます。",
+    "create_ebook": "電子書籍を作成",
     "view_content": "コンテンツを表示",
     "download_ebook": "電子書籍をダウンロード",
     "view_archive": "アーカイブを表示",
@@ -77,22 +92,12 @@
       "invalid_id": "無効なブックマークID",
       "no_archive": "このブックマークにはアーカイブがありません",
       "load_failed": "ブックマークの読み込みに失敗しました"
+    },
+    "errors": {
+      "already_exists": {
+        "bookmark": "このURLのブックマークは既に存在します"
+      }
     }
-  },
-  "folders": {
-    "title": "フォルダ",
-    "add_folder": "フォルダを追加",
-    "edit_folder": "フォルダを編集",
-    "delete_folder": "フォルダを削除",
-    "name": "名前",
-    "no_folders": "フォルダが見つかりません",
-    "new_folder": "新しいフォルダ",
-    "no_folders_yet": "まだフォルダがありません。ブックマークを整理するために最初のフォルダを作成してください。",
-    "bookmarks_count": "ブックマーク",
-    "sample_work": "仕事",
-    "sample_personal": "個人",
-    "sample_research": "研究",
-    "sample_reading_list": "読書リスト"
   },
   "settings": {
     "title": "設定",
@@ -120,18 +125,21 @@
     "delete_tag": "タグを削除",
     "name": "名前",
     "no_tags": "タグが見つかりません",
+    "search_placeholder": "タグを検索...",
+    "searching": "タグを検索中...",
     "bookmarks_count": "ブックマーク",
     "create_first_tag": "ブックマークを整理するために最初のタグを作成してください。",
     "confirm_delete": "このタグを削除してもよろしいですか？この操作は元に戻せません。",
-    "tag_name_required": "タグ名は空にできません"
+    "tag_name_required": "タグ名は空にできません",
+    "errors": {
+      "already_exists": {
+        "tag": "この名前のタグは既に存在します"
+      }
+    }
   },
   "views": {
     "list_view": "リスト表示",
     "card_view": "カード表示"
-  },
-  "archive": {
-    "title": "アーカイブ",
-    "coming_soon": "アーカイブ表示 - 近日公開"
   },
   "about": {
     "title": "これは概要ページです"

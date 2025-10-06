@@ -12,7 +12,10 @@
     "back": "Back",
     "user": "User",
     "processing": "Processing...",
-    "note": "Note"
+    "note": "Note",
+    "ok": "OK",
+    "none": "None",
+    "error_occurred": "An error occurred"
   },
   "auth": {
     "login": "Login",
@@ -24,9 +27,7 @@
   },
   "navigation": {
     "home": "Home",
-    "archive": "Archive",
     "tags": "Tags",
-    "folders": "Folders",
     "settings": "Settings",
     "about": "About"
   },
@@ -63,6 +64,21 @@
     "please_enter_url": "Please enter a URL",
     "please_enter_valid_url": "Please enter a valid URL",
     "failed_to_create_bookmark": "Failed to create bookmark",
+    "new_bookmark": "New Bookmark",
+    "create_new_bookmark": "Create a new bookmark",
+    "url_label": "URL, start with http://...",
+    "custom_title_label": "Custom title (optional)",
+    "custom_title_placeholder": "Enter custom title",
+    "custom_excerpt_label": "Custom excerpt (optional)",
+    "custom_excerpt_placeholder": "Enter custom excerpt",
+    "tags_label": "Comma separated tags (optional)",
+    "tags_placeholder": "tag1, tag2, tag3",
+    "available_tags": "Available tags",
+    "make_public": "Make bookmark publicly available",
+    "visibility_label": "Visibility",
+    "visibility_internal": "Internal (accessible to all Shiori users)",
+    "visibility_public": "Public (accessible to non-registered users)",
+    "visibility_description": "Internal bookmarks are visible to all registered users. Public bookmarks can be accessed by anyone.",
     "view_content": "View Content",
     "download_ebook": "Download eBook",
     "view_archive": "View Archive",
@@ -77,22 +93,18 @@
       "invalid_id": "Invalid bookmark ID",
       "no_archive": "No archive available for this bookmark",
       "load_failed": "Failed to load bookmark"
+    },
+    "toast": {
+      "created_success": "Bookmark created successfully",
+      "created_success_message": "Your bookmark has been saved and is being processed",
+      "created_error": "Failed to create bookmark",
+      "created_error_message": "Please check the URL and try again"
+    },
+    "errors": {
+      "already_exists": {
+        "bookmark": "A bookmark with this URL already exists"
+      }
     }
-  },
-  "folders": {
-    "title": "Folders",
-    "add_folder": "Add Folder",
-    "edit_folder": "Edit Folder",
-    "delete_folder": "Delete Folder",
-    "name": "Name",
-    "no_folders": "No folders found",
-    "new_folder": "New Folder",
-    "no_folders_yet": "No folders yet. Create your first folder to organize your bookmarks.",
-    "bookmarks_count": "bookmarks",
-    "sample_work": "Work",
-    "sample_personal": "Personal",
-    "sample_research": "Research",
-    "sample_reading_list": "Reading List"
   },
   "settings": {
     "title": "Settings",
@@ -120,18 +132,35 @@
     "delete_tag": "Delete Tag",
     "name": "Name",
     "no_tags": "No tags found",
+    "search_placeholder": "Search tags...",
+    "searching": "Searching tags...",
     "bookmarks_count": "bookmarks",
     "create_first_tag": "Create your first tag to organize your bookmarks.",
     "confirm_delete": "Are you sure you want to delete this tag? This action cannot be undone.",
-    "tag_name_required": "Tag name cannot be empty"
+    "tag_name_required": "Tag name cannot be empty",
+    "toast": {
+      "created_success": "Tag created successfully",
+      "created_success_message": "The tag has been added and is ready to use",
+      "created_error": "Failed to create tag",
+      "created_error_message": "Please try again or check if the tag already exists",
+      "updated_success": "Tag updated successfully",
+      "updated_success_message": "The tag has been updated",
+      "updated_error": "Failed to update tag",
+      "updated_error_message": "Please try again",
+      "deleted_success": "Tag deleted successfully",
+      "deleted_success_message": "The tag has been removed",
+      "deleted_error": "Failed to delete tag",
+      "deleted_error_message": "Please try again"
+    },
+    "errors": {
+      "already_exists": {
+        "tag": "A tag with this name already exists"
+      }
+    }
   },
   "views": {
     "list_view": "List view",
     "card_view": "Card view"
-  },
-  "archive": {
-    "title": "Archive",
-    "coming_soon": "Archive view - Coming soon"
   },
   "about": {
     "title": "This is an about page"

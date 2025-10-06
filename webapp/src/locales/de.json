@@ -12,7 +12,8 @@
     "back": "Zurück",
     "user": "Benutzer",
     "processing": "Verarbeitung...",
-    "note": "Hinweis"
+    "note": "Hinweis",
+    "ok": "OK"
   },
   "auth": {
     "login": "Anmelden",
@@ -24,9 +25,7 @@
   },
   "navigation": {
     "home": "Startseite",
-    "archive": "Archiv",
     "tags": "Tags",
-    "folders": "Ordner",
     "settings": "Einstellungen",
     "about": "Über"
   },
@@ -63,6 +62,22 @@
     "please_enter_url": "Bitte geben Sie eine URL ein",
     "please_enter_valid_url": "Bitte geben Sie eine gültige URL ein",
     "failed_to_create_bookmark": "Fehler beim Erstellen des Lesezeichens",
+    "new_bookmark": "Neues Lesezeichen",
+    "create_new_bookmark": "Neues Lesezeichen erstellen",
+    "url_label": "URL, beginnend mit http://...",
+    "custom_title_label": "Eigener Titel (optional)",
+    "custom_title_placeholder": "Eigenen Titel eingeben",
+    "custom_excerpt_label": "Eigener Auszug (optional)",
+    "custom_excerpt_placeholder": "Eigenen Auszug eingeben",
+    "tags_label": "Kommagetrennte Tags (optional)",
+    "tags_placeholder": "tag1, tag2, tag3",
+    "available_tags": "Verfügbare Tags",
+    "make_public": "Lesezeichen öffentlich verfügbar machen",
+    "visibility_label": "Sichtbarkeit",
+    "visibility_internal": "Intern (für alle Shiori-Benutzer zugänglich)",
+    "visibility_public": "Öffentlich (für nicht registrierte Benutzer zugänglich)",
+    "visibility_description": "Interne Lesezeichen sind für alle registrierten Benutzer sichtbar. Öffentliche Lesezeichen können von jedem abgerufen werden.",
+    "create_ebook": "E-Book erstellen",
     "view_content": "Inhalt anzeigen",
     "download_ebook": "E-Book herunterladen",
     "view_archive": "Archiv anzeigen",
@@ -77,22 +92,12 @@
       "invalid_id": "Ungültige Lesezeichen-ID",
       "no_archive": "Kein Archiv für dieses Lesezeichen verfügbar",
       "load_failed": "Fehler beim Laden des Lesezeichens"
+    },
+    "errors": {
+      "already_exists": {
+        "bookmark": "Ein Lesezeichen mit dieser URL existiert bereits"
+      }
     }
-  },
-  "folders": {
-    "title": "Ordner",
-    "add_folder": "Ordner hinzufügen",
-    "edit_folder": "Ordner bearbeiten",
-    "delete_folder": "Ordner löschen",
-    "name": "Name",
-    "no_folders": "Keine Ordner gefunden",
-    "new_folder": "Neuer Ordner",
-    "no_folders_yet": "Noch keine Ordner. Erstellen Sie Ihren ersten Ordner, um Ihre Lesezeichen zu organisieren.",
-    "bookmarks_count": "Lesezeichen",
-    "sample_work": "Arbeit",
-    "sample_personal": "Persönlich",
-    "sample_research": "Forschung",
-    "sample_reading_list": "Leseliste"
   },
   "settings": {
     "title": "Einstellungen",
@@ -120,18 +125,21 @@
     "delete_tag": "Tag löschen",
     "name": "Name",
     "no_tags": "Keine Tags gefunden",
+    "search_placeholder": "Tags suchen...",
+    "searching": "Tags werden gesucht...",
     "bookmarks_count": "Lesezeichen",
     "create_first_tag": "Erstellen Sie Ihren ersten Tag, um Ihre Lesezeichen zu organisieren.",
     "confirm_delete": "Sind Sie sicher, dass Sie diesen Tag löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
-    "tag_name_required": "Der Tag-Name darf nicht leer sein"
+    "tag_name_required": "Der Tag-Name darf nicht leer sein",
+    "errors": {
+      "already_exists": {
+        "tag": "Ein Tag mit diesem Namen existiert bereits"
+      }
+    }
   },
   "views": {
     "list_view": "Listenansicht",
     "card_view": "Kartenansicht"
-  },
-  "archive": {
-    "title": "Archiv",
-    "coming_soon": "Archivansicht - Kommt bald"
   },
   "about": {
     "title": "Dies ist eine Über-Seite"

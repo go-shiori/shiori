@@ -7,40 +7,40 @@
     "edit": "Editar",
     "search": "Buscar",
     "add": "Añadir",
-    "remove": "Eliminar",
+    "remove": "Quitar",
     "close": "Cerrar",
     "back": "Atrás",
     "user": "Usuario",
     "processing": "Procesando...",
-    "note": "Nota"
+    "note": "Nota",
+    "ok": "OK",
+    "none": "Ninguno"
   },
   "auth": {
     "login": "Iniciar sesión",
     "logout": "Cerrar sesión",
-    "username": "Usuario",
+    "username": "Nombre de usuario",
     "password": "Contraseña",
     "remember_me": "Recordarme",
-    "login_failed": "Error al iniciar sesión. Por favor, verifica tus credenciales."
+    "login_failed": "Error de inicio de sesión. Por favor, verifica tus credenciales."
   },
   "navigation": {
     "home": "Inicio",
-    "archive": "Archivo",
     "tags": "Etiquetas",
-    "folders": "Carpetas",
     "settings": "Configuración",
     "about": "Acerca de"
   },
   "bookmarks": {
     "title": "Marcadores",
     "my_bookmarks": "Mis Marcadores",
-    "add_bookmark": "Añadir marcador",
-    "edit_bookmark": "Editar marcador",
-    "delete_bookmark": "Eliminar marcador",
+    "add_bookmark": "Añadir Marcador",
+    "edit_bookmark": "Editar Marcador",
+    "delete_bookmark": "Eliminar Marcador",
     "url": "URL",
     "bookmark_title": "Título",
     "excerpt": "Extracto",
     "tags": "Etiquetas",
-    "add_tag": "Añadir etiqueta",
+    "add_tag": "Añadir Etiqueta",
     "no_bookmarks": "No se encontraron marcadores",
     "search_placeholder": "Buscar...",
     "loading_bookmarks": "Cargando marcadores...",
@@ -52,47 +52,58 @@
     "delete_bookmark_action": "Eliminar",
     "has_readable_content": "Tiene contenido legible",
     "has_archive": "Tiene archivo",
-    "has_ebook": "Tiene ebook",
+    "has_ebook": "Tiene libro electrónico",
     "bookmark_thumbnail": "Miniatura del marcador",
     "url_placeholder": "https://ejemplo.com",
-    "url_description": "La URL se utilizará tanto como URL del marcador como título. Después de crear el marcador, Shiori automáticamente:",
+    "url_description": "La URL se usará tanto como URL del marcador como título. Después de crear el marcador, Shiori automáticamente:",
     "fetch_content": "Obtener y generar contenido legible",
     "create_archive": "Crear un archivo de la página",
-    "generate_ebook": "Generar una versión de ebook",
+    "generate_ebook": "Generar una versión de libro electrónico",
     "extract_metadata": "Extraer el título y metadatos apropiados",
     "please_enter_url": "Por favor, introduce una URL",
     "please_enter_valid_url": "Por favor, introduce una URL válida",
     "failed_to_create_bookmark": "Error al crear el marcador",
-    "view_content": "Ver contenido",
-    "download_ebook": "Descargar ebook",
-    "view_archive": "Ver versión archivada",
+    "new_bookmark": "Nuevo Marcador",
+    "create_new_bookmark": "Crear un nuevo marcador",
+    "url_label": "URL, comenzar con http://...",
+    "custom_title_label": "Título personalizado (opcional)",
+    "custom_title_placeholder": "Introducir título personalizado",
+    "custom_excerpt_label": "Extracto personalizado (opcional)",
+    "custom_excerpt_placeholder": "Introducir extracto personalizado",
+    "tags_label": "Etiquetas separadas por comas (opcional)",
+    "tags_placeholder": "etiqueta1, etiqueta2, etiqueta3",
+    "available_tags": "Etiquetas disponibles",
+    "make_public": "Hacer el marcador públicamente disponible",
+    "visibility_label": "Visibilidad",
+    "visibility_internal": "Interno (accesible para todos los usuarios de Shiori)",
+    "visibility_public": "Público (accesible para usuarios no registrados)",
+    "visibility_description": "Los marcadores internos son visibles para todos los usuarios registrados. Los marcadores públicos pueden ser accedidos por cualquiera.",
+    "view_content": "Ver Contenido",
+    "download_ebook": "Descargar Libro Electrónico",
+    "view_archive": "Ver Archivo",
     "open_original": "Abrir URL original",
     "by": "Por",
     "unknown_author": "Desconocido",
-    "archived_version": "Versión archivada",
+    "archived_version": "Versión Archivada",
     "archived_content": "Contenido archivado",
     "no_readable_content": "No hay contenido legible disponible para este marcador.",
-    "view_original_page": "Ver página original",
+    "view_original_page": "Ver Página Original",
     "error": {
       "invalid_id": "ID de marcador inválido",
       "no_archive": "No hay archivo disponible para este marcador",
       "load_failed": "Error al cargar el marcador"
+    },
+    "toast": {
+      "created_success": "Marcador creado exitosamente",
+      "created_success_message": "Tu marcador ha sido guardado y está siendo procesado",
+      "created_error": "Error al crear el marcador",
+      "created_error_message": "Por favor, verifica la URL e inténtalo de nuevo"
+    },
+    "errors": {
+      "already_exists": {
+        "bookmark": "Ya existe un marcador con esta URL"
+      }
     }
-  },
-  "folders": {
-    "title": "Carpetas",
-    "add_folder": "Añadir carpeta",
-    "edit_folder": "Editar carpeta",
-    "delete_folder": "Eliminar carpeta",
-    "name": "Nombre",
-    "no_folders": "No se encontraron carpetas",
-    "new_folder": "Nueva carpeta",
-    "no_folders_yet": "Aún no hay carpetas. Crea tu primera carpeta para organizar tus marcadores.",
-    "bookmarks_count": "marcadores",
-    "sample_work": "Trabajo",
-    "sample_personal": "Personal",
-    "sample_research": "Investigación",
-    "sample_reading_list": "Lista de lectura"
   },
   "settings": {
     "title": "Configuración",
@@ -115,23 +126,32 @@
   },
   "tags": {
     "title": "Etiquetas",
-    "add_tag": "Añadir etiqueta",
-    "edit_tag": "Editar etiqueta",
-    "delete_tag": "Eliminar etiqueta",
+    "add_tag": "Añadir Etiqueta",
+    "edit_tag": "Editar Etiqueta",
+    "delete_tag": "Eliminar Etiqueta",
     "name": "Nombre",
     "no_tags": "No se encontraron etiquetas",
+    "search_placeholder": "Buscar etiquetas...",
+    "searching": "Buscando etiquetas...",
     "bookmarks_count": "marcadores",
     "create_first_tag": "Crea tu primera etiqueta para organizar tus marcadores.",
     "confirm_delete": "¿Estás seguro de que quieres eliminar esta etiqueta? Esta acción no se puede deshacer.",
-    "tag_name_required": "El nombre de la etiqueta no puede estar vacío"
+    "tag_name_required": "El nombre de la etiqueta no puede estar vacío",
+    "toast": {
+      "created_success": "Etiqueta creada exitosamente",
+      "created_success_message": "La etiqueta ha sido añadida y está lista para usar",
+      "created_error": "Error al crear la etiqueta",
+      "created_error_message": "Por favor, inténtalo de nuevo o verifica si la etiqueta ya existe"
+    },
+    "errors": {
+      "already_exists": {
+        "tag": "Ya existe una etiqueta con este nombre"
+      }
+    }
   },
   "views": {
     "list_view": "Vista de lista",
     "card_view": "Vista de tarjetas"
-  },
-  "archive": {
-    "title": "Archivo",
-    "coming_soon": "Vista de archivo - Próximamente"
   },
   "about": {
     "title": "Esta es una página de información"
