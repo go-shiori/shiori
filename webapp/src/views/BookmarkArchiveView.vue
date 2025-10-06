@@ -4,7 +4,8 @@ import { useRoute, useRouter } from 'vue-router';
 import { useBookmarksStore } from '@/stores/bookmarks';
 import { useAuthStore } from '@/stores/auth';
 import AppLayout from '@/components/layout/AppLayout.vue';
-import { ExternalLinkIcon, DownloadIcon, ArrowLeftIcon, FileTextIcon } from '@/components/icons';
+import { ArrowLeftIcon } from '@/components/icons';
+import BookmarkDetailHeader from '@/components/BookmarkDetailHeader.vue';
 import { useI18n } from 'vue-i18n';
 import type { ModelBookmarkDTO } from '@/client';
 
@@ -127,7 +128,7 @@ onMounted(() => {
       <!-- Error state -->
       <div v-else-if="error" class="text-center py-12">
         <p class="text-red-600 dark:text-red-400 text-lg">{{ error }}</p>
-        <button @click="goBack" class="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+        <button @click="goBack" class="mt-4 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">
           {{ t('common.back') }}
         </button>
       </div>
@@ -135,46 +136,9 @@ onMounted(() => {
       <!-- Archive Content -->
       <div v-else-if="bookmark" class="space-y-6">
         <!-- Header -->
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mx-6">
-          <div class="flex items-start justify-end mb-4">
-            <div class="flex items-center gap-2">
-              <button v-if="hasContent" @click="goToContent"
-                class="flex items-center px-3 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors">
-                <FileTextIcon class="h-4 w-4 mr-2" />
-                {{ t('bookmarks.view_content') }}
-              </button>
-
-              <button v-if="hasEbook" @click="downloadEbook"
-                class="flex items-center px-3 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 transition-colors">
-                <DownloadIcon class="h-4 w-4 mr-2" />
-                {{ t('bookmarks.download_ebook') }}
-              </button>
-            </div>
-          </div>
-
-          <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-            {{ bookmark.title }}
-            <button v-if="bookmark.url" @click="goToOriginal"
-              class="ml-2 text-blue-500 hover:text-blue-600 transition-colors" :title="t('bookmarks.open_original')">
-              <ExternalLinkIcon class="h-5 w-5 inline" />
-            </button>
-          </h1>
-
-          <p v-if="bookmark.excerpt" class="text-gray-600 dark:text-gray-400 mb-4">
-            {{ bookmark.excerpt }}
-          </p>
-
-          <div class="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-            <span>{{ t('bookmarks.by') }} {{ bookmark.author || t('bookmarks.unknown_author') }}</span>
-            <span>•</span>
-            <span>{{ new Date(bookmark.createdAt || '').toLocaleDateString() }}</span>
-            <span>•</span>
-            <span class="flex items-center">
-              <ArchiveIcon class="h-4 w-4 mr-1" />
-              {{ t('bookmarks.archived_version') }}
-            </span>
-          </div>
-        </div>
+        <BookmarkDetailHeader :bookmark="bookmark" :show-download-ebook-button="true" :show-view-content-button="true"
+          :show-archive-indicator="true" container-class="mx-6" @download-ebook="downloadEbook"
+          @view-content="goToContent" @open-original="goToOriginal" />
 
         <!-- Archive Frame -->
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden mx-6">
