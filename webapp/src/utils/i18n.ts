@@ -10,7 +10,7 @@ export type SupportedLocale = 'en' | 'es' | 'fr' | 'de' | 'ja';
 
 // Get the browser language or use English as fallback
 const getBrowserLanguage = (): SupportedLocale => {
-  const browserLang = navigator.language.split('-')[0]
+  const browserLang = navigator.language?.split('-')[0] || 'en'
   return ['en', 'es', 'fr', 'de', 'ja'].includes(browserLang) ? browserLang as SupportedLocale : 'en'
 }
 

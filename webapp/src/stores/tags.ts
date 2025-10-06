@@ -33,6 +33,7 @@ export const useTagsStore = defineStore('tags', () => {
     withBookmarkCount?: boolean;
     page?: number;
     limit?: number;
+    search?: string;
   }) => {
     return executeWithLoading(
       isLoading,
@@ -45,7 +46,8 @@ export const useTagsStore = defineStore('tags', () => {
         const response = await api.apiV1TagsGet({
           withBookmarkCount: options?.withBookmarkCount ?? true,
           page,
-          limit
+          limit,
+          search: options?.search
         })
 
         // Update pagination state
@@ -62,6 +64,35 @@ export const useTagsStore = defineStore('tags', () => {
         return tags.value
       },
       'Failed to load tags. Please try again.'
+    )
+  }
+
+  // Search tags with debouncing
+  const searchTags = async (searchTerm: string) => {
+    if (!searchTerm.trim()) {
+      // If no search term, fetch all tags
+      return fetchTags({ limit: 1000 }) // Fetch more tags for better UX
+    }
+
+    return executeWithLoading(
+      isLoading,
+      error,
+      async () => {
+        const api = getTagsApi()
+        const response = await api.apiV1TagsGet({
+          withBookmarkCount: true,
+          search: searchTerm,
+          limit: 100 // Limit search results
+        })
+
+        if (response && (response as any).items) {
+          return (response as any).items
+        } else {
+          console.error('Unexpected response format:', response)
+          return []
+        }
+      },
+      'Failed to search tags. Please try again.'
     )
   }
 
@@ -129,6 +160,7 @@ export const useTagsStore = defineStore('tags', () => {
     currentPage,
     pageLimit,
     fetchTags,
+    searchTags,
     createTag,
     updateTag,
     deleteTag

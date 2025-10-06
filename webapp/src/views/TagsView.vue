@@ -7,7 +7,7 @@ import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useI18n } from 'vue-i18n';
-import { CheckIcon, XIcon, TagIcon, PencilIcon, TrashIcon } from '@/components/icons';
+import { CheckIcon, XIcon, TagIcon, PencilIcon, TrashIcon, PlusIcon } from '@/components/icons';
 
 const { t } = useI18n();
 const tagsStore = useTagsStore();
@@ -72,6 +72,8 @@ const handleCreateTag = async () => {
     await createTag(newTagName.value.trim());
     newTagName.value = '';
     showNewTagForm.value = false;
+    // Refresh the tag list to ensure the new tag is visible
+    await fetchTags({ page: currentPage.value, limit: pageLimit.value });
   } catch (err) {
     // Check for authentication errors
     handleApiError(err);
@@ -156,8 +158,9 @@ const handlePerPageChange = async (perPage: number) => {
         <h1 class="text-xl font-bold">{{ t('tags.title') }}</h1>
         <div class="flex space-x-2">
           <button @click="showNewTagForm = !showNewTagForm"
-            class="bg-blue-500 text-white px-3 py-1 rounded-md hover:bg-blue-600 transition">
-            {{ showNewTagForm ? t('common.cancel') : t('tags.add_tag') }}
+            class="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 transition flex items-center space-x-2">
+            <PlusIcon v-if="!showNewTagForm" size="16" />
+            <span>{{ showNewTagForm ? t('common.cancel') : t('tags.add_tag') }}</span>
           </button>
         </div>
       </div>
@@ -169,9 +172,9 @@ const handlePerPageChange = async (perPage: number) => {
       <form @submit.prevent="handleCreateTag" class="flex flex-col space-y-3">
         <div>
           <label for="tagName" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('tags.name')
-          }}</label>
+            }}</label>
           <input id="tagName" v-model="newTagName" type="text"
-            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
             :placeholder="t('tags.name')" :disabled="isSubmitting" />
           <p v-if="formError" class="mt-1 text-sm text-red-600 dark:text-red-400">{{ formError }}</p>
         </div>
@@ -181,8 +184,7 @@ const handlePerPageChange = async (perPage: number) => {
             :disabled="isSubmitting">
             {{ t('common.cancel') }}
           </button>
-          <button type="submit"
-            class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50"
+          <button type="submit" class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 disabled:opacity-50"
             :disabled="isSubmitting">
             {{ isSubmitting ? t('common.loading') : t('common.save') }}
           </button>
@@ -206,8 +208,9 @@ const handlePerPageChange = async (perPage: number) => {
     <div v-else-if="!isLoading && !tags.length" class="bg-white dark:bg-gray-800 p-6 rounded-md shadow-sm text-center">
       <p class="text-gray-500 dark:text-gray-400 mb-4">{{ t('tags.create_first_tag') }}</p>
       <button v-if="!showNewTagForm" @click="showNewTagForm = true"
-        class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
-        {{ t('tags.add_tag') }}
+        class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 flex items-center space-x-2">
+        <PlusIcon size="16" />
+        <span>{{ t('tags.add_tag') }}</span>
       </button>
     </div>
 
@@ -219,11 +222,11 @@ const handlePerPageChange = async (perPage: number) => {
           <!-- Edit Mode -->
           <div v-if="editingTagId === tag.id" class="flex items-center">
             <input v-model="editTagName" type="text"
-              class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+              class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
               :disabled="isSubmitting" />
             <div class="flex ml-2 space-x-1">
               <button @click="handleUpdateTag(tag.id!)"
-                class="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 p-1"
+                class="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 p-1"
                 :disabled="isSubmitting" title="Save">
                 <CheckIcon class="h-5 w-5" />
               </button>
@@ -244,7 +247,7 @@ const handlePerPageChange = async (perPage: number) => {
               <h3 class="font-medium text-lg text-gray-900 dark:text-gray-100">{{ tag.name }}</h3>
               <p class="text-sm text-gray-500 dark:text-gray-400">{{ tag.bookmarkCount || 0 }} {{
                 t('tags.bookmarks_count')
-              }}</p>
+                }}</p>
             </div>
             <div class="flex space-x-1">
               <button @click="startEditTag(tag.id!, tag.name!)"

@@ -28,18 +28,6 @@ const routes: Array<RouteRecordRaw> = [
     meta: { requiresAuth: true }
   },
   {
-    path: '/folders',
-    name: 'folders',
-    component: () => import('../views/FoldersView.vue'),
-    meta: { requiresAuth: true }
-  },
-  {
-    path: '/archive',
-    name: 'archive',
-    component: () => import('../views/ArchiveView.vue'),
-    meta: { requiresAuth: true }
-  },
-  {
     path: '/settings',
     name: 'settings',
     component: () => import('../views/SettingsView.vue'),
@@ -61,6 +49,12 @@ const routes: Array<RouteRecordRaw> = [
     path: '/add-bookmark',
     name: 'add-bookmark',
     component: () => import('../views/AddBookmarkView.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/test-tag-selector',
+    name: 'test-tag-selector',
+    component: () => import('../views/TagSelectorTest.vue'),
     meta: { requiresAuth: true }
   },
   // Redirect any unmatched routes to home (which will redirect to login if not authenticated)
