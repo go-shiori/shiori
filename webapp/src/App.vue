@@ -4,10 +4,12 @@ import { onMounted, ref } from 'vue'
 import { useAuthStore } from './stores/auth'
 import { useRouter } from 'vue-router'
 import ToastContainer from '@/components/ui/ToastContainer.vue'
+import { useI18n } from 'vue-i18n'
 
 const authStore = useAuthStore()
 const router = useRouter()
 const isInitializing = ref(true)
+const { t } = useI18n()
 
 onMounted(async () => {
   // If we have a token, validate it
@@ -29,7 +31,7 @@ onMounted(async () => {
       class="fixed inset-0 flex items-center justify-center bg-white dark:bg-gray-900 bg-opacity-80 dark:bg-opacity-80 z-50">
       <div class="text-center">
         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500 mx-auto mb-2"></div>
-        <p class="text-gray-700 dark:text-gray-300">Loading...</p>
+        <p class="text-gray-700 dark:text-gray-300">{{ t('common.loading') }}</p>
       </div>
     </div>
     <RouterView v-else class="flex-1" />

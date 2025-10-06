@@ -86,26 +86,38 @@ export const useBookmarksStore = defineStore('bookmarks', () => {
 
   // Create a new bookmark
   const createBookmark = async (url: string, title?: string, excerpt?: string, isPublic?: number) => {
-    return executeWithLoading(
-      isLoading,
-      error,
-      async () => {
-        const api = getBookmarksApi()
-        const newBookmark = await api.apiV1BookmarksPost({
-          payload: {
-            url,
-            title,
-            excerpt,
-            _public: isPublic
-          }
-        })
+    isLoading.value = true
+    error.value = null
 
-        bookmarks.value.unshift(newBookmark)
-        totalCount.value++
-        return newBookmark
-      },
-      'Failed to create bookmark. Please try again.'
-    )
+    try {
+      const api = getBookmarksApi()
+      const newBookmark = await api.apiV1BookmarksPost({
+        payload: {
+          url,
+          title,
+          excerpt,
+          _public: isPublic
+        }
+      })
+
+      bookmarks.value.unshift(newBookmark)
+      totalCount.value++
+      return newBookmark
+    } catch (err) {
+      // Normalize fetch client errors to include response.data.error
+      const maybeResponse = (err as any)?.response
+      if (maybeResponse && typeof maybeResponse.json === 'function') {
+        try {
+          const data = await maybeResponse.json()
+          throw { response: { status: maybeResponse.status, data } }
+        } catch (_) {
+          // If parsing fails, fall through to rethrow original error
+        }
+      }
+      throw err
+    } finally {
+      isLoading.value = false
+    }
   }
 
   // Update a bookmark

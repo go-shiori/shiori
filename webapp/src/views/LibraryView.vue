@@ -172,7 +172,7 @@ onUnmounted(() => {
                                 class="w-24 h-24 rounded-md overflow-hidden bg-gray-100 dark:bg-gray-700">
                                 <AuthenticatedImage :bookmark-id="bookmark.id || 0"
                                     :auth-token="authStore.token || undefined"
-                                    :alt="bookmark.title || 'Bookmark thumbnail'" class="w-full h-full" />
+                                    :alt="bookmark.title || t('bookmarks.bookmark_thumbnail')" class="w-full h-full" />
                             </div>
                             <div v-else
                                 class="w-24 h-24 rounded-md bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
@@ -203,16 +203,16 @@ onUnmounted(() => {
                                 <div class="flex space-x-2 ml-4 flex-shrink-0">
                                     <a v-if="bookmark.url" :href="bookmark.url" target="_blank" @click.stop
                                         class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
-                                        <span class="sr-only">Open original URL</span>
+                                        <span class="sr-only">{{ t('bookmarks.open_original_url') }}</span>
                                         <ExternalLinkIcon class="h-5 w-5" />
                                     </a>
                                     <button @click.stop
                                         class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
-                                        <span class="sr-only">Edit</span>
+                                        <span class="sr-only">{{ t('bookmarks.edit_bookmark_action') }}</span>
                                         <PencilIcon class="h-5 w-5" />
                                     </button>
                                     <button @click.stop class="text-gray-500 dark:text-gray-400 hover:text-red-500">
-                                        <span class="sr-only">Delete</span>
+                                        <span class="sr-only">{{ t('bookmarks.delete_bookmark_action') }}</span>
                                         <TrashIcon class="h-5 w-5" />
                                     </button>
                                 </div>

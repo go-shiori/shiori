@@ -52,6 +52,12 @@ const routes: Array<RouteRecordRaw> = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/add-tag',
+    name: 'add-tag',
+    component: () => import('../views/AddTagView.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/test-tag-selector',
     name: 'test-tag-selector',
     component: () => import('../views/TagSelectorTest.vue'),

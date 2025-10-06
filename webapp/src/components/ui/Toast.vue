@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { Toast } from '@/composables/useToast'
+import { useI18n } from 'vue-i18n'
 
 interface Props {
     toast: Toast
 }
 
 const props = defineProps<Props>()
+const { t } = useI18n()
 
 const emit = defineEmits<{
     remove: [id: string]
@@ -70,7 +72,7 @@ const getIcon = () => {
         <button @click="handleRemove"
             class="flex-shrink-0 ml-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
             aria-label="Close notification">
-            <span class="sr-only">Close</span>
+            <span class="sr-only">{{ t('common.close') }}</span>
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>

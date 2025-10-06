@@ -94,7 +94,7 @@ onUnmounted(() => {
                             :title="t('auth.user')">
                             <UserIcon class="h-6 w-6" />
                             <span class="text-xs mt-1 dark:text-gray-300">{{ authStore.user?.username || t('auth.user')
-                            }}</span>
+                                }}</span>
                         </button>
 
                         <!-- Dropdown Menu -->

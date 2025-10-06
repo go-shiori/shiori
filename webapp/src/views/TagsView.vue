@@ -21,15 +21,15 @@ const { success, error: showErrorToast } = useToast();
 const { tags, isLoading, error, totalCount, currentPage, pageLimit } = storeToRefs(tagsStore);
 const { fetchTags, createTag, updateTag, deleteTag } = tagsStore;
 
-// New tag form
-const showNewTagForm = ref(false);
-const newTagName = ref('');
-const isSubmitting = ref(false);
-const formError = ref<string | null>(null);
+// Navigation to add tag view
+const navigateToAddTag = () => {
+  router.push('/add-tag');
+};
 
 // Edit tag form
 const editingTagId = ref<number | null>(null);
 const editTagName = ref('');
+const isSubmitting = ref(false);
 
 // Search functionality
 const searchQuery = ref('');
@@ -67,38 +67,6 @@ const handleApiError = (err: any) => {
   }
 };
 
-// Handle new tag submission
-const handleCreateTag = async () => {
-  if (!newTagName.value.trim()) {
-    formError.value = t('tags.tag_name_required');
-    return;
-  }
-
-  formError.value = null;
-  isSubmitting.value = true;
-
-  try {
-    await createTag(newTagName.value.trim());
-    newTagName.value = '';
-    showNewTagForm.value = false;
-
-    // Show success toast
-    success(
-      t('tags.toast.created_success'),
-      t('tags.toast.created_success_message')
-    );
-
-    // Refresh the tag list to ensure the new tag is visible
-    await fetchTags({ page: currentPage.value, limit: pageLimit.value });
-  } catch (err) {
-    console.error('Failed to create tag:', err);
-
-    // Handle API errors with proper i18n
-    formError.value = handleApiErrorWithI18n(err as any);
-  } finally {
-    isSubmitting.value = false;
-  }
-};
 
 // Start editing a tag
 const startEditTag = (id: number, name: string) => {
@@ -236,10 +204,10 @@ const clearSearch = async () => {
       <div class="flex justify-between items-center">
         <h1 class="text-xl font-bold">{{ t('tags.title') }}</h1>
         <div class="flex space-x-2">
-          <button @click="showNewTagForm = !showNewTagForm"
+          <button @click="navigateToAddTag"
             class="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 transition flex items-center space-x-2 h-8 text-sm">
-            <PlusIcon v-if="!showNewTagForm" size="16" />
-            <span>{{ showNewTagForm ? t('common.cancel') : t('tags.add_tag') }}</span>
+            <PlusIcon size="16" />
+            <span>{{ t('tags.add_tag') }}</span>
           </button>
           <div class="relative">
             <Input v-model="searchQuery" @input="handleSearch" type="search" variant="search" size="sm" class="h-8"
@@ -252,39 +220,6 @@ const clearSearch = async () => {
       </div>
     </template>
 
-    <!-- New Tag Form -->
-    <div v-if="showNewTagForm" class="bg-white dark:bg-gray-800 p-4 rounded-md shadow-sm mb-6">
-      <h2 class="text-lg font-medium mb-3 text-gray-900 dark:text-gray-100">{{ t('tags.add_tag') }}</h2>
-      <form @submit.prevent="handleCreateTag" class="flex flex-col space-y-3">
-        <div>
-          <label for="tagName" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('tags.name')
-            }}</label>
-          <Input id="tagName" v-model="newTagName" type="text" :placeholder="t('tags.name')" :disabled="isSubmitting" />
-        </div>
-        <div class="flex justify-between items-center">
-          <!-- Error Message (left side) -->
-          <div v-if="formError" class="flex-1 mr-4">
-            <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-2">
-              <p class="text-sm text-red-800 dark:text-red-200">{{ formError }}</p>
-            </div>
-          </div>
-
-          <!-- Buttons (right side) -->
-          <div class="flex space-x-2">
-            <button type="button" @click="showNewTagForm = false"
-              class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
-              :disabled="isSubmitting">
-              {{ t('common.cancel') }}
-            </button>
-            <button type="submit"
-              class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 disabled:opacity-50"
-              :disabled="isSubmitting">
-              {{ isSubmitting ? t('common.loading') : t('common.save') }}
-            </button>
-          </div>
-        </div>
-      </form>
-    </div>
 
     <!-- Error Message -->
     <div v-if="error"
@@ -301,7 +236,7 @@ const clearSearch = async () => {
     <!-- Empty State -->
     <div v-else-if="!isLoading && !tags.length" class="bg-white dark:bg-gray-800 p-6 rounded-md shadow-sm text-center">
       <p class="text-gray-500 dark:text-gray-400 mb-4">{{ t('tags.create_first_tag') }}</p>
-      <button v-if="!showNewTagForm" @click="showNewTagForm = true"
+      <button @click="navigateToAddTag"
         class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 flex items-center space-x-2">
         <PlusIcon size="16" />
         <span>{{ t('tags.add_tag') }}</span>

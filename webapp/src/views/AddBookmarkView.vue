@@ -94,7 +94,7 @@ const handleSubmit = async () => {
         router.push('/library')
     } catch (err) {
         console.error('Failed to create bookmark:', err)
-        const errorMessage = handleApiError(err as any)
+        const errorMessage = handleApiError(err as any, 'bookmark')
         formError.value = errorMessage
         // Don't show toast for form errors - they're displayed inline
     } finally {
@@ -207,7 +207,7 @@ onMounted(async () => {
 
                 <!-- Dialog Footer -->
                 <div
-                    class="bg-gray-50 dark:bg-gray-700 px-4 py-3 rounded-b-lg border-t border-gray-200 dark:border-gray-600 flex justify-between items-center">
+                    :class="['bg-gray-50 dark:bg-gray-700 px-4 py-3 rounded-b-lg border-t border-gray-200 dark:border-gray-600 flex items-center', formError ? 'justify-between' : 'justify-end']">
                     <!-- Error Message (left side) -->
                     <div v-if="formError" class="flex-1 mr-4">
                         <div

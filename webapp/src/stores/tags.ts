@@ -98,20 +98,33 @@ export const useTagsStore = defineStore('tags', () => {
 
   // Create a new tag
   const createTag = async (name: string) => {
-    return executeWithLoading(
-      isLoading,
-      error,
-      async () => {
-        const api = getTagsApi()
-        const newTag = await api.apiV1TagsPost({ tag: { name } })
-        if (newTag) {
-          tags.value.push(newTag)
-          totalCount.value++
+    isLoading.value = true
+    error.value = null
+
+    try {
+      const api = getTagsApi()
+      const newTag = await api.apiV1TagsPost({ tag: { name } })
+      if (newTag) {
+        tags.value.push(newTag)
+        totalCount.value++
+      }
+      return newTag
+    } catch (err) {
+      // Normalize fetch client errors to include response.data.error
+      const maybeResponse = (err as any)?.response
+      if (maybeResponse && typeof maybeResponse.json === 'function') {
+        try {
+          const data = await maybeResponse.json()
+          // Re-throw with a standardized shape expected by the error handler
+          throw { response: { status: maybeResponse.status, data } }
+        } catch (_) {
+          // If parsing fails, fall through to rethrow original error
         }
-        return newTag
-      },
-      'Failed to create tag. Please try again.'
-    )
+      }
+      throw err
+    } finally {
+      isLoading.value = false
+    }
   }
 
   // Update a tag

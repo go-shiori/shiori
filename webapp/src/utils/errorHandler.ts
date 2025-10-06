@@ -17,7 +17,7 @@ export interface ApiError {
  * @param t The i18n translation function
  * @returns A localized error message
  */
-export function handleApiError(error: ApiError, t: (key: string) => string): string {
+export function handleApiError(error: ApiError, t: (key: string) => string, resourceHint?: 'bookmark' | 'tag'): string {
   // Check if it's an API error with a response
   if (error.response?.data?.error) {
     const errorKey = error.response.data.error
@@ -60,9 +60,18 @@ export function handleApiError(error: ApiError, t: (key: string) => string): str
   }
 
   // Fallback to generic error message
-  if (error.message) {
-    return error.message
+  if (error.response?.status && resourceHint) {
+    // Infer from status + resource when backend sent a JSON error we couldn't parse upstream
+    const sectionMap: Record<string, string> = { bookmark: 'bookmarks', tag: 'tags' }
+    const section = sectionMap[resourceHint]
+    if (error.response.status === 409 && section) {
+      const translationKey = `${section}.errors.already_exists.${resourceHint}`
+      const translatedMessage = t(translationKey)
+      if (translatedMessage !== translationKey) return translatedMessage
+    }
   }
+
+  if (error.message) return error.message
 
   return t('common.error_occurred') || 'An error occurred'
 }
@@ -74,6 +83,6 @@ export function useErrorHandler() {
   const { t } = useI18n()
 
   return {
-    handleApiError: (error: ApiError) => handleApiError(error, t)
+    handleApiError: (error: ApiError, resourceHint?: 'bookmark' | 'tag') => handleApiError(error, t, resourceHint)
   }
 }

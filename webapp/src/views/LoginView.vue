@@ -83,7 +83,7 @@ const redirectAfterLogin = () => {
       <!-- Logo and Header -->
       <div class="bg-red-500 text-white py-6 px-4 text-center">
         <div class="text-4xl font-bold mb-1">栞 shiori</div>
-        <div class="text-sm">simple bookmark manager</div>
+        <div class="text-sm">{{ t('common.tagline') }}</div>
       </div>
 
       <!-- Login Form -->
