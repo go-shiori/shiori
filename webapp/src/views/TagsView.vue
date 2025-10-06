@@ -3,16 +3,21 @@ import AppLayout from '@/components/layout/AppLayout.vue';
 import Pagination from '@/components/ui/Pagination.vue';
 import { useTagsStore } from '@/stores/tags';
 import { useAuthStore } from '@/stores/auth';
+import { useToast } from '@/composables/useToast';
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
-import { useI18n } from 'vue-i18n';
-import { CheckIcon, XIcon, TagIcon, PencilIcon, TrashIcon, PlusIcon } from '@/components/icons';
+import { useI18n } from 'vue-i18n'
+import { Input } from '@/components/ui';
+import { CheckIcon, XIcon, TagIcon, PencilIcon, TrashIcon, PlusIcon, SearchIcon } from '@/components/icons';
+import { useErrorHandler } from '@/utils/errorHandler';
 
 const { t } = useI18n();
 const tagsStore = useTagsStore();
 const authStore = useAuthStore();
 const router = useRouter();
+const { handleApiError: handleApiErrorWithI18n } = useErrorHandler();
+const { success, error: showErrorToast } = useToast();
 const { tags, isLoading, error, totalCount, currentPage, pageLimit } = storeToRefs(tagsStore);
 const { fetchTags, createTag, updateTag, deleteTag } = tagsStore;
 
@@ -25,6 +30,10 @@ const formError = ref<string | null>(null);
 // Edit tag form
 const editingTagId = ref<number | null>(null);
 const editTagName = ref('');
+
+// Search functionality
+const searchQuery = ref('');
+const isSearching = ref(false);
 
 // Load tags on component mount
 onMounted(async () => {
@@ -72,11 +81,26 @@ const handleCreateTag = async () => {
     await createTag(newTagName.value.trim());
     newTagName.value = '';
     showNewTagForm.value = false;
+
+    // Show success toast
+    success(
+      t('tags.toast.created_success'),
+      t('tags.toast.created_success_message')
+    );
+
     // Refresh the tag list to ensure the new tag is visible
     await fetchTags({ page: currentPage.value, limit: pageLimit.value });
   } catch (err) {
-    // Check for authentication errors
-    handleApiError(err);
+    console.error('Failed to create tag:', err);
+
+    // Handle API errors with proper i18n
+    formError.value = handleApiErrorWithI18n(err as any);
+
+    // Show error toast
+    showErrorToast(
+      t('tags.toast.created_error'),
+      t('tags.toast.created_error_message')
+    );
   } finally {
     isSubmitting.value = false;
   }
@@ -105,9 +129,23 @@ const handleUpdateTag = async (id: number) => {
   try {
     await updateTag(id, editTagName.value.trim());
     editingTagId.value = null;
+
+    // Show success toast
+    success(
+      t('tags.toast.updated_success'),
+      t('tags.toast.updated_success_message')
+    );
   } catch (err) {
+    console.error('Failed to update tag:', err);
+
     // Check for authentication errors
     handleApiError(err);
+
+    // Show error toast
+    showErrorToast(
+      t('tags.toast.updated_error'),
+      t('tags.toast.updated_error_message')
+    );
   } finally {
     isSubmitting.value = false;
   }
@@ -126,9 +164,23 @@ const handleDeleteTag = async () => {
   try {
     await deleteTag(tagToDelete.value);
     tagToDelete.value = null;
+
+    // Show success toast
+    success(
+      t('tags.toast.deleted_success'),
+      t('tags.toast.deleted_success_message')
+    );
   } catch (err) {
+    console.error('Failed to delete tag:', err);
+
     // Check for authentication errors
     handleApiError(err);
+
+    // Show error toast
+    showErrorToast(
+      t('tags.toast.deleted_error'),
+      t('tags.toast.deleted_error_message')
+    );
   }
 };
 
@@ -149,6 +201,39 @@ const handlePerPageChange = async (perPage: number) => {
     handleApiError(err);
   }
 };
+
+// Debounced search function
+let searchTimeout: number;
+const handleSearch = async () => {
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(async () => {
+    isSearching.value = true;
+    try {
+      await fetchTags({
+        page: 1,
+        limit: pageLimit.value,
+        search: searchQuery.value.trim() || undefined
+      });
+    } catch (err) {
+      handleApiError(err);
+    } finally {
+      isSearching.value = false;
+    }
+  }, 300);
+};
+
+// Clear search
+const clearSearch = async () => {
+  searchQuery.value = '';
+  isSearching.value = true;
+  try {
+    await fetchTags({ page: 1, limit: pageLimit.value });
+  } catch (err) {
+    handleApiError(err);
+  } finally {
+    isSearching.value = false;
+  }
+};
 </script>
 
 <template>
@@ -162,6 +247,13 @@ const handlePerPageChange = async (perPage: number) => {
             <PlusIcon v-if="!showNewTagForm" size="16" />
             <span>{{ showNewTagForm ? t('common.cancel') : t('tags.add_tag') }}</span>
           </button>
+          <div class="relative">
+            <Input v-model="searchQuery" @input="handleSearch" type="search" variant="search" size="sm"
+              :placeholder="t('tags.search_placeholder')" />
+            <div v-if="isSearching" class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+              <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-red-500"></div>
+            </div>
+          </div>
         </div>
       </div>
     </template>
@@ -172,10 +264,8 @@ const handlePerPageChange = async (perPage: number) => {
       <form @submit.prevent="handleCreateTag" class="flex flex-col space-y-3">
         <div>
           <label for="tagName" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('tags.name')
-            }}</label>
-          <input id="tagName" v-model="newTagName" type="text"
-            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-            :placeholder="t('tags.name')" :disabled="isSubmitting" />
+          }}</label>
+          <Input id="tagName" v-model="newTagName" type="text" :placeholder="t('tags.name')" :disabled="isSubmitting" />
           <p v-if="formError" class="mt-1 text-sm text-red-600 dark:text-red-400">{{ formError }}</p>
         </div>
         <div class="flex justify-end space-x-2">
@@ -221,9 +311,7 @@ const handlePerPageChange = async (perPage: number) => {
           class="bg-white dark:bg-gray-800 p-4 rounded-md shadow-sm hover:shadow-md transition-shadow border border-gray-200 dark:border-gray-700">
           <!-- Edit Mode -->
           <div v-if="editingTagId === tag.id" class="flex items-center">
-            <input v-model="editTagName" type="text"
-              class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-              :disabled="isSubmitting" />
+            <Input v-model="editTagName" type="text" :disabled="isSubmitting" />
             <div class="flex ml-2 space-x-1">
               <button @click="handleUpdateTag(tag.id!)"
                 class="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 p-1"
@@ -247,7 +335,7 @@ const handlePerPageChange = async (perPage: number) => {
               <h3 class="font-medium text-lg text-gray-900 dark:text-gray-100">{{ tag.name }}</h3>
               <p class="text-sm text-gray-500 dark:text-gray-400">{{ tag.bookmarkCount || 0 }} {{
                 t('tags.bookmarks_count')
-                }}</p>
+              }}</p>
             </div>
             <div class="flex space-x-1">
               <button @click="startEditTag(tag.id!, tag.name!)"

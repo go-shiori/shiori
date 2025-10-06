@@ -3,14 +3,18 @@ import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useBookmarksStore } from '@/stores/bookmarks'
 import { useTagsStore } from '@/stores/tags'
+import { useToast } from '@/composables/useToast'
 import AppLayout from '@/components/layout/AppLayout.vue'
-import TagSelector from '@/components/ui/TagSelector.vue'
+import { Input, Textarea, Select, Checkbox, TagSelector } from '@/components/ui'
 import { useI18n } from 'vue-i18n'
+import { useErrorHandler } from '@/utils/errorHandler'
 
 const { t } = useI18n()
 const router = useRouter()
 const bookmarksStore = useBookmarksStore()
 const tagsStore = useTagsStore()
+const { success, error } = useToast()
+const { handleApiError } = useErrorHandler()
 
 // Form fields
 const url = ref('')
@@ -23,12 +27,12 @@ const visibility = ref<'internal' | 'public'>('internal')
 
 // State
 const isLoading = ref(false)
-const error = ref<string | null>(null)
+const formError = ref<string | null>(null)
 
 const handleSubmit = async () => {
     // Validation
     if (!url.value.trim()) {
-        error.value = t('bookmarks.please_enter_url')
+        formError.value = t('bookmarks.please_enter_url')
         return
     }
 
@@ -36,12 +40,12 @@ const handleSubmit = async () => {
     try {
         new URL(url.value)
     } catch {
-        error.value = t('bookmarks.please_enter_valid_url')
+        formError.value = t('bookmarks.please_enter_valid_url')
         return
     }
 
     isLoading.value = true
-    error.value = null
+    formError.value = null
 
     try {
         // 1. Create bookmark
@@ -80,11 +84,24 @@ const handleSubmit = async () => {
             }
         }
 
+        // Show success toast
+        success(
+            t('bookmarks.toast.created_success'),
+            t('bookmarks.toast.created_success_message')
+        )
+
         // Redirect to home page after successful creation
         router.push('/home')
     } catch (err) {
-        console.error('Error creating bookmark:', err)
-        error.value = err instanceof Error ? err.message : t('bookmarks.failed_to_create_bookmark')
+        console.error('Failed to create bookmark:', err)
+        const errorMessage = handleApiError(err as any)
+        formError.value = errorMessage
+
+        // Show error toast
+        error(
+            t('bookmarks.toast.created_error'),
+            errorMessage
+        )
     } finally {
         isLoading.value = false
     }
@@ -126,13 +143,18 @@ onMounted(async () => {
 
                 <!-- Dialog Body -->
                 <div class="p-4 space-y-4">
+                    <!-- Error Message -->
+                    <div v-if="formError"
+                        class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-3">
+                        <p class="text-sm text-red-800 dark:text-red-200">{{ formError }}</p>
+                    </div>
+
                     <!-- URL Field -->
                     <div>
                         <label for="url" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                             {{ t('bookmarks.url_label') }}
                         </label>
-                        <input id="url" v-model="url" type="url" :placeholder="t('bookmarks.url_placeholder')"
-                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 dark:bg-gray-700 dark:text-white"
+                        <Input id="url" v-model="url" type="url" :placeholder="t('bookmarks.url_placeholder')"
                             :disabled="isLoading" required />
                     </div>
 
@@ -141,10 +163,8 @@ onMounted(async () => {
                         <label for="title" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                             {{ t('bookmarks.custom_title_label') }}
                         </label>
-                        <input id="title" v-model="title" type="text"
-                            :placeholder="t('bookmarks.custom_title_placeholder')"
-                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 dark:bg-gray-700 dark:text-white"
-                            :disabled="isLoading" />
+                        <Input id="title" v-model="title" type="text"
+                            :placeholder="t('bookmarks.custom_title_placeholder')" :disabled="isLoading" />
                     </div>
 
                     <!-- Custom Excerpt Field -->
@@ -152,10 +172,8 @@ onMounted(async () => {
                         <label for="excerpt" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                             {{ t('bookmarks.custom_excerpt_label') }}
                         </label>
-                        <textarea id="excerpt" v-model="excerpt"
-                            :placeholder="t('bookmarks.custom_excerpt_placeholder')" rows="3"
-                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 dark:bg-gray-700 dark:text-white resize-vertical"
-                            :disabled="isLoading"></textarea>
+                        <Textarea id="excerpt" v-model="excerpt"
+                            :placeholder="t('bookmarks.custom_excerpt_placeholder')" :rows="3" :disabled="isLoading" />
                     </div>
 
                     <!-- Tags Field -->
@@ -170,17 +188,13 @@ onMounted(async () => {
                     <!-- Checkboxes -->
                     <div class="space-y-3">
                         <label class="flex items-center cursor-pointer">
-                            <input v-model="createArchive" type="checkbox"
-                                class="mr-2 h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
-                                :disabled="isLoading" />
+                            <Checkbox v-model="createArchive" :disabled="isLoading" class="mr-2" />
                             <span class="text-sm text-gray-700 dark:text-gray-300">{{ t('bookmarks.create_archive')
                                 }}</span>
                         </label>
 
                         <label class="flex items-center cursor-pointer">
-                            <input v-model="createEbook" type="checkbox"
-                                class="mr-2 h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
-                                :disabled="isLoading" />
+                            <Checkbox v-model="createEbook" :disabled="isLoading" class="mr-2" />
                             <span class="text-sm text-gray-700 dark:text-gray-300">{{ t('bookmarks.generate_ebook')
                                 }}</span>
                         </label>
@@ -191,12 +205,10 @@ onMounted(async () => {
                                 class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                 {{ t('bookmarks.visibility_label') }}
                             </label>
-                            <select id="visibility" v-model="visibility"
-                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 dark:bg-gray-700 dark:text-white"
-                                :disabled="isLoading">
-                                <option value="internal">{{ t('bookmarks.visibility_internal') }}</option>
-                                <option value="public">{{ t('bookmarks.visibility_public') }}</option>
-                            </select>
+                            <Select id="visibility" v-model="visibility" :options="[
+                                { value: 'internal', label: t('bookmarks.visibility_internal') },
+                                { value: 'public', label: t('bookmarks.visibility_public') }
+                            ]" :disabled="isLoading" />
                             <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                                 {{ t('bookmarks.visibility_description') }}
                             </p>
@@ -204,9 +216,9 @@ onMounted(async () => {
                     </div>
 
                     <!-- Error Message -->
-                    <div v-if="error"
+                    <div v-if="formError"
                         class="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 p-3 rounded-md">
-                        {{ error }}
+                        {{ formError }}
                     </div>
                 </div>
 
@@ -214,12 +226,12 @@ onMounted(async () => {
                 <div
                     class="bg-gray-50 dark:bg-gray-700 px-4 py-3 rounded-b-lg border-t border-gray-200 dark:border-gray-600 flex justify-end space-x-3">
                     <button type="button" @click="handleCancel"
-                        class="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 uppercase"
+                        class="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500 uppercase"
                         :disabled="isLoading">
                         {{ t('common.cancel') }}
                     </button>
                     <button type="button" @click="handleSubmit"
-                        class="px-4 py-2 text-sm font-semibold text-white bg-red-500 rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed uppercase"
+                        class="px-4 py-2 text-sm font-semibold text-white bg-red-500 rounded-md hover:bg-red-600 focus:outline-none focus:ring-1 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed uppercase"
                         :disabled="isLoading || !url.trim()">
                         <span v-if="isLoading" class="flex items-center">
                             <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>

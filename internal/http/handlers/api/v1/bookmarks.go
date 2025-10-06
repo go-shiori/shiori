@@ -584,6 +584,13 @@ func HandleCreateBookmark(deps model.Dependencies, c model.WebContext) {
 	createdBookmark, err := deps.Domains().Bookmarks().CreateBookmark(c.Request().Context(), bookmark)
 	if err != nil {
 		deps.Logger().Error("error creating bookmark: ", err)
+
+		// Check for specific errors
+		if errors.Is(err, model.ErrBookmarkAlreadyExists) {
+			response.SendError(c, http.StatusConflict, "already_exists.bookmark")
+			return
+		}
+
 		response.SendError(c, http.StatusInternalServerError, "Failed to create bookmark")
 		return
 	}

@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/go-shiori/shiori/internal/core"
+	"github.com/go-shiori/shiori/internal/database"
 	"github.com/go-shiori/shiori/internal/model"
 )
 
@@ -217,6 +218,10 @@ func (d *BookmarksDomain) CreateBookmark(ctx context.Context, bookmark model.Boo
 	// Save bookmark to database
 	savedBookmarks, err := d.deps.Database().SaveBookmarks(ctx, true, dto)
 	if err != nil {
+		// Check for constraint violations
+		if constraintErr := database.IsUniqueConstraintViolation(err); constraintErr != err {
+			return nil, constraintErr
+		}
 		return nil, fmt.Errorf("failed to save bookmark: %w", err)
 	}
 

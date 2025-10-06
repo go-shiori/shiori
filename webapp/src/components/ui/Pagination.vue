@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { useI18n } from 'vue-i18n';
+import { useI18n } from 'vue-i18n'
+import Select from './Select.vue';
 import { ChevronLeftIcon, ChevronRightIcon } from '@/components/icons';
 
 const { t } = useI18n();
@@ -120,12 +121,9 @@ const changeItemsPerPage = (event: Event) => {
                 <label for="items-per-page" class="text-sm text-gray-600 dark:text-gray-400">
                     {{ t('pagination.per_page') }}
                 </label>
-                <select id="items-per-page" :value="itemsPerPage" @change="changeItemsPerPage"
-                    class="px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option v-for="option in perPageOptions" :key="option" :value="option">
-                        {{ option }}
-                    </option>
-                </select>
+                <Select id="items-per-page" :model-value="itemsPerPage" @update:model-value="(value) => changeItemsPerPage({ target: { value } } as Event)"
+                    :options="perPageOptions.map(option => ({ value: option, label: option.toString() }))"
+                    size="sm" />
             </div>
         </div>
 

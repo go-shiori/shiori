@@ -19,6 +19,7 @@ export { default as HomeIcon } from './HomeIcon.vue';
 export { default as ImageIcon } from './ImageIcon.vue';
 export { default as PencilIcon } from './PencilIcon.vue';
 export { default as PlusIcon } from './PlusIcon.vue';
+export { default as SearchIcon } from './SearchIcon.vue';
 export { default as SettingsIcon } from './SettingsIcon.vue';
 export { default as TagIcon } from './TagIcon.vue';
 export { default as TrashIcon } from './TrashIcon.vue';

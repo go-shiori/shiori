@@ -2,7 +2,8 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
-import { useI18n } from 'vue-i18n';
+import { useI18n } from 'vue-i18n'
+import { Input } from '@/components/ui';
 import LanguageSelector from './LanguageSelector.vue';
 import { UserIcon } from '@/components/icons';
 
@@ -53,8 +54,7 @@ onUnmounted(() => {
     <!-- Search -->
     <div class="flex-1 mx-4">
       <div class="relative">
-        <input type="text" :placeholder="t('common.search')"
-          class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-1 focus:outline-none focus:ring-2 focus:ring-red-500" />
+        <Input type="search" variant="search" size="sm" :placeholder="t('common.search')" />
       </div>
     </div>
 

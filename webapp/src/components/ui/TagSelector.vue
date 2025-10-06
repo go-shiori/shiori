@@ -2,6 +2,7 @@
 import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useTagsStore } from '@/stores/tags'
+import { useToast } from '@/composables/useToast'
 import { XIcon, PlusIcon } from '@/components/icons'
 
 // Debounce utility function
@@ -46,6 +47,7 @@ const emit = defineEmits<Emits>()
 
 const tagsStore = useTagsStore()
 const { t } = useI18n()
+const { success, error } = useToast()
 
 // State
 const inputValue = ref('')
@@ -136,9 +138,21 @@ const createAndAddTag = async (tagName: string) => {
             // Add the new tag to search results so it's available for future searches
             searchResults.value.push(newTag)
             await addTag(newTag)
+
+            // Show success toast
+            success(
+                t('tags.toast.created_success'),
+                t('tags.toast.created_success_message')
+            )
         }
     } catch (err) {
         console.error('Failed to create tag:', err)
+
+        // Show error toast
+        error(
+            t('tags.toast.created_error'),
+            t('tags.toast.created_error_message')
+        )
     }
 }
 

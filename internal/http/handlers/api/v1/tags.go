@@ -2,6 +2,7 @@ package api_v1
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -183,8 +184,8 @@ func HandleCreateTag(deps model.Dependencies, c model.WebContext) {
 	// Look for exact match
 	for _, existingTag := range existingTags {
 		if existingTag.Name == tag.Name {
-			// Tag already exists, return 204 No Content
-			response.SendJSON(c, http.StatusNoContent, nil)
+			// Tag already exists, return proper error
+			response.SendError(c, http.StatusConflict, "already_exists.tag")
 			return
 		}
 	}
@@ -193,6 +194,13 @@ func HandleCreateTag(deps model.Dependencies, c model.WebContext) {
 	createdTag, err := deps.Domains().Tags().CreateTag(c.Request().Context(), tag)
 	if err != nil {
 		deps.Logger().WithError(err).Error("failed to create tag")
+
+		// Check for specific errors
+		if errors.Is(err, model.ErrTagAlreadyExists) {
+			response.SendError(c, http.StatusConflict, "already_exists.tag")
+			return
+		}
+
 		response.SendInternalServerError(c)
 		return
 	}

@@ -2,7 +2,8 @@
 import { ref, onMounted, computed, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
-import { useI18n } from 'vue-i18n';
+import { useI18n } from 'vue-i18n'
+import { Input } from '@/components/ui';
 import AppLayout from '@/components/layout/AppLayout.vue';
 import Pagination from '@/components/ui/Pagination.vue';
 import ViewSelector from '@/components/ui/ViewSelector.vue';
@@ -122,9 +123,8 @@ onUnmounted(() => {
             <span>{{ t('bookmarks.add_bookmark') }}</span>
           </button>
           <div class="relative">
-            <input v-model="searchKeyword" @keyup.enter="handleSearch" type="text"
-              :placeholder="t('bookmarks.search_placeholder')"
-              class="border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-1 focus:outline-none focus:ring-2 focus:ring-red-500" />
+            <Input v-model="searchKeyword" @keyup.enter="handleSearch" type="search" variant="search" size="sm"
+              :placeholder="t('bookmarks.search_placeholder')" />
           </div>
         </div>
       </div>

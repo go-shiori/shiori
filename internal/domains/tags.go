@@ -47,6 +47,10 @@ func (d *tagsDomain) CreateTag(ctx context.Context, tagDTO model.TagDTO) (model.
 	tag := tagDTO.ToTag()
 	createdTag, err := d.deps.Database().CreateTag(ctx, tag)
 	if err != nil {
+		// Check for constraint violations
+		if constraintErr := database.IsUniqueConstraintViolation(err); constraintErr != err {
+			return model.TagDTO{}, constraintErr
+		}
 		return model.TagDTO{}, err
 	}
 
