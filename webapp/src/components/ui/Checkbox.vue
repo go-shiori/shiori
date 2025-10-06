@@ -40,13 +40,6 @@ const classes = computed(() => [
 </script>
 
 <template>
-  <input
-    :id="id"
-    type="checkbox"
-    :class="classes"
-    :checked="modelValue"
-    :disabled="disabled"
-    :required="required"
-    @change="emit('update:modelValue', ($event.target as HTMLInputElement).checked); emit('change', $event)"
-  />
+  <input :id="id" type="checkbox" :class="classes" :checked="modelValue" :disabled="disabled" :required="required"
+    @change="emit('update:modelValue', ($event.target as HTMLInputElement).checked); emit('change', $event)" />
 </template>

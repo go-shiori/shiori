@@ -102,14 +102,12 @@ const redirectAfterLogin = () => {
           <div class="mb-6">
             <div class="flex items-center mb-4">
               <div class="w-28 text-right mr-4 text-gray-700 dark:text-gray-300">{{ t('auth.username') }}:</div>
-              <Input v-model="username" type="text" variant="search"
-                :placeholder="t('auth.username')" required />
+              <Input v-model="username" type="text" variant="search" :placeholder="t('auth.username')" required />
             </div>
 
             <div class="flex items-center">
               <div class="w-28 text-right mr-4 text-gray-700 dark:text-gray-300">{{ t('auth.password') }}:</div>
-              <Input v-model="password" type="password" variant="search"
-                :placeholder="t('auth.password')" required />
+              <Input v-model="password" type="password" variant="search" :placeholder="t('auth.password')" required />
             </div>
           </div>
 

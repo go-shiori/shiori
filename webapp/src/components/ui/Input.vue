@@ -46,16 +46,7 @@ const classes = computed(() => [
 </script>
 
 <template>
-  <input
-    :id="id"
-    :type="type"
-    :class="classes"
-    :value="modelValue"
-    :placeholder="placeholder"
-    :disabled="disabled"
-    :required="required"
-    @input="emit('update:modelValue', ($event.target as HTMLInputElement).value)"
-    @focus="emit('focus', $event)"
-    @blur="emit('blur', $event)"
-  />
+  <input :id="id" :type="type" :class="classes" :value="modelValue" :placeholder="placeholder" :disabled="disabled"
+    :required="required" @input="emit('update:modelValue', ($event.target as HTMLInputElement).value)"
+    @focus="emit('focus', $event)" @blur="emit('blur', $event)" />
 </template>

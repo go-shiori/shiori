@@ -2,6 +2,7 @@ package domains
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/go-shiori/shiori/internal/core"
@@ -218,9 +219,9 @@ func (d *BookmarksDomain) CreateBookmark(ctx context.Context, bookmark model.Boo
 	// Save bookmark to database
 	savedBookmarks, err := d.deps.Database().SaveBookmarks(ctx, true, dto)
 	if err != nil {
-		// Check for constraint violations
-		if constraintErr := database.IsUniqueConstraintViolation(err); constraintErr != err {
-			return nil, constraintErr
+		// Map database errors to domain errors
+		if errors.Is(err, database.ErrBookmarkURLAlreadyExists) {
+			return nil, model.ErrBookmarkAlreadyExists
 		}
 		return nil, fmt.Errorf("failed to save bookmark: %w", err)
 	}

@@ -217,6 +217,14 @@ func (db *PGDatabase) SaveBookmarks(ctx context.Context, create bool, bookmarks 
 					book.Bookmark.Public, book.Bookmark.Content, book.Bookmark.HTML, book.Bookmark.ModifiedAt, book.Bookmark.ID)
 			}
 			if err != nil {
+				// Map unique constraint violations to database errors
+				if pqErr, ok := err.(*pq.Error); ok {
+					if pqErr.Code == "23505" { // unique_violation
+						if strings.Contains(pqErr.Constraint, "bookmark_url_UNIQUE") {
+							return ErrBookmarkURLAlreadyExists
+						}
+					}
+				}
 				return errors.WithStack(err)
 			}
 
@@ -823,6 +831,14 @@ func (db *PGDatabase) CreateTags(ctx context.Context, tags ...model.Tag) ([]mode
 		// Execute the query and scan the returned IDs
 		rows, err := tx.QueryContext(ctx, query, args...)
 		if err != nil {
+			// Map unique constraint violations to database errors
+			if pqErr, ok := err.(*pq.Error); ok {
+				if pqErr.Code == "23505" { // unique_violation
+					if strings.Contains(pqErr.Constraint, "tag_name_UNIQUE") {
+						return ErrTagNameAlreadyExists
+					}
+				}
+			}
 			return fmt.Errorf("failed to execute tag creation query: %w", err)
 		}
 		defer rows.Close()

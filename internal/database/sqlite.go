@@ -303,6 +303,10 @@ func (db *SQLiteDatabase) SaveBookmarks(ctx context.Context, create bool, bookma
 					book.Bookmark.URL, book.Bookmark.Title, book.Bookmark.Excerpt, book.Bookmark.Author, book.Bookmark.Public, book.Bookmark.ModifiedAt, hasContent, book.Bookmark.ID)
 			}
 			if err != nil {
+				// Map unique constraint violations to database errors
+				if strings.Contains(err.Error(), "UNIQUE constraint failed: bookmark.url") {
+					return ErrBookmarkURLAlreadyExists
+				}
 				return fmt.Errorf("failed to delete bookmark content: %w", err)
 			}
 
@@ -352,6 +356,9 @@ func (db *SQLiteDatabase) SaveBookmarks(ctx context.Context, create bool, bookma
 					if tag.ID == 0 {
 						res, err := stmtInsertTag.ExecContext(ctx, tagName)
 						if err != nil {
+							if strings.Contains(err.Error(), "UNIQUE constraint failed: tag.name") {
+								return ErrTagNameAlreadyExists
+							}
 							return fmt.Errorf("failed to get last insert ID for tag: %w", err)
 						}
 

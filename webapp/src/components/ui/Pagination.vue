@@ -121,8 +121,9 @@ const changeItemsPerPage = (event: Event) => {
                 <label for="items-per-page" class="text-sm text-gray-600 dark:text-gray-400">
                     {{ t('pagination.per_page') }}
                 </label>
-                <Select id="items-per-page" :model-value="itemsPerPage" @update:model-value="(value) => changeItemsPerPage({ target: { value } } as Event)"
-                    :options="perPageOptions.map(option => ({ value: option, label: option.toString() }))"
+                <Select id="items-per-page" :model-value="itemsPerPage"
+                    @update:model-value="(value: number) => changeItemsPerPage({ target: { value } } as unknown as Event)"
+                    :options="perPageOptions.map((option: number) => ({ value: option, label: option.toString() }))"
                     size="sm" />
             </div>
         </div>

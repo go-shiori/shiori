@@ -209,6 +209,10 @@ func (db *MySQLDatabase) SaveBookmarks(ctx context.Context, create bool, bookmar
 					book.Bookmark.URL, book.Bookmark.Title, book.Bookmark.Excerpt, book.Bookmark.Author,
 					book.Bookmark.Public, book.Bookmark.Content, book.Bookmark.HTML, book.Bookmark.ModifiedAt, book.Bookmark.CreatedAt)
 				if err != nil {
+					// Map unique constraint violations to database errors
+					if strings.Contains(err.Error(), "Duplicate entry") && strings.Contains(err.Error(), "bookmark_url_UNIQUE") {
+						return ErrBookmarkURLAlreadyExists
+					}
 					return errors.WithStack(err)
 				}
 				bookID, err := res.LastInsertId()
@@ -253,6 +257,9 @@ func (db *MySQLDatabase) SaveBookmarks(ctx context.Context, create bool, bookmar
 					if tag.ID == 0 {
 						res, err := stmtInsertTag.ExecContext(ctx, tagName)
 						if err != nil {
+							if strings.Contains(err.Error(), "Duplicate entry") && strings.Contains(err.Error(), "tag_name_UNIQUE") {
+								return ErrTagNameAlreadyExists
+							}
 							return errors.WithStack(err)
 						}
 

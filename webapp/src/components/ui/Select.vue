@@ -39,21 +39,10 @@ const classes = computed(() => [
 </script>
 
 <template>
-  <select
-    :id="id"
-    :class="classes"
-    :value="modelValue"
-    :disabled="disabled"
-    :required="required"
-    @change="emit('update:modelValue', ($event.target as HTMLSelectElement).value); emit('change', $event)"
-  >
+  <select :id="id" :class="classes" :value="modelValue" :disabled="disabled" :required="required"
+    @change="emit('update:modelValue', ($event.target as HTMLSelectElement).value); emit('change', $event)">
     <option v-if="placeholder" value="" disabled>{{ placeholder }}</option>
-    <option
-      v-for="option in options"
-      :key="option.value"
-      :value="option.value"
-      :disabled="option.disabled"
-    >
+    <option v-for="option in options" :key="option.value" :value="option.value" :disabled="option.disabled">
       {{ option.label }}
     </option>
   </select>

@@ -3,6 +3,7 @@ import { RouterView } from 'vue-router'
 import { onMounted, ref } from 'vue'
 import { useAuthStore } from './stores/auth'
 import { useRouter } from 'vue-router'
+import ToastContainer from '@/components/ui/ToastContainer.vue'
 
 const authStore = useAuthStore()
 const router = useRouter()
@@ -32,6 +33,9 @@ onMounted(async () => {
       </div>
     </div>
     <RouterView v-else class="flex-1" />
+
+    <!-- Toast Notifications -->
+    <ToastContainer />
   </div>
 </template>
 

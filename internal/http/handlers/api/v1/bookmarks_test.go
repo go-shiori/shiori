@@ -462,7 +462,11 @@ func TestHandleListBookmarks(t *testing.T) {
 
 		response := testutil.NewTestResponseFromRecorder(w)
 		response.AssertOk(t)
-		response.AssertMessageIsNotEmptyList(t)
+		// Ensure items key exists and is a list
+		response.AssertMessageJSONKeyValue(t, "items", func(t *testing.T, value any) {
+			_, ok := value.([]any)
+			require.True(t, ok)
+		})
 	})
 
 	t.Run("with pagination", func(t *testing.T) {
@@ -488,7 +492,10 @@ func TestHandleListBookmarks(t *testing.T) {
 
 		response := testutil.NewTestResponseFromRecorder(w)
 		response.AssertOk(t)
-		response.AssertMessageIsNotEmptyList(t)
+		response.AssertMessageJSONKeyValue(t, "items", func(t *testing.T, value any) {
+			_, ok := value.([]any)
+			require.True(t, ok)
+		})
 	})
 
 	t.Run("with keyword search", func(t *testing.T) {
@@ -536,13 +543,13 @@ func TestHandleListBookmarks(t *testing.T) {
 
 		require.Equal(t, http.StatusOK, w.Code)
 
-		var response []model.BookmarkDTO
-		err = json.Unmarshal(w.Body.Bytes(), &response)
+		var payload model.PaginatedResponse[model.BookmarkDTO]
+		err = json.Unmarshal(w.Body.Bytes(), &payload)
 		require.NoError(t, err)
 
 		// Verify our optimized SearchBookmarks functionality
-		assert.Len(t, response, 1)
-		bookmarkResponse := response[0]
+		assert.Len(t, payload.Items, 1)
+		bookmarkResponse := payload.Items[0]
 
 		// Verify that tags are populated from the database call (proving single call works)
 		assert.NotNil(t, bookmarkResponse.Tags)      // Tags should be populated efficiently from database
@@ -568,13 +575,13 @@ func TestHandleListBookmarks(t *testing.T) {
 
 		require.Equal(t, http.StatusOK, w.Code)
 
-		var response []model.BookmarkDTO
-		err := json.Unmarshal(w.Body.Bytes(), &response)
+		var payload model.PaginatedResponse[model.BookmarkDTO]
+		err := json.Unmarshal(w.Body.Bytes(), &payload)
 		require.NoError(t, err)
 
 		// The important thing is that the request doesn't error out,
 		// ensuring our domain options conversion is working correctly
-		assert.NotNil(t, response) // Should return empty array, not nil
+		assert.NotNil(t, payload.Items) // Should return empty array, not nil
 	})
 
 	t.Run("SearchBookmarks performance optimization", func(t *testing.T) {
@@ -603,13 +610,13 @@ func TestHandleListBookmarks(t *testing.T) {
 
 		require.Equal(t, http.StatusOK, w.Code)
 
-		var response []model.BookmarkDTO
-		err = json.Unmarshal(w.Body.Bytes(), &response)
+		var payload2 model.PaginatedResponse[model.BookmarkDTO]
+		err = json.Unmarshal(w.Body.Bytes(), &payload2)
 		require.NoError(t, err)
 
 		// Verify correct pagination and that all results have proper domain fields
-		assert.Len(t, response, 3)
-		for _, bookmark := range response {
+		assert.Len(t, payload2.Items, 3)
+		for _, bookmark := range payload2.Items {
 			assert.NotNil(t, bookmark.Tags) // Verify tags are populated efficiently
 			assert.NotEmpty(t, bookmark.Title)
 		}

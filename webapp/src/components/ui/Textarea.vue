@@ -37,16 +37,7 @@ const classes = computed(() => [
 </script>
 
 <template>
-  <textarea
-    :id="id"
-    :class="classes"
-    :value="modelValue"
-    :placeholder="placeholder"
-    :disabled="disabled"
-    :required="required"
-    :rows="rows"
-    @input="emit('update:modelValue', ($event.target as HTMLTextAreaElement).value)"
-    @focus="emit('focus', $event)"
-    @blur="emit('blur', $event)"
-  />
+  <textarea :id="id" :class="classes" :value="modelValue" :placeholder="placeholder" :disabled="disabled"
+    :required="required" :rows="rows" @input="emit('update:modelValue', ($event.target as HTMLTextAreaElement).value)"
+    @focus="emit('focus', $event)" @blur="emit('blur', $event)" />
 </template>

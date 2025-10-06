@@ -37,7 +37,11 @@ func TestHandleListTags(t *testing.T) {
 
 		response := testutil.NewTestResponseFromRecorder(w)
 		response.AssertOk(t)
-		response.AssertMessageIsNotEmptyList(t)
+		response.AssertMessageJSONKeyValue(t, "items", func(t *testing.T, value any) {
+			// items should be a list
+			_, ok := value.([]any)
+			require.True(t, ok)
+		})
 	})
 
 	t.Run("with_bookmark_count parameter", func(t *testing.T) {
@@ -73,9 +77,8 @@ func TestHandleListTags(t *testing.T) {
 		response := testutil.NewTestResponseFromRecorder(w)
 		response.AssertOk(t)
 
-		response.AssertMessageIsNotEmptyList(t)
-
-		response.ForEach(t, func(item map[string]any) {
+		// Iterate items in paginated response
+		response.ForEachInKey(t, "items", func(item map[string]any) {
 			t.Logf("item: %+v", item)
 			if tag, ok := item["name"].(string); ok {
 				if tag == "test-tag-with-count" {
@@ -134,7 +137,7 @@ func TestHandleListTags(t *testing.T) {
 
 		// Verify the response contains the tag associated with the bookmark
 		found := false
-		response.ForEach(t, func(item map[string]any) {
+		response.ForEachInKey(t, "items", func(item map[string]any) {
 			if tag, ok := item["name"].(string); ok {
 				if tag == "test-tag-for-bookmark" {
 					found = true
@@ -171,10 +174,9 @@ func TestHandleListTags(t *testing.T) {
 		response := testutil.NewTestResponseFromRecorder(w)
 		response.AssertOk(t)
 
-		response.AssertMessageIsNotEmptyList(t)
-
+		// Check items list contains expected tag name
 		found := false
-		response.ForEach(t, func(item map[string]any) {
+		response.ForEachInKey(t, "items", func(item map[string]any) {
 			if tag, ok := item["name"].(string); ok {
 				if tag == "golang" {
 					found = true
@@ -197,10 +199,8 @@ func TestHandleListTags(t *testing.T) {
 		response = testutil.NewTestResponseFromRecorder(w)
 		response.AssertOk(t)
 
-		response.AssertMessageIsNotEmptyList(t)
-
 		found = false
-		response.ForEach(t, func(item map[string]any) {
+		response.ForEachInKey(t, "items", func(item map[string]any) {
 			if tag, ok := item["name"].(string); ok {
 				if strings.Contains(tag, "python") {
 					found = true
@@ -267,13 +267,14 @@ func TestHandleListTags(t *testing.T) {
 
 		response := testutil.NewTestResponseFromRecorder(w)
 		response.AssertOk(t)
-		response.AssertMessageIsNotEmptyList(t)
+		response.AssertMessageJSONKeyValue(t, "items", func(t *testing.T, value any) {
+			_, ok := value.([]any)
+			require.True(t, ok)
+		})
 
 		// Count items in first page
-		count := 0
-		response.ForEach(t, func(item map[string]any) {
-			count++
-		})
+		var count int
+		response.ForEachInKey(t, "items", func(item map[string]any) { count++ })
 		require.LessOrEqual(t, count, 3, "Should have at most 3 items per page")
 
 		// Test second page
@@ -465,7 +466,7 @@ func TestHandleCreateTag(t *testing.T) {
 		})
 	})
 
-	t.Run("tag already exists returns 204", func(t *testing.T) {
+	t.Run("tag already exists returns 409", func(t *testing.T) {
 		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
 
 		// Create a tag first
@@ -483,7 +484,7 @@ func TestHandleCreateTag(t *testing.T) {
 			testutil.WithFakeUser(),
 			testutil.WithBody(`{"name": "duplicate-test-tag"}`),
 		)
-		require.Equal(t, http.StatusNoContent, w.Code)
+		require.Equal(t, http.StatusConflict, w.Code)
 
 		// Verify no duplicate was created by searching for the tag
 		tags, err := deps.Domains().Tags().ListTags(ctx, model.ListTagsOptions{
