@@ -95,12 +95,6 @@ const handleCreateTag = async () => {
 
     // Handle API errors with proper i18n
     formError.value = handleApiErrorWithI18n(err as any);
-
-    // Show error toast
-    showErrorToast(
-      t('tags.toast.created_error'),
-      t('tags.toast.created_error_message')
-    );
   } finally {
     isSubmitting.value = false;
   }
@@ -243,12 +237,12 @@ const clearSearch = async () => {
         <h1 class="text-xl font-bold">{{ t('tags.title') }}</h1>
         <div class="flex space-x-2">
           <button @click="showNewTagForm = !showNewTagForm"
-            class="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 transition flex items-center space-x-2">
+            class="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 transition flex items-center space-x-2 h-8 text-sm">
             <PlusIcon v-if="!showNewTagForm" size="16" />
             <span>{{ showNewTagForm ? t('common.cancel') : t('tags.add_tag') }}</span>
           </button>
           <div class="relative">
-            <Input v-model="searchQuery" @input="handleSearch" type="search" variant="search" size="sm"
+            <Input v-model="searchQuery" @input="handleSearch" type="search" variant="search" size="sm" class="h-8"
               :placeholder="t('tags.search_placeholder')" />
             <div v-if="isSearching" class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
               <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-red-500"></div>
@@ -264,20 +258,30 @@ const clearSearch = async () => {
       <form @submit.prevent="handleCreateTag" class="flex flex-col space-y-3">
         <div>
           <label for="tagName" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('tags.name')
-          }}</label>
+            }}</label>
           <Input id="tagName" v-model="newTagName" type="text" :placeholder="t('tags.name')" :disabled="isSubmitting" />
-          <p v-if="formError" class="mt-1 text-sm text-red-600 dark:text-red-400">{{ formError }}</p>
         </div>
-        <div class="flex justify-end space-x-2">
-          <button type="button" @click="showNewTagForm = false"
-            class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
-            :disabled="isSubmitting">
-            {{ t('common.cancel') }}
-          </button>
-          <button type="submit" class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 disabled:opacity-50"
-            :disabled="isSubmitting">
-            {{ isSubmitting ? t('common.loading') : t('common.save') }}
-          </button>
+        <div class="flex justify-between items-center">
+          <!-- Error Message (left side) -->
+          <div v-if="formError" class="flex-1 mr-4">
+            <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-2">
+              <p class="text-sm text-red-800 dark:text-red-200">{{ formError }}</p>
+            </div>
+          </div>
+
+          <!-- Buttons (right side) -->
+          <div class="flex space-x-2">
+            <button type="button" @click="showNewTagForm = false"
+              class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+              :disabled="isSubmitting">
+              {{ t('common.cancel') }}
+            </button>
+            <button type="submit"
+              class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 disabled:opacity-50"
+              :disabled="isSubmitting">
+              {{ isSubmitting ? t('common.loading') : t('common.save') }}
+            </button>
+          </div>
         </div>
       </form>
     </div>
@@ -335,7 +339,7 @@ const clearSearch = async () => {
               <h3 class="font-medium text-lg text-gray-900 dark:text-gray-100">{{ tag.name }}</h3>
               <p class="text-sm text-gray-500 dark:text-gray-400">{{ tag.bookmarkCount || 0 }} {{
                 t('tags.bookmarks_count')
-              }}</p>
+                }}</p>
             </div>
             <div class="flex space-x-1">
               <button @click="startEditTag(tag.id!, tag.name!)"

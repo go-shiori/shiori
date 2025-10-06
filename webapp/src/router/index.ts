@@ -1,18 +1,18 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw, NavigationGuardNext as NavigationGuard, RouteLocationNormalized } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
+import LibraryView from '../views/LibraryView.vue'
 import LoginView from '../views/LoginView.vue'
 import { useAuthStore } from '@/stores/auth'
 
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
-    redirect: '/home'
+    redirect: '/library'
   },
   {
-    path: '/home',
-    name: 'home',
-    component: HomeView,
+    path: '/library',
+    name: 'library',
+    component: LibraryView,
     meta: { requiresAuth: true }
   },
   {
@@ -57,10 +57,10 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import('../views/TagSelectorTest.vue'),
     meta: { requiresAuth: true }
   },
-  // Redirect any unmatched routes to home (which will redirect to login if not authenticated)
+  // Redirect any unmatched routes to library (which will redirect to login if not authenticated)
   {
     path: '/:pathMatch(.*)*',
-    redirect: '/home'
+    redirect: '/library'
   }
 ]
 

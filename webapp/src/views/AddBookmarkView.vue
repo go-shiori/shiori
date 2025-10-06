@@ -90,25 +90,20 @@ const handleSubmit = async () => {
             t('bookmarks.toast.created_success_message')
         )
 
-        // Redirect to home page after successful creation
-        router.push('/home')
+        // Redirect to library page after successful creation
+        router.push('/library')
     } catch (err) {
         console.error('Failed to create bookmark:', err)
         const errorMessage = handleApiError(err as any)
         formError.value = errorMessage
-
-        // Show error toast
-        error(
-            t('bookmarks.toast.created_error'),
-            errorMessage
-        )
+        // Don't show toast for form errors - they're displayed inline
     } finally {
         isLoading.value = false
     }
 }
 
 const handleCancel = () => {
-    router.push('/home')
+    router.push('/library')
 }
 
 // Load tags on mount
@@ -143,12 +138,6 @@ onMounted(async () => {
 
                 <!-- Dialog Body -->
                 <div class="p-4 space-y-4">
-                    <!-- Error Message -->
-                    <div v-if="formError"
-                        class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-3">
-                        <p class="text-sm text-red-800 dark:text-red-200">{{ formError }}</p>
-                    </div>
-
                     <!-- URL Field -->
                     <div>
                         <label for="url" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -214,31 +203,36 @@ onMounted(async () => {
                             </p>
                         </div>
                     </div>
-
-                    <!-- Error Message -->
-                    <div v-if="formError"
-                        class="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 p-3 rounded-md">
-                        {{ formError }}
-                    </div>
                 </div>
 
                 <!-- Dialog Footer -->
                 <div
-                    class="bg-gray-50 dark:bg-gray-700 px-4 py-3 rounded-b-lg border-t border-gray-200 dark:border-gray-600 flex justify-end space-x-3">
-                    <button type="button" @click="handleCancel"
-                        class="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500 uppercase"
-                        :disabled="isLoading">
-                        {{ t('common.cancel') }}
-                    </button>
-                    <button type="button" @click="handleSubmit"
-                        class="px-4 py-2 text-sm font-semibold text-white bg-red-500 rounded-md hover:bg-red-600 focus:outline-none focus:ring-1 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed uppercase"
-                        :disabled="isLoading || !url.trim()">
-                        <span v-if="isLoading" class="flex items-center">
-                            <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                            {{ t('common.processing') }}
-                        </span>
-                        <span v-else>{{ t('common.ok') }}</span>
-                    </button>
+                    class="bg-gray-50 dark:bg-gray-700 px-4 py-3 rounded-b-lg border-t border-gray-200 dark:border-gray-600 flex justify-between items-center">
+                    <!-- Error Message (left side) -->
+                    <div v-if="formError" class="flex-1 mr-4">
+                        <div
+                            class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-2">
+                            <p class="text-sm text-red-800 dark:text-red-200">{{ formError }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Buttons (right side) -->
+                    <div class="flex space-x-3">
+                        <button type="button" @click="handleCancel"
+                            class="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500 uppercase"
+                            :disabled="isLoading">
+                            {{ t('common.cancel') }}
+                        </button>
+                        <button type="button" @click="handleSubmit"
+                            class="px-4 py-2 text-sm font-semibold text-white bg-red-500 rounded-md hover:bg-red-600 focus:outline-none focus:ring-1 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed uppercase"
+                            :disabled="isLoading || !url.trim()">
+                            <span v-if="isLoading" class="flex items-center">
+                                <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                {{ t('common.processing') }}
+                            </span>
+                            <span v-else>{{ t('common.ok') }}</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

@@ -69,7 +69,7 @@ const redirectAfterLogin = () => {
 
   // If no destination in store, check props and route query
   if (!destination) {
-    destination = props.dst || route.query.dst as string || '/home';
+    destination = props.dst || route.query.dst as string || '/library';
   }
 
   // Redirect to the destination
