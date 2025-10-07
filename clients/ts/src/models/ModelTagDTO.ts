@@ -24,7 +24,7 @@ export interface ModelTagDTO {
      * @type {number}
      * @memberof ModelTagDTO
      */
-    bookmarkCount?: number;
+    bookmark_count?: number;
     /**
      * Marks when a tag is deleted from a bookmark
      * @type {boolean}
@@ -62,7 +62,7 @@ export function ModelTagDTOFromJSONTyped(json: any, ignoreDiscriminator: boolean
     }
     return {
         
-        'bookmarkCount': json['bookmark_count'] == null ? undefined : json['bookmark_count'],
+        'bookmark_count': json['bookmark_count'] == null ? undefined : json['bookmark_count'],
         'deleted': json['deleted'] == null ? undefined : json['deleted'],
         'id': json['id'] == null ? undefined : json['id'],
         'name': json['name'] == null ? undefined : json['name'],
@@ -80,7 +80,7 @@ export function ModelTagDTOToJSONTyped(value?: ModelTagDTO | null, ignoreDiscrim
 
     return {
         
-        'bookmark_count': value['bookmarkCount'],
+        'bookmark_count': value['bookmark_count'],
         'deleted': value['deleted'],
         'id': value['id'],
         'name': value['name'],

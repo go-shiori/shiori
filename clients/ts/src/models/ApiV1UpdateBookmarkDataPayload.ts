@@ -24,31 +24,31 @@ export interface ApiV1UpdateBookmarkDataPayload {
      * @type {boolean}
      * @memberof ApiV1UpdateBookmarkDataPayload
      */
-    createArchive?: boolean;
+    create_archive?: boolean;
     /**
      * 
      * @type {boolean}
      * @memberof ApiV1UpdateBookmarkDataPayload
      */
-    createEbook?: boolean;
+    create_ebook?: boolean;
     /**
      * 
      * @type {boolean}
      * @memberof ApiV1UpdateBookmarkDataPayload
      */
-    keepMetadata?: boolean;
+    keep_metadata?: boolean;
     /**
      * 
      * @type {boolean}
      * @memberof ApiV1UpdateBookmarkDataPayload
      */
-    skipExisting?: boolean;
+    skip_existing?: boolean;
     /**
      * 
      * @type {boolean}
      * @memberof ApiV1UpdateBookmarkDataPayload
      */
-    updateReadable?: boolean;
+    update_readable?: boolean;
 }
 
 /**
@@ -68,11 +68,11 @@ export function ApiV1UpdateBookmarkDataPayloadFromJSONTyped(json: any, ignoreDis
     }
     return {
         
-        'createArchive': json['create_archive'] == null ? undefined : json['create_archive'],
-        'createEbook': json['create_ebook'] == null ? undefined : json['create_ebook'],
-        'keepMetadata': json['keep_metadata'] == null ? undefined : json['keep_metadata'],
-        'skipExisting': json['skip_existing'] == null ? undefined : json['skip_existing'],
-        'updateReadable': json['update_readable'] == null ? undefined : json['update_readable'],
+        'create_archive': json['create_archive'] == null ? undefined : json['create_archive'],
+        'create_ebook': json['create_ebook'] == null ? undefined : json['create_ebook'],
+        'keep_metadata': json['keep_metadata'] == null ? undefined : json['keep_metadata'],
+        'skip_existing': json['skip_existing'] == null ? undefined : json['skip_existing'],
+        'update_readable': json['update_readable'] == null ? undefined : json['update_readable'],
     };
 }
 
@@ -87,11 +87,11 @@ export function ApiV1UpdateBookmarkDataPayloadToJSONTyped(value?: ApiV1UpdateBoo
 
     return {
         
-        'create_archive': value['createArchive'],
-        'create_ebook': value['createEbook'],
-        'keep_metadata': value['keepMetadata'],
-        'skip_existing': value['skipExisting'],
-        'update_readable': value['updateReadable'],
+        'create_archive': value['create_archive'],
+        'create_ebook': value['create_ebook'],
+        'keep_metadata': value['keep_metadata'],
+        'skip_existing': value['skip_existing'],
+        'update_readable': value['update_readable'],
     };
 }
 

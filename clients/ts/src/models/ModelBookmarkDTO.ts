@@ -38,13 +38,13 @@ export interface ModelBookmarkDTO {
      * @type {boolean}
      * @memberof ModelBookmarkDTO
      */
-    createArchive?: boolean;
+    create_archive?: boolean;
     /**
      * 
      * @type {boolean}
      * @memberof ModelBookmarkDTO
      */
-    createEbook?: boolean;
+    create_ebook?: boolean;
     /**
      * 
      * @type {string}
@@ -143,8 +143,8 @@ export function ModelBookmarkDTOFromJSONTyped(json: any, ignoreDiscriminator: bo
     return {
         
         'author': json['author'] == null ? undefined : json['author'],
-        'createArchive': json['create_archive'] == null ? undefined : json['create_archive'],
-        'createEbook': json['create_ebook'] == null ? undefined : json['create_ebook'],
+        'create_archive': json['create_archive'] == null ? undefined : json['create_archive'],
+        'create_ebook': json['create_ebook'] == null ? undefined : json['create_ebook'],
         'createdAt': json['createdAt'] == null ? undefined : json['createdAt'],
         'excerpt': json['excerpt'] == null ? undefined : json['excerpt'],
         'hasArchive': json['hasArchive'] == null ? undefined : json['hasArchive'],
@@ -173,8 +173,8 @@ export function ModelBookmarkDTOToJSONTyped(value?: ModelBookmarkDTO | null, ign
     return {
         
         'author': value['author'],
-        'create_archive': value['createArchive'],
-        'create_ebook': value['createEbook'],
+        'create_archive': value['create_archive'],
+        'create_ebook': value['create_ebook'],
         'createdAt': value['createdAt'],
         'excerpt': value['excerpt'],
         'hasArchive': value['hasArchive'],

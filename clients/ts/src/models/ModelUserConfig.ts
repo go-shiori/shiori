@@ -24,55 +24,55 @@ export interface ModelUserConfig {
      * @type {boolean}
      * @memberof ModelUserConfig
      */
-    createEbook?: boolean;
+    CreateEbook?: boolean;
     /**
      * 
      * @type {boolean}
      * @memberof ModelUserConfig
      */
-    hideExcerpt?: boolean;
+    HideExcerpt?: boolean;
     /**
      * 
      * @type {boolean}
      * @memberof ModelUserConfig
      */
-    hideThumbnail?: boolean;
+    HideThumbnail?: boolean;
     /**
      * 
      * @type {boolean}
      * @memberof ModelUserConfig
      */
-    keepMetadata?: boolean;
+    KeepMetadata?: boolean;
     /**
      * 
      * @type {boolean}
      * @memberof ModelUserConfig
      */
-    listMode?: boolean;
+    ListMode?: boolean;
     /**
      * 
      * @type {boolean}
      * @memberof ModelUserConfig
      */
-    makePublic?: boolean;
+    MakePublic?: boolean;
     /**
      * 
      * @type {boolean}
      * @memberof ModelUserConfig
      */
-    showId?: boolean;
+    ShowId?: boolean;
     /**
      * 
      * @type {string}
      * @memberof ModelUserConfig
      */
-    theme?: string;
+    Theme?: string;
     /**
      * 
      * @type {boolean}
      * @memberof ModelUserConfig
      */
-    useArchive?: boolean;
+    UseArchive?: boolean;
 }
 
 /**
@@ -92,15 +92,15 @@ export function ModelUserConfigFromJSONTyped(json: any, ignoreDiscriminator: boo
     }
     return {
         
-        'createEbook': json['createEbook'] == null ? undefined : json['createEbook'],
-        'hideExcerpt': json['hideExcerpt'] == null ? undefined : json['hideExcerpt'],
-        'hideThumbnail': json['hideThumbnail'] == null ? undefined : json['hideThumbnail'],
-        'keepMetadata': json['keepMetadata'] == null ? undefined : json['keepMetadata'],
-        'listMode': json['listMode'] == null ? undefined : json['listMode'],
-        'makePublic': json['makePublic'] == null ? undefined : json['makePublic'],
-        'showId': json['showId'] == null ? undefined : json['showId'],
-        'theme': json['theme'] == null ? undefined : json['theme'],
-        'useArchive': json['useArchive'] == null ? undefined : json['useArchive'],
+        'CreateEbook': json['CreateEbook'] == null ? undefined : json['CreateEbook'],
+        'HideExcerpt': json['HideExcerpt'] == null ? undefined : json['HideExcerpt'],
+        'HideThumbnail': json['HideThumbnail'] == null ? undefined : json['HideThumbnail'],
+        'KeepMetadata': json['KeepMetadata'] == null ? undefined : json['KeepMetadata'],
+        'ListMode': json['ListMode'] == null ? undefined : json['ListMode'],
+        'MakePublic': json['MakePublic'] == null ? undefined : json['MakePublic'],
+        'ShowId': json['ShowId'] == null ? undefined : json['ShowId'],
+        'Theme': json['Theme'] == null ? undefined : json['Theme'],
+        'UseArchive': json['UseArchive'] == null ? undefined : json['UseArchive'],
     };
 }
 
@@ -115,15 +115,15 @@ export function ModelUserConfigToJSONTyped(value?: ModelUserConfig | null, ignor
 
     return {
         
-        'createEbook': value['createEbook'],
-        'hideExcerpt': value['hideExcerpt'],
-        'hideThumbnail': value['hideThumbnail'],
-        'keepMetadata': value['keepMetadata'],
-        'listMode': value['listMode'],
-        'makePublic': value['makePublic'],
-        'showId': value['showId'],
-        'theme': value['theme'],
-        'useArchive': value['useArchive'],
+        'CreateEbook': value['CreateEbook'],
+        'HideExcerpt': value['HideExcerpt'],
+        'HideThumbnail': value['HideThumbnail'],
+        'KeepMetadata': value['KeepMetadata'],
+        'ListMode': value['ListMode'],
+        'MakePublic': value['MakePublic'],
+        'ShowId': value['ShowId'],
+        'Theme': value['Theme'],
+        'UseArchive': value['UseArchive'],
     };
 }
 

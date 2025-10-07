@@ -47,6 +47,18 @@ func (d *AccountsDomain) GetAccountByUsername(ctx context.Context, username stri
 	return model.Ptr(accounts[0].ToDTO()), nil
 }
 
+func (d *AccountsDomain) GetAccountByID(ctx context.Context, id model.DBID) (*model.AccountDTO, error) {
+	account, exists, err := d.deps.Database().GetAccount(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("error getting account by ID: %v", err)
+	}
+	if !exists {
+		return nil, fmt.Errorf("account not found with ID: %d", id)
+	}
+
+	return model.Ptr(account.ToDTO()), nil
+}
+
 func (d *AccountsDomain) CreateAccount(ctx context.Context, account model.AccountDTO) (*model.AccountDTO, error) {
 	if err := account.IsValidCreate(); err != nil {
 		return nil, err
@@ -66,6 +78,8 @@ func (d *AccountsDomain) CreateAccount(ctx context.Context, account model.Accoun
 	}
 	if account.Config != nil {
 		acc.Config = *account.Config
+	} else {
+		acc.Config = model.NewUserConfig()
 	}
 
 	storedAccount, err := d.deps.Database().CreateAccount(ctx, acc)

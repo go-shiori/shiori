@@ -1,13 +1,15 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { AuthApi } from '@/client/apis/AuthApi'
+import type { ModelAccount, ModelUserConfig } from '@/client'
+import type { ApiV1UpdateAccountPayload } from '@/client/models/ApiV1UpdateAccountPayload'
 import type { ApiV1LoginRequestPayload } from '@/client/models/ApiV1LoginRequestPayload'
 import { getApiConfig } from '@/utils/api-config'
 
 export const useAuthStore = defineStore('auth', () => {
   const token = ref<string | null>(localStorage.getItem('token'))
   const expires = ref<number | null>(Number(localStorage.getItem('expires')) || null)
-  const user = ref<any | null>(null)
+  const user = ref<ModelAccount | null>(null)
   const loading = ref(false)
   const error = ref<string | null>(null)
   const redirectDestination = ref<string | null>(null)
@@ -15,7 +17,8 @@ export const useAuthStore = defineStore('auth', () => {
   const isAuthenticated = computed(() => {
     if (!token.value) return false
     if (!expires.value) return false
-    return expires.value > Date.now()
+    // Convert expires from seconds to milliseconds for comparison with Date.now()
+    return expires.value * 1000 > Date.now()
   })
 
   // Create API client with auth token
@@ -129,6 +132,20 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  // Update current user's configuration
+  const updateUserConfig = async (config: ModelUserConfig) => {
+    if (!token.value) throw new Error('Not authenticated')
+    const api = getApiClient()
+
+    console.log('Auth store received config:', config)
+    const payload: ApiV1UpdateAccountPayload = { config }
+    console.log('Auth store payload:', payload)
+    const updated = await api.apiV1AuthAccountPatch({ payload })
+    // Persist in store on success
+    user.value = updated
+    return updated
+  }
+
   // Clear authentication data
   const clearAuth = () => {
     token.value = null
@@ -205,6 +222,7 @@ export const useAuthStore = defineStore('auth', () => {
     validateToken,
     setRedirectDestination,
     getAndClearRedirectDestination,
-    clearAuth
+    clearAuth,
+    updateUserConfig
   }
 })

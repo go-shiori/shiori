@@ -1413,31 +1413,31 @@ const docTemplate = `{
         "model.UserConfig": {
             "type": "object",
             "properties": {
-                "createEbook": {
+                "CreateEbook": {
                     "type": "boolean"
                 },
-                "hideExcerpt": {
+                "HideExcerpt": {
                     "type": "boolean"
                 },
-                "hideThumbnail": {
+                "HideThumbnail": {
                     "type": "boolean"
                 },
-                "keepMetadata": {
+                "KeepMetadata": {
                     "type": "boolean"
                 },
-                "listMode": {
+                "ListMode": {
                     "type": "boolean"
                 },
-                "makePublic": {
+                "MakePublic": {
                     "type": "boolean"
                 },
-                "showId": {
+                "ShowId": {
                     "type": "boolean"
                 },
-                "theme": {
+                "Theme": {
                     "type": "string"
                 },
-                "useArchive": {
+                "UseArchive": {
                     "type": "boolean"
                 }
             }

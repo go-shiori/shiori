@@ -38,13 +38,13 @@ export interface ApiV1UpdateAccountPayload {
      * @type {string}
      * @memberof ApiV1UpdateAccountPayload
      */
-    newPassword?: string;
+    new_password?: string;
     /**
      * 
      * @type {string}
      * @memberof ApiV1UpdateAccountPayload
      */
-    oldPassword?: string;
+    old_password?: string;
     /**
      * 
      * @type {boolean}
@@ -77,8 +77,8 @@ export function ApiV1UpdateAccountPayloadFromJSONTyped(json: any, ignoreDiscrimi
     return {
         
         'config': json['config'] == null ? undefined : ModelUserConfigFromJSON(json['config']),
-        'newPassword': json['new_password'] == null ? undefined : json['new_password'],
-        'oldPassword': json['old_password'] == null ? undefined : json['old_password'],
+        'new_password': json['new_password'] == null ? undefined : json['new_password'],
+        'old_password': json['old_password'] == null ? undefined : json['old_password'],
         'owner': json['owner'] == null ? undefined : json['owner'],
         'username': json['username'] == null ? undefined : json['username'],
     };
@@ -96,8 +96,8 @@ export function ApiV1UpdateAccountPayloadToJSONTyped(value?: ApiV1UpdateAccountP
     return {
         
         'config': ModelUserConfigToJSON(value['config']),
-        'new_password': value['newPassword'],
-        'old_password': value['oldPassword'],
+        'new_password': value['new_password'],
+        'old_password': value['old_password'],
         'owner': value['owner'],
         'username': value['username'],
     };

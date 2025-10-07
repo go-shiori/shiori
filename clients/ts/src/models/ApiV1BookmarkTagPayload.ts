@@ -24,14 +24,14 @@ export interface ApiV1BookmarkTagPayload {
      * @type {number}
      * @memberof ApiV1BookmarkTagPayload
      */
-    tagId: number;
+    tag_id: number;
 }
 
 /**
  * Check if a given object implements the ApiV1BookmarkTagPayload interface.
  */
 export function instanceOfApiV1BookmarkTagPayload(value: object): value is ApiV1BookmarkTagPayload {
-    if (!('tagId' in value) || value['tagId'] === undefined) return false;
+    if (!('tag_id' in value) || value['tag_id'] === undefined) return false;
     return true;
 }
 
@@ -45,7 +45,7 @@ export function ApiV1BookmarkTagPayloadFromJSONTyped(json: any, ignoreDiscrimina
     }
     return {
         
-        'tagId': json['tag_id'],
+        'tag_id': json['tag_id'],
     };
 }
 
@@ -60,7 +60,7 @@ export function ApiV1BookmarkTagPayloadToJSONTyped(value?: ApiV1BookmarkTagPaylo
 
     return {
         
-        'tag_id': value['tagId'],
+        'tag_id': value['tag_id'],
     };
 }
 

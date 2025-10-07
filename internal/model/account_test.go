@@ -319,5 +319,57 @@ func TestUserConfig_Serialization(t *testing.T) {
 		assert.False(t, config.CreateEbook)
 		assert.False(t, config.MakePublic)
 	})
-}
 
+	t.Run("NewUserConfig returns config with defaults", func(t *testing.T) {
+		config := NewUserConfig()
+
+		assert.Equal(t, "system", config.Theme)
+		assert.False(t, config.ShowId)
+		assert.False(t, config.ListMode)
+		assert.False(t, config.HideThumbnail)
+		assert.False(t, config.HideExcerpt)
+		assert.False(t, config.KeepMetadata)
+		assert.False(t, config.UseArchive)
+		assert.False(t, config.CreateEbook)
+		assert.False(t, config.MakePublic)
+	})
+
+	t.Run("Defaults method sets theme to system when empty", func(t *testing.T) {
+		config := UserConfig{
+			ShowId:        true,
+			ListMode:      true,
+			HideThumbnail: true,
+			// Theme is empty
+		}
+
+		config.Defaults()
+
+		assert.Equal(t, "system", config.Theme)
+		assert.True(t, config.ShowId)
+		assert.True(t, config.ListMode)
+		assert.True(t, config.HideThumbnail)
+	})
+
+	t.Run("Defaults method preserves existing theme", func(t *testing.T) {
+		config := UserConfig{
+			Theme: "dark",
+		}
+
+		config.Defaults()
+
+		assert.Equal(t, "dark", config.Theme)
+	})
+
+	t.Run("Scan applies defaults automatically", func(t *testing.T) {
+		jsonData := `{"ShowId":true,"ListMode":false}`
+		// Note: Theme is not in the JSON, so it should be empty and get defaulted
+
+		var config UserConfig
+		err := config.Scan([]byte(jsonData))
+
+		assert.NoError(t, err)
+		assert.Equal(t, "system", config.Theme) // Should be defaulted
+		assert.True(t, config.ShowId)
+		assert.False(t, config.ListMode)
+	})
+}

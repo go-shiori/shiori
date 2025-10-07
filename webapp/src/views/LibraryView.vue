@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, onUnmounted } from 'vue';
+import { ref, onMounted, computed, onUnmounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useI18n } from 'vue-i18n'
@@ -8,9 +8,9 @@ import AppLayout from '@/components/layout/AppLayout.vue';
 import Pagination from '@/components/ui/Pagination.vue';
 import ViewSelector from '@/components/ui/ViewSelector.vue';
 import BookmarkCard from '@/components/ui/BookmarkCard.vue';
+import BookmarkThumbnail from '@/components/ui/BookmarkThumbnail.vue';
 import { useBookmarksStore } from '@/stores/bookmarks';
 import { useAuthStore } from '@/stores/auth';
-import AuthenticatedImage from '@/components/ui/AuthenticatedImage.vue';
 import { ImageIcon, PencilIcon, TrashIcon, ArchiveIcon, BookIcon, FileTextIcon, ExternalLinkIcon, PlusIcon } from '@/components/icons';
 
 const bookmarksStore = useBookmarksStore();
@@ -23,9 +23,19 @@ const { fetchBookmarks } = bookmarksStore;
 
 const searchKeyword = ref('');
 
-// Initialize view from localStorage or default to 'list'
+// Respect user setting to hide excerpts
+const shouldHideExcerpt = computed(() => authStore.user?.config?.HideExcerpt === true);
+
+// Initialize view from user config or localStorage or default to 'list'
 const getStoredView = (): 'list' | 'card' => {
     if (typeof window !== 'undefined') {
+        // First check user configuration (handle both PascalCase and camelCase)
+        const config = authStore.user?.config as any;
+        const listMode = config?.ListMode ?? config?.listMode;
+        if (listMode !== undefined) {
+            return listMode ? 'list' : 'card';
+        }
+        // Fallback to localStorage
         const stored = localStorage.getItem('shiori-view-preference');
         return (stored === 'list' || stored === 'card') ? stored : 'list';
     }
@@ -41,13 +51,55 @@ const checkMobile = () => {
 };
 
 // Handle view change with persistence
-const handleViewChange = (view: 'list' | 'card') => {
+const handleViewChange = async (view: 'list' | 'card') => {
     currentView.value = view;
     // Store the preference in localStorage
     if (typeof window !== 'undefined') {
         localStorage.setItem('shiori-view-preference', view);
     }
+
+    // Update user configuration with listMode preference
+    if (authStore.isAuthenticated && authStore.user) {
+        try {
+            const listMode = view === 'list';
+            const currentConfig = authStore.user.config as any || {};
+            // Ensure we send the complete config object with the updated field
+            const apiConfig = {
+                ShowId: currentConfig.ShowId || false,
+                ListMode: listMode,
+                HideThumbnail: currentConfig.HideThumbnail || false,
+                HideExcerpt: currentConfig.HideExcerpt || false,
+                Theme: currentConfig.Theme || 'system',
+                KeepMetadata: currentConfig.KeepMetadata || false,
+                UseArchive: currentConfig.UseArchive || false,
+                CreateEbook: currentConfig.CreateEbook || false,
+                MakePublic: currentConfig.MakePublic || false,
+            };
+            console.log('Updating user config with complete object:', apiConfig);
+            await authStore.updateUserConfig(apiConfig as any);
+        } catch (error) {
+            console.error('Failed to update user configuration:', error);
+        }
+    } else {
+        console.log('Not authenticated or no user:', {
+            isAuthenticated: authStore.isAuthenticated,
+            hasUser: !!authStore.user,
+            hasToken: !!authStore.token,
+            expires: authStore.expires,
+            currentTime: Date.now()
+        });
+    }
 };
+
+// Watch for changes in user configuration to update view
+watch(() => {
+    const config = authStore.user?.config as any;
+    return config?.ListMode ?? config?.listMode;
+}, (newListMode) => {
+    if (newListMode !== undefined) {
+        currentView.value = newListMode ? 'list' : 'card';
+    }
+});
 
 // Computed property for effective view (force card on mobile)
 const effectiveView = computed(() => {
@@ -57,6 +109,11 @@ const effectiveView = computed(() => {
 // Fetch bookmarks on mount
 onMounted(async () => {
     try {
+        // Ensure user is loaded
+        if (!authStore.user) {
+            await authStore.fetchUserInfo();
+        }
+
         await fetchBookmarks();
         checkMobile(); // Check mobile on mount
         window.addEventListener('resize', checkMobile); // Listen for resize events
@@ -168,16 +225,7 @@ onUnmounted(() => {
                     <div class="flex gap-4">
                         <!-- Thumbnail -->
                         <div class="flex-shrink-0">
-                            <div v-if="bookmark.hasThumbnail"
-                                class="w-24 h-24 rounded-md overflow-hidden bg-gray-100 dark:bg-gray-700">
-                                <AuthenticatedImage :bookmark-id="bookmark.id || 0"
-                                    :auth-token="authStore.token || undefined"
-                                    :alt="bookmark.title || t('bookmarks.bookmark_thumbnail')" class="w-full h-full" />
-                            </div>
-                            <div v-else
-                                class="w-24 h-24 rounded-md bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
-                                <ImageIcon class="h-10 w-10 text-gray-400 dark:text-gray-500" />
-                            </div>
+                            <BookmarkThumbnail :bookmark="bookmark" size="medium" />
                         </div>
 
                         <!-- Content -->
@@ -218,7 +266,7 @@ onUnmounted(() => {
                                 </div>
                             </div>
                             <div class="text-gray-500 dark:text-gray-400 text-sm mt-1 truncate">{{ bookmark.url }}</div>
-                            <div v-if="bookmark.excerpt"
+                            <div v-if="bookmark.excerpt && !shouldHideExcerpt"
                                 class="text-gray-600 dark:text-gray-400 text-sm mt-2 line-clamp-2">
                                 {{ bookmark.excerpt }}
                             </div>

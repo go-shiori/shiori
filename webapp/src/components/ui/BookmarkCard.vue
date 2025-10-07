@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import AuthenticatedImage from '@/components/ui/AuthenticatedImage.vue';
+import BookmarkThumbnail from '@/components/ui/BookmarkThumbnail.vue';
 import { ImageIcon, PencilIcon, TrashIcon, ArchiveIcon, BookIcon, FileTextIcon, ExternalLinkIcon } from '@/components/icons';
 import type { ModelBookmarkDTO } from '@/client';
 import { useI18n } from 'vue-i18n';
+import { computed } from 'vue';
+import { useAuthStore } from '@/stores/auth';
 
 interface Props {
     bookmark: ModelBookmarkDTO;
@@ -12,20 +14,18 @@ interface Props {
 defineProps<Props>();
 
 const { t } = useI18n();
+
+const authStore = useAuthStore();
+const shouldHideExcerpt = computed(() => authStore.user?.config?.HideExcerpt === true);
+const shouldHideThumbnail = computed(() => authStore.user?.config?.HideThumbnail === true);
 </script>
 
 <template>
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden cursor-pointer"
         @click="$router.push(`/bookmark/${bookmark.id}/content`)">
         <!-- Image at the top -->
-        <div class="aspect-[2/1] bg-gray-100 dark:bg-gray-700">
-            <div v-if="bookmark.hasThumbnail" class="w-full h-full">
-                <AuthenticatedImage :bookmark-id="bookmark.id || 0" :auth-token="authToken"
-                    :alt="bookmark.title || t('bookmarks.bookmark_thumbnail')" class="w-full h-full object-cover" />
-            </div>
-            <div v-else class="w-full h-full flex items-center justify-center">
-                <ImageIcon class="h-12 w-12 text-gray-400 dark:text-gray-500" />
-            </div>
+        <div v-if="!shouldHideThumbnail && bookmark.hasThumbnail" class="aspect-[2/1] bg-gray-100 dark:bg-gray-700">
+            <BookmarkThumbnail :bookmark="bookmark" size="large" class="w-full h-full" />
         </div>
 
         <!-- Details at the bottom -->
@@ -52,7 +52,8 @@ const { t } = useI18n();
             </div>
 
             <!-- Excerpt -->
-            <div v-if="bookmark.excerpt" class="text-gray-600 dark:text-gray-400 text-xs line-clamp-2 mb-3">
+            <div v-if="bookmark.excerpt && !shouldHideExcerpt"
+                class="text-gray-600 dark:text-gray-400 text-xs line-clamp-2 mb-3">
                 {{ bookmark.excerpt }}
             </div>
 

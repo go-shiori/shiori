@@ -24,13 +24,13 @@ export interface ApiV1UpdateCachePayload {
      * @type {boolean}
      * @memberof ApiV1UpdateCachePayload
      */
-    createArchive?: boolean;
+    create_archive?: boolean;
     /**
      * 
      * @type {boolean}
      * @memberof ApiV1UpdateCachePayload
      */
-    createEbook?: boolean;
+    create_ebook?: boolean;
     /**
      * 
      * @type {Array<number>}
@@ -42,13 +42,13 @@ export interface ApiV1UpdateCachePayload {
      * @type {boolean}
      * @memberof ApiV1UpdateCachePayload
      */
-    keepMetadata?: boolean;
+    keep_metadata?: boolean;
     /**
      * 
      * @type {boolean}
      * @memberof ApiV1UpdateCachePayload
      */
-    skipExist?: boolean;
+    skip_exist?: boolean;
 }
 
 /**
@@ -69,11 +69,11 @@ export function ApiV1UpdateCachePayloadFromJSONTyped(json: any, ignoreDiscrimina
     }
     return {
         
-        'createArchive': json['create_archive'] == null ? undefined : json['create_archive'],
-        'createEbook': json['create_ebook'] == null ? undefined : json['create_ebook'],
+        'create_archive': json['create_archive'] == null ? undefined : json['create_archive'],
+        'create_ebook': json['create_ebook'] == null ? undefined : json['create_ebook'],
         'ids': json['ids'],
-        'keepMetadata': json['keep_metadata'] == null ? undefined : json['keep_metadata'],
-        'skipExist': json['skip_exist'] == null ? undefined : json['skip_exist'],
+        'keep_metadata': json['keep_metadata'] == null ? undefined : json['keep_metadata'],
+        'skip_exist': json['skip_exist'] == null ? undefined : json['skip_exist'],
     };
 }
 
@@ -88,11 +88,11 @@ export function ApiV1UpdateCachePayloadToJSONTyped(value?: ApiV1UpdateCachePaylo
 
     return {
         
-        'create_archive': value['createArchive'],
-        'create_ebook': value['createEbook'],
+        'create_archive': value['create_archive'],
+        'create_ebook': value['create_ebook'],
         'ids': value['ids'],
-        'keep_metadata': value['keepMetadata'],
-        'skip_exist': value['skipExist'],
+        'keep_metadata': value['keep_metadata'],
+        'skip_exist': value['skip_exist'],
     };
 }
 
