@@ -27,9 +27,10 @@ const changeLanguage = (langCode: SupportedLocale) => {
   setLanguage(langCode);
 };
 
-const currentTheme = computed(() => auth.user?.config?.Theme as 'light' | 'dark' | 'system');
-const changeTheme = (theme: 'light' | 'dark' | 'system') => {
-  console.log('changeTheme', theme);
+const currentTheme = computed(() => auth.user?.config?.Theme as 'light' | 'dark' | 'system' | 'high-contrast');
+const { setTheme, isLoading: themeLoading, error: themeError } = useTheme();
+const changeTheme = async (theme: 'light' | 'dark' | 'system' | 'high-contrast') => {
+  await setTheme(theme);
 };
 
 // ------- Account configuration (replicate old settings) -------
@@ -114,13 +115,16 @@ const saveConfig = async () => {
               <label class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('settings.theme') }}</label>
               <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('settings.theme_description') }}</p>
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div @click="changeTheme('system')"
-                class="border rounded-lg p-4 cursor-pointer transition-all duration-200 hover:shadow-md"
-                :class="currentTheme === 'system' ? 'border-red-500 bg-red-50 dark:bg-red-900/20 shadow-md' : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'">
+                class="rounded-lg p-4 cursor-pointer transition-all duration-200 hover:shadow-md card-option" :class="[
+                  currentTheme === 'system' ? 'card-option--selected shadow-md' : '',
+                  themeLoading ? 'opacity-50 cursor-not-allowed' : ''
+                ]">
                 <div class="flex items-center">
                   <div class="flex-1">
                     <div class="font-medium text-gray-900 dark:text-white">{{ t('settings.system') }}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">Follows system</div>
                   </div>
                   <div v-if="currentTheme === 'system'" class="text-red-500">
                     <CheckCircleIcon class="h-5 w-5" />
@@ -128,11 +132,14 @@ const saveConfig = async () => {
                 </div>
               </div>
               <div @click="changeTheme('light')"
-                class="border rounded-lg p-4 cursor-pointer transition-all duration-200 hover:shadow-md"
-                :class="currentTheme === 'light' ? 'border-red-500 bg-red-50 dark:bg-red-900/20 shadow-md' : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'">
+                class="rounded-lg p-4 cursor-pointer transition-all duration-200 hover:shadow-md card-option" :class="[
+                  currentTheme === 'light' ? 'card-option--selected shadow-md' : '',
+                  themeLoading ? 'opacity-50 cursor-not-allowed' : ''
+                ]">
                 <div class="flex items-center">
                   <div class="flex-1">
                     <div class="font-medium text-gray-900 dark:text-white">{{ t('settings.light') }}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">Light mode</div>
                   </div>
                   <div v-if="currentTheme === 'light'" class="text-red-500">
                     <CheckCircleIcon class="h-5 w-5" />
@@ -140,17 +147,47 @@ const saveConfig = async () => {
                 </div>
               </div>
               <div @click="changeTheme('dark')"
-                class="border rounded-lg p-4 cursor-pointer transition-all duration-200 hover:shadow-md"
-                :class="currentTheme === 'dark' ? 'border-red-500 bg-red-50 dark:bg-red-900/20 shadow-md' : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'">
+                class="rounded-lg p-4 cursor-pointer transition-all duration-200 hover:shadow-md card-option" :class="[
+                  currentTheme === 'dark' ? 'card-option--selected shadow-md' : '',
+                  themeLoading ? 'opacity-50 cursor-not-allowed' : ''
+                ]">
                 <div class="flex items-center">
                   <div class="flex-1">
                     <div class="font-medium text-gray-900 dark:text-white">{{ t('settings.dark') }}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">Dark mode</div>
                   </div>
                   <div v-if="currentTheme === 'dark'" class="text-red-500">
                     <CheckCircleIcon class="h-5 w-5" />
                   </div>
                 </div>
               </div>
+              <div @click="changeTheme('high-contrast')"
+                class="rounded-lg p-4 cursor-pointer transition-all duration-200 hover:shadow-md card-option" :class="[
+                  currentTheme === 'high-contrast' ? 'card-option--selected shadow-md' : '',
+                  themeLoading ? 'opacity-50 cursor-not-allowed' : ''
+                ]">
+                <div class="flex items-center">
+                  <div class="flex-1">
+                    <div class="font-medium text-gray-900 dark:text-white">High Contrast</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">Accessibility</div>
+                  </div>
+                  <div v-if="currentTheme === 'high-contrast'" class="text-red-500">
+                    <CheckCircleIcon class="h-5 w-5" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Theme loading indicator -->
+            <div v-if="themeLoading" class="flex items-center text-sm text-blue-600 dark:text-blue-400">
+              <svg class="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none"
+                viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                </path>
+              </svg>
+              Updating theme...
             </div>
           </div>
 
@@ -164,7 +201,7 @@ const saveConfig = async () => {
                   class="w-4 h-4 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500 dark:focus:ring-red-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
                 <div>
                   <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('settings.hide_thumbnail')
-                  }}</span>
+                    }}</span>
                   <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('settings.hide_thumbnail_description') }}</p>
                 </div>
               </label>
@@ -174,7 +211,7 @@ const saveConfig = async () => {
                   class="w-4 h-4 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500 dark:focus:ring-red-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
                 <div>
                   <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('settings.hide_excerpt')
-                  }}</span>
+                    }}</span>
                   <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('settings.hide_excerpt_description') }}</p>
                 </div>
               </label>
@@ -203,7 +240,7 @@ const saveConfig = async () => {
               class="w-4 h-4 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500 dark:focus:ring-red-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
             <div>
               <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('settings.keep_metadata')
-              }}</span>
+                }}</span>
               <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('settings.keep_metadata_description') }}</p>
             </div>
           </label>

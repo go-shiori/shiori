@@ -19,27 +19,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   </head>
   <body>
+
     <div id="app"></div>
     <script type="module" src="/src/main.ts"></script>
     <script>
-      // Dynamic favicon switching for better browser compatibility
-      function updateFavicon() {
-        const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        const favicon = document.querySelector('link[rel="icon"]:not([media])') ||
-                       document.querySelector('link[rel="icon"]');
-
-        if (favicon) {
-          if (isDark) {
-            favicon.href = '/favicon-dark.ico';
-          } else {
-            favicon.href = '/favicon.ico';
-          }
-        }
+      // App will control favicon based on user/system preference via useTheme
+      const favicon = document.querySelector('link[rel="icon"]:not([media])') || document.querySelector('link[rel="icon"]');
+      if (favicon && !favicon.getAttribute('href')) {
+        favicon.setAttribute('href', '/favicon.ico');
       }
-
-      // Update favicon on load and when theme changes
-      updateFavicon();
-      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateFavicon);
     </script>
   </body>
 </html>

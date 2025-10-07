@@ -1,17 +1,23 @@
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { useAuthStore } from './stores/auth'
 import { useRouter } from 'vue-router'
 import ToastContainer from '@/components/ui/ToastContainer.vue'
 import { useI18n } from 'vue-i18n'
+import { useTheme } from '@/composables/useTheme'
 
 const authStore = useAuthStore()
 const router = useRouter()
 const isInitializing = ref(true)
 const { t } = useI18n()
+const { apply, init, destroy } = useTheme()
 
 onMounted(async () => {
+  // Apply theme immediately before any async auth work
+  const pref = (authStore.user?.config?.Theme as any) || (localStorage.getItem('shiori-theme') as any) || 'system'
+  apply(pref)
+  init()
   // If we have a token, validate it
   if (authStore.token) {
     try {
@@ -22,6 +28,11 @@ onMounted(async () => {
     }
   }
   isInitializing.value = false
+})
+
+// React to user config theme changes
+watch(() => authStore.user?.config?.Theme, (newPref) => {
+  apply((newPref as any) || 'system')
 })
 </script>
 

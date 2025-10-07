@@ -10,16 +10,70 @@
   --border-color: #e0e0e0;
 }
 
-/* Dark mode variables */
+/* Light theme variables */
+[data-theme="light"] {
+  --primary-color: #f44336;
+  --secondary-color: #ffffff;
+  --text-color: #333333;
+  --background-color: #f5f5f5;
+  --card-background: #ffffff;
+  --border-color: #e0e0e0;
+  --surface-color: #ffffff;
+  --surface-variant: #f8f9fa;
+  --outline-color: #e0e0e0;
+  --shadow-color: rgba(0, 0, 0, 0.1);
+  --selection-bg: #fff5f5; /* subtle primary-tinted bg */
+  --selection-border: var(--primary-color);
+}
+
+/* Dark theme variables */
+[data-theme="dark"] {
+  --primary-color: #f44336;
+  --secondary-color: #1f1f1f;
+  --text-color: #f5f5f5;
+  --background-color: #121212;
+  --card-background: #1e1e1e;
+  --border-color: #333333;
+  --surface-color: #1e1e1e;
+  --surface-variant: #2a2a2a;
+  --outline-color: #404040;
+  --shadow-color: rgba(0, 0, 0, 0.3);
+  --selection-bg: rgba(244, 67, 54, 0.15);
+  --selection-border: var(--primary-color);
+}
+
+/* System theme (default) - respects prefers-color-scheme */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme]) {
     --primary-color: #f44336;
     --secondary-color: #1f1f1f;
     --text-color: #f5f5f5;
     --background-color: #121212;
     --card-background: #1e1e1e;
     --border-color: #333333;
+    --surface-color: #1e1e1e;
+    --surface-variant: #2a2a2a;
+    --outline-color: #404040;
+    --shadow-color: rgba(0, 0, 0, 0.3);
+    --selection-bg: rgba(244, 67, 54, 0.12);
+    --selection-border: var(--primary-color);
   }
+}
+
+/* High contrast theme for accessibility */
+[data-theme="high-contrast"] {
+  --primary-color: #ff6b35;
+  --secondary-color: #000000;
+  --text-color: #ffffff;
+  --background-color: #000000;
+  --card-background: #1a1a1a;
+  --border-color: #ffffff;
+  --surface-color: #1a1a1a;
+  --surface-variant: #333333;
+  --outline-color: #ffffff;
+  --shadow-color: rgba(255, 255, 255, 0.2);
+  --selection-bg: #222222;
+  --selection-border: #ffffff;
 }
 
 /* Base styles for full height layout */
@@ -40,4 +94,117 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+}
+
+/* Card option helpers for selectable tiles (theme/language) */
+.card-option {
+  background-color: var(--card-background);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+}
+
+.card-option--selected {
+  background-color: var(--selection-bg);
+  border-color: var(--selection-border);
+}
+
+/* Override Tailwind classes with CSS custom properties for better theme support */
+.bg-white {
+  background-color: var(--card-background) !important;
+}
+
+.bg-gray-50 {
+  background-color: var(--surface-variant) !important;
+}
+
+.bg-gray-100 {
+  background-color: var(--surface-variant) !important;
+}
+
+.border-gray-200 {
+  border-color: var(--border-color) !important;
+}
+
+.border-gray-300 {
+  border-color: var(--border-color) !important;
+}
+
+.text-gray-900 {
+  color: var(--text-color) !important;
+}
+
+.text-gray-700 {
+  color: var(--text-color) !important;
+}
+
+.text-gray-600 {
+  color: var(--text-color) !important;
+}
+
+.text-gray-500 {
+  color: var(--text-color) !important;
+}
+
+.text-gray-400 {
+  color: var(--text-color) !important;
+}
+
+.text-gray-300 {
+  color: var(--text-color) !important;
+}
+
+/* Dark mode specific overrides */
+[data-theme="dark"] .bg-white,
+.dark .bg-white {
+  background-color: var(--card-background) !important;
+}
+
+[data-theme="dark"] .bg-gray-50,
+.dark .bg-gray-50 {
+  background-color: var(--surface-variant) !important;
+}
+
+[data-theme="dark"] .bg-gray-100,
+.dark .bg-gray-100 {
+  background-color: var(--surface-variant) !important;
+}
+
+[data-theme="dark"] .border-gray-200,
+.dark .border-gray-200 {
+  border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .border-gray-300,
+.dark .border-gray-300 {
+  border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .text-gray-900,
+.dark .text-gray-900 {
+  color: var(--text-color) !important;
+}
+
+[data-theme="dark"] .text-gray-700,
+.dark .text-gray-700 {
+  color: var(--text-color) !important;
+}
+
+[data-theme="dark"] .text-gray-600,
+.dark .text-gray-600 {
+  color: var(--text-color) !important;
+}
+
+[data-theme="dark"] .text-gray-500,
+.dark .text-gray-500 {
+  color: var(--text-color) !important;
+}
+
+[data-theme="dark"] .text-gray-400,
+.dark .text-gray-400 {
+  color: var(--text-color) !important;
+}
+
+[data-theme="dark"] .text-gray-300,
+.dark .text-gray-300 {
+  color: var(--text-color) !important;
 }

@@ -156,7 +156,7 @@ coverage:
 generate-client: swagger
 	rm -rf ./clients/ts
 	openapi-generator generate -i $(SWAGGER_DOCS_PATH)/swagger.json -g typescript-fetch -o ./clients/ts --skip-validate-spec \
-		--additional-properties=typescriptThreePlus=true,supportsES6=true,npmName=shiori-api,npmVersion=1.0.0
+		--additional-properties=typescriptThreePlus=true,supportsES6=true,npmName=shiori-api,npmVersion=1.0.0,modelPropertyNaming=original
 
 ## Build TypeScript client to JavaScript for frontend
 .PHONY: build-client
