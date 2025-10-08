@@ -191,30 +191,30 @@ func (db *PGDatabase) SaveBookmarks(ctx context.Context, create bool, bookmarks 
 		result = []model.BookmarkDTO{}
 		for _, book := range bookmarks {
 			// URL and title
-			if book.Bookmark.URL == "" {
+			if book.URL == "" {
 				return errors.New("URL must not be empty")
 			}
 
-			if book.Bookmark.Title == "" {
+			if book.Title == "" {
 				return errors.New("title must not be empty")
 			}
 
 			// Set modified time
-			if book.Bookmark.ModifiedAt == "" {
-				book.Bookmark.ModifiedAt = modifiedTime
+			if book.ModifiedAt == "" {
+				book.ModifiedAt = modifiedTime
 			}
 
 			// Save bookmark
 			var err error
 			if create {
-				book.Bookmark.CreatedAt = modifiedTime
+				book.CreatedAt = modifiedTime
 				err = stmtInsertBook.QueryRowContext(ctx,
-					book.Bookmark.URL, book.Bookmark.Title, book.Bookmark.Excerpt, book.Bookmark.Author,
-					book.Bookmark.Public, book.Bookmark.Content, book.Bookmark.HTML, book.Bookmark.ModifiedAt, book.Bookmark.CreatedAt).Scan(&book.Bookmark.ID)
+					book.URL, book.Title, book.Excerpt, book.Author,
+					book.Public, book.Content, book.HTML, book.ModifiedAt, book.CreatedAt).Scan(&book.ID)
 			} else {
 				_, err = stmtUpdateBook.ExecContext(ctx,
-					book.Bookmark.URL, book.Bookmark.Title, book.Bookmark.Excerpt, book.Bookmark.Author,
-					book.Bookmark.Public, book.Bookmark.Content, book.Bookmark.HTML, book.Bookmark.ModifiedAt, book.Bookmark.ID)
+					book.URL, book.Title, book.Excerpt, book.Author,
+					book.Public, book.Content, book.HTML, book.ModifiedAt, book.ID)
 			}
 			if err != nil {
 				// Map unique constraint violations to database errors

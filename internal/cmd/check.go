@@ -86,15 +86,15 @@ func checkHandler(cmd *cobra.Command, args []string) {
 			}()
 
 			// Ping bookmark's URL
-			_, err := httpClient.Get(book.Bookmark.URL)
+			_, err := httpClient.Get(book.URL)
 			if err != nil {
-				chProblem <- book.Bookmark.ID
-				chMessage <- fmt.Errorf("failed to reach %s: %v", book.Bookmark.URL, err)
+				chProblem <- book.ID
+				chMessage <- fmt.Errorf("failed to reach %s: %v", book.URL, err)
 				return
 			}
 
 			// Send success message
-			chMessage <- fmt.Sprintf("Reached %s", book.Bookmark.URL)
+			chMessage <- fmt.Sprintf("Reached %s", book.URL)
 		}(i, book)
 	}
 

@@ -15,7 +15,7 @@ type ArchiverDomain struct {
 }
 
 func (d *ArchiverDomain) DownloadBookmarkArchive(book model.BookmarkDTO) (*model.BookmarkDTO, error) {
-	content, contentType, err := core.DownloadBookmark(book.Bookmark.URL)
+	content, contentType, err := core.DownloadBookmark(book.URL)
 	if err != nil {
 		return nil, fmt.Errorf("error downloading url: %s", err)
 	}
@@ -41,7 +41,7 @@ func (d *ArchiverDomain) GetBookmarkArchive(book *model.BookmarkDTO) (*warc.Arch
 	archivePath := model.GetArchivePath(book)
 
 	if !d.deps.Domains().Storage().FileExists(archivePath) {
-		return nil, fmt.Errorf("archive for bookmark %d doesn't exist", book.Bookmark.ID)
+		return nil, fmt.Errorf("archive for bookmark %d doesn't exist", book.ID)
 	}
 
 	// FIXME: This only works in local filesystem

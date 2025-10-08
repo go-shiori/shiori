@@ -20,7 +20,7 @@ var __awaiter =
 				? value
 				: new P(function (resolve) {
 						resolve(value);
-				  });
+					});
 		}
 		return new (P || (P = Promise))(function (resolve, reject) {
 			function fulfilled(value) {

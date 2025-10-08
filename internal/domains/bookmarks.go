@@ -110,7 +110,7 @@ func (d *BookmarksDomain) CountBookmarks(ctx context.Context, options model.Book
 
 func (d *BookmarksDomain) UpdateBookmarkCache(ctx context.Context, bookmark model.BookmarkDTO, keepMetadata bool, skipExist bool) (*model.BookmarkDTO, error) {
 	// Download data from internet
-	content, contentType, err := core.DownloadBookmark(bookmark.Bookmark.URL)
+	content, contentType, err := core.DownloadBookmark(bookmark.URL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to download bookmark: %w", err)
 	}

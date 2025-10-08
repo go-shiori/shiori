@@ -30,20 +30,20 @@ func (h *Handler) ApiInsertViaExtension(w http.ResponseWriter, r *http.Request, 
 	checkError(err)
 
 	// Clean up bookmark URL
-	request.Bookmark.URL, err = core.RemoveUTMParams(request.Bookmark.URL)
+	request.URL, err = core.RemoveUTMParams(request.URL)
 	if err != nil {
 		panic(fmt.Errorf("failed to clean URL: %v", err))
 	}
 
 	// Check if bookmark already exists.
-	book, exist, err := h.DB.GetBookmark(ctx, 0, request.Bookmark.URL)
+	book, exist, err := h.DB.GetBookmark(ctx, 0, request.URL)
 	if err != nil {
 		panic(fmt.Errorf("failed to get bookmark, URL: %v", err))
 	}
 
 	// If it already exists, we need to set ID and tags.
 	if exist {
-		book.HTML = request.Bookmark.HTML
+		book.HTML = request.HTML
 
 		mapOldTags := map[string]model.TagDTO{}
 		for _, oldTag := range book.Tags {
@@ -55,8 +55,8 @@ func (h *Handler) ApiInsertViaExtension(w http.ResponseWriter, r *http.Request, 
 				book.Tags = append(book.Tags, newTag)
 			}
 		}
-	} else if request.Bookmark.Title == "" {
-		request.Bookmark.Title = request.Bookmark.URL
+	} else if request.Title == "" {
+		request.Title = request.URL
 	}
 
 	// Since we are using extension, the extension might send the HTML content
@@ -65,11 +65,11 @@ func (h *Handler) ApiInsertViaExtension(w http.ResponseWriter, r *http.Request, 
 	var contentType string
 	var contentBuffer io.Reader
 
-	if request.Bookmark.HTML == "" {
-		contentBuffer, contentType, _ = core.DownloadBookmark(request.Bookmark.URL)
+	if request.HTML == "" {
+		contentBuffer, contentType, _ = core.DownloadBookmark(request.URL)
 	} else {
 		contentType = "text/html; charset=UTF-8"
-		contentBuffer = bytes.NewBufferString(request.Bookmark.HTML)
+		contentBuffer = bytes.NewBufferString(request.HTML)
 	}
 
 	// Save the bookmark with whatever we already have downloaded
@@ -131,7 +131,7 @@ func (h *Handler) ApiDeleteViaExtension(w http.ResponseWriter, r *http.Request, 
 	checkError(err)
 
 	// Check if bookmark already exists.
-	book, exist, err := h.DB.GetBookmark(ctx, 0, request.Bookmark.URL)
+	book, exist, err := h.DB.GetBookmark(ctx, 0, request.URL)
 	checkError(err)
 
 	if exist {

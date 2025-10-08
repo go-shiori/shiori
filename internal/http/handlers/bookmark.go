@@ -115,7 +115,7 @@ func HandleBookmarkArchiveFile(deps model.Dependencies, c model.WebContext) {
 
 	// Generate weak ETAG
 	shioriUUID := uuid.NewV5(uuid.NamespaceURL, model.ShioriURLNamespace)
-	etag := fmt.Sprintf("W/%s", uuid.NewV5(shioriUUID, fmt.Sprintf("%x-%x-%x", bookmark.Bookmark.ID, resourcePath, len(content))))
+	etag := fmt.Sprintf("W/%s", uuid.NewV5(shioriUUID, fmt.Sprintf("%x-%x-%x", bookmark.ID, resourcePath, len(content))))
 
 	c.ResponseWriter().Header().Set("Etag", etag)
 	c.ResponseWriter().Header().Set("Cache-Control", "max-age=31536000")
@@ -169,6 +169,6 @@ func HandleBookmarkEbook(deps model.Dependencies, c model.WebContext) {
 		return
 	}
 
-	c.ResponseWriter().Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s.epub"`, bookmark.Bookmark.Title))
+	c.ResponseWriter().Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s.epub"`, bookmark.Title))
 	response.SendFile(c, deps.Domains().Storage(), ebookPath, nil)
 }

@@ -312,7 +312,7 @@ func HandleUpdateCache(deps model.Dependencies, c model.WebContext) {
 			updatedBook, err := deps.Domains().Bookmarks().UpdateBookmarkCache(c.Request().Context(), book, payload.KeepMetadata, payload.SkipExist)
 			if err != nil {
 				deps.Logger().WithError(err).Error("error updating bookmark cache")
-				chProblem <- book.Bookmark.ID
+				chProblem <- book.ID
 				return
 			}
 
@@ -540,15 +540,15 @@ func (p *createBookmarkPayload) IsValid() error {
 
 // HandleCreateBookmark creates a new bookmark
 //
-//	@Summary			Create a new bookmark.
-//	@Tags				Bookmarks
+//	@Summary					Create a new bookmark.
+//	@Tags						Bookmarks
 //	@securityDefinitions.apikey	ApiKeyAuth
-//	@Param				payload	body		createBookmarkPayload	true	"Create Bookmark Payload"
-//	@Produce			json
-//	@Success			201	{object}	model.BookmarkDTO
-//	@Failure			403	{object}	nil	"Token not provided/invalid"
-//	@Failure			400	{object}	nil	"Invalid request payload"
-//	@Router				/api/v1/bookmarks [post]
+//	@Param						payload	body	createBookmarkPayload	true	"Create Bookmark Payload"
+//	@Produce					json
+//	@Success					201	{object}	model.BookmarkDTO
+//	@Failure					403	{object}	nil	"Token not provided/invalid"
+//	@Failure					400	{object}	nil	"Invalid request payload"
+//	@Router						/api/v1/bookmarks [post]
 func HandleCreateBookmark(deps model.Dependencies, c model.WebContext) {
 	if err := middleware.RequireLoggedInUser(deps, c); err != nil {
 		response.SendError(c, http.StatusForbidden, err.Error())
@@ -600,18 +600,18 @@ func HandleCreateBookmark(deps model.Dependencies, c model.WebContext) {
 
 // HandleListBookmarks lists bookmarks with optional filtering
 //
-//	@Summary			List bookmarks with optional filtering and pagination.
-//	@Tags				Bookmarks
+//	@Summary					List bookmarks with optional filtering and pagination.
+//	@Tags						Bookmarks
 //	@securityDefinitions.apikey	ApiKeyAuth
-//	@Param				keyword	query		string	false	"Search keyword"
-//	@Param				tags	query		string	false	"Comma-separated list of tags to include"
-//	@Param				exclude	query		string	false	"Comma-separated list of tags to exclude"
-//	@Param				page	query		int		false	"Page number (default: 1)"
-//	@Param				limit	query		int		false	"Items per page (default: 30, max: 100)"
-//	@Produce			json
-//	@Success			200	{object}	model.PaginatedResponse[model.BookmarkDTO]
-//	@Failure			403	{object}	nil	"Token not provided/invalid"
-//	@Router				/api/v1/bookmarks [get]
+//	@Param						keyword	query	string	false	"Search keyword"
+//	@Param						tags	query	string	false	"Comma-separated list of tags to include"
+//	@Param						exclude	query	string	false	"Comma-separated list of tags to exclude"
+//	@Param						page	query	int		false	"Page number (default: 1)"
+//	@Param						limit	query	int		false	"Items per page (default: 30, max: 100)"
+//	@Produce					json
+//	@Success					200	{object}	model.PaginatedResponse[model.BookmarkDTO]
+//	@Failure					403	{object}	nil	"Token not provided/invalid"
+//	@Router						/api/v1/bookmarks [get]
 func HandleListBookmarks(deps model.Dependencies, c model.WebContext) {
 	if err := middleware.RequireLoggedInUser(deps, c); err != nil {
 		response.SendError(c, http.StatusForbidden, err.Error())
@@ -693,15 +693,15 @@ func HandleListBookmarks(deps model.Dependencies, c model.WebContext) {
 
 // HandleGetBookmark gets a single bookmark by ID
 //
-//	@Summary			Get a bookmark by ID.
-//	@Tags				Bookmarks
+//	@Summary					Get a bookmark by ID.
+//	@Tags						Bookmarks
 //	@securityDefinitions.apikey	ApiKeyAuth
-//	@Param				id	path		int	true	"Bookmark ID"
-//	@Produce			json
-//	@Success			200	{object}	model.BookmarkDTO
-//	@Failure			403	{object}	nil	"Token not provided/invalid"
-//	@Failure			404	{object}	nil	"Bookmark not found"
-//	@Router				/api/v1/bookmarks/{id} [get]
+//	@Param						id	path	int	true	"Bookmark ID"
+//	@Produce					json
+//	@Success					200	{object}	model.BookmarkDTO
+//	@Failure					403	{object}	nil	"Token not provided/invalid"
+//	@Failure					404	{object}	nil	"Bookmark not found"
+//	@Router						/api/v1/bookmarks/{id} [get]
 func HandleGetBookmark(deps model.Dependencies, c model.WebContext) {
 	if err := middleware.RequireLoggedInUser(deps, c); err != nil {
 		response.SendError(c, http.StatusForbidden, err.Error())
@@ -732,17 +732,17 @@ type updateBookmarkPayload struct {
 
 // HandleUpdateBookmark updates an existing bookmark
 //
-//	@Summary			Update an existing bookmark.
-//	@Tags				Bookmarks
+//	@Summary					Update an existing bookmark.
+//	@Tags						Bookmarks
 //	@securityDefinitions.apikey	ApiKeyAuth
-//	@Param				id		path		int						true	"Bookmark ID"
-//	@Param				payload	body		updateBookmarkPayload	true	"Update Bookmark Payload"
-//	@Produce			json
-//	@Success			200	{object}	model.BookmarkDTO
-//	@Failure			403	{object}	nil	"Token not provided/invalid"
-//	@Failure			404	{object}	nil	"Bookmark not found"
-//	@Failure			400	{object}	nil	"Invalid request payload"
-//	@Router				/api/v1/bookmarks/{id} [put]
+//	@Param						id		path	int						true	"Bookmark ID"
+//	@Param						payload	body	updateBookmarkPayload	true	"Update Bookmark Payload"
+//	@Produce					json
+//	@Success					200	{object}	model.BookmarkDTO
+//	@Failure					403	{object}	nil	"Token not provided/invalid"
+//	@Failure					404	{object}	nil	"Bookmark not found"
+//	@Failure					400	{object}	nil	"Invalid request payload"
+//	@Router						/api/v1/bookmarks/{id} [put]
 func HandleUpdateBookmark(deps model.Dependencies, c model.WebContext) {
 	if err := middleware.RequireLoggedInUser(deps, c); err != nil {
 		response.SendError(c, http.StatusForbidden, err.Error())
@@ -814,15 +814,15 @@ func (p *deleteBookmarksPayload) IsValid() error {
 
 // HandleDeleteBookmarks deletes one or more bookmarks
 //
-//	@Summary			Delete one or more bookmarks.
-//	@Tags				Bookmarks
+//	@Summary					Delete one or more bookmarks.
+//	@Tags						Bookmarks
 //	@securityDefinitions.apikey	ApiKeyAuth
-//	@Param				payload	body		deleteBookmarksPayload	true	"Delete Bookmarks Payload"
-//	@Produce			json
-//	@Success			200	{object}	nil
-//	@Failure			403	{object}	nil	"Token not provided/invalid"
-//	@Failure			400	{object}	nil	"Invalid request payload"
-//	@Router				/api/v1/bookmarks [delete]
+//	@Param						payload	body	deleteBookmarksPayload	true	"Delete Bookmarks Payload"
+//	@Produce					json
+//	@Success					200	{object}	nil
+//	@Failure					403	{object}	nil	"Token not provided/invalid"
+//	@Failure					400	{object}	nil	"Invalid request payload"
+//	@Router						/api/v1/bookmarks [delete]
 func HandleDeleteBookmarks(deps model.Dependencies, c model.WebContext) {
 	if err := middleware.RequireLoggedInUser(deps, c); err != nil {
 		response.SendError(c, http.StatusForbidden, err.Error())
