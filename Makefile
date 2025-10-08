@@ -53,6 +53,12 @@ export SOURCE_FILES
 export SHIORI_TEST_MYSQL_URL
 export SHIORI_TEST_MARIADB_URL
 export SHIORI_TEST_PG_URL
+export SHIORI_DIR
+
+export SHIORI_TEST_PG_URL=postgres://shiori:shiori@127.0.0.1:5432/shiori?sslmode=disable
+export SHIORI_TEST_MARIADB_URL=shiori:shiori@tcp(127.0.0.1:3307)/shiori
+export SHIORI_TEST_MYSQL_URL=shiori:shiori@tcp(127.0.0.1:3306)/shiori
+export SHIORI_HTTP_SECRET_KEY=shiori
 
 # Help documentatin à la https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 .PHONY: help
@@ -67,12 +73,12 @@ clean:
 ## Runs server for local development
 .PHONY: run-server
 run-server: generate
-	GIN_MODE=$(GIN_MODE) SHIORI_DEVELOPMENT=$(SHIORI_DEVELOPMENT) go run main.go server --log-level debug
+	HIORI_DEVELOPMENT=$(SHIORI_DEVELOPMENT) SHIORI_HTTP_CORS_ENABLED=true SHIORI_HTTP_CORS_ORIGINS=http://127.0.0.1:5173,http://localhost:5173,http://localhost:8080 SHIORI_HTTP_SERVE_SWAGGER=true go run main.go server --log-level debug
 
 ## Runs server for local development with v2 web UI
 .PHONY: run-server-v2
 run-server-v2: generate
-	GIN_MODE=$(GIN_MODE) SHIORI_DEVELOPMENT=$(SHIORI_DEVELOPMENT) SHIORI_HTTP_SERVE_WEB_UI_V2=true go run main.go server --log-level debug
+	SHIORI_DEVELOPMENT=$(SHIORI_DEVELOPMENT) SHIORI_HTTP_SERVE_SWAGGER=true SHIORI_HTTP_SERVE_WEB_UI_V2=true go run main.go server --log-level debug
 
 ## Generate swagger docs
 .PHONY: swagger
@@ -100,7 +106,7 @@ golangci-lint:
 ## Run unit tests
 .PHONY: unittest
 unittest:
-	GIN_MODE=$(GIN_MODE) GO_TEST_FLAGS="$(GO_TEST_FLAGS)" GOTESTFMT_FLAGS="$(GOTESTFMT_FLAGS)" $(BASH) -xe ./scripts/test.sh
+	GO_TEST_FLAGS="$(GO_TEST_FLAGS)" GOTESTFMT_FLAGS="$(GOTESTFMT_FLAGS)" $(BASH) -xe ./scripts/test.sh
 
 ## Run end to end tests
 .PHONY: e2e
@@ -120,11 +126,11 @@ styles-check:
 ## Build binary
 .PHONY: build
 build: clean
-	GIN_MODE=$(GIN_MODE) goreleaser build --clean --snapshot
+	goreleaser build --clean --snapshot
 
 ## Build binary for current targer
 build-local: clean
-	GIN_MODE=$(GIN_MODE) goreleaser build --clean --snapshot --single-target
+	goreleaser build --clean --snapshot --single-target
 
 ## Build docker image using Buildx.
 # used for multi-arch builds suing mainly the CI, that's why the task does not
@@ -144,6 +150,30 @@ buildx-local: build-local
 coverage:
 	$(GO) test $(GO_TEST_FLAGS) -coverprofile=coverage.txt $(SOURCE_FILES)
 	$(GO) tool cover -html=coverage.txt
+
+## Generate TypeScript client
+.PHONY: generate-client
+generate-client: swagger
+	rm -rf ./clients/ts
+	openapi-generator generate -i $(SWAGGER_DOCS_PATH)/swagger.json -g typescript-fetch -o ./clients/ts --skip-validate-spec \
+		--additional-properties=typescriptThreePlus=true,supportsES6=true,npmName=shiori-api,npmVersion=1.0.0,modelPropertyNaming=original
+
+## Build TypeScript client to JavaScript for frontend
+.PHONY: build-client
+build-client: generate-client
+	cd ./clients/ts && bun install && bun run build
+	mkdir -p ./internal/view/assets/js/client
+	cd ./clients/ts && bun build ./wrapper.js --outfile=../../internal/view/assets/js/client/shiori-api.js --format=iife
+
+## Build Vue webapp
+.PHONY: build-webapp
+build-webapp: generate-client
+	cd webapp && bun install && bun run build
+
+## Run Vue webapp dev server
+.PHONY: run-webapp
+run-webapp: generate-client
+	cd webapp && bun install && VITE_API_BASE_URL=http://localhost:8080 bun run dev
 
 ## Run generate accross the project
 .PHONY: generate

@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { setLanguage } from '@/utils/i18n'
 import type { SupportedLocale } from '@/utils/i18n'
+import { ChevronDownIcon } from '@/components/icons'
 
 const { t, locale } = useI18n()
 
@@ -48,10 +49,7 @@ onMounted(() => {
             class="flex items-center px-3 py-2 text-sm rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
             aria-haspopup="true" :aria-expanded="isOpen">
             <span class="mr-1">{{languages.find(lang => lang.code === selectedLanguage)?.name}}</span>
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-            </svg>
+            <ChevronDownIcon class="w-4 h-4" />
         </button>
 
         <div v-if="isOpen" class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg z-10 py-1">

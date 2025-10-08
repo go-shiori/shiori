@@ -1,18 +1,18 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw, NavigationGuardNext as NavigationGuard, RouteLocationNormalized } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
+import LibraryView from '../views/LibraryView.vue'
 import LoginView from '../views/LoginView.vue'
 import { useAuthStore } from '@/stores/auth'
 
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
-    redirect: '/home'
+    redirect: '/library'
   },
   {
-    path: '/home',
-    name: 'home',
-    component: HomeView,
+    path: '/library',
+    name: 'library',
+    component: LibraryView,
     meta: { requiresAuth: true }
   },
   {
@@ -28,27 +28,45 @@ const routes: Array<RouteRecordRaw> = [
     meta: { requiresAuth: true }
   },
   {
-    path: '/folders',
-    name: 'folders',
-    component: () => import('../views/FoldersView.vue'),
-    meta: { requiresAuth: true }
-  },
-  {
-    path: '/archive',
-    name: 'archive',
-    component: () => import('../views/ArchiveView.vue'),
-    meta: { requiresAuth: true }
-  },
-  {
     path: '/settings',
     name: 'settings',
     component: () => import('../views/SettingsView.vue'),
     meta: { requiresAuth: true }
   },
-  // Redirect any unmatched routes to home (which will redirect to login if not authenticated)
+  {
+    path: '/bookmark/:id/content',
+    name: 'bookmark-content',
+    component: () => import('../views/BookmarkContentView.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/bookmark/:id/archive',
+    name: 'bookmark-archive',
+    component: () => import('../views/BookmarkArchiveView.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/add-bookmark',
+    name: 'add-bookmark',
+    component: () => import('../views/AddBookmarkView.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/add-tag',
+    name: 'add-tag',
+    component: () => import('../views/AddTagView.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/test-tag-selector',
+    name: 'test-tag-selector',
+    component: () => import('../views/TagSelectorTest.vue'),
+    meta: { requiresAuth: true }
+  },
+  // Redirect any unmatched routes to library (which will redirect to login if not authenticated)
   {
     path: '/:pathMatch(.*)*',
-    redirect: '/home'
+    redirect: '/library'
   }
 ]
 

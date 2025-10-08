@@ -14,28 +14,30 @@ type Account struct {
 	Username string     `db:"username" json:"username"`
 	Password string     `db:"password" json:"password,omitempty"`
 	Owner    bool       `db:"owner"    json:"owner"`
-	Config   UserConfig `db:"config"               json:"config"`
+	Config   UserConfig `db:"config"   json:"config"`
 }
 
 type UserConfig struct {
-	ShowId        bool
-	ListMode      bool
-	HideThumbnail bool
-	HideExcerpt   bool
-	Theme         string
-	KeepMetadata  bool
-	UseArchive    bool
-	CreateEbook   bool
-	MakePublic    bool
+	ShowId        bool   `json:"ShowId"`
+	ListMode      bool   `json:"ListMode"`
+	HideThumbnail bool   `json:"HideThumbnail"`
+	HideExcerpt   bool   `json:"HideExcerpt"`
+	Theme         string `json:"Theme"`
+	KeepMetadata  bool   `json:"KeepMetadata"`
+	UseArchive    bool   `json:"UseArchive"`
+	CreateEbook   bool   `json:"CreateEbook"`
+	MakePublic    bool   `json:"MakePublic"`
 }
 
 func (c *UserConfig) Scan(value interface{}) error {
 	switch v := value.(type) {
 	case []byte:
 		json.Unmarshal(v, &c)
+		c.Defaults()
 		return nil
 	case string:
 		json.Unmarshal([]byte(v), &c)
+		c.Defaults()
 		return nil
 	default:
 		return fmt.Errorf("unsupported type: %T", v)
@@ -44,6 +46,20 @@ func (c *UserConfig) Scan(value interface{}) error {
 
 func (c UserConfig) Value() (driver.Value, error) {
 	return json.Marshal(c)
+}
+
+// Defaults sets default values for UserConfig fields
+func (c *UserConfig) Defaults() {
+	if c.Theme == "" {
+		c.Theme = "system"
+	}
+}
+
+// NewUserConfig returns a UserConfig with default values
+func NewUserConfig() UserConfig {
+	return UserConfig{
+		Theme: "system",
+	}
 }
 
 // ToDTO converts Account to AccountDTO.

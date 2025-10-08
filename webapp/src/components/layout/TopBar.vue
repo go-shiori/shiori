@@ -2,8 +2,10 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
-import { useI18n } from 'vue-i18n';
+import { useI18n } from 'vue-i18n'
+import { Input } from '@/components/ui';
 import LanguageSelector from './LanguageSelector.vue';
+import { UserIcon } from '@/components/icons';
 
 const { t } = useI18n();
 const isMenuOpen = ref(false);
@@ -52,8 +54,7 @@ onUnmounted(() => {
     <!-- Search -->
     <div class="flex-1 mx-4">
       <div class="relative">
-        <input type="text" :placeholder="t('common.search')"
-          class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-1 focus:outline-none focus:ring-2 focus:ring-red-500" />
+        <Input type="search" variant="search" size="sm" :placeholder="t('common.search')" />
       </div>
     </div>
 
@@ -67,10 +68,7 @@ onUnmounted(() => {
         <button @click="toggleMenu"
           class="text-gray-500 dark:text-gray-300 p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
           <!-- User menu icon (consistent across mobile and desktop) -->
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
+          <UserIcon class="h-6 w-6" />
         </button>
 
         <!-- Dropdown menu -->

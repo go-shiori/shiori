@@ -96,11 +96,13 @@ func parseHtmlExport(ctx context.Context, db model.DB, srcFile *os.File) []model
 
 		// Add item to list
 		bookmark := model.BookmarkDTO{
-			URL:        url,
-			Title:      title,
-			ModifiedAt: timeAdded.Format(model.DatabaseDateFormat),
-			CreatedAt:  timeAdded.Format(model.DatabaseDateFormat),
-			Tags:       tags,
+			Bookmark: model.Bookmark{
+				URL:        url,
+				Title:      title,
+				ModifiedAt: timeAdded.Format(model.DatabaseDateFormat),
+				CreatedAt:  timeAdded.Format(model.DatabaseDateFormat),
+			},
+			Tags: tags,
 		}
 
 		mapURL[url] = struct{}{}
@@ -151,11 +153,13 @@ func parseCsvExport(ctx context.Context, db model.DB, srcFile *os.File) []model.
 
 		// Add item to list
 		bookmark := model.BookmarkDTO{
-			URL:        url,
-			Title:      title,
-			ModifiedAt: timeAdded.Format(model.DatabaseDateFormat),
-			CreatedAt:  timeAdded.Format(model.DatabaseDateFormat),
-			Tags:       tags,
+			Bookmark: model.Bookmark{
+				URL:        url,
+				Title:      title,
+				ModifiedAt: timeAdded.Format(model.DatabaseDateFormat),
+				CreatedAt:  timeAdded.Format(model.DatabaseDateFormat),
+			},
+			Tags: tags,
 		}
 
 		mapURL[url] = struct{}{}

@@ -20,6 +20,12 @@ var ErrNotFound = errors.New("not found")
 // ErrAlreadyExists is error returned when record already exists in database.
 var ErrAlreadyExists = errors.New("already exists")
 
+// Database-specific error constants for unique constraint violations
+var (
+	ErrBookmarkURLAlreadyExists = errors.New("bookmark URL already exists")
+	ErrTagNameAlreadyExists     = errors.New("tag name already exists")
+)
+
 // Connect connects to database based on submitted database URL.
 func Connect(ctx context.Context, dbURL string) (model.DB, error) {
 	dbU, err := url.Parse(dbURL)

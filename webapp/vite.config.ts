@@ -20,4 +20,20 @@ export default defineConfig({
   css: {
     devSourcemap: true,
   },
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
+      '/bookmark': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
+      '/thumb': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
+    },
+  },
 })

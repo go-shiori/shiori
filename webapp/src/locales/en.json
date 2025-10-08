@@ -8,7 +8,15 @@
     "search": "Search",
     "add": "Add",
     "remove": "Remove",
-    "close": "Close"
+    "close": "Close",
+    "back": "Back",
+    "user": "User",
+    "processing": "Processing...",
+    "note": "Note",
+    "ok": "OK",
+    "tagline": "simple bookmark manager",
+    "none": "None",
+    "error_occurred": "An error occurred"
   },
   "auth": {
     "login": "Login",
@@ -19,47 +27,174 @@
     "login_failed": "Login failed. Please check your credentials."
   },
   "navigation": {
-    "home": "Home",
-    "archive": "Archive",
+    "library": "Library",
     "tags": "Tags",
-    "folders": "Folders",
     "settings": "Settings",
     "about": "About"
   },
   "bookmarks": {
     "title": "Bookmarks",
+    "my_bookmarks": "My Bookmarks",
     "add_bookmark": "Add Bookmark",
     "edit_bookmark": "Edit Bookmark",
     "delete_bookmark": "Delete Bookmark",
     "url": "URL",
-    "title": "Title",
+    "bookmark_title": "Title",
     "excerpt": "Excerpt",
     "tags": "Tags",
     "add_tag": "Add Tag",
-    "no_bookmarks": "No bookmarks found"
-  },
-  "tags": {
-    "title": "Tags",
-    "add_tag": "Add Tag",
-    "edit_tag": "Edit Tag",
-    "delete_tag": "Delete Tag",
-    "name": "Name",
-    "no_tags": "No tags found"
-  },
-  "folders": {
-    "title": "Folders",
-    "add_folder": "Add Folder",
-    "edit_folder": "Edit Folder",
-    "delete_folder": "Delete Folder",
-    "name": "Name",
-    "no_folders": "No folders found"
+    "no_bookmarks": "No bookmarks found",
+    "search_placeholder": "Search...",
+    "loading_bookmarks": "Loading bookmarks...",
+    "no_bookmarks_found": "No bookmarks found",
+    "create_first_bookmark": "Create your first bookmark to get started",
+    "card_view": "Card view",
+    "open_original_url": "Open original URL",
+    "edit_bookmark_action": "Edit",
+    "delete_bookmark_action": "Delete",
+    "has_readable_content": "Has readable content",
+    "has_archive": "Has archive",
+    "has_ebook": "Has ebook",
+    "bookmark_thumbnail": "Bookmark thumbnail",
+    "url_placeholder": "https://example.com",
+    "url_description": "The URL will be used as both the bookmark URL and title. After creating the bookmark, Shiori will automatically:",
+    "fetch_content": "Fetch and generate readable content",
+    "create_archive": "Create an archive of the page",
+    "generate_ebook": "Generate an ebook version",
+    "extract_metadata": "Extract the proper title and metadata",
+    "please_enter_url": "Please enter a URL",
+    "please_enter_valid_url": "Please enter a valid URL",
+    "failed_to_create_bookmark": "Failed to create bookmark",
+    "new_bookmark": "New Bookmark",
+    "create_new_bookmark": "Create a new bookmark",
+    "url_label": "URL, start with http://...",
+    "custom_title_label": "Custom title (optional)",
+    "custom_title_placeholder": "Enter custom title",
+    "custom_excerpt_label": "Custom excerpt (optional)",
+    "custom_excerpt_placeholder": "Enter custom excerpt",
+    "tags_label": "Comma separated tags (optional)",
+    "tags_placeholder": "tag1, tag2, tag3",
+    "available_tags": "Available tags",
+    "make_public": "Make bookmark publicly available",
+    "visibility_label": "Visibility",
+    "visibility_internal": "Internal (accessible to all Shiori users)",
+    "visibility_public": "Public (accessible to non-registered users)",
+    "visibility_description": "Internal bookmarks are visible to all registered users. Public bookmarks can be accessed by anyone.",
+    "create_ebook": "Create eBook",
+    "view_content": "View Content",
+    "download_ebook": "Download eBook",
+    "view_archive": "View Archive",
+    "open_original": "Open original URL",
+    "by": "By",
+    "unknown_author": "Unknown",
+    "archived_version": "Archived Version",
+    "archived_content": "Archived content",
+    "no_readable_content": "No readable content available for this bookmark.",
+    "view_original_page": "View Original Page",
+    "error": {
+      "invalid_id": "Invalid bookmark ID",
+      "no_archive": "No archive available for this bookmark",
+      "load_failed": "Failed to load bookmark"
+    },
+    "confirm_delete_message": "Are you sure you want to delete",
+    "toast": {
+      "created_success": "Bookmark created successfully",
+      "created_success_message": "Your bookmark has been saved and is being processed",
+      "created_error": "Failed to create bookmark",
+      "created_error_message": "Please check the URL and try again",
+      "deleted_success": "Bookmark deleted successfully",
+      "deleted_success_message": "The bookmark has been permanently removed",
+      "deleted_error": "Failed to delete bookmark",
+      "deleted_error_message": "Please try again"
+    },
+    "errors": {
+      "already_exists": {
+        "bookmark": "A bookmark with this URL already exists"
+      }
+    }
   },
   "settings": {
     "title": "Settings",
     "language": "Language",
+    "language_description": "Choose your preferred language for the interface",
+    "appearance": "Appearance",
+    "appearance_description": "Customize how the interface looks and behaves",
     "theme": "Theme",
+    "theme_description": "Choose between light, dark, or system theme",
     "light": "Light",
     "dark": "Dark",
-    "system": "System"
+    "system": "System",
+    "display": "Display",
+    "display_options": "Display Options",
+    "bookmarks": "Bookmarks",
+    "bookmarks_description": "Configure default behavior for new bookmarks",
+    "show_id": "Show bookmark ID",
+    "list_mode": "Display bookmarks as list",
+    "hide_thumbnail": "Hide thumbnail image",
+    "hide_thumbnail_description": "Don't show thumbnail images in bookmark lists",
+    "hide_excerpt": "Hide bookmark excerpt",
+    "hide_excerpt_description": "Don't show bookmark excerpts in lists",
+    "keep_metadata": "Keep metadata when updating",
+    "keep_metadata_description": "Preserve existing metadata when updating bookmarks",
+    "use_archive": "Create archive by default",
+    "use_archive_description": "Automatically create archive copies of bookmarked pages",
+    "create_ebook": "Create ebook by default",
+    "create_ebook_description": "Automatically generate ebook versions of bookmarked pages",
+    "make_public": "Make bookmarks public by default",
+    "make_public_description": "Set new bookmarks as public by default"
+  },
+  "pagination": {
+    "showing": "Showing",
+    "to": "to",
+    "of": "of",
+    "items": "items",
+    "per_page": "Per page:",
+    "previous": "Previous",
+    "next": "Next",
+    "go_to_page": "Go to page",
+    "aria_label": "Pagination"
+  },
+  "tags": {
+    "title": "Tags",
+    "add_tag": "Add Tag",
+    "add_tag_description": "Create a new tag to organize your bookmarks",
+    "create_new_tag": "Create New Tag",
+    "edit_tag": "Edit Tag",
+    "delete_tag": "Delete Tag",
+    "name": "Name",
+    "name_placeholder": "Enter tag name",
+    "no_tags": "No tags found",
+    "search_placeholder": "Search tags...",
+    "searching": "Searching tags...",
+    "bookmarks_count": "bookmarks",
+    "create_first_tag": "Create your first tag to organize your bookmarks.",
+    "confirm_delete": "Are you sure you want to delete this tag? This action cannot be undone.",
+    "tag_name_required": "Tag name cannot be empty",
+    "toast": {
+      "created_success": "Tag created successfully",
+      "created_success_message": "The tag has been added and is ready to use",
+      "created_error": "Failed to create tag",
+      "created_error_message": "Please try again or check if the tag already exists",
+      "updated_success": "Tag updated successfully",
+      "updated_success_message": "The tag has been updated",
+      "updated_error": "Failed to update tag",
+      "updated_error_message": "Please try again",
+      "deleted_success": "Tag deleted successfully",
+      "deleted_success_message": "The tag has been removed",
+      "deleted_error": "Failed to delete tag",
+      "deleted_error_message": "Please try again"
+    },
+    "errors": {
+      "already_exists": {
+        "tag": "A tag with this name already exists"
+      }
+    }
+  },
+  "views": {
+    "list_view": "List view",
+    "card_view": "Card view"
+  },
+  "about": {
+    "title": "This is an about page"
   }
 }

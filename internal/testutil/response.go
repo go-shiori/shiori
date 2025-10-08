@@ -45,6 +45,21 @@ func (r *testResponse) ForEach(t *testing.T, fn func(item map[string]any)) {
 	}
 }
 
+// ForEachInKey iterates over the array under the given key in the JSON object
+// and calls the provided function with each item as a map[string]any.
+func (r *testResponse) ForEachInKey(t *testing.T, key string, fn func(item map[string]any)) {
+	var jsonObj map[string]any
+	err := json.Unmarshal(r.Response.GetData().([]byte), &jsonObj)
+	require.NoError(t, err)
+	value, ok := jsonObj[key]
+	require.True(t, ok, "key not found in response: %s", key)
+	list, ok := value.([]any)
+	require.True(t, ok, "value at key is not a list: %s", key)
+	for _, item := range list {
+		fn(item.(map[string]any))
+	}
+}
+
 func (r *testResponse) AssertNilMessage(t *testing.T) {
 	require.Equal(t, nil, r.Response.GetData())
 }

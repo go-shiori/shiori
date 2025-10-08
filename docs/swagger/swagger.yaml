@@ -1,4 +1,25 @@
 definitions:
+  api_v1.bookmarkDataResponse:
+    properties:
+      archiveURL:
+        type: string
+      content:
+        type: string
+      ebookURL:
+        type: string
+      hasArchive:
+        type: boolean
+      hasContent:
+        type: boolean
+      hasEbook:
+        type: boolean
+      hasThumbnail:
+        type: boolean
+      html:
+        type: string
+      imageURL:
+        type: string
+    type: object
   api_v1.bookmarkTagPayload:
     properties:
       tag_id:
@@ -19,6 +40,28 @@ definitions:
     required:
     - bookmark_ids
     - tag_ids
+    type: object
+  api_v1.createBookmarkPayload:
+    properties:
+      excerpt:
+        type: string
+      public:
+        type: integer
+      title:
+        type: string
+      url:
+        type: string
+    required:
+    - url
+    type: object
+  api_v1.deleteBookmarksPayload:
+    properties:
+      ids:
+        items:
+          type: integer
+        type: array
+    required:
+    - ids
     type: object
   api_v1.infoResponse:
     properties:
@@ -72,6 +115,30 @@ definitions:
       username:
         type: string
     type: object
+  api_v1.updateBookmarkDataPayload:
+    properties:
+      create_archive:
+        type: boolean
+      create_ebook:
+        type: boolean
+      keep_metadata:
+        type: boolean
+      skip_existing:
+        type: boolean
+      update_readable:
+        type: boolean
+    type: object
+  api_v1.updateBookmarkPayload:
+    properties:
+      excerpt:
+        type: string
+      public:
+        type: integer
+      title:
+        type: string
+      url:
+        type: string
+    type: object
   api_v1.updateCachePayload:
     properties:
       create_archive:
@@ -121,10 +188,8 @@ definitions:
       author:
         type: string
       create_archive:
-        description: 'TODO: migrate outside the DTO'
         type: boolean
       create_ebook:
-        description: 'TODO: migrate outside the DTO'
         type: boolean
       createdAt:
         type: string
@@ -136,12 +201,12 @@ definitions:
         type: boolean
       hasEbook:
         type: boolean
+      hasThumbnail:
+        type: boolean
       html:
         type: string
       id:
         type: integer
-      imageURL:
-        type: string
       modifiedAt:
         type: string
       public:
@@ -154,6 +219,24 @@ definitions:
         type: string
       url:
         type: string
+    type: object
+  model.PaginatedResponse-model_BookmarkDTO:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/model.BookmarkDTO'
+        type: array
+      total:
+        type: integer
+    type: object
+  model.PaginatedResponse-model_TagDTO:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/model.TagDTO'
+        type: array
+      total:
+        type: integer
     type: object
   model.TagDTO:
     properties:
@@ -170,23 +253,23 @@ definitions:
     type: object
   model.UserConfig:
     properties:
-      createEbook:
+      CreateEbook:
         type: boolean
-      hideExcerpt:
+      HideExcerpt:
         type: boolean
-      hideThumbnail:
+      HideThumbnail:
         type: boolean
-      keepMetadata:
+      KeepMetadata:
         type: boolean
-      listMode:
+      ListMode:
         type: boolean
-      makePublic:
+      MakePublic:
         type: boolean
-      showId:
+      ShowId:
         type: boolean
-      theme:
+      Theme:
         type: string
-      useArchive:
+      UseArchive:
         type: boolean
     type: object
 info:
@@ -367,6 +450,189 @@ paths:
       summary: Refresh a token for an account
       tags:
       - Auth
+  /api/v1/bookmarks:
+    delete:
+      parameters:
+      - description: Delete Bookmarks Payload
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/api_v1.deleteBookmarksPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Invalid request payload
+        "403":
+          description: Token not provided/invalid
+      summary: Delete one or more bookmarks.
+      tags:
+      - Bookmarks
+    get:
+      parameters:
+      - description: Search keyword
+        in: query
+        name: keyword
+        type: string
+      - description: Comma-separated list of tags to include
+        in: query
+        name: tags
+        type: string
+      - description: Comma-separated list of tags to exclude
+        in: query
+        name: exclude
+        type: string
+      - description: 'Page number (default: 1)'
+        in: query
+        name: page
+        type: integer
+      - description: 'Items per page (default: 30, max: 100)'
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.PaginatedResponse-model_BookmarkDTO'
+        "403":
+          description: Token not provided/invalid
+      summary: List bookmarks with optional filtering and pagination.
+      tags:
+      - Bookmarks
+    post:
+      parameters:
+      - description: Create Bookmark Payload
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/api_v1.createBookmarkPayload'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/model.BookmarkDTO'
+        "400":
+          description: Invalid request payload
+        "403":
+          description: Token not provided/invalid
+      summary: Create a new bookmark.
+      tags:
+      - Bookmarks
+  /api/v1/bookmarks/{id}:
+    get:
+      parameters:
+      - description: Bookmark ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.BookmarkDTO'
+        "403":
+          description: Token not provided/invalid
+        "404":
+          description: Bookmark not found
+      summary: Get a bookmark by ID.
+      tags:
+      - Bookmarks
+    put:
+      parameters:
+      - description: Bookmark ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Update Bookmark Payload
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/api_v1.updateBookmarkPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.BookmarkDTO'
+        "400":
+          description: Invalid request payload
+        "403":
+          description: Token not provided/invalid
+        "404":
+          description: Bookmark not found
+      summary: Update an existing bookmark.
+      tags:
+      - Bookmarks
+  /api/v1/bookmarks/{id}/data:
+    get:
+      parameters:
+      - description: Bookmark ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api_v1.bookmarkDataResponse'
+        "400":
+          description: Invalid bookmark ID
+        "403":
+          description: Token not provided/invalid
+        "404":
+          description: Bookmark not found
+      summary: Get bookmark data and resource URLs.
+      tags:
+      - Bookmarks
+    put:
+      parameters:
+      - description: Bookmark ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Update Bookmark Data Payload
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/api_v1.updateBookmarkDataPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api_v1.bookmarkDataResponse'
+        "400":
+          description: Invalid bookmark ID or payload
+        "403":
+          description: Token not provided/invalid
+        "404":
+          description: Bookmark not found
+        "500":
+          description: Failed to update bookmark data
+      summary: Update bookmark data (content, archive, ebook).
+      tags:
+      - Bookmarks
   /api/v1/bookmarks/{id}/tags:
     delete:
       parameters:
@@ -392,7 +658,7 @@ paths:
           description: Bookmark not found
       summary: Remove a tag from a bookmark.
       tags:
-      - Auth
+      - Bookmarks
     get:
       parameters:
       - description: Bookmark ID
@@ -415,7 +681,7 @@ paths:
           description: Bookmark not found
       summary: Get tags for a bookmark.
       tags:
-      - Auth
+      - Bookmarks
     post:
       parameters:
       - description: Bookmark ID
@@ -440,7 +706,7 @@ paths:
           description: Bookmark or tag not found
       summary: Add a tag to a bookmark.
       tags:
-      - Auth
+      - Bookmarks
   /api/v1/bookmarks/bulk/tags:
     put:
       parameters:
@@ -467,7 +733,7 @@ paths:
           description: No bookmarks found
       summary: Bulk update tags for multiple bookmarks.
       tags:
-      - Auth
+      - Bookmarks
   /api/v1/bookmarks/cache:
     put:
       parameters:
@@ -488,7 +754,7 @@ paths:
           description: Token not provided/invalid
       summary: Update Cache and Ebook on server.
       tags:
-      - Auth
+      - Bookmarks
   /api/v1/bookmarks/id/readable:
     get:
       produces:
@@ -502,7 +768,7 @@ paths:
           description: Token not provided/invalid
       summary: Get readable version of bookmark.
       tags:
-      - Auth
+      - Bookmarks
   /api/v1/system/info:
     get:
       description: Get general system information like Shiori version, database, and
@@ -521,7 +787,7 @@ paths:
       - System
   /api/v1/tags:
     get:
-      description: List all tags
+      description: List all tags with pagination
       parameters:
       - description: Include bookmark count for each tag
         in: query
@@ -535,15 +801,21 @@ paths:
         in: query
         name: search
         type: string
+      - description: 'Page number (default: 1)'
+        in: query
+        name: page
+        type: integer
+      - description: 'Items per page (default: 30, max: 100)'
+        in: query
+        name: limit
+        type: integer
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/model.TagDTO'
-            type: array
+            $ref: '#/definitions/model.PaginatedResponse-model_TagDTO'
         "403":
           description: Authentication required
         "500":
@@ -554,7 +826,8 @@ paths:
     post:
       consumes:
       - application/json
-      description: Create a new tag
+      description: Create a new tag. If a tag with the same name already exists, returns
+        204 No Content.
       parameters:
       - description: Tag data
         in: body
@@ -566,9 +839,11 @@ paths:
       - application/json
       responses:
         "201":
-          description: Created
+          description: Tag created
           schema:
             $ref: '#/definitions/model.TagDTO'
+        "204":
+          description: Tag already exists
         "400":
           description: Invalid request
         "403":

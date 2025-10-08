@@ -36,7 +36,12 @@ func (d *AuthDomain) CheckToken(ctx context.Context, userJWT string) (*model.Acc
 
 	if claims, ok := token.Claims.(*JWTClaim); ok && token.Valid {
 		if claims.Account.ID > 0 {
-			return claims.Account, nil
+			// Fetch the current account data from database to get up-to-date config
+			currentAccount, err := d.deps.Domains().Accounts().GetAccountByID(ctx, claims.Account.ID)
+			if err != nil {
+				return nil, fmt.Errorf("error fetching current account: %w", err)
+			}
+			return currentAccount, nil
 		}
 
 		return claims.Account, nil

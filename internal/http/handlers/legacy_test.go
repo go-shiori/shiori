@@ -40,7 +40,17 @@ func TestLegacyHandler(t *testing.T) {
 
 	t.Run("HandleGetTags", func(t *testing.T) {
 		c, w := testutil.NewTestWebContext()
-		testutil.SetFakeUser(c)
+
+		// Create a real account in the database
+		account, err := deps.Domains().Accounts().CreateAccount(context.Background(), model.AccountDTO{
+			Username: "testuser",
+			Password: "testpass",
+			Owner:    model.Ptr(false),
+		})
+		require.NoError(t, err)
+
+		// Set the real account in the context
+		c.SetAccount(account)
 		SetFakeAuthorizationHeader(t, deps, c)
 		handler.HandleGetTags(deps, c)
 		require.Equal(t, http.StatusOK, w.Code)
@@ -48,7 +58,17 @@ func TestLegacyHandler(t *testing.T) {
 
 	t.Run("HandleGetBookmarks", func(t *testing.T) {
 		c, w := testutil.NewTestWebContext()
-		testutil.SetFakeUser(c)
+
+		// Create a real account in the database
+		account, err := deps.Domains().Accounts().CreateAccount(context.Background(), model.AccountDTO{
+			Username: "testuser2",
+			Password: "testpass2",
+			Owner:    model.Ptr(false),
+		})
+		require.NoError(t, err)
+
+		// Set the real account in the context
+		c.SetAccount(account)
 		SetFakeAuthorizationHeader(t, deps, c)
 		handler.HandleGetBookmarks(deps, c)
 		require.Equal(t, http.StatusOK, w.Code)

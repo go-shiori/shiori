@@ -37,16 +37,25 @@ func (s *HttpServer) Setup(cfg *config.Config, deps *dependencies.Dependencies) 
 		globalMiddleware = append(globalMiddleware, middleware.NewAuthSSOProxyMiddleware(deps))
 	}
 
-	// Add message response middleware if legacy message response is enabled
 	globalMiddleware = append(globalMiddleware, []model.HttpMiddleware{
-		middleware.NewMessageResponseMiddleware(deps),
 		middleware.NewAuthMiddleware(deps),
 		middleware.NewRequestIDMiddleware(deps),
-		middleware.NewCORSMiddleware([]string{"*"}),
 	}...)
 
 	if cfg.Http.AccessLog {
 		globalMiddleware = append(globalMiddleware, middleware.NewLoggingMiddleware())
+	}
+
+	if cfg.Http.CORSEnabled {
+		globalMiddleware = append(globalMiddleware, middleware.NewCORSMiddleware(cfg.Http.CORSEnabled, cfg.Http.CORSOrigins, cfg.Http.CORSAllowCredentials))
+
+		// CORS preflight
+		s.mux.HandleFunc("OPTIONS /", ToHTTPHandler(deps,
+			func(_ model.Dependencies, c model.WebContext) {
+				c.ResponseWriter().WriteHeader(http.StatusOK)
+			},
+			globalMiddleware...,
+		))
 	}
 
 	// System routes with logging middleware
@@ -56,15 +65,15 @@ func (s *HttpServer) Setup(cfg *config.Config, deps *dependencies.Dependencies) 
 	))
 
 	// Bookmark routes
-	s.mux.HandleFunc("GET /bookmark/{id}/content", ToHTTPHandler(deps, handlers.HandleBookmarkContent, globalMiddleware...))
-	s.mux.HandleFunc("GET /bookmark/{id}/archive", ToHTTPHandler(deps, handlers.HandleBookmarkArchive, globalMiddleware...))
+	// s.mux.HandleFunc("GET /bookmark/{id}/content", ToHTTPHandler(deps, handlers.HandleBookmarkContent, globalMiddleware...))
+	// s.mux.HandleFunc("GET /bookmark/{id}/archive", ToHTTPHandler(deps, handlers.HandleBookmarkArchive, globalMiddleware...))
 	s.mux.HandleFunc("GET /bookmark/{id}/archive/file/{path...}", ToHTTPHandler(deps, handlers.HandleBookmarkArchiveFile, globalMiddleware...))
 	s.mux.HandleFunc("GET /bookmark/{id}/thumb", ToHTTPHandler(deps, handlers.HandleBookmarkThumbnail, globalMiddleware...))
 	s.mux.HandleFunc("GET /bookmark/{id}/ebook", ToHTTPHandler(deps, handlers.HandleBookmarkEbook, globalMiddleware...))
 
 	// Add this inside Setup() where other routes are registered
 	if cfg.Http.ServeSwagger {
-		s.mux.HandleFunc("/swagger/", ToHTTPHandler(deps,
+		s.mux.HandleFunc("GET /swagger/", ToHTTPHandler(deps,
 			handlers.HandleSwagger,
 			globalMiddleware...,
 		))
@@ -93,7 +102,7 @@ func (s *HttpServer) Setup(cfg *config.Config, deps *dependencies.Dependencies) 
 	// Register routes using standard http handlers
 	if cfg.Http.ServeWebUI {
 		// Frontend routes
-		s.mux.HandleFunc("/", ToHTTPHandler(deps,
+		s.mux.HandleFunc("GET /", ToHTTPHandler(deps,
 			handlers.HandleFrontend,
 			globalMiddleware...,
 		))
@@ -163,13 +172,42 @@ func (s *HttpServer) Setup(cfg *config.Config, deps *dependencies.Dependencies) 
 		api_v1.HandleDeleteTag,
 		globalMiddleware...,
 	))
-	// Bookmarks
+	// Bookmarks CRUD
+	s.mux.HandleFunc("GET /api/v1/bookmarks", ToHTTPHandler(deps,
+		api_v1.HandleListBookmarks,
+		globalMiddleware...,
+	))
+	s.mux.HandleFunc("POST /api/v1/bookmarks", ToHTTPHandler(deps,
+		api_v1.HandleCreateBookmark,
+		globalMiddleware...,
+	))
+	s.mux.HandleFunc("GET /api/v1/bookmarks/{id}", ToHTTPHandler(deps,
+		api_v1.HandleGetBookmark,
+		globalMiddleware...,
+	))
+	s.mux.HandleFunc("PUT /api/v1/bookmarks/{id}", ToHTTPHandler(deps,
+		api_v1.HandleUpdateBookmark,
+		globalMiddleware...,
+	))
+	s.mux.HandleFunc("DELETE /api/v1/bookmarks", ToHTTPHandler(deps,
+		api_v1.HandleDeleteBookmarks,
+		globalMiddleware...,
+	))
+	// Bookmark operations
 	s.mux.HandleFunc("PUT /api/v1/bookmarks/cache", ToHTTPHandler(deps,
 		api_v1.HandleUpdateCache,
 		globalMiddleware...,
 	))
 	s.mux.HandleFunc("GET /api/v1/bookmarks/{id}/readable", ToHTTPHandler(deps,
 		api_v1.HandleBookmarkReadable,
+		globalMiddleware...,
+	))
+	s.mux.HandleFunc("GET /api/v1/bookmarks/{id}/data", ToHTTPHandler(deps,
+		api_v1.HandleGetBookmarkData,
+		globalMiddleware...,
+	))
+	s.mux.HandleFunc("PUT /api/v1/bookmarks/{id}/data", ToHTTPHandler(deps,
+		api_v1.HandleUpdateBookmarkData,
 		globalMiddleware...,
 	))
 	s.mux.HandleFunc("PUT /api/v1/bookmarks/bulk/tags", ToHTTPHandler(deps,

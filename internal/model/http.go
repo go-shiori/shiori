@@ -32,3 +32,9 @@ type HttpMiddleware interface {
 	OnRequest(deps Dependencies, c WebContext) error
 	OnResponse(deps Dependencies, c WebContext) error
 }
+
+// PaginatedResponse is a generic response that includes pagination metadata
+type PaginatedResponse[T any] struct {
+	Items []T `json:"items"`
+	Total int `json:"total"`
+}

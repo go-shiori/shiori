@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import { useI18n } from 'vue-i18n';
+import { Input, Checkbox } from '@/components/ui';
 
 // Props for destination
 const props = defineProps<{
@@ -68,7 +69,7 @@ const redirectAfterLogin = () => {
 
   // If no destination in store, check props and route query
   if (!destination) {
-    destination = props.dst || route.query.dst as string || '/home';
+    destination = props.dst || route.query.dst as string || '/library';
   }
 
   // Redirect to the destination
@@ -82,7 +83,7 @@ const redirectAfterLogin = () => {
       <!-- Logo and Header -->
       <div class="bg-red-500 text-white py-6 px-4 text-center">
         <div class="text-4xl font-bold mb-1">栞 shiori</div>
-        <div class="text-sm">simple bookmark manager</div>
+        <div class="text-sm">{{ t('common.tagline') }}</div>
       </div>
 
       <!-- Login Form -->
@@ -101,29 +102,24 @@ const redirectAfterLogin = () => {
           <div class="mb-6">
             <div class="flex items-center mb-4">
               <div class="w-28 text-right mr-4 text-gray-700 dark:text-gray-300">{{ t('auth.username') }}:</div>
-              <input v-model="username" type="text"
-                class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-                :placeholder="t('auth.username')" required />
+              <Input v-model="username" type="text" variant="search" :placeholder="t('auth.username')" required />
             </div>
 
             <div class="flex items-center">
               <div class="w-28 text-right mr-4 text-gray-700 dark:text-gray-300">{{ t('auth.password') }}:</div>
-              <input v-model="password" type="password"
-                class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-                :placeholder="t('auth.password')" required />
+              <Input v-model="password" type="password" variant="search" :placeholder="t('auth.password')" required />
             </div>
           </div>
 
           <div class="flex justify-center items-center mb-6">
-            <input id="remember-me" v-model="rememberMe" type="checkbox"
-              class="h-4 w-4 text-red-500 focus:ring-red-500 border-gray-300 dark:border-gray-600 rounded" />
+            <Checkbox id="remember-me" v-model="rememberMe" />
             <label for="remember-me" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">{{
               t('auth.remember_me') }}</label>
           </div>
 
           <div class="flex justify-center">
             <button type="submit"
-              class="w-full bg-gray-800 dark:bg-gray-700 text-white py-2 px-4 rounded-md hover:bg-gray-700 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 uppercase font-medium"
+              class="w-full bg-gray-800 dark:bg-gray-700 text-white py-2 px-4 rounded-md hover:bg-gray-700 dark:hover:bg-gray-600 focus:outline-none focus:ring-1 focus:ring-gray-500 focus:ring-offset-2 uppercase font-medium"
               :disabled="isLoading">
               <span v-if="isLoading">{{ t('common.loading') }}</span>
               <span v-else>{{ t('auth.login') }}</span>

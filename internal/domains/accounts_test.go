@@ -62,6 +62,36 @@ func TestAccountDomainsGetAccountByUsername(t *testing.T) {
 	})
 }
 
+func TestAccountDomainsGetAccountByID(t *testing.T) {
+	logger := logrus.New()
+	_, deps := testutil.GetTestConfigurationAndDependencies(t, context.TODO(), logger)
+
+	t.Run("account not found", func(t *testing.T) {
+		_, err := deps.Domains().Accounts().GetAccountByID(context.TODO(), model.DBID(999))
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "not found")
+	})
+
+	t.Run("account found", func(t *testing.T) {
+		// Create an account first
+		createdAccount, err := deps.Domains().Accounts().CreateAccount(context.TODO(), model.AccountDTO{
+			Username: "userbyid",
+			Password: "password",
+			Owner:    model.Ptr(false),
+		})
+		require.NoError(t, err)
+		require.NotNil(t, createdAccount)
+
+		// Now get it by ID
+		account, err := deps.Domains().Accounts().GetAccountByID(context.TODO(), createdAccount.ID)
+		require.NoError(t, err)
+		require.NotNil(t, account)
+		require.Equal(t, createdAccount.ID, account.ID)
+		require.Equal(t, "userbyid", account.Username)
+		require.Equal(t, "system", account.Config.Theme) // Should have default theme
+	})
+}
+
 func TestAccountDomainCreateAccount(t *testing.T) {
 	logger := logrus.New()
 	_, deps := testutil.GetTestConfigurationAndDependencies(t, context.TODO(), logger)
@@ -79,6 +109,20 @@ func TestAccountDomainCreateAccount(t *testing.T) {
 		require.NotZero(t, acc.ID)
 		require.Equal(t, "user", acc.Username)
 		require.Equal(t, "dark", acc.Config.Theme)
+	})
+
+	t.Run("create account without config uses NewUserConfig", func(t *testing.T) {
+		acc, err := deps.Domains().Accounts().CreateAccount(context.TODO(), model.AccountDTO{
+			Username: "user2",
+			Password: "password2",
+			Owner:    model.Ptr(false),
+			// Config is nil
+		})
+		require.NoError(t, err)
+		require.NotZero(t, acc.ID)
+		require.Equal(t, "user2", acc.Username)
+		require.NotNil(t, acc.Config)
+		require.Equal(t, "system", acc.Config.Theme) // Should use default from NewUserConfig
 	})
 
 	t.Run("create account with empty username", func(t *testing.T) {
@@ -199,10 +243,18 @@ func TestAccountDomainDeleteAccount(t *testing.T) {
 
 	t.Run("token expiration is valid", func(t *testing.T) {
 		ctx := context.TODO()
-		account := testutil.GetValidAccount().ToDTO()
+		// Create a real account in the database first
+		account, err := deps.Domains().Accounts().CreateAccount(ctx, model.AccountDTO{
+			Username: "tokenuser",
+			Password: "password",
+			Owner:    model.Ptr(false),
+		})
+		require.NoError(t, err)
+		require.NotNil(t, account)
+
 		expiration := time.Now().Add(time.Hour * 9)
 		token, err := deps.Domains().Auth().CreateTokenForAccount(
-			&account,
+			account,
 			expiration,
 		)
 		require.NoError(t, err)
@@ -210,5 +262,6 @@ func TestAccountDomainDeleteAccount(t *testing.T) {
 		tokenAccount, err := deps.Domains().Auth().CheckToken(ctx, token)
 		require.NoError(t, err)
 		require.NotNil(t, tokenAccount)
+		require.Equal(t, account.ID, tokenAccount.ID)
 	})
 }

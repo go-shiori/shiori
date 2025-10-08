@@ -2,13 +2,32 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8">
+    <!-- Light mode favicons -->
+    <link rel="icon" href="/favicon.ico" media="(prefers-color-scheme: light)">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" media="(prefers-color-scheme: light)">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" media="(prefers-color-scheme: light)">
+
+    <!-- Dark mode favicons -->
+    <link rel="icon" href="/favicon-dark.ico" media="(prefers-color-scheme: dark)">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16-dark.png" media="(prefers-color-scheme: dark)">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32-dark.png" media="(prefers-color-scheme: dark)">
+
+    <!-- Fallback favicon for browsers that don't support media queries -->
     <link rel="icon" href="/favicon.ico">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Shiori - Simple Bookmark Manager</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   </head>
   <body>
+
     <div id="app"></div>
     <script type="module" src="/src/main.ts"></script>
+    <script>
+      // App will control favicon based on user/system preference via useTheme
+      const favicon = document.querySelector('link[rel="icon"]:not([media])') || document.querySelector('link[rel="icon"]');
+      if (favicon && !favicon.getAttribute('href')) {
+        favicon.setAttribute('href', '/favicon.ico');
+      }
+    </script>
   </body>
 </html>
