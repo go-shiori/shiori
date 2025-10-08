@@ -2,6 +2,11 @@ name: "Build Docker"
 
 on:
   workflow_call:
+    secrets:
+      DOCKERHUB_USERNAME:
+        required: true
+      DOCKERHUB_TOKEN:
+        required: true
     inputs:
       tag_prefix:
         description: 'The tag prefix to use'
@@ -21,10 +26,10 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     name: Build Docker
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           fetch-depth: 0
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # 4.3.0
+      - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # 5.0.0
         with:
           name: dist
           path: ./dist
@@ -42,6 +47,7 @@ jobs:
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         run: |
           REPO=ghcr.io/${{ github.repository }}
+          DOCKERHUB_REPO=shioriapp/shiori
           TAG=$(git describe --tags)
           if [[ "$TAG" == *"rc"* ]]
           then
@@ -49,7 +55,7 @@ jobs:
           else
             TAG2="latest"
           fi
-          echo "tag_flags=--tag $REPO:${{ inputs.tag_prefix }}$TAG --tag $REPO:${{ inputs.tag_prefix }}$TAG2" >> $GITHUB_ENV
+          echo "tag_flags=--tag $REPO:${{ inputs.tag_prefix }}$TAG --tag $REPO:${{ inputs.tag_prefix }}$TAG2 --tag $DOCKERHUB_REPO:${{ inputs.tag_prefix }}$TAG --tag $DOCKERHUB_REPO:${{ inputs.tag_prefix }}$TAG2" >> $GITHUB_ENV
 
       # Every pull request
       - name: Prepare pull request tags
@@ -63,4 +69,8 @@ jobs:
         run: |
           set -x
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login -u "${{ github.repository_owner }}" --password-stdin ghcr.io
+          # Login to DockerHub for versioned releases
+          if [[ "${{ github.event_name }}" == "push" && "${{ github.ref }}" == refs/tags/v* ]]; then
+            echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+          fi
           make buildx CONTAINERFILE_NAME=${{ inputs.dockerfile }} CONTAINER_BUILDX_OPTIONS="--push ${{ env.tag_flags }}"

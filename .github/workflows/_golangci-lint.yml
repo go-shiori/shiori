@@ -9,11 +9,11 @@ jobs:
   golangci:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - name: golangci-lint
         uses: golangci/golangci-lint-action@4afd733a84b1f43292c63897423277bb7f4313a9 # 8.0.0
         with:
-          version: "v2.1.6"
+          version: "v2.5.0"
 
           # Optional: working directory, useful for monorepos
           # working-directory: somedir

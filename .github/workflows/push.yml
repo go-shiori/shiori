@@ -2,8 +2,10 @@ name: 'Push'
 
 on:
   push:
-    branches: master
-    tags: v*
+    branches:
+      - "master"
+    tags:
+      - "v*"
 
 concurrency:
   group: ci-tests-${{ github.ref }}-1
@@ -24,10 +26,16 @@ jobs:
   call-buildx:
     needs: call-gorelease
     uses: ./.github/workflows/_buildx.yml
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
   call-buildx-alpine:
     needs: call-gorelease
     # only build on pull requests from the same repo for now
     uses: ./.github/workflows/_buildx.yml
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
     with:
       tag_prefix: alpine-
       dockerfile: Dockerfile.alpine
