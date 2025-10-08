@@ -631,7 +631,10 @@ func testUpdateAccount(t *testing.T, db model.DB) {
 		require.True(t, exists)
 		require.Equal(t, acc.Username, updatedAccount.Username)
 		require.Equal(t, acc.Owner, updatedAccount.Owner)
-		require.Equal(t, acc.Config, updatedAccount.Config)
+		// Note: Config comparison needs to account for automatic defaults
+		expectedConfig := acc.Config
+		expectedConfig.Defaults() // Apply defaults to match what the database returns
+		require.Equal(t, expectedConfig, updatedAccount.Config)
 		require.NotEqual(t, acc.Password, account.Password)
 	})
 }

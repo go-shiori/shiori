@@ -25,7 +25,7 @@ func TestCORSMiddleware(t *testing.T) {
 
 		headers := w.Header()
 		assert.Equal(t, "http://localhost:8080", headers.Get("Access-Control-Allow-Origin"))
-		assert.Equal(t, "GET, POST, PUT, DELETE, OPTIONS", headers.Get("Access-Control-Allow-Methods"))
+		assert.Equal(t, "GET, POST, PUT, PATCH, DELETE, OPTIONS", headers.Get("Access-Control-Allow-Methods"))
 		assert.Equal(t, "Content-Type, Authorization, X-Shiori-Response-Format", headers.Get("Access-Control-Allow-Headers"))
 	})
 
@@ -73,7 +73,7 @@ func TestCORSMiddleware(t *testing.T) {
 
 		headers := w.Header()
 		assert.Equal(t, "http://localhost:8080", headers.Get("Access-Control-Allow-Origin"))
-		assert.Equal(t, "GET, POST, PUT, DELETE, OPTIONS", headers.Get("Access-Control-Allow-Methods"))
+		assert.Equal(t, "GET, POST, PUT, PATCH, DELETE, OPTIONS", headers.Get("Access-Control-Allow-Methods"))
 		assert.Equal(t, "Content-Type, Authorization, X-Shiori-Response-Format", headers.Get("Access-Control-Allow-Headers"))
 	})
 

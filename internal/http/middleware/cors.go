@@ -49,7 +49,7 @@ func (m *CORSMiddleware) OnResponse(deps model.Dependencies, c model.WebContext)
 
 	if allowOrigin != "" {
 		c.ResponseWriter().Header().Set("Access-Control-Allow-Origin", allowOrigin)
-		c.ResponseWriter().Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		c.ResponseWriter().Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
 		c.ResponseWriter().Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Shiori-Response-Format")
 
 		if m.allowCredentials {

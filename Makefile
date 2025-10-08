@@ -106,7 +106,7 @@ golangci-lint:
 ## Run unit tests
 .PHONY: unittest
 unittest:
-	GIN_MODE=$(GIN_MODE) GO_TEST_FLAGS="$(GO_TEST_FLAGS)" GOTESTFMT_FLAGS="$(GOTESTFMT_FLAGS)" $(BASH) -xe ./scripts/test.sh
+	GO_TEST_FLAGS="$(GO_TEST_FLAGS)" GOTESTFMT_FLAGS="$(GOTESTFMT_FLAGS)" $(BASH) -xe ./scripts/test.sh
 
 ## Run end to end tests
 .PHONY: e2e
@@ -126,11 +126,11 @@ styles-check:
 ## Build binary
 .PHONY: build
 build: clean
-	GIN_MODE=$(GIN_MODE) goreleaser build --clean --snapshot
+	goreleaser build --clean --snapshot
 
 ## Build binary for current targer
 build-local: clean
-	GIN_MODE=$(GIN_MODE) goreleaser build --clean --snapshot --single-target
+	goreleaser build --clean --snapshot --single-target
 
 ## Build docker image using Buildx.
 # used for multi-arch builds suing mainly the CI, that's why the task does not

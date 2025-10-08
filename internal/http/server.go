@@ -100,9 +100,9 @@ func (s *HttpServer) Setup(cfg *config.Config, deps *dependencies.Dependencies) 
 	s.mux.HandleFunc("DELETE /api/bookmarks/ext", ToHTTPHandler(deps, legacyHandler.HandleDeleteViaExtension, globalMiddleware...))
 
 	// Register routes using standard http handlers
-	if cfg.Http.ServeWebUI && false {
+	if cfg.Http.ServeWebUI {
 		// Frontend routes
-		s.mux.HandleFunc("/", ToHTTPHandler(deps,
+		s.mux.HandleFunc("GET /", ToHTTPHandler(deps,
 			handlers.HandleFrontend,
 			globalMiddleware...,
 		))
