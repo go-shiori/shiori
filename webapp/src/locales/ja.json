@@ -13,7 +13,10 @@
     "user": "ユーザー",
     "processing": "処理中...",
     "note": "注意",
-    "ok": "OK"
+    "ok": "OK",
+    "tagline": "シンプルなブックマークマネージャー",
+    "none": "なし",
+    "error_occurred": "エラーが発生しました"
   },
   "auth": {
     "login": "ログイン",
@@ -24,7 +27,7 @@
     "login_failed": "ログインに失敗しました。認証情報を確認してください。"
   },
   "navigation": {
-    "home": "ホーム",
+    "library": "ライブラリ",
     "tags": "タグ",
     "settings": "設定",
     "about": "概要"
@@ -88,6 +91,17 @@
     "archived_content": "アーカイブされたコンテンツ",
     "no_readable_content": "このブックマークには読み取り可能なコンテンツがありません。",
     "view_original_page": "元のページを表示",
+    "confirm_delete_message": "削除してもよろしいですか",
+    "toast": {
+      "created_success": "ブックマークを作成しました",
+      "created_success_message": "ブックマークが保存され、処理中です",
+      "created_error": "ブックマークの作成に失敗しました",
+      "created_error_message": "URLを確認して、もう一度お試しください",
+      "deleted_success": "ブックマークを削除しました",
+      "deleted_success_message": "ブックマークが完全に削除されました",
+      "deleted_error": "ブックマークの削除に失敗しました",
+      "deleted_error_message": "もう一度お試しください"
+    },
     "error": {
       "invalid_id": "無効なブックマークID",
       "no_archive": "このブックマークにはアーカイブがありません",
@@ -105,7 +119,17 @@
     "theme": "テーマ",
     "light": "ライト",
     "dark": "ダーク",
-    "system": "システム"
+    "system": "システム",
+    "display": "表示",
+    "bookmarks": "ブックマーク",
+    "show_id": "ブックマークIDを表示",
+    "list_mode": "ブックマークをリスト表示",
+    "hide_thumbnail": "サムネイルを非表示",
+    "hide_excerpt": "抜粋を非表示",
+    "keep_metadata": "更新時にメタデータを保持",
+    "use_archive": "デフォルトでアーカイブを作成",
+    "create_ebook": "デフォルトで電子書籍を作成",
+    "make_public": "デフォルトで公開する"
   },
   "pagination": {
     "showing": "表示中",
@@ -131,6 +155,20 @@
     "create_first_tag": "ブックマークを整理するために最初のタグを作成してください。",
     "confirm_delete": "このタグを削除してもよろしいですか？この操作は元に戻せません。",
     "tag_name_required": "タグ名は空にできません",
+    "toast": {
+      "created_success": "タグを作成しました",
+      "created_success_message": "タグが追加され、使用可能になりました",
+      "created_error": "タグの作成に失敗しました",
+      "created_error_message": "もう一度お試しください、または既存のタグか確認してください",
+      "updated_success": "タグを更新しました",
+      "updated_success_message": "タグが更新されました",
+      "updated_error": "タグの更新に失敗しました",
+      "updated_error_message": "もう一度お試しください",
+      "deleted_success": "タグを削除しました",
+      "deleted_success_message": "タグが削除されました",
+      "deleted_error": "タグの削除に失敗しました",
+      "deleted_error_message": "もう一度お試しください"
+    },
     "errors": {
       "already_exists": {
         "tag": "この名前のタグは既に存在します"

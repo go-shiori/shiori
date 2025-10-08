@@ -13,7 +13,10 @@
     "user": "Utilisateur",
     "processing": "Traitement...",
     "note": "Note",
-    "ok": "OK"
+    "ok": "OK",
+    "tagline": "gestionnaire de favoris simple",
+    "none": "Aucun",
+    "error_occurred": "Une erreur s'est produite"
   },
   "auth": {
     "login": "Connexion",
@@ -24,7 +27,7 @@
     "login_failed": "Échec de la connexion. Veuillez vérifier vos identifiants."
   },
   "navigation": {
-    "home": "Accueil",
+    "library": "Bibliothèque",
     "tags": "Tags",
     "settings": "Paramètres",
     "about": "À propos"
@@ -88,6 +91,17 @@
     "archived_content": "Contenu archivé",
     "no_readable_content": "Aucun contenu lisible disponible pour ce favori.",
     "view_original_page": "Voir la page originale",
+    "confirm_delete_message": "Êtes-vous sûr de vouloir supprimer",
+    "toast": {
+      "created_success": "Favori créé avec succès",
+      "created_success_message": "Votre favori a été enregistré et est en cours de traitement",
+      "created_error": "Échec de la création du favori",
+      "created_error_message": "Veuillez vérifier l'URL et réessayer",
+      "deleted_success": "Favori supprimé avec succès",
+      "deleted_success_message": "Le favori a été supprimé définitivement",
+      "deleted_error": "Échec de la suppression du favori",
+      "deleted_error_message": "Veuillez réessayer"
+    },
     "error": {
       "invalid_id": "ID de favori invalide",
       "no_archive": "Aucune archive disponible pour ce favori",
@@ -105,7 +119,17 @@
     "theme": "Thème",
     "light": "Clair",
     "dark": "Sombre",
-    "system": "Système"
+    "system": "Système",
+    "display": "Affichage",
+    "bookmarks": "Signets",
+    "show_id": "Afficher l'ID du signet",
+    "list_mode": "Afficher les signets en liste",
+    "hide_thumbnail": "Masquer la vignette",
+    "hide_excerpt": "Masquer l'extrait",
+    "keep_metadata": "Conserver les métadonnées lors de la mise à jour",
+    "use_archive": "Créer une archive par défaut",
+    "create_ebook": "Créer un ebook par défaut",
+    "make_public": "Rendre public par défaut"
   },
   "pagination": {
     "showing": "Affichage",
@@ -131,6 +155,20 @@
     "create_first_tag": "Créez votre première étiquette pour organiser vos signets.",
     "confirm_delete": "Êtes-vous sûr de vouloir supprimer cette étiquette ? Cette action ne peut pas être annulée.",
     "tag_name_required": "Le nom de l'étiquette ne peut pas être vide",
+    "toast": {
+      "created_success": "Étiquette créée avec succès",
+      "created_success_message": "L'étiquette a été ajoutée et est prête à être utilisée",
+      "created_error": "Échec de la création de l'étiquette",
+      "created_error_message": "Veuillez réessayer ou vérifier si l'étiquette existe déjà",
+      "updated_success": "Étiquette mise à jour avec succès",
+      "updated_success_message": "L'étiquette a été mise à jour",
+      "updated_error": "Échec de la mise à jour de l'étiquette",
+      "updated_error_message": "Veuillez réessayer",
+      "deleted_success": "Étiquette supprimée avec succès",
+      "deleted_success_message": "L'étiquette a été supprimée",
+      "deleted_error": "Échec de la suppression de l'étiquette",
+      "deleted_error_message": "Veuillez réessayer"
+    },
     "errors": {
       "already_exists": {
         "tag": "Une étiquette avec ce nom existe déjà"

@@ -13,7 +13,10 @@
     "user": "Benutzer",
     "processing": "Verarbeitung...",
     "note": "Hinweis",
-    "ok": "OK"
+    "ok": "OK",
+    "tagline": "einfacher Lesezeichen-Manager",
+    "none": "Keine",
+    "error_occurred": "Ein Fehler ist aufgetreten"
   },
   "auth": {
     "login": "Anmelden",
@@ -24,7 +27,7 @@
     "login_failed": "Anmeldung fehlgeschlagen. Bitte überprüfen Sie Ihre Anmeldedaten."
   },
   "navigation": {
-    "home": "Startseite",
+    "library": "Bibliothek",
     "tags": "Tags",
     "settings": "Einstellungen",
     "about": "Über"
@@ -88,6 +91,17 @@
     "archived_content": "Archivierter Inhalt",
     "no_readable_content": "Kein lesbarer Inhalt für dieses Lesezeichen verfügbar.",
     "view_original_page": "Originalseite anzeigen",
+    "confirm_delete_message": "Sind Sie sicher, dass Sie",
+    "toast": {
+      "created_success": "Lesezeichen erfolgreich erstellt",
+      "created_success_message": "Ihr Lesezeichen wurde gespeichert und wird verarbeitet",
+      "created_error": "Erstellen des Lesezeichens fehlgeschlagen",
+      "created_error_message": "Bitte überprüfen Sie die URL und versuchen Sie es erneut",
+      "deleted_success": "Lesezeichen erfolgreich gelöscht",
+      "deleted_success_message": "Das Lesezeichen wurde dauerhaft entfernt",
+      "deleted_error": "Löschen des Lesezeichens fehlgeschlagen",
+      "deleted_error_message": "Bitte versuchen Sie es erneut"
+    },
     "error": {
       "invalid_id": "Ungültige Lesezeichen-ID",
       "no_archive": "Kein Archiv für dieses Lesezeichen verfügbar",
@@ -105,7 +119,17 @@
     "theme": "Thema",
     "light": "Hell",
     "dark": "Dunkel",
-    "system": "System"
+    "system": "System",
+    "display": "Anzeige",
+    "bookmarks": "Lesezeichen",
+    "show_id": "Lesezeichen-ID anzeigen",
+    "list_mode": "Lesezeichen als Liste anzeigen",
+    "hide_thumbnail": "Miniaturbild ausblenden",
+    "hide_excerpt": "Auszug ausblenden",
+    "keep_metadata": "Metadaten beim Aktualisieren behalten",
+    "use_archive": "Archiv standardmäßig erstellen",
+    "create_ebook": "E-Book standardmäßig erstellen",
+    "make_public": "Standardmäßig öffentlich machen"
   },
   "pagination": {
     "showing": "Anzeige",
@@ -131,6 +155,20 @@
     "create_first_tag": "Erstellen Sie Ihren ersten Tag, um Ihre Lesezeichen zu organisieren.",
     "confirm_delete": "Sind Sie sicher, dass Sie diesen Tag löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
     "tag_name_required": "Der Tag-Name darf nicht leer sein",
+    "toast": {
+      "created_success": "Tag erfolgreich erstellt",
+      "created_success_message": "Der Tag wurde hinzugefügt und ist einsatzbereit",
+      "created_error": "Erstellen des Tags fehlgeschlagen",
+      "created_error_message": "Bitte versuchen Sie es erneut oder prüfen Sie, ob der Tag bereits existiert",
+      "updated_success": "Tag erfolgreich aktualisiert",
+      "updated_success_message": "Der Tag wurde aktualisiert",
+      "updated_error": "Aktualisieren des Tags fehlgeschlagen",
+      "updated_error_message": "Bitte versuchen Sie es erneut",
+      "deleted_success": "Tag erfolgreich gelöscht",
+      "deleted_success_message": "Der Tag wurde entfernt",
+      "deleted_error": "Löschen des Tags fehlgeschlagen",
+      "deleted_error_message": "Bitte versuchen Sie es erneut"
+    },
     "errors": {
       "already_exists": {
         "tag": "Ein Tag mit diesem Namen existiert bereits"

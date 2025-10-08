@@ -14,7 +14,9 @@
     "processing": "Procesando...",
     "note": "Nota",
     "ok": "OK",
-    "none": "Ninguno"
+    "tagline": "gestor de marcadores simple",
+    "none": "Ninguno",
+    "error_occurred": "Se produjo un error"
   },
   "auth": {
     "login": "Iniciar sesión",
@@ -25,7 +27,7 @@
     "login_failed": "Error de inicio de sesión. Por favor, verifica tus credenciales."
   },
   "navigation": {
-    "home": "Inicio",
+    "library": "Biblioteca",
     "tags": "Etiquetas",
     "settings": "Configuración",
     "about": "Acerca de"
@@ -78,6 +80,7 @@
     "visibility_internal": "Interno (accesible para todos los usuarios de Shiori)",
     "visibility_public": "Público (accesible para usuarios no registrados)",
     "visibility_description": "Los marcadores internos son visibles para todos los usuarios registrados. Los marcadores públicos pueden ser accedidos por cualquiera.",
+    "create_ebook": "Crear libro electrónico",
     "view_content": "Ver Contenido",
     "download_ebook": "Descargar Libro Electrónico",
     "view_archive": "Ver Archivo",
@@ -88,6 +91,7 @@
     "archived_content": "Contenido archivado",
     "no_readable_content": "No hay contenido legible disponible para este marcador.",
     "view_original_page": "Ver Página Original",
+    "confirm_delete_message": "¿Estás seguro de que quieres eliminar",
     "error": {
       "invalid_id": "ID de marcador inválido",
       "no_archive": "No hay archivo disponible para este marcador",
@@ -97,7 +101,11 @@
       "created_success": "Marcador creado exitosamente",
       "created_success_message": "Tu marcador ha sido guardado y está siendo procesado",
       "created_error": "Error al crear el marcador",
-      "created_error_message": "Por favor, verifica la URL e inténtalo de nuevo"
+      "created_error_message": "Por favor, verifica la URL e inténtalo de nuevo",
+      "deleted_success": "Marcador eliminado exitosamente",
+      "deleted_success_message": "El marcador ha sido eliminado permanentemente",
+      "deleted_error": "Error al eliminar el marcador",
+      "deleted_error_message": "Por favor, inténtalo de nuevo"
     },
     "errors": {
       "already_exists": {
@@ -111,7 +119,17 @@
     "theme": "Tema",
     "light": "Claro",
     "dark": "Oscuro",
-    "system": "Sistema"
+    "system": "Sistema",
+    "display": "Visualización",
+    "bookmarks": "Marcadores",
+    "show_id": "Mostrar ID del marcador",
+    "list_mode": "Mostrar marcadores como lista",
+    "hide_thumbnail": "Ocultar miniatura",
+    "hide_excerpt": "Ocultar extracto",
+    "keep_metadata": "Mantener metadatos al actualizar",
+    "use_archive": "Crear archivo por defecto",
+    "create_ebook": "Crear libro electrónico por defecto",
+    "make_public": "Hacer públicos por defecto"
   },
   "pagination": {
     "showing": "Mostrando",
@@ -141,7 +159,15 @@
       "created_success": "Etiqueta creada exitosamente",
       "created_success_message": "La etiqueta ha sido añadida y está lista para usar",
       "created_error": "Error al crear la etiqueta",
-      "created_error_message": "Por favor, inténtalo de nuevo o verifica si la etiqueta ya existe"
+      "created_error_message": "Por favor, inténtalo de nuevo o verifica si la etiqueta ya existe",
+      "updated_success": "Etiqueta actualizada exitosamente",
+      "updated_success_message": "La etiqueta ha sido actualizada",
+      "updated_error": "Error al actualizar la etiqueta",
+      "updated_error_message": "Por favor, inténtalo de nuevo",
+      "deleted_success": "Etiqueta eliminada exitosamente",
+      "deleted_success_message": "La etiqueta ha sido eliminada",
+      "deleted_error": "Error al eliminar la etiqueta",
+      "deleted_error_message": "Por favor, inténtalo de nuevo"
     },
     "errors": {
       "already_exists": {

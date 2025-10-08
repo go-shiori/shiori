@@ -14,6 +14,7 @@
     "processing": "Processing...",
     "note": "Note",
     "ok": "OK",
+    "tagline": "simple bookmark manager",
     "none": "None",
     "error_occurred": "An error occurred"
   },
@@ -26,7 +27,7 @@
     "login_failed": "Login failed. Please check your credentials."
   },
   "navigation": {
-    "home": "Home",
+    "library": "Library",
     "tags": "Tags",
     "settings": "Settings",
     "about": "About"
@@ -79,6 +80,7 @@
     "visibility_internal": "Internal (accessible to all Shiori users)",
     "visibility_public": "Public (accessible to non-registered users)",
     "visibility_description": "Internal bookmarks are visible to all registered users. Public bookmarks can be accessed by anyone.",
+    "create_ebook": "Create eBook",
     "view_content": "View Content",
     "download_ebook": "Download eBook",
     "view_archive": "View Archive",
@@ -94,11 +96,16 @@
       "no_archive": "No archive available for this bookmark",
       "load_failed": "Failed to load bookmark"
     },
+    "confirm_delete_message": "Are you sure you want to delete",
     "toast": {
       "created_success": "Bookmark created successfully",
       "created_success_message": "Your bookmark has been saved and is being processed",
       "created_error": "Failed to create bookmark",
-      "created_error_message": "Please check the URL and try again"
+      "created_error_message": "Please check the URL and try again",
+      "deleted_success": "Bookmark deleted successfully",
+      "deleted_success_message": "The bookmark has been permanently removed",
+      "deleted_error": "Failed to delete bookmark",
+      "deleted_error_message": "Please try again"
     },
     "errors": {
       "already_exists": {
@@ -109,10 +116,32 @@
   "settings": {
     "title": "Settings",
     "language": "Language",
+    "language_description": "Choose your preferred language for the interface",
+    "appearance": "Appearance",
+    "appearance_description": "Customize how the interface looks and behaves",
     "theme": "Theme",
+    "theme_description": "Choose between light, dark, or system theme",
     "light": "Light",
     "dark": "Dark",
-    "system": "System"
+    "system": "System",
+    "display": "Display",
+    "display_options": "Display Options",
+    "bookmarks": "Bookmarks",
+    "bookmarks_description": "Configure default behavior for new bookmarks",
+    "show_id": "Show bookmark ID",
+    "list_mode": "Display bookmarks as list",
+    "hide_thumbnail": "Hide thumbnail image",
+    "hide_thumbnail_description": "Don't show thumbnail images in bookmark lists",
+    "hide_excerpt": "Hide bookmark excerpt",
+    "hide_excerpt_description": "Don't show bookmark excerpts in lists",
+    "keep_metadata": "Keep metadata when updating",
+    "keep_metadata_description": "Preserve existing metadata when updating bookmarks",
+    "use_archive": "Create archive by default",
+    "use_archive_description": "Automatically create archive copies of bookmarked pages",
+    "create_ebook": "Create ebook by default",
+    "create_ebook_description": "Automatically generate ebook versions of bookmarked pages",
+    "make_public": "Make bookmarks public by default",
+    "make_public_description": "Set new bookmarks as public by default"
   },
   "pagination": {
     "showing": "Showing",
@@ -128,9 +157,12 @@
   "tags": {
     "title": "Tags",
     "add_tag": "Add Tag",
+    "add_tag_description": "Create a new tag to organize your bookmarks",
+    "create_new_tag": "Create New Tag",
     "edit_tag": "Edit Tag",
     "delete_tag": "Delete Tag",
     "name": "Name",
+    "name_placeholder": "Enter tag name",
     "no_tags": "No tags found",
     "search_placeholder": "Search tags...",
     "searching": "Searching tags...",
