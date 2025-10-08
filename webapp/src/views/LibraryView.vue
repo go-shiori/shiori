@@ -9,19 +9,26 @@ import Pagination from '@/components/ui/Pagination.vue';
 import ViewSelector from '@/components/ui/ViewSelector.vue';
 import BookmarkCard from '@/components/ui/BookmarkCard.vue';
 import BookmarkThumbnail from '@/components/ui/BookmarkThumbnail.vue';
+import DeleteConfirmationModal from '@/components/ui/DeleteConfirmationModal.vue';
 import { useBookmarksStore } from '@/stores/bookmarks';
 import { useAuthStore } from '@/stores/auth';
+import { useToast } from '@/composables/useToast';
 import { ImageIcon, PencilIcon, TrashIcon, ArchiveIcon, BookIcon, FileTextIcon, ExternalLinkIcon, PlusIcon } from '@/components/icons';
 
 const bookmarksStore = useBookmarksStore();
 const authStore = useAuthStore();
 const router = useRouter();
 const { t } = useI18n();
+const { success, error: showErrorToast } = useToast();
 
 const { bookmarks, isLoading, error, totalCount, currentPage, pageLimit } = storeToRefs(bookmarksStore);
-const { fetchBookmarks } = bookmarksStore;
+const { fetchBookmarks, deleteBookmarks } = bookmarksStore;
 
 const searchKeyword = ref('');
+
+// Delete state
+const bookmarkToDelete = ref<any>(null);
+const isDeleting = ref(false);
 
 // Respect user setting to hide excerpts
 const shouldHideExcerpt = computed(() => authStore.user?.config?.HideExcerpt === true);
@@ -161,6 +168,38 @@ const getBookmarkTags = (bookmark: any) => {
     return [];
 };
 
+// Delete handlers
+const handleDeleteBookmark = (bookmark: any) => {
+    bookmarkToDelete.value = bookmark;
+};
+
+const confirmDeleteBookmark = async () => {
+    if (!bookmarkToDelete.value) return;
+
+    isDeleting.value = true;
+    try {
+        await deleteBookmarks([bookmarkToDelete.value.id]);
+        bookmarkToDelete.value = null;
+
+        success(
+            t('bookmarks.toast.deleted_success'),
+            t('bookmarks.toast.deleted_success_message')
+        );
+    } catch (err) {
+        console.error('Failed to delete bookmark:', err);
+        showErrorToast(
+            t('bookmarks.toast.deleted_error'),
+            t('bookmarks.toast.deleted_error_message')
+        );
+    } finally {
+        isDeleting.value = false;
+    }
+};
+
+const cancelDeleteBookmark = () => {
+    bookmarkToDelete.value = null;
+};
+
 // Cleanup resize listener
 onUnmounted(() => {
     window.removeEventListener('resize', checkMobile);
@@ -259,7 +298,8 @@ onUnmounted(() => {
                                         <span class="sr-only">{{ t('bookmarks.edit_bookmark_action') }}</span>
                                         <PencilIcon class="h-5 w-5" />
                                     </button>
-                                    <button @click.stop class="text-gray-500 dark:text-gray-400 hover:text-red-500">
+                                    <button @click.stop="handleDeleteBookmark(bookmark)"
+                                        class="text-gray-500 dark:text-gray-400 hover:text-red-500">
                                         <span class="sr-only">{{ t('bookmarks.delete_bookmark_action') }}</span>
                                         <TrashIcon class="h-5 w-5" />
                                     </button>
@@ -278,12 +318,18 @@ onUnmounted(() => {
             <!-- Card View -->
             <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
                 <BookmarkCard v-for="bookmark in bookmarks" :key="bookmark.id" :bookmark="bookmark"
-                    :auth-token="authStore.token || undefined" />
+                    :auth-token="authStore.token || undefined" @delete="handleDeleteBookmark" />
             </div>
 
             <!-- Pagination -->
             <Pagination v-if="totalCount > pageLimit" :current-page="currentPage" :total-items="totalCount"
                 :items-per-page="pageLimit" @page-change="handlePageChange" @per-page-change="handlePerPageChange" />
         </div>
+
+        <!-- Delete Confirmation Modal -->
+        <DeleteConfirmationModal :is-open="bookmarkToDelete !== null" :title="t('bookmarks.delete_bookmark')"
+            :message="t('bookmarks.confirm_delete_message')"
+            :item-name="bookmarkToDelete?.title || bookmarkToDelete?.url" :is-loading="isDeleting"
+            @close="cancelDeleteBookmark" @confirm="confirmDeleteBookmark" />
     </AppLayout>
 </template>

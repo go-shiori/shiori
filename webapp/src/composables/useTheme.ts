@@ -10,14 +10,7 @@ function checkBrowserSupport() {
 
 export type ThemePreference = 'light' | 'dark' | 'system' | 'high-contrast'
 
-// Debounce utility for performance optimization
-function debounce<T extends (...args: any[]) => any>(func: T, wait: number): T {
-	let timeout: number
-	return ((...args: any[]) => {
-		clearTimeout(timeout)
-		timeout = setTimeout(() => func(...args), wait)
-	}) as T
-}
+// Note: Avoid debouncing theme application to prevent visible flicker on navigation
 
 function getSystemPrefersDark(): boolean {
 	return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
@@ -26,24 +19,35 @@ function getSystemPrefersDark(): boolean {
 function setHtmlTheme(theme: ThemePreference): void {
 	const root = document.documentElement
 
-	// Remove all theme attributes
-	root.removeAttribute('data-theme')
-	root.classList.remove('dark')
-
-	// Apply theme based on preference
+	// Determine desired state
+	let desiredDataTheme: string | null = null
+	let desiredDark = false
 	if (theme === 'system') {
-		// Let CSS media queries handle system theme
-		if (getSystemPrefersDark()) {
-			root.classList.add('dark')
-		}
+		desiredDataTheme = null
+		desiredDark = getSystemPrefersDark()
 	} else if (theme === 'dark') {
-		root.setAttribute('data-theme', 'dark')
-		root.classList.add('dark')
+		desiredDataTheme = 'dark'
+		desiredDark = true
 	} else if (theme === 'light') {
-		root.setAttribute('data-theme', 'light')
+		desiredDataTheme = 'light'
+		desiredDark = false
 	} else if (theme === 'high-contrast') {
-		root.setAttribute('data-theme', 'high-contrast')
-		root.classList.add('dark')
+		desiredDataTheme = 'high-contrast'
+		desiredDark = true
+	}
+
+	// Read current state
+	const currentDataTheme = root.getAttribute('data-theme')
+	const hasDark = root.classList.contains('dark')
+
+	// Update only if different to avoid flicker
+	if (currentDataTheme !== desiredDataTheme) {
+		if (desiredDataTheme === null) root.removeAttribute('data-theme')
+		else root.setAttribute('data-theme', desiredDataTheme)
+	}
+	if (hasDark !== desiredDark) {
+		if (desiredDark) root.classList.add('dark')
+		else root.classList.remove('dark')
 	}
 }
 
@@ -73,30 +77,36 @@ export function useTheme() {
 let mediaQuery: MediaQueryList | null = null
 let mediaListener: ((e: MediaQueryListEvent) => void) | null = null
 
-	// Debounced apply function for performance
-	const debouncedApply = debounce((pref: ThemePreference) => {
+	// Immediate apply to avoid flashes
+	const apply = (pref: ThemePreference) => {
 		try {
-			// Validate accessibility
 			if (!validateContrastRatio(pref)) {
 				console.warn(`Theme ${pref} may not meet accessibility standards`)
 			}
+			// Skip if same preference and DOM already matches to prevent flicker
+			const root = document.documentElement
+			const domTheme = root.getAttribute('data-theme')
+			const domDark = root.classList.contains('dark')
+			let desiredTheme: string | null = null
+			let desiredDark = false
+			if (pref === 'system') {
+				desiredTheme = null
+				desiredDark = getSystemPrefersDark()
+			} else if (pref === 'dark') { desiredTheme = 'dark'; desiredDark = true }
+			else if (pref === 'light') { desiredTheme = 'light'; desiredDark = false }
+			else if (pref === 'high-contrast') { desiredTheme = 'high-contrast'; desiredDark = true }
 
-			setHtmlTheme(pref)
-			updateFavicon(pref)
-
-			// Store in localStorage as fallback
-			localStorage.setItem('shiori-theme', pref)
-
-			error.value = null
+			if (current.value !== pref || domTheme !== desiredTheme || domDark !== desiredDark) {
+				current.value = pref
+				setHtmlTheme(pref)
+				updateFavicon(pref)
+				localStorage.setItem('shiori-theme', pref)
+				error.value = null
+			}
 		} catch (err) {
 			error.value = 'Failed to apply theme'
 			console.error('Theme application error:', err)
 		}
-	}, 100)
-
-	const apply = (pref: ThemePreference) => {
-		current.value = pref
-		debouncedApply(pref)
 	}
 
 const init = () => {
