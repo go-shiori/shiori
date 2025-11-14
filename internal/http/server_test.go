@@ -183,11 +183,15 @@ func TestHttpServer_Middleware(t *testing.T) {
 				req := httptest.NewRequest(route.method, route.path, nil)
 
 				if route.auth {
-					// Create a non-admin user token
-					account := testutil.GetValidAccount()
-					account.Owner = false // Ensure not admin
-					accountDTO := account.ToDTO()
-					token, err := deps.Domains().Auth().CreateTokenForAccount(&accountDTO, time.Now().Add(time.Hour))
+					// Create a real non-admin user in the database
+					account, err := deps.Domains().Accounts().CreateAccount(ctx, model.AccountDTO{
+						Username: "testuser",
+						Password: "testpass",
+						Owner:    model.Ptr(false), // Ensure not admin
+					})
+					require.NoError(t, err)
+
+					token, err := deps.Domains().Auth().CreateTokenForAccount(account, time.Now().Add(time.Hour))
 					require.NoError(t, err)
 					req.Header.Set(model.AuthorizationHeader, model.AuthorizationTokenType+" "+token)
 				}

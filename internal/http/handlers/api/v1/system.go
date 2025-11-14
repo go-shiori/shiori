@@ -46,3 +46,13 @@ func HandleSystemInfo(deps model.Dependencies, c model.WebContext) {
 		OS:       runtime.GOOS + " (" + runtime.GOARCH + ")",
 	})
 }
+
+// @Summary					Ping the system
+// @Description				Simple ping endpoint that returns a 200 status code
+// @Tags					System
+// @Produce					json
+// @Success					200	{object}	nil	"Pong"
+// @Router					/api/v1/system/ping [get]
+func HandleSystemPing(deps model.Dependencies, c model.WebContext) {
+	response.SendJSON(c, http.StatusOK, nil)
+}

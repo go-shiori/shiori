@@ -49,3 +49,34 @@ func TestHandleSystemInfo(t *testing.T) {
 		})
 	})
 }
+
+func TestHandleSystemPing(t *testing.T) {
+	logger := logrus.New()
+	_, deps := testutil.GetTestConfigurationAndDependencies(t, context.Background(), logger)
+
+	t.Run("returns 200 status code without authentication", func(t *testing.T) {
+		c, w := testutil.NewTestWebContext()
+		HandleSystemPing(deps, c)
+
+		require.Equal(t, http.StatusOK, w.Code)
+		require.Empty(t, w.Body.String())
+	})
+
+	t.Run("returns 200 status code with authentication", func(t *testing.T) {
+		c, w := testutil.NewTestWebContext()
+		testutil.SetFakeUser(c)
+		HandleSystemPing(deps, c)
+
+		require.Equal(t, http.StatusOK, w.Code)
+		require.Empty(t, w.Body.String())
+	})
+
+	t.Run("returns 200 status code with admin authentication", func(t *testing.T) {
+		c, w := testutil.NewTestWebContext()
+		testutil.SetFakeAdmin(c)
+		HandleSystemPing(deps, c)
+
+		require.Equal(t, http.StatusOK, w.Code)
+		require.Empty(t, w.Body.String())
+	})
+}

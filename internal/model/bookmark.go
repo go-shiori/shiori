@@ -7,67 +7,41 @@ import (
 
 // Bookmark is the database representation of a bookmark
 type Bookmark struct {
-	ID         int    `db:"id"`
-	URL        string `db:"url"`
-	Title      string `db:"title"`
-	Excerpt    string `db:"excerpt"`
-	Author     string `db:"author"`
-	Public     int    `db:"public"`
-	CreatedAt  string `db:"created_at"`
-	ModifiedAt string `db:"modified_at"`
-	HasContent bool   `db:"has_content"`
+	ID         int    `db:"id"         json:"id"`
+	URL        string `db:"url"        json:"url"`
+	Title      string `db:"title"      json:"title"`
+	Excerpt    string `db:"excerpt"    json:"excerpt"`
+	Author     string `db:"author"     json:"author"`
+	Public     int    `db:"public"     json:"public"`
+	CreatedAt  string `db:"created_at" json:"createdAt"`
+	ModifiedAt string `db:"modified_at" json:"modifiedAt"`
+	Content    string `db:"content"    json:"-"`
+	HTML       string `db:"html"       json:"html,omitempty"`
+	HasContent bool   `db:"has_content" json:"hasContent"`
 }
 
-// BookmarkDTO is the bookmark object representation in database and the data transfer object
-// at the same time, pending a refactor to two separate object to represent each role.
+// BookmarkDTO is the data transfer object for bookmarks sent to/from clients
+// It embeds the Bookmark struct and adds additional fields for API responses
 type BookmarkDTO struct {
-	ID            int      `db:"id"            json:"id"`
-	URL           string   `db:"url"           json:"url"`
-	Title         string   `db:"title"         json:"title"`
-	Excerpt       string   `db:"excerpt"       json:"excerpt"`
-	Author        string   `db:"author"        json:"author"`
-	Public        int      `db:"public"        json:"public"`
-	CreatedAt     string   `db:"created_at"    json:"createdAt"`
-	ModifiedAt    string   `db:"modified_at"   json:"modifiedAt"`
-	Content       string   `db:"content"       json:"-"`
-	HTML          string   `db:"html"          json:"html,omitempty"`
-	ImageURL      string   `db:"image_url"     json:"imageURL"`
-	HasContent    bool     `db:"has_content"   json:"hasContent"`
+	Bookmark      `db:",inline"`
 	Tags          []TagDTO `json:"tags"`
 	HasArchive    bool     `json:"hasArchive"`
 	HasEbook      bool     `json:"hasEbook"`
-	CreateArchive bool     `json:"create_archive"` // TODO: migrate outside the DTO
-	CreateEbook   bool     `json:"create_ebook"`   // TODO: migrate outside the DTO
+	HasThumbnail  bool     `json:"hasThumbnail"`
+	CreateArchive bool     `json:"create_archive"`
+	CreateEbook   bool     `json:"create_ebook"`
 }
 
-// ToBookmark converts a BookmarkDTO to a Bookmark
+// ToBookmark extracts the embedded Bookmark from BookmarkDTO
 func (dto *BookmarkDTO) ToBookmark() Bookmark {
-	return Bookmark{
-		ID:         dto.ID,
-		URL:        dto.URL,
-		Title:      dto.Title,
-		Excerpt:    dto.Excerpt,
-		Author:     dto.Author,
-		Public:     dto.Public,
-		CreatedAt:  dto.CreatedAt,
-		ModifiedAt: dto.ModifiedAt,
-		HasContent: dto.HasContent,
-	}
+	return dto.Bookmark
 }
 
 // ToDTO converts a Bookmark to a BookmarkDTO
 func (b *Bookmark) ToDTO() BookmarkDTO {
 	return BookmarkDTO{
-		ID:         b.ID,
-		URL:        b.URL,
-		Title:      b.Title,
-		Excerpt:    b.Excerpt,
-		Author:     b.Author,
-		Public:     b.Public,
-		CreatedAt:  b.CreatedAt,
-		ModifiedAt: b.ModifiedAt,
-		HasContent: b.HasContent,
-		Tags:       []TagDTO{},
+		Bookmark: *b,
+		Tags:     []TagDTO{},
 	}
 }
 
@@ -84,4 +58,19 @@ func GetEbookPath(bookmark *BookmarkDTO) string {
 // GetArchivePath returns the relative path to the archive of a bookmark in the filesystem
 func GetArchivePath(bookmark *BookmarkDTO) string {
 	return filepath.Join("archive", strconv.Itoa(bookmark.ID))
+}
+
+// GetThumbnailURL returns the URL path to the thumbnail of a bookmark
+func GetThumbnailURL(bookmark *BookmarkDTO) string {
+	return "/bookmark/" + strconv.Itoa(bookmark.ID) + "/thumb"
+}
+
+// GetEbookURL returns the URL path to the ebook of a bookmark
+func GetEbookURL(bookmark *BookmarkDTO) string {
+	return "/bookmark/" + strconv.Itoa(bookmark.ID) + "/ebook"
+}
+
+// GetArchiveURL returns the URL path to the archive of a bookmark
+func GetArchiveURL(bookmark *BookmarkDTO) string {
+	return "/bookmark/" + strconv.Itoa(bookmark.ID) + "/archive"
 }

@@ -37,7 +37,11 @@ func TestHandleListTags(t *testing.T) {
 
 		response := testutil.NewTestResponseFromRecorder(w)
 		response.AssertOk(t)
-		response.AssertMessageIsNotEmptyList(t)
+		response.AssertMessageJSONKeyValue(t, "items", func(t *testing.T, value any) {
+			// items should be a list
+			_, ok := value.([]any)
+			require.True(t, ok)
+		})
 	})
 
 	t.Run("with_bookmark_count parameter", func(t *testing.T) {
@@ -51,9 +55,11 @@ func TestHandleListTags(t *testing.T) {
 
 		// Create a bookmark with this tag
 		bookmark := model.BookmarkDTO{
-			URL:   "https://example.com/test",
-			Title: "Test Bookmark",
-			Tags:  []model.TagDTO{{Tag: model.Tag{Name: tag.Name}}},
+			Bookmark: model.Bookmark{
+				URL:   "https://example.com/test",
+				Title: "Test Bookmark",
+			},
+			Tags: []model.TagDTO{{Tag: model.Tag{Name: tag.Name}}},
 		}
 		_, err = deps.Database().SaveBookmarks(ctx, true, bookmark)
 		require.NoError(t, err)
@@ -71,9 +77,8 @@ func TestHandleListTags(t *testing.T) {
 		response := testutil.NewTestResponseFromRecorder(w)
 		response.AssertOk(t)
 
-		response.AssertMessageIsNotEmptyList(t)
-
-		response.ForEach(t, func(item map[string]any) {
+		// Iterate items in paginated response
+		response.ForEachInKey(t, "items", func(item map[string]any) {
 			t.Logf("item: %+v", item)
 			if tag, ok := item["name"].(string); ok {
 				if tag == "test-tag-with-count" {
@@ -132,7 +137,7 @@ func TestHandleListTags(t *testing.T) {
 
 		// Verify the response contains the tag associated with the bookmark
 		found := false
-		response.ForEach(t, func(item map[string]any) {
+		response.ForEachInKey(t, "items", func(item map[string]any) {
 			if tag, ok := item["name"].(string); ok {
 				if tag == "test-tag-for-bookmark" {
 					found = true
@@ -169,10 +174,9 @@ func TestHandleListTags(t *testing.T) {
 		response := testutil.NewTestResponseFromRecorder(w)
 		response.AssertOk(t)
 
-		response.AssertMessageIsNotEmptyList(t)
-
+		// Check items list contains expected tag name
 		found := false
-		response.ForEach(t, func(item map[string]any) {
+		response.ForEachInKey(t, "items", func(item map[string]any) {
 			if tag, ok := item["name"].(string); ok {
 				if tag == "golang" {
 					found = true
@@ -195,10 +199,8 @@ func TestHandleListTags(t *testing.T) {
 		response = testutil.NewTestResponseFromRecorder(w)
 		response.AssertOk(t)
 
-		response.AssertMessageIsNotEmptyList(t)
-
 		found = false
-		response.ForEach(t, func(item map[string]any) {
+		response.ForEachInKey(t, "items", func(item map[string]any) {
 			if tag, ok := item["name"].(string); ok {
 				if strings.Contains(tag, "python") {
 					found = true
@@ -237,6 +239,95 @@ func TestHandleListTags(t *testing.T) {
 		response.AssertMessageJSONKeyValue(t, "error", func(t *testing.T, value any) {
 			require.Equal(t, "search and bookmark ID filtering cannot be used together", value)
 		})
+	})
+
+	t.Run("pagination with page and limit", func(t *testing.T) {
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+
+		// Create multiple tags
+		tags := []model.Tag{}
+		for i := 1; i <= 10; i++ {
+			tags = append(tags, model.Tag{Name: "pagination-tag-" + strconv.Itoa(i)})
+		}
+		createdTags, err := deps.Database().CreateTags(ctx, tags...)
+		require.NoError(t, err)
+		require.Len(t, createdTags, 10)
+
+		// Test first page with limit 3
+		w := testutil.PerformRequest(
+			deps,
+			HandleListTags,
+			"GET",
+			"/api/v1/tags",
+			testutil.WithFakeUser(),
+			testutil.WithRequestQueryParam("page", "1"),
+			testutil.WithRequestQueryParam("limit", "3"),
+		)
+		require.Equal(t, http.StatusOK, w.Code)
+
+		response := testutil.NewTestResponseFromRecorder(w)
+		response.AssertOk(t)
+		response.AssertMessageJSONKeyValue(t, "items", func(t *testing.T, value any) {
+			_, ok := value.([]any)
+			require.True(t, ok)
+		})
+
+		// Count items in first page
+		var count int
+		response.ForEachInKey(t, "items", func(item map[string]any) { count++ })
+		require.LessOrEqual(t, count, 3, "Should have at most 3 items per page")
+
+		// Test second page
+		w = testutil.PerformRequest(
+			deps,
+			HandleListTags,
+			"GET",
+			"/api/v1/tags",
+			testutil.WithFakeUser(),
+			testutil.WithRequestQueryParam("page", "2"),
+			testutil.WithRequestQueryParam("limit", "3"),
+		)
+		require.Equal(t, http.StatusOK, w.Code)
+
+		response = testutil.NewTestResponseFromRecorder(w)
+		response.AssertOk(t)
+	})
+
+	t.Run("pagination with invalid parameters", func(t *testing.T) {
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+
+		// Test invalid page parameter (should default to 1)
+		w := testutil.PerformRequest(
+			deps,
+			HandleListTags,
+			"GET",
+			"/api/v1/tags",
+			testutil.WithFakeUser(),
+			testutil.WithRequestQueryParam("page", "invalid"),
+		)
+		require.Equal(t, http.StatusOK, w.Code) // Should default to page 1
+
+		// Test negative page parameter (should default to 1)
+		w = testutil.PerformRequest(
+			deps,
+			HandleListTags,
+			"GET",
+			"/api/v1/tags",
+			testutil.WithFakeUser(),
+			testutil.WithRequestQueryParam("page", "-1"),
+		)
+		require.Equal(t, http.StatusOK, w.Code) // Should default to page 1
+
+		// Test limit exceeds maximum (should cap at 100)
+		w = testutil.PerformRequest(
+			deps,
+			HandleListTags,
+			"GET",
+			"/api/v1/tags",
+			testutil.WithFakeUser(),
+			testutil.WithRequestQueryParam("limit", "200"),
+		)
+		require.Equal(t, http.StatusOK, w.Code) // Should cap at 100
 	})
 }
 
@@ -373,6 +464,41 @@ func TestHandleCreateTag(t *testing.T) {
 		response.AssertMessageJSONKeyValue(t, "id", func(t *testing.T, value any) {
 			require.Greater(t, value.(float64), float64(0)) // TODO: Float64??
 		})
+	})
+
+	t.Run("tag already exists returns 409", func(t *testing.T) {
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+
+		// Create a tag first
+		tag := model.Tag{Name: "duplicate-test-tag"}
+		createdTags, err := deps.Database().CreateTags(ctx, tag)
+		require.NoError(t, err)
+		require.Len(t, createdTags, 1)
+
+		// Try to create the same tag again via API
+		w := testutil.PerformRequest(
+			deps,
+			HandleCreateTag,
+			"POST",
+			"/api/v1/tags",
+			testutil.WithFakeUser(),
+			testutil.WithBody(`{"name": "duplicate-test-tag"}`),
+		)
+		require.Equal(t, http.StatusConflict, w.Code)
+
+		// Verify no duplicate was created by searching for the tag
+		tags, err := deps.Domains().Tags().ListTags(ctx, model.ListTagsOptions{
+			Search: "duplicate-test-tag",
+		})
+		require.NoError(t, err)
+
+		duplicateCount := 0
+		for _, t := range tags {
+			if t.Name == "duplicate-test-tag" {
+				duplicateCount++
+			}
+		}
+		require.Equal(t, 1, duplicateCount, "Should only have one tag with this name")
 	})
 }
 

@@ -2,6 +2,7 @@ package api_v1
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -11,14 +12,16 @@ import (
 )
 
 // @Summary					List tags
-// @Description				List all tags
+// @Description				List all tags with pagination
 // @Tags						Tags
 // @securityDefinitions.apikey	ApiKeyAuth
 // @Produce					json
 // @Param						with_bookmark_count	query		boolean	false	"Include bookmark count for each tag"
 // @Param						bookmark_id			query		integer	false	"Filter tags by bookmark ID"
 // @Param						search				query		string	false	"Search tags by name"
-// @Success					200					{array}		model.TagDTO
+// @Param						page				query		integer	false	"Page number (default: 1)"
+// @Param						limit				query		integer	false	"Items per page (default: 30, max: 100)"
+// @Success					200					{object}	model.PaginatedResponse[model.TagDTO]
 // @Failure					403					{object}	nil	"Authentication required"
 // @Failure					500					{object}	nil	"Internal server error"
 // @Router						/api/v1/tags [get]
@@ -28,16 +31,32 @@ func HandleListTags(deps model.Dependencies, c model.WebContext) {
 	}
 
 	// Parse query parameters
-	withBookmarkCount := c.Request().URL.Query().Get("with_bookmark_count") == "true"
-	search := c.Request().URL.Query().Get("search")
+	query := c.Request().URL.Query()
+	withBookmarkCount := query.Get("with_bookmark_count") == "true"
+	search := query.Get("search")
 
 	var bookmarkID int
-	if bookmarkIDStr := c.Request().URL.Query().Get("bookmark_id"); bookmarkIDStr != "" {
+	if bookmarkIDStr := query.Get("bookmark_id"); bookmarkIDStr != "" {
 		var err error
 		bookmarkID, err = strconv.Atoi(bookmarkIDStr)
 		if err != nil {
 			response.SendError(c, http.StatusBadRequest, "Invalid bookmark ID")
 			return
+		}
+	}
+
+	// Parse page and limit
+	page := 1
+	if pageStr := query.Get("page"); pageStr != "" {
+		if p, err := strconv.Atoi(pageStr); err == nil && p > 0 {
+			page = p
+		}
+	}
+
+	limit := 30
+	if limitStr := query.Get("limit"); limitStr != "" {
+		if l, err := strconv.Atoi(limitStr); err == nil && l > 0 && l <= 100 {
+			limit = l
 		}
 	}
 
@@ -47,6 +66,8 @@ func HandleListTags(deps model.Dependencies, c model.WebContext) {
 		BookmarkID:        bookmarkID,
 		OrderBy:           model.DBTagOrderByTagName,
 		Search:            search,
+		Limit:             limit,
+		Offset:            (page - 1) * limit,
 	}
 
 	if err := opts.IsValid(); err != nil {
@@ -54,6 +75,7 @@ func HandleListTags(deps model.Dependencies, c model.WebContext) {
 		return
 	}
 
+	// Get tags
 	tags, err := deps.Domains().Tags().ListTags(c.Request().Context(), opts)
 	if err != nil {
 		deps.Logger().WithError(err).Error("failed to get tags")
@@ -61,7 +83,25 @@ func HandleListTags(deps model.Dependencies, c model.WebContext) {
 		return
 	}
 
-	response.SendJSON(c, http.StatusOK, tags)
+	// Get total count
+	countOpts := model.ListTagsOptions{
+		BookmarkID: bookmarkID,
+		Search:     search,
+	}
+	totalCount, err := deps.Domains().Tags().CountTags(c.Request().Context(), countOpts)
+	if err != nil {
+		deps.Logger().WithError(err).Error("failed to get tags count")
+		response.SendInternalServerError(c)
+		return
+	}
+
+	// Return paginated response
+	paginatedResponse := model.PaginatedResponse[model.TagDTO]{
+		Items: tags,
+		Total: totalCount,
+	}
+
+	response.SendJSON(c, http.StatusOK, paginatedResponse)
 }
 
 // @Summary					Get tag
@@ -102,16 +142,17 @@ func HandleGetTag(deps model.Dependencies, c model.WebContext) {
 }
 
 // @Summary					Create tag
-// @Description				Create a new tag
+// @Description				Create a new tag. If a tag with the same name already exists, returns 204 No Content.
 // @Tags						Tags
 // @securityDefinitions.apikey	ApiKeyAuth
 // @Accept						json
 // @Produce					json
 // @Param						tag	body		model.TagDTO	true	"Tag data"
-// @Success					201	{object}	model.TagDTO
-// @Failure					400	{object}	nil	"Invalid request"
-// @Failure					403	{object}	nil	"Authentication required"
-// @Failure					500	{object}	nil	"Internal server error"
+// @Success					201	{object}	model.TagDTO	"Tag created"
+// @Success					204	{object}	nil				"Tag already exists"
+// @Failure					400	{object}	nil				"Invalid request"
+// @Failure					403	{object}	nil				"Authentication required"
+// @Failure					500	{object}	nil				"Internal server error"
 // @Router						/api/v1/tags [post]
 func HandleCreateTag(deps model.Dependencies, c model.WebContext) {
 	if err := middleware.RequireLoggedInUser(deps, c); err != nil {
@@ -130,9 +171,36 @@ func HandleCreateTag(deps model.Dependencies, c model.WebContext) {
 		return
 	}
 
+	// Check if tag with the same name already exists
+	existingTags, err := deps.Domains().Tags().ListTags(c.Request().Context(), model.ListTagsOptions{
+		Search: tag.Name,
+	})
+	if err != nil {
+		deps.Logger().WithError(err).Error("failed to check existing tags")
+		response.SendInternalServerError(c)
+		return
+	}
+
+	// Look for exact match
+	for _, existingTag := range existingTags {
+		if existingTag.Name == tag.Name {
+			// Tag already exists, return proper error
+			response.SendError(c, http.StatusConflict, "already_exists.tag")
+			return
+		}
+	}
+
+	// Tag doesn't exist, create it
 	createdTag, err := deps.Domains().Tags().CreateTag(c.Request().Context(), tag)
 	if err != nil {
 		deps.Logger().WithError(err).Error("failed to create tag")
+
+		// Check for specific errors
+		if errors.Is(err, model.ErrTagAlreadyExists) {
+			response.SendError(c, http.StatusConflict, "already_exists.tag")
+			return
+		}
+
 		response.SendInternalServerError(c)
 		return
 	}

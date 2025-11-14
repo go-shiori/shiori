@@ -54,8 +54,10 @@ func TestTagsDomain(t *testing.T) {
 
 		// Create a bookmark with this tag
 		bookmark := model.BookmarkDTO{
-			URL:   "https://example-count.com",
-			Title: "Example for Count",
+			Bookmark: model.Bookmark{
+				URL:   "https://example-count.com",
+				Title: "Example for Count",
+			},
 			Tags: []model.TagDTO{
 				{Tag: model.Tag{Name: tag.Name}},
 			},
@@ -96,16 +98,20 @@ func TestTagsDomain(t *testing.T) {
 
 		// Create bookmarks with different tags
 		bookmark1 := model.BookmarkDTO{
-			URL:   "https://example-bookmark1.com",
-			Title: "Example Bookmark 1",
+			Bookmark: model.Bookmark{
+				URL:   "https://example-bookmark1.com",
+				Title: "Example Bookmark 1",
+			},
 			Tags: []model.TagDTO{
 				{Tag: model.Tag{Name: testTags[0].Name}},
 			},
 		}
 
 		bookmark2 := model.BookmarkDTO{
-			URL:   "https://example-bookmark2.com",
-			Title: "Example Bookmark 2",
+			Bookmark: model.Bookmark{
+				URL:   "https://example-bookmark2.com",
+				Title: "Example Bookmark 2",
+			},
 			Tags: []model.TagDTO{
 				{Tag: model.Tag{Name: testTags[1].Name}},
 			},
@@ -142,8 +148,10 @@ func TestTagsDomain(t *testing.T) {
 
 		// Create a bookmark with this tag
 		bookmark := model.BookmarkDTO{
-			URL:   "https://example-both-options.com",
-			Title: "Example for Both Options",
+			Bookmark: model.Bookmark{
+				URL:   "https://example-both-options.com",
+				Title: "Example for Both Options",
+			},
 			Tags: []model.TagDTO{
 				{Tag: model.Tag{Name: tag.Name}},
 			},

@@ -8,7 +8,15 @@
     "search": "Suchen",
     "add": "Hinzufügen",
     "remove": "Entfernen",
-    "close": "Schließen"
+    "close": "Schließen",
+    "back": "Zurück",
+    "user": "Benutzer",
+    "processing": "Verarbeitung...",
+    "note": "Hinweis",
+    "ok": "OK",
+    "tagline": "einfacher Lesezeichen-Manager",
+    "none": "Keine",
+    "error_occurred": "Ein Fehler ist aufgetreten"
   },
   "auth": {
     "login": "Anmelden",
@@ -19,40 +27,91 @@
     "login_failed": "Anmeldung fehlgeschlagen. Bitte überprüfen Sie Ihre Anmeldedaten."
   },
   "navigation": {
-    "home": "Startseite",
-    "archive": "Archiv",
+    "library": "Bibliothek",
     "tags": "Tags",
-    "folders": "Ordner",
     "settings": "Einstellungen",
     "about": "Über"
   },
   "bookmarks": {
     "title": "Lesezeichen",
+    "my_bookmarks": "Meine Lesezeichen",
     "add_bookmark": "Lesezeichen hinzufügen",
     "edit_bookmark": "Lesezeichen bearbeiten",
     "delete_bookmark": "Lesezeichen löschen",
     "url": "URL",
-    "title": "Titel",
+    "bookmark_title": "Titel",
     "excerpt": "Auszug",
     "tags": "Tags",
     "add_tag": "Tag hinzufügen",
-    "no_bookmarks": "Keine Lesezeichen gefunden"
-  },
-  "tags": {
-    "title": "Tags",
-    "add_tag": "Tag hinzufügen",
-    "edit_tag": "Tag bearbeiten",
-    "delete_tag": "Tag löschen",
-    "name": "Name",
-    "no_tags": "Keine Tags gefunden"
-  },
-  "folders": {
-    "title": "Ordner",
-    "add_folder": "Ordner hinzufügen",
-    "edit_folder": "Ordner bearbeiten",
-    "delete_folder": "Ordner löschen",
-    "name": "Name",
-    "no_folders": "Keine Ordner gefunden"
+    "no_bookmarks": "Keine Lesezeichen gefunden",
+    "search_placeholder": "Suchen...",
+    "loading_bookmarks": "Lesezeichen werden geladen...",
+    "no_bookmarks_found": "Keine Lesezeichen gefunden",
+    "create_first_bookmark": "Erstellen Sie Ihr erstes Lesezeichen, um zu beginnen",
+    "card_view": "Kartenansicht",
+    "open_original_url": "Original-URL öffnen",
+    "edit_bookmark_action": "Bearbeiten",
+    "delete_bookmark_action": "Löschen",
+    "has_readable_content": "Hat lesbaren Inhalt",
+    "has_archive": "Hat Archiv",
+    "has_ebook": "Hat E-Book",
+    "bookmark_thumbnail": "Lesezeichen-Miniaturansicht",
+    "url_placeholder": "https://beispiel.com",
+    "url_description": "Die URL wird sowohl als Lesezeichen-URL als auch als Titel verwendet. Nach der Erstellung des Lesezeichens wird Shiori automatisch:",
+    "fetch_content": "Lesbaren Inhalt abrufen und generieren",
+    "create_archive": "Ein Archiv der Seite erstellen",
+    "generate_ebook": "Eine E-Book-Version generieren",
+    "extract_metadata": "Den richtigen Titel und Metadaten extrahieren",
+    "please_enter_url": "Bitte geben Sie eine URL ein",
+    "please_enter_valid_url": "Bitte geben Sie eine gültige URL ein",
+    "failed_to_create_bookmark": "Fehler beim Erstellen des Lesezeichens",
+    "new_bookmark": "Neues Lesezeichen",
+    "create_new_bookmark": "Neues Lesezeichen erstellen",
+    "url_label": "URL, beginnend mit http://...",
+    "custom_title_label": "Eigener Titel (optional)",
+    "custom_title_placeholder": "Eigenen Titel eingeben",
+    "custom_excerpt_label": "Eigener Auszug (optional)",
+    "custom_excerpt_placeholder": "Eigenen Auszug eingeben",
+    "tags_label": "Kommagetrennte Tags (optional)",
+    "tags_placeholder": "tag1, tag2, tag3",
+    "available_tags": "Verfügbare Tags",
+    "make_public": "Lesezeichen öffentlich verfügbar machen",
+    "visibility_label": "Sichtbarkeit",
+    "visibility_internal": "Intern (für alle Shiori-Benutzer zugänglich)",
+    "visibility_public": "Öffentlich (für nicht registrierte Benutzer zugänglich)",
+    "visibility_description": "Interne Lesezeichen sind für alle registrierten Benutzer sichtbar. Öffentliche Lesezeichen können von jedem abgerufen werden.",
+    "create_ebook": "E-Book erstellen",
+    "view_content": "Inhalt anzeigen",
+    "download_ebook": "E-Book herunterladen",
+    "view_archive": "Archiv anzeigen",
+    "open_original": "Original-URL öffnen",
+    "by": "Von",
+    "unknown_author": "Unbekannt",
+    "archived_version": "Archivierte Version",
+    "archived_content": "Archivierter Inhalt",
+    "no_readable_content": "Kein lesbarer Inhalt für dieses Lesezeichen verfügbar.",
+    "view_original_page": "Originalseite anzeigen",
+    "confirm_delete_message": "Sind Sie sicher, dass Sie",
+    "toast": {
+      "created_success": "Lesezeichen erfolgreich erstellt",
+      "created_success_message": "Ihr Lesezeichen wurde gespeichert und wird verarbeitet",
+      "created_error": "Erstellen des Lesezeichens fehlgeschlagen",
+      "created_error_message": "Bitte überprüfen Sie die URL und versuchen Sie es erneut",
+      "deleted_success": "Lesezeichen erfolgreich gelöscht",
+      "deleted_success_message": "Das Lesezeichen wurde dauerhaft entfernt",
+      "deleted_error": "Löschen des Lesezeichens fehlgeschlagen",
+      "deleted_error_message": "Bitte versuchen Sie es erneut"
+    },
+    "error": {
+      "invalid_id": "Ungültige Lesezeichen-ID",
+      "no_archive": "Kein Archiv für dieses Lesezeichen verfügbar",
+      "load_failed": "Fehler beim Laden des Lesezeichens"
+    },
+    "errors": {
+      "already_exists": {
+        "bookmark": "Ein Lesezeichen mit dieser URL existiert bereits"
+      }
+    }
   },
   "settings": {
     "title": "Einstellungen",
@@ -60,6 +119,67 @@
     "theme": "Thema",
     "light": "Hell",
     "dark": "Dunkel",
-    "system": "System"
+    "system": "System",
+    "display": "Anzeige",
+    "bookmarks": "Lesezeichen",
+    "show_id": "Lesezeichen-ID anzeigen",
+    "list_mode": "Lesezeichen als Liste anzeigen",
+    "hide_thumbnail": "Miniaturbild ausblenden",
+    "hide_excerpt": "Auszug ausblenden",
+    "keep_metadata": "Metadaten beim Aktualisieren behalten",
+    "use_archive": "Archiv standardmäßig erstellen",
+    "create_ebook": "E-Book standardmäßig erstellen",
+    "make_public": "Standardmäßig öffentlich machen"
+  },
+  "pagination": {
+    "showing": "Anzeige",
+    "to": "bis",
+    "of": "von",
+    "items": "Elementen",
+    "per_page": "Pro Seite:",
+    "previous": "Vorherige",
+    "next": "Nächste",
+    "go_to_page": "Zur Seite gehen",
+    "aria_label": "Seitennummerierung"
+  },
+  "tags": {
+    "title": "Tags",
+    "add_tag": "Tag hinzufügen",
+    "edit_tag": "Tag bearbeiten",
+    "delete_tag": "Tag löschen",
+    "name": "Name",
+    "no_tags": "Keine Tags gefunden",
+    "search_placeholder": "Tags suchen...",
+    "searching": "Tags werden gesucht...",
+    "bookmarks_count": "Lesezeichen",
+    "create_first_tag": "Erstellen Sie Ihren ersten Tag, um Ihre Lesezeichen zu organisieren.",
+    "confirm_delete": "Sind Sie sicher, dass Sie diesen Tag löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
+    "tag_name_required": "Der Tag-Name darf nicht leer sein",
+    "toast": {
+      "created_success": "Tag erfolgreich erstellt",
+      "created_success_message": "Der Tag wurde hinzugefügt und ist einsatzbereit",
+      "created_error": "Erstellen des Tags fehlgeschlagen",
+      "created_error_message": "Bitte versuchen Sie es erneut oder prüfen Sie, ob der Tag bereits existiert",
+      "updated_success": "Tag erfolgreich aktualisiert",
+      "updated_success_message": "Der Tag wurde aktualisiert",
+      "updated_error": "Aktualisieren des Tags fehlgeschlagen",
+      "updated_error_message": "Bitte versuchen Sie es erneut",
+      "deleted_success": "Tag erfolgreich gelöscht",
+      "deleted_success_message": "Der Tag wurde entfernt",
+      "deleted_error": "Löschen des Tags fehlgeschlagen",
+      "deleted_error_message": "Bitte versuchen Sie es erneut"
+    },
+    "errors": {
+      "already_exists": {
+        "tag": "Ein Tag mit diesem Namen existiert bereits"
+      }
+    }
+  },
+  "views": {
+    "list_view": "Listenansicht",
+    "card_view": "Kartenansicht"
+  },
+  "about": {
+    "title": "Dies ist eine Über-Seite"
   }
 }

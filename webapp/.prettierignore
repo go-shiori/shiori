@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+package-lock.json
+bun.lock
+
+# Build outputs
+dist/
+dist-ssr/
+coverage/
+
+# Generated files
+*.min.js
+*.min.css
+
+# Public assets
+public/
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db

@@ -45,6 +45,8 @@ type ListTagsOptions struct {
 	WithBookmarkCount bool
 	OrderBy           DBTagOrderBy
 	Search            string
+	Limit             int
+	Offset            int
 }
 
 // IsValid validates the ListTagsOptions.

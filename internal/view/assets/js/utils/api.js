@@ -1,3 +1,31 @@
+// Configuration for the Shiori API client
+const apiConfig = new ShioriAPI.Configuration({
+	basePath: window.location.origin,
+	accessToken: () => localStorage.getItem("shiori-token"),
+	headers: {
+		"X-Shiori-Response-Format": "new",
+	},
+});
+
+// Initialize API instances
+export const bookmarksApi = new ShioriAPI.BookmarksApi(apiConfig);
+export const authApi = new ShioriAPI.AuthApi(apiConfig);
+export const tagsApi = new ShioriAPI.TagsApi(apiConfig);
+export const systemApi = new ShioriAPI.SystemApi(apiConfig);
+export const accountsApi = new ShioriAPI.AccountsApi(apiConfig);
+
+// Helper function to handle API errors from the new client
+export function getErrorMessage(error) {
+	if (error instanceof ShioriAPI.ResponseError) {
+		return error.response?.statusText || "API Error";
+	}
+	if (error instanceof Error) {
+		return error.message;
+	}
+	return "Unknown error occurred";
+}
+
+// Legacy API wrapper functions for backward compatibility
 // Handles API responses in both legacy and new message formats
 export async function handleApiResponse(response) {
 	if (!response.ok) throw response;

@@ -44,7 +44,10 @@ Most configuration can be set directly using environment variables or flags. The
 | `SHIORI_HTTP_DISABLE_PARSE_MULTIPART_FORM` | true           | No       | Disable pre-parsing of multipart form                 |
 | `SHIORI_SSO_PROXY_AUTH_ENABLED`            | false          | No       | Enable SSO Auth Proxy Header                          |
 | `SHIORI_SSO_PROXY_AUTH_HEADER_NAME`        | Remote-User    | No       | List of CIDRs of trusted proxies                      |
-| `SHIORI_SSO_PROXY_AUTH_TRUSTED`            | 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, fc00::/7    | No       | List of CIDRs of trusted proxies                 |
+| `SHIORI_SSO_PROXY_AUTH_TRUSTED`            | 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, fc00::/7    | No       | List of CIDRs of trusted proxies                     |
+| `SHIORI_CORS_ENABLED`                      | true           | No       | Enable Cross-Origin Resource Sharing (CORS) headers   |
+| `SHIORI_CORS_ORIGINS`                      | *               | No       | Comma-separated list of allowed origins for CORS      |
+| `SHIORI_CORS_ALLOW_CREDENTIALS`            | true           | No       | Allow credentials in CORS requests                     |
 
 ### Storage Configuration
 
@@ -112,3 +115,27 @@ location /shiori/ {
     proxy_set_header X-Real-IP $remote_addr;
 }
 ```
+
+## CORS Configuration
+
+If you're running Shiori behind a different domain or port than your frontend application, you may need to configure CORS (Cross-Origin Resource Sharing) headers.
+
+### Examples
+
+```bash
+# Allow specific origins (recommended for production)
+export SHIORI_CORS_ORIGINS="http://localhost:3000,https://myapp.com"
+
+# Disable CORS entirely
+export SHIORI_CORS_ENABLED=false
+
+# Allow all origins but disable credentials for security
+export SHIORI_CORS_ALLOW_CREDENTIALS=false
+```
+
+### Important Notes
+
+- The default configuration (`CORS_ENABLED=true`, `CORS_ORIGINS=*`, `CORS_ALLOW_CREDENTIALS=true`) allows all origins to make credentialed requests
+- For production environments, you should specify exact origins instead of using `*`
+- When credentials are allowed, you cannot use `*` as the origin - you must specify exact origins
+- CORS only applies to browser requests; server-to-server requests are not affected
