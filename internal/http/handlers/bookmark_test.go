@@ -2,16 +2,12 @@ package handlers
 
 import (
 	"context"
-	"image"
-	"image/jpeg"
+	"fmt"
 	"net/http"
-	"os"
 	"strconv"
-	"strings"
 	"testing"
 
 	"github.com/go-shiori/shiori/internal/core"
-	fp "path/filepath"
 	"github.com/go-shiori/shiori/internal/http/templates"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/go-shiori/shiori/internal/testutil"
@@ -107,6 +103,30 @@ func TestBookmarkContentHandler(t *testing.T) {
 	})
 }
 
+// downloadBookmarkArchive mimics the old DownloadBookmarkArchive behavior
+func downloadBookmarkArchive(deps model.Dependencies, book model.BookmarkDTO) (*model.BookmarkDTO, error) {
+	content, contentType, err := core.DownloadBookmark(book.URL)
+	if err != nil {
+		return nil, fmt.Errorf("error downloading url: %s", err)
+	}
+
+	processRequest := core.ProcessRequest{
+		DataDir:     deps.Config().Storage.DataDir,
+		Bookmark:    book,
+		Content:     content,
+		ContentType: contentType,
+	}
+
+	result, isFatalErr, err := core.ProcessBookmark(deps, processRequest)
+	content.Close()
+
+	if err != nil && isFatalErr {
+		return nil, fmt.Errorf("failed to process: %v", err)
+	}
+
+	return &result, nil
+}
+
 func TestBookmarkFileHandlers(t *testing.T) {
 	logger := logrus.New()
 	_, deps := testutil.GetTestConfigurationAndDependencies(t, context.Background(), logger)
@@ -122,52 +142,9 @@ func TestBookmarkFileHandlers(t *testing.T) {
 	bookmarks, err := deps.Database().SaveBookmarks(context.TODO(), true, *bookmark)
 	require.NoError(t, err)
 
-	// Use the new ArchiveBookmark method
-	archivalRequest := model.ArchivalRequest{
-		Bookmark:    &bookmarks[0],
-		ContentType: "text/html",
-		UserAgent:   "Shiori/1.0",
-		LogEnabled:  false,
-	}
-	err = deps.Domains().Archiver().ArchiveBookmark(archivalRequest)
+	bookmark, err = downloadBookmarkArchive(deps, bookmarks[0])
 	require.NoError(t, err)
 
-	bookmarks[0].HasArchive = true
-	bookmarks, err = deps.Database().SaveBookmarks(context.TODO(), false, bookmarks[0])
-	require.NoError(t, err)
-	bookmark = &bookmarks[0]
-
-	// Create ebook
-	ebookPath := model.GetEbookPath(bookmark)
-	req := core.ProcessRequest{
-		DataDir:     deps.Config().Storage.DataDir,
-		Bookmark:    *bookmark,
-		Content:     strings.NewReader(bookmark.HTML),
-		ContentType: "text/html",
-	}
-	_, err = core.GenerateEbook(deps, req, ebookPath)
-	require.NoError(t, err)
-
-	bookmark.HasEbook = true
-	bookmarks, err = deps.Database().SaveBookmarks(context.TODO(), false, *bookmark)
-	require.NoError(t, err)
-	bookmark = &bookmarks[0]
-
-	// Create thumbnail
-	thumbPath := model.GetThumbnailPath(bookmark)
-	tmpFile, err := os.CreateTemp("", "thumb")
-	require.NoError(t, err)
-	defer os.Remove(tmpFile.Name())
-
-	// Create a simple thumbnail image
-	img := image.NewRGBA(image.Rect(0, 0, 100, 100))
-	err = jpeg.Encode(tmpFile, img, nil)
-	require.NoError(t, err)
-
-	err = deps.Domains().Storage().WriteFile(thumbPath, tmpFile)
-	require.NoError(t, err)
-
-	bookmark.ImageURL = fp.Join("/", "bookmark", strconv.Itoa(bookmark.ID), "thumb")
 	bookmarks, err = deps.Database().SaveBookmarks(context.TODO(), false, *bookmark)
 	require.NoError(t, err)
 	bookmark = &bookmarks[0]
