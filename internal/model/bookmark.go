@@ -85,3 +85,11 @@ func GetEbookPath(bookmark *BookmarkDTO) string {
 func GetArchivePath(bookmark *BookmarkDTO) string {
 	return filepath.Join("archive", strconv.Itoa(bookmark.ID))
 }
+
+// ArchivalRequest is the request for archiving a bookmark.
+type ArchivalRequest struct {
+    Bookmark    *BookmarkDTO
+    ContentType string // Optional: can be inferred if not provided
+    UserAgent   string // Optional: defaults to "Shiori/1.0"
+    LogEnabled  bool
+}

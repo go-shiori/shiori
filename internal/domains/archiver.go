@@ -2,9 +2,9 @@ package domains
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 
-	"github.com/go-shiori/shiori/internal/core"
 	"github.com/go-shiori/shiori/internal/dependencies"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/go-shiori/warc"
@@ -14,27 +14,41 @@ type ArchiverDomain struct {
 	deps *dependencies.Dependencies
 }
 
-func (d *ArchiverDomain) DownloadBookmarkArchive(book model.BookmarkDTO) (*model.BookmarkDTO, error) {
-	content, contentType, err := core.DownloadBookmark(book.URL)
+func (d *ArchiverDomain) ArchiveBookmark(req model.ArchivalRequest) error {
+	tmpFile, err := os.CreateTemp("", "archive")
 	if err != nil {
-		return nil, fmt.Errorf("error downloading url: %s", err)
+		return fmt.Errorf("failed to create temp archive: %v", err)
+	}
+	defer os.Remove(tmpFile.Name())
+
+	// Use default user agent if not provided
+	userAgent := req.UserAgent
+	if userAgent == "" {
+		userAgent = "Shiori/1.0" // Default user agent
 	}
 
-	processRequest := core.ProcessRequest{
-		DataDir:     d.deps.Config().Storage.DataDir,
-		Bookmark:    book,
-		Content:     content,
-		ContentType: contentType,
+	// The Reader field is left nil, so warc.NewArchive will download the content
+	archivalRequest := warc.ArchivalRequest{
+		URL:         req.Bookmark.URL,
+		ContentType: req.ContentType,
+		UserAgent:   userAgent,
+		LogEnabled:  req.LogEnabled,
 	}
 
-	result, isFatalErr, err := core.ProcessBookmark(d.deps, processRequest)
-	content.Close()
-
-	if err != nil && isFatalErr {
-		return nil, fmt.Errorf("failed to process: %v", err)
+	err = warc.NewArchive(archivalRequest, tmpFile.Name())
+	if err != nil {
+		return fmt.Errorf("failed to create archive: %v", err)
 	}
 
-	return &result, nil
+	// Construct the destination path using the BookmarkID
+	dstPath := model.GetArchivePath(req.Bookmark)
+
+	err = d.deps.Domains().Storage().WriteFile(dstPath, tmpFile)
+	if err != nil {
+		return fmt.Errorf("failed to move archive to destination: %v", err)
+	}
+
+	return nil
 }
 
 func (d *ArchiverDomain) GetBookmarkArchive(book *model.BookmarkDTO) (*warc.Archive, error) {
