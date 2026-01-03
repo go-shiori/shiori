@@ -1,6 +1,7 @@
 package domains
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"os/exec"
@@ -8,7 +9,7 @@ import (
 
 	"github.com/go-shiori/shiori/internal/dependencies"
 	"github.com/go-shiori/shiori/internal/model"
-	"github.com/go-shiori/warc"
+	"github.com/sirupsen/logrus"
 )
 
 // ExternalArchiver implements the ArchiverDomain interface using external shell commands
@@ -25,18 +26,56 @@ func (d *ExternalArchiver) ArchiveBookmark(book *model.BookmarkDTO, logEnabled b
 	// Replace placeholders in the command
 	archiveCmd = strings.ReplaceAll(archiveCmd, "{URL}", book.URL)
 	archiveCmd = strings.ReplaceAll(archiveCmd, "{ID}", fmt.Sprintf("%d", book.ID))
-	archiveCmd = strings.ReplaceAll(archiveCmd, "{DATA_DIR}", d.deps.Config().Storage.DataDir)
+
+	// Log the command being executed
+	logger := d.deps.Logger()
+	logger.WithFields(logrus.Fields{
+		"bookmark_id": book.ID,
+		"url":        book.URL,
+		"command":    archiveCmd,
+	}).Debug("External archiver: executing archive command")
 
 	// Execute the command
 	cmd := exec.Command("sh", "-c", archiveCmd)
+	
+	// Capture stderr for logging
+	var stderrBuf bytes.Buffer
+	cmd.Stderr = &stderrBuf
+	
 	if logEnabled {
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 	}
 
 	if err := cmd.Run(); err != nil {
+		stderrOutput := strings.TrimSpace(stderrBuf.String())
+		if stderrOutput != "" {
+			logger.WithFields(logrus.Fields{
+				"bookmark_id": book.ID,
+				"error":      err,
+				"stderr":     stderrOutput,
+			}).Error("External archiver: archive command failed")
+		} else {
+			logger.WithFields(logrus.Fields{
+				"bookmark_id": book.ID,
+				"error":      err,
+			}).Error("External archiver: archive command failed")
+		}
 		return fmt.Errorf("failed to execute archive command: %v", err)
 	}
+
+	// Log stderr output if there was any
+	stderrOutput := strings.TrimSpace(stderrBuf.String())
+	if stderrOutput != "" {
+		logger.WithFields(logrus.Fields{
+			"bookmark_id": book.ID,
+			"stderr":     stderrOutput,
+		}).Debug("External archiver: archive command stderr output")
+	}
+
+	logger.WithFields(logrus.Fields{
+		"bookmark_id": book.ID,
+	}).Debug("External archiver: successfully archived bookmark")
 
 	return nil
 }
@@ -49,20 +88,58 @@ func (d *ExternalArchiver) HasArchive(book *model.BookmarkDTO) bool {
 
 	// Replace placeholders in the command
 	hasCmd = strings.ReplaceAll(hasCmd, "{ID}", fmt.Sprintf("%d", book.ID))
-	hasCmd = strings.ReplaceAll(hasCmd, "{DATA_DIR}", d.deps.Config().Storage.DataDir)
+
+	// Log the command being executed
+	logger := d.deps.Logger()
+	logger.WithFields(logrus.Fields{
+		"bookmark_id": book.ID,
+		"command":    hasCmd,
+	}).Debug("External archiver: executing has archive command")
 
 	// Execute the command
 	cmd := exec.Command("sh", "-c", hasCmd)
+	
+	// Capture stderr for logging
+	var stderrBuf bytes.Buffer
+	cmd.Stderr = &stderrBuf
+	
 	output, err := cmd.Output()
 	if err != nil {
+		stderrOutput := strings.TrimSpace(stderrBuf.String())
+		if stderrOutput != "" {
+			logger.WithFields(logrus.Fields{
+				"bookmark_id": book.ID,
+				"error":      err,
+				"stderr":     stderrOutput,
+			}).Debug("External archiver: has archive command failed")
+		} else {
+			logger.WithFields(logrus.Fields{
+				"bookmark_id": book.ID,
+				"error":      err,
+			}).Debug("External archiver: has archive command failed")
+		}
 		return false
 	}
 
-	// Check if the output indicates the archive exists
-	return strings.TrimSpace(string(output)) == "true"
+	// Log stderr output if there was any
+	stderrOutput := strings.TrimSpace(stderrBuf.String())
+	if stderrOutput != "" {
+		logger.WithFields(logrus.Fields{
+			"bookmark_id": book.ID,
+			"stderr":     stderrOutput,
+		}).Debug("External archiver: has archive command stderr output")
+	}
+
+	hasArchive := strings.TrimSpace(string(output)) == "true"
+	logger.WithFields(logrus.Fields{
+		"bookmark_id": book.ID,
+		"has_archive": hasArchive,
+	}).Debug("External archiver: has archive result")
+
+	return hasArchive
 }
 
-func (d *ExternalArchiver) GetBookmarkArchive(book *model.BookmarkDTO) (*warc.Archive, error) {
+func (d *ExternalArchiver) GetBookmarkArchive(book *model.BookmarkDTO) (model.Archive, error) {
 	getCmd := os.Getenv("SHIORI_EXTERNAL_ARCHIVER_GET_COMMAND")
 	if getCmd == "" {
 		return nil, fmt.Errorf("SHIORI_EXTERNAL_ARCHIVER_GET_COMMAND environment variable is not set")
@@ -70,22 +147,65 @@ func (d *ExternalArchiver) GetBookmarkArchive(book *model.BookmarkDTO) (*warc.Ar
 
 	// Replace placeholders in the command
 	getCmd = strings.ReplaceAll(getCmd, "{ID}", fmt.Sprintf("%d", book.ID))
-	getCmd = strings.ReplaceAll(getCmd, "{DATA_DIR}", d.deps.Config().Storage.DataDir)
 
-	// Execute the command to get the archive path
+	// Log the command being executed
+	logger := d.deps.Logger()
+	logger.WithFields(logrus.Fields{
+		"bookmark_id": book.ID,
+		"command":    getCmd,
+	}).Debug("External archiver: executing get archive command")
+
+	// Execute the command to get the archive contents
 	cmd := exec.Command("sh", "-c", getCmd)
+	
+	// Capture stderr for logging
+	var stderrBuf bytes.Buffer
+	cmd.Stderr = &stderrBuf
+	
 	output, err := cmd.Output()
 	if err != nil {
+		stderrOutput := strings.TrimSpace(stderrBuf.String())
+		if stderrOutput != "" {
+			logger.WithFields(logrus.Fields{
+				"bookmark_id": book.ID,
+				"error":      err,
+				"stderr":     stderrOutput,
+			}).Error("External archiver: get archive command failed")
+		} else {
+			logger.WithFields(logrus.Fields{
+				"bookmark_id": book.ID,
+				"error":      err,
+			}).Error("External archiver: get archive command failed")
+		}
 		return nil, fmt.Errorf("failed to execute get command: %v", err)
 	}
 
-	archivePath := strings.TrimSpace(string(output))
-	if archivePath == "" {
-		return nil, fmt.Errorf("archive path is empty")
+	// Log stderr output if there was any
+	stderrOutput := strings.TrimSpace(stderrBuf.String())
+	if stderrOutput != "" {
+		logger.WithFields(logrus.Fields{
+			"bookmark_id": book.ID,
+			"stderr":     stderrOutput,
+		}).Debug("External archiver: get archive command stderr output")
 	}
 
-	// Open the archive file
-	return warc.Open(archivePath)
+	// Check if the output is empty
+	archiveContent := strings.TrimSpace(string(output))
+	if archiveContent == "" {
+		logger.WithFields(logrus.Fields{
+			"bookmark_id": book.ID,
+		}).Error("External archiver: archive content is empty")
+		return nil, fmt.Errorf("archive content is empty")
+	}
+
+	// Log successful retrieval
+	logger.WithFields(logrus.Fields{
+		"bookmark_id":     book.ID,
+		"content_length": len(archiveContent),
+	}).Debug("External archiver: successfully retrieved archive content")
+
+	// Create a SingleFileArchive with the content
+	return model.NewSingleFileArchive([]byte(archiveContent)), nil
 }
 
 func NewExternalArchiver(deps *dependencies.Dependencies) *ExternalArchiver {

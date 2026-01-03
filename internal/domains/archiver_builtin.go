@@ -48,7 +48,7 @@ func (d *BuiltInArchiver) HasArchive(book *model.BookmarkDTO) bool {
 	return d.deps.Domains().Storage().FileExists(archivePath)
 }
 
-func (d *BuiltInArchiver) GetBookmarkArchive(book *model.BookmarkDTO) (*warc.Archive, error) {
+func (d *BuiltInArchiver) GetBookmarkArchive(book *model.BookmarkDTO) (model.Archive, error) {
 	archivePath := model.GetArchivePath(book)
 
 	if !d.deps.Domains().Storage().FileExists(archivePath) {

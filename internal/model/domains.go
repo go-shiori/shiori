@@ -6,7 +6,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/go-shiori/warc"
 	"github.com/spf13/afero"
 )
 
@@ -38,7 +37,7 @@ type AccountsDomain interface {
 
 type ArchiverDomain interface {
 	ArchiveBookmark(book *BookmarkDTO, logEnabled bool) error
-	GetBookmarkArchive(book *BookmarkDTO) (*warc.Archive, error)
+	GetBookmarkArchive(book *BookmarkDTO) (Archive, error)
 	HasArchive(book *BookmarkDTO) bool
 }
 
