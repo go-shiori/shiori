@@ -63,7 +63,7 @@ func HandleBookmarkArchive(deps model.Dependencies, c model.WebContext) {
 		return
 	}
 
-	if !deps.Domains().Bookmarks().HasArchive(bookmark) {
+	if !deps.Domains().Archiver().HasArchive(bookmark) {
 		response.NotFound(c)
 		return
 	}
@@ -86,7 +86,7 @@ func HandleBookmarkArchiveFile(deps model.Dependencies, c model.WebContext) {
 		return
 	}
 
-	if !deps.Domains().Bookmarks().HasArchive(bookmark) {
+	if !deps.Domains().Archiver().HasArchive(bookmark) {
 		response.NotFound(c)
 		return
 	}

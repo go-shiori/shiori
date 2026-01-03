@@ -43,6 +43,11 @@ func (d *ArchiverDomain) ArchiveBookmark(book *model.BookmarkDTO, logEnabled boo
 	return nil
 }
 
+func (d *ArchiverDomain) HasArchive(book *model.BookmarkDTO) bool {
+	archivePath := model.GetArchivePath(book)
+	return d.deps.Domains().Storage().FileExists(archivePath)
+}
+
 func (d *ArchiverDomain) GetBookmarkArchive(book *model.BookmarkDTO) (*warc.Archive, error) {
 	archivePath := model.GetArchivePath(book)
 
