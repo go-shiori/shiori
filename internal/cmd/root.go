@@ -106,7 +106,12 @@ func initShiori(ctx context.Context, cmd *cobra.Command) (*config.Config, *depen
 	dependencies := dependencies.NewDependencies(logger, db, cfg)
 	dependencies.Domains().SetAuth(domains.NewAuthDomain(dependencies))
 	dependencies.Domains().SetAccounts(domains.NewAccountsDomain(dependencies))
-	dependencies.Domains().SetArchiver(domains.NewArchiverDomain(dependencies))
+	// Initialize domains with default implementations
+	if os.Getenv("SHIORI_EXTERNAL_ARCHIVER_ARCHIVE_COMMAND") != "" {
+		dependencies.Domains().SetArchiver(domains.NewExternalArchiver(dependencies))
+	} else {
+		dependencies.Domains().SetArchiver(domains.NewBuiltInArchiver(dependencies))
+	}
 	dependencies.Domains().SetBookmarks(domains.NewBookmarksDomain(dependencies))
 	dependencies.Domains().SetStorage(domains.NewStorageDomain(dependencies, afero.NewBasePathFs(afero.NewOsFs(), cfg.Storage.DataDir)))
 	dependencies.Domains().SetTags(domains.NewTagsDomain(dependencies))

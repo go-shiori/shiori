@@ -10,11 +10,11 @@ import (
 	"github.com/go-shiori/warc"
 )
 
-type ArchiverDomain struct {
+type BuiltInArchiver struct {
 	deps *dependencies.Dependencies
 }
 
-func (d *ArchiverDomain) ArchiveBookmark(book *model.BookmarkDTO, logEnabled bool) error {
+func (d *BuiltInArchiver) ArchiveBookmark(book *model.BookmarkDTO, logEnabled bool) error {
 	tmpFile, err := os.CreateTemp("", "archive")
 	if err != nil {
 		return fmt.Errorf("failed to create temp archive: %v", err)
@@ -43,12 +43,12 @@ func (d *ArchiverDomain) ArchiveBookmark(book *model.BookmarkDTO, logEnabled boo
 	return nil
 }
 
-func (d *ArchiverDomain) HasArchive(book *model.BookmarkDTO) bool {
+func (d *BuiltInArchiver) HasArchive(book *model.BookmarkDTO) bool {
 	archivePath := model.GetArchivePath(book)
 	return d.deps.Domains().Storage().FileExists(archivePath)
 }
 
-func (d *ArchiverDomain) GetBookmarkArchive(book *model.BookmarkDTO) (*warc.Archive, error) {
+func (d *BuiltInArchiver) GetBookmarkArchive(book *model.BookmarkDTO) (*warc.Archive, error) {
 	archivePath := model.GetArchivePath(book)
 
 	if !d.deps.Domains().Storage().FileExists(archivePath) {
@@ -59,8 +59,8 @@ func (d *ArchiverDomain) GetBookmarkArchive(book *model.BookmarkDTO) (*warc.Arch
 	return warc.Open(filepath.Join(d.deps.Config().Storage.DataDir, archivePath))
 }
 
-func NewArchiverDomain(deps *dependencies.Dependencies) *ArchiverDomain {
-	return &ArchiverDomain{
+func NewBuiltInArchiver(deps *dependencies.Dependencies) *BuiltInArchiver {
+	return &BuiltInArchiver{
 		deps: deps,
 	}
 }

@@ -30,7 +30,7 @@ func TestBookmarkDomain(t *testing.T) {
 	// TODO: write a valid archive file
 	fs.Create("archive/1")
 
-	archiverDomain := domains.NewArchiverDomain(deps)
+	archiverDomain := domains.NewBuiltInArchiver(deps)
 	bookmarksDomain := domains.NewBookmarksDomain(deps)
 
 	t.Run("HasEbook", func(t *testing.T) {
