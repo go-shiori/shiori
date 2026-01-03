@@ -38,7 +38,7 @@ type AccountsDomain interface {
 }
 
 type ArchiverDomain interface {
-	ArchiveBookmark(req ArchivalRequest) error
+	ArchiveBookmark(book *BookmarkDTO, logEnabled bool) error
 	GetBookmarkArchive(book *BookmarkDTO) (*warc.Archive, error)
 }
 

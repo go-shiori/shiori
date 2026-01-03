@@ -14,25 +14,17 @@ type ArchiverDomain struct {
 	deps *dependencies.Dependencies
 }
 
-func (d *ArchiverDomain) ArchiveBookmark(req model.ArchivalRequest) error {
+func (d *ArchiverDomain) ArchiveBookmark(book *model.BookmarkDTO, logEnabled bool) error {
 	tmpFile, err := os.CreateTemp("", "archive")
 	if err != nil {
 		return fmt.Errorf("failed to create temp archive: %v", err)
 	}
 	defer os.Remove(tmpFile.Name())
 
-	// Use default user agent if not provided
-	userAgent := req.UserAgent
-	if userAgent == "" {
-		userAgent = "Shiori/1.0" // Default user agent
-	}
-
-	// The Reader field is left nil, so warc.NewArchive will download the content
 	archivalRequest := warc.ArchivalRequest{
-		URL:         req.Bookmark.URL,
-		ContentType: req.ContentType,
-		UserAgent:   userAgent,
-		LogEnabled:  req.LogEnabled,
+		URL:         book.URL,
+		UserAgent:   model.UserAgent,
+		LogEnabled:  logEnabled,
 	}
 
 	err = warc.NewArchive(archivalRequest, tmpFile.Name())
@@ -41,7 +33,7 @@ func (d *ArchiverDomain) ArchiveBookmark(req model.ArchivalRequest) error {
 	}
 
 	// Construct the destination path using the BookmarkID
-	dstPath := model.GetArchivePath(req.Bookmark)
+	dstPath := model.GetArchivePath(book)
 
 	err = d.deps.Domains().Storage().WriteFile(dstPath, tmpFile)
 	if err != nil {

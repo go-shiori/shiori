@@ -160,14 +160,7 @@ func ProcessBookmark(deps model.Dependencies, req ProcessRequest) (book model.Bo
 
 	// If needed, create offline archive as well
 	if book.CreateArchive {
-		archivalRequest := model.ArchivalRequest{
-			Bookmark:    &book,
-			ContentType: contentType,
-			UserAgent:   userAgent,
-			LogEnabled:  req.LogArchival,
-		}
-
-		err = deps.Domains().Archiver().ArchiveBookmark(archivalRequest)
+		err = deps.Domains().Archiver().ArchiveBookmark(&book, req.LogArchival)
 		if err != nil {
 			return book, false, fmt.Errorf("failed to create archive: %v", err)
 		}
