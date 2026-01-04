@@ -208,6 +208,67 @@ func (d *ExternalArchiver) GetBookmarkArchive(book *model.BookmarkDTO) (model.Ar
 	return model.NewSingleFileArchive([]byte(archiveContent)), nil
 }
 
+func (d *ExternalArchiver) DeleteArchive(book *model.BookmarkDTO) error {
+	deleteCmd := os.Getenv("SHIORI_EXTERNAL_ARCHIVER_DELETE_COMMAND")
+	if deleteCmd == "" {
+		// If no delete command is configured, try to delete from /tmp/tmp-shiori
+		archivePath := fmt.Sprintf("/tmp/tmp-shiori/archive_%d", book.ID)
+		if err := os.Remove(archivePath); err != nil && !os.IsNotExist(err) {
+			return fmt.Errorf("failed to delete external archive: %v", err)
+		}
+		return nil
+	}
+
+	// Replace placeholders in the command
+	deleteCmd = strings.ReplaceAll(deleteCmd, "{ID}", fmt.Sprintf("%d", book.ID))
+
+	// Log the command being executed
+	logger := d.deps.Logger()
+	logger.WithFields(logrus.Fields{
+		"bookmark_id": book.ID,
+		"command":    deleteCmd,
+	}).Debug("External archiver: executing delete archive command")
+
+	// Execute the command
+	cmd := exec.Command("sh", "-c", deleteCmd)
+	
+	// Capture stderr for logging
+	var stderrBuf bytes.Buffer
+	cmd.Stderr = &stderrBuf
+	
+	if err := cmd.Run(); err != nil {
+		stderrOutput := strings.TrimSpace(stderrBuf.String())
+		if stderrOutput != "" {
+			logger.WithFields(logrus.Fields{
+				"bookmark_id": book.ID,
+				"error":      err,
+				"stderr":     stderrOutput,
+			}).Error("External archiver: delete archive command failed")
+		} else {
+			logger.WithFields(logrus.Fields{
+				"bookmark_id": book.ID,
+				"error":      err,
+			}).Error("External archiver: delete archive command failed")
+		}
+		return fmt.Errorf("failed to execute delete command: %v", err)
+	}
+
+	// Log stderr output if there was any
+	stderrOutput := strings.TrimSpace(stderrBuf.String())
+	if stderrOutput != "" {
+		logger.WithFields(logrus.Fields{
+			"bookmark_id": book.ID,
+			"stderr":     stderrOutput,
+		}).Debug("External archiver: delete archive command stderr output")
+	}
+
+	logger.WithFields(logrus.Fields{
+		"bookmark_id": book.ID,
+	}).Debug("External archiver: successfully deleted archive")
+
+	return nil
+}
+
 func NewExternalArchiver(deps *dependencies.Dependencies) *ExternalArchiver {
 	return &ExternalArchiver{
 		deps: deps,

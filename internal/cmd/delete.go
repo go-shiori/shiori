@@ -70,10 +70,12 @@ func deleteHandler(cmd *cobra.Command, args []string) {
 		for _, id := range ids {
 			strID := strconv.Itoa(id)
 			imgPath := fp.Join(cfg.Storage.DataDir, "thumb", strID)
-			archivePath := fp.Join(cfg.Storage.DataDir, "archive", strID)
-
+			
 			os.Remove(imgPath)
-			os.Remove(archivePath)
+			
+			// Use ArchiverDomain to delete archive (works for both built-in and external)
+			bookmark := &model.BookmarkDTO{ID: id}
+			deps.Domains().Archiver().DeleteArchive(bookmark)
 		}
 	}
 

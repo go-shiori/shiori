@@ -274,16 +274,18 @@ func (h *Handler) ApiDeleteBookmark(w http.ResponseWriter, r *http.Request, ps h
 	err = h.DB.DeleteBookmarks(ctx, ids...)
 	checkError(err)
 
-	// Delete thumbnail image and archives from local disk
+	// Delete thumbnail image and archives using proper interfaces
 	for _, id := range ids {
 		strID := strconv.Itoa(id)
 		imgPath := fp.Join(h.DataDir, "thumb", strID)
-		archivePath := fp.Join(h.DataDir, "archive", strID)
 		ebookPath := fp.Join(h.DataDir, "ebook", strID+".epub")
 
 		os.Remove(imgPath)
-		os.Remove(archivePath)
 		os.Remove(ebookPath)
+		
+		// Use ArchiverDomain to delete archive (works for both built-in and external)
+		bookmark := &model.BookmarkDTO{ID: id}
+		h.dependencies.Domains().Archiver().DeleteArchive(bookmark)
 	}
 
 	fmt.Fprint(w, 1)

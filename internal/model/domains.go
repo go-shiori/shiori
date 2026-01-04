@@ -39,6 +39,7 @@ type ArchiverDomain interface {
 	ArchiveBookmark(book *BookmarkDTO, logEnabled bool) error
 	GetBookmarkArchive(book *BookmarkDTO) (Archive, error)
 	HasArchive(book *BookmarkDTO) bool
+	DeleteArchive(book *BookmarkDTO) error
 }
 
 type StorageDomain interface {

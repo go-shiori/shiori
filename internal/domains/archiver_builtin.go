@@ -59,6 +59,21 @@ func (d *BuiltInArchiver) GetBookmarkArchive(book *model.BookmarkDTO) (model.Arc
 	return warc.Open(filepath.Join(d.deps.Config().Storage.DataDir, archivePath))
 }
 
+func (d *BuiltInArchiver) DeleteArchive(book *model.BookmarkDTO) error {
+	archivePath := model.GetArchivePath(book)
+	if !d.deps.Domains().Storage().FileExists(archivePath) {
+		return nil // No archive to delete
+	}
+
+	// Delete the archive file using the storage filesystem
+	err := d.deps.Domains().Storage().FS().Remove(archivePath)
+	if err != nil {
+		return fmt.Errorf("failed to delete archive: %v", err)
+	}
+
+	return nil
+}
+
 func NewBuiltInArchiver(deps *dependencies.Dependencies) *BuiltInArchiver {
 	return &BuiltInArchiver{
 		deps: deps,
