@@ -40,8 +40,8 @@ func (a *SingleFileArchive) Close() {
 
 // HasResource implements the Archive interface
 func (a *SingleFileArchive) HasResource(name string) bool {
-	// For single file archives, we accept any resource name since we return the same content
-	return name != ""
+	// If any other file but the default one is requested, return false
+	return name == ""
 }
 
 // Read implements the Archive interface
@@ -50,7 +50,8 @@ func (a *SingleFileArchive) Read(name string) ([]byte, string, error) {
 		return nil, "", fmt.Errorf("archive is closed")
 	}
 	
-	if name == "" {
+	// If any other file but the default one is requested, return an error
+	if name != "" {
 		return nil, "", io.EOF
 	}
 

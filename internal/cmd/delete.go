@@ -8,6 +8,8 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+
+	"github.com/go-shiori/shiori/internal/model"
 )
 
 func deleteCmd() *cobra.Command {
