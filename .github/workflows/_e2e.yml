@@ -8,14 +8,14 @@ jobs:
 
     name: Tests
     steps:
-    - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+    - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
     - name: Setup go
-      uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6.0.0
+      uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c # v6.1.0
       with:
         go-version-file: ./go.mod
 
-    - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v4.1.2
+    - uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v4.1.2
 
     - name: Install browsers
       run: npx playwright install --with-deps
@@ -24,7 +24,7 @@ jobs:
 
     - name: Upload test report
       if: always()
-      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
       with:
         name: e2e-test-report
         path: e2e-report.html

@@ -50,17 +50,17 @@ jobs:
 
     name: Go unit tests (ubuntu-latest)
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
       - name: Setup go
-        uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6.0.0
+        uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c # v6.1.0
         with:
           go-version-file: ./go.mod
 
       - name: Set up gotestfmt
         uses: gotesttools/gotestfmt-action@8b4478c7019be847373babde9300210e7de34bfb # v2.2.0
 
-      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # 4.3.0
+      - uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # 5.0.1
         with:
           path: |
             ~/.cache/go-build
@@ -80,7 +80,7 @@ jobs:
       - run: go build -tags osusergo,netgo -ldflags="-s -w -X main.version=$(git describe --tags) -X main.date=$(date --iso-8601=seconds)"
 
       - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # 5.5.1
+        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # 5.5.2
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
@@ -91,14 +91,14 @@ jobs:
     runs-on: ${{ matrix.os }}
     name: Go unit tests (${{ matrix.os }})
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
       - name: Setup go
-        uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6.0.0
+        uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c # v6.1.0
         with:
           go-version-file: ./go.mod
 
-      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # 4.3.0
+      - uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # 5.0.1
         with:
           path: |
             ~/.cache/go-build
@@ -127,10 +127,10 @@ jobs:
             architecture: x86-64
             version: "7.7"
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
       - name: Test on ${{ matrix.os.name }}
-        uses: cross-platform-actions/action@e8a7b572196ff79ded1979dc2bb9ee67d1ddb252 # v0.29.0
+        uses: cross-platform-actions/action@492b0c80085400348c599edace11141a4ee73524 # v0.32.0
         with:
           environment_variables: GO_VERSION
           operating_system: ${{ matrix.os.name }}
