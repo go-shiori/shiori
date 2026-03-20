@@ -12,9 +12,9 @@ import (
 )
 
 type loginRequestPayload struct {
-	Username   string `json:"username"`
-	Password   string `json:"password"`
-	RememberMe bool   `json:"remember_me"`
+	Username   string
+	Password   string
+	RememberMe bool
 }
 
 func (p *loginRequestPayload) IsValid() error {
@@ -28,8 +28,8 @@ func (p *loginRequestPayload) IsValid() error {
 }
 
 type loginResponseMessage struct {
-	Token      string `json:"token"`
-	Expiration int64  `json:"expires"`
+	Token      string
+	Expiration int64
 }
 
 // @Summary	Login to an account using username and password
@@ -118,11 +118,11 @@ func HandleGetMe(deps model.Dependencies, c model.WebContext) {
 }
 
 type updateAccountPayload struct {
-	OldPassword string            `json:"old_password"`
-	NewPassword string            `json:"new_password"`
-	Username    string            `json:"username"`
-	Owner       *bool             `json:"owner"`
-	Config      *model.UserConfig `json:"config"`
+	OldPassword string
+	NewPassword string
+	Username    string
+	Owner       *bool
+	Config      *model.UserConfig
 }
 
 func (p *updateAccountPayload) IsValid() error {

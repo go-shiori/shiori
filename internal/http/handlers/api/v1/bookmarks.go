@@ -15,18 +15,18 @@ import (
 )
 
 type updateCachePayload struct {
-	Ids           []int `json:"ids"    validate:"required"`
-	KeepMetadata  bool  `json:"keep_metadata"`
-	CreateArchive bool  `json:"create_archive"`
-	CreateEbook   bool  `json:"create_ebook"`
-	SkipExist     bool  `json:"skip_exist"`
+	IDs           []int `validate:"required"`
+	KeepMetadata  bool
+	CreateArchive bool
+	CreateEbook   bool
+	SkipExist     bool
 }
 
 func (p *updateCachePayload) IsValid() error {
-	if len(p.Ids) == 0 {
+	if len(p.IDs) == 0 {
 		return fmt.Errorf("id should not be empty")
 	}
-	for _, id := range p.Ids {
+	for _, id := range p.IDs {
 		if id <= 0 {
 			return fmt.Errorf("id should not be 0 or negative")
 		}
@@ -35,28 +35,28 @@ func (p *updateCachePayload) IsValid() error {
 }
 
 type readableResponseMessage struct {
-	Content string `json:"content"`
-	HTML    string `json:"html"`
+	Content string
+	HTML    string
 }
 
 type updateBookmarkDataPayload struct {
-	UpdateReadable bool `json:"update_readable"`
-	CreateArchive  bool `json:"create_archive"`
-	CreateEbook    bool `json:"create_ebook"`
-	KeepMetadata   bool `json:"keep_metadata"`
-	SkipExisting   bool `json:"skip_existing"`
+	UpdateReadable bool
+	CreateArchive  bool
+	CreateEbook    bool
+	KeepMetadata   bool
+	SkipExisting   bool
 }
 
 type bookmarkDataResponse struct {
-	Content      string `json:"content"`
-	HTML         string `json:"html"`
-	ImageURL     string `json:"imageURL"`
-	ArchiveURL   string `json:"archiveURL"`
-	EbookURL     string `json:"ebookURL"`
-	HasContent   bool   `json:"hasContent"`
-	HasArchive   bool   `json:"hasArchive"`
-	HasEbook     bool   `json:"hasEbook"`
-	HasThumbnail bool   `json:"hasThumbnail"`
+	Content      string
+	HTML         string
+	ImageURL     string
+	ArchiveURL   string
+	EbookURL     string
+	HasContent   bool
+	HasArchive   bool
+	HasEbook     bool
+	HasThumbnail bool
 }
 
 // HandleBookmarkReadable returns the readable version of a bookmark
@@ -279,7 +279,7 @@ func HandleUpdateCache(deps model.Dependencies, c model.WebContext) {
 	}
 
 	// Get bookmarks from database
-	bookmarks, err := deps.Domains().Bookmarks().GetBookmarks(c.Request().Context(), payload.Ids)
+	bookmarks, err := deps.Domains().Bookmarks().GetBookmarks(c.Request().Context(), payload.IDs)
 	if err != nil {
 		response.SendError(c, http.StatusInternalServerError, "Failed to get bookmarks")
 		return
@@ -342,8 +342,8 @@ func HandleUpdateCache(deps model.Dependencies, c model.WebContext) {
 }
 
 type bulkUpdateBookmarkTagsPayload struct {
-	BookmarkIDs []int `json:"bookmark_ids" validate:"required"`
-	TagIDs      []int `json:"tag_ids" validate:"required"`
+	BookmarkIDs []int `validate:"required"`
+	TagIDs      []int `validate:"required"`
 }
 
 func (p *bulkUpdateBookmarkTagsPayload) IsValid() error {
@@ -404,7 +404,7 @@ func HandleGetBookmarkTags(deps model.Dependencies, c model.WebContext) {
 
 // bookmarkTagPayload is used for both adding and removing tags from bookmarks
 type bookmarkTagPayload struct {
-	TagID int `json:"tag_id" validate:"required"`
+	TagID int `validate:"required"`
 }
 
 func (p *bookmarkTagPayload) IsValid() error {
@@ -525,16 +525,16 @@ func HandleRemoveTagFromBookmark(deps model.Dependencies, c model.WebContext) {
 // Bookmark CRUD operations
 
 type createBookmarkOptions struct {
-	CreateArchive bool `json:"create_archive"`
-	CreateEbook   bool `json:"create_ebook"`
+	CreateArchive bool
+	CreateEbook   bool
 }
 
 type createBookmarkPayload struct {
-	URL     string                 `json:"url" validate:"required"`
-	Title   string                 `json:"title,omitempty"`
-	Excerpt string                 `json:"excerpt,omitempty"`
-	Public  *int                   `json:"public,omitempty"`
-	Options *createBookmarkOptions `json:"options,omitempty"`
+	URL     string                 `validate:"required"`
+	Title   string                 `json:",omitempty"`
+	Excerpt string                 `json:",omitempty"`
+	Public  *int                   `json:",omitempty"`
+	Options *createBookmarkOptions `json:",omitempty"`
 }
 
 // IsQuickAdd returns true if only the URL was provided (quick add scenario)
@@ -791,10 +791,10 @@ func HandleGetBookmark(deps model.Dependencies, c model.WebContext) {
 }
 
 type updateBookmarkPayload struct {
-	URL     *string `json:"url"`
-	Title   *string `json:"title"`
-	Excerpt *string `json:"excerpt"`
-	Public  *int    `json:"public"`
+	URL     *string
+	Title   *string
+	Excerpt *string
+	Public  *int
 }
 
 // HandleUpdateBookmark updates an existing bookmark
@@ -864,7 +864,7 @@ func HandleUpdateBookmark(deps model.Dependencies, c model.WebContext) {
 }
 
 type deleteBookmarksPayload struct {
-	IDs []int `json:"ids" validate:"required"`
+	IDs []int `validate:"required"`
 }
 
 func (p *deleteBookmarksPayload) IsValid() error {

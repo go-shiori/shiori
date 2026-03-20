@@ -10,11 +10,11 @@ import (
 
 // Account is the database representation for account.
 type Account struct {
-	ID       DBID       `db:"id"       json:"id"`
-	Username string     `db:"username" json:"username"`
-	Password string     `db:"password" json:"password,omitempty"`
-	Owner    bool       `db:"owner"    json:"owner"`
-	Config   UserConfig `db:"config"   json:"config"`
+	ID       DBID       `db:"id"`
+	Username string     `db:"username"`
+	Password string     `db:"password" json:",omitempty"`
+	Owner    bool       `db:"owner"`
+	Config   UserConfig `db:"config"`
 }
 
 type UserConfig struct {
@@ -77,11 +77,11 @@ func (a Account) ToDTO() AccountDTO {
 
 // AccountDTO is data transfer object for Account.
 type AccountDTO struct {
-	ID       DBID        `json:"id"`
-	Username string      `json:"username"`
-	Password string      `json:"passowrd,omitempty"` // Used only to store, not to retrieve
-	Owner    *bool       `json:"owner"`
-	Config   *UserConfig `json:"config"`
+	ID       DBID
+	Username string
+	Password string      `json:",omitempty"`
+	Owner    *bool
+	Config   *UserConfig
 }
 
 func (adto *AccountDTO) IsOwner() bool {

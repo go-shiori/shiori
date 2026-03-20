@@ -302,14 +302,14 @@
 			return json;
 		}
 		return {
-			archiveURL: json["archiveURL"] == null ? undefined : json["archiveURL"],
-			content: json["content"] == null ? undefined : json["content"],
-			ebookURL: json["ebookURL"] == null ? undefined : json["ebookURL"],
-			hasArchive: json["hasArchive"] == null ? undefined : json["hasArchive"],
-			hasContent: json["hasContent"] == null ? undefined : json["hasContent"],
-			hasEbook: json["hasEbook"] == null ? undefined : json["hasEbook"],
-			html: json["html"] == null ? undefined : json["html"],
-			imageURL: json["imageURL"] == null ? undefined : json["imageURL"],
+			ArchiveURL: json["ArchiveURL"] == null ? undefined : json["ArchiveURL"],
+			Content: json["Content"] == null ? undefined : json["Content"],
+			EbookURL: json["EbookURL"] == null ? undefined : json["EbookURL"],
+			HasArchive: json["HasArchive"] == null ? undefined : json["HasArchive"],
+			HasContent: json["HasContent"] == null ? undefined : json["HasContent"],
+			HasEbook: json["HasEbook"] == null ? undefined : json["HasEbook"],
+			HTML: json["HTML"] == null ? undefined : json["HTML"],
+			ImageURL: json["ImageURL"] == null ? undefined : json["ImageURL"],
 		};
 	}
 
@@ -325,7 +325,7 @@
 			return value;
 		}
 		return {
-			tag_id: value["tagId"],
+			TagID: value["TagID"],
 		};
 	}
 
@@ -341,8 +341,8 @@
 			return value;
 		}
 		return {
-			bookmark_ids: value["bookmarkIds"],
-			tag_ids: value["tagIds"],
+			BookmarkIDs: value["BookmarkIDs"],
+			TagIDs: value["TagIDs"],
 		};
 	}
 
@@ -358,10 +358,11 @@
 			return value;
 		}
 		return {
-			excerpt: value["excerpt"],
-			public: value["_public"],
-			title: value["title"],
-			url: value["url"],
+			Excerpt: value["Excerpt"],
+			Public: value["Public"],
+			Options: value["Options"],
+			Title: value["Title"],
+			URL: value["URL"],
 		};
 	}
 
@@ -377,7 +378,7 @@
 			return value;
 		}
 		return {
-			ids: value["ids"],
+			IDs: value["IDs"],
 		};
 	}
 
@@ -390,9 +391,9 @@
 			return json;
 		}
 		return {
-			commit: json["commit"] == null ? undefined : json["commit"],
-			date: json["date"] == null ? undefined : json["date"],
-			tag: json["tag"] == null ? undefined : json["tag"],
+			Commit: json["Commit"] == null ? undefined : json["Commit"],
+			Date: json["Date"] == null ? undefined : json["Date"],
+			Tag: json["Tag"] == null ? undefined : json["Tag"],
 		};
 	}
 
@@ -405,12 +406,12 @@
 			return json;
 		}
 		return {
-			database: json["database"] == null ? undefined : json["database"],
-			os: json["os"] == null ? undefined : json["os"],
-			version:
-				json["version"] == null
+			Database: json["Database"] == null ? undefined : json["Database"],
+			OS: json["OS"] == null ? undefined : json["OS"],
+			Version:
+				json["Version"] == null
 					? undefined
-					: ApiV1InfoResponseVersionFromJSON(json["version"]),
+					: ApiV1InfoResponseVersionFromJSON(json["Version"]),
 		};
 	}
 
@@ -426,9 +427,9 @@
 			return value;
 		}
 		return {
-			password: value["password"],
-			remember_me: value["rememberMe"],
-			username: value["username"],
+			Password: value["Password"],
+			RememberMe: value["RememberMe"],
+			Username: value["Username"],
 		};
 	}
 
@@ -441,8 +442,8 @@
 			return json;
 		}
 		return {
-			expires: json["expires"] == null ? undefined : json["expires"],
-			token: json["token"] == null ? undefined : json["token"],
+			Expiration: json["Expiration"] == null ? undefined : json["Expiration"],
+			Token: json["Token"] == null ? undefined : json["Token"],
 		};
 	}
 
@@ -458,8 +459,8 @@
 			return json;
 		}
 		return {
-			content: json["content"] == null ? undefined : json["content"],
-			html: json["html"] == null ? undefined : json["html"],
+			Content: json["Content"] == null ? undefined : json["Content"],
+			HTML: json["HTML"] == null ? undefined : json["HTML"],
 		};
 	}
 
@@ -472,19 +473,19 @@
 			return json;
 		}
 		return {
-			createEbook:
-				json["createEbook"] == null ? undefined : json["createEbook"],
-			hideExcerpt:
-				json["hideExcerpt"] == null ? undefined : json["hideExcerpt"],
-			hideThumbnail:
-				json["hideThumbnail"] == null ? undefined : json["hideThumbnail"],
-			keepMetadata:
-				json["keepMetadata"] == null ? undefined : json["keepMetadata"],
-			listMode: json["listMode"] == null ? undefined : json["listMode"],
-			makePublic: json["makePublic"] == null ? undefined : json["makePublic"],
-			showId: json["showId"] == null ? undefined : json["showId"],
-			theme: json["theme"] == null ? undefined : json["theme"],
-			useArchive: json["useArchive"] == null ? undefined : json["useArchive"],
+			CreateEbook:
+				json["CreateEbook"] == null ? undefined : json["CreateEbook"],
+			HideExcerpt:
+				json["HideExcerpt"] == null ? undefined : json["HideExcerpt"],
+			HideThumbnail:
+				json["HideThumbnail"] == null ? undefined : json["HideThumbnail"],
+			KeepMetadata:
+				json["KeepMetadata"] == null ? undefined : json["KeepMetadata"],
+			ListMode: json["ListMode"] == null ? undefined : json["ListMode"],
+			MakePublic: json["MakePublic"] == null ? undefined : json["MakePublic"],
+			ShowId: json["ShowId"] == null ? undefined : json["ShowId"],
+			Theme: json["Theme"] == null ? undefined : json["Theme"],
+			UseArchive: json["UseArchive"] == null ? undefined : json["UseArchive"],
 		};
 	}
 	function ModelUserConfigToJSON(json) {
@@ -495,15 +496,15 @@
 			return value;
 		}
 		return {
-			createEbook: value["createEbook"],
-			hideExcerpt: value["hideExcerpt"],
-			hideThumbnail: value["hideThumbnail"],
-			keepMetadata: value["keepMetadata"],
-			listMode: value["listMode"],
-			makePublic: value["makePublic"],
-			showId: value["showId"],
-			theme: value["theme"],
-			useArchive: value["useArchive"],
+			CreateEbook: value["CreateEbook"],
+			HideExcerpt: value["HideExcerpt"],
+			HideThumbnail: value["HideThumbnail"],
+			KeepMetadata: value["KeepMetadata"],
+			ListMode: value["ListMode"],
+			MakePublic: value["MakePublic"],
+			ShowId: value["ShowId"],
+			Theme: value["Theme"],
+			UseArchive: value["UseArchive"],
 		};
 	}
 
@@ -519,11 +520,11 @@
 			return value;
 		}
 		return {
-			config: ModelUserConfigToJSON(value["config"]),
-			new_password: value["newPassword"],
-			old_password: value["oldPassword"],
-			owner: value["owner"],
-			username: value["username"],
+			Config: ModelUserConfigToJSON(value["Config"]),
+			NewPassword: value["NewPassword"],
+			OldPassword: value["OldPassword"],
+			Owner: value["Owner"],
+			Username: value["Username"],
 		};
 	}
 
@@ -539,11 +540,11 @@
 			return value;
 		}
 		return {
-			create_archive: value["createArchive"],
-			create_ebook: value["createEbook"],
-			keep_metadata: value["keepMetadata"],
-			skip_existing: value["skipExisting"],
-			update_readable: value["updateReadable"],
+			CreateArchive: value["CreateArchive"],
+			CreateEbook: value["CreateEbook"],
+			KeepMetadata: value["KeepMetadata"],
+			SkipExisting: value["SkipExisting"],
+			UpdateReadable: value["UpdateReadable"],
 		};
 	}
 
@@ -559,10 +560,10 @@
 			return value;
 		}
 		return {
-			excerpt: value["excerpt"],
-			public: value["_public"],
-			title: value["title"],
-			url: value["url"],
+			Excerpt: value["Excerpt"],
+			Public: value["Public"],
+			Title: value["Title"],
+			URL: value["URL"],
 		};
 	}
 
@@ -578,11 +579,11 @@
 			return value;
 		}
 		return {
-			create_archive: value["createArchive"],
-			create_ebook: value["createEbook"],
-			ids: value["ids"],
-			keep_metadata: value["keepMetadata"],
-			skip_exist: value["skipExist"],
+			CreateArchive: value["CreateArchive"],
+			CreateEbook: value["CreateEbook"],
+			IDs: value["IDs"],
+			KeepMetadata: value["KeepMetadata"],
+			SkipExist: value["SkipExist"],
 		};
 	}
 
@@ -595,14 +596,14 @@
 			return json;
 		}
 		return {
-			config:
-				json["config"] == null
+			Config:
+				json["Config"] == null
 					? undefined
-					: ModelUserConfigFromJSON(json["config"]),
-			id: json["id"] == null ? undefined : json["id"],
-			owner: json["owner"] == null ? undefined : json["owner"],
-			password: json["password"] == null ? undefined : json["password"],
-			username: json["username"] == null ? undefined : json["username"],
+					: ModelUserConfigFromJSON(json["Config"]),
+			ID: json["ID"] == null ? undefined : json["ID"],
+			Owner: json["Owner"] == null ? undefined : json["Owner"],
+			Password: json["Password"] == null ? undefined : json["Password"],
+			Username: json["Username"] == null ? undefined : json["Username"],
 		};
 	}
 
@@ -615,14 +616,14 @@
 			return json;
 		}
 		return {
-			config:
-				json["config"] == null
+			Config:
+				json["Config"] == null
 					? undefined
-					: ModelUserConfigFromJSON(json["config"]),
-			id: json["id"] == null ? undefined : json["id"],
-			owner: json["owner"] == null ? undefined : json["owner"],
-			passowrd: json["passowrd"] == null ? undefined : json["passowrd"],
-			username: json["username"] == null ? undefined : json["username"],
+					: ModelUserConfigFromJSON(json["Config"]),
+			ID: json["ID"] == null ? undefined : json["ID"],
+			Owner: json["Owner"] == null ? undefined : json["Owner"],
+			Password: json["Password"] == null ? undefined : json["Password"],
+			Username: json["Username"] == null ? undefined : json["Username"],
 		};
 	}
 
@@ -635,11 +636,11 @@
 			return json;
 		}
 		return {
-			bookmarkCount:
-				json["bookmark_count"] == null ? undefined : json["bookmark_count"],
-			deleted: json["deleted"] == null ? undefined : json["deleted"],
-			id: json["id"] == null ? undefined : json["id"],
-			name: json["name"] == null ? undefined : json["name"],
+			BookmarkCount:
+				json["BookmarkCount"] == null ? undefined : json["BookmarkCount"],
+			Deleted: json["Deleted"] == null ? undefined : json["Deleted"],
+			ID: json["ID"] == null ? undefined : json["ID"],
+			Name: json["Name"] == null ? undefined : json["Name"],
 		};
 	}
 	function ModelTagDTOToJSON(json) {
@@ -650,10 +651,10 @@
 			return value;
 		}
 		return {
-			bookmark_count: value["bookmarkCount"],
-			deleted: value["deleted"],
-			id: value["id"],
-			name: value["name"],
+			BookmarkCount: value["BookmarkCount"],
+			Deleted: value["Deleted"],
+			ID: value["ID"],
+			Name: value["Name"],
 		};
 	}
 
@@ -666,27 +667,27 @@
 			return json;
 		}
 		return {
-			author: json["author"] == null ? undefined : json["author"],
-			createArchive:
-				json["create_archive"] == null ? undefined : json["create_archive"],
-			createEbook:
-				json["create_ebook"] == null ? undefined : json["create_ebook"],
-			createdAt: json["createdAt"] == null ? undefined : json["createdAt"],
-			excerpt: json["excerpt"] == null ? undefined : json["excerpt"],
-			hasArchive: json["hasArchive"] == null ? undefined : json["hasArchive"],
-			hasContent: json["hasContent"] == null ? undefined : json["hasContent"],
-			hasEbook: json["hasEbook"] == null ? undefined : json["hasEbook"],
-			html: json["html"] == null ? undefined : json["html"],
-			id: json["id"] == null ? undefined : json["id"],
-			imageURL: json["imageURL"] == null ? undefined : json["imageURL"],
-			modifiedAt: json["modifiedAt"] == null ? undefined : json["modifiedAt"],
-			_public: json["public"] == null ? undefined : json["public"],
-			tags:
-				json["tags"] == null
+			Author: json["Author"] == null ? undefined : json["Author"],
+			CreateArchive:
+				json["CreateArchive"] == null ? undefined : json["CreateArchive"],
+			CreateEbook:
+				json["CreateEbook"] == null ? undefined : json["CreateEbook"],
+			CreatedAt: json["CreatedAt"] == null ? undefined : json["CreatedAt"],
+			Excerpt: json["Excerpt"] == null ? undefined : json["Excerpt"],
+			HasArchive: json["HasArchive"] == null ? undefined : json["HasArchive"],
+			HasContent: json["HasContent"] == null ? undefined : json["HasContent"],
+			HasEbook: json["HasEbook"] == null ? undefined : json["HasEbook"],
+			HTML: json["HTML"] == null ? undefined : json["HTML"],
+			ID: json["ID"] == null ? undefined : json["ID"],
+			ImageURL: json["ImageURL"] == null ? undefined : json["ImageURL"],
+			ModifiedAt: json["ModifiedAt"] == null ? undefined : json["ModifiedAt"],
+			Public: json["Public"] == null ? undefined : json["Public"],
+			Tags:
+				json["Tags"] == null
 					? undefined
-					: json["tags"].map(ModelTagDTOFromJSON),
-			title: json["title"] == null ? undefined : json["title"],
-			url: json["url"] == null ? undefined : json["url"],
+					: json["Tags"].map(ModelTagDTOFromJSON),
+			Title: json["Title"] == null ? undefined : json["Title"],
+			URL: json["URL"] == null ? undefined : json["URL"],
 		};
 	}
 
@@ -783,9 +784,16 @@
 			);
 			return await response.value();
 		}
-		async apiV1AccountsPostRaw(initOverrides) {
+		async apiV1AccountsPostRaw(requestParameters, initOverrides) {
+			if (requestParameters["payload"] == null) {
+				throw new RequiredError(
+					"payload",
+					'Required parameter "payload" was null or undefined when calling apiV1AccountsPost().',
+				);
+			}
 			const queryParameters = {};
 			const headerParameters = {};
+			headerParameters["Content-Type"] = "application/json";
 			let urlPath = `/api/v1/accounts`;
 			const response = await this.request(
 				{
@@ -793,6 +801,7 @@
 					method: "POST",
 					headers: headerParameters,
 					query: queryParameters,
+					body: requestParameters["payload"],
 				},
 				initOverrides,
 			);
@@ -800,8 +809,8 @@
 				ModelAccountDTOFromJSON(jsonValue),
 			);
 		}
-		async apiV1AccountsPost(initOverrides) {
-			const response = await this.apiV1AccountsPostRaw(initOverrides);
+		async apiV1AccountsPost(requestParameters, initOverrides) {
+			const response = await this.apiV1AccountsPostRaw(requestParameters, initOverrides);
 			return await response.value();
 		}
 	}
@@ -980,7 +989,7 @@
 				initOverrides,
 			);
 			return new JSONApiResponse(response, (jsonValue) =>
-				ModelBookmarkDTOFromJSON(jsonValue),
+				jsonValue.map(ModelBookmarkDTOFromJSON),
 			);
 		}
 		async apiV1BookmarksCachePut(requestParameters, initOverrides) {
@@ -1044,9 +1053,10 @@
 				},
 				initOverrides,
 			);
-			return new JSONApiResponse(response, (jsonValue) =>
-				jsonValue.map(ModelBookmarkDTOFromJSON),
-			);
+			return new JSONApiResponse(response, (jsonValue) => ({
+				items: (jsonValue.Items || []).map(ModelBookmarkDTOFromJSON),
+				total: jsonValue.Total || 0,
+			}));
 		}
 		async apiV1BookmarksGet(requestParameters = {}, initOverrides) {
 			const response = await this.apiV1BookmarksGetRaw(
@@ -1209,10 +1219,20 @@
 			);
 			return await response.value();
 		}
-		async apiV1BookmarksIdReadableGetRaw(initOverrides) {
+		async apiV1BookmarksIdReadableGetRaw(requestParameters, initOverrides) {
+			if (requestParameters["id"] == null) {
+				throw new RequiredError(
+					"id",
+					'Required parameter "id" was null or undefined when calling apiV1BookmarksIdReadableGet().',
+				);
+			}
 			const queryParameters = {};
 			const headerParameters = {};
-			let urlPath = `/api/v1/bookmarks/id/readable`;
+			let urlPath = `/api/v1/bookmarks/{id}/readable`;
+			urlPath = urlPath.replace(
+				`{${"id"}}`,
+				encodeURIComponent(String(requestParameters["id"])),
+			);
 			const response = await this.request(
 				{
 					path: urlPath,
@@ -1226,8 +1246,8 @@
 				ApiV1ReadableResponseMessageFromJSON(jsonValue),
 			);
 		}
-		async apiV1BookmarksIdReadableGet(initOverrides) {
-			const response = await this.apiV1BookmarksIdReadableGetRaw(initOverrides);
+		async apiV1BookmarksIdReadableGet(requestParameters, initOverrides) {
+			const response = await this.apiV1BookmarksIdReadableGetRaw(requestParameters, initOverrides);
 			return await response.value();
 		}
 		async apiV1BookmarksIdTagsDeleteRaw(requestParameters, initOverrides) {
@@ -1423,9 +1443,10 @@
 				},
 				initOverrides,
 			);
-			return new JSONApiResponse(response, (jsonValue) =>
-				jsonValue.map(ModelTagDTOFromJSON),
-			);
+			return new JSONApiResponse(response, (jsonValue) => ({
+				items: (jsonValue.Items || []).map(ModelTagDTOFromJSON),
+				total: jsonValue.Total || 0,
+			}));
 		}
 		async apiV1TagsGet(requestParameters = {}, initOverrides) {
 			const response = await this.apiV1TagsGetRaw(

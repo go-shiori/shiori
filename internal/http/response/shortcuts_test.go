@@ -59,7 +59,7 @@ func TestSendError(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
 		responseBody := struct {
-			Error string `json:"error"`
+			Error string
 		}{Error: "error message"}
 		response := response.NewResponse(responseBody, http.StatusBadRequest)
 
@@ -75,7 +75,7 @@ func TestSendError(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
 		responseBody := struct {
-			Error string `json:"error"`
+			Error string
 		}{Error: "error message"}
 		response := response.NewResponse(responseBody, http.StatusBadRequest)
 
@@ -92,8 +92,7 @@ func TestSendInternalServerError(t *testing.T) {
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 
 	responseBody := struct {
-		Error string `json:"error"`
-	}{Error: "Internal server error, please contact an administrator"}
+		Error string 	}{Error: "Internal server error, please contact an administrator"}
 	response := response.NewResponse(responseBody, http.StatusInternalServerError)
 
 	assert.True(t, response.IsError())

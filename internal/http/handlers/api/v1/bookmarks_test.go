@@ -84,10 +84,10 @@ func TestHandleBookmarkReadable(t *testing.T) {
 
 		response := testutil.NewTestResponseFromRecorder(w)
 		response.AssertOk(t)
-		response.AssertMessageJSONKeyValue(t, "content", func(t *testing.T, value any) {
+		response.AssertMessageJSONKeyValue(t, "Content", func(t *testing.T, value any) {
 			require.Equal(t, bookmark.Content, value)
 		})
-		response.AssertMessageJSONKeyValue(t, "html", func(t *testing.T, value any) {
+		response.AssertMessageJSONKeyValue(t, "HTML", func(t *testing.T, value any) {
 			require.Equal(t, bookmark.HTML, value)
 		})
 	})
@@ -141,7 +141,7 @@ func TestHandleUpdateCache(t *testing.T) {
 			http.MethodPut,
 			"/api/v1/bookmarks/cache",
 			testutil.WithFakeAdmin(),
-			testutil.WithBody(`{"ids": []}`),
+			testutil.WithBody(`{"IDs": []}`),
 		)
 		require.Equal(t, http.StatusBadRequest, w.Code)
 	})
@@ -154,7 +154,7 @@ func TestHandleUpdateCache(t *testing.T) {
 			http.MethodPut,
 			"/api/v1/bookmarks/cache",
 			testutil.WithFakeAdmin(),
-			testutil.WithBody(`{"ids": [999]}`),
+			testutil.WithBody(`{"IDs": [999]}`),
 		)
 		require.Equal(t, http.StatusNotFound, w.Code)
 	})
@@ -171,10 +171,10 @@ func TestHandleUpdateCache(t *testing.T) {
 		require.Len(t, savedBookmark, 1)
 
 		body := `{
-			"ids": [` + strconv.Itoa(savedBookmark[0].ID) + `],
-			"keep_metadata": true,
-			"create_archive": true,
-			"create_ebook": true
+			"IDs": [` + strconv.Itoa(savedBookmark[0].ID) + `],
+			"KeepMetadata": true,
+			"CreateArchive": true,
+			"CreateEbook": true
 		}`
 
 		w := testutil.PerformRequest(
@@ -234,8 +234,8 @@ func TestHandleUpdateBookmarkTags(t *testing.T) {
 	t.Run("empty_ids", func(t *testing.T) {
 		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
 		payload := map[string]interface{}{
-			"ids":  []int{},
-			"tags": []model.Tag{{Name: "test"}},
+			"IDs":  []int{},
+			"Tags": []model.Tag{{Name: "test"}},
 		}
 		body, _ := json.Marshal(payload)
 		w := testutil.PerformRequest(
@@ -252,8 +252,8 @@ func TestHandleUpdateBookmarkTags(t *testing.T) {
 	t.Run("empty_tags", func(t *testing.T) {
 		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
 		payload := map[string]interface{}{
-			"ids":  []int{1},
-			"tags": []model.Tag{},
+			"IDs":  []int{1},
+			"Tags": []model.Tag{},
 		}
 		body, _ := json.Marshal(payload)
 		w := testutil.PerformRequest(
@@ -270,8 +270,8 @@ func TestHandleUpdateBookmarkTags(t *testing.T) {
 	t.Run("bookmark_not_found", func(t *testing.T) {
 		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
 		payload := map[string]interface{}{
-			"ids":  []int{999},
-			"tags": []model.Tag{{Name: "test"}},
+			"IDs":  []int{999},
+			"Tags": []model.Tag{{Name: "test"}},
 		}
 		body, _ := json.Marshal(payload)
 		w := testutil.PerformRequest(
@@ -301,8 +301,8 @@ func TestHandleUpdateBookmarkTags(t *testing.T) {
 
 		// Update the bookmark tags
 		payload := map[string]interface{}{
-			"bookmark_ids": []int{savedBookmark[0].ID},
-			"tag_ids":      []int{createdTag.ID},
+			"BookmarkIDs": []int{savedBookmark[0].ID},
+			"TagIDs":      []int{createdTag.ID},
 		}
 		body, _ := json.Marshal(payload)
 		w := testutil.PerformRequest(
@@ -354,7 +354,7 @@ func TestHandleCreateBookmark(t *testing.T) {
 
 	t.Run("empty url", func(t *testing.T) {
 		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
-		payload := `{"url": "", "title": "Test"}`
+		payload := `{"URL": "", "Title": "Test"}`
 		w := testutil.PerformRequest(
 			deps,
 			HandleCreateBookmark,
@@ -369,10 +369,10 @@ func TestHandleCreateBookmark(t *testing.T) {
 	t.Run("successful creation", func(t *testing.T) {
 		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
 		payload := `{
-			"url": "https://example.com/test",
-			"title": "Test Bookmark",
-			"excerpt": "Test excerpt",
-			"public": 1
+			"URL": "https://example.com/test",
+			"Title": "Test Bookmark",
+			"Excerpt": "Test excerpt",
+			"Public": 1
 		}`
 		w := testutil.PerformRequest(
 			deps,
@@ -386,10 +386,10 @@ func TestHandleCreateBookmark(t *testing.T) {
 
 		response := testutil.NewTestResponseFromRecorder(w)
 		response.AssertOk(t)
-		response.AssertMessageJSONKeyValue(t, "url", func(t *testing.T, value any) {
+		response.AssertMessageJSONKeyValue(t, "URL", func(t *testing.T, value any) {
 			require.Equal(t, "https://example.com/test", value)
 		})
-		response.AssertMessageJSONKeyValue(t, "title", func(t *testing.T, value any) {
+		response.AssertMessageJSONKeyValue(t, "Title", func(t *testing.T, value any) {
 			require.Equal(t, "Test Bookmark", value)
 		})
 	})
@@ -397,9 +397,9 @@ func TestHandleCreateBookmark(t *testing.T) {
 	t.Run("creation without title defaults to URL", func(t *testing.T) {
 		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
 		payload := `{
-			"url": "https://example.com/no-title",
-			"excerpt": "Test excerpt",
-			"public": 0
+			"URL": "https://example.com/no-title",
+			"Excerpt": "Test excerpt",
+			"Public": 0
 		}`
 		w := testutil.PerformRequest(
 			deps,
@@ -413,18 +413,18 @@ func TestHandleCreateBookmark(t *testing.T) {
 
 		response := testutil.NewTestResponseFromRecorder(w)
 		response.AssertOk(t)
-		response.AssertMessageJSONKeyValue(t, "url", func(t *testing.T, value any) {
+		response.AssertMessageJSONKeyValue(t, "URL", func(t *testing.T, value any) {
 			require.Equal(t, "https://example.com/no-title", value)
 		})
 		// Verify title defaults to URL when not provided
-		response.AssertMessageJSONKeyValue(t, "title", func(t *testing.T, value any) {
+		response.AssertMessageJSONKeyValue(t, "Title", func(t *testing.T, value any) {
 			require.Equal(t, "https://example.com/no-title", value)
 		})
 	})
 
 	t.Run("quick add with URL only", func(t *testing.T) {
 		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
-		payload := `{"url": "https://example.com/quick-add"}`
+		payload := `{"URL": "https://example.com/quick-add"}`
 		w := testutil.PerformRequest(
 			deps,
 			HandleCreateBookmark,
@@ -437,11 +437,11 @@ func TestHandleCreateBookmark(t *testing.T) {
 
 		response := testutil.NewTestResponseFromRecorder(w)
 		response.AssertOk(t)
-		response.AssertMessageJSONKeyValue(t, "url", func(t *testing.T, value any) {
+		response.AssertMessageJSONKeyValue(t, "URL", func(t *testing.T, value any) {
 			require.Equal(t, "https://example.com/quick-add", value)
 		})
 		// Verify public defaults to 0 (internal) when not provided
-		response.AssertMessageJSONKeyValue(t, "public", func(t *testing.T, value any) {
+		response.AssertMessageJSONKeyValue(t, "Public", func(t *testing.T, value any) {
 			require.Equal(t, float64(0), value) // JSON numbers are float64
 		})
 	})
@@ -449,9 +449,9 @@ func TestHandleCreateBookmark(t *testing.T) {
 	t.Run("creation with explicit public=0", func(t *testing.T) {
 		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
 		payload := `{
-			"url": "https://example.com/explicit-private",
-			"title": "Private Bookmark",
-			"public": 0
+			"URL": "https://example.com/explicit-private",
+			"Title": "Private Bookmark",
+			"Public": 0
 		}`
 		w := testutil.PerformRequest(
 			deps,
@@ -465,7 +465,7 @@ func TestHandleCreateBookmark(t *testing.T) {
 
 		response := testutil.NewTestResponseFromRecorder(w)
 		response.AssertOk(t)
-		response.AssertMessageJSONKeyValue(t, "public", func(t *testing.T, value any) {
+		response.AssertMessageJSONKeyValue(t, "Public", func(t *testing.T, value any) {
 			require.Equal(t, float64(0), value)
 		})
 	})
@@ -473,9 +473,9 @@ func TestHandleCreateBookmark(t *testing.T) {
 	t.Run("creation with explicit public=1", func(t *testing.T) {
 		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
 		payload := `{
-			"url": "https://example.com/explicit-public",
-			"title": "Public Bookmark",
-			"public": 1
+			"URL": "https://example.com/explicit-public",
+			"Title": "Public Bookmark",
+			"Public": 1
 		}`
 		w := testutil.PerformRequest(
 			deps,
@@ -489,7 +489,7 @@ func TestHandleCreateBookmark(t *testing.T) {
 
 		response := testutil.NewTestResponseFromRecorder(w)
 		response.AssertOk(t)
-		response.AssertMessageJSONKeyValue(t, "public", func(t *testing.T, value any) {
+		response.AssertMessageJSONKeyValue(t, "Public", func(t *testing.T, value any) {
 			require.Equal(t, float64(1), value)
 		})
 	})
@@ -497,11 +497,11 @@ func TestHandleCreateBookmark(t *testing.T) {
 	t.Run("creation with options for archive", func(t *testing.T) {
 		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
 		payload := `{
-			"url": "https://example.com/with-archive",
-			"title": "Bookmark with Archive",
-			"options": {
-				"create_archive": true,
-				"create_ebook": false
+			"URL": "https://example.com/with-archive",
+			"Title": "Bookmark with Archive",
+			"Options": {
+				"CreateArchive": true,
+				"CreateEbook": false
 			}
 		}`
 		w := testutil.PerformRequest(
@@ -516,7 +516,7 @@ func TestHandleCreateBookmark(t *testing.T) {
 
 		response := testutil.NewTestResponseFromRecorder(w)
 		response.AssertOk(t)
-		response.AssertMessageJSONKeyValue(t, "url", func(t *testing.T, value any) {
+		response.AssertMessageJSONKeyValue(t, "URL", func(t *testing.T, value any) {
 			require.Equal(t, "https://example.com/with-archive", value)
 		})
 	})
@@ -524,11 +524,11 @@ func TestHandleCreateBookmark(t *testing.T) {
 	t.Run("creation with options for ebook", func(t *testing.T) {
 		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
 		payload := `{
-			"url": "https://example.com/with-ebook",
-			"title": "Bookmark with Ebook",
-			"options": {
-				"create_archive": false,
-				"create_ebook": true
+			"URL": "https://example.com/with-ebook",
+			"Title": "Bookmark with Ebook",
+			"Options": {
+				"CreateArchive": false,
+				"CreateEbook": true
 			}
 		}`
 		w := testutil.PerformRequest(
@@ -543,7 +543,7 @@ func TestHandleCreateBookmark(t *testing.T) {
 
 		response := testutil.NewTestResponseFromRecorder(w)
 		response.AssertOk(t)
-		response.AssertMessageJSONKeyValue(t, "url", func(t *testing.T, value any) {
+		response.AssertMessageJSONKeyValue(t, "URL", func(t *testing.T, value any) {
 			require.Equal(t, "https://example.com/with-ebook", value)
 		})
 	})
@@ -551,9 +551,9 @@ func TestHandleCreateBookmark(t *testing.T) {
 	t.Run("quick add with options should not be quick add", func(t *testing.T) {
 		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
 		payload := `{
-			"url": "https://example.com/quick-with-options",
-			"options": {
-				"create_archive": true
+			"URL": "https://example.com/quick-with-options",
+			"Options": {
+				"CreateArchive": true
 			}
 		}`
 		w := testutil.PerformRequest(
@@ -568,7 +568,7 @@ func TestHandleCreateBookmark(t *testing.T) {
 
 		response := testutil.NewTestResponseFromRecorder(w)
 		response.AssertOk(t)
-		response.AssertMessageJSONKeyValue(t, "url", func(t *testing.T, value any) {
+		response.AssertMessageJSONKeyValue(t, "URL", func(t *testing.T, value any) {
 			require.Equal(t, "https://example.com/quick-with-options", value)
 		})
 	})
@@ -714,7 +714,7 @@ func TestHandleListBookmarks(t *testing.T) {
 		response := testutil.NewTestResponseFromRecorder(w)
 		response.AssertOk(t)
 		// Ensure items key exists and is a list
-		response.AssertMessageJSONKeyValue(t, "items", func(t *testing.T, value any) {
+		response.AssertMessageJSONKeyValue(t, "Items", func(t *testing.T, value any) {
 			_, ok := value.([]any)
 			require.True(t, ok)
 		})
@@ -743,7 +743,7 @@ func TestHandleListBookmarks(t *testing.T) {
 
 		response := testutil.NewTestResponseFromRecorder(w)
 		response.AssertOk(t)
-		response.AssertMessageJSONKeyValue(t, "items", func(t *testing.T, value any) {
+		response.AssertMessageJSONKeyValue(t, "Items", func(t *testing.T, value any) {
 			_, ok := value.([]any)
 			require.True(t, ok)
 		})
@@ -938,7 +938,7 @@ func TestHandleGetBookmark(t *testing.T) {
 
 		response := testutil.NewTestResponseFromRecorder(w)
 		response.AssertOk(t)
-		response.AssertMessageJSONKeyValue(t, "title", func(t *testing.T, value any) {
+		response.AssertMessageJSONKeyValue(t, "Title", func(t *testing.T, value any) {
 			require.Equal(t, "Test Get Bookmark", value)
 		})
 	})
@@ -989,7 +989,7 @@ func TestHandleUpdateBookmark(t *testing.T) {
 
 	t.Run("bookmark not found", func(t *testing.T) {
 		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
-		payload := `{"title": "Updated Title"}`
+		payload := `{"Title": "Updated Title"}`
 		w := testutil.PerformRequest(
 			deps,
 			HandleUpdateBookmark,
@@ -1013,8 +1013,8 @@ func TestHandleUpdateBookmark(t *testing.T) {
 		require.Len(t, savedBookmarks, 1)
 
 		payload := `{
-			"title": "Updated Title",
-			"excerpt": "Updated excerpt"
+			"Title": "Updated Title",
+			"Excerpt": "Updated excerpt"
 		}`
 		w := testutil.PerformRequest(
 			deps,
@@ -1029,10 +1029,10 @@ func TestHandleUpdateBookmark(t *testing.T) {
 
 		response := testutil.NewTestResponseFromRecorder(w)
 		response.AssertOk(t)
-		response.AssertMessageJSONKeyValue(t, "title", func(t *testing.T, value any) {
+		response.AssertMessageJSONKeyValue(t, "Title", func(t *testing.T, value any) {
 			require.Equal(t, "Updated Title", value)
 		})
-		response.AssertMessageJSONKeyValue(t, "excerpt", func(t *testing.T, value any) {
+		response.AssertMessageJSONKeyValue(t, "Excerpt", func(t *testing.T, value any) {
 			require.Equal(t, "Updated excerpt", value)
 		})
 	})
@@ -1049,7 +1049,7 @@ func TestHandleUpdateBookmark(t *testing.T) {
 		require.Len(t, savedBookmarks, 1)
 
 		// Update only title
-		payload := `{"title": "Only Title Updated"}`
+		payload := `{"Title": "Only Title Updated"}`
 		w := testutil.PerformRequest(
 			deps,
 			HandleUpdateBookmark,
@@ -1063,11 +1063,11 @@ func TestHandleUpdateBookmark(t *testing.T) {
 
 		response := testutil.NewTestResponseFromRecorder(w)
 		response.AssertOk(t)
-		response.AssertMessageJSONKeyValue(t, "title", func(t *testing.T, value any) {
+		response.AssertMessageJSONKeyValue(t, "Title", func(t *testing.T, value any) {
 			require.Equal(t, "Only Title Updated", value)
 		})
 		// Excerpt should remain unchanged
-		response.AssertMessageJSONKeyValue(t, "excerpt", func(t *testing.T, value any) {
+		response.AssertMessageJSONKeyValue(t, "Excerpt", func(t *testing.T, value any) {
 			require.Equal(t, "Original excerpt", value)
 		})
 	})
@@ -1103,7 +1103,7 @@ func TestHandleDeleteBookmarks(t *testing.T) {
 
 	t.Run("empty ids", func(t *testing.T) {
 		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
-		payload := `{"ids": []}`
+		payload := `{"IDs": []}`
 		w := testutil.PerformRequest(
 			deps,
 			HandleDeleteBookmarks,
@@ -1117,7 +1117,7 @@ func TestHandleDeleteBookmarks(t *testing.T) {
 
 	t.Run("invalid ids", func(t *testing.T) {
 		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
-		payload := `{"ids": [0, -1]}`
+		payload := `{"IDs": [0, -1]}`
 		w := testutil.PerformRequest(
 			deps,
 			HandleDeleteBookmarks,
@@ -1143,7 +1143,7 @@ func TestHandleDeleteBookmarks(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, savedBookmarks, 2)
 
-		payload := fmt.Sprintf(`{"ids": [%d, %d]}`, savedBookmarks[0].ID, savedBookmarks[1].ID)
+		payload := fmt.Sprintf(`{"IDs": [%d, %d]}`, savedBookmarks[0].ID, savedBookmarks[1].ID)
 		w := testutil.PerformRequest(
 			deps,
 			HandleDeleteBookmarks,
@@ -1178,7 +1178,7 @@ func TestHandleDeleteBookmarks(t *testing.T) {
 		require.Len(t, savedBookmarks, 1)
 
 		// Try to delete existing and non-existing bookmarks
-		payload := fmt.Sprintf(`{"ids": [%d, 999]}`, savedBookmarks[0].ID)
+		payload := fmt.Sprintf(`{"IDs": [%d, 999]}`, savedBookmarks[0].ID)
 		w := testutil.PerformRequest(
 			deps,
 			HandleDeleteBookmarks,
@@ -1208,7 +1208,7 @@ func TestBookmarkHandlersEdgeCases(t *testing.T) {
 	t.Run("CreateBookmark edge cases", func(t *testing.T) {
 		t.Run("whitespace only url", func(t *testing.T) {
 			_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
-			payload := `{"url": "   ", "title": "Test"}`
+			payload := `{"URL": "   ", "Title": "Test"}`
 			w := testutil.PerformRequest(
 				deps,
 				HandleCreateBookmark,
@@ -1223,7 +1223,7 @@ func TestBookmarkHandlersEdgeCases(t *testing.T) {
 		t.Run("very long url", func(t *testing.T) {
 			_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
 			longURL := "https://example.com/" + strings.Repeat("a", 2000)
-			payload := fmt.Sprintf(`{"url": "%s", "title": "Test"}`, longURL)
+			payload := fmt.Sprintf(`{"URL": "%s", "Title": "Test"}`, longURL)
 			w := testutil.PerformRequest(
 				deps,
 				HandleCreateBookmark,
@@ -1238,9 +1238,9 @@ func TestBookmarkHandlersEdgeCases(t *testing.T) {
 		t.Run("special characters in fields", func(t *testing.T) {
 			_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
 			payload := `{
-				"url": "https://example.com/test",
-				"title": "Test with 特殊字符 and émojis 🚀",
-				"excerpt": "Content with <script>alert('xss')</script>"
+				"URL": "https://example.com/test",
+				"Title": "Test with 特殊字符 and émojis 🚀",
+				"Excerpt": "Content with <script>alert('xss')</script>"
 			}`
 			w := testutil.PerformRequest(
 				deps,
@@ -1256,8 +1256,8 @@ func TestBookmarkHandlersEdgeCases(t *testing.T) {
 		t.Run("empty payload fields", func(t *testing.T) {
 			_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
 			payload := `{
-				"url": "https://example.com/test",
-				"title": "Test"
+				"URL": "https://example.com/test",
+				"Title": "Test"
 			}`
 			w := testutil.PerformRequest(
 				deps,
@@ -1402,10 +1402,10 @@ func TestBookmarkHandlersEdgeCases(t *testing.T) {
 			require.Len(t, savedBookmarks, 1)
 
 			payload := `{
-				"title": null,
-				"excerpt": null,
-				"create_ebook": null,
-				"public": null
+				"Title": null,
+				"Excerpt": null,
+				"CreateEbook": null,
+				"Public": null
 			}`
 			w := testutil.PerformRequest(
 				deps,
@@ -1429,7 +1429,7 @@ func TestBookmarkHandlersEdgeCases(t *testing.T) {
 			require.NoError(t, err)
 			require.Len(t, savedBookmarks, 1)
 
-			payload := `{"title": "Original Title"}`
+			payload := `{"Title": "Original Title"}`
 			w := testutil.PerformRequest(
 				deps,
 				HandleUpdateBookmark,
@@ -1453,7 +1453,7 @@ func TestBookmarkHandlersEdgeCases(t *testing.T) {
 			require.NoError(t, err)
 			require.Len(t, savedBookmarks, 1)
 
-			payload := fmt.Sprintf(`{"ids": [%d, %d, %d]}`, savedBookmarks[0].ID, savedBookmarks[0].ID, savedBookmarks[0].ID)
+			payload := fmt.Sprintf(`{"IDs": [%d, %d, %d]}`, savedBookmarks[0].ID, savedBookmarks[0].ID, savedBookmarks[0].ID)
 			w := testutil.PerformRequest(
 				deps,
 				HandleDeleteBookmarks,
@@ -1467,7 +1467,7 @@ func TestBookmarkHandlersEdgeCases(t *testing.T) {
 
 		t.Run("very large id", func(t *testing.T) {
 			_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
-			payload := `{"ids": [999999999]}`
+			payload := `{"IDs": [999999999]}`
 			w := testutil.PerformRequest(
 				deps,
 				HandleDeleteBookmarks,
@@ -1481,7 +1481,7 @@ func TestBookmarkHandlersEdgeCases(t *testing.T) {
 
 		t.Run("mixed valid and invalid ids", func(t *testing.T) {
 			_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
-			payload := `{"ids": [1, 0, -1, 999]}`
+			payload := `{"IDs": [1, 0, -1, 999]}`
 			w := testutil.PerformRequest(
 				deps,
 				HandleDeleteBookmarks,
@@ -1507,8 +1507,8 @@ func TestBookmarkHandlersEdgeCases(t *testing.T) {
 				go func(index int) {
 					defer wg.Done()
 					payload := fmt.Sprintf(`{
-						"url": "https://example.com/concurrent-%d",
-						"title": "Concurrent Bookmark %d"
+						"URL": "https://example.com/concurrent-%d",
+						"Title": "Concurrent Bookmark %d"
 					}`, index, index)
 					w := testutil.PerformRequest(
 						deps,
@@ -1599,25 +1599,25 @@ func TestHandleGetBookmarkData(t *testing.T) {
 
 		response := testutil.NewTestResponseFromRecorder(w)
 		response.AssertOk(t)
-		response.AssertMessageJSONKeyValue(t, "content", func(t *testing.T, value any) {
+		response.AssertMessageJSONKeyValue(t, "Content", func(t *testing.T, value any) {
 			require.Equal(t, bookmark.Content, value)
 		})
-		response.AssertMessageJSONKeyValue(t, "html", func(t *testing.T, value any) {
+		response.AssertMessageJSONKeyValue(t, "HTML", func(t *testing.T, value any) {
 			require.Equal(t, bookmark.HTML, value)
 		})
-		response.AssertMessageJSONKeyValue(t, "hasContent", func(t *testing.T, value any) {
+		response.AssertMessageJSONKeyValue(t, "HasContent", func(t *testing.T, value any) {
 			require.Equal(t, true, value)
 		})
-		response.AssertMessageJSONKeyValue(t, "hasArchive", func(t *testing.T, value any) {
+		response.AssertMessageJSONKeyValue(t, "HasArchive", func(t *testing.T, value any) {
 			require.Equal(t, false, value)
 		})
-		response.AssertMessageJSONKeyValue(t, "hasEbook", func(t *testing.T, value any) {
+		response.AssertMessageJSONKeyValue(t, "HasEbook", func(t *testing.T, value any) {
 			require.Equal(t, false, value)
 		})
-		response.AssertMessageJSONKeyValue(t, "archiveURL", func(t *testing.T, value any) {
+		response.AssertMessageJSONKeyValue(t, "ArchiveURL", func(t *testing.T, value any) {
 			require.Equal(t, "", value)
 		})
-		response.AssertMessageJSONKeyValue(t, "ebookURL", func(t *testing.T, value any) {
+		response.AssertMessageJSONKeyValue(t, "EbookURL", func(t *testing.T, value any) {
 			require.Equal(t, "", value)
 		})
 	})
@@ -1635,7 +1635,7 @@ func TestHandleUpdateBookmarkData(t *testing.T) {
 			http.MethodPut,
 			"/api/v1/bookmarks/1/data",
 			testutil.WithRequestPathValue("id", "1"),
-			testutil.WithBody(`{"update_readable": true}`),
+			testutil.WithBody(`{"UpdateReadable": true}`),
 		)
 		require.Equal(t, http.StatusUnauthorized, w.Code)
 	})
@@ -1649,7 +1649,7 @@ func TestHandleUpdateBookmarkData(t *testing.T) {
 			"/api/v1/bookmarks/invalid/data",
 			testutil.WithFakeUser(),
 			testutil.WithRequestPathValue("id", "invalid"),
-			testutil.WithBody(`{"update_readable": true}`),
+			testutil.WithBody(`{"UpdateReadable": true}`),
 		)
 		require.Equal(t, http.StatusBadRequest, w.Code)
 	})
@@ -1684,7 +1684,7 @@ func TestHandleUpdateBookmarkData(t *testing.T) {
 			"/api/v1/bookmarks/999/data",
 			testutil.WithFakeUser(),
 			testutil.WithRequestPathValue("id", "999"),
-			testutil.WithBody(`{"update_readable": true}`),
+			testutil.WithBody(`{"UpdateReadable": true}`),
 		)
 		require.Equal(t, http.StatusNotFound, w.Code)
 	})
@@ -1707,16 +1707,16 @@ func TestHandleUpdateBookmarkData(t *testing.T) {
 			"/api/v1/bookmarks/"+strconv.Itoa(savedBookmark[0].ID)+"/data",
 			testutil.WithFakeUser(),
 			testutil.WithRequestPathValue("id", strconv.Itoa(savedBookmark[0].ID)),
-			testutil.WithBody(`{"update_readable": false, "create_archive": false, "create_ebook": false}`),
+			testutil.WithBody(`{"UpdateReadable": false, "CreateArchive": false, "CreateEbook": false}`),
 		)
 		require.Equal(t, http.StatusOK, w.Code)
 
 		response := testutil.NewTestResponseFromRecorder(w)
 		response.AssertOk(t)
-		response.AssertMessageJSONKeyValue(t, "content", func(t *testing.T, value any) {
+		response.AssertMessageJSONKeyValue(t, "Content", func(t *testing.T, value any) {
 			require.Equal(t, bookmark.Content, value)
 		})
-		response.AssertMessageJSONKeyValue(t, "html", func(t *testing.T, value any) {
+		response.AssertMessageJSONKeyValue(t, "HTML", func(t *testing.T, value any) {
 			require.Equal(t, bookmark.HTML, value)
 		})
 	})

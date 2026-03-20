@@ -12,9 +12,9 @@ import (
 )
 
 type createAccountPayload struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-	Owner    bool   `json:"owner"`
+	Username string
+	Password string
+	Owner    bool
 }
 
 func (p *createAccountPayload) ToAccountDTO() model.AccountDTO {

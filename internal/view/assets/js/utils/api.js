@@ -45,7 +45,7 @@ export async function handleApiResponse(response) {
 	// Check if response is in the new message format
 	if (data && typeof data === "object" && "ok" in data && "message" in data) {
 		if (!data.ok) {
-			throw new Error(data.message?.error || "Unknown error");
+			throw new Error(data.message?.Error || data.message?.error || "Unknown error");
 		}
 		return data.message;
 	}
@@ -57,20 +57,23 @@ export async function handleApiResponse(response) {
 // Handles API errors and returns a user-friendly error message
 export async function handleApiError(error) {
 	if (error instanceof Response) {
-		const data = await error.json();
+		try {
+			const data = await error.json();
 
-		if (data && typeof data === "object" && "error" in data) {
-			return data.error;
-		} else if (
-			data &&
-			typeof data === "object" &&
-			"message" in data &&
-			"error" in data.message
-		) {
-			return data.message.error;
-		} else {
-			return error.statusText;
+			if (data && typeof data === "object" && "Error" in data) {
+				return data.Error;
+			} else if (
+				data &&
+				typeof data === "object" &&
+				"message" in data &&
+				"Error" in data.message
+			) {
+				return data.message.Error;
+			}
+		} catch {
+			// Response body was not valid JSON
 		}
+		return error.statusText || `HTTP Error ${error.status}`;
 	}
 
 	return "Unknown error occurred";

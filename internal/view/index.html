@@ -124,15 +124,16 @@
 				},
 				loadSetting() {
 					var opts = JSON.parse(localStorage.getItem("shiori-account")) || {},
-						ShowId = (typeof opts.config.ShowId === "boolean") ? opts.config.ShowId : false,
-						ListMode = (typeof opts.config.ListMode === "boolean") ? opts.config.ListMode : false,
-						HideThumbnail = (typeof opts.config.HideThumbnail === "boolean") ? opts.config.HideThumbnail : false,
-						HideExcerpt = (typeof opts.config.HideExcerpt === "boolean") ? opts.config.HideExcerpt : false,
-                        Theme = (typeof opts.config.Theme === "string" && opts.config.Theme !== "") ? opts.config.Theme : "follow",
-						KeepMetadata = (typeof opts.config.KeepMetadata === "boolean") ? opts.config.KeepMetadata : false,
-						UseArchive = (typeof opts.config.UseArchive === "boolean") ? opts.config.UseArchive : false,
-						CreateEbook = (typeof opts.config.CreateEbook === "boolean") ? opts.config.CreateEbook : false,
-						MakePublic = (typeof opts.config.MakePublic === "boolean") ? opts.config.MakePublic : false;
+						config = opts.Config || {},
+						ShowId = (typeof config.ShowId === "boolean") ? config.ShowId : false,
+						ListMode = (typeof config.ListMode === "boolean") ? config.ListMode : false,
+						HideThumbnail = (typeof config.HideThumbnail === "boolean") ? config.HideThumbnail : false,
+						HideExcerpt = (typeof config.HideExcerpt === "boolean") ? config.HideExcerpt : false,
+                        Theme = (typeof config.Theme === "string" && config.Theme !== "") ? config.Theme : "follow",
+						KeepMetadata = (typeof config.KeepMetadata === "boolean") ? config.KeepMetadata : false,
+						UseArchive = (typeof config.UseArchive === "boolean") ? config.UseArchive : false,
+						CreateEbook = (typeof config.CreateEbook === "boolean") ? config.CreateEbook : false,
+						MakePublic = (typeof config.MakePublic === "boolean") ? config.MakePublic : false;
 
 					this.appOptions = {
 						ShowId: ShowId,
@@ -149,14 +150,14 @@
 				},
 				loadAccount() {
 					var account = JSON.parse(localStorage.getItem("shiori-account")) || {},
-						id = (typeof account.id === "number") ? account.id : 0,
-						username = (typeof account.username === "string") ? account.username : "",
-						owner = (typeof account.owner === "boolean") ? account.owner : false;
+						id = (typeof account.ID === "number") ? account.ID : 0,
+						username = (typeof account.Username === "string") ? account.Username : "",
+						owner = (typeof account.Owner === "boolean") ? account.Owner : false;
 
 					this.activeAccount = {
-						id: id,
-						username: username,
-						owner: owner,
+						ID: id,
+						Username: username,
+						Owner: owner,
 					};
 				},
 
@@ -181,10 +182,10 @@
 							throw new Error('Invalid session');
 						}
 
-						const responseJSON = await response.json();
+						const accountData = await response.json();
 						localStorage.setItem(
 							"shiori-account",
-							JSON.stringify(responseJSON.message),
+							JSON.stringify(accountData),
 						);
 						return true;
 					} catch (err) {

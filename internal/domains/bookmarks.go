@@ -29,11 +29,12 @@ func (d *BookmarksDomain) HasThumbnail(b *model.BookmarkDTO) bool {
 	return d.deps.Domains().Storage().FileExists(thumbnailPath)
 }
 
-// populateAdditionalFields sets HasEbook, HasArchive, and HasThumbnail fields on the bookmark
+// populateAdditionalFields sets HasEbook, HasArchive, HasThumbnail, and ImageURL fields on the bookmark
 func (d *BookmarksDomain) populateAdditionalFields(bookmark *model.BookmarkDTO) {
 	bookmark.HasEbook = d.HasEbook(bookmark)
 	bookmark.HasArchive = d.HasArchive(bookmark)
 	bookmark.HasThumbnail = d.HasThumbnail(bookmark)
+	bookmark.PopulateImageURL()
 }
 
 func (d *BookmarksDomain) GetBookmark(ctx context.Context, id model.DBID) (*model.BookmarkDTO, error) {

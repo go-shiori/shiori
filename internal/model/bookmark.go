@@ -7,29 +7,37 @@ import (
 
 // Bookmark is the database representation of a bookmark
 type Bookmark struct {
-	ID         int    `db:"id"         json:"id"`
-	URL        string `db:"url"        json:"url"`
-	Title      string `db:"title"      json:"title"`
-	Excerpt    string `db:"excerpt"    json:"excerpt"`
-	Author     string `db:"author"     json:"author"`
-	Public     int    `db:"public"     json:"public"`
-	CreatedAt  string `db:"created_at" json:"createdAt"`
-	ModifiedAt string `db:"modified_at" json:"modifiedAt"`
-	Content    string `db:"content"    json:"-"`
-	HTML       string `db:"html"       json:"html,omitempty"`
-	HasContent bool   `db:"has_content" json:"hasContent"`
+	ID         int    `db:"id"`
+	URL        string `db:"url"`
+	Title      string `db:"title"`
+	Excerpt    string `db:"excerpt"`
+	Author     string `db:"author"`
+	Public     int    `db:"public"`
+	CreatedAt  string `db:"created_at"`
+	ModifiedAt string `db:"modified_at"`
+	Content    string `db:"content" json:"-"`
+	HTML       string `db:"html"    json:",omitempty"`
+	HasContent bool   `db:"has_content"`
 }
 
 // BookmarkDTO is the data transfer object for bookmarks sent to/from clients
 // It embeds the Bookmark struct and adds additional fields for API responses
 type BookmarkDTO struct {
 	Bookmark      `db:",inline"`
-	Tags          []TagDTO `json:"tags"`
-	HasArchive    bool     `json:"hasArchive"`
-	HasEbook      bool     `json:"hasEbook"`
-	HasThumbnail  bool     `json:"hasThumbnail"`
-	CreateArchive bool     `json:"create_archive"`
-	CreateEbook   bool     `json:"create_ebook"`
+	Tags          []TagDTO
+	ImageURL      string
+	HasArchive    bool
+	HasEbook      bool
+	HasThumbnail  bool
+	CreateArchive bool
+	CreateEbook   bool
+}
+
+// PopulateImageURL sets the ImageURL field based on HasThumbnail
+func (dto *BookmarkDTO) PopulateImageURL() {
+	if dto.HasThumbnail {
+		dto.ImageURL = GetThumbnailURL(dto)
+	}
 }
 
 // ToBookmark extracts the embedded Bookmark from BookmarkDTO

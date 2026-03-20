@@ -37,7 +37,7 @@ func TestHandleListTags(t *testing.T) {
 
 		response := testutil.NewTestResponseFromRecorder(w)
 		response.AssertOk(t)
-		response.AssertMessageJSONKeyValue(t, "items", func(t *testing.T, value any) {
+		response.AssertMessageJSONKeyValue(t, "Items", func(t *testing.T, value any) {
 			// items should be a list
 			_, ok := value.([]any)
 			require.True(t, ok)
@@ -78,11 +78,11 @@ func TestHandleListTags(t *testing.T) {
 		response.AssertOk(t)
 
 		// Iterate items in paginated response
-		response.ForEachInKey(t, "items", func(item map[string]any) {
+		response.ForEachInKey(t, "Items", func(item map[string]any) {
 			t.Logf("item: %+v", item)
-			if tag, ok := item["name"].(string); ok {
+			if tag, ok := item["Name"].(string); ok {
 				if tag == "test-tag-with-count" {
-					require.NotZero(t, item["bookmark_count"])
+					require.NotZero(t, item["BookmarkCount"])
 				}
 			}
 		})
@@ -137,8 +137,8 @@ func TestHandleListTags(t *testing.T) {
 
 		// Verify the response contains the tag associated with the bookmark
 		found := false
-		response.ForEachInKey(t, "items", func(item map[string]any) {
-			if tag, ok := item["name"].(string); ok {
+		response.ForEachInKey(t, "Items", func(item map[string]any) {
+			if tag, ok := item["Name"].(string); ok {
 				if tag == "test-tag-for-bookmark" {
 					found = true
 				}
@@ -176,8 +176,8 @@ func TestHandleListTags(t *testing.T) {
 
 		// Check items list contains expected tag name
 		found := false
-		response.ForEachInKey(t, "items", func(item map[string]any) {
-			if tag, ok := item["name"].(string); ok {
+		response.ForEachInKey(t, "Items", func(item map[string]any) {
+			if tag, ok := item["Name"].(string); ok {
 				if tag == "golang" {
 					found = true
 				}
@@ -200,8 +200,8 @@ func TestHandleListTags(t *testing.T) {
 		response.AssertOk(t)
 
 		found = false
-		response.ForEachInKey(t, "items", func(item map[string]any) {
-			if tag, ok := item["name"].(string); ok {
+		response.ForEachInKey(t, "Items", func(item map[string]any) {
+			if tag, ok := item["Name"].(string); ok {
 				if strings.Contains(tag, "python") {
 					found = true
 				}
@@ -236,7 +236,7 @@ func TestHandleListTags(t *testing.T) {
 		response.AssertNotOk(t)
 
 		// Verify the error message
-		response.AssertMessageJSONKeyValue(t, "error", func(t *testing.T, value any) {
+		response.AssertMessageJSONKeyValue(t, "Error", func(t *testing.T, value any) {
 			require.Equal(t, "search and bookmark ID filtering cannot be used together", value)
 		})
 	})
@@ -267,14 +267,14 @@ func TestHandleListTags(t *testing.T) {
 
 		response := testutil.NewTestResponseFromRecorder(w)
 		response.AssertOk(t)
-		response.AssertMessageJSONKeyValue(t, "items", func(t *testing.T, value any) {
+		response.AssertMessageJSONKeyValue(t, "Items", func(t *testing.T, value any) {
 			_, ok := value.([]any)
 			require.True(t, ok)
 		})
 
 		// Count items in first page
 		var count int
-		response.ForEachInKey(t, "items", func(item map[string]any) { count++ })
+		response.ForEachInKey(t, "Items", func(item map[string]any) { count++ })
 		require.LessOrEqual(t, count, 3, "Should have at most 3 items per page")
 
 		// Test second page
@@ -397,10 +397,10 @@ func TestHandleGetTag(t *testing.T) {
 		response.AssertOk(t)
 
 		// Verify the tag data
-		response.AssertMessageJSONKeyValue(t, "id", func(t *testing.T, value any) {
+		response.AssertMessageJSONKeyValue(t, "ID", func(t *testing.T, value any) {
 			require.Equal(t, tagID, int(value.(float64))) // TODO: Float64??
 		})
-		response.AssertMessageJSONKeyValue(t, "name", func(t *testing.T, value any) {
+		response.AssertMessageJSONKeyValue(t, "Name", func(t *testing.T, value any) {
 			require.Equal(t, "test-tag", value)
 		})
 	})
@@ -437,7 +437,7 @@ func TestHandleCreateTag(t *testing.T) {
 			"POST",
 			"/api/v1/tags",
 			testutil.WithFakeUser(),
-			testutil.WithBody(`{"name": ""}`),
+			testutil.WithBody(`{"Name": ""}`),
 		)
 		require.Equal(t, http.StatusBadRequest, w.Code)
 	})
@@ -450,7 +450,7 @@ func TestHandleCreateTag(t *testing.T) {
 			"POST",
 			"/api/v1/tags",
 			testutil.WithFakeUser(),
-			testutil.WithBody(`{"name": "new-test-tag"}`),
+			testutil.WithBody(`{"Name": "new-test-tag"}`),
 		)
 		require.Equal(t, http.StatusCreated, w.Code)
 
@@ -458,10 +458,10 @@ func TestHandleCreateTag(t *testing.T) {
 		response.AssertOk(t)
 
 		// Verify the created tag
-		response.AssertMessageJSONKeyValue(t, "name", func(t *testing.T, value any) {
+		response.AssertMessageJSONKeyValue(t, "Name", func(t *testing.T, value any) {
 			require.Equal(t, "new-test-tag", value)
 		})
-		response.AssertMessageJSONKeyValue(t, "id", func(t *testing.T, value any) {
+		response.AssertMessageJSONKeyValue(t, "ID", func(t *testing.T, value any) {
 			require.Greater(t, value.(float64), float64(0)) // TODO: Float64??
 		})
 	})
@@ -482,7 +482,7 @@ func TestHandleCreateTag(t *testing.T) {
 			"POST",
 			"/api/v1/tags",
 			testutil.WithFakeUser(),
-			testutil.WithBody(`{"name": "duplicate-test-tag"}`),
+			testutil.WithBody(`{"Name": "duplicate-test-tag"}`),
 		)
 		require.Equal(t, http.StatusConflict, w.Code)
 
@@ -554,7 +554,7 @@ func TestHandleUpdateTag(t *testing.T) {
 			"/api/v1/tags/1",
 			testutil.WithFakeUser(),
 			testutil.WithRequestPathValue("id", "1"),
-			testutil.WithBody(`{"name": ""}`),
+			testutil.WithBody(`{"Name": ""}`),
 		)
 		require.Equal(t, http.StatusBadRequest, w.Code)
 	})
@@ -568,7 +568,7 @@ func TestHandleUpdateTag(t *testing.T) {
 			"/api/v1/tags/999",
 			testutil.WithFakeUser(),
 			testutil.WithRequestPathValue("id", "999"),
-			testutil.WithBody(`{"name": "updated-tag"}`),
+			testutil.WithBody(`{"Name": "updated-tag"}`),
 		)
 		require.Equal(t, http.StatusNotFound, w.Code)
 	})
@@ -590,7 +590,7 @@ func TestHandleUpdateTag(t *testing.T) {
 			"/api/v1/tags/"+strconv.Itoa(tagID),
 			testutil.WithFakeUser(),
 			testutil.WithRequestPathValue("id", strconv.Itoa(tagID)),
-			testutil.WithBody(`{"name": "updated-test-tag"}`),
+			testutil.WithBody(`{"Name": "updated-test-tag"}`),
 		)
 		require.Equal(t, http.StatusOK, w.Code)
 
@@ -598,7 +598,7 @@ func TestHandleUpdateTag(t *testing.T) {
 		response.AssertOk(t)
 
 		// Verify the updated tag
-		response.AssertMessageJSONKeyValue(t, "name", func(t *testing.T, value any) {
+		response.AssertMessageJSONKeyValue(t, "Name", func(t *testing.T, value any) {
 			require.Equal(t, "updated-test-tag", value)
 		})
 

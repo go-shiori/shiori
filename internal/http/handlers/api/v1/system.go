@@ -11,12 +11,12 @@ import (
 
 type infoResponse struct {
 	Version struct {
-		Tag    string `json:"tag"`
-		Commit string `json:"commit"`
-		Date   string `json:"date"`
-	} `json:"version"`
-	Database string `json:"database"`
-	OS       string `json:"os"`
+		Tag    string
+		Commit string
+		Date   string
+	}
+	Database string
+	OS       string
 }
 
 // @Summary					Get general system information
@@ -34,9 +34,9 @@ func HandleSystemInfo(deps model.Dependencies, c model.WebContext) {
 
 	response.SendJSON(c, http.StatusOK, infoResponse{
 		Version: struct {
-			Tag    string `json:"tag"`
-			Commit string `json:"commit"`
-			Date   string `json:"date"`
+			Tag    string
+			Commit string
+			Date   string
 		}{
 			Tag:    model.BuildVersion,
 			Commit: model.BuildCommit,

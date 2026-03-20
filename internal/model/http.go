@@ -35,6 +35,6 @@ type HttpMiddleware interface {
 
 // PaginatedResponse is a generic response that includes pagination metadata
 type PaginatedResponse[T any] struct {
-	Items []T `json:"items"`
-	Total int `json:"total"`
+	Items []T
+	Total int
 }

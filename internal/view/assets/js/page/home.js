@@ -5,13 +5,13 @@ var template = `
         <a title="Refresh storage" @click="reloadData">
             <i class="fas fa-fw fa-sync-alt" :class="loading && 'fa-spin'"></i>
         </a>
-        <a v-if="activeAccount.owner" title="Add new bookmark" @click="showDialogAdd">
+        <a v-if="activeAccount.Owner" title="Add new bookmark" @click="showDialogAdd">
             <i class="fas fa-fw fa-plus-circle"></i>
         </a>
         <a v-if="tags.length > 0" title="Show tags" @click="showDialogTags">
             <i class="fas fa-fw fa-tags"></i>
         </a>
-        <a v-if="activeAccount.owner" title="Batch edit" @click="toggleEditMode">
+        <a v-if="activeAccount.Owner" title="Batch edit" @click="toggleEditMode">
             <i class="fas fa-fw fa-pencil-alt"></i>
         </a>
     </div>
@@ -42,26 +42,26 @@ var template = `
             @change="changePage">
         </pagination-box>
         <bookmark-item v-for="(book, index) in bookmarks"
-            :id="book.id"
-            :url="book.url"
-            :title="book.title"
-            :excerpt="book.excerpt"
-            :public="book.public"
-            :imageURL="book.imageURL"
-            :modifiedAt="book.modifiedAt"
-            :hasContent="book.hasContent"
-            :hasArchive="book.hasArchive"
-            :hasEbook="book.hasEbook"
-            :tags="book.tags"
+            :id="book.ID"
+            :url="book.URL"
+            :title="book.Title"
+            :excerpt="book.Excerpt"
+            :public="book.Public"
+            :imageURL="book.ImageURL"
+            :modifiedAt="book.ModifiedAt"
+            :hasContent="book.HasContent"
+            :hasArchive="book.HasArchive"
+            :hasEbook="book.HasEbook"
+            :tags="book.Tags"
             :index="index"
-            :key="book.id"
+            :key="book.ID"
             :editMode="editMode"
             :ShowId="appOptions.ShowId"
             :ListMode="appOptions.ListMode"
             :HideThumbnail="appOptions.HideThumbnail"
             :HideExcerpt="appOptions.HideExcerpt"
-            :selected="isSelected(book.id)"
-            :menuVisible="activeAccount.owner"
+            :selected="isSelected(book.ID)"
+            :menuVisible="activeAccount.Owner"
             @select="toggleSelection"
             @tag-clicked="bookmarkTagClicked"
             @edit="showDialogEdit"
@@ -81,7 +81,7 @@ var template = `
         <a @click="filterTag('*')">(all tagged)</a>
         <a @click="filterTag('*', true)">(all untagged)</a>
         <a v-for="tag in tags" @click="dialogTagClicked($event, tag)">
-            #{{tag.name}}<span>{{tag.bookmark_count}}</span>
+            #{{tag.Name}}<span>{{tag.BookmarkCount}}</span>
         </a>
     </custom-dialog>
     <custom-dialog v-bind="dialog"/>
@@ -169,33 +169,41 @@ export default {
 		},
 		async createOrFindTag(tagName) {
 			// First, try to find existing tag
-			const tags = await tagsApi.apiV1TagsGet({
+			const tagsResult = await tagsApi.apiV1TagsGet({
 				search: tagName,
 			});
 
 			// Find exact match
-			const existingTag = tags.find((t) => t.name === tagName);
+			const existingTag = tagsResult.items.find((t) => t.Name === tagName);
 			if (existingTag) {
-				return existingTag.id;
+				return existingTag.ID;
 			}
 
 			// Tag doesn't exist, create it
-			const tag = await tagsApi.apiV1TagsPost({
-				tag: { name: tagName },
-			});
+			try {
+				const tag = await tagsApi.apiV1TagsPost({
+					tag: { Name: tagName },
+				});
 
-			// If tag was created (201), return the ID
-			if (tag && tag.id) {
-				return tag.id;
+				// If tag was created (201), return the ID
+				if (tag && tag.ID) {
+					return tag.ID;
+				}
+			} catch (err) {
+				// Only swallow 409 Conflict (race condition: tag created by another request)
+				const is409 = err && err.response && err.response.status === 409;
+				if (!is409) {
+					throw err;
+				}
 			}
 
-			// If tag already exists (204 No Content - race condition), search again
+			// Search again to find the tag
 			const tagsRetry = await tagsApi.apiV1TagsGet({
 				search: tagName,
 			});
-			const existingTagRetry = tagsRetry.find((t) => t.name === tagName);
+			const existingTagRetry = tagsRetry.items.find((t) => t.Name === tagName);
 			if (existingTagRetry) {
-				return existingTagRetry.id;
+				return existingTagRetry.ID;
 			}
 
 			throw new Error(`Tag "${tagName}" not found after creation`);
@@ -253,7 +261,7 @@ export default {
 
 			this.loading = true;
 			try {
-				const bookmarks = await bookmarksApi.apiV1BookmarksGet({
+				const result = await bookmarksApi.apiV1BookmarksGet({
 					keyword: keyword,
 					tags: searchTags.join(","),
 					exclude: excludedTags.join(","),
@@ -261,10 +269,9 @@ export default {
 					limit: 30,
 				});
 
-				// Set data - new API returns direct array, no pagination info yet
-				this.bookmarks = bookmarks;
-				// TODO: Update when pagination is implemented in v1 API
-				this.maxPage = 1;
+				// Set data from paginated response
+				this.bookmarks = result.items;
+				this.maxPage = Math.ceil(result.total / 30) || 1;
 
 				// Save state and change URL if needed
 				if (saveState) {
@@ -287,8 +294,10 @@ export default {
 				// Fetch tags if needed
 				if (!fetchTags) throw skipFetchTags;
 
-				const allTags = await tagsApi.apiV1TagsGet();
-				this.tags = allTags;
+				const tagsResult = await tagsApi.apiV1TagsGet({
+					withBookmarkCount: true,
+				});
+				this.tags = tagsResult.items;
 			} catch (err) {
 				if (err !== skipFetchTags) {
 					this.showErrorDialog(getErrorMessage(err));
@@ -320,7 +329,7 @@ export default {
 		},
 		dialogTagClicked(event, tag) {
 			if (!this.dialogTags.editMode) {
-				this.filterTag(tag.name, event.altKey);
+				this.filterTag(tag.Name, event.altKey);
 			} else {
 				this.dialogTags.visible = false;
 				this.showDialogRenameTag(tag);
@@ -413,7 +422,7 @@ export default {
 						name: "tags",
 						label: "Comma separated tags (optional)",
 						separator: ",",
-						dictionary: this.tags.map((tag) => tag.name),
+						dictionary: this.tags.map((tag) => tag.Name),
 					},
 					{
 						name: "create_archive",
@@ -456,10 +465,10 @@ export default {
 						// 1. Create bookmark
 						const bookmark = await bookmarksApi.apiV1BookmarksPost({
 							payload: {
-								url: data.url.trim(),
-								title: data.title.trim(),
-								excerpt: data.excerpt.trim(),
-								_public: data.makePublic ? 1 : 0,
+								URL: data.url.trim(),
+								Title: data.title.trim(),
+								Excerpt: data.excerpt.trim(),
+								Public: data.makePublic ? 1 : 0,
 							},
 						});
 
@@ -469,8 +478,8 @@ export default {
 								try {
 									const tagId = await this.createOrFindTag(tagName);
 									await bookmarksApi.apiV1BookmarksIdTagsPost({
-										id: bookmark.id,
-										payload: { tagId: tagId },
+										id: bookmark.ID,
+										payload: { TagID: tagId },
 									});
 								} catch (tagErr) {
 									console.error(`Failed to add tag "${tagName}":`, tagErr);
@@ -479,7 +488,7 @@ export default {
 							}
 							// Refresh bookmark to get updated tags
 							const refreshedBookmark = await bookmarksApi.apiV1BookmarksIdGet({
-								id: bookmark.id,
+								id: bookmark.ID,
 							});
 							this.bookmarks.splice(0, 0, refreshedBookmark);
 						} else {
@@ -489,13 +498,13 @@ export default {
 						// 3. Update bookmark data (archive/ebook) if needed
 						if (data.create_archive || data.create_ebook) {
 							await bookmarksApi.apiV1BookmarksIdDataPut({
-								id: bookmark.id,
+								id: bookmark.ID,
 								payload: {
-									updateReadable: true,
-									createArchive: data.create_archive,
-									createEbook: data.create_ebook,
-									keepMetadata: false,
-									skipExisting: false,
+									UpdateReadable: true,
+									CreateArchive: data.create_archive,
+									CreateEbook: data.create_ebook,
+									KeepMetadata: false,
+									SkipExisting: false,
 								},
 							});
 						}
@@ -520,7 +529,7 @@ export default {
 
 			// Get the existing bookmark value
 			var book = JSON.parse(JSON.stringify(this.bookmarks[index])),
-				strTags = book.tags.map((tag) => tag.name).join(", ");
+				strTags = book.Tags.map((tag) => tag.Name).join(", ");
 
 			this.showDialog({
 				title: "Edit Bookmark",
@@ -530,31 +539,31 @@ export default {
 					{
 						name: "url",
 						label: "Url",
-						value: book.url,
+						value: book.URL,
 					},
 					{
 						name: "title",
 						label: "Title",
-						value: book.title,
+						value: book.Title,
 					},
 					{
 						name: "excerpt",
 						label: "Excerpt",
 						type: "area",
-						value: book.excerpt,
+						value: book.Excerpt,
 					},
 					{
 						name: "tags",
 						label: "Tags",
 						value: strTags,
 						separator: ",",
-						dictionary: this.tags.map((tag) => tag.name),
+						dictionary: this.tags.map((tag) => tag.Name),
 					},
 					{
 						name: "makePublic",
 						label: "Make bookmark publicly available",
 						type: "check",
-						value: book.public >= 1,
+						value: book.Public >= 1,
 					},
 				],
 				mainText: "OK",
@@ -577,10 +586,10 @@ export default {
 						await bookmarksApi.apiV1BookmarksIdPut({
 							id: id,
 							payload: {
-								url: data.url.trim(),
-								title: data.title.trim(),
-								excerpt: data.excerpt.trim(),
-								_public: data.makePublic ? 1 : 0,
+								URL: data.url.trim(),
+								Title: data.title.trim(),
+								Excerpt: data.excerpt.trim(),
+								Public: data.makePublic ? 1 : 0,
 							},
 						});
 
@@ -593,7 +602,7 @@ export default {
 						for (const tag of existingTags) {
 							await bookmarksApi.apiV1BookmarksIdTagsDelete({
 								id: id,
-								payload: { tagId: tag.id },
+								payload: { TagID: tag.ID },
 							});
 						}
 
@@ -604,7 +613,7 @@ export default {
 									const tagId = await this.createOrFindTag(tagName);
 									await bookmarksApi.apiV1BookmarksIdTagsPost({
 										id: id,
-										payload: { tagId: tagId },
+										payload: { TagID: tagId },
 									});
 								} catch (tagErr) {
 									console.error(`Failed to add tag "${tagName}":`, tagErr);
@@ -666,7 +675,7 @@ export default {
 					this.dialog.loading = true;
 					try {
 						await bookmarksApi.apiV1BookmarksDelete({
-							payload: { ids: ids },
+							payload: { IDs: ids },
 						});
 
 						this.selection = [];
@@ -704,11 +713,11 @@ export default {
 			// define variable and send request
 			var ids = items.map((item) => item.id);
 			var data = {
-				ids: ids,
-				create_archive: false,
-				keep_metadata: true,
-				create_ebook: true,
-				skip_exist: true,
+				IDs: ids,
+				CreateArchive: false,
+				KeepMetadata: true,
+				CreateEbook: true,
+				SkipExist: true,
 			};
 			this.loading = true;
 			fetch(new URL("api/v1/bookmarks/cache", document.baseURI), {
@@ -728,19 +737,19 @@ export default {
 					this.editMode = false;
 					json.forEach((book) => {
 						// download ebooks
-						const id = book.id;
-						if (book.hasEbook) {
+						const id = book.ID;
+						if (book.HasEbook) {
 							const ebook_url = new URL(
 								`bookmark/${id}/ebook`,
 								document.baseURI,
 							);
 							const downloadLink = document.createElement("a");
 							downloadLink.href = ebook_url.toString();
-							downloadLink.download = `${book.title}.epub`;
+							downloadLink.download = `${book.Title}.epub`;
 							downloadLink.click();
 						}
 
-						var item = items.find((el) => el.id === book.id);
+						var item = items.find((el) => el.id === book.ID);
 						this.bookmarks.splice(item.index, 1, book);
 					});
 				})
@@ -800,11 +809,11 @@ export default {
 				secondText: "No",
 				mainClick: async (data) => {
 					var requestData = {
-						ids: ids,
-						create_archive: data.create_archive,
-						keep_metadata: data.keep_metadata,
-						create_ebook: data.create_ebook,
-						skip_exist: false,
+						IDs: ids,
+						CreateArchive: data.create_archive,
+						KeepMetadata: data.keep_metadata,
+						CreateEbook: data.create_ebook,
+						SkipExist: false,
 					};
 
 					this.dialog.loading = true;
@@ -825,16 +834,16 @@ export default {
 						let faildedUpdateArchives = [];
 						let faildedCreateEbook = [];
 						json.forEach((book) => {
-							var item = items.find((el) => el.id === book.id);
+							var item = items.find((el) => el.id === book.ID);
 							this.bookmarks.splice(item.index, 1, book);
 
-							if (data.create_archive && !book.hasArchive) {
-								faildedUpdateArchives.push(book.id);
-								console.error("can't update archive for bookmark id", book.id);
+							if (data.create_archive && !book.HasArchive) {
+								faildedUpdateArchives.push(book.ID);
+								console.error("can't update archive for bookmark id", book.ID);
 							}
-							if (data.create_ebook && !book.hasEbook) {
-								faildedCreateEbook.push(book.id);
-								console.error("can't update ebook for bookmark id:", book.id);
+							if (data.create_ebook && !book.HasEbook) {
+								faildedCreateEbook.push(book.ID);
+								console.error("can't update ebook for bookmark id:", book.ID);
 							}
 						});
 
@@ -884,7 +893,7 @@ export default {
 						label: "Comma separated tags",
 						value: "",
 						separator: ",",
-						dictionary: this.tags.map((tag) => tag.name),
+						dictionary: this.tags.map((tag) => tag.Name),
 					},
 				],
 				mainText: "OK",
@@ -925,8 +934,8 @@ export default {
 						const bookmarkIds = items.map((item) => item.id);
 						await bookmarksApi.apiV1BookmarksBulkTagsPut({
 							payload: {
-								bookmarkIds: bookmarkIds,
-								tagIds: tagIds,
+								BookmarkIDs: bookmarkIds,
+								TagIDs: tagIds,
 							},
 						});
 
@@ -954,19 +963,19 @@ export default {
 		showDialogTags() {
 			this.dialogTags.visible = true;
 			this.dialogTags.editMode = false;
-			this.dialogTags.secondText = this.activeAccount.owner
+			this.dialogTags.secondText = this.activeAccount.Owner
 				? "Rename Tags"
 				: "";
 		},
 		showDialogRenameTag(tag) {
 			this.showDialog({
 				title: "Rename Tag",
-				content: `Change the name for tag "#${tag.name}"`,
+				content: `Change the name for tag "#${tag.Name}"`,
 				fields: [
 					{
 						name: "newName",
 						label: "New tag name",
-						value: tag.name,
+						value: tag.Name,
 					},
 				],
 				mainText: "OK",
@@ -982,9 +991,9 @@ export default {
 				mainClick: async (data) => {
 					// Save the old query
 					var rxSpace = /\s+/g,
-						oldTagQuery = rxSpace.test(tag.name)
-							? `"#${tag.name}"`
-							: `#${tag.name}`,
+						oldTagQuery = rxSpace.test(tag.Name)
+							? `"#${tag.Name}"`
+							: `#${tag.Name}`,
 						newTagQuery = rxSpace.test(data.newName)
 							? `"#${data.newName}"`
 							: `#${data.newName}`;
@@ -992,22 +1001,22 @@ export default {
 					this.dialog.loading = true;
 					try {
 						await apiRequest(
-							new URL("api/v1/tags/" + tag.id, document.baseURI),
+							new URL("api/v1/tags/" + tag.ID, document.baseURI),
 							{
 								method: "PUT",
-								body: JSON.stringify({ name: data.newName }),
+								body: JSON.stringify({ Name: data.newName }),
 							},
 						);
 
-						tag.name = data.newName;
+						tag.Name = data.newName;
 
 						this.dialog.loading = false;
 						this.dialog.visible = false;
 						this.dialogTags.visible = true;
 						this.dialogTags.editMode = false;
 						this.tags.sort((a, b) => {
-							var aName = a.name.toLowerCase(),
-								bName = b.name.toLowerCase();
+							var aName = a.Name.toLowerCase(),
+								bName = b.Name.toLowerCase();
 
 							if (aName < bName) return -1;
 							else if (aName > bName) return 1;

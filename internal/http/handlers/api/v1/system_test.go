@@ -38,13 +38,13 @@ func TestHandleSystemInfo(t *testing.T) {
 		response := testutil.NewTestResponseFromRecorder(w)
 
 		response.AssertOk(t)
-		response.AssertMessageJSONKeyValue(t, "version", func(t *testing.T, value any) {
+		response.AssertMessageJSONKeyValue(t, "Version", func(t *testing.T, value any) {
 			require.NotEmpty(t, value)
 		})
-		response.AssertMessageJSONKeyValue(t, "database", func(t *testing.T, value any) {
+		response.AssertMessageJSONKeyValue(t, "Database", func(t *testing.T, value any) {
 			require.NotEmpty(t, value)
 		})
-		response.AssertMessageJSONKeyValue(t, "os", func(t *testing.T, value any) {
+		response.AssertMessageJSONKeyValue(t, "OS", func(t *testing.T, value any) {
 			require.NotEmpty(t, value)
 		})
 	})
