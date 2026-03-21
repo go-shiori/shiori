@@ -117,9 +117,9 @@ export interface ApiV1BookmarksPostRequest {
 export class BookmarksApi extends runtime.BaseAPI {
 
     /**
-     * Bulk update tags for multiple bookmarks.
+     * Creates request options for apiV1BookmarksBulkTagsPut without sending the request
      */
-    async apiV1BookmarksBulkTagsPutRaw(requestParameters: ApiV1BookmarksBulkTagsPutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<ModelBookmarkDTO>>> {
+    async apiV1BookmarksBulkTagsPutRequestOpts(requestParameters: ApiV1BookmarksBulkTagsPutRequest): Promise<runtime.RequestOpts> {
         if (requestParameters['payload'] == null) {
             throw new runtime.RequiredError(
                 'payload',
@@ -136,13 +136,21 @@ export class BookmarksApi extends runtime.BaseAPI {
 
         let urlPath = `/api/v1/bookmarks/bulk/tags`;
 
-        const response = await this.request({
+        return {
             path: urlPath,
             method: 'PUT',
             headers: headerParameters,
             query: queryParameters,
             body: ApiV1BulkUpdateBookmarkTagsPayloadToJSON(requestParameters['payload']),
-        }, initOverrides);
+        };
+    }
+
+    /**
+     * Bulk update tags for multiple bookmarks.
+     */
+    async apiV1BookmarksBulkTagsPutRaw(requestParameters: ApiV1BookmarksBulkTagsPutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<ModelBookmarkDTO>>> {
+        const requestOptions = await this.apiV1BookmarksBulkTagsPutRequestOpts(requestParameters);
+        const response = await this.request(requestOptions, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(ModelBookmarkDTOFromJSON));
     }
@@ -156,9 +164,9 @@ export class BookmarksApi extends runtime.BaseAPI {
     }
 
     /**
-     * Update Cache and Ebook on server.
+     * Creates request options for apiV1BookmarksCachePut without sending the request
      */
-    async apiV1BookmarksCachePutRaw(requestParameters: ApiV1BookmarksCachePutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ModelBookmarkDTO>> {
+    async apiV1BookmarksCachePutRequestOpts(requestParameters: ApiV1BookmarksCachePutRequest): Promise<runtime.RequestOpts> {
         if (requestParameters['payload'] == null) {
             throw new runtime.RequiredError(
                 'payload',
@@ -175,13 +183,21 @@ export class BookmarksApi extends runtime.BaseAPI {
 
         let urlPath = `/api/v1/bookmarks/cache`;
 
-        const response = await this.request({
+        return {
             path: urlPath,
             method: 'PUT',
             headers: headerParameters,
             query: queryParameters,
             body: ApiV1UpdateCachePayloadToJSON(requestParameters['payload']),
-        }, initOverrides);
+        };
+    }
+
+    /**
+     * Update Cache and Ebook on server.
+     */
+    async apiV1BookmarksCachePutRaw(requestParameters: ApiV1BookmarksCachePutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ModelBookmarkDTO>> {
+        const requestOptions = await this.apiV1BookmarksCachePutRequestOpts(requestParameters);
+        const response = await this.request(requestOptions, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ModelBookmarkDTOFromJSON(jsonValue));
     }
@@ -195,9 +211,9 @@ export class BookmarksApi extends runtime.BaseAPI {
     }
 
     /**
-     * Delete one or more bookmarks.
+     * Creates request options for apiV1BookmarksDelete without sending the request
      */
-    async apiV1BookmarksDeleteRaw(requestParameters: ApiV1BookmarksDeleteRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+    async apiV1BookmarksDeleteRequestOpts(requestParameters: ApiV1BookmarksDeleteRequest): Promise<runtime.RequestOpts> {
         if (requestParameters['payload'] == null) {
             throw new runtime.RequiredError(
                 'payload',
@@ -214,13 +230,21 @@ export class BookmarksApi extends runtime.BaseAPI {
 
         let urlPath = `/api/v1/bookmarks`;
 
-        const response = await this.request({
+        return {
             path: urlPath,
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
             body: ApiV1DeleteBookmarksPayloadToJSON(requestParameters['payload']),
-        }, initOverrides);
+        };
+    }
+
+    /**
+     * Delete one or more bookmarks.
+     */
+    async apiV1BookmarksDeleteRaw(requestParameters: ApiV1BookmarksDeleteRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        const requestOptions = await this.apiV1BookmarksDeleteRequestOpts(requestParameters);
+        const response = await this.request(requestOptions, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -233,9 +257,9 @@ export class BookmarksApi extends runtime.BaseAPI {
     }
 
     /**
-     * List bookmarks with optional filtering and pagination.
+     * Creates request options for apiV1BookmarksGet without sending the request
      */
-    async apiV1BookmarksGetRaw(requestParameters: ApiV1BookmarksGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ModelPaginatedResponseModelBookmarkDTO>> {
+    async apiV1BookmarksGetRequestOpts(requestParameters: ApiV1BookmarksGetRequest): Promise<runtime.RequestOpts> {
         const queryParameters: any = {};
 
         if (requestParameters['keyword'] != null) {
@@ -263,12 +287,20 @@ export class BookmarksApi extends runtime.BaseAPI {
 
         let urlPath = `/api/v1/bookmarks`;
 
-        const response = await this.request({
+        return {
             path: urlPath,
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        }, initOverrides);
+        };
+    }
+
+    /**
+     * List bookmarks with optional filtering and pagination.
+     */
+    async apiV1BookmarksGetRaw(requestParameters: ApiV1BookmarksGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ModelPaginatedResponseModelBookmarkDTO>> {
+        const requestOptions = await this.apiV1BookmarksGetRequestOpts(requestParameters);
+        const response = await this.request(requestOptions, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ModelPaginatedResponseModelBookmarkDTOFromJSON(jsonValue));
     }
@@ -282,9 +314,9 @@ export class BookmarksApi extends runtime.BaseAPI {
     }
 
     /**
-     * Get bookmark data and resource URLs.
+     * Creates request options for apiV1BookmarksIdDataGet without sending the request
      */
-    async apiV1BookmarksIdDataGetRaw(requestParameters: ApiV1BookmarksIdDataGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiV1BookmarkDataResponse>> {
+    async apiV1BookmarksIdDataGetRequestOpts(requestParameters: ApiV1BookmarksIdDataGetRequest): Promise<runtime.RequestOpts> {
         if (requestParameters['id'] == null) {
             throw new runtime.RequiredError(
                 'id',
@@ -300,12 +332,20 @@ export class BookmarksApi extends runtime.BaseAPI {
         let urlPath = `/api/v1/bookmarks/{id}/data`;
         urlPath = urlPath.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id'])));
 
-        const response = await this.request({
+        return {
             path: urlPath,
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        }, initOverrides);
+        };
+    }
+
+    /**
+     * Get bookmark data and resource URLs.
+     */
+    async apiV1BookmarksIdDataGetRaw(requestParameters: ApiV1BookmarksIdDataGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiV1BookmarkDataResponse>> {
+        const requestOptions = await this.apiV1BookmarksIdDataGetRequestOpts(requestParameters);
+        const response = await this.request(requestOptions, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ApiV1BookmarkDataResponseFromJSON(jsonValue));
     }
@@ -319,9 +359,9 @@ export class BookmarksApi extends runtime.BaseAPI {
     }
 
     /**
-     * Update bookmark data (content, archive, ebook).
+     * Creates request options for apiV1BookmarksIdDataPut without sending the request
      */
-    async apiV1BookmarksIdDataPutRaw(requestParameters: ApiV1BookmarksIdDataPutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiV1BookmarkDataResponse>> {
+    async apiV1BookmarksIdDataPutRequestOpts(requestParameters: ApiV1BookmarksIdDataPutRequest): Promise<runtime.RequestOpts> {
         if (requestParameters['id'] == null) {
             throw new runtime.RequiredError(
                 'id',
@@ -346,13 +386,21 @@ export class BookmarksApi extends runtime.BaseAPI {
         let urlPath = `/api/v1/bookmarks/{id}/data`;
         urlPath = urlPath.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id'])));
 
-        const response = await this.request({
+        return {
             path: urlPath,
             method: 'PUT',
             headers: headerParameters,
             query: queryParameters,
             body: ApiV1UpdateBookmarkDataPayloadToJSON(requestParameters['payload']),
-        }, initOverrides);
+        };
+    }
+
+    /**
+     * Update bookmark data (content, archive, ebook).
+     */
+    async apiV1BookmarksIdDataPutRaw(requestParameters: ApiV1BookmarksIdDataPutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiV1BookmarkDataResponse>> {
+        const requestOptions = await this.apiV1BookmarksIdDataPutRequestOpts(requestParameters);
+        const response = await this.request(requestOptions, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ApiV1BookmarkDataResponseFromJSON(jsonValue));
     }
@@ -366,9 +414,9 @@ export class BookmarksApi extends runtime.BaseAPI {
     }
 
     /**
-     * Get a bookmark by ID.
+     * Creates request options for apiV1BookmarksIdGet without sending the request
      */
-    async apiV1BookmarksIdGetRaw(requestParameters: ApiV1BookmarksIdGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ModelBookmarkDTO>> {
+    async apiV1BookmarksIdGetRequestOpts(requestParameters: ApiV1BookmarksIdGetRequest): Promise<runtime.RequestOpts> {
         if (requestParameters['id'] == null) {
             throw new runtime.RequiredError(
                 'id',
@@ -384,12 +432,20 @@ export class BookmarksApi extends runtime.BaseAPI {
         let urlPath = `/api/v1/bookmarks/{id}`;
         urlPath = urlPath.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id'])));
 
-        const response = await this.request({
+        return {
             path: urlPath,
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        }, initOverrides);
+        };
+    }
+
+    /**
+     * Get a bookmark by ID.
+     */
+    async apiV1BookmarksIdGetRaw(requestParameters: ApiV1BookmarksIdGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ModelBookmarkDTO>> {
+        const requestOptions = await this.apiV1BookmarksIdGetRequestOpts(requestParameters);
+        const response = await this.request(requestOptions, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ModelBookmarkDTOFromJSON(jsonValue));
     }
@@ -403,9 +459,9 @@ export class BookmarksApi extends runtime.BaseAPI {
     }
 
     /**
-     * Update an existing bookmark.
+     * Creates request options for apiV1BookmarksIdPut without sending the request
      */
-    async apiV1BookmarksIdPutRaw(requestParameters: ApiV1BookmarksIdPutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ModelBookmarkDTO>> {
+    async apiV1BookmarksIdPutRequestOpts(requestParameters: ApiV1BookmarksIdPutRequest): Promise<runtime.RequestOpts> {
         if (requestParameters['id'] == null) {
             throw new runtime.RequiredError(
                 'id',
@@ -430,13 +486,21 @@ export class BookmarksApi extends runtime.BaseAPI {
         let urlPath = `/api/v1/bookmarks/{id}`;
         urlPath = urlPath.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id'])));
 
-        const response = await this.request({
+        return {
             path: urlPath,
             method: 'PUT',
             headers: headerParameters,
             query: queryParameters,
             body: ApiV1UpdateBookmarkPayloadToJSON(requestParameters['payload']),
-        }, initOverrides);
+        };
+    }
+
+    /**
+     * Update an existing bookmark.
+     */
+    async apiV1BookmarksIdPutRaw(requestParameters: ApiV1BookmarksIdPutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ModelBookmarkDTO>> {
+        const requestOptions = await this.apiV1BookmarksIdPutRequestOpts(requestParameters);
+        const response = await this.request(requestOptions, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ModelBookmarkDTOFromJSON(jsonValue));
     }
@@ -450,9 +514,9 @@ export class BookmarksApi extends runtime.BaseAPI {
     }
 
     /**
-     * Get readable version of bookmark.
+     * Creates request options for apiV1BookmarksIdReadableGet without sending the request
      */
-    async apiV1BookmarksIdReadableGetRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiV1ReadableResponseMessage>> {
+    async apiV1BookmarksIdReadableGetRequestOpts(): Promise<runtime.RequestOpts> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -460,12 +524,20 @@ export class BookmarksApi extends runtime.BaseAPI {
 
         let urlPath = `/api/v1/bookmarks/id/readable`;
 
-        const response = await this.request({
+        return {
             path: urlPath,
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        }, initOverrides);
+        };
+    }
+
+    /**
+     * Get readable version of bookmark.
+     */
+    async apiV1BookmarksIdReadableGetRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiV1ReadableResponseMessage>> {
+        const requestOptions = await this.apiV1BookmarksIdReadableGetRequestOpts();
+        const response = await this.request(requestOptions, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ApiV1ReadableResponseMessageFromJSON(jsonValue));
     }
@@ -479,9 +551,9 @@ export class BookmarksApi extends runtime.BaseAPI {
     }
 
     /**
-     * Remove a tag from a bookmark.
+     * Creates request options for apiV1BookmarksIdTagsDelete without sending the request
      */
-    async apiV1BookmarksIdTagsDeleteRaw(requestParameters: ApiV1BookmarksIdTagsDeleteRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+    async apiV1BookmarksIdTagsDeleteRequestOpts(requestParameters: ApiV1BookmarksIdTagsDeleteRequest): Promise<runtime.RequestOpts> {
         if (requestParameters['id'] == null) {
             throw new runtime.RequiredError(
                 'id',
@@ -506,13 +578,21 @@ export class BookmarksApi extends runtime.BaseAPI {
         let urlPath = `/api/v1/bookmarks/{id}/tags`;
         urlPath = urlPath.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id'])));
 
-        const response = await this.request({
+        return {
             path: urlPath,
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
             body: ApiV1BookmarkTagPayloadToJSON(requestParameters['payload']),
-        }, initOverrides);
+        };
+    }
+
+    /**
+     * Remove a tag from a bookmark.
+     */
+    async apiV1BookmarksIdTagsDeleteRaw(requestParameters: ApiV1BookmarksIdTagsDeleteRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        const requestOptions = await this.apiV1BookmarksIdTagsDeleteRequestOpts(requestParameters);
+        const response = await this.request(requestOptions, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -525,9 +605,9 @@ export class BookmarksApi extends runtime.BaseAPI {
     }
 
     /**
-     * Get tags for a bookmark.
+     * Creates request options for apiV1BookmarksIdTagsGet without sending the request
      */
-    async apiV1BookmarksIdTagsGetRaw(requestParameters: ApiV1BookmarksIdTagsGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<ModelTagDTO>>> {
+    async apiV1BookmarksIdTagsGetRequestOpts(requestParameters: ApiV1BookmarksIdTagsGetRequest): Promise<runtime.RequestOpts> {
         if (requestParameters['id'] == null) {
             throw new runtime.RequiredError(
                 'id',
@@ -543,12 +623,20 @@ export class BookmarksApi extends runtime.BaseAPI {
         let urlPath = `/api/v1/bookmarks/{id}/tags`;
         urlPath = urlPath.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id'])));
 
-        const response = await this.request({
+        return {
             path: urlPath,
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        }, initOverrides);
+        };
+    }
+
+    /**
+     * Get tags for a bookmark.
+     */
+    async apiV1BookmarksIdTagsGetRaw(requestParameters: ApiV1BookmarksIdTagsGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<ModelTagDTO>>> {
+        const requestOptions = await this.apiV1BookmarksIdTagsGetRequestOpts(requestParameters);
+        const response = await this.request(requestOptions, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(ModelTagDTOFromJSON));
     }
@@ -562,9 +650,9 @@ export class BookmarksApi extends runtime.BaseAPI {
     }
 
     /**
-     * Add a tag to a bookmark.
+     * Creates request options for apiV1BookmarksIdTagsPost without sending the request
      */
-    async apiV1BookmarksIdTagsPostRaw(requestParameters: ApiV1BookmarksIdTagsPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+    async apiV1BookmarksIdTagsPostRequestOpts(requestParameters: ApiV1BookmarksIdTagsPostRequest): Promise<runtime.RequestOpts> {
         if (requestParameters['id'] == null) {
             throw new runtime.RequiredError(
                 'id',
@@ -589,13 +677,21 @@ export class BookmarksApi extends runtime.BaseAPI {
         let urlPath = `/api/v1/bookmarks/{id}/tags`;
         urlPath = urlPath.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id'])));
 
-        const response = await this.request({
+        return {
             path: urlPath,
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
             body: ApiV1BookmarkTagPayloadToJSON(requestParameters['payload']),
-        }, initOverrides);
+        };
+    }
+
+    /**
+     * Add a tag to a bookmark.
+     */
+    async apiV1BookmarksIdTagsPostRaw(requestParameters: ApiV1BookmarksIdTagsPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        const requestOptions = await this.apiV1BookmarksIdTagsPostRequestOpts(requestParameters);
+        const response = await this.request(requestOptions, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -608,9 +704,9 @@ export class BookmarksApi extends runtime.BaseAPI {
     }
 
     /**
-     * Create a new bookmark.
+     * Creates request options for apiV1BookmarksPost without sending the request
      */
-    async apiV1BookmarksPostRaw(requestParameters: ApiV1BookmarksPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ModelBookmarkDTO>> {
+    async apiV1BookmarksPostRequestOpts(requestParameters: ApiV1BookmarksPostRequest): Promise<runtime.RequestOpts> {
         if (requestParameters['payload'] == null) {
             throw new runtime.RequiredError(
                 'payload',
@@ -627,13 +723,21 @@ export class BookmarksApi extends runtime.BaseAPI {
 
         let urlPath = `/api/v1/bookmarks`;
 
-        const response = await this.request({
+        return {
             path: urlPath,
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
             body: ApiV1CreateBookmarkPayloadToJSON(requestParameters['payload']),
-        }, initOverrides);
+        };
+    }
+
+    /**
+     * Create a new bookmark.
+     */
+    async apiV1BookmarksPostRaw(requestParameters: ApiV1BookmarksPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ModelBookmarkDTO>> {
+        const requestOptions = await this.apiV1BookmarksPostRequestOpts(requestParameters);
+        const response = await this.request(requestOptions, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ModelBookmarkDTOFromJSON(jsonValue));
     }

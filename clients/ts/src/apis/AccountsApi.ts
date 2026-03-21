@@ -40,10 +40,9 @@ export interface ApiV1AccountsIdPatchRequest {
 export class AccountsApi extends runtime.BaseAPI {
 
     /**
-     * List accounts
-     * List accounts
+     * Creates request options for apiV1AccountsGet without sending the request
      */
-    async apiV1AccountsGetRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<ModelAccountDTO>>> {
+    async apiV1AccountsGetRequestOpts(): Promise<runtime.RequestOpts> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -51,12 +50,21 @@ export class AccountsApi extends runtime.BaseAPI {
 
         let urlPath = `/api/v1/accounts`;
 
-        const response = await this.request({
+        return {
             path: urlPath,
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        }, initOverrides);
+        };
+    }
+
+    /**
+     * List accounts
+     * List accounts
+     */
+    async apiV1AccountsGetRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<ModelAccountDTO>>> {
+        const requestOptions = await this.apiV1AccountsGetRequestOpts();
+        const response = await this.request(requestOptions, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(ModelAccountDTOFromJSON));
     }
@@ -71,9 +79,9 @@ export class AccountsApi extends runtime.BaseAPI {
     }
 
     /**
-     * Delete an account
+     * Creates request options for apiV1AccountsIdDelete without sending the request
      */
-    async apiV1AccountsIdDeleteRaw(requestParameters: ApiV1AccountsIdDeleteRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+    async apiV1AccountsIdDeleteRequestOpts(requestParameters: ApiV1AccountsIdDeleteRequest): Promise<runtime.RequestOpts> {
         if (requestParameters['id'] == null) {
             throw new runtime.RequiredError(
                 'id',
@@ -89,12 +97,20 @@ export class AccountsApi extends runtime.BaseAPI {
         let urlPath = `/api/v1/accounts/{id}`;
         urlPath = urlPath.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id'])));
 
-        const response = await this.request({
+        return {
             path: urlPath,
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        }, initOverrides);
+        };
+    }
+
+    /**
+     * Delete an account
+     */
+    async apiV1AccountsIdDeleteRaw(requestParameters: ApiV1AccountsIdDeleteRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        const requestOptions = await this.apiV1AccountsIdDeleteRequestOpts(requestParameters);
+        const response = await this.request(requestOptions, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -107,9 +123,9 @@ export class AccountsApi extends runtime.BaseAPI {
     }
 
     /**
-     * Update an account
+     * Creates request options for apiV1AccountsIdPatch without sending the request
      */
-    async apiV1AccountsIdPatchRaw(requestParameters: ApiV1AccountsIdPatchRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ModelAccountDTO>> {
+    async apiV1AccountsIdPatchRequestOpts(requestParameters: ApiV1AccountsIdPatchRequest): Promise<runtime.RequestOpts> {
         if (requestParameters['id'] == null) {
             throw new runtime.RequiredError(
                 'id',
@@ -134,13 +150,21 @@ export class AccountsApi extends runtime.BaseAPI {
         let urlPath = `/api/v1/accounts/{id}`;
         urlPath = urlPath.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id'])));
 
-        const response = await this.request({
+        return {
             path: urlPath,
             method: 'PATCH',
             headers: headerParameters,
             query: queryParameters,
             body: ApiV1UpdateAccountPayloadToJSON(requestParameters['account']),
-        }, initOverrides);
+        };
+    }
+
+    /**
+     * Update an account
+     */
+    async apiV1AccountsIdPatchRaw(requestParameters: ApiV1AccountsIdPatchRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ModelAccountDTO>> {
+        const requestOptions = await this.apiV1AccountsIdPatchRequestOpts(requestParameters);
+        const response = await this.request(requestOptions, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ModelAccountDTOFromJSON(jsonValue));
     }
@@ -154,9 +178,9 @@ export class AccountsApi extends runtime.BaseAPI {
     }
 
     /**
-     * Create an account
+     * Creates request options for apiV1AccountsPost without sending the request
      */
-    async apiV1AccountsPostRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ModelAccountDTO>> {
+    async apiV1AccountsPostRequestOpts(): Promise<runtime.RequestOpts> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -164,12 +188,20 @@ export class AccountsApi extends runtime.BaseAPI {
 
         let urlPath = `/api/v1/accounts`;
 
-        const response = await this.request({
+        return {
             path: urlPath,
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
-        }, initOverrides);
+        };
+    }
+
+    /**
+     * Create an account
+     */
+    async apiV1AccountsPostRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ModelAccountDTO>> {
+        const requestOptions = await this.apiV1AccountsPostRequestOpts();
+        const response = await this.request(requestOptions, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ModelAccountDTOFromJSON(jsonValue));
     }

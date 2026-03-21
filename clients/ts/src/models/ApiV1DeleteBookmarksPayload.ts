@@ -31,7 +31,7 @@ export interface ApiV1DeleteBookmarksPayload {
  * Check if a given object implements the ApiV1DeleteBookmarksPayload interface.
  */
 export function instanceOfApiV1DeleteBookmarksPayload(value: object): value is ApiV1DeleteBookmarksPayload {
-    if (!('ids' in value) || value['ids'] === undefined) return false;
+    if (!('IDs' in value) || value['IDs'] === undefined) return false;
     return true;
 }
 
@@ -45,7 +45,7 @@ export function ApiV1DeleteBookmarksPayloadFromJSONTyped(json: any, ignoreDiscri
     }
     return {
         
-        'ids': json['ids'],
+        'ids': json['IDs'],
     };
 }
 
@@ -60,7 +60,7 @@ export function ApiV1DeleteBookmarksPayloadToJSONTyped(value?: ApiV1DeleteBookma
 
     return {
         
-        'ids': value['ids'],
+        'IDs': value['ids'],
     };
 }
 

@@ -24,13 +24,13 @@ export interface ApiV1CreateBookmarkOptions {
      * @type {boolean}
      * @memberof ApiV1CreateBookmarkOptions
      */
-    create_archive?: boolean;
+    createArchive?: boolean;
     /**
      * 
      * @type {boolean}
      * @memberof ApiV1CreateBookmarkOptions
      */
-    create_ebook?: boolean;
+    createEbook?: boolean;
 }
 
 /**
@@ -50,8 +50,8 @@ export function ApiV1CreateBookmarkOptionsFromJSONTyped(json: any, ignoreDiscrim
     }
     return {
         
-        'create_archive': json['create_archive'] == null ? undefined : json['create_archive'],
-        'create_ebook': json['create_ebook'] == null ? undefined : json['create_ebook'],
+        'createArchive': json['CreateArchive'] == null ? undefined : json['CreateArchive'],
+        'createEbook': json['CreateEbook'] == null ? undefined : json['CreateEbook'],
     };
 }
 
@@ -66,8 +66,8 @@ export function ApiV1CreateBookmarkOptionsToJSONTyped(value?: ApiV1CreateBookmar
 
     return {
         
-        'create_archive': value['create_archive'],
-        'create_ebook': value['create_ebook'],
+        'CreateArchive': value['createArchive'],
+        'CreateEbook': value['createEbook'],
     };
 }
 

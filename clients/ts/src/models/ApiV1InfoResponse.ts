@@ -64,9 +64,9 @@ export function ApiV1InfoResponseFromJSONTyped(json: any, ignoreDiscriminator: b
     }
     return {
         
-        'database': json['database'] == null ? undefined : json['database'],
-        'os': json['os'] == null ? undefined : json['os'],
-        'version': json['version'] == null ? undefined : ApiV1InfoResponseVersionFromJSON(json['version']),
+        'database': json['Database'] == null ? undefined : json['Database'],
+        'os': json['OS'] == null ? undefined : json['OS'],
+        'version': json['Version'] == null ? undefined : ApiV1InfoResponseVersionFromJSON(json['Version']),
     };
 }
 
@@ -81,9 +81,9 @@ export function ApiV1InfoResponseToJSONTyped(value?: ApiV1InfoResponse | null, i
 
     return {
         
-        'database': value['database'],
-        'os': value['os'],
-        'version': ApiV1InfoResponseVersionToJSON(value['version']),
+        'Database': value['database'],
+        'OS': value['os'],
+        'Version': ApiV1InfoResponseVersionToJSON(value['version']),
     };
 }
 

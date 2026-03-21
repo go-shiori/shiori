@@ -112,14 +112,14 @@ export const useBookmarksStore = defineStore('bookmarks', () => {
         payload.excerpt = excerpt;
       }
       if (isPublic !== undefined) {
-        payload.public = isPublic;
+        payload._public = isPublic;
       }
 
       // Add options if provided
       if (options) {
         payload.options = {
-          create_archive: options.createArchive || false,
-          create_ebook: options.createEbook || false,
+          createArchive: options.createArchive || false,
+          createEbook: options.createEbook || false,
         };
       }
 
@@ -214,7 +214,7 @@ export const useBookmarksStore = defineStore('bookmarks', () => {
         const api = getBookmarksApi();
         await api.apiV1BookmarksIdTagsPost({
           id: bookmarkId,
-          payload: { tagId },
+          payload: { tagID: tagId },
         });
       },
       'Failed to add tag to bookmark. Please try again.'
@@ -230,7 +230,7 @@ export const useBookmarksStore = defineStore('bookmarks', () => {
         const api = getBookmarksApi();
         await api.apiV1BookmarksIdTagsDelete({
           id: bookmarkId,
-          payload: { tagId },
+          payload: { tagID: tagId },
         });
       },
       'Failed to remove tag to bookmark. Please try again.'

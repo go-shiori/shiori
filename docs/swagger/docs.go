@@ -1076,10 +1076,10 @@ const docTemplate = `{
         "api_v1.bookmarkTagPayload": {
             "type": "object",
             "required": [
-                "tag_id"
+                "tagID"
             ],
             "properties": {
-                "tag_id": {
+                "tagID": {
                     "type": "integer"
                 }
             }
@@ -1087,17 +1087,17 @@ const docTemplate = `{
         "api_v1.bulkUpdateBookmarkTagsPayload": {
             "type": "object",
             "required": [
-                "bookmark_ids",
-                "tag_ids"
+                "bookmarkIDs",
+                "tagIDs"
             ],
             "properties": {
-                "bookmark_ids": {
+                "bookmarkIDs": {
                     "type": "array",
                     "items": {
                         "type": "integer"
                     }
                 },
-                "tag_ids": {
+                "tagIDs": {
                     "type": "array",
                     "items": {
                         "type": "integer"
@@ -1108,10 +1108,10 @@ const docTemplate = `{
         "api_v1.createBookmarkOptions": {
             "type": "object",
             "properties": {
-                "create_archive": {
+                "createArchive": {
                     "type": "boolean"
                 },
-                "create_ebook": {
+                "createEbook": {
                     "type": "boolean"
                 }
             }
@@ -1184,7 +1184,7 @@ const docTemplate = `{
                 "password": {
                     "type": "string"
                 },
-                "remember_me": {
+                "rememberMe": {
                     "type": "boolean"
                 },
                 "username": {
@@ -1195,8 +1195,9 @@ const docTemplate = `{
         "api_v1.loginResponseMessage": {
             "type": "object",
             "properties": {
-                "expires": {
-                    "type": "integer"
+                "expiration": {
+                    "type": "integer",
+                    "format": "int64"
                 },
                 "token": {
                     "type": "string"
@@ -1220,10 +1221,10 @@ const docTemplate = `{
                 "config": {
                     "$ref": "#/definitions/model.UserConfig"
                 },
-                "new_password": {
+                "newPassword": {
                     "type": "string"
                 },
-                "old_password": {
+                "oldPassword": {
                     "type": "string"
                 },
                 "owner": {
@@ -1237,19 +1238,19 @@ const docTemplate = `{
         "api_v1.updateBookmarkDataPayload": {
             "type": "object",
             "properties": {
-                "create_archive": {
+                "createArchive": {
                     "type": "boolean"
                 },
-                "create_ebook": {
+                "createEbook": {
                     "type": "boolean"
                 },
-                "keep_metadata": {
+                "keepMetadata": {
                     "type": "boolean"
                 },
-                "skip_existing": {
+                "skipExisting": {
                     "type": "boolean"
                 },
-                "update_readable": {
+                "updateReadable": {
                     "type": "boolean"
                 }
             }
@@ -1277,10 +1278,10 @@ const docTemplate = `{
                 "ids"
             ],
             "properties": {
-                "create_archive": {
+                "createArchive": {
                     "type": "boolean"
                 },
-                "create_ebook": {
+                "createEbook": {
                     "type": "boolean"
                 },
                 "ids": {
@@ -1289,10 +1290,10 @@ const docTemplate = `{
                         "type": "integer"
                     }
                 },
-                "keep_metadata": {
+                "keepMetadata": {
                     "type": "boolean"
                 },
-                "skip_exist": {
+                "skipExist": {
                     "type": "boolean"
                 }
             }
@@ -1329,8 +1330,7 @@ const docTemplate = `{
                 "owner": {
                     "type": "boolean"
                 },
-                "passowrd": {
-                    "description": "Used only to store, not to retrieve",
+                "password": {
                     "type": "string"
                 },
                 "username": {
@@ -1344,10 +1344,10 @@ const docTemplate = `{
                 "author": {
                     "type": "string"
                 },
-                "create_archive": {
+                "createArchive": {
                     "type": "boolean"
                 },
-                "create_ebook": {
+                "createEbook": {
                     "type": "boolean"
                 },
                 "createdAt": {
@@ -1373,6 +1373,9 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "integer"
+                },
+                "imageURL": {
+                    "type": "string"
                 },
                 "modifiedAt": {
                     "type": "string"
@@ -1425,7 +1428,7 @@ const docTemplate = `{
         "model.TagDTO": {
             "type": "object",
             "properties": {
-                "bookmark_count": {
+                "bookmarkCount": {
                     "description": "Number of bookmarks with this tag",
                     "type": "integer"
                 },

@@ -50,8 +50,8 @@ export function ApiV1ReadableResponseMessageFromJSONTyped(json: any, ignoreDiscr
     }
     return {
         
-        'content': json['content'] == null ? undefined : json['content'],
-        'html': json['html'] == null ? undefined : json['html'],
+        'content': json['Content'] == null ? undefined : json['Content'],
+        'html': json['HTML'] == null ? undefined : json['HTML'],
     };
 }
 
@@ -66,8 +66,8 @@ export function ApiV1ReadableResponseMessageToJSONTyped(value?: ApiV1ReadableRes
 
     return {
         
-        'content': value['content'],
-        'html': value['html'],
+        'Content': value['content'],
+        'HTML': value['html'],
     };
 }
 

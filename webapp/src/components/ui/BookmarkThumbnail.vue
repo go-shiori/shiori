@@ -19,8 +19,8 @@ const authStore = useAuthStore();
 
 // Check if thumbnails should be hidden based on user config
 const shouldHideThumbnail = computed(() => {
-  const config = authStore.user?.config as any;
-  return config?.HideThumbnail === true || config?.hideThumbnail === true;
+  const config = authStore.user?.config;
+  return config?.HideThumbnail === true;
 });
 
 // Size classes for different thumbnail sizes

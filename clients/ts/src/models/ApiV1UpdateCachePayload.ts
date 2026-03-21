@@ -24,13 +24,13 @@ export interface ApiV1UpdateCachePayload {
      * @type {boolean}
      * @memberof ApiV1UpdateCachePayload
      */
-    create_archive?: boolean;
+    createArchive?: boolean;
     /**
      * 
      * @type {boolean}
      * @memberof ApiV1UpdateCachePayload
      */
-    create_ebook?: boolean;
+    createEbook?: boolean;
     /**
      * 
      * @type {Array<number>}
@@ -42,20 +42,20 @@ export interface ApiV1UpdateCachePayload {
      * @type {boolean}
      * @memberof ApiV1UpdateCachePayload
      */
-    keep_metadata?: boolean;
+    keepMetadata?: boolean;
     /**
      * 
      * @type {boolean}
      * @memberof ApiV1UpdateCachePayload
      */
-    skip_exist?: boolean;
+    skipExist?: boolean;
 }
 
 /**
  * Check if a given object implements the ApiV1UpdateCachePayload interface.
  */
 export function instanceOfApiV1UpdateCachePayload(value: object): value is ApiV1UpdateCachePayload {
-    if (!('ids' in value) || value['ids'] === undefined) return false;
+    if (!('IDs' in value) || value['IDs'] === undefined) return false;
     return true;
 }
 
@@ -69,11 +69,11 @@ export function ApiV1UpdateCachePayloadFromJSONTyped(json: any, ignoreDiscrimina
     }
     return {
         
-        'create_archive': json['create_archive'] == null ? undefined : json['create_archive'],
-        'create_ebook': json['create_ebook'] == null ? undefined : json['create_ebook'],
-        'ids': json['ids'],
-        'keep_metadata': json['keep_metadata'] == null ? undefined : json['keep_metadata'],
-        'skip_exist': json['skip_exist'] == null ? undefined : json['skip_exist'],
+        'createArchive': json['CreateArchive'] == null ? undefined : json['CreateArchive'],
+        'createEbook': json['CreateEbook'] == null ? undefined : json['CreateEbook'],
+        'ids': json['IDs'],
+        'keepMetadata': json['KeepMetadata'] == null ? undefined : json['KeepMetadata'],
+        'skipExist': json['SkipExist'] == null ? undefined : json['SkipExist'],
     };
 }
 
@@ -88,11 +88,11 @@ export function ApiV1UpdateCachePayloadToJSONTyped(value?: ApiV1UpdateCachePaylo
 
     return {
         
-        'create_archive': value['create_archive'],
-        'create_ebook': value['create_ebook'],
-        'ids': value['ids'],
-        'keep_metadata': value['keep_metadata'],
-        'skip_exist': value['skip_exist'],
+        'CreateArchive': value['createArchive'],
+        'CreateEbook': value['createEbook'],
+        'IDs': value['ids'],
+        'KeepMetadata': value['keepMetadata'],
+        'SkipExist': value['skipExist'],
     };
 }
 

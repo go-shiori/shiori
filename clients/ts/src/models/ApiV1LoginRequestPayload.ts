@@ -30,7 +30,7 @@ export interface ApiV1LoginRequestPayload {
      * @type {boolean}
      * @memberof ApiV1LoginRequestPayload
      */
-    remember_me?: boolean;
+    rememberMe?: boolean;
     /**
      * 
      * @type {string}
@@ -56,9 +56,9 @@ export function ApiV1LoginRequestPayloadFromJSONTyped(json: any, ignoreDiscrimin
     }
     return {
         
-        'password': json['password'] == null ? undefined : json['password'],
-        'remember_me': json['remember_me'] == null ? undefined : json['remember_me'],
-        'username': json['username'] == null ? undefined : json['username'],
+        'password': json['Password'] == null ? undefined : json['Password'],
+        'rememberMe': json['RememberMe'] == null ? undefined : json['RememberMe'],
+        'username': json['Username'] == null ? undefined : json['Username'],
     };
 }
 
@@ -73,9 +73,9 @@ export function ApiV1LoginRequestPayloadToJSONTyped(value?: ApiV1LoginRequestPay
 
     return {
         
-        'password': value['password'],
-        'remember_me': value['remember_me'],
-        'username': value['username'],
+        'Password': value['password'],
+        'RememberMe': value['rememberMe'],
+        'Username': value['username'],
     };
 }
 

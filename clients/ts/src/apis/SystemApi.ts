@@ -28,10 +28,9 @@ import {
 export class SystemApi extends runtime.BaseAPI {
 
     /**
-     * Get general system information like Shiori version, database, and OS
-     * Get general system information
+     * Creates request options for apiV1SystemInfoGet without sending the request
      */
-    async apiV1SystemInfoGetRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiV1InfoResponse>> {
+    async apiV1SystemInfoGetRequestOpts(): Promise<runtime.RequestOpts> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -39,12 +38,21 @@ export class SystemApi extends runtime.BaseAPI {
 
         let urlPath = `/api/v1/system/info`;
 
-        const response = await this.request({
+        return {
             path: urlPath,
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        }, initOverrides);
+        };
+    }
+
+    /**
+     * Get general system information like Shiori version, database, and OS
+     * Get general system information
+     */
+    async apiV1SystemInfoGetRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiV1InfoResponse>> {
+        const requestOptions = await this.apiV1SystemInfoGetRequestOpts();
+        const response = await this.request(requestOptions, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ApiV1InfoResponseFromJSON(jsonValue));
     }
@@ -59,10 +67,9 @@ export class SystemApi extends runtime.BaseAPI {
     }
 
     /**
-     * Simple ping endpoint that returns a 200 status code
-     * Ping the system
+     * Creates request options for apiV1SystemPingGet without sending the request
      */
-    async apiV1SystemPingGetRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+    async apiV1SystemPingGetRequestOpts(): Promise<runtime.RequestOpts> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -70,12 +77,21 @@ export class SystemApi extends runtime.BaseAPI {
 
         let urlPath = `/api/v1/system/ping`;
 
-        const response = await this.request({
+        return {
             path: urlPath,
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        }, initOverrides);
+        };
+    }
+
+    /**
+     * Simple ping endpoint that returns a 200 status code
+     * Ping the system
+     */
+    async apiV1SystemPingGetRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        const requestOptions = await this.apiV1SystemPingGetRequestOpts();
+        const response = await this.request(requestOptions, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }

@@ -48,9 +48,9 @@ const shouldHideExcerpt = computed(
 // Initialize view from user config or localStorage or default to 'list'
 const getStoredView = (): 'list' | 'card' => {
   if (typeof window !== 'undefined') {
-    // First check user configuration (handle both PascalCase and camelCase)
-    const config = authStore.user?.config as any;
-    const listMode = config?.ListMode ?? config?.listMode;
+    // Check user configuration
+    const config = authStore.user?.config;
+    const listMode = config?.ListMode;
     if (listMode !== undefined) {
       return listMode ? 'list' : 'card';
     }
@@ -113,8 +113,7 @@ const handleViewChange = async (view: 'list' | 'card') => {
 // Watch for changes in user configuration to update view
 watch(
   () => {
-    const config = authStore.user?.config as any;
-    return config?.ListMode ?? config?.listMode;
+    return authStore.user?.config?.ListMode;
   },
   newListMode => {
     if (newListMode !== undefined) {

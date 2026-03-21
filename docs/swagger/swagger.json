@@ -1065,10 +1065,10 @@
         "api_v1.bookmarkTagPayload": {
             "type": "object",
             "required": [
-                "tag_id"
+                "tagID"
             ],
             "properties": {
-                "tag_id": {
+                "tagID": {
                     "type": "integer"
                 }
             }
@@ -1076,17 +1076,17 @@
         "api_v1.bulkUpdateBookmarkTagsPayload": {
             "type": "object",
             "required": [
-                "bookmark_ids",
-                "tag_ids"
+                "bookmarkIDs",
+                "tagIDs"
             ],
             "properties": {
-                "bookmark_ids": {
+                "bookmarkIDs": {
                     "type": "array",
                     "items": {
                         "type": "integer"
                     }
                 },
-                "tag_ids": {
+                "tagIDs": {
                     "type": "array",
                     "items": {
                         "type": "integer"
@@ -1097,10 +1097,10 @@
         "api_v1.createBookmarkOptions": {
             "type": "object",
             "properties": {
-                "create_archive": {
+                "createArchive": {
                     "type": "boolean"
                 },
-                "create_ebook": {
+                "createEbook": {
                     "type": "boolean"
                 }
             }
@@ -1173,7 +1173,7 @@
                 "password": {
                     "type": "string"
                 },
-                "remember_me": {
+                "rememberMe": {
                     "type": "boolean"
                 },
                 "username": {
@@ -1184,8 +1184,9 @@
         "api_v1.loginResponseMessage": {
             "type": "object",
             "properties": {
-                "expires": {
-                    "type": "integer"
+                "expiration": {
+                    "type": "integer",
+                    "format": "int64"
                 },
                 "token": {
                     "type": "string"
@@ -1209,10 +1210,10 @@
                 "config": {
                     "$ref": "#/definitions/model.UserConfig"
                 },
-                "new_password": {
+                "newPassword": {
                     "type": "string"
                 },
-                "old_password": {
+                "oldPassword": {
                     "type": "string"
                 },
                 "owner": {
@@ -1226,19 +1227,19 @@
         "api_v1.updateBookmarkDataPayload": {
             "type": "object",
             "properties": {
-                "create_archive": {
+                "createArchive": {
                     "type": "boolean"
                 },
-                "create_ebook": {
+                "createEbook": {
                     "type": "boolean"
                 },
-                "keep_metadata": {
+                "keepMetadata": {
                     "type": "boolean"
                 },
-                "skip_existing": {
+                "skipExisting": {
                     "type": "boolean"
                 },
-                "update_readable": {
+                "updateReadable": {
                     "type": "boolean"
                 }
             }
@@ -1266,10 +1267,10 @@
                 "ids"
             ],
             "properties": {
-                "create_archive": {
+                "createArchive": {
                     "type": "boolean"
                 },
-                "create_ebook": {
+                "createEbook": {
                     "type": "boolean"
                 },
                 "ids": {
@@ -1278,10 +1279,10 @@
                         "type": "integer"
                     }
                 },
-                "keep_metadata": {
+                "keepMetadata": {
                     "type": "boolean"
                 },
-                "skip_exist": {
+                "skipExist": {
                     "type": "boolean"
                 }
             }
@@ -1318,8 +1319,7 @@
                 "owner": {
                     "type": "boolean"
                 },
-                "passowrd": {
-                    "description": "Used only to store, not to retrieve",
+                "password": {
                     "type": "string"
                 },
                 "username": {
@@ -1333,10 +1333,10 @@
                 "author": {
                     "type": "string"
                 },
-                "create_archive": {
+                "createArchive": {
                     "type": "boolean"
                 },
-                "create_ebook": {
+                "createEbook": {
                     "type": "boolean"
                 },
                 "createdAt": {
@@ -1362,6 +1362,9 @@
                 },
                 "id": {
                     "type": "integer"
+                },
+                "imageURL": {
+                    "type": "string"
                 },
                 "modifiedAt": {
                     "type": "string"
@@ -1414,7 +1417,7 @@
         "model.TagDTO": {
             "type": "object",
             "properties": {
-                "bookmark_count": {
+                "bookmarkCount": {
                     "description": "Number of bookmarks with this tag",
                     "type": "integer"
                 },

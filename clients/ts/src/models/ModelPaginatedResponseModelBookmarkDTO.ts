@@ -58,8 +58,8 @@ export function ModelPaginatedResponseModelBookmarkDTOFromJSONTyped(json: any, i
     }
     return {
         
-        'items': json['items'] == null ? undefined : ((json['items'] as Array<any>).map(ModelBookmarkDTOFromJSON)),
-        'total': json['total'] == null ? undefined : json['total'],
+        'items': json['Items'] == null ? undefined : ((json['Items'] as Array<any>).map(ModelBookmarkDTOFromJSON)),
+        'total': json['Total'] == null ? undefined : json['Total'],
     };
 }
 
@@ -74,8 +74,8 @@ export function ModelPaginatedResponseModelBookmarkDTOToJSONTyped(value?: ModelP
 
     return {
         
-        'items': value['items'] == null ? undefined : ((value['items'] as Array<any>).map(ModelBookmarkDTOToJSON)),
-        'total': value['total'],
+        'Items': value['items'] == null ? undefined : ((value['items'] as Array<any>).map(ModelBookmarkDTOToJSON)),
+        'Total': value['total'],
     };
 }
 

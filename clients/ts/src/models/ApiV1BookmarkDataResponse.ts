@@ -92,15 +92,15 @@ export function ApiV1BookmarkDataResponseFromJSONTyped(json: any, ignoreDiscrimi
     }
     return {
         
-        'archiveURL': json['archiveURL'] == null ? undefined : json['archiveURL'],
-        'content': json['content'] == null ? undefined : json['content'],
-        'ebookURL': json['ebookURL'] == null ? undefined : json['ebookURL'],
-        'hasArchive': json['hasArchive'] == null ? undefined : json['hasArchive'],
-        'hasContent': json['hasContent'] == null ? undefined : json['hasContent'],
-        'hasEbook': json['hasEbook'] == null ? undefined : json['hasEbook'],
-        'hasThumbnail': json['hasThumbnail'] == null ? undefined : json['hasThumbnail'],
-        'html': json['html'] == null ? undefined : json['html'],
-        'imageURL': json['imageURL'] == null ? undefined : json['imageURL'],
+        'archiveURL': json['ArchiveURL'] == null ? undefined : json['ArchiveURL'],
+        'content': json['Content'] == null ? undefined : json['Content'],
+        'ebookURL': json['EbookURL'] == null ? undefined : json['EbookURL'],
+        'hasArchive': json['HasArchive'] == null ? undefined : json['HasArchive'],
+        'hasContent': json['HasContent'] == null ? undefined : json['HasContent'],
+        'hasEbook': json['HasEbook'] == null ? undefined : json['HasEbook'],
+        'hasThumbnail': json['HasThumbnail'] == null ? undefined : json['HasThumbnail'],
+        'html': json['HTML'] == null ? undefined : json['HTML'],
+        'imageURL': json['ImageURL'] == null ? undefined : json['ImageURL'],
     };
 }
 
@@ -115,15 +115,15 @@ export function ApiV1BookmarkDataResponseToJSONTyped(value?: ApiV1BookmarkDataRe
 
     return {
         
-        'archiveURL': value['archiveURL'],
-        'content': value['content'],
-        'ebookURL': value['ebookURL'],
-        'hasArchive': value['hasArchive'],
-        'hasContent': value['hasContent'],
-        'hasEbook': value['hasEbook'],
-        'hasThumbnail': value['hasThumbnail'],
-        'html': value['html'],
-        'imageURL': value['imageURL'],
+        'ArchiveURL': value['archiveURL'],
+        'Content': value['content'],
+        'EbookURL': value['ebookURL'],
+        'HasArchive': value['hasArchive'],
+        'HasContent': value['hasContent'],
+        'HasEbook': value['hasEbook'],
+        'HasThumbnail': value['hasThumbnail'],
+        'HTML': value['html'],
+        'ImageURL': value['imageURL'],
     };
 }
 

@@ -304,7 +304,7 @@ const clearSearch = async () => {
                 {{ tag.name }}
               </h3>
               <p class="text-sm text-gray-500 dark:text-gray-400">
-                {{ tag.bookmark_count || 0 }} {{ t('tags.bookmarks_count') }}
+                {{ tag.bookmarkCount || 0 }} {{ t('tags.bookmarks_count') }}
               </p>
             </div>
             <div class="flex space-x-1">

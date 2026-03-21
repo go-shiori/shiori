@@ -56,9 +56,9 @@ export function ApiV1InfoResponseVersionFromJSONTyped(json: any, ignoreDiscrimin
     }
     return {
         
-        'commit': json['commit'] == null ? undefined : json['commit'],
-        'date': json['date'] == null ? undefined : json['date'],
-        'tag': json['tag'] == null ? undefined : json['tag'],
+        'commit': json['Commit'] == null ? undefined : json['Commit'],
+        'date': json['Date'] == null ? undefined : json['Date'],
+        'tag': json['Tag'] == null ? undefined : json['Tag'],
     };
 }
 
@@ -73,9 +73,9 @@ export function ApiV1InfoResponseVersionToJSONTyped(value?: ApiV1InfoResponseVer
 
     return {
         
-        'commit': value['commit'],
-        'date': value['date'],
-        'tag': value['tag'],
+        'Commit': value['commit'],
+        'Date': value['date'],
+        'Tag': value['tag'],
     };
 }
 

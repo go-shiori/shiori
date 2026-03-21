@@ -62,10 +62,10 @@ export function ApiV1UpdateBookmarkPayloadFromJSONTyped(json: any, ignoreDiscrim
     }
     return {
         
-        'excerpt': json['excerpt'] == null ? undefined : json['excerpt'],
-        '_public': json['public'] == null ? undefined : json['public'],
-        'title': json['title'] == null ? undefined : json['title'],
-        'url': json['url'] == null ? undefined : json['url'],
+        'excerpt': json['Excerpt'] == null ? undefined : json['Excerpt'],
+        '_public': json['Public'] == null ? undefined : json['Public'],
+        'title': json['Title'] == null ? undefined : json['Title'],
+        'url': json['URL'] == null ? undefined : json['URL'],
     };
 }
 
@@ -80,10 +80,10 @@ export function ApiV1UpdateBookmarkPayloadToJSONTyped(value?: ApiV1UpdateBookmar
 
     return {
         
-        'excerpt': value['excerpt'],
-        'public': value['_public'],
-        'title': value['title'],
-        'url': value['url'],
+        'Excerpt': value['excerpt'],
+        'Public': value['_public'],
+        'Title': value['title'],
+        'URL': value['url'],
     };
 }
 

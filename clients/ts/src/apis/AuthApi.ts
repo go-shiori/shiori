@@ -45,9 +45,9 @@ export interface ApiV1AuthLoginPostRequest {
 export class AuthApi extends runtime.BaseAPI {
 
     /**
-     * Update account information
+     * Creates request options for apiV1AuthAccountPatch without sending the request
      */
-    async apiV1AuthAccountPatchRaw(requestParameters: ApiV1AuthAccountPatchRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ModelAccount>> {
+    async apiV1AuthAccountPatchRequestOpts(requestParameters: ApiV1AuthAccountPatchRequest): Promise<runtime.RequestOpts> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -57,13 +57,21 @@ export class AuthApi extends runtime.BaseAPI {
 
         let urlPath = `/api/v1/auth/account`;
 
-        const response = await this.request({
+        return {
             path: urlPath,
             method: 'PATCH',
             headers: headerParameters,
             query: queryParameters,
             body: ApiV1UpdateAccountPayloadToJSON(requestParameters['payload']),
-        }, initOverrides);
+        };
+    }
+
+    /**
+     * Update account information
+     */
+    async apiV1AuthAccountPatchRaw(requestParameters: ApiV1AuthAccountPatchRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ModelAccount>> {
+        const requestOptions = await this.apiV1AuthAccountPatchRequestOpts(requestParameters);
+        const response = await this.request(requestOptions, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ModelAccountFromJSON(jsonValue));
     }
@@ -77,9 +85,9 @@ export class AuthApi extends runtime.BaseAPI {
     }
 
     /**
-     * Login to an account using username and password
+     * Creates request options for apiV1AuthLoginPost without sending the request
      */
-    async apiV1AuthLoginPostRaw(requestParameters: ApiV1AuthLoginPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiV1LoginResponseMessage>> {
+    async apiV1AuthLoginPostRequestOpts(requestParameters: ApiV1AuthLoginPostRequest): Promise<runtime.RequestOpts> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -89,13 +97,21 @@ export class AuthApi extends runtime.BaseAPI {
 
         let urlPath = `/api/v1/auth/login`;
 
-        const response = await this.request({
+        return {
             path: urlPath,
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
             body: ApiV1LoginRequestPayloadToJSON(requestParameters['payload']),
-        }, initOverrides);
+        };
+    }
+
+    /**
+     * Login to an account using username and password
+     */
+    async apiV1AuthLoginPostRaw(requestParameters: ApiV1AuthLoginPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiV1LoginResponseMessage>> {
+        const requestOptions = await this.apiV1AuthLoginPostRequestOpts(requestParameters);
+        const response = await this.request(requestOptions, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ApiV1LoginResponseMessageFromJSON(jsonValue));
     }
@@ -109,9 +125,9 @@ export class AuthApi extends runtime.BaseAPI {
     }
 
     /**
-     * Logout from the current session
+     * Creates request options for apiV1AuthLogoutPost without sending the request
      */
-    async apiV1AuthLogoutPostRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+    async apiV1AuthLogoutPostRequestOpts(): Promise<runtime.RequestOpts> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -119,12 +135,20 @@ export class AuthApi extends runtime.BaseAPI {
 
         let urlPath = `/api/v1/auth/logout`;
 
-        const response = await this.request({
+        return {
             path: urlPath,
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
-        }, initOverrides);
+        };
+    }
+
+    /**
+     * Logout from the current session
+     */
+    async apiV1AuthLogoutPostRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        const requestOptions = await this.apiV1AuthLogoutPostRequestOpts();
+        const response = await this.request(requestOptions, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -137,9 +161,9 @@ export class AuthApi extends runtime.BaseAPI {
     }
 
     /**
-     * Get information for the current logged in user
+     * Creates request options for apiV1AuthMeGet without sending the request
      */
-    async apiV1AuthMeGetRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ModelAccount>> {
+    async apiV1AuthMeGetRequestOpts(): Promise<runtime.RequestOpts> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -147,12 +171,20 @@ export class AuthApi extends runtime.BaseAPI {
 
         let urlPath = `/api/v1/auth/me`;
 
-        const response = await this.request({
+        return {
             path: urlPath,
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        }, initOverrides);
+        };
+    }
+
+    /**
+     * Get information for the current logged in user
+     */
+    async apiV1AuthMeGetRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ModelAccount>> {
+        const requestOptions = await this.apiV1AuthMeGetRequestOpts();
+        const response = await this.request(requestOptions, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ModelAccountFromJSON(jsonValue));
     }
@@ -166,9 +198,9 @@ export class AuthApi extends runtime.BaseAPI {
     }
 
     /**
-     * Refresh a token for an account
+     * Creates request options for apiV1AuthRefreshPost without sending the request
      */
-    async apiV1AuthRefreshPostRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiV1LoginResponseMessage>> {
+    async apiV1AuthRefreshPostRequestOpts(): Promise<runtime.RequestOpts> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -176,12 +208,20 @@ export class AuthApi extends runtime.BaseAPI {
 
         let urlPath = `/api/v1/auth/refresh`;
 
-        const response = await this.request({
+        return {
             path: urlPath,
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
-        }, initOverrides);
+        };
+    }
+
+    /**
+     * Refresh a token for an account
+     */
+    async apiV1AuthRefreshPostRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiV1LoginResponseMessage>> {
+        const requestOptions = await this.apiV1AuthRefreshPostRequestOpts();
+        const response = await this.request(requestOptions, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ApiV1LoginResponseMessageFromJSON(jsonValue));
     }

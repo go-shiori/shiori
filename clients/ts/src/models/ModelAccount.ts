@@ -76,11 +76,11 @@ export function ModelAccountFromJSONTyped(json: any, ignoreDiscriminator: boolea
     }
     return {
         
-        'config': json['config'] == null ? undefined : ModelUserConfigFromJSON(json['config']),
-        'id': json['id'] == null ? undefined : json['id'],
-        'owner': json['owner'] == null ? undefined : json['owner'],
-        'password': json['password'] == null ? undefined : json['password'],
-        'username': json['username'] == null ? undefined : json['username'],
+        'config': json['Config'] == null ? undefined : ModelUserConfigFromJSON(json['Config']),
+        'id': json['ID'] == null ? undefined : json['ID'],
+        'owner': json['Owner'] == null ? undefined : json['Owner'],
+        'password': json['Password'] == null ? undefined : json['Password'],
+        'username': json['Username'] == null ? undefined : json['Username'],
     };
 }
 
@@ -95,11 +95,11 @@ export function ModelAccountToJSONTyped(value?: ModelAccount | null, ignoreDiscr
 
     return {
         
-        'config': ModelUserConfigToJSON(value['config']),
-        'id': value['id'],
-        'owner': value['owner'],
-        'password': value['password'],
-        'username': value['username'],
+        'Config': ModelUserConfigToJSON(value['config']),
+        'ID': value['id'],
+        'Owner': value['owner'],
+        'Password': value['password'],
+        'Username': value['username'],
     };
 }
 

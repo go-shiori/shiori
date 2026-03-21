@@ -58,8 +58,8 @@ export function ModelPaginatedResponseModelTagDTOFromJSONTyped(json: any, ignore
     }
     return {
         
-        'items': json['items'] == null ? undefined : ((json['items'] as Array<any>).map(ModelTagDTOFromJSON)),
-        'total': json['total'] == null ? undefined : json['total'],
+        'items': json['Items'] == null ? undefined : ((json['Items'] as Array<any>).map(ModelTagDTOFromJSON)),
+        'total': json['Total'] == null ? undefined : json['Total'],
     };
 }
 
@@ -74,8 +74,8 @@ export function ModelPaginatedResponseModelTagDTOToJSONTyped(value?: ModelPagina
 
     return {
         
-        'items': value['items'] == null ? undefined : ((value['items'] as Array<any>).map(ModelTagDTOToJSON)),
-        'total': value['total'],
+        'Items': value['items'] == null ? undefined : ((value['items'] as Array<any>).map(ModelTagDTOToJSON)),
+        'Total': value['total'],
     };
 }
 

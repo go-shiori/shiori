@@ -24,7 +24,7 @@ export interface ApiV1LoginResponseMessage {
      * @type {number}
      * @memberof ApiV1LoginResponseMessage
      */
-    expires?: number;
+    expiration?: number;
     /**
      * 
      * @type {string}
@@ -50,8 +50,8 @@ export function ApiV1LoginResponseMessageFromJSONTyped(json: any, ignoreDiscrimi
     }
     return {
         
-        'expires': json['expires'] == null ? undefined : json['expires'],
-        'token': json['token'] == null ? undefined : json['token'],
+        'expiration': json['Expiration'] == null ? undefined : json['Expiration'],
+        'token': json['Token'] == null ? undefined : json['Token'],
     };
 }
 
@@ -66,8 +66,8 @@ export function ApiV1LoginResponseMessageToJSONTyped(value?: ApiV1LoginResponseM
 
     return {
         
-        'expires': value['expires'],
-        'token': value['token'],
+        'Expiration': value['expiration'],
+        'Token': value['token'],
     };
 }
 

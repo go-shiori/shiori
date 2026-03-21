@@ -64,11 +64,11 @@ export const useAuthStore = defineStore('auth', () => {
 
       if (response.token) {
         token.value = response.token;
-        expires.value = response.expires || 0;
+        expires.value = response.expiration || 0;
 
         // Store in localStorage
         localStorage.setItem('token', response.token);
-        localStorage.setItem('expires', String(response.expires));
+        localStorage.setItem('expires', String(response.expiration));
 
         // Get user info
         await fetchUserInfo();
@@ -84,10 +84,10 @@ export const useAuthStore = defineStore('auth', () => {
         try {
           // Try to parse the response body as JSON
           const responseBody = await err.response.json();
-          if (responseBody && responseBody.message) {
-            error.value = responseBody.message;
-          } else if (responseBody && responseBody.error) {
-            error.value = responseBody.error;
+          if (responseBody && responseBody.Message) {
+            error.value = responseBody.Message;
+          } else if (responseBody && responseBody.Error) {
+            error.value = responseBody.Error;
           } else if (typeof responseBody === 'string') {
             error.value = responseBody;
           } else {
@@ -190,10 +190,10 @@ export const useAuthStore = defineStore('auth', () => {
 
       if (response.token) {
         token.value = response.token;
-        expires.value = response.expires || 0;
+        expires.value = response.expiration || 0;
 
         localStorage.setItem('token', response.token);
-        localStorage.setItem('expires', String(response.expires));
+        localStorage.setItem('expires', String(response.expiration));
         return true;
       }
       return false;

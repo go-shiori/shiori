@@ -24,21 +24,21 @@ export interface ApiV1BulkUpdateBookmarkTagsPayload {
      * @type {Array<number>}
      * @memberof ApiV1BulkUpdateBookmarkTagsPayload
      */
-    bookmark_ids: Array<number>;
+    bookmarkIDs: Array<number>;
     /**
      * 
      * @type {Array<number>}
      * @memberof ApiV1BulkUpdateBookmarkTagsPayload
      */
-    tag_ids: Array<number>;
+    tagIDs: Array<number>;
 }
 
 /**
  * Check if a given object implements the ApiV1BulkUpdateBookmarkTagsPayload interface.
  */
 export function instanceOfApiV1BulkUpdateBookmarkTagsPayload(value: object): value is ApiV1BulkUpdateBookmarkTagsPayload {
-    if (!('bookmark_ids' in value) || value['bookmark_ids'] === undefined) return false;
-    if (!('tag_ids' in value) || value['tag_ids'] === undefined) return false;
+    if (!('BookmarkIDs' in value) || value['BookmarkIDs'] === undefined) return false;
+    if (!('TagIDs' in value) || value['TagIDs'] === undefined) return false;
     return true;
 }
 
@@ -52,8 +52,8 @@ export function ApiV1BulkUpdateBookmarkTagsPayloadFromJSONTyped(json: any, ignor
     }
     return {
         
-        'bookmark_ids': json['bookmark_ids'],
-        'tag_ids': json['tag_ids'],
+        'bookmarkIDs': json['BookmarkIDs'],
+        'tagIDs': json['TagIDs'],
     };
 }
 
@@ -68,8 +68,8 @@ export function ApiV1BulkUpdateBookmarkTagsPayloadToJSONTyped(value?: ApiV1BulkU
 
     return {
         
-        'bookmark_ids': value['bookmark_ids'],
-        'tag_ids': value['tag_ids'],
+        'BookmarkIDs': value['bookmarkIDs'],
+        'TagIDs': value['tagIDs'],
     };
 }
 

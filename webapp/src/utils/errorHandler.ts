@@ -4,8 +4,8 @@ export interface ApiError {
   response?: {
     status: number;
     data?: {
-      error?: string;
-      message?: string;
+      Error?: string;
+      Message?: string;
     };
   };
   message?: string;
@@ -23,8 +23,8 @@ export function handleApiError(
   resourceHint?: 'bookmark' | 'tag'
 ): string {
   // Check if it's an API error with a response
-  if (error.response?.data?.error) {
-    const errorKey = error.response.data.error;
+  if (error.response?.data?.Error) {
+    const errorKey = error.response.data.Error;
 
     // Handle namespaced error keys (e.g., "already_exists.bookmark")
     if (errorKey.includes('.')) {

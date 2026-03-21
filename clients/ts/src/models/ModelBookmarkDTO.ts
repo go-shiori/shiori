@@ -38,13 +38,13 @@ export interface ModelBookmarkDTO {
      * @type {boolean}
      * @memberof ModelBookmarkDTO
      */
-    create_archive?: boolean;
+    createArchive?: boolean;
     /**
      * 
      * @type {boolean}
      * @memberof ModelBookmarkDTO
      */
-    create_ebook?: boolean;
+    createEbook?: boolean;
     /**
      * 
      * @type {string}
@@ -98,6 +98,12 @@ export interface ModelBookmarkDTO {
      * @type {string}
      * @memberof ModelBookmarkDTO
      */
+    imageURL?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ModelBookmarkDTO
+     */
     modifiedAt?: string;
     /**
      * 
@@ -142,22 +148,23 @@ export function ModelBookmarkDTOFromJSONTyped(json: any, ignoreDiscriminator: bo
     }
     return {
         
-        'author': json['author'] == null ? undefined : json['author'],
-        'create_archive': json['create_archive'] == null ? undefined : json['create_archive'],
-        'create_ebook': json['create_ebook'] == null ? undefined : json['create_ebook'],
-        'createdAt': json['createdAt'] == null ? undefined : json['createdAt'],
-        'excerpt': json['excerpt'] == null ? undefined : json['excerpt'],
-        'hasArchive': json['hasArchive'] == null ? undefined : json['hasArchive'],
-        'hasContent': json['hasContent'] == null ? undefined : json['hasContent'],
-        'hasEbook': json['hasEbook'] == null ? undefined : json['hasEbook'],
-        'hasThumbnail': json['hasThumbnail'] == null ? undefined : json['hasThumbnail'],
-        'html': json['html'] == null ? undefined : json['html'],
-        'id': json['id'] == null ? undefined : json['id'],
-        'modifiedAt': json['modifiedAt'] == null ? undefined : json['modifiedAt'],
-        '_public': json['public'] == null ? undefined : json['public'],
-        'tags': json['tags'] == null ? undefined : ((json['tags'] as Array<any>).map(ModelTagDTOFromJSON)),
-        'title': json['title'] == null ? undefined : json['title'],
-        'url': json['url'] == null ? undefined : json['url'],
+        'author': json['Author'] == null ? undefined : json['Author'],
+        'createArchive': json['CreateArchive'] == null ? undefined : json['CreateArchive'],
+        'createEbook': json['CreateEbook'] == null ? undefined : json['CreateEbook'],
+        'createdAt': json['CreatedAt'] == null ? undefined : json['CreatedAt'],
+        'excerpt': json['Excerpt'] == null ? undefined : json['Excerpt'],
+        'hasArchive': json['HasArchive'] == null ? undefined : json['HasArchive'],
+        'hasContent': json['HasContent'] == null ? undefined : json['HasContent'],
+        'hasEbook': json['HasEbook'] == null ? undefined : json['HasEbook'],
+        'hasThumbnail': json['HasThumbnail'] == null ? undefined : json['HasThumbnail'],
+        'html': json['HTML'] == null ? undefined : json['HTML'],
+        'id': json['ID'] == null ? undefined : json['ID'],
+        'imageURL': json['ImageURL'] == null ? undefined : json['ImageURL'],
+        'modifiedAt': json['ModifiedAt'] == null ? undefined : json['ModifiedAt'],
+        '_public': json['Public'] == null ? undefined : json['Public'],
+        'tags': json['Tags'] == null ? undefined : ((json['Tags'] as Array<any>).map(ModelTagDTOFromJSON)),
+        'title': json['Title'] == null ? undefined : json['Title'],
+        'url': json['URL'] == null ? undefined : json['URL'],
     };
 }
 
@@ -172,22 +179,23 @@ export function ModelBookmarkDTOToJSONTyped(value?: ModelBookmarkDTO | null, ign
 
     return {
         
-        'author': value['author'],
-        'create_archive': value['create_archive'],
-        'create_ebook': value['create_ebook'],
-        'createdAt': value['createdAt'],
-        'excerpt': value['excerpt'],
-        'hasArchive': value['hasArchive'],
-        'hasContent': value['hasContent'],
-        'hasEbook': value['hasEbook'],
-        'hasThumbnail': value['hasThumbnail'],
-        'html': value['html'],
-        'id': value['id'],
-        'modifiedAt': value['modifiedAt'],
-        'public': value['_public'],
-        'tags': value['tags'] == null ? undefined : ((value['tags'] as Array<any>).map(ModelTagDTOToJSON)),
-        'title': value['title'],
-        'url': value['url'],
+        'Author': value['author'],
+        'CreateArchive': value['createArchive'],
+        'CreateEbook': value['createEbook'],
+        'CreatedAt': value['createdAt'],
+        'Excerpt': value['excerpt'],
+        'HasArchive': value['hasArchive'],
+        'HasContent': value['hasContent'],
+        'HasEbook': value['hasEbook'],
+        'HasThumbnail': value['hasThumbnail'],
+        'HTML': value['html'],
+        'ID': value['id'],
+        'ImageURL': value['imageURL'],
+        'ModifiedAt': value['modifiedAt'],
+        'Public': value['_public'],
+        'Tags': value['tags'] == null ? undefined : ((value['tags'] as Array<any>).map(ModelTagDTOToJSON)),
+        'Title': value['title'],
+        'URL': value['url'],
     };
 }
 

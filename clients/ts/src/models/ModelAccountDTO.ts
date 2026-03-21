@@ -46,11 +46,11 @@ export interface ModelAccountDTO {
      */
     owner?: boolean;
     /**
-     * Used only to store, not to retrieve
+     * 
      * @type {string}
      * @memberof ModelAccountDTO
      */
-    passowrd?: string;
+    password?: string;
     /**
      * 
      * @type {string}
@@ -76,11 +76,11 @@ export function ModelAccountDTOFromJSONTyped(json: any, ignoreDiscriminator: boo
     }
     return {
         
-        'config': json['config'] == null ? undefined : ModelUserConfigFromJSON(json['config']),
-        'id': json['id'] == null ? undefined : json['id'],
-        'owner': json['owner'] == null ? undefined : json['owner'],
-        'passowrd': json['passowrd'] == null ? undefined : json['passowrd'],
-        'username': json['username'] == null ? undefined : json['username'],
+        'config': json['Config'] == null ? undefined : ModelUserConfigFromJSON(json['Config']),
+        'id': json['ID'] == null ? undefined : json['ID'],
+        'owner': json['Owner'] == null ? undefined : json['Owner'],
+        'password': json['Password'] == null ? undefined : json['Password'],
+        'username': json['Username'] == null ? undefined : json['Username'],
     };
 }
 
@@ -95,11 +95,11 @@ export function ModelAccountDTOToJSONTyped(value?: ModelAccountDTO | null, ignor
 
     return {
         
-        'config': ModelUserConfigToJSON(value['config']),
-        'id': value['id'],
-        'owner': value['owner'],
-        'passowrd': value['passowrd'],
-        'username': value['username'],
+        'Config': ModelUserConfigToJSON(value['config']),
+        'ID': value['id'],
+        'Owner': value['owner'],
+        'Password': value['password'],
+        'Username': value['username'],
     };
 }
 

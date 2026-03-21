@@ -63,7 +63,7 @@ export interface ApiV1CreateBookmarkPayload {
  * Check if a given object implements the ApiV1CreateBookmarkPayload interface.
  */
 export function instanceOfApiV1CreateBookmarkPayload(value: object): value is ApiV1CreateBookmarkPayload {
-    if (!('url' in value) || value['url'] === undefined) return false;
+    if (!('URL' in value) || value['URL'] === undefined) return false;
     return true;
 }
 
@@ -77,11 +77,11 @@ export function ApiV1CreateBookmarkPayloadFromJSONTyped(json: any, ignoreDiscrim
     }
     return {
         
-        'excerpt': json['excerpt'] == null ? undefined : json['excerpt'],
-        'options': json['options'] == null ? undefined : ApiV1CreateBookmarkOptionsFromJSON(json['options']),
-        '_public': json['public'] == null ? undefined : json['public'],
-        'title': json['title'] == null ? undefined : json['title'],
-        'url': json['url'],
+        'excerpt': json['Excerpt'] == null ? undefined : json['Excerpt'],
+        'options': json['Options'] == null ? undefined : ApiV1CreateBookmarkOptionsFromJSON(json['Options']),
+        '_public': json['Public'] == null ? undefined : json['Public'],
+        'title': json['Title'] == null ? undefined : json['Title'],
+        'url': json['URL'],
     };
 }
 
@@ -96,11 +96,11 @@ export function ApiV1CreateBookmarkPayloadToJSONTyped(value?: ApiV1CreateBookmar
 
     return {
         
-        'excerpt': value['excerpt'],
-        'options': ApiV1CreateBookmarkOptionsToJSON(value['options']),
-        'public': value['_public'],
-        'title': value['title'],
-        'url': value['url'],
+        'Excerpt': value['excerpt'],
+        'Options': ApiV1CreateBookmarkOptionsToJSON(value['options']),
+        'Public': value['_public'],
+        'Title': value['title'],
+        'URL': value['url'],
     };
 }
 
