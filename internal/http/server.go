@@ -67,8 +67,8 @@ func (s *HttpServer) Setup(cfg *config.Config, deps *dependencies.Dependencies) 
 	))
 
 	// Bookmark routes
-	// s.mux.HandleFunc("GET /bookmark/{id}/content", ToHTTPHandler(deps, handlers.HandleBookmarkContent, globalMiddleware...))
-	// s.mux.HandleFunc("GET /bookmark/{id}/archive", ToHTTPHandler(deps, handlers.HandleBookmarkArchive, globalMiddleware...))
+	s.mux.HandleFunc("GET /bookmark/{id}/content", ToHTTPHandler(deps, handlers.HandleBookmarkContent, globalMiddleware...))
+	s.mux.HandleFunc("GET /bookmark/{id}/archive", ToHTTPHandler(deps, handlers.HandleBookmarkArchive, globalMiddleware...))
 	s.mux.HandleFunc("GET /bookmark/{id}/archive/file/{path...}", ToHTTPHandler(deps, handlers.HandleBookmarkArchiveFile, globalMiddleware...))
 	s.mux.HandleFunc("GET /bookmark/{id}/thumb", ToHTTPHandler(deps, handlers.HandleBookmarkThumbnail, globalMiddleware...))
 	s.mux.HandleFunc("GET /bookmark/{id}/ebook", ToHTTPHandler(deps, handlers.HandleBookmarkEbook, globalMiddleware...))
