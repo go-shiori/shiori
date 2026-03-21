@@ -32,8 +32,8 @@ Legend:
 | 2.4 | As an admin, I can change another user's password | ✅ |
 | 2.5 | As an admin, I can see the list of all accounts in settings | ✅ |
 | 2.6 | As an admin, I can see the system information panel | ✅ |
-| 2.7 | As an admin, I can change a user's role (promote/demote admin) | ❌ |
-| 2.8 | As an admin, I cannot delete my own account | ❌ |
+| 2.7 | As an admin, I can change a user's role (promote/demote admin) | ✅ |
+| 2.8 | As an admin, I cannot delete my own account | ✅ |
 
 ## 3. Account Management (Self-service)
 
@@ -166,7 +166,7 @@ Legend:
 | Area | Covered | Total | % |
 |------|---------|-------|---|
 | Authentication | 8 | 8 | 100% |
-| Account Management (Admin) | 6 | 8 | 75% |
+| Account Management (Admin) | 8 | 8 | 100% |
 | Account Management (Self-service) | 3 | 5 | 60% |
 | Bookmark Creation | 0 | 8 | 0% |
 | Bookmark Viewing & Reading | 0 | 7 | 0% |
@@ -179,4 +179,4 @@ Legend:
 | Public Bookmarks | 0 | 3 | 0% |
 | System / Health | 1 | 3 | 33% |
 | API Authentication (v1) | 2 | 4 | 50% |
-| **Total** | **20** | **80** | **25%** |
+| **Total** | **22** | **80** | **28%** |
