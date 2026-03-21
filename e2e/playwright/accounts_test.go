@@ -211,6 +211,11 @@ func TestE2EAccounts(t *testing.T) {
 		th.Require().NoError(t, err, "Check visibility of system info section")
 		th.Require().False(t, visible, "Verify system info section not visible for regular user")
 
+		// Check admin accounts management section is NOT visible for regular user (story 3.4)
+		visible, err = th.page.Locator(`#setting-accounts`).IsVisible()
+		th.Require().NoError(t, err, "Check visibility of admin accounts section")
+		th.Require().False(t, visible, "Verify admin accounts management section not visible for regular user")
+
 		// My account settings is visible
 		visible, err = th.page.Locator(`#setting-my-account`).IsVisible()
 		th.Require().NoError(t, err, "Check visibility of account settings")
@@ -230,7 +235,57 @@ func TestE2EAccounts(t *testing.T) {
 		th.Require().NoError(t, err, "Check visibility of old password field")
 		th.Require().True(t, visible, "Verify old password field visibility when changing password")
 
-		// Fill modal
+		// Test wrong current password shows error (story 3.5)
+		th.Require().NoError(t,
+			th.page.Locator(`[name="old_password"]`).Fill("wrong_password"),
+			"Fill wrong old password")
+		th.Require().NoError(t,
+			th.page.Locator(`[name="new_password"]`).Fill("new_user1"),
+			"Fill new password field")
+		th.Require().NoError(t,
+			th.page.Locator(`[name="repeat_password"]`).Fill("new_user1"),
+			"Fill repeat password field")
+
+		th.Require().NoError(t,
+			th.page.Locator(`.custom-dialog-button.main`).Click(),
+			"Click on ok button with wrong password")
+
+		// Should show error dialog
+		dialogContent := th.page.Locator(".custom-dialog-content")
+		th.Require().NoError(t,
+			dialogContent.WaitFor(playwright.LocatorWaitForOptions{
+				State:   playwright.WaitForSelectorStateVisible,
+				Timeout: playwright.Float(2000),
+			}),
+			"Wait for error dialog to show up")
+
+		errorText, err := dialogContent.TextContent()
+		th.Require().NoError(t, err, "Get error dialog text")
+		th.Require().Equal(t, "Old password is incorrect", errorText, "Verify wrong password error message")
+
+		// Dismiss error dialog
+		th.Require().NoError(t,
+			th.page.Locator(`.custom-dialog-button.main`).Click(),
+			"Dismiss error dialog")
+		th.Require().NoError(t,
+			th.page.Locator(".custom-dialog").WaitFor(playwright.LocatorWaitForOptions{
+				State:   playwright.WaitForSelectorStateHidden,
+				Timeout: playwright.Float(1000),
+			}),
+			"Wait for error dialog to close")
+
+		// Now do the correct password change
+		th.Require().NoError(t,
+			th.page.Locator(`li[shiori-username="user1"] a[title="Change password"]`).Click(),
+			"Click on change password button again")
+		th.Require().NoError(t,
+			th.page.Locator(".custom-dialog").WaitFor(playwright.LocatorWaitForOptions{
+				State:   playwright.WaitForSelectorStateVisible,
+				Timeout: playwright.Float(1000),
+			}),
+			"Wait for change password modal to show up again")
+
+		// Fill modal with correct password
 		th.Require().NoError(t,
 			th.page.Locator(`[name="old_password"]`).Fill("user1"),
 			"Fill old password field")
@@ -247,7 +302,6 @@ func TestE2EAccounts(t *testing.T) {
 			"Click on ok button")
 
 		// Wait for modal to display text: "Password has been changed."
-		dialogContent := th.page.Locator(".custom-dialog-content")
 		th.Require().NoError(t,
 			dialogContent.WaitFor(playwright.LocatorWaitForOptions{
 				State:   playwright.WaitForSelectorStateVisible,

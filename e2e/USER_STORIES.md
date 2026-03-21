@@ -42,8 +42,8 @@ Legend:
 | 3.1 | As a user, I can change my own password (providing the current one) | ✅ |
 | 3.2 | As a user, I cannot see the system information panel | ✅ |
 | 3.3 | As a user, I can see my account settings | ✅ |
-| 3.4 | As a user, I cannot access the admin account management section | ❌ |
-| 3.5 | As a user, I see an error when providing the wrong current password | ❌ |
+| 3.4 | As a user, I cannot access the admin account management section | ✅ |
+| 3.5 | As a user, I see an error when providing the wrong current password | ✅ |
 
 ## 4. Bookmark Creation
 
@@ -167,7 +167,7 @@ Legend:
 |------|---------|-------|---|
 | Authentication | 8 | 8 | 100% |
 | Account Management (Admin) | 8 | 8 | 100% |
-| Account Management (Self-service) | 3 | 5 | 60% |
+| Account Management (Self-service) | 5 | 5 | 100% |
 | Bookmark Creation | 0 | 8 | 0% |
 | Bookmark Viewing & Reading | 0 | 7 | 0% |
 | Bookmark Editing | 0 | 5 | 0% |
@@ -179,4 +179,4 @@ Legend:
 | Public Bookmarks | 0 | 3 | 0% |
 | System / Health | 1 | 3 | 33% |
 | API Authentication (v1) | 2 | 4 | 50% |
-| **Total** | **22** | **80** | **28%** |
+| **Total** | **24** | **80** | **30%** |

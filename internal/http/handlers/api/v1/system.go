@@ -54,5 +54,5 @@ func HandleSystemInfo(deps model.Dependencies, c model.WebContext) {
 // @Success					200	{object}	nil	"Pong"
 // @Router					/api/v1/system/ping [get]
 func HandleSystemPing(deps model.Dependencies, c model.WebContext) {
-	response.SendJSON(c, http.StatusOK, nil)
+	c.ResponseWriter().WriteHeader(http.StatusOK)
 }

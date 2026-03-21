@@ -194,8 +194,7 @@ func TestHandleDeleteAccount(t *testing.T) {
 		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
 		c, w := testutil.NewTestWebContext()
 		testutil.SetFakeAdmin(c)
-		// Fake admin has ID 1
-		testutil.SetRequestPathValue(c, "id", "1")
+		testutil.SetRequestPathValue(c, "id", "99999")
 		HandleDeleteAccount(deps, c)
 		require.Equal(t, http.StatusForbidden, w.Code)
 	})
@@ -203,15 +202,6 @@ func TestHandleDeleteAccount(t *testing.T) {
 	t.Run("successful deletion", func(t *testing.T) {
 		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
 
-		// Create a filler account so the target account's ID doesn't collide
-		// with the fake admin's ID (1)
-		_, err := deps.Domains().Accounts().CreateAccount(ctx, model.AccountDTO{
-			Username: "filler",
-			Password: "password",
-		})
-		require.NoError(t, err)
-
-		// Create account to delete (will get ID 2, different from fake admin ID 1)
 		account, err := deps.Domains().Accounts().CreateAccount(ctx, model.AccountDTO{
 			Username: "todelete",
 			Password: "password",
