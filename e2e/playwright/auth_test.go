@@ -67,7 +67,7 @@ func TestAuth(t *testing.T) {
 		th.Require().NoError(t, buttonLocator.Click(), "Click login button")
 		errorText, err := errorLocator.TextContent()
 		th.Require().NoError(t, err, "Get error message text")
-		th.Require().Contains(t, errorText, "username or password do not match")
+		th.Require().Contains(t, errorText, "Invalid username or password")
 	})
 
 	t.Run("failed login with wrong password", func(t *testing.T) {
@@ -94,7 +94,7 @@ func TestAuth(t *testing.T) {
 		th.Require().NoError(t, buttonLocator.Click(), "Click login button")
 		errorText, err := errorLocator.TextContent()
 		th.Require().NoError(t, err, "Get error message text")
-		th.Require().Contains(t, errorText, "username or password do not match")
+		th.Require().Contains(t, errorText, "Invalid username or password")
 	})
 
 	t.Run("empty username validation", func(t *testing.T) {

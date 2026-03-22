@@ -4,6 +4,15 @@ set -e
 
 TIMEOUT=30m
 
+# Clean up testcontainers images on exit (regardless of test result)
+cleanup() {
+    echo "Cleaning up testcontainers images..."
+    docker image prune -f --filter "label=org.testcontainers=true" 2>/dev/null || true
+    # Remove images built by testcontainers (UUID-named images)
+    docker images --format '{{.Repository}}:{{.Tag}}' | grep -E '^[0-9a-f]{8}-' | xargs -r docker rmi 2>/dev/null || true
+}
+trap cleanup EXIT
+
 # Run the e2e tests
 echo "Running e2e tests..."
 

@@ -82,7 +82,12 @@ func HandleBookmarkReadable(deps model.Dependencies, c model.WebContext) {
 
 	bookmark, err := deps.Domains().Bookmarks().GetBookmark(c.Request().Context(), model.DBID(bookmarkID))
 	if err != nil {
-		response.SendError(c, http.StatusNotFound, "Bookmark not found")
+		if errors.Is(err, model.ErrBookmarkNotFound) {
+			response.SendError(c, http.StatusNotFound, "Bookmark not found")
+			return
+		}
+		deps.Logger().WithError(err).Error("failed to get bookmark")
+		response.SendInternalServerError(c)
 		return
 	}
 
@@ -118,7 +123,12 @@ func HandleGetBookmarkData(deps model.Dependencies, c model.WebContext) {
 
 	bookmark, err := deps.Domains().Bookmarks().GetBookmark(c.Request().Context(), model.DBID(bookmarkID))
 	if err != nil {
-		response.SendError(c, http.StatusNotFound, "Bookmark not found")
+		if errors.Is(err, model.ErrBookmarkNotFound) {
+			response.SendError(c, http.StatusNotFound, "Bookmark not found")
+			return
+		}
+		deps.Logger().WithError(err).Error("failed to get bookmark")
+		response.SendInternalServerError(c)
 		return
 	}
 
@@ -187,7 +197,12 @@ func HandleUpdateBookmarkData(deps model.Dependencies, c model.WebContext) {
 	// Get bookmark from database
 	bookmark, err := deps.Domains().Bookmarks().GetBookmark(c.Request().Context(), model.DBID(bookmarkID))
 	if err != nil {
-		response.SendError(c, http.StatusNotFound, "Bookmark not found")
+		if errors.Is(err, model.ErrBookmarkNotFound) {
+			response.SendError(c, http.StatusNotFound, "Bookmark not found")
+			return
+		}
+		deps.Logger().WithError(err).Error("failed to get bookmark")
+		response.SendInternalServerError(c)
 		return
 	}
 
@@ -281,6 +296,7 @@ func HandleUpdateCache(deps model.Dependencies, c model.WebContext) {
 	// Get bookmarks from database
 	bookmarks, err := deps.Domains().Bookmarks().GetBookmarks(c.Request().Context(), payload.IDs)
 	if err != nil {
+		deps.Logger().WithError(err).Error("failed to get bookmarks")
 		response.SendError(c, http.StatusInternalServerError, "Failed to get bookmarks")
 		return
 	}
@@ -293,7 +309,6 @@ func HandleUpdateCache(deps model.Dependencies, c model.WebContext) {
 	// Process bookmarks concurrently
 	mx := sync.RWMutex{}
 	wg := sync.WaitGroup{}
-	chDone := make(chan struct{})
 	chProblem := make(chan int, 10)
 	semaphore := make(chan struct{}, 10)
 
@@ -322,21 +337,14 @@ func HandleUpdateCache(deps model.Dependencies, c model.WebContext) {
 		}(i, book)
 	}
 
-	// Collect problematic bookmarks
-	idWithProblems := []int{}
+	// Drain problematic bookmark IDs (individual failures already logged in worker goroutines)
 	go func() {
-		for {
-			select {
-			case <-chDone:
-				return
-			case id := <-chProblem:
-				idWithProblems = append(idWithProblems, id)
-			}
+		for range chProblem {
 		}
 	}()
 
 	wg.Wait()
-	close(chDone)
+	close(chProblem)
 
 	response.SendJSON(c, http.StatusOK, bookmarks)
 }
@@ -382,6 +390,7 @@ func HandleGetBookmarkTags(deps model.Dependencies, c model.WebContext) {
 	// Check if bookmark exists
 	exists, err := deps.Domains().Bookmarks().BookmarkExists(c.Request().Context(), bookmarkID)
 	if err != nil {
+		deps.Logger().WithError(err).Error("failed to check bookmark existence")
 		response.SendError(c, http.StatusInternalServerError, "Failed to check if bookmark exists")
 		return
 	}
@@ -395,6 +404,7 @@ func HandleGetBookmarkTags(deps model.Dependencies, c model.WebContext) {
 		BookmarkID: bookmarkID,
 	})
 	if err != nil {
+		deps.Logger().WithError(err).Error("failed to get bookmark tags")
 		response.SendError(c, http.StatusInternalServerError, "Failed to get bookmark tags")
 		return
 	}
@@ -461,6 +471,7 @@ func HandleAddTagToBookmark(deps model.Dependencies, c model.WebContext) {
 			response.SendError(c, http.StatusNotFound, "Tag not found")
 			return
 		}
+		deps.Logger().WithError(err).Error("failed to add tag to bookmark")
 		response.SendError(c, http.StatusInternalServerError, "Failed to add tag to bookmark")
 		return
 	}
@@ -481,7 +492,7 @@ func HandleAddTagToBookmark(deps model.Dependencies, c model.WebContext) {
 //	@Failure					404	{object}	nil	"Bookmark not found"
 //	@Router						/api/v1/bookmarks/{id}/tags [delete]
 func HandleRemoveTagFromBookmark(deps model.Dependencies, c model.WebContext) {
-	if err := middleware.RequireLoggedInUser(deps, c); err != nil {
+	if err := middleware.RequireLoggedInAdmin(deps, c); err != nil {
 		response.SendError(c, http.StatusForbidden, err.Error())
 		return
 	}
@@ -515,6 +526,7 @@ func HandleRemoveTagFromBookmark(deps model.Dependencies, c model.WebContext) {
 			response.SendError(c, http.StatusNotFound, "Tag not found")
 			return
 		}
+		deps.Logger().WithError(err).Error("failed to remove tag from bookmark")
 		response.SendError(c, http.StatusInternalServerError, "Failed to remove tag from bookmark")
 		return
 	}
@@ -732,6 +744,7 @@ func HandleListBookmarks(deps model.Dependencies, c model.WebContext) {
 	// Search bookmarks through domain layer
 	bookmarks, err := deps.Domains().Bookmarks().SearchBookmarks(c.Request().Context(), searchOptions)
 	if err != nil {
+		deps.Logger().WithError(err).Error("failed to search bookmarks")
 		response.SendError(c, http.StatusInternalServerError, "Failed to search bookmarks")
 		return
 	}
@@ -783,7 +796,12 @@ func HandleGetBookmark(deps model.Dependencies, c model.WebContext) {
 
 	bookmark, err := deps.Domains().Bookmarks().GetBookmark(c.Request().Context(), model.DBID(bookmarkID))
 	if err != nil {
-		response.SendError(c, http.StatusNotFound, "Bookmark not found")
+		if errors.Is(err, model.ErrBookmarkNotFound) {
+			response.SendError(c, http.StatusNotFound, "Bookmark not found")
+			return
+		}
+		deps.Logger().WithError(err).Error("failed to get bookmark")
+		response.SendInternalServerError(c)
 		return
 	}
 
@@ -832,12 +850,23 @@ func HandleUpdateBookmark(deps model.Dependencies, c model.WebContext) {
 	// Get existing bookmark
 	existingBookmark, err := deps.Domains().Bookmarks().GetBookmark(c.Request().Context(), model.DBID(bookmarkID))
 	if err != nil {
-		response.SendError(c, http.StatusNotFound, "Bookmark not found")
+		if errors.Is(err, model.ErrBookmarkNotFound) {
+			response.SendError(c, http.StatusNotFound, "Bookmark not found")
+			return
+		}
+		deps.Logger().WithError(err).Error("failed to get bookmark")
+		response.SendInternalServerError(c)
 		return
 	}
 
 	// Convert to Bookmark for domain operations
 	bookmark := existingBookmark.ToBookmark()
+
+	// Validate URL if provided
+	if payload.URL != nil && strings.TrimSpace(*payload.URL) == "" {
+		response.SendError(c, http.StatusBadRequest, "URL should not be empty")
+		return
+	}
 
 	// Update fields if provided
 	if payload.URL != nil {
@@ -856,6 +885,7 @@ func HandleUpdateBookmark(deps model.Dependencies, c model.WebContext) {
 	// Update the bookmark
 	updatedBookmark, err := deps.Domains().Bookmarks().UpdateBookmark(c.Request().Context(), bookmark)
 	if err != nil {
+		deps.Logger().WithError(err).Error("failed to update bookmark")
 		response.SendError(c, http.StatusInternalServerError, "Failed to update bookmark")
 		return
 	}
@@ -891,7 +921,7 @@ func (p *deleteBookmarksPayload) IsValid() error {
 //	@Failure					400	{object}	nil	"Invalid request payload"
 //	@Router						/api/v1/bookmarks [delete]
 func HandleDeleteBookmarks(deps model.Dependencies, c model.WebContext) {
-	if err := middleware.RequireLoggedInUser(deps, c); err != nil {
+	if err := middleware.RequireLoggedInAdmin(deps, c); err != nil {
 		response.SendError(c, http.StatusForbidden, err.Error())
 		return
 	}
@@ -911,6 +941,7 @@ func HandleDeleteBookmarks(deps model.Dependencies, c model.WebContext) {
 	// Delete bookmarks
 	err := deps.Domains().Bookmarks().DeleteBookmarks(c.Request().Context(), payload.IDs)
 	if err != nil {
+		deps.Logger().WithError(err).Error("failed to delete bookmarks")
 		response.SendError(c, http.StatusInternalServerError, "Failed to delete bookmarks")
 		return
 	}
@@ -931,7 +962,7 @@ func HandleDeleteBookmarks(deps model.Dependencies, c model.WebContext) {
 //	@Failure					404	{object}	nil	"No bookmarks found"
 //	@Router						/api/v1/bookmarks/bulk/tags [put]
 func HandleBulkUpdateBookmarkTags(deps model.Dependencies, c model.WebContext) {
-	if err := middleware.RequireLoggedInUser(deps, c); err != nil {
+	if err := middleware.RequireLoggedInAdmin(deps, c); err != nil {
 		response.SendError(c, http.StatusForbidden, err.Error())
 		return
 	}
@@ -955,6 +986,7 @@ func HandleBulkUpdateBookmarkTags(deps model.Dependencies, c model.WebContext) {
 			response.SendError(c, http.StatusNotFound, "No bookmarks found")
 			return
 		}
+		deps.Logger().WithError(err).Error("failed to update bookmark tags")
 		response.SendError(c, http.StatusInternalServerError, "Failed to update bookmarks")
 		return
 	}

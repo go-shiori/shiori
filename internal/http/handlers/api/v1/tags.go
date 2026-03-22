@@ -129,7 +129,7 @@ func HandleGetTag(deps model.Dependencies, c model.WebContext) {
 
 	tag, err := deps.Domains().Tags().GetTag(c.Request().Context(), id)
 	if err != nil {
-		if err == model.ErrNotFound {
+		if errors.Is(err, model.ErrNotFound) {
 			response.NotFound(c)
 			return
 		}
@@ -251,7 +251,7 @@ func HandleUpdateTag(deps model.Dependencies, c model.WebContext) {
 
 	updatedTag, err := deps.Domains().Tags().UpdateTag(c.Request().Context(), tag)
 	if err != nil {
-		if err == model.ErrNotFound {
+		if errors.Is(err, model.ErrNotFound) {
 			response.NotFound(c)
 			return
 		}
@@ -287,7 +287,7 @@ func HandleDeleteTag(deps model.Dependencies, c model.WebContext) {
 
 	err = deps.Domains().Tags().DeleteTag(c.Request().Context(), id)
 	if err != nil {
-		if err == model.ErrNotFound {
+		if errors.Is(err, model.ErrNotFound) {
 			response.NotFound(c)
 			return
 		}

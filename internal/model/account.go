@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/sirupsen/logrus"
 )
 
 // Account is the database representation for account.
@@ -32,11 +33,15 @@ type UserConfig struct {
 func (c *UserConfig) Scan(value interface{}) error {
 	switch v := value.(type) {
 	case []byte:
-		json.Unmarshal(v, &c)
+		if err := json.Unmarshal(v, c); err != nil {
+			logrus.WithError(err).Error("failed to unmarshal user config, using defaults")
+		}
 		c.Defaults()
 		return nil
 	case string:
-		json.Unmarshal([]byte(v), &c)
+		if err := json.Unmarshal([]byte(v), c); err != nil {
+			logrus.WithError(err).Error("failed to unmarshal user config, using defaults")
+		}
 		c.Defaults()
 		return nil
 	default:
@@ -57,9 +62,9 @@ func (c *UserConfig) Defaults() {
 
 // NewUserConfig returns a UserConfig with default values
 func NewUserConfig() UserConfig {
-	return UserConfig{
-		Theme: "system",
-	}
+	c := UserConfig{}
+	c.Defaults()
+	return c
 }
 
 // ToDTO converts Account to AccountDTO.

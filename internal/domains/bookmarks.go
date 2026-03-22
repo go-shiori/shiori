@@ -79,7 +79,7 @@ func (d *BookmarksDomain) SearchBookmarks(ctx context.Context, options model.Boo
 	// Get bookmarks from database with search options (this already includes tags)
 	bookmarks, err := d.deps.Database().GetBookmarks(ctx, dbOptions)
 	if err != nil {
-		return nil, fmt.Errorf("failed to search bookmarks")
+		return nil, fmt.Errorf("failed to search bookmarks: %w", err)
 	}
 
 	// Populate domain-specific fields for each bookmark (ImageURL, HasArchive, HasEbook)

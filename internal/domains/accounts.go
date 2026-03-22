@@ -53,7 +53,7 @@ func (d *AccountsDomain) GetAccountByID(ctx context.Context, id model.DBID) (*mo
 		return nil, fmt.Errorf("error getting account by ID: %v", err)
 	}
 	if !exists {
-		return nil, fmt.Errorf("account not found with ID: %d", id)
+		return nil, model.ErrNotFound
 	}
 
 	return model.Ptr(account.ToDTO()), nil

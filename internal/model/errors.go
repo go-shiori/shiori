@@ -12,4 +12,5 @@ var (
 	ErrUnauthorized  = errors.New("unauthorized user")
 	ErrNotFound      = errors.New("not found")
 	ErrAlreadyExists = errors.New("already exists")
+	ErrPipelineStop  = errors.New("pipeline stop")
 )

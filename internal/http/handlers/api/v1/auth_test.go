@@ -257,7 +257,7 @@ func TestHandleUpdateLoggedAccount(t *testing.T) {
 	t.Run("invalid json payload", func(t *testing.T) {
 		body := `invalid json`
 		w := testutil.PerformRequest(deps, HandleUpdateLoggedAccount, "PATCH", "/account", testutil.WithBody(body), testutil.WithAccount(account))
-		require.Equal(t, http.StatusInternalServerError, w.Code)
+		require.Equal(t, http.StatusBadRequest, w.Code)
 	})
 
 	t.Run("missing old password", func(t *testing.T) {

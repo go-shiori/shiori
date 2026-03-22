@@ -1,11 +1,13 @@
 package middleware
 
 import (
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/go-shiori/shiori/internal/http/webcontext"
+	"github.com/go-shiori/shiori/internal/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -122,5 +124,33 @@ func TestCORSMiddleware(t *testing.T) {
 
 		headers := w.Header()
 		assert.Equal(t, "*", headers.Get("Access-Control-Allow-Origin"))
+	})
+
+	t.Run("test OPTIONS preflight returns ErrPipelineStop", func(t *testing.T) {
+		middleware := NewCORSMiddleware(true, []string{"http://localhost:8080"}, false)
+
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest(http.MethodOptions, "/api/v1/bookmarks", nil)
+		r.Header.Set("Origin", "http://localhost:8080")
+		c := webcontext.NewWebContext(w, r)
+
+		err := middleware.OnRequest(nil, c)
+		require.Error(t, err)
+		assert.True(t, errors.Is(err, model.ErrPipelineStop))
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		headers := w.Header()
+		assert.Equal(t, "http://localhost:8080", headers.Get("Access-Control-Allow-Origin"))
+	})
+
+	t.Run("test OPTIONS preflight with CORS disabled", func(t *testing.T) {
+		middleware := NewCORSMiddleware(false, []string{"http://localhost:8080"}, false)
+
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest(http.MethodOptions, "/api/v1/bookmarks", nil)
+		c := webcontext.NewWebContext(w, r)
+
+		err := middleware.OnRequest(nil, c)
+		require.NoError(t, err)
 	})
 }

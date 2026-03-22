@@ -131,42 +131,40 @@ func TestAccountRoleChange(t *testing.T) {
 		require.Equal(t, http.StatusForbidden, resp.StatusCode, "Demoted user should not access admin endpoints")
 		resp.Body.Close()
 	})
-}
 
-func TestAdminCannotDeleteOwnAccount(t *testing.T) {
-	container := e2eutil.NewShioriContainer(t, "")
-	baseURL := "http://localhost:" + container.GetPort()
+	t.Run("admin cannot delete own account", func(t *testing.T) {
+		container := e2eutil.NewShioriContainer(t, "")
+		baseURL := "http://localhost:" + container.GetPort()
 
-	// Login as default admin
-	adminToken := apiLogin(t, baseURL, "shiori", "gopher")
+		// Login as default admin
+		adminToken := apiLogin(t, baseURL, "shiori", "gopher")
 
-	// Get the admin's own account ID via /api/v1/auth/me
-	req, err := http.NewRequest("GET", baseURL+"/api/v1/auth/me", nil)
-	require.NoError(t, err)
-	req.Header.Set("Authorization", "Bearer "+adminToken)
-
-	resp, err := http.DefaultClient.Do(req)
-	require.NoError(t, err)
-	require.Equal(t, http.StatusOK, resp.StatusCode)
-
-	var me struct {
-		ID int `json:"ID"`
-	}
-	body, err := io.ReadAll(resp.Body)
-	require.NoError(t, err)
-	resp.Body.Close()
-	require.NoError(t, json.Unmarshal(body, &me))
-	require.NotZero(t, me.ID)
-
-	t.Run("deleting own account should be rejected", func(t *testing.T) {
-		req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/api/v1/accounts/%d", baseURL, me.ID), nil)
+		// Get the admin's own account ID via /api/v1/auth/me
+		req, err := http.NewRequest("GET", baseURL+"/api/v1/auth/me", nil)
 		require.NoError(t, err)
 		req.Header.Set("Authorization", "Bearer "+adminToken)
 
 		resp, err := http.DefaultClient.Do(req)
 		require.NoError(t, err)
-		// The API should reject self-deletion with a 4xx status code
-		require.GreaterOrEqual(t, resp.StatusCode, 400, "Admin should not be able to delete their own account")
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var me struct {
+			ID int `json:"ID"`
+		}
+		body, err := io.ReadAll(resp.Body)
+		require.NoError(t, err)
 		resp.Body.Close()
+		require.NoError(t, json.Unmarshal(body, &me))
+		require.NotZero(t, me.ID)
+
+		// Attempt to delete own account — should be rejected
+		deleteReq, err := http.NewRequest("DELETE", fmt.Sprintf("%s/api/v1/accounts/%d", baseURL, me.ID), nil)
+		require.NoError(t, err)
+		deleteReq.Header.Set("Authorization", "Bearer "+adminToken)
+
+		deleteResp, err := http.DefaultClient.Do(deleteReq)
+		require.NoError(t, err)
+		require.GreaterOrEqual(t, deleteResp.StatusCode, 400, "Admin should not be able to delete their own account")
+		deleteResp.Body.Close()
 	})
 }

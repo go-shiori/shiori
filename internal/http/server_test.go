@@ -222,7 +222,7 @@ func TestHttpServer_APIEndpoints(t *testing.T) {
 
 		require.Equal(t, http.StatusBadRequest, w.Code)
 		respBody, _ := io.ReadAll(w.Body)
-		require.Contains(t, string(respBody), "username or password do not match")
+		require.Contains(t, string(respBody), "Invalid username or password")
 	})
 
 	t.Run("system info endpoint", func(t *testing.T) {

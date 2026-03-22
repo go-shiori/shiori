@@ -54,7 +54,7 @@ func HandleLogin(deps model.Dependencies, c model.WebContext) {
 
 	account, err := deps.Domains().Auth().GetAccountFromCredentials(c.Request().Context(), payload.Username, payload.Password)
 	if err != nil {
-		response.SendError(c, http.StatusBadRequest, err.Error())
+		response.SendError(c, http.StatusBadRequest, "Invalid username or password")
 		return
 	}
 
@@ -67,6 +67,7 @@ func HandleLogin(deps model.Dependencies, c model.WebContext) {
 
 	token, err := deps.Domains().Auth().CreateTokenForAccount(account, expirationTime)
 	if err != nil {
+		deps.Logger().WithError(err).Error("failed to create auth token")
 		response.SendInternalServerError(c)
 		return
 	}
@@ -93,6 +94,7 @@ func HandleRefreshToken(deps model.Dependencies, c model.WebContext) {
 	account := c.GetAccount()
 	token, err := deps.Domains().Auth().CreateTokenForAccount(account, expiration)
 	if err != nil {
+		deps.Logger().WithError(err).Error("failed to create refresh token")
 		response.SendInternalServerError(c)
 		return
 	}
@@ -166,7 +168,7 @@ func HandleUpdateLoggedAccount(deps model.Dependencies, c model.WebContext) {
 
 	var payload updateAccountPayload
 	if err := json.NewDecoder(c.Request().Body).Decode(&payload); err != nil {
-		response.SendInternalServerError(c)
+		response.SendError(c, http.StatusBadRequest, "Invalid request payload")
 		return
 	}
 

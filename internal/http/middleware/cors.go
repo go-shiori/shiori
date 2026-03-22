@@ -30,10 +30,10 @@ func (m *CORSMiddleware) OnRequest(deps model.Dependencies, c model.WebContext) 
 		}
 	}
 
-	// Handle preflight requests
+	// Handle preflight requests — return ErrPipelineStop to short-circuit the handler
 	if c.Request().Method == http.MethodOptions {
 		c.ResponseWriter().WriteHeader(http.StatusOK)
-		return nil
+		return model.ErrPipelineStop
 	}
 
 	return nil
