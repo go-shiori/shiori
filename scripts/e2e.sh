@@ -4,12 +4,12 @@ set -e
 
 TIMEOUT=30m
 
-# Clean up testcontainers images on exit (regardless of test result)
+# Clean up e2e images on exit, preserving the original exit code
 cleanup() {
-    echo "Cleaning up testcontainers images..."
-    docker image prune -f --filter "label=org.testcontainers=true" 2>/dev/null || true
-    # Remove images built by testcontainers (UUID-named images)
-    docker images --format '{{.Repository}}:{{.Tag}}' | grep -E '^[0-9a-f]{8}-' | xargs -r docker rmi 2>/dev/null || true
+    local exit_code=$?
+    echo "Cleaning up e2e test images..."
+    docker image prune -f --filter "label=shiori.e2e=true" 2>/dev/null || true
+    exit "$exit_code"
 }
 trap cleanup EXIT
 
