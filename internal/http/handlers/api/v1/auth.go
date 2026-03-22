@@ -179,6 +179,12 @@ func HandleUpdateLoggedAccount(deps model.Dependencies, c model.WebContext) {
 
 	account := c.GetAccount()
 
+	// Non-admin users cannot change the Owner flag
+	if payload.Owner != nil && !account.IsOwner() {
+		response.SendError(c, http.StatusForbidden, "Only admins can change owner status")
+		return
+	}
+
 	if payload.NewPassword != "" {
 		_, err := deps.Domains().Auth().GetAccountFromCredentials(c.Request().Context(), account.Username, payload.OldPassword)
 		if err != nil {
@@ -216,9 +222,11 @@ func HandleLogout(deps model.Dependencies, c model.WebContext) {
 	}
 
 	// Remove token cookie
-	c.Request().AddCookie(&http.Cookie{
-		Name:  "token",
-		Value: "",
+	http.SetCookie(c.ResponseWriter(), &http.Cookie{
+		Name:   "token",
+		Value:  "",
+		MaxAge: -1,
+		Path:   "/",
 	})
 
 	response.SendJSON(c, http.StatusOK, nil)

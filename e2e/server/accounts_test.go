@@ -132,6 +132,82 @@ func TestAccountRoleChange(t *testing.T) {
 		resp.Body.Close()
 	})
 
+	t.Run("change another user password", func(t *testing.T) {
+		// Create a fresh user for this test
+		pwUserID := apiCreateAccount(t, baseURL, adminToken, "pwuser", "oldpass", false)
+
+		// Admin changes the user's password (no OldPassword needed)
+		body := `{"NewPassword":"newpass"}`
+		req, err := http.NewRequest("PATCH", fmt.Sprintf("%s/api/v1/accounts/%d", baseURL, pwUserID), bytes.NewReader([]byte(body)))
+		require.NoError(t, err)
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", "Bearer "+adminToken)
+
+		resp, err := http.DefaultClient.Do(req)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+		resp.Body.Close()
+
+		// Verify login with old password fails
+		oldResp, err := http.Post(
+			baseURL+"/api/v1/auth/login",
+			"application/json",
+			bytes.NewReader([]byte(`{"Username":"pwuser","Password":"oldpass"}`)),
+		)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusBadRequest, oldResp.StatusCode, "Old password should no longer work")
+		oldResp.Body.Close()
+
+		// Verify login with new password succeeds
+		_ = apiLogin(t, baseURL, "pwuser", "newpass")
+	})
+
+	t.Run("delete user account", func(t *testing.T) {
+		// Delete the testuser created at test setup
+		req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/api/v1/accounts/%d", baseURL, userID), nil)
+		require.NoError(t, err)
+		req.Header.Set("Authorization", "Bearer "+adminToken)
+
+		resp, err := http.DefaultClient.Do(req)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusNoContent, resp.StatusCode)
+		resp.Body.Close()
+
+		// Verify the deleted user can no longer log in
+		loginResp, err := http.Post(
+			baseURL+"/api/v1/auth/login",
+			"application/json",
+			bytes.NewReader([]byte(`{"Username":"testuser","Password":"testpass"}`)),
+		)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusBadRequest, loginResp.StatusCode, "Deleted user should not be able to log in")
+		loginResp.Body.Close()
+	})
+
+	t.Run("system info", func(t *testing.T) {
+		req, err := http.NewRequest("GET", baseURL+"/api/v1/system/info", nil)
+		require.NoError(t, err)
+		req.Header.Set("Authorization", "Bearer "+adminToken)
+
+		resp, err := http.DefaultClient.Do(req)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var info struct {
+			Version struct {
+				Tag    string `json:"Tag"`
+				Commit string `json:"Commit"`
+				Date   string `json:"Date"`
+			} `json:"Version"`
+			Database string `json:"Database"`
+			OS       string `json:"OS"`
+		}
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&info))
+		resp.Body.Close()
+		require.NotEmpty(t, info.Database, "Database field should not be empty")
+		require.NotEmpty(t, info.OS, "OS field should not be empty")
+	})
+
 	t.Run("admin cannot delete own account", func(t *testing.T) {
 		container := e2eutil.NewShioriContainer(t, "")
 		baseURL := "http://localhost:" + container.GetPort()

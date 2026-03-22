@@ -92,7 +92,8 @@ func TestSendInternalServerError(t *testing.T) {
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 
 	responseBody := struct {
-		Error string 	}{Error: "Internal server error, please contact an administrator"}
+		Error string
+	}{Error: "Internal server error, please contact an administrator"}
 	response := response.NewResponse(responseBody, http.StatusInternalServerError)
 
 	assert.True(t, response.IsError())

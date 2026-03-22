@@ -92,7 +92,7 @@ func TestAuthLogin(t *testing.T) {
 		require.NoError(t, json.NewDecoder(resp.Body).Decode(&result))
 		resp.Body.Close()
 
-		expiresIn := time.Unix(result.Expiration, 0).Sub(time.Now())
+		expiresIn := time.Until(time.Unix(result.Expiration, 0))
 		require.Less(t, expiresIn, 2*time.Hour, "without RememberMe, expiration should be less than 2 hours")
 	})
 
@@ -111,7 +111,7 @@ func TestAuthLogin(t *testing.T) {
 		require.NoError(t, json.NewDecoder(resp.Body).Decode(&result))
 		resp.Body.Close()
 
-		expiresIn := time.Unix(result.Expiration, 0).Sub(time.Now())
+		expiresIn := time.Until(time.Unix(result.Expiration, 0))
 		require.Greater(t, expiresIn, 29*24*time.Hour, "with RememberMe, expiration should be more than 29 days")
 	})
 

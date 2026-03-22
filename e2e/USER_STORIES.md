@@ -33,10 +33,10 @@ Legend:
 |---|-----------|--------|------------|
 | 2.1 | As an admin, I can create a new admin account | ✅ | ✅ |
 | 2.2 | As an admin, I can create a new regular user account | ✅ | ✅ |
-| 2.3 | As an admin, I can delete a user account | ❌ | ✅ |
-| 2.4 | As an admin, I can change another user's password | ❌ | ✅ |
+| 2.3 | As an admin, I can delete a user account | ✅ | ✅ |
+| 2.4 | As an admin, I can change another user's password | ✅ | ✅ |
 | 2.5 | As an admin, I can see the list of all accounts in settings | ✅ | ✅ |
-| 2.6 | As an admin, I can see the system information panel | ❌ | ✅ |
+| 2.6 | As an admin, I can see the system information panel | ✅ | ✅ |
 | 2.7 | As an admin, I can change a user's role (promote/demote admin) | ✅ | n/a |
 | 2.8 | As an admin, I cannot delete my own account | ✅ | ✅ |
 
@@ -171,7 +171,7 @@ Legend:
 | Area | Server | Playwright | Total Stories |
 |------|--------|------------|---------------|
 | Authentication | 7/8 | 8/8 | 8 |
-| Account Management (Admin) | 4/8 | 7/8 | 8 |
+| Account Management (Admin) | 7/8 | 7/8 | 8 |
 | Account Management (Self-service) | 0/5 | 5/5 | 5 |
 | Bookmark Creation | 8/8 | 8/8 | 8 |
 | Bookmark Viewing & Reading | 0/7 | 0/7 | 7 |
@@ -184,4 +184,4 @@ Legend:
 | Public Bookmarks | 0/3 | 0/3 | 3 |
 | System / Health | 1/3 | 0/3 | 3 |
 | API Authentication (v1) | 3/4 | 0/4 | 4 |
-| **Total** | **23/80** | **28/80** | **80** |
+| **Total** | **26/80** | **28/80** | **80** |

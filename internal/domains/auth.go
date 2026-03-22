@@ -44,7 +44,7 @@ func (d *AuthDomain) CheckToken(ctx context.Context, userJWT string) (*model.Acc
 			return currentAccount, nil
 		}
 
-		return claims.Account, nil
+		return nil, fmt.Errorf("invalid account ID in token: %d", claims.Account.ID)
 	}
 	return nil, fmt.Errorf("error obtaining user from JWT claims")
 }

@@ -18,7 +18,7 @@ type AccountsDomain struct {
 func (d *AccountsDomain) ListAccounts(ctx context.Context) ([]model.AccountDTO, error) {
 	accounts, err := d.deps.Database().ListAccounts(ctx, model.DBListAccountsOptions{})
 	if err != nil {
-		return nil, fmt.Errorf("error getting accounts: %v", err)
+		return nil, fmt.Errorf("error getting accounts: %w", err)
 	}
 
 	accountDTOs := []model.AccountDTO{}
@@ -38,7 +38,7 @@ func (d *AccountsDomain) GetAccountByUsername(ctx context.Context, username stri
 		Username: username,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("error getting accounts: %v", err)
+		return nil, fmt.Errorf("error getting accounts: %w", err)
 	}
 	if len(accounts) != 1 {
 		return nil, fmt.Errorf("got none or more than one account by username: %s", username)
@@ -50,7 +50,7 @@ func (d *AccountsDomain) GetAccountByUsername(ctx context.Context, username stri
 func (d *AccountsDomain) GetAccountByID(ctx context.Context, id model.DBID) (*model.AccountDTO, error) {
 	account, exists, err := d.deps.Database().GetAccount(ctx, id)
 	if err != nil {
-		return nil, fmt.Errorf("error getting account by ID: %v", err)
+		return nil, fmt.Errorf("error getting account by ID: %w", err)
 	}
 	if !exists {
 		return nil, model.ErrNotFound
@@ -88,7 +88,7 @@ func (d *AccountsDomain) CreateAccount(ctx context.Context, account model.Accoun
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("error creating account: %v", err)
+		return nil, fmt.Errorf("error creating account: %w", err)
 	}
 
 	result := storedAccount.ToDTO()
@@ -103,7 +103,7 @@ func (d *AccountsDomain) DeleteAccount(ctx context.Context, id int) error {
 	}
 
 	if err != nil {
-		return fmt.Errorf("error deleting account: %v", err)
+		return fmt.Errorf("error deleting account: %w", err)
 	}
 
 	return nil

@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/sirupsen/logrus"
 )
 
@@ -84,7 +83,7 @@ func (a Account) ToDTO() AccountDTO {
 type AccountDTO struct {
 	ID       DBID
 	Username string
-	Password string      `json:",omitempty"`
+	Password string `json:",omitempty"`
 	Owner    *bool
 	Config   *UserConfig
 }
@@ -111,10 +110,4 @@ func (adto *AccountDTO) IsValidUpdate() error {
 	}
 
 	return nil
-}
-
-type JWTClaim struct {
-	jwt.RegisteredClaims
-
-	Account *Account
 }

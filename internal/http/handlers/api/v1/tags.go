@@ -48,16 +48,22 @@ func HandleListTags(deps model.Dependencies, c model.WebContext) {
 	// Parse page and limit
 	page := 1
 	if pageStr := query.Get("page"); pageStr != "" {
-		if p, err := strconv.Atoi(pageStr); err == nil && p > 0 {
-			page = p
+		p, err := strconv.Atoi(pageStr)
+		if err != nil || p <= 0 {
+			response.SendError(c, http.StatusBadRequest, "Invalid page parameter: must be a positive integer")
+			return
 		}
+		page = p
 	}
 
 	limit := 30
 	if limitStr := query.Get("limit"); limitStr != "" {
-		if l, err := strconv.Atoi(limitStr); err == nil && l > 0 && l <= 100 {
-			limit = l
+		l, err := strconv.Atoi(limitStr)
+		if err != nil || l <= 0 || l > 100 {
+			response.SendError(c, http.StatusBadRequest, "Invalid limit parameter: must be an integer between 1 and 100")
+			return
 		}
+		limit = l
 	}
 
 	// Create options and validate

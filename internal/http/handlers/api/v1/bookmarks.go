@@ -312,6 +312,12 @@ func HandleUpdateCache(deps model.Dependencies, c model.WebContext) {
 	chProblem := make(chan int, 10)
 	semaphore := make(chan struct{}, 10)
 
+	// Drain problematic bookmark IDs (individual failures already logged in worker goroutines)
+	go func() {
+		for range chProblem {
+		}
+	}()
+
 	for i, book := range bookmarks {
 		wg.Add(1)
 
@@ -336,12 +342,6 @@ func HandleUpdateCache(deps model.Dependencies, c model.WebContext) {
 			mx.Unlock()
 		}(i, book)
 	}
-
-	// Drain problematic bookmark IDs (individual failures already logged in worker goroutines)
-	go func() {
-		for range chProblem {
-		}
-	}()
 
 	wg.Wait()
 	close(chProblem)
@@ -719,16 +719,22 @@ func HandleListBookmarks(deps model.Dependencies, c model.WebContext) {
 	// Parse page and limit
 	page := 1
 	if pageStr != "" {
-		if p, err := strconv.Atoi(pageStr); err == nil && p > 0 {
-			page = p
+		p, err := strconv.Atoi(pageStr)
+		if err != nil || p <= 0 {
+			response.SendError(c, http.StatusBadRequest, "Invalid page parameter: must be a positive integer")
+			return
 		}
+		page = p
 	}
 
 	limit := 30
 	if limitStr != "" {
-		if l, err := strconv.Atoi(limitStr); err == nil && l > 0 && l <= 100 {
-			limit = l
+		l, err := strconv.Atoi(limitStr)
+		if err != nil || l <= 0 || l > 100 {
+			response.SendError(c, http.StatusBadRequest, "Invalid limit parameter: must be an integer between 1 and 100")
+			return
 		}
+		limit = l
 	}
 
 	// Prepare search options using domain-level options

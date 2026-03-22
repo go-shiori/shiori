@@ -1282,7 +1282,7 @@ func TestBookmarkHandlersEdgeCases(t *testing.T) {
 				"/api/v1/bookmarks?page=invalid",
 				testutil.WithFakeUser(),
 			)
-			require.Equal(t, http.StatusOK, w.Code) // Should default to page 1
+			require.Equal(t, http.StatusBadRequest, w.Code) // Should reject invalid page
 		})
 
 		t.Run("negative page parameter", func(t *testing.T) {
@@ -1294,7 +1294,7 @@ func TestBookmarkHandlersEdgeCases(t *testing.T) {
 				"/api/v1/bookmarks?page=-1",
 				testutil.WithFakeUser(),
 			)
-			require.Equal(t, http.StatusOK, w.Code) // Should default to page 1
+			require.Equal(t, http.StatusBadRequest, w.Code) // Should reject negative page
 		})
 
 		t.Run("zero page parameter", func(t *testing.T) {
@@ -1306,7 +1306,7 @@ func TestBookmarkHandlersEdgeCases(t *testing.T) {
 				"/api/v1/bookmarks?page=0",
 				testutil.WithFakeUser(),
 			)
-			require.Equal(t, http.StatusOK, w.Code) // Should default to page 1
+			require.Equal(t, http.StatusBadRequest, w.Code) // Should reject zero page
 		})
 
 		t.Run("invalid limit parameter", func(t *testing.T) {
@@ -1318,7 +1318,7 @@ func TestBookmarkHandlersEdgeCases(t *testing.T) {
 				"/api/v1/bookmarks?limit=invalid",
 				testutil.WithFakeUser(),
 			)
-			require.Equal(t, http.StatusOK, w.Code) // Should default to limit 30
+			require.Equal(t, http.StatusBadRequest, w.Code) // Should reject invalid limit
 		})
 
 		t.Run("limit exceeds maximum", func(t *testing.T) {
@@ -1330,7 +1330,7 @@ func TestBookmarkHandlersEdgeCases(t *testing.T) {
 				"/api/v1/bookmarks?limit=200",
 				testutil.WithFakeUser(),
 			)
-			require.Equal(t, http.StatusOK, w.Code) // Should default to limit 30
+			require.Equal(t, http.StatusBadRequest, w.Code) // Should reject limit > 100
 		})
 
 		t.Run("empty tags parameter", func(t *testing.T) {

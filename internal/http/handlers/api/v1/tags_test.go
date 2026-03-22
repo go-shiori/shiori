@@ -305,9 +305,9 @@ func TestHandleListTags(t *testing.T) {
 			testutil.WithFakeUser(),
 			testutil.WithRequestQueryParam("page", "invalid"),
 		)
-		require.Equal(t, http.StatusOK, w.Code) // Should default to page 1
+		require.Equal(t, http.StatusBadRequest, w.Code) // Should reject invalid page
 
-		// Test negative page parameter (should default to 1)
+		// Test negative page parameter
 		w = testutil.PerformRequest(
 			deps,
 			HandleListTags,
@@ -316,9 +316,9 @@ func TestHandleListTags(t *testing.T) {
 			testutil.WithFakeUser(),
 			testutil.WithRequestQueryParam("page", "-1"),
 		)
-		require.Equal(t, http.StatusOK, w.Code) // Should default to page 1
+		require.Equal(t, http.StatusBadRequest, w.Code) // Should reject negative page
 
-		// Test limit exceeds maximum (should cap at 100)
+		// Test limit exceeds maximum
 		w = testutil.PerformRequest(
 			deps,
 			HandleListTags,
@@ -327,7 +327,7 @@ func TestHandleListTags(t *testing.T) {
 			testutil.WithFakeUser(),
 			testutil.WithRequestQueryParam("limit", "200"),
 		)
-		require.Equal(t, http.StatusOK, w.Code) // Should cap at 100
+		require.Equal(t, http.StatusBadRequest, w.Code) // Should reject limit > 100
 	})
 }
 
