@@ -49,14 +49,14 @@ Legend:
 
 | # | User Story | Status |
 |---|-----------|--------|
-| 4.1 | As a user, I can add a bookmark by providing a URL | ❌ |
-| 4.2 | As a user, I can add a bookmark with a custom title and excerpt | ❌ |
-| 4.3 | As a user, I can add a bookmark and request archive creation | ❌ |
-| 4.4 | As a user, I can add a bookmark and request ebook/EPUB generation | ❌ |
-| 4.5 | As a user, I can add a bookmark and assign tags during creation | ❌ |
-| 4.6 | As a user, I can add a bookmark marked as public | ❌ |
-| 4.7 | As a user, I see the new bookmark appear in my library after creation | ❌ |
-| 4.8 | As a user, I see an error when adding a bookmark with an invalid URL | ❌ |
+| 4.1 | As a user, I can add a bookmark by providing a URL | ✅ |
+| 4.2 | As a user, I can add a bookmark with a custom title and excerpt | ✅ |
+| 4.3 | As a user, I can add a bookmark and request archive creation | ✅ |
+| 4.4 | As a user, I can add a bookmark and request ebook/EPUB generation | ✅ |
+| 4.5 | As a user, I can add a bookmark and assign tags during creation | ✅ |
+| 4.6 | As a user, I can add a bookmark marked as public | ✅ |
+| 4.7 | As a user, I see the new bookmark appear in my library after creation | ✅ |
+| 4.8 | As a user, I see an error when adding a bookmark with an invalid URL | ✅ |
 
 ## 5. Bookmark Viewing & Reading
 
@@ -168,7 +168,7 @@ Legend:
 | Authentication | 8 | 8 | 100% |
 | Account Management (Admin) | 8 | 8 | 100% |
 | Account Management (Self-service) | 5 | 5 | 100% |
-| Bookmark Creation | 0 | 8 | 0% |
+| Bookmark Creation | 8 | 8 | 100% |
 | Bookmark Viewing & Reading | 0 | 7 | 0% |
 | Bookmark Editing | 0 | 5 | 0% |
 | Bookmark Deletion | 0 | 4 | 0% |
@@ -179,4 +179,4 @@ Legend:
 | Public Bookmarks | 0 | 3 | 0% |
 | System / Health | 1 | 3 | 33% |
 | API Authentication (v1) | 2 | 4 | 50% |
-| **Total** | **24** | **80** | **30%** |
+| **Total** | **32** | **80** | **40%** |

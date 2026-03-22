@@ -434,7 +434,54 @@ func TestE2EAccounts(t *testing.T) {
 		})
 	})
 
-	t.Run("008 logout", func(t *testing.T) {
+	t.Run("008 admin cannot delete own account", func(t *testing.T) {
+		// Click delete button for the shiori admin's own account
+		mainTestHelper.Require().NoError(t,
+			mainTestHelper.page.Locator(`li[shiori-username="shiori"] a[title="Delete account"]`).Click(),
+			"Click delete on own account")
+		mainTestHelper.Require().NoError(t,
+			mainTestHelper.page.Locator(".custom-dialog").WaitFor(playwright.LocatorWaitForOptions{
+				State:   playwright.WaitForSelectorStateVisible,
+				Timeout: playwright.Float(1000),
+			}),
+			"Wait for delete confirmation dialog")
+
+		// Confirm deletion
+		mainTestHelper.Require().NoError(t,
+			mainTestHelper.page.Locator(`.custom-dialog-button.main`).Click(),
+			"Click Yes to confirm deletion")
+
+		// Should show error dialog since API rejects self-deletion
+		dialogContent := mainTestHelper.page.Locator(".custom-dialog-content")
+		mainTestHelper.Require().NoError(t,
+			dialogContent.WaitFor(playwright.LocatorWaitForOptions{
+				State:   playwright.WaitForSelectorStateVisible,
+				Timeout: playwright.Float(2000),
+			}),
+			"Wait for error dialog")
+
+		errorText, err := dialogContent.TextContent()
+		mainTestHelper.Require().NoError(t, err, "Get error dialog text")
+		mainTestHelper.Require().Equal(t, "cannot delete your own account", errorText, "Verify self-deletion error message")
+
+		// Dismiss error dialog
+		mainTestHelper.Require().NoError(t,
+			mainTestHelper.page.Locator(`.custom-dialog-button.main`).Click(),
+			"Dismiss error dialog")
+		mainTestHelper.Require().NoError(t,
+			mainTestHelper.page.Locator(".custom-dialog").WaitFor(playwright.LocatorWaitForOptions{
+				State:   playwright.WaitForSelectorStateHidden,
+				Timeout: playwright.Float(1000),
+			}),
+			"Wait for error dialog to close")
+
+		// Verify account still exists in the list
+		accountsCount, err := mainTestHelper.page.Locator(".accounts-list li").Count()
+		mainTestHelper.Require().NoError(t, err, "Count accounts in list")
+		mainTestHelper.Require().Equal(t, 2, accountsCount, "Verify accounts unchanged after failed self-deletion")
+	})
+
+	t.Run("009 logout", func(t *testing.T) {
 		// Click on "Logout" button
 		mainTestHelper.Require().NoError(t, mainTestHelper.page.Locator(`a[title="Logout"]`).Click(), "Click on logout button")
 
