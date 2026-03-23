@@ -44,11 +44,11 @@ Legend:
 
 | # | User Story | Server | Playwright |
 |---|-----------|--------|------------|
-| 3.1 | As a user, I can change my own password (providing the current one) | ❌ | ✅ |
-| 3.2 | As a user, I cannot see the system information panel | ❌ | ✅ |
-| 3.3 | As a user, I can see my account settings | ❌ | ✅ |
-| 3.4 | As a user, I cannot access the admin account management section | ❌ | ✅ |
-| 3.5 | As a user, I see an error when providing the wrong current password | ❌ | ✅ |
+| 3.1 | As a user, I can change my own password (providing the current one) | ✅ | ✅ |
+| 3.2 | As a user, I cannot see the system information panel | ✅ | ✅ |
+| 3.3 | As a user, I can see my account settings | ✅ | ✅ |
+| 3.4 | As a user, I cannot access the admin account management section | ✅ | ✅ |
+| 3.5 | As a user, I see an error when providing the wrong current password | ✅ | ✅ |
 
 ## 4. Bookmark Creation
 
@@ -172,7 +172,7 @@ Legend:
 |------|--------|------------|---------------|
 | Authentication | 7/8 | 8/8 | 8 |
 | Account Management (Admin) | 7/8 | 7/8 | 8 |
-| Account Management (Self-service) | 0/5 | 5/5 | 5 |
+| Account Management (Self-service) | 5/5 | 5/5 | 5 |
 | Bookmark Creation | 8/8 | 8/8 | 8 |
 | Bookmark Viewing & Reading | 0/7 | 0/7 | 7 |
 | Bookmark Editing | 0/5 | 0/5 | 5 |
@@ -184,4 +184,4 @@ Legend:
 | Public Bookmarks | 0/3 | 0/3 | 3 |
 | System / Health | 1/3 | 0/3 | 3 |
 | API Authentication (v1) | 3/4 | 0/4 | 4 |
-| **Total** | **26/80** | **28/80** | **80** |
+| **Total** | **31/80** | **28/80** | **80** |

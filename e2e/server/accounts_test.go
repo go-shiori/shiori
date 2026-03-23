@@ -54,6 +54,99 @@ func apiCreateAccount(t *testing.T, baseURL, token, username, password string, o
 	return result.ID
 }
 
+func TestSelfServiceAccount(t *testing.T) {
+	container := e2eutil.NewShioriContainer(t, "")
+	baseURL := "http://localhost:" + container.GetPort()
+
+	// Login as admin and create a regular user
+	adminToken := apiLogin(t, baseURL, "shiori", "gopher")
+	apiCreateAccount(t, baseURL, adminToken, "selfuser", "selfpass", false)
+
+	// Login as the regular user
+	userToken := apiLogin(t, baseURL, "selfuser", "selfpass")
+
+	t.Run("change own password", func(t *testing.T) {
+		body := `{"OldPassword":"selfpass","NewPassword":"newpass"}`
+		req, err := http.NewRequest("PATCH", baseURL+"/api/v1/auth/account", bytes.NewReader([]byte(body)))
+		require.NoError(t, err)
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", "Bearer "+userToken)
+
+		resp, err := http.DefaultClient.Do(req)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+		resp.Body.Close()
+
+		// Verify login with new password succeeds
+		_ = apiLogin(t, baseURL, "selfuser", "newpass")
+
+		// Reset password back for subsequent tests
+		newToken := apiLogin(t, baseURL, "selfuser", "newpass")
+		resetBody := `{"OldPassword":"newpass","NewPassword":"selfpass"}`
+		req2, err := http.NewRequest("PATCH", baseURL+"/api/v1/auth/account", bytes.NewReader([]byte(resetBody)))
+		require.NoError(t, err)
+		req2.Header.Set("Content-Type", "application/json")
+		req2.Header.Set("Authorization", "Bearer "+newToken)
+
+		resp2, err := http.DefaultClient.Do(req2)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp2.StatusCode)
+		resp2.Body.Close()
+	})
+
+	t.Run("cannot see system info", func(t *testing.T) {
+		req, err := http.NewRequest("GET", baseURL+"/api/v1/system/info", nil)
+		require.NoError(t, err)
+		req.Header.Set("Authorization", "Bearer "+userToken)
+
+		resp, err := http.DefaultClient.Do(req)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+		resp.Body.Close()
+	})
+
+	t.Run("can see account settings", func(t *testing.T) {
+		req, err := http.NewRequest("GET", baseURL+"/api/v1/auth/me", nil)
+		require.NoError(t, err)
+		req.Header.Set("Authorization", "Bearer "+userToken)
+
+		resp, err := http.DefaultClient.Do(req)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var me struct {
+			Username string `json:"Username"`
+		}
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&me))
+		resp.Body.Close()
+		require.Equal(t, "selfuser", me.Username)
+	})
+
+	t.Run("cannot access admin accounts", func(t *testing.T) {
+		req, err := http.NewRequest("GET", baseURL+"/api/v1/accounts", nil)
+		require.NoError(t, err)
+		req.Header.Set("Authorization", "Bearer "+userToken)
+
+		resp, err := http.DefaultClient.Do(req)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+		resp.Body.Close()
+	})
+
+	t.Run("wrong current password", func(t *testing.T) {
+		body := `{"OldPassword":"wrongpass","NewPassword":"newpass"}`
+		req, err := http.NewRequest("PATCH", baseURL+"/api/v1/auth/account", bytes.NewReader([]byte(body)))
+		require.NoError(t, err)
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", "Bearer "+userToken)
+
+		resp, err := http.DefaultClient.Do(req)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+		resp.Body.Close()
+	})
+}
+
 func TestAccountRoleChange(t *testing.T) {
 	container := e2eutil.NewShioriContainer(t, "")
 	baseURL := "http://localhost:" + container.GetPort()
