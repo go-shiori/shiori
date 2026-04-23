@@ -37,7 +37,7 @@
     		<keep-alive>
     			<component :is="activePage" :active-account="activeAccount" :app-options="appOptions" @setting-changed="saveSetting"></component>
     		</keep-alive>
-    		<custom-dialog v-bind="dialog"></custom-dialog>
+    		<custom-dialog v-bind="dialog" @dialog-close="dialog.visible = false"></custom-dialog>
 		</div>
 	</div>
 

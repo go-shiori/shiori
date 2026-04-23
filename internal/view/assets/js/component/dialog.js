@@ -89,22 +89,23 @@ export default {
 		mainClick: {
 			type: Function,
 			default() {
-				this.visible = false;
+				this.$emit("dialog-close");
 			},
 		},
 		secondClick: {
 			type: Function,
 			default() {
-				this.visible = false;
+				this.$emit("dialog-close");
 			},
 		},
 		escPressed: {
 			type: Function,
 			default() {
-				this.visible = false;
+				this.$emit("dialog-close");
 			},
 		},
 	},
+	emits: ["dialog-close"],
 	data() {
 		return {
 			formFields: [],

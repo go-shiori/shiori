@@ -77,14 +77,14 @@ var template = `
         </pagination-box>
     </div>
     <div class="loading-overlay" v-if="loading"><i class="fas fa-fw fa-spin fa-spinner"></i></div>
-    <custom-dialog id="dialog-tags" v-bind="dialogTags">
+    <custom-dialog id="dialog-tags" v-bind="dialogTags" @dialog-close="dialogTags.visible = false">
         <a @click="filterTag('*')">(all tagged)</a>
         <a @click="filterTag('*', true)">(all untagged)</a>
         <a v-for="tag in tags" @click="dialogTagClicked($event, tag)">
             #{{tag.name}}<span>{{tag.bookmark_count}}</span>
         </a>
     </custom-dialog>
-    <custom-dialog v-bind="dialog"/>
+    <custom-dialog v-bind="dialog" @dialog-close="dialog.visible = false"/>
 </div>`;
 
 import paginationBox from "../component/pagination.js";
