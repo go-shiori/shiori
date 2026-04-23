@@ -88,14 +88,14 @@ var template = `
 		<details v-if="activeAccount.owner" class="setting-group" id="setting-system-info">
 			<summary>System info</summary>
 			<ul>
-				<li><b>Shiori version:</b> <span>{{system.version?.tag}}<span></li>
+				<li><b>Shiori version:</b> <span>{{system.version?.tag}}</span></li>
 				<li><b>Database engine:</b> <span>{{system.database}}</span></li>
 				<li><b>Operating system:</b> <span>{{system.os}}</span></li>
 			</ul>
 		</details>
     </div>
     <div class="loading-overlay" v-if="loading"><i class="fas fa-fw fa-spin fa-spinner"></i></div>
-    <custom-dialog v-bind="dialog"/>
+    <custom-dialog v-bind="dialog" @dialog-close="dialog.visible = false"/>
 </div>`;
 
 import customDialog from "../component/dialog.js";
