@@ -1,14 +1,26 @@
 # Stage 1: Build
 FROM golang:1.25.1-alpine AS builder
 
+# Receive target platform from buildx
+ARG TARGETOS
+ARG TARGETARCH
+
 ENV GOTOOLCHAIN=local
+ENV CGO_ENABLED=0
+ENV GOOS=${TARGETOS}
+ENV GOARCH=${TARGETARCH}
 
 RUN apk add --no-cache git ca-certificates tzdata
 
 WORKDIR /src
+
+# Cache module downloads — only re-runs when go.mod/go.sum change
+COPY go.mod go.sum ./
+RUN go mod download
+
 COPY . .
 
-RUN CGO_ENABLED=0 go build \
+RUN go build \
     -tags osusergo,netgo,fts5 \
     -ldflags="-s -w" \
     -o /shiori .
