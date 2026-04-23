@@ -16,6 +16,7 @@
 	<link rel="manifest" href="assets/manifest.webmanifest" />
 
 	<link href="assets/css/style.css" rel="stylesheet">
+	<link href="assets/css/page-archive-list.css" rel="stylesheet">
 
 	<script src="assets/js/vue.min.js" type="text/javascript"></script>
 	<script src="assets/js/url.min.js" type="text/javascript"></script>
@@ -46,6 +47,7 @@
 		import LoginComponent from "./assets/js/component/login.js";
 		import pageHome from "./assets/js/page/home.js";
 		import pageSetting from "./assets/js/page/setting.js";
+		import pageArchiveList from "./assets/js/page/archive-list.js";
 		import customDialog from "./assets/js/component/dialog.js";
         import EventBus from "./assets/js/component/eventBus.js";
         Vue.prototype.$bus = EventBus;
@@ -56,6 +58,7 @@
 			components: {
 				pageHome,
 				pageSetting,
+				pageArchiveList,
 				customDialog,
 				'login-view': LoginComponent
 			},
@@ -67,6 +70,10 @@
 					title: "Home",
 					icon: "fa-home",
 					page: "page-home",
+				}, {
+					title: "Archives",
+					icon: "fa-layer-group",
+					page: "page-archive-list",
 				}, {
 					title: "Settings",
 					icon: "fa-cog",
@@ -228,7 +235,7 @@
 
 				// Set initial active page
 				var initialPage = (new Url).hash || "home";
-				if (initialPage === "home" || initialPage === "setting") {
+				if (["home", "setting", "archive-list"].includes(initialPage)) {
 					this.activePage = `page-${initialPage}`;
 				} else {
 					history.replaceState(null, "page-home", "/#home");

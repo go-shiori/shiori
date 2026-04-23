@@ -15,9 +15,10 @@ LDFLAGS += -s -w -X main.version=$(BUILD_HASH) -X main.date=$(BUILD_TIME)
 
 # Build (container)
 CONTAINER_RUNTIME := docker
-CONTAINERFILE_NAME := Dockerfile
+CONTAINERFILE_NAME := DockerfileProd
 CONTAINER_ALPINE_VERSION := 3.22
 BUILDX_PLATFORMS := linux/amd64,linux/arm64,linux/arm/v7
+GHCR_IMAGE := ghcr.io/foxisawesome/shiori
 
 # This is used for local development only, forcing linux to create linux only images but with the arch
 # of the running machine. Far from perfect but works.
@@ -149,3 +150,15 @@ coverage:
 .PHONY: generate
 generate:
 	$(GO) generate ./...
+
+## Build and push multi-arch image to ghcr.io. Usage: make push TAG=2026.4.0
+.PHONY: push
+push:
+	@test -n "$(TAG)" || (echo "ERROR: TAG is required.  Usage: make push TAG=2026.4.0" && exit 1)
+	$(CONTAINER_RUNTIME) buildx build \
+		-f DockerfileProd \
+		--platform $(BUILDX_PLATFORMS) \
+		-t $(GHCR_IMAGE):$(TAG) \
+		-t $(GHCR_IMAGE):latest \
+		--push \
+		.

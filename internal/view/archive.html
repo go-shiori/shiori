@@ -25,9 +25,13 @@
 		<div id="header">
 			<p id="title" dir="auto">$$.Book.Title$$</p>
 			<div class="links">
+				<a href="$$.RootPath$$">← Back</a>
 				<a href="$$.Book.URL$$" target="_blank" rel="noopener noreferrer">View Original</a>
 				$$if .Book.HasContent$$
 				<a href="bookmark/$$.Book.ID$$/content">View Readable</a>
+				$$end$$
+				$$if .HTML$$
+				<a id="toggle-raw" href="#" onclick="toggleRaw(event)">View Raw</a>
 				$$end$$
 				$$if .Book.HasEbook$$
 				<a href="bookmark/$$.Book.ID$$/ebook" download="$$.Book.Title$$.epub">Download Ebook</a>
@@ -36,11 +40,25 @@
 		</div>
 		$$if .HTML$$
 		<div id="content" dir="auto" v-pre>$$.HTML$$</div>
+		<iframe id="raw-frame" src="bookmark/$$.Book.ID$$/archive/file/" frameborder="0" style="display:none;width:100%;height:100vh;border:none;"></iframe>
 		$$else$$
 		<iframe src="bookmark/$$.Book.ID$$/archive/file/" frameborder="0" style="width:100%;height:100vh;border:none;"></iframe>
 		$$end$$
 	</div>
 
+	<script>
+		function toggleRaw(e) {
+			e.preventDefault();
+			var content = document.getElementById("content");
+			var frame   = document.getElementById("raw-frame");
+			var btn     = document.getElementById("toggle-raw");
+			if (!content || !frame) return;
+			var showingRaw = frame.style.display !== "none";
+			content.style.display = showingRaw ? "" : "none";
+			frame.style.display   = showingRaw ? "none" : "block";
+			btn.textContent       = showingRaw ? "View Raw" : "View Readable";
+		}
+	</script>
 	<script type="module">
 		import basePage from "./assets/js/page/base.js";
 

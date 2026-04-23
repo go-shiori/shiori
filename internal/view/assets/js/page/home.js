@@ -8,6 +8,10 @@ var template = `
         <a v-if="activeAccount.owner" title="Add new bookmark" @click="showDialogAdd">
             <i class="fas fa-fw fa-plus-circle"></i>
         </a>
+        <a v-if="activeAccount.owner" title="Upload SingleFile HTML" @click="triggerUpload">
+            <i class="fas fa-fw fa-file-upload"></i>
+        </a>
+        <input ref="uploadInput" type="file" accept=".html,.htm" style="display:none" @change="uploadSingleFile">
         <a v-if="tags.length > 0" title="Show tags" @click="showDialogTags">
             <i class="fas fa-fw fa-tags"></i>
         </a>
@@ -349,6 +353,31 @@ export default {
 
 			this.page = 1;
 			this.loadData();
+		},
+		triggerUpload() {
+			this.$refs.uploadInput.value = "";
+			this.$refs.uploadInput.click();
+		},
+		async uploadSingleFile(event) {
+			const file = event.target.files[0];
+			if (!file) return;
+			const form = new FormData();
+			form.append("file", file);
+			this.loading = true;
+			try {
+				const resp = await fetch(new URL("api/v1/bookmarks/upload", document.baseURI), {
+					method: "POST",
+					headers: { Authorization: "Bearer " + localStorage.getItem("shiori-token") },
+					body: form,
+				});
+				const data = await resp.json();
+				if (!data.ok) throw new Error(data.message?.error || "Upload failed");
+				this.bookmarks.splice(0, 0, data.message);
+			} catch (err) {
+				this.showErrorDialog(err.message);
+			} finally {
+				this.loading = false;
+			}
 		},
 		showDialogAdd(values) {
 			if (values === undefined) {

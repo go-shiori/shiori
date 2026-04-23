@@ -4,3 +4,5 @@ testdata/
 docs/*.md
 docs/assets/
 docs/postman/
+dev-data/
+dist/
