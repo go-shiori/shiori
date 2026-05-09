@@ -268,9 +268,29 @@ export default {
 			this.loadData();
 		},
 		changePage(page) {
-			this.page = page;
-			this.$refs.bookmarksGrid.scrollTop = 0;
-			this.loadData();
+		this.page = page;   
+		this.$nextTick(() => {
+        const gridElement = this.$refs.bookmarksGrid; 
+        if (gridElement) {
+            // Scrolling grid container
+            gridElement.scrollTop = 0;            
+            // Simultaneously scroll all parent elements containing scrollbars
+            let parent = gridElement.parentElement;
+            while (parent && parent !== document.body) {
+                if (parent.scrollTop !== undefined) {
+                    parent.scrollTop = 0;
+                }
+                parent = parent.parentElement;
+            }
+        }       
+        // Make sure the main container of the page also scrolls to the top
+        const mainScene = document.getElementById('main-scene');
+        if (mainScene && mainScene.scrollTop !== undefined) {
+            mainScene.scrollTop = 0;
+        } 
+        window.scrollTo(0, 0);
+    });   
+    this.loadData();
 		},
 		toggleEditMode() {
 			this.selection = [];
