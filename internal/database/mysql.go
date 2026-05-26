@@ -229,9 +229,11 @@ func (db *MySQLDatabase) SaveBookmarks(ctx context.Context, create bool, bookmar
 			newTags := []model.TagDTO{}
 			for _, tag := range book.Tags {
 				t := tag.ToDTO()
-				// If it's deleted tag, delete and continue
-				if t.Deleted {
-					_, err = stmtDeleteBookTag.ExecContext(ctx, book.ID, t.ID)
+				// If it's deleted tag, delete and continue.
+				// Read Deleted from `tag` (TagDTO) — `t` was rebuilt via the
+				// embedded *Tag.ToDTO() and does not carry the flag.
+				if tag.Deleted {
+					_, err = stmtDeleteBookTag.ExecContext(ctx, book.ID, tag.ID)
 					if err != nil {
 						return errors.WithStack(err)
 					}

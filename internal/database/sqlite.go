@@ -329,8 +329,10 @@ func (db *SQLiteDatabase) SaveBookmarks(ctx context.Context, create bool, bookma
 			newTags := []model.TagDTO{}
 			for _, tag := range book.Tags {
 				t := tag.ToDTO()
-				// If it's deleted tag, delete and continue
-				if t.Deleted {
+				// If it's deleted tag, delete and continue.
+				// Read Deleted from `tag` (TagDTO) — `t` was rebuilt via the
+				// embedded *Tag.ToDTO() and does not carry the flag.
+				if tag.Deleted {
 					_, err = stmtDeleteBookTag.ExecContext(ctx, book.ID, tag.ID)
 					if err != nil {
 						return fmt.Errorf("failed to execute delete bookmark statement: %w", err)
