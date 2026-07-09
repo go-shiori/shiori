@@ -159,6 +159,11 @@ const docTemplate = `{
         },
         "/api/v1/auth/account": {
             "patch": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -226,6 +231,11 @@ const docTemplate = `{
         },
         "/api/v1/auth/logout": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -245,6 +255,11 @@ const docTemplate = `{
         },
         "/api/v1/auth/me": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -267,6 +282,11 @@ const docTemplate = `{
         },
         "/api/v1/auth/refresh": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -289,11 +309,16 @@ const docTemplate = `{
         },
         "/api/v1/bookmarks/bulk/tags": {
             "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Auth"
+                    "Bookmarks"
                 ],
                 "summary": "Bulk update tags for multiple bookmarks.",
                 "parameters": [
@@ -331,11 +356,16 @@ const docTemplate = `{
         },
         "/api/v1/bookmarks/cache": {
             "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Auth"
+                    "Bookmarks"
                 ],
                 "summary": "Update Cache and Ebook on server.",
                 "parameters": [
@@ -362,15 +392,29 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/bookmarks/id/readable": {
+        "/api/v1/bookmarks/{id}/readable": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Auth"
+                    "Bookmarks"
                 ],
                 "summary": "Get readable version of bookmark.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Bookmark ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -386,11 +430,16 @@ const docTemplate = `{
         },
         "/api/v1/bookmarks/{id}/tags": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Auth"
+                    "Bookmarks"
                 ],
                 "summary": "Get tags for a bookmark.",
                 "parameters": [
@@ -421,11 +470,16 @@ const docTemplate = `{
                 }
             },
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Auth"
+                    "Bookmarks"
                 ],
                 "summary": "Add a tag to a bookmark.",
                 "parameters": [
@@ -459,11 +513,16 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Auth"
+                    "Bookmarks"
                 ],
                 "summary": "Remove a tag from a bookmark.",
                 "parameters": [
@@ -499,6 +558,11 @@ const docTemplate = `{
         },
         "/api/v1/system/info": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Get general system information like Shiori version, database, and OS",
                 "produces": [
                     "application/json"
@@ -522,6 +586,11 @@ const docTemplate = `{
         },
         "/api/v1/tags": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "List all tags",
                 "produces": [
                     "application/json"
@@ -569,6 +638,11 @@ const docTemplate = `{
                 }
             },
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Create a new tag",
                 "consumes": [
                     "application/json"
@@ -612,6 +686,11 @@ const docTemplate = `{
         },
         "/api/v1/tags/{id}": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Get a tag by ID",
                 "produces": [
                     "application/json"
@@ -648,6 +727,11 @@ const docTemplate = `{
                 }
             },
             "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Update an existing tag",
                 "consumes": [
                     "application/json"
@@ -699,6 +783,11 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Delete a tag",
                 "tags": [
                     "Tags"
@@ -1020,17 +1109,25 @@ const docTemplate = `{
                 }
             }
         }
+    },
+    "securityDefinitions": {
+        "ApiKeyAuth": {
+            "description": "Type \"Bearer\" followed by a space and the JWT token.",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
     }
 }`
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "",
+	Version:          "1.0",
 	Host:             "",
-	BasePath:         "",
+	BasePath:         "/",
 	Schemes:          []string{},
-	Title:            "",
-	Description:      "",
+	Title:            "Shiori API",
+	Description:      "Shiori is a simple bookmarks manager. This is the documentation for its HTTP API.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",
