@@ -195,6 +195,23 @@ func TestHandleUpdateLoggedAccount(t *testing.T) {
 		require.Equal(t, http.StatusBadRequest, w.Code)
 	})
 
+	t.Run("non-owner cannot escalate to owner", func(t *testing.T) {
+		regularAccount, err := deps.Domains().Accounts().CreateAccount(context.Background(), model.AccountDTO{
+			Username: "regular",
+			Password: "gopher",
+			Owner:    model.Ptr(false),
+		})
+		require.NoError(t, err)
+
+		body := `{"owner": true}`
+		w := testutil.PerformRequest(deps, HandleUpdateLoggedAccount, "PATCH", "/account", testutil.WithBody(body), testutil.WithAccount(regularAccount))
+		require.Equal(t, http.StatusForbidden, w.Code)
+
+		stored, err := deps.Domains().Accounts().GetAccountByUsername(context.Background(), "regular")
+		require.NoError(t, err)
+		require.False(t, stored.IsOwner())
+	})
+
 	t.Run("successful update", func(t *testing.T) {
 		body := `{
 			"old_password": "gopher",

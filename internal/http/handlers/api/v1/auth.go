@@ -177,6 +177,14 @@ func HandleUpdateLoggedAccount(deps model.Dependencies, c model.WebContext) {
 
 	account := c.GetAccount()
 
+	// Only owners are allowed to change the owner flag. Without this check any
+	// authenticated user could escalate their own privileges to administrator
+	// through this self-service endpoint.
+	if payload.Owner != nil && !account.IsOwner() {
+		response.SendError(c, http.StatusForbidden, "Only owners can change the owner status")
+		return
+	}
+
 	if payload.NewPassword != "" {
 		_, err := deps.Domains().Auth().GetAccountFromCredentials(c.Request().Context(), account.Username, payload.OldPassword)
 		if err != nil {
