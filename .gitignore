@@ -31,5 +31,6 @@ go.work*
 type=docker
 
 # Docs
-docs/.venv
-build/docs
+.venv
+site/
+

@@ -31,17 +31,17 @@ extra_css:
 nav:
   - Home: index.md
   - Getting Started:
-    - Installation: installation.md
-    - Usage: usage.md
-    - Configuration: configuration.md
-    - Storage: storage.md
+    - Installation: Installation.md
+    - Usage: Usage.md
+    - Configuration: Configuration.md
+    - Storage: Storage.md
   - API Reference:
-    - API v1: apiv1.md
-    - Legacy API: api.md
+    - API v1: APIv1.md
+    - Legacy API: API.md
   - Contributing:
-    - Contributing Guide: contribute.md
-    - FAQ: faq.md
-  - Screenshots: screenshots.md
+    - Contributing Guide: Contribute.md
+    - FAQ: FAQ.md
+  - Screenshots: Screenshots.md
 
 markdown_extensions:
   - admonition
