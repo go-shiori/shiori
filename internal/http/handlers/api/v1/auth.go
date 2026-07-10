@@ -77,13 +77,13 @@ func HandleLogin(deps model.Dependencies, c model.WebContext) {
 	})
 }
 
-// @Summary					Refresh a token for an account
-// @Tags						Auth
-// @securityDefinitions.apikey	ApiKeyAuth
-// @Produce					json
-// @Success					200	{object}	loginResponseMessage	"Refresh successful"
-// @Failure					403	{object}	nil						"Token not provided/invalid"
-// @Router						/api/v1/auth/refresh [post]
+// @Summary	Refresh a token for an account
+// @Tags		Auth
+// @Security	ApiKeyAuth
+// @Produce	json
+// @Success	200	{object}	loginResponseMessage	"Refresh successful"
+// @Failure	403	{object}	nil						"Token not provided/invalid"
+// @Router		/api/v1/auth/refresh [post]
 func HandleRefreshToken(deps model.Dependencies, c model.WebContext) {
 	if err := middleware.RequireLoggedInUser(deps, c); err != nil {
 		return
@@ -103,13 +103,13 @@ func HandleRefreshToken(deps model.Dependencies, c model.WebContext) {
 	})
 }
 
-// @Summary					Get information for the current logged in user
-// @Tags						Auth
-// @securityDefinitions.apikey	ApiKeyAuth
-// @Produce					json
-// @Success					200	{object}	model.Account
-// @Failure					403	{object}	nil	"Token not provided/invalid"
-// @Router						/api/v1/auth/me [get]
+// @Summary	Get information for the current logged in user
+// @Tags		Auth
+// @Security	ApiKeyAuth
+// @Produce	json
+// @Success	200	{object}	model.Account
+// @Failure	403	{object}	nil	"Token not provided/invalid"
+// @Router		/api/v1/auth/me [get]
 func HandleGetMe(deps model.Dependencies, c model.WebContext) {
 	if err := middleware.RequireLoggedInUser(deps, c); err != nil {
 		return
@@ -151,14 +151,14 @@ func (p *updateAccountPayload) ToAccountDTO() model.AccountDTO {
 	return account
 }
 
-// @Summary					Update account information
-// @Tags						Auth
-// @securityDefinitions.apikey	ApiKeyAuth
-// @Param						payload	body	updateAccountPayload	false	"Account data"
-// @Produce					json
-// @Success					200	{object}	model.Account
-// @Failure					403	{object}	nil	"Token not provided/invalid"
-// @Router						/api/v1/auth/account [patch]
+// @Summary	Update account information
+// @Tags		Auth
+// @Security	ApiKeyAuth
+// @Param		payload	body	updateAccountPayload	false	"Account data"
+// @Produce	json
+// @Success	200	{object}	model.Account
+// @Failure	403	{object}	nil	"Token not provided/invalid"
+// @Router		/api/v1/auth/account [patch]
 func HandleUpdateLoggedAccount(deps model.Dependencies, c model.WebContext) {
 	if err := middleware.RequireLoggedInUser(deps, c); err != nil {
 		return
@@ -176,6 +176,14 @@ func HandleUpdateLoggedAccount(deps model.Dependencies, c model.WebContext) {
 	}
 
 	account := c.GetAccount()
+
+	// Only owners are allowed to change the owner flag. Without this check any
+	// authenticated user could escalate their own privileges to administrator
+	// through this self-service endpoint.
+	if payload.Owner != nil && !account.IsOwner() {
+		response.SendError(c, http.StatusForbidden, "Only owners can change the owner status")
+		return
+	}
 
 	if payload.NewPassword != "" {
 		_, err := deps.Domains().Auth().GetAccountFromCredentials(c.Request().Context(), account.Username, payload.OldPassword)
@@ -201,13 +209,13 @@ func HandleUpdateLoggedAccount(deps model.Dependencies, c model.WebContext) {
 	response.SendJSON(c, http.StatusOK, account)
 }
 
-// @Summary					Logout from the current session
-// @Tags						Auth
-// @securityDefinitions.apikey	ApiKeyAuth
-// @Produce					json
-// @Success					200	{object}	nil	"Logout successful"
-// @Failure					403	{object}	nil	"Token not provided/invalid"
-// @Router						/api/v1/auth/logout [post]
+// @Summary	Logout from the current session
+// @Tags		Auth
+// @Security	ApiKeyAuth
+// @Produce	json
+// @Success	200	{object}	nil	"Logout successful"
+// @Failure	403	{object}	nil	"Token not provided/invalid"
+// @Router		/api/v1/auth/logout [post]
 func HandleLogout(deps model.Dependencies, c model.WebContext) {
 	if err := middleware.RequireLoggedInUser(deps, c); err != nil {
 		return

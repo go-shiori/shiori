@@ -1,3 +1,4 @@
+basePath: /
 definitions:
   api_v1.bookmarkTagPayload:
     properties:
@@ -191,6 +192,10 @@ definitions:
     type: object
 info:
   contact: {}
+  description: Shiori is a simple bookmarks manager. This is the documentation for
+    its HTTP API.
+  title: Shiori API
+  version: "1.0"
 paths:
   /api/v1/accounts:
     get:
@@ -302,6 +307,8 @@ paths:
             $ref: '#/definitions/model.Account'
         "403":
           description: Token not provided/invalid
+      security:
+      - ApiKeyAuth: []
       summary: Update account information
       tags:
       - Auth
@@ -336,6 +343,8 @@ paths:
           description: Logout successful
         "403":
           description: Token not provided/invalid
+      security:
+      - ApiKeyAuth: []
       summary: Logout from the current session
       tags:
       - Auth
@@ -350,6 +359,8 @@ paths:
             $ref: '#/definitions/model.Account'
         "403":
           description: Token not provided/invalid
+      security:
+      - ApiKeyAuth: []
       summary: Get information for the current logged in user
       tags:
       - Auth
@@ -364,9 +375,33 @@ paths:
             $ref: '#/definitions/api_v1.loginResponseMessage'
         "403":
           description: Token not provided/invalid
+      security:
+      - ApiKeyAuth: []
       summary: Refresh a token for an account
       tags:
       - Auth
+  /api/v1/bookmarks/{id}/readable:
+    get:
+      parameters:
+      - description: Bookmark ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api_v1.readableResponseMessage'
+        "403":
+          description: Token not provided/invalid
+      security:
+      - ApiKeyAuth: []
+      summary: Get readable version of bookmark.
+      tags:
+      - Bookmarks
   /api/v1/bookmarks/{id}/tags:
     delete:
       parameters:
@@ -390,9 +425,11 @@ paths:
           description: Token not provided/invalid
         "404":
           description: Bookmark not found
+      security:
+      - ApiKeyAuth: []
       summary: Remove a tag from a bookmark.
       tags:
-      - Auth
+      - Bookmarks
     get:
       parameters:
       - description: Bookmark ID
@@ -413,9 +450,11 @@ paths:
           description: Token not provided/invalid
         "404":
           description: Bookmark not found
+      security:
+      - ApiKeyAuth: []
       summary: Get tags for a bookmark.
       tags:
-      - Auth
+      - Bookmarks
     post:
       parameters:
       - description: Bookmark ID
@@ -438,9 +477,11 @@ paths:
           description: Token not provided/invalid
         "404":
           description: Bookmark or tag not found
+      security:
+      - ApiKeyAuth: []
       summary: Add a tag to a bookmark.
       tags:
-      - Auth
+      - Bookmarks
   /api/v1/bookmarks/bulk/tags:
     put:
       parameters:
@@ -465,9 +506,11 @@ paths:
           description: Token not provided/invalid
         "404":
           description: No bookmarks found
+      security:
+      - ApiKeyAuth: []
       summary: Bulk update tags for multiple bookmarks.
       tags:
-      - Auth
+      - Bookmarks
   /api/v1/bookmarks/cache:
     put:
       parameters:
@@ -486,23 +529,11 @@ paths:
             $ref: '#/definitions/model.BookmarkDTO'
         "403":
           description: Token not provided/invalid
+      security:
+      - ApiKeyAuth: []
       summary: Update Cache and Ebook on server.
       tags:
-      - Auth
-  /api/v1/bookmarks/id/readable:
-    get:
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/api_v1.readableResponseMessage'
-        "403":
-          description: Token not provided/invalid
-      summary: Get readable version of bookmark.
-      tags:
-      - Auth
+      - Bookmarks
   /api/v1/system/info:
     get:
       description: Get general system information like Shiori version, database, and
@@ -516,6 +547,8 @@ paths:
             $ref: '#/definitions/api_v1.infoResponse'
         "403":
           description: Only owners can access this endpoint
+      security:
+      - ApiKeyAuth: []
       summary: Get general system information
       tags:
       - System
@@ -548,6 +581,8 @@ paths:
           description: Authentication required
         "500":
           description: Internal server error
+      security:
+      - ApiKeyAuth: []
       summary: List tags
       tags:
       - Tags
@@ -575,6 +610,8 @@ paths:
           description: Authentication required
         "500":
           description: Internal server error
+      security:
+      - ApiKeyAuth: []
       summary: Create tag
       tags:
       - Tags
@@ -596,6 +633,8 @@ paths:
           description: Tag not found
         "500":
           description: Internal server error
+      security:
+      - ApiKeyAuth: []
       summary: Delete tag
       tags:
       - Tags
@@ -620,6 +659,8 @@ paths:
           description: Tag not found
         "500":
           description: Internal server error
+      security:
+      - ApiKeyAuth: []
       summary: Get tag
       tags:
       - Tags
@@ -654,7 +695,15 @@ paths:
           description: Tag not found
         "500":
           description: Internal server error
+      security:
+      - ApiKeyAuth: []
       summary: Update tag
       tags:
       - Tags
+securityDefinitions:
+  ApiKeyAuth:
+    description: Type "Bearer" followed by a space and the JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

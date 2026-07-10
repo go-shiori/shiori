@@ -23,7 +23,7 @@
 
 <body>
 	<div id="app">
-		<login-view v-if="isLoggedIn === false && loginRequired" @login-success="onLoginSuccess"></login-view>
+		<login-view v-if="isLoggedIn === false && loginRequired" :version="version" @login-success="onLoginSuccess"></login-view>
 		<div id="main-scene" v-else-if="isLoggedIn === true">
     		<div id="main-sidebar">
     			<a v-for="item in sidebarItems" :title="item.title" :class="{active: activePage === item.page}" @click="switchPage(item.page)">
@@ -62,6 +62,7 @@
 			data: {
 				isLoggedIn: null,
 				loginRequired: false,
+				version: "$$.Version$$",
 				activePage: "page-home",
 				sidebarItems: [{
 					title: "Home",
