@@ -118,23 +118,27 @@ export default {
 
 			dialogTags: {
 				visible: false,
-				editMode: false,
+				mode: "view",
 				title: "Existing Tags",
 				mainText: "OK",
 				secondText: "Rename Tags",
+				thirdText: "Delete Tags",
 				mainClick: () => {
-					if (this.dialogTags.editMode) {
-						this.dialogTags.editMode = false;
+					if (this.dialogTags.mode !== "view") {
+						this.dialogTags.mode = "view";
 					} else {
 						this.dialogTags.visible = false;
 					}
 				},
 				secondClick: () => {
-					this.dialogTags.editMode = true;
+					this.dialogTags.mode = "rename";
+				},
+				thirdClick: () => {
+					this.dialogTags.mode = "delete";
 				},
 				escPressed: () => {
 					this.dialogTags.visible = false;
-					this.dialogTags.editMode = false;
+					this.dialogTags.mode = "view";
 				},
 			},
 		};
@@ -145,15 +149,22 @@ export default {
 		},
 	},
 	watch: {
-		"dialogTags.editMode"(editMode) {
-			if (editMode) {
+		"dialogTags.mode"(mode) {
+			if (mode === "rename") {
 				this.dialogTags.title = "Rename Tags";
 				this.dialogTags.mainText = "Cancel";
 				this.dialogTags.secondText = "";
+				this.dialogTags.thirdText = "";
+			} else if (mode === "delete") {
+				this.dialogTags.title = "Delete Tags";
+				this.dialogTags.mainText = "Cancel";
+				this.dialogTags.secondText = "";
+				this.dialogTags.thirdText = "";
 			} else {
 				this.dialogTags.title = "Existing Tags";
 				this.dialogTags.mainText = "OK";
 				this.dialogTags.secondText = "Rename Tags";
+				this.dialogTags.thirdText = "Delete Tags";
 			}
 		},
 	},
@@ -285,11 +296,14 @@ export default {
 			return this.selection.findIndex((el) => el.id === bookId) > -1;
 		},
 		dialogTagClicked(event, tag) {
-			if (!this.dialogTags.editMode) {
-				this.filterTag(tag.name, event.altKey);
-			} else {
+			if (this.dialogTags.mode === "rename") {
 				this.dialogTags.visible = false;
 				this.showDialogRenameTag(tag);
+			} else if (this.dialogTags.mode === "delete") {
+				this.dialogTags.visible = false;
+				this.showDialogDeleteTag(tag);
+			} else {
+				this.filterTag(tag.name, event.altKey);
 			}
 		},
 		bookmarkTagClicked(event, tagName) {
@@ -299,7 +313,7 @@ export default {
 			// Set default parameter
 			excludeMode = typeof excludeMode === "boolean" ? excludeMode : false;
 
-			if (this.dialogTags.editMode) {
+			if (this.dialogTags.mode !== "view") {
 				return;
 			}
 
@@ -853,10 +867,14 @@ export default {
 		},
 		showDialogTags() {
 			this.dialogTags.visible = true;
-			this.dialogTags.editMode = false;
-			this.dialogTags.secondText = this.activeAccount.owner
-				? "Rename Tags"
-				: "";
+			this.dialogTags.mode = "view";
+			if (this.activeAccount.owner) {
+				this.dialogTags.secondText = "Rename Tags";
+				this.dialogTags.thirdText = "Delete Tags";
+			} else {
+				this.dialogTags.secondText = "";
+				this.dialogTags.thirdText = "";
+			}
 		},
 		showDialogRenameTag(tag) {
 			this.showDialog({
@@ -904,7 +922,7 @@ export default {
 						this.dialog.loading = false;
 						this.dialog.visible = false;
 						this.dialogTags.visible = true;
-						this.dialogTags.editMode = false;
+						this.dialogTags.mode = "view";
 						this.tags.sort((a, b) => {
 							var aName = a.name.toLowerCase(),
 								bName = b.name.toLowerCase();
@@ -921,7 +939,66 @@ export default {
 					} catch (err) {
 						this.dialog.loading = false;
 						this.dialogTags.visible = false;
-						this.dialogTags.editMode = false;
+						this.dialogTags.mode = "view";
+						this.showErrorDialog(err.message);
+					}
+				},
+			});
+		},
+		showDialogDeleteTag(tag) {
+			var bookmarkLabel =
+				tag.bookmark_count === 1 ? "1 bookmark" : `${tag.bookmark_count} bookmarks`;
+			this.showDialog({
+				title: "Delete Tag",
+				content: `Delete tag "#${tag.name}"? It will be removed from ${bookmarkLabel}. This action is irreversible.`,
+				mainText: "Delete",
+				secondText: "Cancel",
+				secondClick: () => {
+					this.dialog.visible = false;
+					this.dialogTags.visible = true;
+				},
+				escPressed: () => {
+					this.dialog.visible = false;
+					this.dialogTags.visible = true;
+				},
+				mainClick: async () => {
+					var rxSpace = /\s+/g,
+						tagQuery = rxSpace.test(tag.name)
+							? `"#${tag.name}"`
+							: `#${tag.name}`;
+
+					this.dialog.loading = true;
+					try {
+						await apiRequest(
+							new URL("api/v1/tags/" + tag.id, document.baseURI),
+							{ method: "DELETE" },
+						);
+
+						this.dialog.loading = false;
+						this.dialog.visible = false;
+						this.dialogTags.visible = true;
+						this.dialogTags.mode = "view";
+
+						// Drop the tag from the local list. If the current
+						// search filters on it, clear that fragment and reload.
+						this.tags = this.tags.filter((t) => t.id !== tag.id);
+						if (this.search.includes(tagQuery)) {
+							this.search = this.search
+								.replace("-tag:" + tagQuery, "")
+								.replace("tag:" + tagQuery, "")
+								.replace(tagQuery, "")
+								.trim()
+								.replace(/\s+/g, " ");
+							this.loadData();
+						} else {
+							// Bookmarks visible on this page may have been tagged;
+							// refresh so their tag chips no longer show this one.
+							this.loadData(false);
+						}
+					} catch (err) {
+						this.dialog.loading = false;
+						this.dialogTags.visible = false;
+						this.dialogTags.mode = "view";
 						this.showErrorDialog(err.message);
 					}
 				},
