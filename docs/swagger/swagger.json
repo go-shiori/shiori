@@ -1,8 +1,12 @@
 {
     "swagger": "2.0",
     "info": {
-        "contact": {}
+        "description": "Shiori is a simple bookmarks manager. This is the documentation for its HTTP API.",
+        "title": "Shiori API",
+        "contact": {},
+        "version": "1.0"
     },
+    "basePath": "/",
     "paths": {
         "/api/v1/accounts": {
             "get": {
@@ -148,6 +152,11 @@
         },
         "/api/v1/auth/account": {
             "patch": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -215,6 +224,11 @@
         },
         "/api/v1/auth/logout": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -234,6 +248,11 @@
         },
         "/api/v1/auth/me": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -256,6 +275,11 @@
         },
         "/api/v1/auth/refresh": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -278,11 +302,16 @@
         },
         "/api/v1/bookmarks/bulk/tags": {
             "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Auth"
+                    "Bookmarks"
                 ],
                 "summary": "Bulk update tags for multiple bookmarks.",
                 "parameters": [
@@ -320,11 +349,16 @@
         },
         "/api/v1/bookmarks/cache": {
             "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Auth"
+                    "Bookmarks"
                 ],
                 "summary": "Update Cache and Ebook on server.",
                 "parameters": [
@@ -351,15 +385,29 @@
                 }
             }
         },
-        "/api/v1/bookmarks/id/readable": {
+        "/api/v1/bookmarks/{id}/readable": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Auth"
+                    "Bookmarks"
                 ],
                 "summary": "Get readable version of bookmark.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Bookmark ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -375,11 +423,16 @@
         },
         "/api/v1/bookmarks/{id}/tags": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Auth"
+                    "Bookmarks"
                 ],
                 "summary": "Get tags for a bookmark.",
                 "parameters": [
@@ -410,11 +463,16 @@
                 }
             },
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Auth"
+                    "Bookmarks"
                 ],
                 "summary": "Add a tag to a bookmark.",
                 "parameters": [
@@ -448,11 +506,16 @@
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Auth"
+                    "Bookmarks"
                 ],
                 "summary": "Remove a tag from a bookmark.",
                 "parameters": [
@@ -488,6 +551,11 @@
         },
         "/api/v1/system/info": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Get general system information like Shiori version, database, and OS",
                 "produces": [
                     "application/json"
@@ -511,6 +579,11 @@
         },
         "/api/v1/tags": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "List all tags",
                 "produces": [
                     "application/json"
@@ -558,6 +631,11 @@
                 }
             },
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Create a new tag",
                 "consumes": [
                     "application/json"
@@ -601,6 +679,11 @@
         },
         "/api/v1/tags/{id}": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Get a tag by ID",
                 "produces": [
                     "application/json"
@@ -637,6 +720,11 @@
                 }
             },
             "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Update an existing tag",
                 "consumes": [
                     "application/json"
@@ -688,6 +776,11 @@
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Delete a tag",
                 "tags": [
                     "Tags"
@@ -1008,6 +1101,14 @@
                     "type": "boolean"
                 }
             }
+        }
+    },
+    "securityDefinitions": {
+        "ApiKeyAuth": {
+            "description": "Type \"Bearer\" followed by a space and the JWT token.",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
         }
     }
 }

@@ -40,13 +40,14 @@ type readableResponseMessage struct {
 
 // HandleBookmarkReadable returns the readable version of a bookmark
 //
-//	@Summary					Get readable version of bookmark.
-//	@Tags						Auth
-//	@securityDefinitions.apikey	ApiKeyAuth
-//	@Produce					json
-//	@Success					200	{object}	readableResponseMessage
-//	@Failure					403	{object}	nil	"Token not provided/invalid"
-//	@Router						/api/v1/bookmarks/id/readable [get]
+//	@Summary	Get readable version of bookmark.
+//	@Tags		Bookmarks
+//	@Security	ApiKeyAuth
+//	@Produce	json
+//	@Param		id	path		int	true	"Bookmark ID"
+//	@Success	200	{object}	readableResponseMessage
+//	@Failure	403	{object}	nil	"Token not provided/invalid"
+//	@Router		/api/v1/bookmarks/{id}/readable [get]
 func HandleBookmarkReadable(deps model.Dependencies, c model.WebContext) {
 	if err := middleware.RequireLoggedInUser(deps, c); err != nil {
 		response.SendError(c, http.StatusForbidden, err.Error())
@@ -73,14 +74,14 @@ func HandleBookmarkReadable(deps model.Dependencies, c model.WebContext) {
 
 // HandleUpdateCache updates the cache and ebook for bookmarks
 //
-//	@Summary					Update Cache and Ebook on server.
-//	@Tags						Auth
-//	@securityDefinitions.apikey	ApiKeyAuth
-//	@Param						payload	body	updateCachePayload	true	"Update Cache Payload"
-//	@Produce					json
-//	@Success					200	{object}	model.BookmarkDTO
-//	@Failure					403	{object}	nil	"Token not provided/invalid"
-//	@Router						/api/v1/bookmarks/cache [put]
+//	@Summary	Update Cache and Ebook on server.
+//	@Tags		Bookmarks
+//	@Security	ApiKeyAuth
+//	@Param		payload	body	updateCachePayload	true	"Update Cache Payload"
+//	@Produce	json
+//	@Success	200	{object}	model.BookmarkDTO
+//	@Failure	403	{object}	nil	"Token not provided/invalid"
+//	@Router		/api/v1/bookmarks/cache [put]
 func HandleUpdateCache(deps model.Dependencies, c model.WebContext) {
 	if err := middleware.RequireLoggedInAdmin(deps, c); err != nil {
 		response.SendError(c, http.StatusForbidden, err.Error())
@@ -179,15 +180,15 @@ func (p *bulkUpdateBookmarkTagsPayload) IsValid() error {
 
 // HandleGetBookmarkTags gets the tags for a bookmark
 //
-//	@Summary					Get tags for a bookmark.
-//	@Tags						Auth
-//	@securityDefinitions.apikey	ApiKeyAuth
-//	@Produce					json
-//	@Param						id	path		int	true	"Bookmark ID"
-//	@Success					200	{array}		model.TagDTO
-//	@Failure					403	{object}	nil	"Token not provided/invalid"
-//	@Failure					404	{object}	nil	"Bookmark not found"
-//	@Router						/api/v1/bookmarks/{id}/tags [get]
+//	@Summary	Get tags for a bookmark.
+//	@Tags		Bookmarks
+//	@Security	ApiKeyAuth
+//	@Produce	json
+//	@Param		id	path		int	true	"Bookmark ID"
+//	@Success	200	{array}		model.TagDTO
+//	@Failure	403	{object}	nil	"Token not provided/invalid"
+//	@Failure	404	{object}	nil	"Bookmark not found"
+//	@Router		/api/v1/bookmarks/{id}/tags [get]
 func HandleGetBookmarkTags(deps model.Dependencies, c model.WebContext) {
 	if err := middleware.RequireLoggedInUser(deps, c); err != nil {
 		response.SendError(c, http.StatusForbidden, err.Error())
@@ -237,16 +238,16 @@ func (p *bookmarkTagPayload) IsValid() error {
 
 // HandleAddTagToBookmark adds a tag to a bookmark
 //
-//	@Summary					Add a tag to a bookmark.
-//	@Tags						Auth
-//	@securityDefinitions.apikey	ApiKeyAuth
-//	@Param						id		path	int					true	"Bookmark ID"
-//	@Param						payload	body	bookmarkTagPayload	true	"Add Tag Payload"
-//	@Produce					json
-//	@Success					200	{object}	nil
-//	@Failure					403	{object}	nil	"Token not provided/invalid"
-//	@Failure					404	{object}	nil	"Bookmark or tag not found"
-//	@Router						/api/v1/bookmarks/{id}/tags [post]
+//	@Summary	Add a tag to a bookmark.
+//	@Tags		Bookmarks
+//	@Security	ApiKeyAuth
+//	@Param		id		path	int					true	"Bookmark ID"
+//	@Param		payload	body	bookmarkTagPayload	true	"Add Tag Payload"
+//	@Produce	json
+//	@Success	200	{object}	nil
+//	@Failure	403	{object}	nil	"Token not provided/invalid"
+//	@Failure	404	{object}	nil	"Bookmark or tag not found"
+//	@Router		/api/v1/bookmarks/{id}/tags [post]
 func HandleAddTagToBookmark(deps model.Dependencies, c model.WebContext) {
 	if err := middleware.RequireLoggedInAdmin(deps, c); err != nil {
 		response.SendError(c, http.StatusForbidden, err.Error())
@@ -291,16 +292,16 @@ func HandleAddTagToBookmark(deps model.Dependencies, c model.WebContext) {
 
 // HandleRemoveTagFromBookmark removes a tag from a bookmark
 //
-//	@Summary					Remove a tag from a bookmark.
-//	@Tags						Auth
-//	@securityDefinitions.apikey	ApiKeyAuth
-//	@Param						id		path	int					true	"Bookmark ID"
-//	@Param						payload	body	bookmarkTagPayload	true	"Remove Tag Payload"
-//	@Produce					json
-//	@Success					200	{object}	nil
-//	@Failure					403	{object}	nil	"Token not provided/invalid"
-//	@Failure					404	{object}	nil	"Bookmark not found"
-//	@Router						/api/v1/bookmarks/{id}/tags [delete]
+//	@Summary	Remove a tag from a bookmark.
+//	@Tags		Bookmarks
+//	@Security	ApiKeyAuth
+//	@Param		id		path	int					true	"Bookmark ID"
+//	@Param		payload	body	bookmarkTagPayload	true	"Remove Tag Payload"
+//	@Produce	json
+//	@Success	200	{object}	nil
+//	@Failure	403	{object}	nil	"Token not provided/invalid"
+//	@Failure	404	{object}	nil	"Bookmark not found"
+//	@Router		/api/v1/bookmarks/{id}/tags [delete]
 func HandleRemoveTagFromBookmark(deps model.Dependencies, c model.WebContext) {
 	if err := middleware.RequireLoggedInUser(deps, c); err != nil {
 		response.SendError(c, http.StatusForbidden, err.Error())
@@ -345,16 +346,16 @@ func HandleRemoveTagFromBookmark(deps model.Dependencies, c model.WebContext) {
 
 // HandleBulkUpdateBookmarkTags updates the tags for multiple bookmarks
 //
-//	@Summary					Bulk update tags for multiple bookmarks.
-//	@Tags						Auth
-//	@securityDefinitions.apikey	ApiKeyAuth
-//	@Param						payload	body	bulkUpdateBookmarkTagsPayload	true	"Bulk Update Bookmark Tags Payload"
-//	@Produce					json
-//	@Success					200	{object}	[]model.BookmarkDTO
-//	@Failure					403	{object}	nil	"Token not provided/invalid"
-//	@Failure					400	{object}	nil	"Invalid request payload"
-//	@Failure					404	{object}	nil	"No bookmarks found"
-//	@Router						/api/v1/bookmarks/bulk/tags [put]
+//	@Summary	Bulk update tags for multiple bookmarks.
+//	@Tags		Bookmarks
+//	@Security	ApiKeyAuth
+//	@Param		payload	body	bulkUpdateBookmarkTagsPayload	true	"Bulk Update Bookmark Tags Payload"
+//	@Produce	json
+//	@Success	200	{object}	[]model.BookmarkDTO
+//	@Failure	403	{object}	nil	"Token not provided/invalid"
+//	@Failure	400	{object}	nil	"Invalid request payload"
+//	@Failure	404	{object}	nil	"No bookmarks found"
+//	@Router		/api/v1/bookmarks/bulk/tags [put]
 func HandleBulkUpdateBookmarkTags(deps model.Dependencies, c model.WebContext) {
 	if err := middleware.RequireLoggedInUser(deps, c); err != nil {
 		response.SendError(c, http.StatusForbidden, err.Error())
