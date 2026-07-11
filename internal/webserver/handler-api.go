@@ -333,14 +333,21 @@ func (h *Handler) ApiUpdateBookmark(w http.ResponseWriter, r *http.Request, ps h
 		panic(fmt.Errorf("failed to clean URL: %v", err))
 	}
 
-	// Set new tags
+	// Set new tags. SaveBookmarks normalizes tag names to lowercase with
+	// collapsed whitespace before comparing, so match on the normalized form
+	// here; otherwise a tag edited with different casing/spaces would be left
+	// marked for deletion and re-added as a duplicate instead of being kept.
+	normalize := func(s string) string {
+		return strings.Join(strings.Fields(strings.ToLower(s)), " ")
+	}
 	for i := range book.Tags {
 		book.Tags[i].Deleted = true
 	}
 
 	for _, newTag := range request.Tags {
+		normalized := normalize(newTag.Name)
 		for i, oldTag := range book.Tags {
-			if newTag.Name == oldTag.Name {
+			if normalized == oldTag.Name {
 				newTag.ID = oldTag.ID
 				book.Tags[i].Deleted = false
 				break
@@ -348,6 +355,7 @@ func (h *Handler) ApiUpdateBookmark(w http.ResponseWriter, r *http.Request, ps h
 		}
 
 		if newTag.ID == 0 {
+			newTag.Name = normalized
 			book.Tags = append(book.Tags, newTag)
 		}
 	}
