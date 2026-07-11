@@ -91,6 +91,8 @@ You can find additional details in [go mysql sql driver documentation](https://g
 
 PostgreSQL example: `SHIORI_DATABASE_URL="postgres://pqgotest:password@hostname/database?sslmode=verify-full"`
 
+Both the `postgres://` and `postgresql://` URL schemes are accepted.
+
 You can find additional details in [go postgres sql driver documentation](https://pkg.go.dev/github.com/lib/pq).
 
 ## Reverse proxies and the webroot path

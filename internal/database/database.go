@@ -31,7 +31,7 @@ func Connect(ctx context.Context, dbURL string) (model.DB, error) {
 	case "mysql":
 		urlNoSchema := strings.Split(dbURL, "://")[1]
 		return OpenMySQLDatabase(ctx, urlNoSchema)
-	case "postgres":
+	case "postgres", "postgresql":
 		return OpenPGDatabase(ctx, dbURL)
 	case "sqlite":
 		return OpenSQLiteDatabase(ctx, dbU.Path[1:])
