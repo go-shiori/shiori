@@ -17,6 +17,15 @@ var template = `
     </div>
     <div class="page-header" id="edit-box" v-if="editMode">
         <p>{{selection.length}} items selected</p>
+        <a title="Open selected" @click="openBookmarks(selection)">
+            <i class="fas fa-fw fa-arrow-left"></i>
+        </a>
+        <a title="Select all" @click="selectAll(true)">
+            <i class="fas fa-fw fa-check-square"></i>
+        </a>
+        <a title="Select none" @click="selectAll(false)">
+            <i class="fas fa-fw fa-square-full"></i>
+        </a>
         <a title="Delete bookmark" @click="showDialogDelete(selection)">
             <i class="fas fa-fw fa-trash-alt"></i>
         </a>
@@ -926,6 +935,32 @@ export default {
 					}
 				},
 			});
+		},
+		selectAll(select) {
+			this.selection = [];
+			if (select) {
+				for (var i = 0; i < this.bookmarks.length; ++i) {
+					this.toggleSelection({"id": this.bookmarks[i].id, "index": i});
+				}
+			}
+		},
+		openBookmarks(items) {
+			if (typeof items !== "object") return;
+			if (!Array.isArray(items)) items = [items];
+
+			items = items.filter((item) => {
+				var id = typeof item.id === "number" ? item.id : 0,
+					index = typeof item.index === "number" ? item.index : -1;
+
+				return id > 0 && index > -1;
+			});
+			if (items.length === 0) return;
+
+			var ids = items.map((item) => item.id),
+				indices = items.map((item) => item.index).sort((a, b) => b - a);
+			for (var i = 0; i < indices.length; ++i) {
+				window.open(this.bookmarks[indices[i]].url, this.bookmarks[indices[i]].title);
+			}
 		},
 	},
 	mounted() {
