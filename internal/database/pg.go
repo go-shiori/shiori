@@ -368,7 +368,7 @@ func (db *PGDatabase) GetBookmarks(ctx context.Context, opts model.DBGetBookmark
 	// Add order clause
 	switch opts.OrderMethod {
 	case model.ByLastAdded:
-		query += ` ORDER BY id DESC`
+		query += ` ORDER BY created_at DESC`
 	case model.ByLastModified:
 		query += ` ORDER BY modified_at DESC`
 	default:

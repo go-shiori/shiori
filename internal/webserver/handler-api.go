@@ -222,6 +222,11 @@ func (h *Handler) ApiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 		book.Title = book.URL
 	}
 
+	// Reject duplicate URLs with a clear error instead of a DB constraint panic
+	if _, exists, err := h.DB.GetBookmark(ctx, 0, book.URL); err == nil && exists {
+		panic(fmt.Errorf("bookmark with URL %q already exists", book.URL))
+	}
+
 	// Save bookmark to database
 	results, err := h.DB.SaveBookmarks(ctx, true, *book)
 	if err != nil || len(results) == 0 {

@@ -1,11 +1,16 @@
 package handlers
 
 import (
+	"bytes"
+	"compress/gzip"
 	"fmt"
 	"html/template"
 	"net/http"
+	"net/url"
 	"strconv"
+	"strings"
 
+	readability "github.com/go-shiori/go-readability"
 	"github.com/go-shiori/shiori/internal/http/response"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/gofrs/uuid/v5"
@@ -68,10 +73,29 @@ func HandleBookmarkArchive(deps model.Dependencies, c model.WebContext) {
 		return
 	}
 
+	archiveBase := deps.Config().Http.RootPath + fmt.Sprintf("bookmark/%d/archive/file/", bookmark.ID)
+	var contentHTML template.HTML
+
+	archive, err := deps.Domains().Archiver().GetBookmarkArchive(bookmark)
+	if err == nil {
+		defer archive.Close()
+		if gzContent, _, err := archive.Read(""); err == nil {
+			if gzReader, err := gzip.NewReader(bytes.NewReader(gzContent)); err == nil {
+				defer gzReader.Close()
+				fakeBase, _ := url.Parse("http://shiori-archive-local" + archiveBase)
+				if article, err := readability.FromReader(gzReader, fakeBase); err == nil {
+					fixed := strings.ReplaceAll(article.Content, "http://shiori-archive-local", "")
+					contentHTML = template.HTML(fixed)
+				}
+			}
+		}
+	}
+
 	data := map[string]any{
 		"RootPath": deps.Config().Http.RootPath,
 		"Version":  model.BuildVersion,
 		"Book":     bookmark,
+		"HTML":     contentHTML,
 	}
 
 	if err := response.SendTemplate(c, "archive.html", data); err != nil {
