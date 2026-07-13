@@ -39,7 +39,7 @@ func GetTestConfigurationAndDependencies(t *testing.T, ctx context.Context, logg
 
 	deps := dependencies.NewDependencies(logger, db, cfg)
 	deps.Domains().SetAccounts(domains.NewAccountsDomain(deps))
-	deps.Domains().SetArchiver(domains.NewArchiverDomain(deps))
+	deps.Domains().SetArchiver(domains.NewBuiltInArchiver(deps))
 	deps.Domains().SetAuth(domains.NewAuthDomain(deps))
 	deps.Domains().SetBookmarks(domains.NewBookmarksDomain(deps))
 	deps.Domains().SetStorage(domains.NewStorageDomain(deps, afero.NewBasePathFs(afero.NewOsFs(), cfg.Storage.DataDir)))

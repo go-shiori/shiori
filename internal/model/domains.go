@@ -6,13 +6,11 @@ import (
 	"os"
 	"time"
 
-	"github.com/go-shiori/warc"
 	"github.com/spf13/afero"
 )
 
 type BookmarksDomain interface {
 	HasEbook(b *BookmarkDTO) bool
-	HasArchive(b *BookmarkDTO) bool
 	HasThumbnail(b *BookmarkDTO) bool
 	GetBookmark(ctx context.Context, id DBID) (*BookmarkDTO, error)
 	GetBookmarks(ctx context.Context, ids []int) ([]BookmarkDTO, error)
@@ -38,8 +36,10 @@ type AccountsDomain interface {
 }
 
 type ArchiverDomain interface {
-	DownloadBookmarkArchive(book BookmarkDTO) (*BookmarkDTO, error)
-	GetBookmarkArchive(book *BookmarkDTO) (*warc.Archive, error)
+	ArchiveBookmark(book *BookmarkDTO, logEnabled bool) error
+	GetBookmarkArchive(book *BookmarkDTO) (Archive, error)
+	HasArchive(book *BookmarkDTO) bool
+	DeleteArchive(book *BookmarkDTO) error
 }
 
 type StorageDomain interface {

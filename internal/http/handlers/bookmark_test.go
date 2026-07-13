@@ -2,10 +2,12 @@ package handlers
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strconv"
 	"testing"
 
+	"github.com/go-shiori/shiori/internal/core"
 	"github.com/go-shiori/shiori/internal/http/templates"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/go-shiori/shiori/internal/testutil"
@@ -101,6 +103,30 @@ func TestBookmarkContentHandler(t *testing.T) {
 	})
 }
 
+// downloadBookmarkArchive mimics the old DownloadBookmarkArchive behavior
+func downloadBookmarkArchive(deps model.Dependencies, book model.BookmarkDTO) (*model.BookmarkDTO, error) {
+	content, contentType, err := core.DownloadBookmark(book.URL)
+	if err != nil {
+		return nil, fmt.Errorf("error downloading url: %s", err)
+	}
+
+	processRequest := core.ProcessRequest{
+		DataDir:     deps.Config().Storage.DataDir,
+		Bookmark:    book,
+		Content:     content,
+		ContentType: contentType,
+	}
+
+	result, isFatalErr, err := core.ProcessBookmark(deps, processRequest)
+	content.Close()
+
+	if err != nil && isFatalErr {
+		return nil, fmt.Errorf("failed to process: %v", err)
+	}
+
+	return &result, nil
+}
+
 func TestBookmarkFileHandlers(t *testing.T) {
 	logger := logrus.New()
 	_, deps := testutil.GetTestConfigurationAndDependencies(t, context.Background(), logger)
@@ -116,7 +142,7 @@ func TestBookmarkFileHandlers(t *testing.T) {
 	bookmarks, err := deps.Database().SaveBookmarks(context.TODO(), true, *bookmark)
 	require.NoError(t, err)
 
-	bookmark, err = deps.Domains().Archiver().DownloadBookmarkArchive(bookmarks[0])
+	bookmark, err = downloadBookmarkArchive(deps, bookmarks[0])
 	require.NoError(t, err)
 
 	bookmarks, err = deps.Database().SaveBookmarks(context.TODO(), false, *bookmark)

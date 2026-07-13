@@ -85,3 +85,4 @@ func GetEbookPath(bookmark *BookmarkDTO) string {
 func GetArchivePath(bookmark *BookmarkDTO) string {
 	return filepath.Join("archive", strconv.Itoa(bookmark.ID))
 }
+

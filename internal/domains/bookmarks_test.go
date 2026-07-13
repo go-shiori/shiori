@@ -30,31 +30,33 @@ func TestBookmarkDomain(t *testing.T) {
 	// TODO: write a valid archive file
 	fs.Create("archive/1")
 
-	domain := domains.NewBookmarksDomain(deps)
+	archiverDomain := domains.NewBuiltInArchiver(deps)
+	bookmarksDomain := domains.NewBookmarksDomain(deps)
+
 	t.Run("HasEbook", func(t *testing.T) {
 		t.Run("Yes", func(t *testing.T) {
-			require.True(t, domain.HasEbook(&model.BookmarkDTO{ID: 1}))
+			require.True(t, bookmarksDomain.HasEbook(&model.BookmarkDTO{ID: 1}))
 		})
 		t.Run("No", func(t *testing.T) {
-			require.False(t, domain.HasEbook(&model.BookmarkDTO{ID: 2}))
+			require.False(t, bookmarksDomain.HasEbook(&model.BookmarkDTO{ID: 2}))
 		})
 	})
 
 	t.Run("HasArchive", func(t *testing.T) {
 		t.Run("Yes", func(t *testing.T) {
-			require.True(t, domain.HasArchive(&model.BookmarkDTO{ID: 1}))
+			require.True(t, archiverDomain.HasArchive(&model.BookmarkDTO{ID: 1}))
 		})
 		t.Run("No", func(t *testing.T) {
-			require.False(t, domain.HasArchive(&model.BookmarkDTO{ID: 2}))
+			require.False(t, archiverDomain.HasArchive(&model.BookmarkDTO{ID: 2}))
 		})
 	})
 
 	t.Run("HasThumbnail", func(t *testing.T) {
 		t.Run("Yes", func(t *testing.T) {
-			require.True(t, domain.HasThumbnail(&model.BookmarkDTO{ID: 1}))
+			require.True(t, bookmarksDomain.HasThumbnail(&model.BookmarkDTO{ID: 1}))
 		})
 		t.Run("No", func(t *testing.T) {
-			require.False(t, domain.HasThumbnail(&model.BookmarkDTO{ID: 2}))
+			require.False(t, bookmarksDomain.HasThumbnail(&model.BookmarkDTO{ID: 2}))
 		})
 	})
 
@@ -62,7 +64,7 @@ func TestBookmarkDomain(t *testing.T) {
 		t.Run("Success", func(t *testing.T) {
 			_, err := deps.Database().SaveBookmarks(context.TODO(), true, *testutil.GetValidBookmark())
 			require.NoError(t, err)
-			bookmark, err := domain.GetBookmark(context.Background(), 1)
+			bookmark, err := bookmarksDomain.GetBookmark(context.Background(), 1)
 			require.NoError(t, err)
 			require.Equal(t, 1, bookmark.ID)
 
@@ -72,7 +74,7 @@ func TestBookmarkDomain(t *testing.T) {
 		})
 
 		t.Run("NotFound", func(t *testing.T) {
-			bookmark, err := domain.GetBookmark(context.Background(), 999)
+			bookmark, err := bookmarksDomain.GetBookmark(context.Background(), 999)
 			require.Error(t, err)
 			require.Nil(t, bookmark)
 			require.Equal(t, model.ErrBookmarkNotFound, err)
@@ -82,7 +84,7 @@ func TestBookmarkDomain(t *testing.T) {
 			// Create a new context with a timeout to force an error
 			cancelCtx, cancel := context.WithCancel(context.Background())
 			cancel() // Cancel immediately to force error
-			bookmark, err := domain.GetBookmark(cancelCtx, 1)
+			bookmark, err := bookmarksDomain.GetBookmark(cancelCtx, 1)
 			require.Error(t, err)
 			require.Nil(t, bookmark)
 			require.Contains(t, err.Error(), "failed to get bookmark")
@@ -102,7 +104,7 @@ func TestBookmarkDomain(t *testing.T) {
 			require.NoError(t, err)
 
 			// Test getting multiple bookmarks
-			bookmarks, err := domain.GetBookmarks(context.Background(), []int{1, 2})
+			bookmarks, err := bookmarksDomain.GetBookmarks(context.Background(), []int{1, 2})
 			require.NoError(t, err)
 			require.Len(t, bookmarks, 2)
 
@@ -118,7 +120,7 @@ func TestBookmarkDomain(t *testing.T) {
 
 		t.Run("PartialResults", func(t *testing.T) {
 			// Test with a mix of existing and non-existing IDs
-			bookmarks, err := domain.GetBookmarks(context.Background(), []int{1, 999})
+			bookmarks, err := bookmarksDomain.GetBookmarks(context.Background(), []int{1, 999})
 			require.NoError(t, err)
 			require.Len(t, bookmarks, 1)
 			assert.Equal(t, 1, bookmarks[0].ID)
@@ -126,7 +128,7 @@ func TestBookmarkDomain(t *testing.T) {
 
 		t.Run("EmptyResults", func(t *testing.T) {
 			// Test with non-existing IDs
-			bookmarks, err := domain.GetBookmarks(context.Background(), []int{998, 999})
+			bookmarks, err := bookmarksDomain.GetBookmarks(context.Background(), []int{998, 999})
 			require.NoError(t, err)
 			require.Len(t, bookmarks, 0)
 		})
@@ -135,7 +137,7 @@ func TestBookmarkDomain(t *testing.T) {
 			// Create a new context with a timeout to force an error
 			cancelCtx, cancel := context.WithCancel(context.Background())
 			cancel() // Cancel immediately to force error
-			bookmarks, err := domain.GetBookmarks(cancelCtx, []int{1})
+			bookmarks, err := bookmarksDomain.GetBookmarks(cancelCtx, []int{1})
 			require.Error(t, err)
 			require.Nil(t, bookmarks)
 			require.Contains(t, err.Error(), "failed to get bookmark")

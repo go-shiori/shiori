@@ -139,13 +139,14 @@ func (h *Handler) ApiDeleteViaExtension(w http.ResponseWriter, r *http.Request, 
 		err = h.DB.DeleteBookmarks(ctx, book.ID)
 		checkError(err)
 
-		// Delete thumbnail image and archives from local disk
+		// Delete thumbnail image and archives using proper interfaces
 		strID := strconv.Itoa(book.ID)
 		imgPath := fp.Join(h.DataDir, "thumb", strID)
-		archivePath := fp.Join(h.DataDir, "archive", strID)
-
+		
 		os.Remove(imgPath)
-		os.Remove(archivePath)
+		
+		// Use ArchiverDomain to delete archive (works for both built-in and external)
+		h.dependencies.Domains().Archiver().DeleteArchive(&book)
 	}
 
 	fmt.Fprint(w, 1)

@@ -4,6 +4,8 @@ import (
 	"io"
 	"net/http"
 	"time"
+
+	"github.com/go-shiori/shiori/internal/model"
 )
 
 var httpClient = &http.Client{Timeout: time.Minute}
@@ -18,7 +20,7 @@ func DownloadBookmark(url string) (io.ReadCloser, string, error) {
 	}
 
 	// Send download request
-	req.Header.Set("User-Agent", userAgent)
+	req.Header.Set("User-Agent", model.UserAgent)
 	resp, err := httpClient.Do(req)
 	if err != nil {
 		return nil, "", err

@@ -74,6 +74,16 @@ run-server: generate
 run-server-v2: generate
 	GIN_MODE=$(GIN_MODE) SHIORI_DEVELOPMENT=$(SHIORI_DEVELOPMENT) SHIORI_HTTP_SERVE_WEB_UI_V2=true go run main.go server --log-level debug
 
+## Runs server for local development with external archiver
+.PHONY: run-server-ext
+run-server-ext: generate
+	@echo "Starting Shiori with external archiver..."
+	@export SHIORI_EXTERNAL_ARCHIVER_ARCHIVE_COMMAND="mkdir -p /tmp/tmp-shiori && curl -o /tmp/tmp-shiori/archive_{ID} {URL}"; \
+	export SHIORI_EXTERNAL_ARCHIVER_HAS_COMMAND="test -f /tmp/tmp-shiori/archive_{ID} && echo true || echo false"; \
+	export SHIORI_EXTERNAL_ARCHIVER_GET_COMMAND="cat /tmp/tmp-shiori/archive_{ID}"; \
+	export SHIORI_EXTERNAL_ARCHIVER_DELETE_COMMAND="rm -f /tmp/tmp-shiori/archive_{ID}"; \
+	GIN_MODE=$(GIN_MODE) SHIORI_DEVELOPMENT=$(SHIORI_DEVELOPMENT) go run main.go server --log-level debug
+
 ## Generate swagger docs
 .PHONY: swagger
 swagger:

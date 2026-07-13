@@ -17,11 +17,6 @@ func (d *BookmarksDomain) HasEbook(b *model.BookmarkDTO) bool {
 	return d.deps.Domains().Storage().FileExists(ebookPath)
 }
 
-func (d *BookmarksDomain) HasArchive(b *model.BookmarkDTO) bool {
-	archivePath := model.GetArchivePath(b)
-	return d.deps.Domains().Storage().FileExists(archivePath)
-}
-
 func (d *BookmarksDomain) HasThumbnail(b *model.BookmarkDTO) bool {
 	thumbnailPath := model.GetThumbnailPath(b)
 	return d.deps.Domains().Storage().FileExists(thumbnailPath)
@@ -39,7 +34,7 @@ func (d *BookmarksDomain) GetBookmark(ctx context.Context, id model.DBID) (*mode
 
 	// Check if it has ebook and archive.
 	bookmark.HasEbook = d.HasEbook(&bookmark)
-	bookmark.HasArchive = d.HasArchive(&bookmark)
+	bookmark.HasArchive = d.deps.Domains().Archiver().HasArchive(&bookmark)
 
 	return &bookmark, nil
 }
@@ -57,7 +52,7 @@ func (d *BookmarksDomain) GetBookmarks(ctx context.Context, ids []int) ([]model.
 
 		// Check if it has ebook and archive
 		bookmark.HasEbook = d.HasEbook(&bookmark)
-		bookmark.HasArchive = d.HasArchive(&bookmark)
+		bookmark.HasArchive = d.deps.Domains().Archiver().HasArchive(&bookmark)
 		bookmarks = append(bookmarks, bookmark)
 	}
 	return bookmarks, nil
