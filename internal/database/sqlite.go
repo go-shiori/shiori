@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-shiori/shiori/internal/database/migrations"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/huandu/go-sqlbuilder"
 	"github.com/jmoiron/sqlx"
@@ -64,6 +65,10 @@ var sqliteMigrations = []migration{
 	newFileMigration("0.3.0", "0.4.0", "sqlite/0002_denormalize_content"),
 	newFileMigration("0.4.0", "0.5.0", "sqlite/0003_uniq_id"),
 	newFileMigration("0.5.0", "0.6.0", "sqlite/0004_created_time"),
+	newFileMigration("0.6.0", "0.7.0", "sqlite/0005_bookmark_archiver"),
+	newFuncMigration("0.7.0", "0.8.0", func(db *sql.DB) error {
+		return migrations.MigrateArchiverMigration(db, "sqlite")
+	}),
 }
 
 // SQLiteDatabase is implementation of Database interface
@@ -220,15 +225,16 @@ func (db *SQLiteDatabase) SaveBookmarks(ctx context.Context, create bool, bookma
 		// Prepare statement
 
 		stmtInsertBook, err := tx.PreparexContext(ctx, `INSERT INTO bookmark
-			(url, title, excerpt, author, public, modified_at, has_content, created_at)
-			VALUES(?, ?, ?, ?, ?, ?, ?, ?) RETURNING id`)
+			(url, title, excerpt, author, public, modified_at, created_at, has_content, archiver, archive_path)
+			VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id`)
 		if err != nil {
 			return fmt.Errorf("failed to prepare insert book statement: %w", err)
 		}
 
 		stmtUpdateBook, err := tx.PreparexContext(ctx, `UPDATE bookmark SET
 			url = ?, title = ?,	excerpt = ?, author = ?,
-			public = ?, modified_at = ?, has_content = ?
+			public = ?, modified_at = ?, has_content = ?,
+			archiver = ?, archive_path = ?
 			WHERE id = ?`)
 		if err != nil {
 			return fmt.Errorf("failed to prepare update book statement: %w", err)
@@ -297,10 +303,10 @@ func (db *SQLiteDatabase) SaveBookmarks(ctx context.Context, create bool, bookma
 			if create {
 				book.CreatedAt = modifiedTime
 				err = stmtInsertBook.QueryRowContext(ctx,
-					book.URL, book.Title, book.Excerpt, book.Author, book.Public, book.ModifiedAt, hasContent, book.CreatedAt).Scan(&book.ID)
+					book.URL, book.Title, book.Excerpt, book.Author, book.Public, book.ModifiedAt, book.CreatedAt, hasContent, book.Archiver, book.ArchivePath).Scan(&book.ID)
 			} else {
 				_, err = stmtUpdateBook.ExecContext(ctx,
-					book.URL, book.Title, book.Excerpt, book.Author, book.Public, book.ModifiedAt, hasContent, book.ID)
+					book.URL, book.Title, book.Excerpt, book.Author, book.Public, book.ModifiedAt, hasContent, book.Archiver, book.ArchivePath, book.ID)
 			}
 			if err != nil {
 				return fmt.Errorf("failed to delete bookmark content: %w", err)
@@ -396,7 +402,9 @@ func (db *SQLiteDatabase) GetBookmarks(ctx context.Context, opts model.DBGetBook
 		b.public,
 		b.created_at,
 		b.modified_at,
-		b.has_content
+		b.has_content,
+		b.archiver,
+		b.archive_path
 		FROM bookmark b
 		WHERE 1`
 

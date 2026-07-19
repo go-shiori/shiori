@@ -34,6 +34,8 @@ type BookmarkDTO struct {
 	ImageURL      string   `db:"image_url"     json:"imageURL"`
 	HasContent    bool     `db:"has_content"   json:"hasContent"`
 	Tags          []TagDTO `json:"tags"`
+	Archiver      string   `db:"archiver"      json:"archiver"`
+	ArchivePath   string   `db:"archive_path"  json:"archivePath"`
 	HasArchive    bool     `json:"hasArchive"`
 	HasEbook      bool     `json:"hasEbook"`
 	CreateArchive bool     `json:"create_archive"` // TODO: migrate outside the DTO

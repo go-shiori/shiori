@@ -1,10 +1,8 @@
 package webserver
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"os"
@@ -59,19 +57,6 @@ func (h *Handler) ApiInsertViaExtension(w http.ResponseWriter, r *http.Request, 
 		request.Title = request.URL
 	}
 
-	// Since we are using extension, the extension might send the HTML content
-	// so no need to download it again here. However, if it's empty, it might be not HTML file
-	// so we download it here.
-	var contentType string
-	var contentBuffer io.Reader
-
-	if request.HTML == "" {
-		contentBuffer, contentType, _ = core.DownloadBookmark(request.URL)
-	} else {
-		contentType = "text/html; charset=UTF-8"
-		contentBuffer = bytes.NewBufferString(request.HTML)
-	}
-
 	// Save the bookmark with whatever we already have downloaded
 	// since we need the ID in order to download the archive
 	// Only when old bookmark is not exists.
@@ -82,38 +67,40 @@ func (h *Handler) ApiInsertViaExtension(w http.ResponseWriter, r *http.Request, 
 			return
 		}
 		book = books[0]
+	} else {
+		books, err := h.DB.SaveBookmarks(ctx, false, book)
+		if err != nil {
+			log.Printf("error saving bookmark before downloading content: %s", err)
+			return
+		}
+		book = books[0]
 	}
 
 	// At this point the web page already downloaded.
 	// Time to process it.
-	if contentBuffer != nil {
-		book.CreateArchive = true
-		request := core.ProcessRequest{
-			DataDir:     h.DataDir,
-			Bookmark:    book,
-			Content:     contentBuffer,
-			ContentType: contentType,
-		}
-
-		var isFatalErr bool
-		book, isFatalErr, err = core.ProcessBookmark(h.dependencies, request)
-
-		if tmp, ok := contentBuffer.(io.ReadCloser); ok {
-			tmp.Close()
-		}
-
-		// If we can't process or update the saved bookmark, just log it and continue on with the
-		// request.
-		if err != nil && isFatalErr {
-			log.Printf("failed to process bookmark: %v", err)
-		} else if _, err := h.DB.SaveBookmarks(ctx, false, book); err != nil {
-			log.Printf("error saving bookmark after downloading content: %s", err)
-		}
+	var result *model.BookmarkDTO
+	var errArchiver error
+	// Always use GenerateBookmarkArchive since ProcessBookmarkArchive was removed
+	result, errArchiver = h.dependencies.Domains().Archiver().GenerateBookmarkArchive(book)
+	if errArchiver != nil {
+		log.Printf("error downloading bookmark cache: %s", errArchiver)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
+
+	// Save the bookmark with whatever we already have downloaded
+	// since we need the ID in order to download the archive
+	books, err := h.DB.SaveBookmarks(ctx, request.ID == 0, *result)
+	if err != nil {
+		log.Printf("error saving bookmark from extension downloading content: %s", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	book = books[0]
 
 	// Return the new bookmark
 	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(&book)
+	err = json.NewEncoder(w).Encode(&result)
 	checkError(err)
 }
 

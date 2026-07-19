@@ -144,13 +144,12 @@ func ProcessBookmark(deps model.Dependencies, req ProcessRequest) (book model.Bo
 
 	// If needed, create ebook as well
 	if book.CreateEbook {
-		ebookPath := model.GetEbookPath(&book)
-		req.Bookmark = book
-
 		if strings.Contains(contentType, "application/pdf") {
 			return book, false, errors.Wrap(err, "can't create ebook from pdf")
 		} else {
-			_, err = GenerateEbook(deps, req, ebookPath)
+			_, err = GenerateEbook(deps, ProcessRequest{
+				Bookmark: book,
+			})
 			if err != nil {
 				return book, true, errors.Wrap(err, "failed to create ebook")
 			}
@@ -188,6 +187,8 @@ func ProcessBookmark(deps model.Dependencies, req ProcessRequest) (book model.Bo
 
 		book.HasArchive = true
 		book.ModifiedAt = ""
+		book.ArchivePath = dstPath
+		book.Archiver = model.ArchiverWARC
 	}
 
 	return book, false, nil
