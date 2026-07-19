@@ -168,6 +168,16 @@ export default {
 			this.search = "";
 			this.loadData(true, true);
 		},
+		async refreshTags() {
+			try {
+				const tagsUrl = new URL("api/tags", document.baseURI);
+				this.tags = await apiRequest(tagsUrl);
+			} catch (err) {
+				// Don't interrupt the user with an error dialog — the primary
+				// action already succeeded; only the tag counts are stale.
+				console.error("Failed to refresh tags:", err);
+			}
+		},
 		async loadData(saveState, fetchTags) {
 			if (this.loading) return;
 
@@ -443,6 +453,7 @@ export default {
 						this.dialog.loading = false;
 						this.dialog.visible = false;
 						this.bookmarks.splice(0, 0, json);
+						this.refreshTags();
 					} catch (err) {
 						this.dialog.loading = false;
 						this.showErrorDialog(err.message);
@@ -535,6 +546,7 @@ export default {
 						this.dialog.loading = false;
 						this.dialog.visible = false;
 						this.bookmarks.splice(index, 1, json);
+						this.refreshTags();
 					} catch (err) {
 						this.dialog.loading = false;
 						this.showErrorDialog(err.message);
@@ -589,6 +601,7 @@ export default {
 						this.dialog.loading = false;
 						this.dialog.visible = false;
 						indices.forEach((index) => this.bookmarks.splice(index, 1));
+						this.refreshTags();
 
 						if (this.bookmarks.length < 20) {
 							this.loadData(false);
@@ -842,6 +855,7 @@ export default {
 							var item = items.find((el) => el.id === book.id);
 							this.bookmarks.splice(item.index, 1, book);
 						});
+						this.refreshTags();
 					} catch (err) {
 						this.selection = [];
 						this.editMode = false;

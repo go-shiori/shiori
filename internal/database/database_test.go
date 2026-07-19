@@ -21,6 +21,7 @@ func testDatabase(t *testing.T, dbFactory testDatabaseFactory) {
 		"testCreateBookmarkWithContent":         testCreateBookmarkWithContent,
 		"testCreateBookmarkTwice":               testCreateBookmarkTwice,
 		"testCreateBookmarkWithTag":             testCreateBookmarkWithTag,
+		"testUpdateBookmarkRemoveTag":           testUpdateBookmarkRemoveTag,
 		"testCreateTwoDifferentBookmarks":       testCreateTwoDifferentBookmarks,
 		"testUpdateBookmark":                    testUpdateBookmark,
 		"testUpdateBookmarkUpdatesModifiedTime": testUpdateBookmarkUpdatesModifiedTime,
@@ -154,6 +155,42 @@ func testCreateBookmarkWithTag(t *testing.T, db model.DB) {
 	assert.NoError(t, err, "Save bookmarks must not fail")
 	assert.Equal(t, book.URL, result[0].URL)
 	assert.Equal(t, book.Tags[0].Name, result[0].Tags[0].Name)
+}
+
+// testUpdateBookmarkRemoveTag verifies that re-saving a bookmark with one of its
+// tags marked Deleted actually removes the bookmark-tag association.
+func testUpdateBookmarkRemoveTag(t *testing.T, db model.DB) {
+	ctx := context.TODO()
+
+	book := model.BookmarkDTO{
+		URL:   "https://github.com/go-shiori/shiori",
+		Title: "shiori",
+		Tags: []model.TagDTO{
+			{Tag: model.Tag{Name: "keep"}},
+			{Tag: model.Tag{Name: "remove"}},
+		},
+	}
+
+	result, err := db.SaveBookmarks(ctx, true, book)
+	require.NoError(t, err, "Save bookmarks must not fail")
+	require.Len(t, result, 1)
+	require.Len(t, result[0].Tags, 2, "Bookmark should have 2 tags after initial save")
+
+	saved := result[0]
+	for i := range saved.Tags {
+		if saved.Tags[i].Name == "remove" {
+			saved.Tags[i].Deleted = true
+		}
+	}
+
+	_, err = db.SaveBookmarks(ctx, false, saved)
+	require.NoError(t, err, "Save bookmarks must not fail")
+
+	bookmarks, err := db.GetBookmarks(ctx, model.DBGetBookmarksOptions{IDs: []int{saved.ID}})
+	require.NoError(t, err)
+	require.Len(t, bookmarks, 1)
+	require.Len(t, bookmarks[0].Tags, 1, "Removed tag should be gone after save")
+	assert.Equal(t, "keep", bookmarks[0].Tags[0].Name)
 }
 
 func testCreateBookmarkTwice(t *testing.T, db model.DB) {
