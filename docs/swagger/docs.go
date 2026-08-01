@@ -991,7 +991,7 @@ const docTemplate = `{
                 "owner": {
                     "type": "boolean"
                 },
-                "passowrd": {
+                "password": {
                     "description": "Used only to store, not to retrieve",
                     "type": "string"
                 },

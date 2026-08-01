@@ -737,28 +737,28 @@ export default {
 						this.dialog.loading = false;
 						this.dialog.visible = false;
 
-						let faildedUpdateArchives = [];
-						let faildedCreateEbook = [];
+						let failedUpdateArchives = [];
+						let failedCreateEbook = [];
 						json.forEach((book) => {
 							var item = items.find((el) => el.id === book.id);
 							this.bookmarks.splice(item.index, 1, book);
 
 							if (data.create_archive && !book.hasArchive) {
-								faildedUpdateArchives.push(book.id);
+								failedUpdateArchives.push(book.id);
 								console.error("can't update archive for bookmark id", book.id);
 							}
 							if (data.create_ebook && !book.hasEbook) {
-								faildedCreateEbook.push(book.id);
+								failedCreateEbook.push(book.id);
 								console.error("can't update ebook for bookmark id:", book.id);
 							}
 						});
 
 						if (
-							faildedCreateEbook.length > 0 ||
-							faildedUpdateArchives.length > 0
+							failedCreateEbook.length > 0 ||
+							failedUpdateArchives.length > 0
 						) {
 							this.showDialog({
-								title: `Bookmarks Id that Update Action Faild`,
+								title: `Bookmarks Id that Update Action Failed`,
 								content: `Not all bookmarks could have their contents updated, but no files were overwritten.`,
 								mainText: "OK",
 								mainClick: () => {

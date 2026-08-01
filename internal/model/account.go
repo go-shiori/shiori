@@ -63,7 +63,7 @@ func (a Account) ToDTO() AccountDTO {
 type AccountDTO struct {
 	ID       DBID        `json:"id"`
 	Username string      `json:"username"`
-	Password string      `json:"passowrd,omitempty"` // Used only to store, not to retrieve
+	Password string      `json:"password,omitempty"` // Used only to store, not to retrieve
 	Owner    *bool       `json:"owner"`
 	Config   *UserConfig `json:"config"`
 }
