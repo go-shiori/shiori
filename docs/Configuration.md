@@ -97,7 +97,7 @@ You can find additional details in [go postgres sql driver documentation](https:
 
 If you want to serve Shiori behind a reverse proxy, you can set the `SHIORI_HTTP_ROOT_PATH` environment variable to the path where Shiori is served, e.g. `/shiori/`.
 
-Keep in mind this configuration wont make Shiori accessible from `/shiori` path so you need to setup your reverse proxy accordingly so it can strip the webroot path.
+Keep in mind this configuration won't make Shiori accessible from `/shiori` path so you need to setup your reverse proxy accordingly so it can strip the webroot path.
 
 We provide some examples for popular reverse proxies below. Please follow your reverse proxy documentation in order to setup it properly.
 

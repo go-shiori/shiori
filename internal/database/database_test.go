@@ -24,7 +24,7 @@ func testDatabase(t *testing.T, dbFactory testDatabaseFactory) {
 		"testCreateTwoDifferentBookmarks":       testCreateTwoDifferentBookmarks,
 		"testUpdateBookmark":                    testUpdateBookmark,
 		"testUpdateBookmarkUpdatesModifiedTime": testUpdateBookmarkUpdatesModifiedTime,
-		"testGetBoomarksWithTimeFilters":        testGetBoomarksWithTimeFilters,
+		"testGetBookmarksWithTimeFilters":        testGetBookmarksWithTimeFilters,
 		"testUpdateBookmarkWithContent":         testUpdateBookmarkWithContent,
 		"testGetBookmark":                       testGetBookmark,
 		"testGetBookmarkNotExistent":            testGetBookmarkNotExistent,
@@ -55,7 +55,7 @@ func testDatabase(t *testing.T, dbFactory testDatabaseFactory) {
 		"testCreateAccount":              testCreateAccount,
 		"testCreateDuplicateAccount":     testCreateDuplicateAccount,
 		"testDeleteAccount":              testDeleteAccount,
-		"testDeleteNonExistantAccount":   testDeleteNonExistantAccount,
+		"testDeleteNonExistentAccount":   testDeleteNonExistentAccount,
 		"testUpdateAccount":              testUpdateAccount,
 		"testUpdateAccountDuplicateUser": testUpdateAccountDuplicateUser,
 		"testGetAccount":                 testGetAccount,
@@ -550,7 +550,7 @@ func testDeleteAccount(t *testing.T, db model.DB) {
 	assert.ErrorIs(t, err, ErrNotFound, "Get account must return not found error")
 }
 
-func testDeleteNonExistantAccount(t *testing.T, db model.DB) {
+func testDeleteNonExistentAccount(t *testing.T, db model.DB) {
 	ctx := context.TODO()
 	err := db.DeleteAccount(ctx, model.DBID(99))
 	assert.ErrorIs(t, err, ErrNotFound, "Delete account must fail")
@@ -653,7 +653,7 @@ func testListAccounts(t *testing.T, db model.DB) {
 		{"with keyword and owner", model.DBListAccountsOptions{Keyword: "hello", Owner: false}, 1},
 		{"with no result", model.DBListAccountsOptions{Keyword: "shiori"}, 0},
 		{"with username", model.DBListAccountsOptions{Username: "foo"}, 1},
-		{"with non-existent username", model.DBListAccountsOptions{Username: "non-existant"}, 0},
+		{"with non-existent username", model.DBListAccountsOptions{Username: "non-existent"}, 0},
 	}
 
 	for _, tt := range tests {
@@ -756,7 +756,7 @@ func testUpdateBookmarkUpdatesModifiedTime(t *testing.T, db model.DB) {
 }
 
 // TODO: Consider using `t.Parallel()` once we have automated database tests spawning databases using testcontainers.
-func testGetBoomarksWithTimeFilters(t *testing.T, db model.DB) {
+func testGetBookmarksWithTimeFilters(t *testing.T, db model.DB) {
 	ctx := context.TODO()
 
 	book1 := model.BookmarkDTO{
@@ -791,7 +791,7 @@ func testGetBoomarksWithTimeFilters(t *testing.T, db model.DB) {
 	resultUpdatedBook1, err := db.SaveBookmarks(ctx, false, updatedBook1)
 	assert.NoError(t, err, "Save bookmarks must not fail")
 
-	// get diffrent filteter combination
+	// get different filteter combination
 	booksOrderByLastAdded, err := db.GetBookmarks(ctx, model.DBGetBookmarksOptions{
 		IDs:         []int{resultUpdatedBook1[0].ID, resultUpdatedBook2[0].ID},
 		OrderMethod: 1,
