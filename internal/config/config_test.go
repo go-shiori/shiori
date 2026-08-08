@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -116,4 +117,24 @@ func TestConfigIsValid(t *testing.T) {
 		cfg.Http.RootPath = "/invalid"
 		require.Error(t, cfg.IsValid())
 	})
+
+	t.Run("verify oidc params", func(t *testing.T) {
+		cfg := ParseServerConfiguration(context.TODO(), log)
+		cfg.Http.OIDCEnabled = true
+		assert.Error(t, cfg.IsValid())
+		cfg.Http.OIDCIssuer = "http://issuer"
+		assert.Error(t, cfg.IsValid())
+		cfg.Http.OIDCClientID = "client-id"
+		assert.Error(t, cfg.IsValid())
+		cfg.Http.OIDCClientSecret = "client-secret"
+		assert.Error(t, cfg.IsValid())
+		cfg.Http.OIDCRedirectURL = "http://redirect.url"
+		require.NoError(t, cfg.IsValid())
+	})
+}
+
+func TestDebugConfiguration(t *testing.T) {
+	log := logrus.New()
+	cfg := ParseServerConfiguration(context.TODO(), log)
+	cfg.DebugConfiguration(log)
 }

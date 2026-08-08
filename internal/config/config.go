@@ -69,6 +69,16 @@ type HttpConfig struct {
 	SSOProxyAuth           bool     `env:"SSO_PROXY_AUTH_ENABLED,default=false"`
 	SSOProxyAuthHeaderName string   `env:"SSO_PROXY_AUTH_HEADER_NAME,default=Remote-User"`
 	SSOProxyAuthTrusted    []string `env:"SSO_PROXY_AUTH_TRUSTED,default=10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, fc00::/7"`
+
+	OIDCEnabled       bool   `env:"OIDC_ENABLED,default=false"`
+	OIDCIssuer        string `env:"OIDC_ISSUER"`
+	OIDCClientID      string `env:"OIDC_CLIENT_ID"`
+	OIDCClientSecret  string `env:"OIDC_CLIENT_SECRET"`
+	OIDCRedirectURL   string `env:"OIDC_REDIRECT_URL"`
+	OIDCScopes        string `env:"OIDC_SCOPES,default=openid,profile,email"`
+	OIDCUsernameClaim string `env:"OIDC_USERNAME_CLAIM,default=preferred_username"`
+	OIDCAutoRegister  bool   `env:"OIDC_AUTO_REGISTER,default=false"`
+	OIDCProviderName  string `env:"OIDC_PROVIDER_NAME,default=OIDC"`
 }
 
 // SetDefaults sets the default values for the configuration
@@ -159,11 +169,35 @@ func (c *Config) DebugConfiguration(logger *logrus.Logger) {
 	logger.Debugf(" SHIORI_SSO_PROXY_AUTH_ENABLED: %t", c.Http.SSOProxyAuth)
 	logger.Debugf(" SHIORI_SSO_PROXY_AUTH_HEADER_NAME: %s", c.Http.SSOProxyAuthHeaderName)
 	logger.Debugf(" SHIORI_SSO_PROXY_AUTH_TRUSTED: %v", c.Http.SSOProxyAuthTrusted)
+	logger.Debugf(" SHIORI_OIDC_ENABLED: %t", c.Http.OIDCEnabled)
+	logger.Debugf(" SHIORI_OIDC_ISSUER: %s", c.Http.OIDCIssuer)
+	logger.Debugf(" SHIORI_OIDC_CLIENT_ID: %s", c.Http.OIDCClientID)
+	logger.Debugf(" SHIORI_OIDC_CLIENT_SECRET: %d characters", len(c.Http.OIDCClientSecret))
+	logger.Debugf(" SHIORI_OIDC_REDIRECT_URL: %s", c.Http.OIDCRedirectURL)
+	logger.Debugf(" SHIORI_OIDC_SCOPES: %s", c.Http.OIDCScopes)
+	logger.Debugf(" SHIORI_OIDC_USERNAME_CLAIM: %s", c.Http.OIDCUsernameClaim)
+	logger.Debugf(" SHIORI_OIDC_AUTO_REGISTER: %t", c.Http.OIDCAutoRegister)
+	logger.Debugf(" SHIORI_OIDC_PROVIDER_NAME: %s", c.Http.OIDCProviderName)
 }
 
 func (c *Config) IsValid() error {
 	if err := c.Http.IsValid(); err != nil {
 		return fmt.Errorf("http configuration is invalid: %w", err)
+	}
+
+	if c.Http.OIDCEnabled {
+		if c.Http.OIDCIssuer == "" {
+			return fmt.Errorf("OIDC issuer is required when OIDC is enabled")
+		}
+		if c.Http.OIDCClientID == "" {
+			return fmt.Errorf("OIDC client ID is required when OIDC is enabled")
+		}
+		if c.Http.OIDCClientSecret == "" {
+			return fmt.Errorf("OIDC client secret is required when OIDC is enabled")
+		}
+		if c.Http.OIDCRedirectURL == "" {
+			return fmt.Errorf("OIDC redirect URL is required when OIDC is enabled")
+		}
 	}
 
 	return nil

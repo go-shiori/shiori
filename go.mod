@@ -7,8 +7,10 @@ require (
 	git.sr.ht/~emersion/go-sqlite3-fts5 v0.0.0-20250706113457-213d0e8755e5
 	github.com/PuerkitoBio/goquery v1.10.3
 	github.com/blang/semver v3.5.1+incompatible
+	github.com/coreos/go-oidc/v3 v3.17.0
 	github.com/disintegration/imaging v1.6.2
 	github.com/fatih/color v1.18.0
+	github.com/go-jose/go-jose/v4 v4.1.3
 	github.com/go-shiori/go-epub v1.2.2-0.20241010194245-bd691046db94
 	github.com/go-shiori/go-readability v0.0.0-20250217085726-9f5bf5ca7612
 	github.com/go-shiori/warc v0.0.0-20200621032813-359908319d1d
@@ -37,6 +39,7 @@ require (
 	golang.org/x/crypto v0.42.0
 	golang.org/x/image v0.31.0
 	golang.org/x/net v0.44.0
+	golang.org/x/oauth2 v0.35.0
 	golang.org/x/term v0.35.0
 	modernc.org/sqlite v1.39.0
 )

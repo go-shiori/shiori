@@ -254,3 +254,40 @@ func TestHandleLogout(t *testing.T) {
 		require.Equal(t, http.StatusOK, w.Code)
 	})
 }
+
+func TestHandleAuthConfig(t *testing.T) {
+	logger := logrus.New()
+
+	t.Run("oidc enabled", func(t *testing.T) {
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, context.Background(), logger)
+		deps.Config().Http.OIDCEnabled = false
+
+		c, w := testutil.NewTestWebContext()
+		HandleAuthConfig(deps, c)
+		require.Equal(t, http.StatusOK, w.Code)
+
+		response := testutil.NewTestResponseFromRecorder(w)
+		response.AssertOk(t)
+		response.AssertMessageJSONKeyValue(t, "oidc_enabled", func(t *testing.T, value any) {
+			require.Equal(t, false, value)
+		})
+	})
+
+	t.Run("oidc disabled", func(t *testing.T) {
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, context.Background(), logger)
+		c, w := testutil.NewTestWebContext()
+		deps.Config().Http.OIDCEnabled = true
+		deps.Config().Http.OIDCProviderName = "TestProvider"
+		HandleAuthConfig(deps, c)
+		require.Equal(t, http.StatusOK, w.Code)
+
+		response := testutil.NewTestResponseFromRecorder(w)
+		response.AssertOk(t)
+		response.AssertMessageJSONKeyValue(t, "oidc_enabled", func(t *testing.T, value any) {
+			require.Equal(t, true, value)
+		})
+		response.AssertMessageJSONKeyValue(t, "oidc_provider_name", func(t *testing.T, value any) {
+			require.Equal(t, "TestProvider", value)
+		})
+	})
+}

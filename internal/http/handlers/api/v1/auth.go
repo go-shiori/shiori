@@ -222,10 +222,33 @@ func HandleLogout(deps model.Dependencies, c model.WebContext) {
 	}
 
 	// Remove token cookie
-	c.Request().AddCookie(&http.Cookie{
-		Name:  "token",
-		Value: "",
+	http.SetCookie(c.ResponseWriter(), &http.Cookie{
+		Name:   "token",
+		Value:  "",
+		Path:   "/",
+		MaxAge: -1,
 	})
 
 	response.SendJSON(c, http.StatusOK, nil)
+}
+
+type AuthConfigResponse struct {
+	OIDCEnabled      bool   `json:"oidc_enabled"`
+	OIDCProviderName string `json:"oidc_provider_name"`
+}
+
+// @Summary		Get authentication configuration
+// @Description	Get authentication configuration like OIDC status
+// @Tags			Auth
+// @Produce		json
+// @Success		200	{object}	AuthConfigResponse
+// @Router			/api/v1/auth/config [get]
+func HandleAuthConfig(deps model.Dependencies, c model.WebContext) {
+	resp := AuthConfigResponse{
+		OIDCEnabled: deps.Config().Http.OIDCEnabled,
+	}
+	if resp.OIDCEnabled {
+		resp.OIDCProviderName = deps.Config().Http.OIDCProviderName
+	}
+	response.SendJSON(c, http.StatusOK, resp)
 }
