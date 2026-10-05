@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/go-shiori/shiori/internal/http/middleware"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/go-shiori/shiori/internal/webserver"
 	"github.com/gofrs/uuid/v5"
@@ -66,45 +67,72 @@ func (h *LegacyHandler) HandleLogout(deps model.Dependencies, c model.WebContext
 
 // HandleGetTags handles GET /api/tags
 func (h *LegacyHandler) HandleGetTags(deps model.Dependencies, c model.WebContext) {
+	if err := middleware.RequireLoggedInUser(deps, c); err != nil {
+		return
+	}
 	h.legacyHandler.ApiGetTags(c.ResponseWriter(), c.Request(), h.convertParams(c.Request()))
 }
 
 // HandleRenameTag handles PUT /api/tags
 func (h *LegacyHandler) HandleRenameTag(deps model.Dependencies, c model.WebContext) {
+	if err := middleware.RequireLoggedInUser(deps, c); err != nil {
+		return
+	}
 	h.legacyHandler.ApiRenameTag(c.ResponseWriter(), c.Request(), h.convertParams(c.Request()))
 }
 
 // HandleGetBookmarks handles GET /api/bookmarks
 func (h *LegacyHandler) HandleGetBookmarks(deps model.Dependencies, c model.WebContext) {
+	if err := middleware.RequireLoggedInUser(deps, c); err != nil {
+		return
+	}
 	h.legacyHandler.ApiGetBookmarks(c.ResponseWriter(), c.Request(), h.convertParams(c.Request()))
 }
 
 // HandleInsertBookmark handles POST /api/bookmarks
 func (h *LegacyHandler) HandleInsertBookmark(deps model.Dependencies, c model.WebContext) {
+	if err := middleware.RequireLoggedInUser(deps, c); err != nil {
+		return
+	}
 	h.legacyHandler.ApiInsertBookmark(c.ResponseWriter(), c.Request(), h.convertParams(c.Request()))
 }
 
 // HandleDeleteBookmark handles DELETE /api/bookmarks
 func (h *LegacyHandler) HandleDeleteBookmark(deps model.Dependencies, c model.WebContext) {
+	if err := middleware.RequireLoggedInUser(deps, c); err != nil {
+		return
+	}
 	h.legacyHandler.ApiDeleteBookmark(c.ResponseWriter(), c.Request(), h.convertParams(c.Request()))
 }
 
 // HandleUpdateBookmark handles PUT /api/bookmarks
 func (h *LegacyHandler) HandleUpdateBookmark(deps model.Dependencies, c model.WebContext) {
+	if err := middleware.RequireLoggedInUser(deps, c); err != nil {
+		return
+	}
 	h.legacyHandler.ApiUpdateBookmark(c.ResponseWriter(), c.Request(), h.convertParams(c.Request()))
 }
 
 // HandleUpdateBookmarkTags handles PUT /api/bookmarks/tags
 func (h *LegacyHandler) HandleUpdateBookmarkTags(deps model.Dependencies, c model.WebContext) {
+	if err := middleware.RequireLoggedInUser(deps, c); err != nil {
+		return
+	}
 	h.legacyHandler.ApiUpdateBookmarkTags(c.ResponseWriter(), c.Request(), h.convertParams(c.Request()))
 }
 
 // HandleInsertViaExtension handles POST /api/bookmarks/ext
 func (h *LegacyHandler) HandleInsertViaExtension(deps model.Dependencies, c model.WebContext) {
+	if err := middleware.RequireLoggedInUser(deps, c); err != nil {
+		return
+	}
 	h.legacyHandler.ApiInsertViaExtension(c.ResponseWriter(), c.Request(), h.convertParams(c.Request()))
 }
 
 // HandleDeleteViaExtension handles DELETE /api/bookmarks/ext
 func (h *LegacyHandler) HandleDeleteViaExtension(deps model.Dependencies, c model.WebContext) {
+	if err := middleware.RequireLoggedInUser(deps, c); err != nil {
+		return
+	}
 	h.legacyHandler.ApiDeleteViaExtension(c.ResponseWriter(), c.Request(), h.convertParams(c.Request()))
 }

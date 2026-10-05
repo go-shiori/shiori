@@ -49,7 +49,14 @@ func (h *Handler) ApiGetBookmarks(w http.ResponseWriter, r *http.Request, ps htt
 
 	// Make sure session still valid
 	err := h.validateSession(r)
-	checkError(err)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		_ = json.NewEncoder(w).Encode(map[string]string{
+			"error": err.Error(),
+		})
+		return
+	}
 
 	// Get URL queries
 	keyword := r.URL.Query().Get("keyword")
@@ -128,7 +135,14 @@ func (h *Handler) ApiGetTags(w http.ResponseWriter, r *http.Request, ps httprout
 
 	// Make sure session still valid
 	err := h.validateSession(r)
-	checkError(err)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		_ = json.NewEncoder(w).Encode(map[string]string{
+			"error": err.Error(),
+		})
+		return
+	}
 
 	// Fetch all tags
 	tags, err := h.DB.GetTags(ctx, model.DBListTagsOptions{
@@ -147,7 +161,14 @@ func (h *Handler) ApiRenameTag(w http.ResponseWriter, r *http.Request, ps httpro
 
 	// Make sure session still valid
 	err := h.validateSession(r)
-	checkError(err)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		_ = json.NewEncoder(w).Encode(map[string]string{
+			"error": err.Error(),
+		})
+		return
+	}
 
 	// Decode request
 	tag := model.Tag{}
@@ -189,7 +210,14 @@ func (h *Handler) ApiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 
 	// Make sure session still valid
 	err := h.validateSession(r)
-	checkError(err)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		_ = json.NewEncoder(w).Encode(map[string]string{
+			"error": err.Error(),
+		})
+		return
+	}
 
 	// Decode request
 	payload := newAPIInsertBookmarkPayload()
@@ -264,7 +292,14 @@ func (h *Handler) ApiDeleteBookmark(w http.ResponseWriter, r *http.Request, ps h
 
 	// Make sure session still valid
 	err := h.validateSession(r)
-	checkError(err)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		_ = json.NewEncoder(w).Encode(map[string]string{
+			"error": err.Error(),
+		})
+		return
+	}
 
 	// Decode request
 	ids := []int{}
@@ -296,7 +331,14 @@ func (h *Handler) ApiUpdateBookmark(w http.ResponseWriter, r *http.Request, ps h
 
 	// Make sure session still valid
 	err := h.validateSession(r)
-	checkError(err)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		_ = json.NewEncoder(w).Encode(map[string]string{
+			"error": err.Error(),
+		})
+		return
+	}
 
 	// Decode request
 	request := model.BookmarkDTO{}
@@ -376,7 +418,14 @@ func (h *Handler) ApiUpdateBookmarkTags(w http.ResponseWriter, r *http.Request, 
 
 	// Make sure session still valid
 	err := h.validateSession(r)
-	checkError(err)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		_ = json.NewEncoder(w).Encode(map[string]string{
+			"error": err.Error(),
+		})
+		return
+	}
 
 	// Decode request
 	request := struct {

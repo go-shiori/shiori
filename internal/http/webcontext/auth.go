@@ -13,7 +13,12 @@ func (c *WebContext) UserIsLogged() bool {
 
 // GetAccount retrieves the account from the request context
 func (c *WebContext) GetAccount() *model.AccountDTO {
-	if acc := c.request.Context().Value(accountKey); acc != nil {
+	return GetAccountFromContext(c.request.Context())
+}
+
+// GetAccountFromContext retrieves the account from a context
+func GetAccountFromContext(ctx context.Context) *model.AccountDTO {
+	if acc := ctx.Value(accountKey); acc != nil {
 		return acc.(*model.AccountDTO)
 	}
 	return nil
