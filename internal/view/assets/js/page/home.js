@@ -934,20 +934,19 @@ export default {
 							throw new Error("No valid tags to add");
 						}
 
-						// 2. Use bulk update endpoint
-						const bookmarkIds = items.map((item) => item.id);
-						await bookmarksApi.apiV1BookmarksBulkTagsPut({
-							payload: {
-								BookmarkIDs: bookmarkIds,
-								TagIDs: tagIds,
-							},
-						});
-
-						// 3. Refresh each bookmark to get updated tags
+						// 2. The bulk endpoint replaces all tags, so send each bookmark's
+						// existing tags together with the new ones.
 						for (const item of items) {
-							const updatedBookmark = await bookmarksApi.apiV1BookmarksIdGet({
-								id: item.id,
-							});
+							const existingIds = (this.bookmarks[item.index].Tags || []).map(
+								(tag) => tag.ID,
+							);
+							const [updatedBookmark] =
+								await bookmarksApi.apiV1BookmarksBulkTagsPut({
+									payload: {
+										BookmarkIDs: [item.id],
+										TagIDs: [...new Set([...existingIds, ...tagIds])],
+									},
+								});
 							this.bookmarks.splice(item.index, 1, updatedBookmark);
 						}
 

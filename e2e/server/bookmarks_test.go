@@ -191,3 +191,76 @@ func TestBookmarkCreation(t *testing.T) {
 		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	})
 }
+
+func TestBookmarkBulkTags(t *testing.T) {
+	testServerURL := e2eutil.StartTestServer(t)
+
+	container := e2eutil.NewShioriContainer(t, "")
+	baseURL := "http://localhost:" + container.GetPort()
+	token := apiLogin(t, baseURL, "shiori", "gopher")
+
+	createBookmark := func(path string) int {
+		body := fmt.Sprintf(`{"URL":"%s%s"}`, testServerURL, path)
+		resp := apiRequest(t, "POST", baseURL+"/api/v1/bookmarks", token, []byte(body))
+		defer resp.Body.Close()
+		require.Equal(t, http.StatusCreated, resp.StatusCode)
+
+		var bm bookmarkResponse
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&bm))
+		return bm.ID
+	}
+
+	createTag := func(name string) int {
+		resp := apiRequest(t, "POST", baseURL+"/api/v1/tags", token, []byte(fmt.Sprintf(`{"Name":%q}`, name)))
+		defer resp.Body.Close()
+		require.Equal(t, http.StatusCreated, resp.StatusCode)
+
+		var tag struct {
+			ID int `json:"ID"`
+		}
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&tag))
+		return tag.ID
+	}
+
+	bulkUpdate := func(bookmarkIDs, tagIDs []int) {
+		body, err := json.Marshal(map[string][]int{"BookmarkIDs": bookmarkIDs, "TagIDs": tagIDs})
+		require.NoError(t, err)
+		resp := apiRequest(t, "PUT", baseURL+"/api/v1/bookmarks/bulk/tags", token, body)
+		defer resp.Body.Close()
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+	}
+
+	tagNames := func(bookmarkID int) []string {
+		resp := apiRequest(t, "GET", fmt.Sprintf("%s/api/v1/bookmarks/%d/tags", baseURL, bookmarkID), token, nil)
+		defer resp.Body.Close()
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var tags []struct {
+			Name string `json:"Name"`
+		}
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&tags))
+		names := make([]string, len(tags))
+		for i, tag := range tags {
+			names[i] = tag.Name
+		}
+		return names
+	}
+
+	first := createBookmark("/index.html?bulk=1")
+	second := createBookmark("/index.html?bulk=2")
+	alpha := createTag("bulk-alpha")
+	beta := createTag("bulk-beta")
+
+	t.Run("sets tags on multiple bookmarks", func(t *testing.T) {
+		bulkUpdate([]int{first, second}, []int{alpha})
+		require.ElementsMatch(t, []string{"bulk-alpha"}, tagNames(first))
+		require.ElementsMatch(t, []string{"bulk-alpha"}, tagNames(second))
+	})
+
+	t.Run("replaces existing tags", func(t *testing.T) {
+		bulkUpdate([]int{first, second}, []int{alpha})
+		bulkUpdate([]int{first}, []int{beta})
+		require.ElementsMatch(t, []string{"bulk-beta"}, tagNames(first))
+		require.ElementsMatch(t, []string{"bulk-alpha"}, tagNames(second), "Other bookmarks must not change")
+	})
+}

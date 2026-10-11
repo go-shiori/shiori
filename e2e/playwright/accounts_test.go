@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/go-shiori/shiori/e2e/e2eutil"
-	"github.com/playwright-community/playwright-go"
+	"github.com/mxschmitt/playwright-go"
 	"github.com/stretchr/testify/require"
 )
 
@@ -451,8 +451,11 @@ func TestE2EAccounts(t *testing.T) {
 			mainTestHelper.page.Locator(`.custom-dialog-button.main`).Click(),
 			"Click Yes to confirm deletion")
 
-		// Should show error dialog since API rejects self-deletion
-		dialogContent := mainTestHelper.page.Locator(".custom-dialog-content")
+		// Should show error dialog since API rejects self-deletion. Match the error text, because
+		// the confirmation dialog content is still visible until the error replaces it.
+		dialogContent := mainTestHelper.page.Locator(".custom-dialog-content", playwright.PageLocatorOptions{
+			HasText: "cannot delete your own account",
+		})
 		mainTestHelper.Require().NoError(t,
 			dialogContent.WaitFor(playwright.LocatorWaitForOptions{
 				State:   playwright.WaitForSelectorStateVisible,

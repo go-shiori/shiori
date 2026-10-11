@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/go-shiori/shiori/e2e/e2eutil"
-	"github.com/playwright-community/playwright-go"
+	"github.com/mxschmitt/playwright-go"
 	"github.com/stretchr/testify/require"
 )
 
@@ -291,5 +291,47 @@ func TestBookmarks(t *testing.T) {
 				Timeout: playwright.Float(1000),
 			}),
 			"Wait for error dialog to close")
+	})
+
+	t.Run("009 batch add tags keeps existing tags", func(t *testing.T) {
+		// The bookmark created with "test-tag" is second, after the public one
+		taggedBookmark := mainTestHelper.page.Locator("#bookmarks-grid .bookmark").Nth(1)
+		tagText, err := taggedBookmark.Locator(".bookmark-tags").TextContent()
+		mainTestHelper.Require().NoError(t, err, "Get bookmark tags text")
+		mainTestHelper.Require().Contains(t, tagText, "test-tag", "Bookmark should start with test-tag")
+
+		mainTestHelper.Require().NoError(t,
+			mainTestHelper.page.Locator(`[title="Batch edit"]`).Click(),
+			"Click batch edit")
+		mainTestHelper.Require().NoError(t,
+			taggedBookmark.Locator(".bookmark-selector").Click(),
+			"Select tagged bookmark")
+		mainTestHelper.Require().NoError(t,
+			mainTestHelper.page.Locator(`[title="Add tags"]`).Click(),
+			"Click add tags")
+		mainTestHelper.Require().NoError(t,
+			mainTestHelper.page.Locator(".custom-dialog").WaitFor(playwright.LocatorWaitForOptions{
+				State:   playwright.WaitForSelectorStateVisible,
+				Timeout: playwright.Float(1000),
+			}),
+			"Wait for add tags dialog")
+
+		mainTestHelper.Require().NoError(t,
+			mainTestHelper.page.Locator(`[name="tags"]`).Fill("bulk-tag"),
+			"Fill tags")
+		mainTestHelper.Require().NoError(t,
+			mainTestHelper.page.Locator(`.custom-dialog-button.main`).Click(),
+			"Click OK button")
+		mainTestHelper.Require().NoError(t,
+			mainTestHelper.page.Locator(".custom-dialog").WaitFor(playwright.LocatorWaitForOptions{
+				State:   playwright.WaitForSelectorStateHidden,
+				Timeout: playwright.Float(5000),
+			}),
+			"Wait for dialog to close")
+
+		tagText, err = taggedBookmark.Locator(".bookmark-tags").TextContent()
+		mainTestHelper.Require().NoError(t, err, "Get bookmark tags text")
+		mainTestHelper.Require().Contains(t, tagText, "test-tag", "Bookmark should keep test-tag")
+		mainTestHelper.Require().Contains(t, tagText, "bulk-tag", "Bookmark should have bulk-tag")
 	})
 }

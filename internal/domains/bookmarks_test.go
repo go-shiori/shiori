@@ -131,6 +131,12 @@ func TestBookmarkDomain(t *testing.T) {
 			require.Len(t, bookmarks, 0)
 		})
 
+		t.Run("EmptyIDs", func(t *testing.T) {
+			bookmarks, err := domain.GetBookmarks(context.Background(), []int{})
+			require.NoError(t, err)
+			require.Len(t, bookmarks, 0)
+		})
+
 		t.Run("DatabaseError", func(t *testing.T) {
 			// Create a new context with a timeout to force an error
 			cancelCtx, cancel := context.WithCancel(context.Background())
@@ -529,6 +535,28 @@ func TestBookmarksDomain_DeleteBookmarks(t *testing.T) {
 			_, exists, err := deps.Database().GetBookmark(ctx, id, "")
 			require.NoError(t, err)
 			require.False(t, exists)
+		}
+	})
+
+	t.Run("removes bookmark files", func(t *testing.T) {
+		savedBookmarks, err := deps.Database().SaveBookmarks(ctx, true, *testutil.GetValidBookmark())
+		require.NoError(t, err)
+		bookmark := &savedBookmarks[0]
+
+		storage := deps.Domains().Storage()
+		paths := []string{
+			model.GetThumbnailPath(bookmark),
+			model.GetArchivePath(bookmark),
+			model.GetEbookPath(bookmark),
+		}
+		for _, path := range paths {
+			require.NoError(t, storage.WriteData(path, []byte("data")))
+		}
+
+		require.NoError(t, domain.DeleteBookmarks(ctx, []int{bookmark.ID}))
+
+		for _, path := range paths {
+			require.False(t, storage.FileExists(path), path)
 		}
 	})
 

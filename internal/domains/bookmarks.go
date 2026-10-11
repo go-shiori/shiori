@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io/fs"
 
 	"github.com/go-shiori/shiori/internal/core"
 	"github.com/go-shiori/shiori/internal/database"
@@ -58,20 +59,21 @@ func (d *BookmarksDomain) GetBookmark(ctx context.Context, id model.DBID) (*mode
 }
 
 func (d *BookmarksDomain) GetBookmarks(ctx context.Context, ids []int) ([]model.BookmarkDTO, error) {
-	var bookmarks []model.BookmarkDTO
-	for _, id := range ids {
-		bookmark, exists, err := d.deps.Database().GetBookmark(ctx, id, "")
-		if err != nil {
-			return nil, fmt.Errorf("failed to get bookmark %d: %w", id, err)
-		}
-		if !exists {
-			continue
-		}
+	// An empty IDs filter matches every bookmark.
+	if len(ids) == 0 {
+		return []model.BookmarkDTO{}, nil
+	}
 
-		// Populate additional fields
-		d.populateAdditionalFields(&bookmark)
+	bookmarks, err := d.deps.Database().GetBookmarks(ctx, model.DBGetBookmarksOptions{
+		IDs:         ids,
+		WithContent: true,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get bookmarks: %w", err)
+	}
 
-		bookmarks = append(bookmarks, bookmark)
+	for i := range bookmarks {
+		d.populateAdditionalFields(&bookmarks[i])
 	}
 	return bookmarks, nil
 }
@@ -289,6 +291,20 @@ func (d *BookmarksDomain) DeleteBookmarks(ctx context.Context, ids []int) error 
 	err := d.deps.Database().DeleteBookmarks(ctx, ids...)
 	if err != nil {
 		return fmt.Errorf("failed to delete bookmarks: %w", err)
+	}
+
+	// The database rows are already gone, so a file that cannot be removed is only logged.
+	for _, id := range ids {
+		bookmark := &model.BookmarkDTO{Bookmark: model.Bookmark{ID: id}}
+		for _, path := range []string{
+			model.GetThumbnailPath(bookmark),
+			model.GetArchivePath(bookmark),
+			model.GetEbookPath(bookmark),
+		} {
+			if err := d.deps.Domains().Storage().FS().Remove(path); err != nil && !errors.Is(err, fs.ErrNotExist) {
+				d.deps.Logger().WithError(err).WithField("path", path).Warn("failed to remove bookmark file")
+			}
+		}
 	}
 
 	return nil

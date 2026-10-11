@@ -105,7 +105,7 @@ Legend:
 | 8.5 | As a user, I can see the bookmark count per tag | ❌ | ❌ |
 | 8.6 | As a user, I can add a tag to a bookmark | ❌ | ❌ |
 | 8.7 | As a user, I can remove a tag from a bookmark | ❌ | ❌ |
-| 8.8 | As a user, I can bulk-update tags across multiple bookmarks | ❌ | ❌ |
+| 8.8 | As a user, I can bulk-update tags across multiple bookmarks | ✅ | ✅ |
 
 ## 9. Search & Filtering
 
@@ -177,11 +177,11 @@ Legend:
 | Bookmark Viewing & Reading | 0/7 | 0/7 | 7 |
 | Bookmark Editing | 0/5 | 0/5 | 5 |
 | Bookmark Deletion | 0/4 | 0/4 | 4 |
-| Tag Management | 0/8 | 0/8 | 8 |
+| Tag Management | 1/8 | 1/8 | 8 |
 | Search & Filtering | 0/6 | 0/6 | 6 |
 | Pagination | 0/3 | 0/3 | 3 |
 | User Preferences / Settings | 0/8 | 0/8 | 8 |
 | Public Bookmarks | 0/3 | 0/3 | 3 |
 | System / Health | 1/3 | 0/3 | 3 |
 | API Authentication (v1) | 3/4 | 0/4 | 4 |
-| **Total** | **31/80** | **28/80** | **80** |
+| **Total** | **32/80** | **29/80** | **80** |

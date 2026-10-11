@@ -9,6 +9,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/go-shiori/shiori/internal/core"
 	"github.com/go-shiori/shiori/internal/http/middleware"
 	"github.com/go-shiori/shiori/internal/http/response"
 	"github.com/go-shiori/shiori/internal/model"
@@ -579,6 +580,13 @@ func HandleCreateBookmark(deps model.Dependencies, c model.WebContext) {
 		return
 	}
 
+	cleanURL, err := core.RemoveUTMParams(strings.TrimSpace(payload.URL))
+	if err != nil {
+		response.SendError(c, http.StatusBadRequest, "Invalid URL")
+		return
+	}
+	payload.URL = cleanURL
+
 	// Create bookmark for domain operations
 	bookmark := model.Bookmark{
 		URL:     payload.URL,
@@ -856,7 +864,12 @@ func HandleUpdateBookmark(deps model.Dependencies, c model.WebContext) {
 
 	// Update fields if provided
 	if payload.URL != nil {
-		bookmark.URL = *payload.URL
+		cleanURL, err := core.RemoveUTMParams(strings.TrimSpace(*payload.URL))
+		if err != nil {
+			response.SendError(c, http.StatusBadRequest, "Invalid URL")
+			return
+		}
+		bookmark.URL = cleanURL
 	}
 	if payload.Title != nil {
 		bookmark.Title = *payload.Title
@@ -979,5 +992,12 @@ func HandleBulkUpdateBookmarkTags(deps model.Dependencies, c model.WebContext) {
 		return
 	}
 
-	response.SendJSON(c, http.StatusOK, nil)
+	bookmarks, err := deps.Domains().Bookmarks().GetBookmarks(c.Request().Context(), payload.BookmarkIDs)
+	if err != nil {
+		deps.Logger().WithError(err).Error("failed to get updated bookmarks")
+		response.SendInternalServerError(c)
+		return
+	}
+
+	response.SendJSON(c, http.StatusOK, bookmarks)
 }

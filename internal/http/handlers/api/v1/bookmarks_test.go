@@ -333,6 +333,41 @@ func TestHandleUpdateBookmarkTags(t *testing.T) {
 		response := testutil.NewTestResponseFromRecorder(w)
 		response.AssertOk(t)
 	})
+
+	t.Run("replaces_existing_tags", func(t *testing.T) {
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+
+		bookmark := testutil.GetValidBookmark()
+		bookmark.Tags = []model.TagDTO{{Tag: model.Tag{Name: "old"}}}
+		savedBookmark, err := deps.Database().SaveBookmarks(ctx, true, *bookmark)
+		require.NoError(t, err)
+
+		newTag, err := deps.Database().CreateTag(ctx, model.Tag{Name: "new"})
+		require.NoError(t, err)
+
+		body := fmt.Sprintf(`{"BookmarkIDs": [%d], "TagIDs": [%d]}`, savedBookmark[0].ID, newTag.ID)
+		w := testutil.PerformRequest(
+			deps,
+			HandleBulkUpdateBookmarkTags,
+			"PUT",
+			"/api/v1/bookmarks/bulk/tags",
+			testutil.WithFakeAdmin(),
+			testutil.WithBody(body),
+		)
+		require.Equal(t, http.StatusOK, w.Code)
+
+		var returned []model.BookmarkDTO
+		require.NoError(t, json.Unmarshal(w.Body.Bytes(), &returned))
+		require.Len(t, returned, 1)
+		require.Equal(t, savedBookmark[0].ID, returned[0].ID)
+		require.Len(t, returned[0].Tags, 1)
+		require.Equal(t, "new", returned[0].Tags[0].Name)
+
+		updated, _, err := deps.Database().GetBookmark(ctx, savedBookmark[0].ID, "")
+		require.NoError(t, err)
+		require.Len(t, updated.Tags, 1)
+		require.Equal(t, "new", updated.Tags[0].Name)
+	})
 }
 
 // CRUD Handler Tests
@@ -390,6 +425,55 @@ func TestHandleCreateBookmark(t *testing.T) {
 			testutil.WithBody(payload),
 		)
 		require.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("invalid url returns bad request", func(t *testing.T) {
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+		w := testutil.PerformRequest(
+			deps,
+			HandleCreateBookmark,
+			http.MethodPost,
+			"/api/v1/bookmarks",
+			testutil.WithFakeAdmin(),
+			testutil.WithBody(`{"URL": "not a url"}`),
+		)
+		require.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("removes utm parameters from url", func(t *testing.T) {
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+		w := testutil.PerformRequest(
+			deps,
+			HandleCreateBookmark,
+			http.MethodPost,
+			"/api/v1/bookmarks",
+			testutil.WithFakeAdmin(),
+			testutil.WithBody(`{"URL": "https://example.com/page?id=1&utm_source=newsletter", "Title": "UTM"}`),
+		)
+		require.Equal(t, http.StatusCreated, w.Code)
+
+		response := testutil.NewTestResponseFromRecorder(w)
+		response.AssertMessageJSONKeyValue(t, "URL", func(t *testing.T, value any) {
+			require.Equal(t, "https://example.com/page?id=1", value)
+		})
+	})
+
+	t.Run("trims whitespace around url", func(t *testing.T) {
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+		w := testutil.PerformRequest(
+			deps,
+			HandleCreateBookmark,
+			http.MethodPost,
+			"/api/v1/bookmarks",
+			testutil.WithFakeAdmin(),
+			testutil.WithBody(`{"URL": " https://example.com/spaces ", "Title": "Spaces"}`),
+		)
+		require.Equal(t, http.StatusCreated, w.Code)
+
+		response := testutil.NewTestResponseFromRecorder(w)
+		response.AssertMessageJSONKeyValue(t, "URL", func(t *testing.T, value any) {
+			require.Equal(t, "https://example.com/spaces", value)
+		})
 	})
 
 	t.Run("successful creation", func(t *testing.T) {
@@ -1128,6 +1212,29 @@ func TestHandleUpdateBookmark(t *testing.T) {
 		})
 		response.AssertMessageJSONKeyValue(t, "Excerpt", func(t *testing.T, value any) {
 			require.Equal(t, "Updated excerpt", value)
+		})
+	})
+
+	t.Run("removes utm parameters from url", func(t *testing.T) {
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+		savedBookmarks, err := deps.Database().SaveBookmarks(ctx, true, *testutil.GetValidBookmark())
+		require.NoError(t, err)
+
+		id := strconv.Itoa(savedBookmarks[0].ID)
+		w := testutil.PerformRequest(
+			deps,
+			HandleUpdateBookmark,
+			http.MethodPut,
+			"/api/v1/bookmarks/"+id,
+			testutil.WithFakeAdmin(),
+			testutil.WithRequestPathValue("id", id),
+			testutil.WithBody(`{"URL": "https://example.com/updated?utm_medium=email"}`),
+		)
+		require.Equal(t, http.StatusOK, w.Code)
+
+		response := testutil.NewTestResponseFromRecorder(w)
+		response.AssertMessageJSONKeyValue(t, "URL", func(t *testing.T, value any) {
+			require.Equal(t, "https://example.com/updated", value)
 		})
 	})
 
