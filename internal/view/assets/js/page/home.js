@@ -826,7 +826,7 @@ export default {
 					this.dialog.loading = true;
 					try {
 						const json = await apiRequest(
-							new URL("api/v1/bookmarks/tags", document.baseURI),
+							new URL("api/bookmarks/tags", document.baseURI),
 							{
 								method: "put",
 								body: JSON.stringify(request),
