@@ -17,7 +17,7 @@ case `uname -o` in
     ;;
 esac
 
-# Use bun is installed
+# Use bun if installed
 if [ -x "$(command -v bun)" ]; then
     $BUN install
     $BUN x prettier internal/view/ --write
