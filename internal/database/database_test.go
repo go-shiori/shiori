@@ -24,7 +24,7 @@ func testDatabase(t *testing.T, dbFactory testDatabaseFactory) {
 		"testCreateTwoDifferentBookmarks":       testCreateTwoDifferentBookmarks,
 		"testUpdateBookmark":                    testUpdateBookmark,
 		"testUpdateBookmarkUpdatesModifiedTime": testUpdateBookmarkUpdatesModifiedTime,
-		"testGetBookmarksWithTimeFilters":        testGetBookmarksWithTimeFilters,
+		"testGetBookmarksWithTimeFilters":       testGetBookmarksWithTimeFilters,
 		"testUpdateBookmarkWithContent":         testUpdateBookmarkWithContent,
 		"testGetBookmark":                       testGetBookmark,
 		"testGetBookmarkNotExistent":            testGetBookmarkNotExistent,
