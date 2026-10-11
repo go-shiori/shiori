@@ -25,13 +25,14 @@ jobs:
     uses: ./.github/workflows/_gorelease.yml
   call-buildx:
     needs: call-gorelease
+    if: github.repository == 'go-shiori/shiori'
     uses: ./.github/workflows/_buildx.yml
     secrets:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
   call-buildx-alpine:
     needs: call-gorelease
-    # only build on pull requests from the same repo for now
+    if: github.repository == 'go-shiori/shiori'
     uses: ./.github/workflows/_buildx.yml
     secrets:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
