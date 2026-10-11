@@ -810,7 +810,10 @@
 			);
 		}
 		async apiV1AccountsPost(requestParameters, initOverrides) {
-			const response = await this.apiV1AccountsPostRaw(requestParameters, initOverrides);
+			const response = await this.apiV1AccountsPostRaw(
+				requestParameters,
+				initOverrides,
+			);
 			return await response.value();
 		}
 	}
@@ -1247,7 +1250,10 @@
 			);
 		}
 		async apiV1BookmarksIdReadableGet(requestParameters, initOverrides) {
-			const response = await this.apiV1BookmarksIdReadableGetRaw(requestParameters, initOverrides);
+			const response = await this.apiV1BookmarksIdReadableGetRaw(
+				requestParameters,
+				initOverrides,
+			);
 			return await response.value();
 		}
 		async apiV1BookmarksIdTagsDeleteRaw(requestParameters, initOverrides) {

@@ -128,10 +128,7 @@ export default {
 					new URL(document.baseURI).pathname
 				}; Expires=${new Date(json.Expiration * 1000).toUTCString()}`;
 				localStorage.setItem("shiori-token", json.Token);
-				localStorage.setItem(
-					"shiori-account",
-					JSON.stringify(parsed.Account),
-				);
+				localStorage.setItem("shiori-account", JSON.stringify(parsed.Account));
 
 				this.visible = false;
 				this.$emit("login-success");

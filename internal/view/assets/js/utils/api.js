@@ -53,7 +53,9 @@ export async function handleApiResponse(response) {
 	// Check if response is in the new message format
 	if (data && typeof data === "object" && "ok" in data && "message" in data) {
 		if (!data.ok) {
-			throw new Error(data.message?.Error || data.message?.error || "Unknown error");
+			throw new Error(
+				data.message?.Error || data.message?.error || "Unknown error",
+			);
 		}
 		return data.message;
 	}

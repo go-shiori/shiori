@@ -117,6 +117,16 @@ test-all: unittest webapp-test
 e2e:
 	$(BASH) -xe ./scripts/e2e.sh
 
+## Build styles
+.PHONY: styles
+styles:
+	CLEANCSS_OPTS=$(CLEANCSS_OPTS) $(BASH) ./scripts/styles.sh
+
+## Check styles
+.PHONY: styles-check
+styles-check:
+	CLEANCSS_OPTS=$(CLEANCSS_OPTS) $(BASH) ./scripts/styles_check.sh
+
 ## Lint webapp
 .PHONY: webapp-lint
 webapp-lint:
