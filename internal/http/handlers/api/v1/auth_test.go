@@ -171,7 +171,7 @@ func TestHandleRefreshToken(t *testing.T) {
 		require.NoError(t, err)
 
 		w := testutil.PerformRequest(deps, HandleRefreshToken, "POST", "/refresh", testutil.WithAccount(&account))
-		require.Equal(t, http.StatusAccepted, w.Code)
+		require.Equal(t, http.StatusOK, w.Code)
 
 		response := testutil.NewTestResponseFromRecorder(w)
 		response.AssertOk(t)
@@ -273,6 +273,13 @@ func TestHandleUpdateLoggedAccount(t *testing.T) {
 		}`
 		w := testutil.PerformRequest(deps, HandleUpdateLoggedAccount, "PATCH", "/account", testutil.WithBody(body), testutil.WithAccount(account))
 		require.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("deleted account returns 404", func(t *testing.T) {
+		body := `{"Config": {"ShowId": true}}`
+		deleted := &model.AccountDTO{ID: 9999, Username: "deleted", Owner: model.Ptr(false)}
+		w := testutil.PerformRequest(deps, HandleUpdateLoggedAccount, "PATCH", "/account", testutil.WithBody(body), testutil.WithAccount(deleted))
+		require.Equal(t, http.StatusNotFound, w.Code)
 	})
 
 	t.Run("successful update", func(t *testing.T) {

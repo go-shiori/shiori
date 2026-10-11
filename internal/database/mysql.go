@@ -208,24 +208,21 @@ func (db *MySQLDatabase) SaveBookmarks(ctx context.Context, create bool, bookmar
 				res, err = stmtInsertBook.ExecContext(ctx,
 					book.URL, book.Title, book.Excerpt, book.Author,
 					book.Public, book.Content, book.HTML, book.ModifiedAt, book.CreatedAt)
-				if err != nil {
-					// Map unique constraint violations to database errors
-					if strings.Contains(err.Error(), "Duplicate entry") && strings.Contains(err.Error(), "bookmark_url_UNIQUE") {
-						return ErrBookmarkURLAlreadyExists
-					}
-					return errors.WithStack(err)
+				if err == nil {
+					var bookID int64
+					bookID, err = res.LastInsertId()
+					book.ID = int(bookID)
 				}
-				bookID, err := res.LastInsertId()
-				if err != nil {
-					return errors.WithStack(err)
-				}
-				book.ID = int(bookID)
 			} else {
 				_, err = stmtUpdateBook.ExecContext(ctx,
 					book.URL, book.Title, book.Excerpt, book.Author,
 					book.Public, book.Content, book.HTML, book.ModifiedAt, book.ID)
 			}
 			if err != nil {
+				// Map unique constraint violations to database errors
+				if strings.Contains(err.Error(), "Duplicate entry") && strings.Contains(err.Error(), "bookmark_url_UNIQUE") {
+					return ErrBookmarkURLAlreadyExists
+				}
 				return errors.WithStack(err)
 			}
 
@@ -811,6 +808,9 @@ func (db *MySQLDatabase) CreateTags(ctx context.Context, tags ...model.Tag) ([]m
 		for i, tag := range createdTags {
 			result, err := stmtInsertTag.ExecContext(ctx, tag.Name)
 			if err != nil {
+				if strings.Contains(err.Error(), "Duplicate entry") && strings.Contains(err.Error(), "tag_name_UNIQUE") {
+					return ErrTagNameAlreadyExists
+				}
 				return fmt.Errorf("failed to insert tag: %w", err)
 			}
 

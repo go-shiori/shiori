@@ -998,6 +998,9 @@ func (db *SQLiteDatabase) CreateTags(ctx context.Context, tags ...model.Tag) ([]
 		for i, tag := range createdTags {
 			result, err := stmtInsertTag.ExecContext(ctx, tag.Name)
 			if err != nil {
+				if strings.Contains(err.Error(), "UNIQUE constraint failed: tag.name") {
+					return ErrTagNameAlreadyExists
+				}
 				return fmt.Errorf("failed to insert tag: %w", err)
 			}
 

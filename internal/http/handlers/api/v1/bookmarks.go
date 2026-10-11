@@ -70,7 +70,6 @@ type bookmarkDataResponse struct {
 //	@Router						/api/v1/bookmarks/id/readable [get]
 func HandleBookmarkReadable(deps model.Dependencies, c model.WebContext) {
 	if err := middleware.RequireLoggedInUser(deps, c); err != nil {
-		response.SendError(c, http.StatusForbidden, err.Error())
 		return
 	}
 
@@ -111,7 +110,6 @@ func HandleBookmarkReadable(deps model.Dependencies, c model.WebContext) {
 //	@Router						/api/v1/bookmarks/{id}/data [get]
 func HandleGetBookmarkData(deps model.Dependencies, c model.WebContext) {
 	if err := middleware.RequireLoggedInUser(deps, c); err != nil {
-		response.SendError(c, http.StatusForbidden, err.Error())
 		return
 	}
 
@@ -176,8 +174,7 @@ func HandleGetBookmarkData(deps model.Dependencies, c model.WebContext) {
 //	@Failure					500	{object}	nil	"Failed to update bookmark data"
 //	@Router						/api/v1/bookmarks/{id}/data [put]
 func HandleUpdateBookmarkData(deps model.Dependencies, c model.WebContext) {
-	if err := middleware.RequireLoggedInUser(deps, c); err != nil {
-		response.SendError(c, http.StatusForbidden, err.Error())
+	if err := middleware.RequireLoggedInAdmin(deps, c); err != nil {
 		return
 	}
 
@@ -277,7 +274,6 @@ func HandleUpdateBookmarkData(deps model.Dependencies, c model.WebContext) {
 //	@Router						/api/v1/bookmarks/cache [put]
 func HandleUpdateCache(deps model.Dependencies, c model.WebContext) {
 	if err := middleware.RequireLoggedInAdmin(deps, c); err != nil {
-		response.SendError(c, http.StatusForbidden, err.Error())
 		return
 	}
 
@@ -309,14 +305,7 @@ func HandleUpdateCache(deps model.Dependencies, c model.WebContext) {
 	// Process bookmarks concurrently
 	mx := sync.RWMutex{}
 	wg := sync.WaitGroup{}
-	chProblem := make(chan int, 10)
 	semaphore := make(chan struct{}, 10)
-
-	// Drain problematic bookmark IDs (individual failures already logged in worker goroutines)
-	go func() {
-		for range chProblem {
-		}
-	}()
 
 	for i, book := range bookmarks {
 		wg.Add(1)
@@ -326,14 +315,13 @@ func HandleUpdateCache(deps model.Dependencies, c model.WebContext) {
 
 		go func(i int, book model.BookmarkDTO) {
 			defer wg.Done()
-			defer func() { <-semaphore }()
 			semaphore <- struct{}{}
+			defer func() { <-semaphore }()
 
 			// Download and process bookmark
 			updatedBook, err := deps.Domains().Bookmarks().UpdateBookmarkCache(c.Request().Context(), book, payload.KeepMetadata, payload.SkipExist)
 			if err != nil {
 				deps.Logger().WithError(err).Error("error updating bookmark cache")
-				chProblem <- book.ID
 				return
 			}
 
@@ -344,7 +332,6 @@ func HandleUpdateCache(deps model.Dependencies, c model.WebContext) {
 	}
 
 	wg.Wait()
-	close(chProblem)
 
 	response.SendJSON(c, http.StatusOK, bookmarks)
 }
@@ -377,7 +364,6 @@ func (p *bulkUpdateBookmarkTagsPayload) IsValid() error {
 //	@Router						/api/v1/bookmarks/{id}/tags [get]
 func HandleGetBookmarkTags(deps model.Dependencies, c model.WebContext) {
 	if err := middleware.RequireLoggedInUser(deps, c); err != nil {
-		response.SendError(c, http.StatusForbidden, err.Error())
 		return
 	}
 
@@ -438,7 +424,6 @@ func (p *bookmarkTagPayload) IsValid() error {
 //	@Router						/api/v1/bookmarks/{id}/tags [post]
 func HandleAddTagToBookmark(deps model.Dependencies, c model.WebContext) {
 	if err := middleware.RequireLoggedInAdmin(deps, c); err != nil {
-		response.SendError(c, http.StatusForbidden, err.Error())
 		return
 	}
 
@@ -493,7 +478,6 @@ func HandleAddTagToBookmark(deps model.Dependencies, c model.WebContext) {
 //	@Router						/api/v1/bookmarks/{id}/tags [delete]
 func HandleRemoveTagFromBookmark(deps model.Dependencies, c model.WebContext) {
 	if err := middleware.RequireLoggedInAdmin(deps, c); err != nil {
-		response.SendError(c, http.StatusForbidden, err.Error())
 		return
 	}
 
@@ -579,8 +563,7 @@ func (p *createBookmarkPayload) IsValid() error {
 //	@Failure					400	{object}	nil	"Invalid request payload"
 //	@Router						/api/v1/bookmarks [post]
 func HandleCreateBookmark(deps model.Dependencies, c model.WebContext) {
-	if err := middleware.RequireLoggedInUser(deps, c); err != nil {
-		response.SendError(c, http.StatusForbidden, err.Error())
+	if err := middleware.RequireLoggedInAdmin(deps, c); err != nil {
 		return
 	}
 
@@ -693,7 +676,6 @@ func HandleCreateBookmark(deps model.Dependencies, c model.WebContext) {
 //	@Router						/api/v1/bookmarks [get]
 func HandleListBookmarks(deps model.Dependencies, c model.WebContext) {
 	if err := middleware.RequireLoggedInUser(deps, c); err != nil {
-		response.SendError(c, http.StatusForbidden, err.Error())
 		return
 	}
 
@@ -790,7 +772,6 @@ func HandleListBookmarks(deps model.Dependencies, c model.WebContext) {
 //	@Router						/api/v1/bookmarks/{id} [get]
 func HandleGetBookmark(deps model.Dependencies, c model.WebContext) {
 	if err := middleware.RequireLoggedInUser(deps, c); err != nil {
-		response.SendError(c, http.StatusForbidden, err.Error())
 		return
 	}
 
@@ -835,8 +816,7 @@ type updateBookmarkPayload struct {
 //	@Failure					400	{object}	nil	"Invalid request payload"
 //	@Router						/api/v1/bookmarks/{id} [put]
 func HandleUpdateBookmark(deps model.Dependencies, c model.WebContext) {
-	if err := middleware.RequireLoggedInUser(deps, c); err != nil {
-		response.SendError(c, http.StatusForbidden, err.Error())
+	if err := middleware.RequireLoggedInAdmin(deps, c); err != nil {
 		return
 	}
 
@@ -890,6 +870,10 @@ func HandleUpdateBookmark(deps model.Dependencies, c model.WebContext) {
 
 	// Update the bookmark
 	updatedBookmark, err := deps.Domains().Bookmarks().UpdateBookmark(c.Request().Context(), bookmark)
+	if errors.Is(err, model.ErrBookmarkAlreadyExists) {
+		response.SendError(c, http.StatusConflict, "already_exists.bookmark")
+		return
+	}
 	if err != nil {
 		deps.Logger().WithError(err).Error("failed to update bookmark")
 		response.SendError(c, http.StatusInternalServerError, "Failed to update bookmark")
@@ -928,7 +912,6 @@ func (p *deleteBookmarksPayload) IsValid() error {
 //	@Router						/api/v1/bookmarks [delete]
 func HandleDeleteBookmarks(deps model.Dependencies, c model.WebContext) {
 	if err := middleware.RequireLoggedInAdmin(deps, c); err != nil {
-		response.SendError(c, http.StatusForbidden, err.Error())
 		return
 	}
 
@@ -969,7 +952,6 @@ func HandleDeleteBookmarks(deps model.Dependencies, c model.WebContext) {
 //	@Router						/api/v1/bookmarks/bulk/tags [put]
 func HandleBulkUpdateBookmarkTags(deps model.Dependencies, c model.WebContext) {
 	if err := middleware.RequireLoggedInAdmin(deps, c); err != nil {
-		response.SendError(c, http.StatusForbidden, err.Error())
 		return
 	}
 

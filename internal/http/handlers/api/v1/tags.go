@@ -161,7 +161,7 @@ func HandleGetTag(deps model.Dependencies, c model.WebContext) {
 // @Failure					500	{object}	nil				"Internal server error"
 // @Router						/api/v1/tags [post]
 func HandleCreateTag(deps model.Dependencies, c model.WebContext) {
-	if err := middleware.RequireLoggedInUser(deps, c); err != nil {
+	if err := middleware.RequireLoggedInAdmin(deps, c); err != nil {
 		return
 	}
 
@@ -177,36 +177,13 @@ func HandleCreateTag(deps model.Dependencies, c model.WebContext) {
 		return
 	}
 
-	// Check if tag with the same name already exists
-	existingTags, err := deps.Domains().Tags().ListTags(c.Request().Context(), model.ListTagsOptions{
-		Search: tag.Name,
-	})
-	if err != nil {
-		deps.Logger().WithError(err).Error("failed to check existing tags")
-		response.SendInternalServerError(c)
-		return
-	}
-
-	// Look for exact match
-	for _, existingTag := range existingTags {
-		if existingTag.Name == tag.Name {
-			// Tag already exists, return proper error
-			response.SendError(c, http.StatusConflict, "already_exists.tag")
-			return
-		}
-	}
-
-	// Tag doesn't exist, create it
 	createdTag, err := deps.Domains().Tags().CreateTag(c.Request().Context(), tag)
 	if err != nil {
-		deps.Logger().WithError(err).Error("failed to create tag")
-
-		// Check for specific errors
 		if errors.Is(err, model.ErrTagAlreadyExists) {
 			response.SendError(c, http.StatusConflict, "already_exists.tag")
 			return
 		}
-
+		deps.Logger().WithError(err).Error("failed to create tag")
 		response.SendInternalServerError(c)
 		return
 	}
@@ -229,7 +206,7 @@ func HandleCreateTag(deps model.Dependencies, c model.WebContext) {
 // @Failure					500	{object}	nil	"Internal server error"
 // @Router						/api/v1/tags/{id} [put]
 func HandleUpdateTag(deps model.Dependencies, c model.WebContext) {
-	if err := middleware.RequireLoggedInUser(deps, c); err != nil {
+	if err := middleware.RequireLoggedInAdmin(deps, c); err != nil {
 		return
 	}
 

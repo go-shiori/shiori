@@ -256,6 +256,9 @@ func (d *BookmarksDomain) UpdateBookmark(ctx context.Context, bookmark model.Boo
 	// Update bookmark in database
 	savedBookmarks, err := d.deps.Database().SaveBookmarks(ctx, false, dto)
 	if err != nil {
+		if errors.Is(err, database.ErrBookmarkURLAlreadyExists) {
+			return nil, model.ErrBookmarkAlreadyExists
+		}
 		return nil, fmt.Errorf("failed to update bookmark: %w", err)
 	}
 

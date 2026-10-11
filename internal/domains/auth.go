@@ -11,6 +11,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+var dummyPasswordHash, _ = bcrypt.GenerateFromPassword([]byte("shiori-dummy-password"), bcrypt.DefaultCost)
+
 type AuthDomain struct {
 	deps *dependencies.Dependencies
 }
@@ -55,17 +57,19 @@ func (d *AuthDomain) GetAccountFromCredentials(ctx context.Context, username, pa
 		WithPassword: true,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("username or password do not match")
+		return nil, fmt.Errorf("failed to look up account: %w", err)
 	}
 
 	if len(accounts) != 1 {
-		return nil, fmt.Errorf("username or password do not match")
+		// Run bcrypt anyway so response time does not reveal whether the username exists.
+		_ = bcrypt.CompareHashAndPassword(dummyPasswordHash, []byte(password))
+		return nil, model.ErrInvalidCredentials
 	}
 
 	account := accounts[0]
 
 	if err := bcrypt.CompareHashAndPassword([]byte(account.Password), []byte(password)); err != nil {
-		return nil, fmt.Errorf("username or password do not match")
+		return nil, model.ErrInvalidCredentials
 	}
 
 	return model.Ptr(account.ToDTO()), nil

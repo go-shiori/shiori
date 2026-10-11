@@ -48,12 +48,12 @@ func (d *AccountsDomain) GetAccountByUsername(ctx context.Context, username stri
 }
 
 func (d *AccountsDomain) GetAccountByID(ctx context.Context, id model.DBID) (*model.AccountDTO, error) {
-	account, exists, err := d.deps.Database().GetAccount(ctx, id)
+	account, _, err := d.deps.Database().GetAccount(ctx, id)
+	if errors.Is(err, database.ErrNotFound) {
+		return nil, model.ErrNotFound
+	}
 	if err != nil {
 		return nil, fmt.Errorf("error getting account by ID: %w", err)
-	}
-	if !exists {
-		return nil, model.ErrNotFound
 	}
 
 	return model.Ptr(account.ToDTO()), nil

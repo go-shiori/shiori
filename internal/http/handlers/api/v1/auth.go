@@ -2,6 +2,7 @@ package api_v1
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -53,8 +54,13 @@ func HandleLogin(deps model.Dependencies, c model.WebContext) {
 	}
 
 	account, err := deps.Domains().Auth().GetAccountFromCredentials(c.Request().Context(), payload.Username, payload.Password)
-	if err != nil {
+	if errors.Is(err, model.ErrInvalidCredentials) {
 		response.SendError(c, http.StatusBadRequest, "Invalid username or password")
+		return
+	}
+	if err != nil {
+		deps.Logger().WithError(err).Error("unexpected error during authentication")
+		response.SendInternalServerError(c)
 		return
 	}
 
@@ -99,7 +105,7 @@ func HandleRefreshToken(deps model.Dependencies, c model.WebContext) {
 		return
 	}
 
-	response.SendJSON(c, http.StatusAccepted, loginResponseMessage{
+	response.SendJSON(c, http.StatusOK, loginResponseMessage{
 		Token:      token,
 		Expiration: expiration.Unix(),
 	})
@@ -187,8 +193,13 @@ func HandleUpdateLoggedAccount(deps model.Dependencies, c model.WebContext) {
 
 	if payload.NewPassword != "" {
 		_, err := deps.Domains().Auth().GetAccountFromCredentials(c.Request().Context(), account.Username, payload.OldPassword)
-		if err != nil {
+		if errors.Is(err, model.ErrInvalidCredentials) {
 			response.SendError(c, http.StatusBadRequest, "Old password is incorrect")
+			return
+		}
+		if err != nil {
+			deps.Logger().WithError(err).Error("failed to verify old password")
+			response.SendInternalServerError(c)
 			return
 		}
 	}
@@ -200,6 +211,18 @@ func HandleUpdateLoggedAccount(deps model.Dependencies, c model.WebContext) {
 	updatedAccount.ID = account.ID
 
 	account, err := deps.Domains().Accounts().UpdateAccount(c.Request().Context(), updatedAccount)
+	if errors.Is(err, model.ErrNotFound) {
+		response.SendError(c, http.StatusNotFound, "account not found")
+		return
+	}
+	if errors.Is(err, model.ErrAlreadyExists) {
+		response.SendError(c, http.StatusConflict, "account already exists")
+		return
+	}
+	if validationErr, ok := err.(model.ValidationError); ok {
+		response.SendError(c, http.StatusBadRequest, validationErr.Error())
+		return
+	}
 	if err != nil {
 		deps.Logger().WithError(err).Error("failed to update account")
 		response.SendInternalServerError(c)

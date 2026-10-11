@@ -416,7 +416,7 @@ func TestHandleCreateTag(t *testing.T) {
 		require.Equal(t, http.StatusUnauthorized, w.Code)
 	})
 
-	t.Run("invalid json payload", func(t *testing.T) {
+	t.Run("requires admin privileges", func(t *testing.T) {
 		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
 		w := testutil.PerformRequest(
 			deps,
@@ -424,6 +424,19 @@ func TestHandleCreateTag(t *testing.T) {
 			"POST",
 			"/api/v1/tags",
 			testutil.WithFakeUser(),
+			testutil.WithBody(`{"name": "tag"}`),
+		)
+		require.Equal(t, http.StatusForbidden, w.Code)
+	})
+
+	t.Run("invalid json payload", func(t *testing.T) {
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+		w := testutil.PerformRequest(
+			deps,
+			HandleCreateTag,
+			"POST",
+			"/api/v1/tags",
+			testutil.WithFakeAdmin(),
 			testutil.WithBody("invalid json"),
 		)
 		require.Equal(t, http.StatusBadRequest, w.Code)
@@ -436,7 +449,7 @@ func TestHandleCreateTag(t *testing.T) {
 			HandleCreateTag,
 			"POST",
 			"/api/v1/tags",
-			testutil.WithFakeUser(),
+			testutil.WithFakeAdmin(),
 			testutil.WithBody(`{"Name": ""}`),
 		)
 		require.Equal(t, http.StatusBadRequest, w.Code)
@@ -449,7 +462,7 @@ func TestHandleCreateTag(t *testing.T) {
 			HandleCreateTag,
 			"POST",
 			"/api/v1/tags",
-			testutil.WithFakeUser(),
+			testutil.WithFakeAdmin(),
 			testutil.WithBody(`{"Name": "new-test-tag"}`),
 		)
 		require.Equal(t, http.StatusCreated, w.Code)
@@ -481,7 +494,7 @@ func TestHandleCreateTag(t *testing.T) {
 			HandleCreateTag,
 			"POST",
 			"/api/v1/tags",
-			testutil.WithFakeUser(),
+			testutil.WithFakeAdmin(),
 			testutil.WithBody(`{"Name": "duplicate-test-tag"}`),
 		)
 		require.Equal(t, http.StatusConflict, w.Code)
@@ -518,6 +531,20 @@ func TestHandleUpdateTag(t *testing.T) {
 		require.Equal(t, http.StatusUnauthorized, w.Code)
 	})
 
+	t.Run("requires admin privileges", func(t *testing.T) {
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+		w := testutil.PerformRequest(
+			deps,
+			HandleUpdateTag,
+			"PUT",
+			"/api/v1/tags/1",
+			testutil.WithFakeUser(),
+			testutil.WithRequestPathValue("id", "1"),
+			testutil.WithBody(`{"name": "tag"}`),
+		)
+		require.Equal(t, http.StatusForbidden, w.Code)
+	})
+
 	t.Run("invalid tag id", func(t *testing.T) {
 		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
 		w := testutil.PerformRequest(
@@ -525,7 +552,7 @@ func TestHandleUpdateTag(t *testing.T) {
 			HandleUpdateTag,
 			"PUT",
 			"/api/v1/tags/invalid",
-			testutil.WithFakeUser(),
+			testutil.WithFakeAdmin(),
 			testutil.WithRequestPathValue("id", "invalid"),
 		)
 		require.Equal(t, http.StatusBadRequest, w.Code)
@@ -538,7 +565,7 @@ func TestHandleUpdateTag(t *testing.T) {
 			HandleUpdateTag,
 			"PUT",
 			"/api/v1/tags/1",
-			testutil.WithFakeUser(),
+			testutil.WithFakeAdmin(),
 			testutil.WithRequestPathValue("id", "1"),
 			testutil.WithBody("invalid json"),
 		)
@@ -552,7 +579,7 @@ func TestHandleUpdateTag(t *testing.T) {
 			HandleUpdateTag,
 			"PUT",
 			"/api/v1/tags/1",
-			testutil.WithFakeUser(),
+			testutil.WithFakeAdmin(),
 			testutil.WithRequestPathValue("id", "1"),
 			testutil.WithBody(`{"Name": ""}`),
 		)
@@ -566,7 +593,7 @@ func TestHandleUpdateTag(t *testing.T) {
 			HandleUpdateTag,
 			"PUT",
 			"/api/v1/tags/999",
-			testutil.WithFakeUser(),
+			testutil.WithFakeAdmin(),
 			testutil.WithRequestPathValue("id", "999"),
 			testutil.WithBody(`{"Name": "updated-tag"}`),
 		)
@@ -588,7 +615,7 @@ func TestHandleUpdateTag(t *testing.T) {
 			HandleUpdateTag,
 			"PUT",
 			"/api/v1/tags/"+strconv.Itoa(tagID),
-			testutil.WithFakeUser(),
+			testutil.WithFakeAdmin(),
 			testutil.WithRequestPathValue("id", strconv.Itoa(tagID)),
 			testutil.WithBody(`{"Name": "updated-test-tag"}`),
 		)
