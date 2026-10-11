@@ -65,10 +65,11 @@ type bookmarkDataResponse struct {
 //	@Summary					Get readable version of bookmark.
 //	@Tags						Bookmarks
 //	@securityDefinitions.apikey	ApiKeyAuth
+//	@Param						id	path	int	true	"Bookmark ID"
 //	@Produce					json
 //	@Success					200	{object}	readableResponseMessage
 //	@Failure					403	{object}	nil	"Token not provided/invalid"
-//	@Router						/api/v1/bookmarks/id/readable [get]
+//	@Router						/api/v1/bookmarks/{id}/readable [get]
 func HandleBookmarkReadable(deps model.Dependencies, c model.WebContext) {
 	if err := middleware.RequireLoggedInUser(deps, c); err != nil {
 		return

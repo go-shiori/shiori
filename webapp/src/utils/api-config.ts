@@ -15,7 +15,6 @@ export const getApiConfig = (token?: string | null): Configuration => {
     headers: token
       ? {
           Authorization: `Bearer ${token}`,
-          'X-Shiori-Response-Format': 'new',
         }
       : undefined,
   });

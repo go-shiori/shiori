@@ -1,10 +1,18 @@
 // Configuration for the Shiori API client
+// The <base> tag holds the server root path, so the API paths are relative to it.
 const apiConfig = new ShioriAPI.Configuration({
-	basePath: window.location.origin,
-	accessToken: () => localStorage.getItem("shiori-token"),
-	headers: {
-		"X-Shiori-Response-Format": "new",
-	},
+	basePath: document.baseURI.replace(/\/$/, ""),
+	middleware: [
+		{
+			pre: async ({ url, init }) => {
+				const token = localStorage.getItem("shiori-token");
+				if (token) {
+					init.headers = { ...init.headers, Authorization: `Bearer ${token}` };
+				}
+				return { url, init };
+			},
+		},
+	],
 });
 
 // Initialize API instances

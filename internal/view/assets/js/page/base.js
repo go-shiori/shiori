@@ -124,16 +124,6 @@ export default {
 				},
 			});
 		},
-		async saveSetting(key, value) {
-			try {
-				await apiRequest(new URL("api/v1/settings", document.baseURI), {
-					method: "PUT",
-					body: JSON.stringify({ [key]: value }),
-				});
-			} catch (err) {
-				this.showErrorDialog(err.message);
-			}
-		},
 		async logout() {
 			try {
 				await apiRequest(new URL("api/v1/auth/logout", document.baseURI), {

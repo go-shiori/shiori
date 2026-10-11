@@ -481,28 +481,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/bookmarks/id/readable": {
-            "get": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Bookmarks"
-                ],
-                "summary": "Get readable version of bookmark.",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/api_v1.readableResponseMessage"
-                        }
-                    },
-                    "403": {
-                        "description": "Token not provided/invalid"
-                    }
-                }
-            }
-        },
         "/api/v1/bookmarks/{id}": {
             "get": {
                 "produces": [
@@ -661,6 +639,37 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Failed to update bookmark data"
+                    }
+                }
+            }
+        },
+        "/api/v1/bookmarks/{id}/readable": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Bookmarks"
+                ],
+                "summary": "Get readable version of bookmark.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Bookmark ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api_v1.readableResponseMessage"
+                        }
+                    },
+                    "403": {
+                        "description": "Token not provided/invalid"
                     }
                 }
             }

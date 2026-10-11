@@ -12,7 +12,7 @@ All URIs are relative to *http://localhost*
 | [**apiV1BookmarksIdDataPut**](BookmarksApi.md#apiv1bookmarksiddataput) | **PUT** /api/v1/bookmarks/{id}/data | Update bookmark data (content, archive, ebook). |
 | [**apiV1BookmarksIdGet**](BookmarksApi.md#apiv1bookmarksidget) | **GET** /api/v1/bookmarks/{id} | Get a bookmark by ID. |
 | [**apiV1BookmarksIdPut**](BookmarksApi.md#apiv1bookmarksidput) | **PUT** /api/v1/bookmarks/{id} | Update an existing bookmark. |
-| [**apiV1BookmarksIdReadableGet**](BookmarksApi.md#apiv1bookmarksidreadableget) | **GET** /api/v1/bookmarks/id/readable | Get readable version of bookmark. |
+| [**apiV1BookmarksIdReadableGet**](BookmarksApi.md#apiv1bookmarksidreadableget) | **GET** /api/v1/bookmarks/{id}/readable | Get readable version of bookmark. |
 | [**apiV1BookmarksIdTagsDelete**](BookmarksApi.md#apiv1bookmarksidtagsdelete) | **DELETE** /api/v1/bookmarks/{id}/tags | Remove a tag from a bookmark. |
 | [**apiV1BookmarksIdTagsGet**](BookmarksApi.md#apiv1bookmarksidtagsget) | **GET** /api/v1/bookmarks/{id}/tags | Get tags for a bookmark. |
 | [**apiV1BookmarksIdTagsPost**](BookmarksApi.md#apiv1bookmarksidtagspost) | **POST** /api/v1/bookmarks/{id}/tags | Add a tag to a bookmark. |
@@ -579,7 +579,7 @@ No authorization required
 
 ## apiV1BookmarksIdReadableGet
 
-> ApiV1ReadableResponseMessage apiV1BookmarksIdReadableGet()
+> ApiV1ReadableResponseMessage apiV1BookmarksIdReadableGet(id)
 
 Get readable version of bookmark.
 
@@ -596,8 +596,13 @@ async function example() {
   console.log("🚀 Testing shiori-api SDK...");
   const api = new BookmarksApi();
 
+  const body = {
+    // number | Bookmark ID
+    id: 56,
+  } satisfies ApiV1BookmarksIdReadableGetRequest;
+
   try {
-    const data = await api.apiV1BookmarksIdReadableGet();
+    const data = await api.apiV1BookmarksIdReadableGet(body);
     console.log(data);
   } catch (error) {
     console.error(error);
@@ -610,7 +615,10 @@ example().catch(console.error);
 
 ### Parameters
 
-This endpoint does not need any parameter.
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **id** | `number` | Bookmark ID | [Defaults to `undefined`] |
 
 ### Return type
 

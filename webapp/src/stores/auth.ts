@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { AuthApi } from '@/client/apis/AuthApi';
 import type { ModelAccount, ModelUserConfig } from '@/client';
 import type { ApiV1UpdateAccountPayload } from '@/client/models/ApiV1UpdateAccountPayload';
@@ -15,6 +15,22 @@ export const useAuthStore = defineStore('auth', () => {
   const loading = ref(false);
   const error = ref<string | null>(null);
   const redirectDestination = ref<string | null>(null);
+
+  // Archive iframes and ebook links cannot send an Authorization header,
+  // so the server also reads the token from this cookie.
+  watch(
+    [token, expires],
+    ([value, expiresAt]) => {
+      document.cookie = value
+        ? `token=${value}; Path=/; SameSite=Lax${
+            expiresAt
+              ? `; Expires=${new Date(expiresAt * 1000).toUTCString()}`
+              : ''
+          }`
+        : 'token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    },
+    { immediate: true }
+  );
 
   const isAuthenticated = computed(() => {
     if (!token.value) return false;

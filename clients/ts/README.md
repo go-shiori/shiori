@@ -62,7 +62,7 @@ All URIs are relative to *http://localhost*
 *BookmarksApi* | [**apiV1BookmarksIdDataPut**](docs/BookmarksApi.md#apiv1bookmarksiddataput) | **PUT** /api/v1/bookmarks/{id}/data | Update bookmark data (content, archive, ebook).
 *BookmarksApi* | [**apiV1BookmarksIdGet**](docs/BookmarksApi.md#apiv1bookmarksidget) | **GET** /api/v1/bookmarks/{id} | Get a bookmark by ID.
 *BookmarksApi* | [**apiV1BookmarksIdPut**](docs/BookmarksApi.md#apiv1bookmarksidput) | **PUT** /api/v1/bookmarks/{id} | Update an existing bookmark.
-*BookmarksApi* | [**apiV1BookmarksIdReadableGet**](docs/BookmarksApi.md#apiv1bookmarksidreadableget) | **GET** /api/v1/bookmarks/id/readable | Get readable version of bookmark.
+*BookmarksApi* | [**apiV1BookmarksIdReadableGet**](docs/BookmarksApi.md#apiv1bookmarksidreadableget) | **GET** /api/v1/bookmarks/{id}/readable | Get readable version of bookmark.
 *BookmarksApi* | [**apiV1BookmarksIdTagsDelete**](docs/BookmarksApi.md#apiv1bookmarksidtagsdelete) | **DELETE** /api/v1/bookmarks/{id}/tags | Remove a tag from a bookmark.
 *BookmarksApi* | [**apiV1BookmarksIdTagsGet**](docs/BookmarksApi.md#apiv1bookmarksidtagsget) | **GET** /api/v1/bookmarks/{id}/tags | Get tags for a bookmark.
 *BookmarksApi* | [**apiV1BookmarksIdTagsPost**](docs/BookmarksApi.md#apiv1bookmarksidtagspost) | **POST** /api/v1/bookmarks/{id}/tags | Add a tag to a bookmark.

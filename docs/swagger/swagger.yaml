@@ -644,6 +644,26 @@ paths:
       summary: Update bookmark data (content, archive, ebook).
       tags:
       - Bookmarks
+  /api/v1/bookmarks/{id}/readable:
+    get:
+      parameters:
+      - description: Bookmark ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api_v1.readableResponseMessage'
+        "403":
+          description: Token not provided/invalid
+      summary: Get readable version of bookmark.
+      tags:
+      - Bookmarks
   /api/v1/bookmarks/{id}/tags:
     delete:
       parameters:
@@ -764,20 +784,6 @@ paths:
         "403":
           description: Token not provided/invalid
       summary: Update Cache and Ebook on server.
-      tags:
-      - Bookmarks
-  /api/v1/bookmarks/id/readable:
-    get:
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/api_v1.readableResponseMessage'
-        "403":
-          description: Token not provided/invalid
-      summary: Get readable version of bookmark.
       tags:
       - Bookmarks
   /api/v1/system/info:

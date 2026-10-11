@@ -93,6 +93,10 @@ export interface ApiV1BookmarksIdPutRequest {
     payload: ApiV1UpdateBookmarkPayload;
 }
 
+export interface ApiV1BookmarksIdReadableGetRequest {
+    id: number;
+}
+
 export interface ApiV1BookmarksIdTagsDeleteRequest {
     id: number;
     payload: ApiV1BookmarkTagPayload;
@@ -516,13 +520,21 @@ export class BookmarksApi extends runtime.BaseAPI {
     /**
      * Creates request options for apiV1BookmarksIdReadableGet without sending the request
      */
-    async apiV1BookmarksIdReadableGetRequestOpts(): Promise<runtime.RequestOpts> {
+    async apiV1BookmarksIdReadableGetRequestOpts(requestParameters: ApiV1BookmarksIdReadableGetRequest): Promise<runtime.RequestOpts> {
+        if (requestParameters['id'] == null) {
+            throw new runtime.RequiredError(
+                'id',
+                'Required parameter "id" was null or undefined when calling apiV1BookmarksIdReadableGet().'
+            );
+        }
+
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
 
-        let urlPath = `/api/v1/bookmarks/id/readable`;
+        let urlPath = `/api/v1/bookmarks/{id}/readable`;
+        urlPath = urlPath.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id'])));
 
         return {
             path: urlPath,
@@ -535,8 +547,8 @@ export class BookmarksApi extends runtime.BaseAPI {
     /**
      * Get readable version of bookmark.
      */
-    async apiV1BookmarksIdReadableGetRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiV1ReadableResponseMessage>> {
-        const requestOptions = await this.apiV1BookmarksIdReadableGetRequestOpts();
+    async apiV1BookmarksIdReadableGetRaw(requestParameters: ApiV1BookmarksIdReadableGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiV1ReadableResponseMessage>> {
+        const requestOptions = await this.apiV1BookmarksIdReadableGetRequestOpts(requestParameters);
         const response = await this.request(requestOptions, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ApiV1ReadableResponseMessageFromJSON(jsonValue));
@@ -545,8 +557,8 @@ export class BookmarksApi extends runtime.BaseAPI {
     /**
      * Get readable version of bookmark.
      */
-    async apiV1BookmarksIdReadableGet(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiV1ReadableResponseMessage> {
-        const response = await this.apiV1BookmarksIdReadableGetRaw(initOverrides);
+    async apiV1BookmarksIdReadableGet(requestParameters: ApiV1BookmarksIdReadableGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiV1ReadableResponseMessage> {
+        const response = await this.apiV1BookmarksIdReadableGetRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

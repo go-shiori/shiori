@@ -51,7 +51,6 @@ export const getBookmarkThumbnailDataUrl = async (
 
     if (authToken) {
       headers['Authorization'] = `Bearer ${authToken}`;
-      headers['X-Shiori-Response-Format'] = 'new';
     }
 
     const response = await fetch(thumbnailUrl, {
