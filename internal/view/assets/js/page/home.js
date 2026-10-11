@@ -167,14 +167,23 @@ export default {
 			this.search = "";
 			this.searchBookmarks();
 		},
+		async fetchAllTags(params) {
+			const limit = 100;
+			const tags = [];
+			for (let page = 1; ; page++) {
+				const result = await tagsApi.apiV1TagsGet({ ...params, page, limit });
+				tags.push(...result.items);
+				if (result.items.length < limit || tags.length >= result.total) {
+					return tags;
+				}
+			}
+		},
 		async createOrFindTag(tagName) {
 			// First, try to find existing tag
-			const tagsResult = await tagsApi.apiV1TagsGet({
-				search: tagName,
-			});
+			const tags = await this.fetchAllTags({ search: tagName });
 
 			// Find exact match
-			const existingTag = tagsResult.items.find((t) => t.Name === tagName);
+			const existingTag = tags.find((t) => t.Name === tagName);
 			if (existingTag) {
 				return existingTag.ID;
 			}
@@ -198,10 +207,8 @@ export default {
 			}
 
 			// Search again to find the tag
-			const tagsRetry = await tagsApi.apiV1TagsGet({
-				search: tagName,
-			});
-			const existingTagRetry = tagsRetry.items.find((t) => t.Name === tagName);
+			const tagsRetry = await this.fetchAllTags({ search: tagName });
+			const existingTagRetry = tagsRetry.find((t) => t.Name === tagName);
 			if (existingTagRetry) {
 				return existingTagRetry.ID;
 			}
@@ -294,10 +301,7 @@ export default {
 				// Fetch tags if needed
 				if (!fetchTags) throw skipFetchTags;
 
-				const tagsResult = await tagsApi.apiV1TagsGet({
-					withBookmarkCount: true,
-				});
-				this.tags = tagsResult.items;
+				this.tags = await this.fetchAllTags({ withBookmarkCount: true });
 			} catch (err) {
 				if (err !== skipFetchTags) {
 					this.showErrorDialog(getErrorMessage(err));

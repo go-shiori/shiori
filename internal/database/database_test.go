@@ -20,6 +20,7 @@ func testDatabase(t *testing.T, dbFactory testDatabaseFactory) {
 		"testCreateBookmark":                    testCreateBookmark,
 		"testCreateBookmarkWithContent":         testCreateBookmarkWithContent,
 		"testCreateBookmarkTwice":               testCreateBookmarkTwice,
+		"testUpdateBookmarkToExistingURL":       testUpdateBookmarkToExistingURL,
 		"testCreateBookmarkWithTag":             testCreateBookmarkWithTag,
 		"testCreateTwoDifferentBookmarks":       testCreateTwoDifferentBookmarks,
 		"testUpdateBookmark":                    testUpdateBookmark,
@@ -38,6 +39,7 @@ func testDatabase(t *testing.T, dbFactory testDatabaseFactory) {
 		// Tags
 		"testCreateTag":             testCreateTag,
 		"testCreateTags":            testCreateTags,
+		"testCreateDuplicateTag":    testCreateDuplicateTag,
 		"testTagExists":             testTagExists,
 		"testGetTags":               testGetTags,
 		"testGetTagsFunction":       testGetTagsFunction,
@@ -183,7 +185,22 @@ func testCreateBookmarkTwice(t *testing.T, db model.DB) {
 	savedBookmark.Title = "modified"
 
 	_, err = db.SaveBookmarks(ctx, true, savedBookmark)
-	assert.Error(t, err, "Save bookmarks must fail")
+	assert.ErrorIs(t, err, ErrBookmarkURLAlreadyExists, "Save bookmarks must fail")
+}
+
+func testUpdateBookmarkToExistingURL(t *testing.T, db model.DB) {
+	ctx := context.TODO()
+
+	result, err := db.SaveBookmarks(ctx, true,
+		model.BookmarkDTO{Bookmark: model.Bookmark{URL: "https://example.com/first", Title: "first"}},
+		model.BookmarkDTO{Bookmark: model.Bookmark{URL: "https://example.com/second", Title: "second"}},
+	)
+	require.NoError(t, err)
+
+	second := result[1]
+	second.URL = result[0].URL
+	_, err = db.SaveBookmarks(ctx, false, second)
+	assert.ErrorIs(t, err, ErrBookmarkURLAlreadyExists)
 }
 
 func testCreateTwoDifferentBookmarks(t *testing.T, db model.DB) {
@@ -537,6 +554,15 @@ func testCreateTag(t *testing.T, db model.DB) {
 	assert.Len(t, createdTags, 1, "Should return one created tag")
 	assert.Greater(t, createdTags[0].ID, 0, "Created tag should have a valid ID")
 	assert.Equal(t, "shiori", createdTags[0].Name, "Created tag should have the correct name")
+}
+
+func testCreateDuplicateTag(t *testing.T, db model.DB) {
+	ctx := context.TODO()
+	_, err := db.CreateTags(ctx, model.Tag{Name: "shiori"})
+	require.NoError(t, err)
+
+	_, err = db.CreateTags(ctx, model.Tag{Name: "shiori"})
+	assert.ErrorIs(t, err, ErrTagNameAlreadyExists)
 }
 
 func testCreateTags(t *testing.T, db model.DB) {

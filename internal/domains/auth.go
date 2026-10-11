@@ -11,7 +11,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-var dummyPasswordHash, _ = bcrypt.GenerateFromPassword([]byte("shiori-dummy-password"), bcrypt.DefaultCost)
+// dummyPasswordHash is a bcrypt hash (cost 10) used to keep login timing equal for unknown usernames.
+var dummyPasswordHash = []byte("$2a$10$oPxC2Tgbjlmgz0Cc66tRMuqPWYURM1E7jZezE4QLdUvyjDPBatBkW")
 
 type AuthDomain struct {
 	deps *dependencies.Dependencies

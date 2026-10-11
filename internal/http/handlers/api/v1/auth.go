@@ -191,6 +191,11 @@ func HandleUpdateLoggedAccount(deps model.Dependencies, c model.WebContext) {
 		return
 	}
 
+	if payload.Owner != nil && !*payload.Owner && account.IsOwner() {
+		response.SendError(c, http.StatusForbidden, "Admins cannot remove their own owner status")
+		return
+	}
+
 	if payload.NewPassword != "" {
 		_, err := deps.Domains().Auth().GetAccountFromCredentials(c.Request().Context(), account.Username, payload.OldPassword)
 		if errors.Is(err, model.ErrInvalidCredentials) {
@@ -249,7 +254,7 @@ func HandleLogout(deps model.Dependencies, c model.WebContext) {
 		Name:   "token",
 		Value:  "",
 		MaxAge: -1,
-		Path:   "/",
+		Path:   deps.Config().Http.RootPath,
 	})
 
 	response.SendJSON(c, http.StatusOK, nil)

@@ -1432,6 +1432,12 @@
 			if (requestParameters["search"] != null) {
 				queryParameters["search"] = requestParameters["search"];
 			}
+			if (requestParameters["page"] != null) {
+				queryParameters["page"] = requestParameters["page"];
+			}
+			if (requestParameters["limit"] != null) {
+				queryParameters["limit"] = requestParameters["limit"];
+			}
 			const headerParameters = {};
 			let urlPath = `/api/v1/tags`;
 			const response = await this.request(

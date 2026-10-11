@@ -254,6 +254,17 @@ func TestHandleUpdateAccount(t *testing.T) {
 		require.Equal(t, http.StatusBadRequest, w.Code)
 	})
 
+	t.Run("cannot update own account", func(t *testing.T) {
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+		body := `{"Owner": false}`
+		w := testutil.PerformRequest(deps, func(deps model.Dependencies, c model.WebContext) {
+			testutil.SetFakeAdmin(c)
+			testutil.SetRequestPathValue(c, "id", strconv.Itoa(int(c.GetAccount().ID)))
+			HandleUpdateAccount(deps, c)
+		}, "PATCH", "/api/v1/accounts/self", testutil.WithBody(body))
+		require.Equal(t, http.StatusForbidden, w.Code)
+	})
+
 	t.Run("account not found", func(t *testing.T) {
 		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
 		body := `{"Username": "newname"}`

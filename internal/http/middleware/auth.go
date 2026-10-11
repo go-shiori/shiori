@@ -42,6 +42,7 @@ func (m *AuthMiddleware) OnRequest(deps model.Dependencies, c model.WebContext) 
 			Name:   "token",
 			Value:  "",
 			MaxAge: -1,
+			Path:   deps.Config().Http.RootPath,
 		})
 		return nil
 	}

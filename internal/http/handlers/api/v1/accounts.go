@@ -150,6 +150,12 @@ func HandleUpdateAccount(deps model.Dependencies, c model.WebContext) {
 		return
 	}
 
+	// Self-updates go through /auth/account, which checks the old password and blocks self-demotion.
+	if account := c.GetAccount(); account != nil && int(account.ID) == accountID {
+		response.SendError(c, http.StatusForbidden, "use /api/v1/auth/account to update your own account")
+		return
+	}
+
 	var payload updateAccountPayload
 	if err := json.NewDecoder(c.Request().Body).Decode(&payload); err != nil {
 		response.SendError(c, http.StatusBadRequest, "invalid json")

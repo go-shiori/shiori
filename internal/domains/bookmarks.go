@@ -38,6 +38,10 @@ func (d *BookmarksDomain) populateAdditionalFields(bookmark *model.BookmarkDTO) 
 }
 
 func (d *BookmarksDomain) GetBookmark(ctx context.Context, id model.DBID) (*model.BookmarkDTO, error) {
+	if id <= 0 {
+		return nil, model.ErrBookmarkNotFound
+	}
+
 	bookmark, exists, err := d.deps.Database().GetBookmark(ctx, int(id), "")
 	if err != nil {
 		return nil, fmt.Errorf("failed to get bookmark: %w", err)
@@ -140,6 +144,8 @@ func (d *BookmarksDomain) UpdateBookmarkCache(ctx context.Context, bookmark mode
 	if err != nil {
 		return nil, fmt.Errorf("failed to process bookmark: %w", err)
 	}
+
+	d.populateAdditionalFields(&processedBookmark)
 
 	return &processedBookmark, nil
 }

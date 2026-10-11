@@ -95,8 +95,10 @@ export default {
 			return this.excerpt !== "" && !this.thumbnailVisible && !this.HideExcerpt;
 		},
 		thumbnailStyleURL() {
+			const url = new URL(this.imageURL.replace(/^\//, ""), document.baseURI);
+			url.searchParams.set("modifiedAt", this.modifiedAt);
 			return {
-				backgroundImage: `url("${this.imageURL}?modifiedAt=${this.modifiedAt}")`,
+				backgroundImage: `url("${url}")`,
 			};
 		},
 		eventItem() {

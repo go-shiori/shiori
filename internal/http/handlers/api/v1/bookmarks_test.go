@@ -935,6 +935,19 @@ func TestHandleGetBookmark(t *testing.T) {
 		require.Equal(t, http.StatusUnauthorized, w.Code)
 	})
 
+	t.Run("zero id returns not found", func(t *testing.T) {
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+		w := testutil.PerformRequest(
+			deps,
+			HandleGetBookmark,
+			http.MethodGet,
+			"/api/v1/bookmarks/0",
+			testutil.WithFakeUser(),
+			testutil.WithRequestPathValue("id", "0"),
+		)
+		require.Equal(t, http.StatusNotFound, w.Code)
+	})
+
 	t.Run("invalid bookmark id", func(t *testing.T) {
 		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
 		w := testutil.PerformRequest(

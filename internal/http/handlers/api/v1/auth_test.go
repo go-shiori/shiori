@@ -275,6 +275,12 @@ func TestHandleUpdateLoggedAccount(t *testing.T) {
 		require.Equal(t, http.StatusBadRequest, w.Code)
 	})
 
+	t.Run("admin cannot remove own owner status", func(t *testing.T) {
+		body := `{"Owner": false}`
+		w := testutil.PerformRequest(deps, HandleUpdateLoggedAccount, "PATCH", "/account", testutil.WithBody(body), testutil.WithAccount(account))
+		require.Equal(t, http.StatusForbidden, w.Code)
+	})
+
 	t.Run("deleted account returns 404", func(t *testing.T) {
 		body := `{"Config": {"ShowId": true}}`
 		deleted := &model.AccountDTO{ID: 9999, Username: "deleted", Owner: model.Ptr(false)}

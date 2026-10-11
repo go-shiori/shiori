@@ -72,7 +72,12 @@ export default {
 
 		parseJWT(token) {
 			try {
-				return JSON.parse(atob(token.split(".")[1]));
+				const payload = token
+					.split(".")[1]
+					.replace(/-/g, "+")
+					.replace(/_/g, "/");
+				const bytes = Uint8Array.from(atob(payload), (c) => c.charCodeAt(0));
+				return JSON.parse(new TextDecoder().decode(bytes));
 			} catch (e) {
 				return null;
 			}
