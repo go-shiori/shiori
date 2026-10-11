@@ -15,4 +15,4 @@ The main goals of this new API are:
 
 The current status of this new API can be checked [here](https://github.com/go-shiori/shiori/issues/640).
 
-Since the API is self-docummented, you can check the API documentation by [running the server locally](./Contribute.md#running-the-server-locally) and visiting the [`/swagger/index.html` endpoint](http://localhost:8080/swagger/index.html).
+Since the API is self-documented, you can check the API documentation by [running the server locally](./Contribute.md#running-the-server-locally) and visiting the [`/swagger/index.html` endpoint](http://localhost:8080/swagger/index.html).

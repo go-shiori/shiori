@@ -122,7 +122,7 @@ styles-check:
 build: clean
 	GIN_MODE=$(GIN_MODE) goreleaser build --clean --snapshot
 
-## Build binary for current targer
+## Build binary for current target
 build-local: clean
 	GIN_MODE=$(GIN_MODE) goreleaser build --clean --snapshot --single-target
 
@@ -145,7 +145,7 @@ coverage:
 	$(GO) test $(GO_TEST_FLAGS) -coverprofile=coverage.txt $(SOURCE_FILES)
 	$(GO) tool cover -html=coverage.txt
 
-## Run generate accross the project
+## Run generate across the project
 .PHONY: generate
 generate:
 	$(GO) generate ./...

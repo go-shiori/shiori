@@ -50,7 +50,7 @@ export interface ModelAccountDTO {
      * @type {string}
      * @memberof ModelAccountDTO
      */
-    passowrd?: string;
+    password?: string;
     /**
      * 
      * @type {string}
@@ -79,7 +79,7 @@ export function ModelAccountDTOFromJSONTyped(json: any, ignoreDiscriminator: boo
         'config': json['config'] == null ? undefined : ModelUserConfigFromJSON(json['config']),
         'id': json['id'] == null ? undefined : json['id'],
         'owner': json['owner'] == null ? undefined : json['owner'],
-        'passowrd': json['passowrd'] == null ? undefined : json['passowrd'],
+        'password': json['password'] == null ? undefined : json['password'],
         'username': json['username'] == null ? undefined : json['username'],
     };
 }
@@ -98,7 +98,7 @@ export function ModelAccountDTOToJSONTyped(value?: ModelAccountDTO | null, ignor
         'config': ModelUserConfigToJSON(value['config']),
         'id': value['id'],
         'owner': value['owner'],
-        'passowrd': value['passowrd'],
+        'password': value['password'],
         'username': value['username'],
     };
 }
