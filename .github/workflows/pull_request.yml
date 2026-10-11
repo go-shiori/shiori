@@ -30,14 +30,14 @@ jobs:
     uses: ./.github/workflows/_gorelease.yml
   call-buildx:
     needs: call-gorelease
-    if: ${{ !startsWith(github.head_ref, 'dependabot/') }}
+    if: ${{ github.event.pull_request.head.repo.full_name == 'go-shiori/shiori' && !startsWith(github.head_ref, 'dependabot/') }}
     uses: ./.github/workflows/_buildx.yml
     secrets:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
   call-buildx-alpine:
     needs: call-gorelease
-    if: ${{ !startsWith(github.head_ref, 'dependabot/') }}
+    if: ${{ github.event.pull_request.head.repo.full_name == 'go-shiori/shiori' && !startsWith(github.head_ref, 'dependabot/') }}
     uses: ./.github/workflows/_buildx.yml
     secrets:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}

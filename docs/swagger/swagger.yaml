@@ -1,3 +1,4 @@
+basePath: /
 definitions:
   api_v1.bookmarkDataResponse:
     properties:
@@ -285,6 +286,10 @@ definitions:
     type: object
 info:
   contact: {}
+  description: Shiori is a simple bookmarks manager. This is the documentation for
+    its HTTP API.
+  title: Shiori API
+  version: "1.0"
 paths:
   /api/v1/accounts:
     get:
@@ -396,6 +401,8 @@ paths:
             $ref: '#/definitions/model.Account'
         "403":
           description: Token not provided/invalid
+      security:
+      - ApiKeyAuth: []
       summary: Update account information
       tags:
       - Auth
@@ -430,6 +437,8 @@ paths:
           description: Logout successful
         "403":
           description: Token not provided/invalid
+      security:
+      - ApiKeyAuth: []
       summary: Logout from the current session
       tags:
       - Auth
@@ -444,6 +453,8 @@ paths:
             $ref: '#/definitions/model.Account'
         "403":
           description: Token not provided/invalid
+      security:
+      - ApiKeyAuth: []
       summary: Get information for the current logged in user
       tags:
       - Auth
@@ -458,6 +469,8 @@ paths:
             $ref: '#/definitions/api_v1.loginResponseMessage'
         "403":
           description: Token not provided/invalid
+      security:
+      - ApiKeyAuth: []
       summary: Refresh a token for an account
       tags:
       - Auth
@@ -479,6 +492,8 @@ paths:
           description: Invalid request payload
         "403":
           description: Token not provided/invalid
+      security:
+      - ApiKeyAuth: []
       summary: Delete one or more bookmarks.
       tags:
       - Bookmarks
@@ -513,6 +528,8 @@ paths:
             $ref: '#/definitions/model.PaginatedResponse-model_BookmarkDTO'
         "403":
           description: Token not provided/invalid
+      security:
+      - ApiKeyAuth: []
       summary: List bookmarks with optional filtering and pagination.
       tags:
       - Bookmarks
@@ -535,6 +552,8 @@ paths:
           description: Invalid request payload
         "403":
           description: Token not provided/invalid
+      security:
+      - ApiKeyAuth: []
       summary: Create a new bookmark.
       tags:
       - Bookmarks
@@ -557,6 +576,8 @@ paths:
           description: Token not provided/invalid
         "404":
           description: Bookmark not found
+      security:
+      - ApiKeyAuth: []
       summary: Get a bookmark by ID.
       tags:
       - Bookmarks
@@ -586,6 +607,8 @@ paths:
           description: Token not provided/invalid
         "404":
           description: Bookmark not found
+      security:
+      - ApiKeyAuth: []
       summary: Update an existing bookmark.
       tags:
       - Bookmarks
@@ -610,6 +633,8 @@ paths:
           description: Token not provided/invalid
         "404":
           description: Bookmark not found
+      security:
+      - ApiKeyAuth: []
       summary: Get bookmark data and resource URLs.
       tags:
       - Bookmarks
@@ -641,6 +666,8 @@ paths:
           description: Bookmark not found
         "500":
           description: Failed to update bookmark data
+      security:
+      - ApiKeyAuth: []
       summary: Update bookmark data (content, archive, ebook).
       tags:
       - Bookmarks
@@ -661,6 +688,8 @@ paths:
             $ref: '#/definitions/api_v1.readableResponseMessage'
         "403":
           description: Token not provided/invalid
+      security:
+      - ApiKeyAuth: []
       summary: Get readable version of bookmark.
       tags:
       - Bookmarks
@@ -687,6 +716,8 @@ paths:
           description: Token not provided/invalid
         "404":
           description: Bookmark not found
+      security:
+      - ApiKeyAuth: []
       summary: Remove a tag from a bookmark.
       tags:
       - Bookmarks
@@ -710,6 +741,8 @@ paths:
           description: Token not provided/invalid
         "404":
           description: Bookmark not found
+      security:
+      - ApiKeyAuth: []
       summary: Get tags for a bookmark.
       tags:
       - Bookmarks
@@ -735,6 +768,8 @@ paths:
           description: Token not provided/invalid
         "404":
           description: Bookmark or tag not found
+      security:
+      - ApiKeyAuth: []
       summary: Add a tag to a bookmark.
       tags:
       - Bookmarks
@@ -762,6 +797,8 @@ paths:
           description: Token not provided/invalid
         "404":
           description: No bookmarks found
+      security:
+      - ApiKeyAuth: []
       summary: Bulk update tags for multiple bookmarks.
       tags:
       - Bookmarks
@@ -783,6 +820,8 @@ paths:
             $ref: '#/definitions/model.BookmarkDTO'
         "403":
           description: Token not provided/invalid
+      security:
+      - ApiKeyAuth: []
       summary: Update Cache and Ebook on server.
       tags:
       - Bookmarks
@@ -799,6 +838,8 @@ paths:
             $ref: '#/definitions/api_v1.infoResponse'
         "403":
           description: Only owners can access this endpoint
+      security:
+      - ApiKeyAuth: []
       summary: Get general system information
       tags:
       - System
@@ -848,14 +889,16 @@ paths:
           description: Authentication required
         "500":
           description: Internal server error
+      security:
+      - ApiKeyAuth: []
       summary: List tags
       tags:
       - Tags
     post:
       consumes:
       - application/json
-      description: Create a new tag. If a tag with the same name already exists, returns
-        204 No Content.
+      description: Create a new tag. Returns 409 Conflict if a tag with the same name
+        already exists.
       parameters:
       - description: Tag data
         in: body
@@ -870,14 +913,16 @@ paths:
           description: Tag created
           schema:
             $ref: '#/definitions/model.TagDTO'
-        "204":
-          description: Tag already exists
         "400":
           description: Invalid request
         "403":
           description: Authentication required
+        "409":
+          description: Tag already exists
         "500":
           description: Internal server error
+      security:
+      - ApiKeyAuth: []
       summary: Create tag
       tags:
       - Tags
@@ -899,6 +944,8 @@ paths:
           description: Tag not found
         "500":
           description: Internal server error
+      security:
+      - ApiKeyAuth: []
       summary: Delete tag
       tags:
       - Tags
@@ -923,6 +970,8 @@ paths:
           description: Tag not found
         "500":
           description: Internal server error
+      security:
+      - ApiKeyAuth: []
       summary: Get tag
       tags:
       - Tags
@@ -957,7 +1006,15 @@ paths:
           description: Tag not found
         "500":
           description: Internal server error
+      security:
+      - ApiKeyAuth: []
       summary: Update tag
       tags:
       - Tags
+securityDefinitions:
+  ApiKeyAuth:
+    description: Type "Bearer" followed by a space and the JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

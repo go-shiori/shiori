@@ -159,6 +159,11 @@ const docTemplate = `{
         },
         "/api/v1/auth/account": {
             "patch": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -226,6 +231,11 @@ const docTemplate = `{
         },
         "/api/v1/auth/logout": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -245,6 +255,11 @@ const docTemplate = `{
         },
         "/api/v1/auth/me": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -267,6 +282,11 @@ const docTemplate = `{
         },
         "/api/v1/auth/refresh": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -289,6 +309,11 @@ const docTemplate = `{
         },
         "/api/v1/bookmarks": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -341,6 +366,11 @@ const docTemplate = `{
                 }
             },
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -375,6 +405,11 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -408,6 +443,11 @@ const docTemplate = `{
         },
         "/api/v1/bookmarks/bulk/tags": {
             "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -450,6 +490,11 @@ const docTemplate = `{
         },
         "/api/v1/bookmarks/cache": {
             "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -483,6 +528,11 @@ const docTemplate = `{
         },
         "/api/v1/bookmarks/{id}": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -515,6 +565,11 @@ const docTemplate = `{
                 }
             },
             "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -561,6 +616,11 @@ const docTemplate = `{
         },
         "/api/v1/bookmarks/{id}/data": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -596,6 +656,11 @@ const docTemplate = `{
                 }
             },
             "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -645,6 +710,11 @@ const docTemplate = `{
         },
         "/api/v1/bookmarks/{id}/readable": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -676,6 +746,11 @@ const docTemplate = `{
         },
         "/api/v1/bookmarks/{id}/tags": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -711,6 +786,11 @@ const docTemplate = `{
                 }
             },
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -749,6 +829,11 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -789,6 +874,11 @@ const docTemplate = `{
         },
         "/api/v1/system/info": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Get general system information like Shiori version, database, and OS",
                 "produces": [
                     "application/json"
@@ -829,6 +919,11 @@ const docTemplate = `{
         },
         "/api/v1/tags": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "List all tags with pagination",
                 "produces": [
                     "application/json"
@@ -885,7 +980,12 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "description": "Create a new tag. If a tag with the same name already exists, returns 204 No Content.",
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Create a new tag. Returns 409 Conflict if a tag with the same name already exists.",
                 "consumes": [
                     "application/json"
                 ],
@@ -914,14 +1014,14 @@ const docTemplate = `{
                             "$ref": "#/definitions/model.TagDTO"
                         }
                     },
-                    "204": {
-                        "description": "Tag already exists"
-                    },
                     "400": {
                         "description": "Invalid request"
                     },
                     "403": {
                         "description": "Authentication required"
+                    },
+                    "409": {
+                        "description": "Tag already exists"
                     },
                     "500": {
                         "description": "Internal server error"
@@ -931,6 +1031,11 @@ const docTemplate = `{
         },
         "/api/v1/tags/{id}": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Get a tag by ID",
                 "produces": [
                     "application/json"
@@ -967,6 +1072,11 @@ const docTemplate = `{
                 }
             },
             "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Update an existing tag",
                 "consumes": [
                     "application/json"
@@ -1018,6 +1128,11 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Delete a tag",
                 "tags": [
                     "Tags"
@@ -1485,17 +1600,25 @@ const docTemplate = `{
                 }
             }
         }
+    },
+    "securityDefinitions": {
+        "ApiKeyAuth": {
+            "description": "Type \"Bearer\" followed by a space and the JWT token.",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
     }
 }`
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "",
+	Version:          "1.0",
 	Host:             "",
-	BasePath:         "",
+	BasePath:         "/",
 	Schemes:          []string{},
-	Title:            "",
-	Description:      "",
+	Title:            "Shiori API",
+	Description:      "Shiori is a simple bookmarks manager. This is the documentation for its HTTP API.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

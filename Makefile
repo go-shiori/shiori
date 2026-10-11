@@ -157,7 +157,7 @@ webapp-type-check:
 build: clean
 	goreleaser build --clean --snapshot
 
-## Build binary for current targer
+## Build binary for current target
 build-local: clean
 	goreleaser build --clean --snapshot --single-target
 
@@ -204,7 +204,7 @@ build-webapp: generate-client
 run-webapp: generate-client
 	cd webapp && bun install && VITE_API_BASE_URL=http://localhost:8080 bun run dev
 
-## Run generate accross the project
+## Run generate across the project
 .PHONY: generate
 generate:
 	$(GO) generate ./...

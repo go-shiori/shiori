@@ -22,6 +22,14 @@ func init() {
 	model.BuildDate = date
 }
 
+// @title						Shiori API
+// @version					1.0
+// @description				Shiori is a simple bookmarks manager. This is the documentation for its HTTP API.
+// @BasePath					/
+// @securityDefinitions.apikey	ApiKeyAuth
+// @in							header
+// @name						Authorization
+// @description				Type "Bearer" followed by a space and the JWT token.
 func main() {
 	err := cmd.ShioriCmd().Execute()
 	if err != nil {
