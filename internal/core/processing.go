@@ -89,7 +89,7 @@ func ProcessBookmark(deps model.Dependencies, req ProcessRequest) (book model.Bo
 		book.Content = article.TextContent
 		book.HTML = article.Content
 
-		// If title and excerpt doesnt have submitted value, use from article
+		// If title and excerpt doesn't have submitted value, use from article
 		if !req.KeepTitle || book.Title == "" {
 			book.Title = article.Title
 		}
