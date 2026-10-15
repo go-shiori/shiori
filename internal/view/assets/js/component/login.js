@@ -27,6 +27,12 @@ const template = `
                 <a v-else class="button" tabindex="4" @click="login" @keyup.enter="login">Log In</a>
             </div>
         </form>
+        <div v-if="authConfig.oidc_enabled" class="oidc-login" style="margin-top: 20px; text-align: center; border-top: 1px solid #ddd; padding-top: 20px;">
+            <p style="margin-bottom: 10px; font-size: 0.9em; color: #666; text-transform: uppercase;">or Single Sign-On</p>
+            <a :href="oidcLoginUrl" class="button" style="background-color: #fff; color: #333; border: 1px solid #ccc; display: inline-block; width: 100%; box-sizing: border-box;">
+                <i class="fas fa-sign-in-alt" style="margin-right: 8px;"></i> Login with {{ authConfig.oidc_provider_name }}
+            </a>
+        </div>
     </div>
     <footer class="login-footer" v-if="version !== ''">
         <p>{{version}}</p>
@@ -51,10 +57,33 @@ export default {
 			password: "",
 			remember: false,
 			destination: "/", // Default destination
+			authConfig: {
+				oidc_enabled: false,
+				oidc_provider_name: "",
+			},
 		};
 	},
 	emits: ["login-success"],
+	computed: {
+		oidcLoginUrl() {
+			return new URL("api/v1/auth/oidc/login", document.baseURI).href;
+		},
+	},
 	methods: {
+		async fetchAuthConfig() {
+			try {
+				const response = await fetch(
+					new URL("api/v1/auth/config", document.baseURI),
+				);
+				if (response.ok) {
+					const data = await response.json();
+					// Handle wrapped response format: {"ok":true,"message":{...}}
+					this.authConfig = data.message || data;
+				}
+			} catch (err) {
+				console.error("Error fetching auth config:", err);
+			}
+		},
 		sanitizeDestination(dst) {
 			try {
 				// Remove any leading/trailing whitespace
@@ -158,10 +187,39 @@ export default {
 		},
 	},
 	async mounted() {
+		await this.fetchAuthConfig();
 		// Get and sanitize destination from URL parameters
 		const urlParams = new URLSearchParams(window.location.search);
 		const dst = urlParams.get("dst");
 		this.destination = dst ? this.sanitizeDestination(dst) : "/";
+
+		// Check if OIDC callback with token
+		const token = urlParams.get("token");
+		const expires = urlParams.get("expires");
+
+		if (token && expires) {
+			// Handle OIDC callback
+			document.cookie = `token=${token}; Path=${
+				new URL(document.baseURI).pathname
+			}; Expires=${new Date(expires * 1000).toUTCString()}`;
+
+			localStorage.setItem("shiori-token", token);
+			localStorage.setItem(
+				"shiori-account",
+				JSON.stringify(this.parseJWT(token).account),
+			);
+
+			this.$emit("login-success");
+
+			// Clean up URL parameters
+			window.history.replaceState({}, document.title, window.location.pathname);
+
+			// Redirect to destination if not root
+			if (this.destination !== "/") {
+				window.location.href = this.destination;
+			}
+			return;
+		}
 
 		// Check if there's a valid session
 		if (await this.checkSession()) {

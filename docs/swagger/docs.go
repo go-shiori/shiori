@@ -194,6 +194,26 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/auth/config": {
+            "get": {
+                "description": "Get authentication configuration like OIDC status",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Get authentication configuration",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api_v1.AuthConfigResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/auth/login": {
             "post": {
                 "consumes": [
@@ -278,6 +298,24 @@ const docTemplate = `{
                         "description": "Token not provided/invalid"
                     }
                 }
+            }
+        },
+        "/api/v1/auth/oidc/callback": {
+            "get": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "OIDC callback URL",
+                "responses": {}
+            }
+        },
+        "/api/v1/auth/oidc/login": {
+            "get": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Redirect to OIDC provider for login",
+                "responses": {}
             }
         },
         "/api/v1/auth/refresh": {
@@ -820,6 +858,17 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "api_v1.AuthConfigResponse": {
+            "type": "object",
+            "properties": {
+                "oidc_enabled": {
+                    "type": "boolean"
+                },
+                "oidc_provider_name": {
+                    "type": "string"
+                }
+            }
+        },
         "api_v1.bookmarkTagPayload": {
             "type": "object",
             "required": [

@@ -109,6 +109,10 @@ func (s *HttpServer) Setup(cfg *config.Config, deps *dependencies.Dependencies) 
 		api_v1.HandleLogin,
 		globalMiddleware...,
 	))
+	s.mux.HandleFunc("GET /api/v1/auth/config", ToHTTPHandler(deps,
+		api_v1.HandleAuthConfig,
+		globalMiddleware...,
+	))
 	s.mux.HandleFunc("POST /api/v1/auth/refresh", ToHTTPHandler(deps,
 		api_v1.HandleRefreshToken,
 		globalMiddleware...,
@@ -123,6 +127,14 @@ func (s *HttpServer) Setup(cfg *config.Config, deps *dependencies.Dependencies) 
 	))
 	s.mux.HandleFunc("POST /api/v1/auth/logout", ToHTTPHandler(deps,
 		api_v1.HandleLogout,
+		globalMiddleware...,
+	))
+	s.mux.HandleFunc("GET /api/v1/auth/oidc/login", ToHTTPHandler(deps,
+		api_v1.HandleOIDCLogin,
+		globalMiddleware...,
+	))
+	s.mux.HandleFunc("GET /api/v1/auth/oidc/callback", ToHTTPHandler(deps,
+		api_v1.HandleOIDCCallback,
 		globalMiddleware...,
 	))
 	// Accounts
