@@ -4,7 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
+	"strconv"
 
+	"github.com/go-shiori/shiori/internal/dependencies"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/spf13/cobra"
 )
@@ -81,6 +84,8 @@ func printHandler(cmd *cobra.Command, args []string) {
 		return
 	}
 
+	enrichBookmarks(bookmarks, deps)
+
 	// Print data
 	if useJSON {
 		bt, err := json.MarshalIndent(&bookmarks, "", "    ")
@@ -103,4 +108,16 @@ func printHandler(cmd *cobra.Command, args []string) {
 	}
 
 	printBookmarks(bookmarks...)
+}
+
+func enrichBookmarks(bookmarks []model.BookmarkDTO, deps *dependencies.Dependencies) {
+	for idx, bookmark := range bookmarks {
+		bookmark.HasArchive = deps.Domains().Bookmarks().HasArchive(&bookmark)
+		bookmark.HasEbook = deps.Domains().Bookmarks().HasEbook(&bookmark)
+		if deps.Domains().Bookmarks().HasThumbnail(&bookmark) {
+			bookmarkId := strconv.Itoa(bookmark.ID)
+			bookmark.ImageURL = filepath.Join(deps.Config().Http.RootPath, "bookmark", bookmarkId, "thumb")
+		}
+		bookmarks[idx] = bookmark
+	}
 }
