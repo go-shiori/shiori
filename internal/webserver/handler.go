@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/go-shiori/shiori/internal/http/webcontext"
 	"github.com/go-shiori/shiori/internal/model"
 	cch "github.com/patrickmn/go-cache"
 	"github.com/sirupsen/logrus"
@@ -59,10 +60,18 @@ func (h *Handler) validateSession(r *http.Request) error {
 	}
 
 	if account == nil {
+		account = webcontext.GetAccountFromContext(r.Context())
+	}
+
+	if account == nil {
 		account, err = h.tokenAccount(r)
 		if err != nil {
 			return err
 		}
+	}
+
+	if account == nil {
+		return fmt.Errorf("session is not exist")
 	}
 
 	if r.Method != "" && r.Method != "GET" && account.Owner != nil && !*account.Owner {

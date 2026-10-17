@@ -2,8 +2,10 @@ package handlers
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/http/httptest"
 	"testing"
 	"time"
 
@@ -72,6 +74,68 @@ func TestLegacyHandler(t *testing.T) {
 		SetFakeAuthorizationHeader(t, deps, c)
 		handler.HandleGetBookmarks(deps, c)
 		require.Equal(t, http.StatusOK, w.Code)
+	})
+
+	t.Run("HandleGetBookmarks unauthenticated", func(t *testing.T) {
+		c, w := testutil.NewTestWebContext()
+		handler.HandleGetBookmarks(deps, c)
+		require.Equal(t, http.StatusUnauthorized, w.Code)
+		var resp map[string]string
+		err := json.Unmarshal(w.Body.Bytes(), &resp)
+		require.NoError(t, err)
+		require.Equal(t, "Authentication required", resp["error"])
+	})
+
+	t.Run("HandleGetTags unauthenticated", func(t *testing.T) {
+		c, w := testutil.NewTestWebContext()
+		handler.HandleGetTags(deps, c)
+		require.Equal(t, http.StatusUnauthorized, w.Code)
+		var resp map[string]string
+		err := json.Unmarshal(w.Body.Bytes(), &resp)
+		require.NoError(t, err)
+		require.Equal(t, "Authentication required", resp["error"])
+	})
+
+	t.Run("HandleOtherEndpoints unauthenticated", func(t *testing.T) {
+		endpoints := []struct {
+			name string
+			fn   func(model.Dependencies, model.WebContext)
+		}{
+			{"HandleRenameTag", handler.HandleRenameTag},
+			{"HandleInsertBookmark", handler.HandleInsertBookmark},
+			{"HandleDeleteBookmark", handler.HandleDeleteBookmark},
+			{"HandleUpdateBookmark", handler.HandleUpdateBookmark},
+			{"HandleUpdateBookmarkTags", handler.HandleUpdateBookmarkTags},
+			{"HandleInsertViaExtension", handler.HandleInsertViaExtension},
+			{"HandleDeleteViaExtension", handler.HandleDeleteViaExtension},
+		}
+
+		for _, ep := range endpoints {
+			t.Run(ep.name, func(t *testing.T) {
+				c, w := testutil.NewTestWebContext()
+				ep.fn(deps, c)
+				require.Equal(t, http.StatusUnauthorized, w.Code)
+				var resp map[string]string
+				err := json.Unmarshal(w.Body.Bytes(), &resp)
+				require.NoError(t, err)
+				require.Equal(t, "Authentication required", resp["error"])
+			})
+		}
+	})
+
+	t.Run("Direct ApiGetBookmarks unauthenticated does not panic", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		r, err := http.NewRequest(http.MethodGet, "/api/bookmarks", http.NoBody)
+		require.NoError(t, err)
+
+		require.NotPanics(t, func() {
+			handler.legacyHandler.ApiGetBookmarks(w, r, nil)
+		})
+		require.Equal(t, http.StatusUnauthorized, w.Code)
+		var resp map[string]string
+		err = json.Unmarshal(w.Body.Bytes(), &resp)
+		require.NoError(t, err)
+		require.NotEmpty(t, resp["error"])
 	})
 
 	t.Run("convertParams", func(t *testing.T) {
