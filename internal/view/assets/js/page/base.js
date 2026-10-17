@@ -6,9 +6,9 @@ export default {
 			type: Object,
 			default() {
 				return {
-					id: 0,
-					username: "",
-					owner: false,
+					ID: 0,
+					Username: "",
+					Owner: false,
 				};
 			},
 		},
@@ -71,7 +71,7 @@ export default {
 					// Handle new error messages
 					if (text[0] == "{") {
 						var json = JSON.parse(text);
-						return json.error;
+						return json.Error || json.Message || text;
 					}
 
 					return `${text} (${err.status})`;
@@ -123,16 +123,6 @@ export default {
 					this.dialog.visible = false;
 				},
 			});
-		},
-		async saveSetting(key, value) {
-			try {
-				await apiRequest(new URL("api/v1/settings", document.baseURI), {
-					method: "PUT",
-					body: JSON.stringify({ [key]: value }),
-				});
-			} catch (err) {
-				this.showErrorDialog(err.message);
-			}
 		},
 		async logout() {
 			try {

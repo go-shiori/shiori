@@ -8,7 +8,6 @@ import (
 	"math"
 	"net/http"
 	"os"
-	"path"
 	fp "path/filepath"
 	"strconv"
 	"strings"
@@ -99,7 +98,7 @@ func (h *Handler) ApiGetBookmarks(w http.ResponseWriter, r *http.Request, ps htt
 		ebookPath := fp.Join(h.DataDir, "ebook", strID+".epub")
 
 		if FileExists(imgPath) {
-			bookmarks[i].ImageURL = path.Join(h.RootPath, "bookmark", strID, "thumb")
+			bookmarks[i].HasThumbnail = true
 		}
 
 		if FileExists(archivePath) {
@@ -197,11 +196,13 @@ func (h *Handler) ApiInsertBookmark(w http.ResponseWriter, r *http.Request, ps h
 	checkError(err)
 
 	book := &model.BookmarkDTO{
-		URL:           payload.URL,
-		Title:         payload.Title,
-		Excerpt:       payload.Excerpt,
+		Bookmark: model.Bookmark{
+			URL:     payload.URL,
+			Title:   payload.Title,
+			Excerpt: payload.Excerpt,
+			Public:  payload.MakePublic,
+		},
 		Tags:          make([]model.TagDTO, len(payload.Tags)),
-		Public:        payload.MakePublic,
 		CreateArchive: payload.CreateArchive,
 		CreateEbook:   payload.CreateEbook,
 	}
@@ -361,7 +362,8 @@ func (h *Handler) ApiUpdateBookmark(w http.ResponseWriter, r *http.Request, ps h
 
 	// Add thumbnail image to the saved bookmarks again
 	newBook := res[0]
-	newBook.ImageURL = request.ImageURL
+	// Initialize HasThumbnail - the actual thumbnail check happens elsewhere
+	newBook.HasThumbnail = false
 	newBook.HasArchive = request.HasArchive
 
 	// Return new saved result
@@ -430,10 +432,9 @@ func (h *Handler) ApiUpdateBookmarkTags(w http.ResponseWriter, r *http.Request, 
 	for i := range bookmarks {
 		strID := strconv.Itoa(bookmarks[i].ID)
 		imgPath := fp.Join(h.DataDir, "thumb", strID)
-		imgURL := path.Join(h.RootPath, "bookmark", strID, "thumb")
 
 		if FileExists(imgPath) {
-			bookmarks[i].ImageURL = imgURL
+			bookmarks[i].HasThumbnail = true
 		}
 	}
 

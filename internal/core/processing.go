@@ -12,8 +12,6 @@ import (
 	"math"
 	"net/url"
 	"os"
-	fp "path/filepath"
-	"strconv"
 	"strings"
 
 	"github.com/disintegration/imaging"
@@ -69,7 +67,6 @@ func ProcessBookmark(deps model.Dependencies, req ProcessRequest) (book model.Bo
 	}
 
 	// If this is HTML, parse for readable content
-	strID := strconv.Itoa(book.ID)
 	imgPath := model.GetThumbnailPath(&book)
 	var imageURLs []string
 	if strings.Contains(contentType, "text/html") {
@@ -89,7 +86,7 @@ func ProcessBookmark(deps model.Dependencies, req ProcessRequest) (book model.Bo
 		book.Content = article.TextContent
 		book.HTML = article.Content
 
-		// If title and excerpt doesnt have submitted value, use from article
+		// If title and excerpt doesn't have submitted value, use from article
 		if !req.KeepTitle || book.Title == "" {
 			book.Title = article.Title
 		}
@@ -136,7 +133,7 @@ func ProcessBookmark(deps model.Dependencies, req ProcessRequest) (book model.Bo
 			continue
 		}
 		if err == nil {
-			book.ImageURL = fp.Join("/", "bookmark", strID, "thumb")
+			book.HasThumbnail = true
 			book.ModifiedAt = ""
 			break
 		}

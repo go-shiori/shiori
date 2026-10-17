@@ -161,14 +161,14 @@ inside the container.
 
 
 1. Install [Termux](https://termux.dev/en/)
-2. Open termux and run bellow command
+2. Open termux and run below command
 ```bash
 mkdir -p ~/bin
 touch ~/bin/termux-url-opener
 chmod +x ~/bin/termux-url-opener
 nano ~/bin/termux-url-opener
 ```
-3. Edit bellow code and replace `Shiori_URL`, `Username`, `Password` with yours
+3. Edit below code and replace `Shiori_URL`, `Username`, `Password` with yours
 ```bash
 #!/bin/bash
 

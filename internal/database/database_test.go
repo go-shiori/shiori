@@ -20,11 +20,12 @@ func testDatabase(t *testing.T, dbFactory testDatabaseFactory) {
 		"testCreateBookmark":                    testCreateBookmark,
 		"testCreateBookmarkWithContent":         testCreateBookmarkWithContent,
 		"testCreateBookmarkTwice":               testCreateBookmarkTwice,
+		"testUpdateBookmarkToExistingURL":       testUpdateBookmarkToExistingURL,
 		"testCreateBookmarkWithTag":             testCreateBookmarkWithTag,
 		"testCreateTwoDifferentBookmarks":       testCreateTwoDifferentBookmarks,
 		"testUpdateBookmark":                    testUpdateBookmark,
 		"testUpdateBookmarkUpdatesModifiedTime": testUpdateBookmarkUpdatesModifiedTime,
-		"testGetBoomarksWithTimeFilters":        testGetBoomarksWithTimeFilters,
+		"testGetBookmarksWithTimeFilters":       testGetBookmarksWithTimeFilters,
 		"testUpdateBookmarkWithContent":         testUpdateBookmarkWithContent,
 		"testGetBookmark":                       testGetBookmark,
 		"testGetBookmarkNotExistent":            testGetBookmarkNotExistent,
@@ -38,6 +39,7 @@ func testDatabase(t *testing.T, dbFactory testDatabaseFactory) {
 		// Tags
 		"testCreateTag":             testCreateTag,
 		"testCreateTags":            testCreateTags,
+		"testCreateDuplicateTag":    testCreateDuplicateTag,
 		"testTagExists":             testTagExists,
 		"testGetTags":               testGetTags,
 		"testGetTagsFunction":       testGetTagsFunction,
@@ -55,7 +57,7 @@ func testDatabase(t *testing.T, dbFactory testDatabaseFactory) {
 		"testCreateAccount":              testCreateAccount,
 		"testCreateDuplicateAccount":     testCreateDuplicateAccount,
 		"testDeleteAccount":              testDeleteAccount,
-		"testDeleteNonExistantAccount":   testDeleteNonExistantAccount,
+		"testDeleteNonExistentAccount":   testDeleteNonExistentAccount,
 		"testUpdateAccount":              testUpdateAccount,
 		"testUpdateAccountDuplicateUser": testUpdateAccountDuplicateUser,
 		"testGetAccount":                 testGetAccount,
@@ -77,8 +79,10 @@ func testBookmarkAutoIncrement(t *testing.T, db model.DB) {
 	ctx := context.TODO()
 
 	book := model.BookmarkDTO{
-		URL:   "https://github.com/go-shiori/shiori",
-		Title: "shiori",
+		Bookmark: model.Bookmark{
+			URL:   "https://github.com/go-shiori/shiori",
+			Title: "shiori",
+		},
 	}
 
 	result, err := db.SaveBookmarks(ctx, true, book)
@@ -86,8 +90,10 @@ func testBookmarkAutoIncrement(t *testing.T, db model.DB) {
 	assert.Equal(t, 1, result[0].ID, "Saved bookmark must have ID %d", 1)
 
 	book = model.BookmarkDTO{
-		URL:   "https://github.com/go-shiori/obelisk",
-		Title: "obelisk",
+		Bookmark: model.Bookmark{
+			URL:   "https://github.com/go-shiori/obelisk",
+			Title: "obelisk",
+		},
 	}
 
 	result, err = db.SaveBookmarks(ctx, true, book)
@@ -99,8 +105,10 @@ func testCreateBookmark(t *testing.T, db model.DB) {
 	ctx := context.TODO()
 
 	book := model.BookmarkDTO{
-		URL:   "https://github.com/go-shiori/obelisk",
-		Title: "shiori",
+		Bookmark: model.Bookmark{
+			URL:   "https://github.com/go-shiori/obelisk",
+			Title: "shiori",
+		},
 	}
 
 	result, err := db.SaveBookmarks(ctx, true, book)
@@ -113,10 +121,12 @@ func testCreateBookmarkWithContent(t *testing.T, db model.DB) {
 	ctx := context.TODO()
 
 	book := model.BookmarkDTO{
-		URL:     "https://github.com/go-shiori/obelisk",
-		Title:   "shiori",
-		Content: "Some content",
-		HTML:    "Some HTML content",
+		Bookmark: model.Bookmark{
+			URL:     "https://github.com/go-shiori/obelisk",
+			Title:   "shiori",
+			Content: "Some content",
+			HTML:    "Some HTML content",
+		},
 	}
 
 	result, err := db.SaveBookmarks(ctx, true, book)
@@ -138,8 +148,10 @@ func testCreateBookmarkWithTag(t *testing.T, db model.DB) {
 	ctx := context.TODO()
 
 	book := model.BookmarkDTO{
-		URL:   "https://github.com/go-shiori/obelisk",
-		Title: "shiori",
+		Bookmark: model.Bookmark{
+			URL:   "https://github.com/go-shiori/obelisk",
+			Title: "shiori",
+		},
 		Tags: []model.TagDTO{
 			{
 				Tag: model.Tag{
@@ -160,8 +172,10 @@ func testCreateBookmarkTwice(t *testing.T, db model.DB) {
 	ctx := context.TODO()
 
 	book := model.BookmarkDTO{
-		URL:   "https://github.com/go-shiori/shiori",
-		Title: "shiori",
+		Bookmark: model.Bookmark{
+			URL:   "https://github.com/go-shiori/shiori",
+			Title: "shiori",
+		},
 	}
 
 	result, err := db.SaveBookmarks(ctx, true, book)
@@ -171,23 +185,42 @@ func testCreateBookmarkTwice(t *testing.T, db model.DB) {
 	savedBookmark.Title = "modified"
 
 	_, err = db.SaveBookmarks(ctx, true, savedBookmark)
-	assert.Error(t, err, "Save bookmarks must fail")
+	assert.ErrorIs(t, err, ErrBookmarkURLAlreadyExists, "Save bookmarks must fail")
+}
+
+func testUpdateBookmarkToExistingURL(t *testing.T, db model.DB) {
+	ctx := context.TODO()
+
+	result, err := db.SaveBookmarks(ctx, true,
+		model.BookmarkDTO{Bookmark: model.Bookmark{URL: "https://example.com/first", Title: "first"}},
+		model.BookmarkDTO{Bookmark: model.Bookmark{URL: "https://example.com/second", Title: "second"}},
+	)
+	require.NoError(t, err)
+
+	second := result[1]
+	second.URL = result[0].URL
+	_, err = db.SaveBookmarks(ctx, false, second)
+	assert.ErrorIs(t, err, ErrBookmarkURLAlreadyExists)
 }
 
 func testCreateTwoDifferentBookmarks(t *testing.T, db model.DB) {
 	ctx := context.TODO()
 
 	book := model.BookmarkDTO{
-		URL:   "https://github.com/go-shiori/shiori",
-		Title: "shiori",
+		Bookmark: model.Bookmark{
+			URL:   "https://github.com/go-shiori/shiori",
+			Title: "shiori",
+		},
 	}
 
 	_, err := db.SaveBookmarks(ctx, true, book)
 	assert.NoError(t, err, "Save first bookmark must not fail")
 
 	book = model.BookmarkDTO{
-		URL:   "https://github.com/go-shiori/go-readability",
-		Title: "go-readability",
+		Bookmark: model.Bookmark{
+			URL:   "https://github.com/go-shiori/go-readability",
+			Title: "go-readability",
+		},
 	}
 	_, err = db.SaveBookmarks(ctx, true, book)
 	assert.NoError(t, err, "Save second bookmark must not fail")
@@ -197,8 +230,10 @@ func testUpdateBookmark(t *testing.T, db model.DB) {
 	ctx := context.TODO()
 
 	book := model.BookmarkDTO{
-		URL:   "https://github.com/go-shiori/shiori",
-		Title: "shiori",
+		Bookmark: model.Bookmark{
+			URL:   "https://github.com/go-shiori/shiori",
+			Title: "shiori",
+		},
 	}
 
 	result, err := db.SaveBookmarks(ctx, true, book)
@@ -218,10 +253,12 @@ func testUpdateBookmarkWithContent(t *testing.T, db model.DB) {
 	ctx := context.TODO()
 
 	book := model.BookmarkDTO{
-		URL:     "https://github.com/go-shiori/obelisk",
-		Title:   "shiori",
-		Content: "Some content",
-		HTML:    "Some HTML content",
+		Bookmark: model.Bookmark{
+			URL:     "https://github.com/go-shiori/obelisk",
+			Title:   "shiori",
+			Content: "Some content",
+			HTML:    "Some HTML content",
+		},
 	}
 
 	result, err := db.SaveBookmarks(ctx, true, book)
@@ -250,8 +287,10 @@ func testGetBookmark(t *testing.T, db model.DB) {
 	ctx := context.TODO()
 
 	book := model.BookmarkDTO{
-		URL:   "https://github.com/go-shiori/shiori",
-		Title: "shiori",
+		Bookmark: model.Bookmark{
+			URL:   "https://github.com/go-shiori/shiori",
+			Title: "shiori",
+		},
 	}
 
 	result, err := db.SaveBookmarks(ctx, true, book)
@@ -277,8 +316,10 @@ func testGetBookmarks(t *testing.T, db model.DB) {
 	ctx := context.TODO()
 
 	book := model.BookmarkDTO{
-		URL:   "https://github.com/go-shiori/shiori",
-		Title: "shiori",
+		Bookmark: model.Bookmark{
+			URL:   "https://github.com/go-shiori/shiori",
+			Title: "shiori",
+		},
 	}
 
 	bookmarks, err := db.SaveBookmarks(ctx, true, book)
@@ -300,8 +341,10 @@ func testGetBookmarksWithSQLCharacters(t *testing.T, db model.DB) {
 
 	// _ := 0
 	book := model.BookmarkDTO{
-		URL:   "https://github.com/go-shiori/shiori",
-		Title: "shiori",
+		Bookmark: model.Bookmark{
+			URL:   "https://github.com/go-shiori/shiori",
+			Title: "shiori",
+		},
 	}
 	_, err := db.SaveBookmarks(ctx, true, book)
 	assert.NoError(t, err, "Save bookmarks must not fail")
@@ -342,31 +385,39 @@ func testGetBookmarksWithTags(t *testing.T, db model.DB) {
 	// Create bookmarks with different tag combinations
 	bookmarks := []model.BookmarkDTO{
 		{
-			URL:   "https://golang.org",
-			Title: "Go Language",
+			Bookmark: model.Bookmark{
+				URL:   "https://golang.org",
+				Title: "Go Language",
+			},
 			Tags: []model.TagDTO{
 				{Tag: model.Tag{Name: "programming"}},
 				{Tag: model.Tag{Name: "golang"}},
 			},
 		},
 		{
-			URL:   "https://postgresql.org",
-			Title: "PostgreSQL",
+			Bookmark: model.Bookmark{
+				URL:   "https://postgresql.org",
+				Title: "PostgreSQL",
+			},
 			Tags: []model.TagDTO{
 				{Tag: model.Tag{Name: "programming"}},
 				{Tag: model.Tag{Name: "database"}},
 			},
 		},
 		{
-			URL:   "https://sqlite.org",
-			Title: "SQLite",
+			Bookmark: model.Bookmark{
+				URL:   "https://sqlite.org",
+				Title: "SQLite",
+			},
 			Tags: []model.TagDTO{
 				{Tag: model.Tag{Name: "database"}},
 			},
 		},
 		{
-			URL:   "https://example.com",
-			Title: "No Tags Example",
+			Bookmark: model.Bookmark{
+				URL:   "https://example.com",
+				Title: "No Tags Example",
+			},
 		},
 	}
 
@@ -479,8 +530,10 @@ func testGetBookmarksCount(t *testing.T, db model.DB) {
 
 	expectedCount := 1
 	book := model.BookmarkDTO{
-		URL:   "https://github.com/go-shiori/shiori",
-		Title: "shiori",
+		Bookmark: model.Bookmark{
+			URL:   "https://github.com/go-shiori/shiori",
+			Title: "shiori",
+		},
 	}
 
 	_, err := db.SaveBookmarks(ctx, true, book)
@@ -501,6 +554,15 @@ func testCreateTag(t *testing.T, db model.DB) {
 	assert.Len(t, createdTags, 1, "Should return one created tag")
 	assert.Greater(t, createdTags[0].ID, 0, "Created tag should have a valid ID")
 	assert.Equal(t, "shiori", createdTags[0].Name, "Created tag should have the correct name")
+}
+
+func testCreateDuplicateTag(t *testing.T, db model.DB) {
+	ctx := context.TODO()
+	_, err := db.CreateTags(ctx, model.Tag{Name: "shiori"})
+	require.NoError(t, err)
+
+	_, err = db.CreateTags(ctx, model.Tag{Name: "shiori"})
+	assert.ErrorIs(t, err, ErrTagNameAlreadyExists)
 }
 
 func testCreateTags(t *testing.T, db model.DB) {
@@ -550,7 +612,7 @@ func testDeleteAccount(t *testing.T, db model.DB) {
 	assert.ErrorIs(t, err, ErrNotFound, "Get account must return not found error")
 }
 
-func testDeleteNonExistantAccount(t *testing.T, db model.DB) {
+func testDeleteNonExistentAccount(t *testing.T, db model.DB) {
 	ctx := context.TODO()
 	err := db.DeleteAccount(ctx, model.DBID(99))
 	assert.ErrorIs(t, err, ErrNotFound, "Delete account must fail")
@@ -595,7 +657,10 @@ func testUpdateAccount(t *testing.T, db model.DB) {
 		require.True(t, exists)
 		require.Equal(t, acc.Username, updatedAccount.Username)
 		require.Equal(t, acc.Owner, updatedAccount.Owner)
-		require.Equal(t, acc.Config, updatedAccount.Config)
+		// Note: Config comparison needs to account for automatic defaults
+		expectedConfig := acc.Config
+		expectedConfig.Defaults() // Apply defaults to match what the database returns
+		require.Equal(t, expectedConfig, updatedAccount.Config)
 		require.NotEqual(t, acc.Password, account.Password)
 	})
 }
@@ -653,7 +718,7 @@ func testListAccounts(t *testing.T, db model.DB) {
 		{"with keyword and owner", model.DBListAccountsOptions{Keyword: "hello", Owner: false}, 1},
 		{"with no result", model.DBListAccountsOptions{Keyword: "shiori"}, 0},
 		{"with username", model.DBListAccountsOptions{Username: "foo"}, 1},
-		{"with non-existent username", model.DBListAccountsOptions{Username: "non-existant"}, 0},
+		{"with non-existent username", model.DBListAccountsOptions{Username: "non-existent"}, 0},
 	}
 
 	for _, tt := range tests {
@@ -732,8 +797,10 @@ func testUpdateBookmarkUpdatesModifiedTime(t *testing.T, db model.DB) {
 	ctx := context.TODO()
 
 	book := model.BookmarkDTO{
-		URL:   "https://github.com/go-shiori/shiori",
-		Title: "shiori",
+		Bookmark: model.Bookmark{
+			URL:   "https://github.com/go-shiori/shiori",
+			Title: "shiori",
+		},
 	}
 
 	resultBook, err := db.SaveBookmarks(ctx, true, book)
@@ -756,16 +823,20 @@ func testUpdateBookmarkUpdatesModifiedTime(t *testing.T, db model.DB) {
 }
 
 // TODO: Consider using `t.Parallel()` once we have automated database tests spawning databases using testcontainers.
-func testGetBoomarksWithTimeFilters(t *testing.T, db model.DB) {
+func testGetBookmarksWithTimeFilters(t *testing.T, db model.DB) {
 	ctx := context.TODO()
 
 	book1 := model.BookmarkDTO{
-		URL:   "https://github.com/go-shiori/shiori/one",
-		Title: "Added First but Modified Last",
+		Bookmark: model.Bookmark{
+			URL:   "https://github.com/go-shiori/shiori/one",
+			Title: "Added First but Modified Last",
+		},
 	}
 	book2 := model.BookmarkDTO{
-		URL:   "https://github.com/go-shiori/shiori/second",
-		Title: "Added Last but Modified First",
+		Bookmark: model.Bookmark{
+			URL:   "https://github.com/go-shiori/shiori/second",
+			Title: "Added Last but Modified First",
+		},
 	}
 
 	// create two new bookmark
@@ -791,7 +862,7 @@ func testGetBoomarksWithTimeFilters(t *testing.T, db model.DB) {
 	resultUpdatedBook1, err := db.SaveBookmarks(ctx, false, updatedBook1)
 	assert.NoError(t, err, "Save bookmarks must not fail")
 
-	// get diffrent filteter combination
+	// get different filteter combination
 	booksOrderByLastAdded, err := db.GetBookmarks(ctx, model.DBGetBookmarksOptions{
 		IDs:         []int{resultUpdatedBook1[0].ID, resultUpdatedBook2[0].ID},
 		OrderMethod: 1,
@@ -994,8 +1065,10 @@ func testSaveBookmark(t *testing.T, db model.DB) {
 	t.Run("successful_update", func(t *testing.T) {
 		// First create a bookmark
 		bookmark := model.BookmarkDTO{
-			URL:   "https://example.com",
-			Title: "Example",
+			Bookmark: model.Bookmark{
+				URL:   "https://example.com",
+				Title: "Example",
+			},
 		}
 		results, err := db.SaveBookmarks(ctx, true, bookmark)
 		require.NoError(t, err)
@@ -1031,16 +1104,22 @@ func testBulkUpdateBookmarkTags(t *testing.T, db model.DB) {
 
 	// Create test bookmarks
 	bookmark1 := model.BookmarkDTO{
-		URL:   "https://example1.com",
-		Title: "Example 1",
+		Bookmark: model.Bookmark{
+			URL:   "https://example1.com",
+			Title: "Example 1",
+		},
 	}
 	bookmark2 := model.BookmarkDTO{
-		URL:   "https://example2.com",
-		Title: "Example 2",
+		Bookmark: model.Bookmark{
+			URL:   "https://example2.com",
+			Title: "Example 2",
+		},
 	}
 	bookmark3 := model.BookmarkDTO{
-		URL:   "https://example3.com",
-		Title: "Example 3",
+		Bookmark: model.Bookmark{
+			URL:   "https://example3.com",
+			Title: "Example 3",
+		},
 	}
 
 	results1, err := db.SaveBookmarks(ctx, true, bookmark1)

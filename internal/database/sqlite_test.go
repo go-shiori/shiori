@@ -45,16 +45,20 @@ func testSqliteGetBookmarksWithDash(t *testing.T) {
 	assert.NoError(t, err)
 
 	book := model.BookmarkDTO{
-		URL:   "https://github.com/go-shiori/shiori",
-		Title: "shiori",
+		Bookmark: model.Bookmark{
+			URL:   "https://github.com/go-shiori/shiori",
+			Title: "shiori",
+		},
 	}
 
 	_, err = db.SaveBookmarks(ctx, true, book)
 	assert.NoError(t, err, "Save bookmarks must not fail")
 
 	book = model.BookmarkDTO{
-		URL:   "https://github.com/jamiehannaford/what-happens-when-k8s",
-		Title: "what-happens-when-k8s",
+		Bookmark: model.Bookmark{
+			URL:   "https://github.com/jamiehannaford/what-happens-when-k8s",
+			Title: "what-happens-when-k8s",
+		},
 	}
 
 	result, err := db.SaveBookmarks(ctx, true, book)

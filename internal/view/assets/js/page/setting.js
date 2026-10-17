@@ -29,7 +29,7 @@ var template = `
                 Hide bookmark's excerpt
             </label>
         </details>
-        <details v-if="activeAccount.owner" open class="setting-group" id="setting-bookmarks">
+        <details v-if="activeAccount.Owner" open class="setting-group" id="setting-bookmarks">
             <summary>Bookmarks</summary>
             <label>
                 <input type="checkbox" v-model="appOptions.KeepMetadata" @change="saveSetting">
@@ -48,13 +48,13 @@ var template = `
                 Make bookmark publicly available by default
             </label>
         </details>
-        <details v-if="activeAccount.owner" open class="setting-group setting-accounts" id="setting-accounts">
+        <details v-if="activeAccount.Owner" open class="setting-group setting-accounts" id="setting-accounts">
             <summary>Accounts</summary>
             <ul class="accounts-list">
                 <li v-if="accounts.length === 0">No accounts registered</li>
-                <li v-for="(account, idx) in accounts" :shiori-username="account.username">
-                    <p>{{account.username}}
-                        <span v-if="account.owner" class="account-level">(owner)</span>
+                <li v-for="(account, idx) in accounts" :shiori-username="account.Username">
+                    <p>{{account.Username}}
+                        <span v-if="account.Owner" class="account-level">(owner)</span>
                     </p>
                     <a title="Change password" @click="showDialogChangePassword(account)">
                         <i class="fa fas fa-fw fa-key"></i>
@@ -66,15 +66,15 @@ var template = `
             </ul>
             <div class="setting-group-footer">
                 <a @click="loadAccounts" title="Refresh accounts">Refresh accounts</a>
-                <a v-if="activeAccount.owner" @click="showDialogNewAccount" title="Add new account">Add new account</a>
+                <a v-if="activeAccount.Owner" @click="showDialogNewAccount" title="Add new account">Add new account</a>
             </div>
         </details>
-        <details v-if="!activeAccount.owner" open class="setting-group setting-accounts" id="setting-my-account">
+        <details v-if="!activeAccount.Owner" open class="setting-group setting-accounts" id="setting-my-account">
             <summary>My account</summary>
             <ul>
-                <li v-for="(account, idx) in [this.activeAccount]" :shiori-username="account.username">
-                    <p>{{account.username}}
-                        <span v-if="account.owner" class="account-level">(owner)</span>
+                <li v-for="(account, idx) in [this.activeAccount]" :shiori-username="account.Username">
+                    <p>{{account.Username}}
+                        <span v-if="account.Owner" class="account-level">(owner)</span>
                     </p>
                     <a title="Change password" @click="showDialogChangePassword(account)">
                         <i class="fa fas fa-fw fa-key"></i>
@@ -85,12 +85,12 @@ var template = `
                 <a @click="showDialogChangePassword(this.activeAccount)" title="Change password">Change password</a>
             </div>
         </details>
-		<details v-if="activeAccount.owner" class="setting-group" id="setting-system-info">
+		<details v-if="activeAccount.Owner" class="setting-group" id="setting-system-info">
 			<summary>System info</summary>
 			<ul>
-				<li><b>Shiori version:</b> <span>{{system.version?.tag}}<span></li>
-				<li><b>Database engine:</b> <span>{{system.database}}</span></li>
-				<li><b>Operating system:</b> <span>{{system.os}}</span></li>
+				<li><b>Shiori version:</b> <span>{{system.Version?.Tag}}<span></li>
+				<li><b>Database engine:</b> <span>{{system.Database}}</span></li>
+				<li><b>Operating system:</b> <span>{{system.OS}}</span></li>
 			</ul>
 		</details>
     </div>
@@ -125,7 +125,7 @@ export default {
 				Theme: this.appOptions.Theme,
 			};
 
-			if (this.activeAccount.owner) {
+			if (this.activeAccount.Owner) {
 				options = {
 					...options,
 					KeepMetadata: this.appOptions.KeepMetadata,
@@ -140,7 +140,7 @@ export default {
 			fetch(new URL("api/v1/auth/account", document.baseURI), {
 				method: "PATCH",
 				body: JSON.stringify({
-					config: this.appOptions,
+					Config: this.appOptions,
 				}),
 				headers: {
 					"Content-Type": "application/json",
@@ -177,7 +177,7 @@ export default {
 			}
 		},
 		async loadSystemInfo() {
-			if (this.system.version !== undefined) return;
+			if (this.system.Version !== undefined) return;
 
 			try {
 				const json = await apiRequest(
@@ -225,9 +225,9 @@ export default {
 					}
 
 					var request = {
-						username: data.username,
-						password: data.password,
-						owner: data.admin,
+						Username: data.username,
+						Password: data.password,
+						Owner: data.admin,
 					};
 
 					this.dialog.loading = true;
@@ -245,8 +245,8 @@ export default {
 
 						this.accounts.push(json);
 						this.accounts.sort((a, b) => {
-							var nameA = a.username.toLowerCase(),
-								nameB = b.username.toLowerCase();
+							var nameA = a.Username.toLowerCase(),
+								nameB = b.Username.toLowerCase();
 
 							if (nameA < nameB) {
 								return -1;
@@ -282,7 +282,7 @@ export default {
 			];
 
 			const requiresOldPassword =
-				!this.activeAccount.owner || this.activeAccount.id === account.id;
+				!this.activeAccount.Owner || this.activeAccount.ID === account.ID;
 
 			// Only owners can update user passwords without
 			// providing the old password
@@ -321,14 +321,14 @@ export default {
 					}
 
 					var request = {
-						old_password: data.old_password,
-						new_password: data.new_password,
+						OldPassword: data.old_password,
+						NewPassword: data.new_password,
 					};
 
 					// Determine which URL to use depending if the user is updating its own
 					// account or another user's account.
-					let url = `api/v1/accounts/${account.id}`;
-					if (this.activeAccount.id === account.id) {
+					let url = `api/v1/accounts/${account.ID}`;
+					if (this.activeAccount.ID === account.ID) {
 						url = "api/v1/auth/account";
 					}
 
@@ -357,13 +357,13 @@ export default {
 		showDialogDeleteAccount(account, idx) {
 			this.showDialog({
 				title: "Delete Account",
-				content: `Delete account "${account.username}" ?`,
+				content: `Delete account "${account.Username}" ?`,
 				mainText: "Yes",
 				secondText: "No",
 				mainClick: async () => {
 					this.dialog.loading = true;
 					try {
-						await apiRequest(`api/v1/accounts/${account.id}`, {
+						await apiRequest(`api/v1/accounts/${account.ID}`, {
 							method: "DELETE",
 						});
 
@@ -379,7 +379,7 @@ export default {
 		},
 	},
 	mounted() {
-		if (this.activeAccount.owner) {
+		if (this.activeAccount.Owner) {
 			this.loadAccounts();
 			this.loadSystemInfo();
 		}
