@@ -44,6 +44,12 @@ var template = `
 		<div class="custom-dialog-footer">
 			<i v-if="loading" class="fas fa-fw fa-spinner fa-spin"></i>
 			<slot v-else name="custom-footer">
+				<a v-if="thirdText"
+					:tabindex="btnTabIndex+2"
+					@click="handleThirdClick"
+					@keyup.enter="handleThirdClick"
+					class="custom-dialog-button">{{thirdText}}
+				</a>
 				<a v-if="secondText"
 					:tabindex="btnTabIndex+1"
 					@click="handleSecondClick"
@@ -86,6 +92,7 @@ export default {
 			default: "OK",
 		},
 		secondText: String,
+		thirdText: String,
 		mainClick: {
 			type: Function,
 			default() {
@@ -93,6 +100,12 @@ export default {
 			},
 		},
 		secondClick: {
+			type: Function,
+			default() {
+				this.visible = false;
+			},
+		},
+		thirdClick: {
 			type: Function,
 			default() {
 				this.visible = false;
@@ -175,6 +188,9 @@ export default {
 		},
 		handleSecondClick() {
 			this.secondClick();
+		},
+		handleThirdClick() {
+			this.thirdClick();
 		},
 		handleEscPressed() {
 			this.escPressed();
