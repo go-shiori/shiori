@@ -122,7 +122,7 @@ func SetFakeUser(c model.WebContext) {
 // SetFakeAdmin sets a fake admin account in the WebContext
 func SetFakeAdmin(c model.WebContext) {
 	c.SetAccount(&model.AccountDTO{
-		ID:       1,
+		ID:       99999,
 		Username: "user",
 		Owner:    model.Ptr(true),
 	})

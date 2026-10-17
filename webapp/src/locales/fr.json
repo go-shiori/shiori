@@ -8,7 +8,15 @@
     "search": "Rechercher",
     "add": "Ajouter",
     "remove": "Supprimer",
-    "close": "Fermer"
+    "close": "Fermer",
+    "back": "Retour",
+    "user": "Utilisateur",
+    "processing": "Traitement...",
+    "note": "Note",
+    "ok": "OK",
+    "tagline": "gestionnaire de favoris simple",
+    "none": "Aucun",
+    "error_occurred": "Une erreur s'est produite"
   },
   "auth": {
     "login": "Connexion",
@@ -19,40 +27,91 @@
     "login_failed": "Échec de la connexion. Veuillez vérifier vos identifiants."
   },
   "navigation": {
-    "home": "Accueil",
-    "archive": "Archives",
+    "library": "Bibliothèque",
     "tags": "Tags",
-    "folders": "Dossiers",
     "settings": "Paramètres",
     "about": "À propos"
   },
   "bookmarks": {
     "title": "Favoris",
+    "my_bookmarks": "Mes Favoris",
     "add_bookmark": "Ajouter un favori",
     "edit_bookmark": "Modifier le favori",
     "delete_bookmark": "Supprimer le favori",
     "url": "URL",
-    "title": "Titre",
+    "bookmark_title": "Titre",
     "excerpt": "Extrait",
     "tags": "Tags",
     "add_tag": "Ajouter un tag",
-    "no_bookmarks": "Aucun favori trouvé"
-  },
-  "tags": {
-    "title": "Tags",
-    "add_tag": "Ajouter un tag",
-    "edit_tag": "Modifier le tag",
-    "delete_tag": "Supprimer le tag",
-    "name": "Nom",
-    "no_tags": "Aucun tag trouvé"
-  },
-  "folders": {
-    "title": "Dossiers",
-    "add_folder": "Ajouter un dossier",
-    "edit_folder": "Modifier le dossier",
-    "delete_folder": "Supprimer le dossier",
-    "name": "Nom",
-    "no_folders": "Aucun dossier trouvé"
+    "no_bookmarks": "Aucun favori trouvé",
+    "search_placeholder": "Rechercher...",
+    "loading_bookmarks": "Chargement des favoris...",
+    "no_bookmarks_found": "Aucun favori trouvé",
+    "create_first_bookmark": "Créez votre premier favori pour commencer",
+    "card_view": "Vue en cartes",
+    "open_original_url": "Ouvrir l'URL originale",
+    "edit_bookmark_action": "Modifier",
+    "delete_bookmark_action": "Supprimer",
+    "has_readable_content": "A du contenu lisible",
+    "has_archive": "A un fichier d'archive",
+    "has_ebook": "A un livre électronique",
+    "bookmark_thumbnail": "Miniature du favori",
+    "url_placeholder": "https://exemple.com",
+    "url_description": "L'URL sera utilisée à la fois comme URL du favori et comme titre. Après avoir créé le favori, Shiori va automatiquement :",
+    "fetch_content": "Récupérer et générer du contenu lisible",
+    "create_archive": "Créer une archive de la page",
+    "generate_ebook": "Générer une version livre électronique",
+    "extract_metadata": "Extraire le titre et les métadonnées appropriés",
+    "please_enter_url": "Veuillez saisir une URL",
+    "please_enter_valid_url": "Veuillez saisir une URL valide",
+    "failed_to_create_bookmark": "Échec de la création du favori",
+    "new_bookmark": "Nouveau favori",
+    "create_new_bookmark": "Créer un nouveau favori",
+    "url_label": "URL, commencer par http://...",
+    "custom_title_label": "Titre personnalisé (optionnel)",
+    "custom_title_placeholder": "Saisir un titre personnalisé",
+    "custom_excerpt_label": "Extrait personnalisé (optionnel)",
+    "custom_excerpt_placeholder": "Saisir un extrait personnalisé",
+    "tags_label": "Tags séparés par des virgules (optionnel)",
+    "tags_placeholder": "tag1, tag2, tag3",
+    "available_tags": "Tags disponibles",
+    "make_public": "Rendre le favori public",
+    "visibility_label": "Visibilité",
+    "visibility_internal": "Interne (accessible à tous les utilisateurs de Shiori)",
+    "visibility_public": "Public (accessible aux utilisateurs non enregistrés)",
+    "visibility_description": "Les favoris internes sont visibles par tous les utilisateurs enregistrés. Les favoris publics peuvent être consultés par n'importe qui.",
+    "create_ebook": "Créer un livre électronique",
+    "view_content": "Voir le contenu",
+    "download_ebook": "Télécharger le livre électronique",
+    "view_archive": "Voir l'archive",
+    "open_original": "Ouvrir l'URL originale",
+    "by": "Par",
+    "unknown_author": "Inconnu",
+    "archived_version": "Version archivée",
+    "archived_content": "Contenu archivé",
+    "no_readable_content": "Aucun contenu lisible disponible pour ce favori.",
+    "view_original_page": "Voir la page originale",
+    "confirm_delete_message": "Êtes-vous sûr de vouloir supprimer",
+    "toast": {
+      "created_success": "Favori créé avec succès",
+      "created_success_message": "Votre favori a été enregistré et est en cours de traitement",
+      "created_error": "Échec de la création du favori",
+      "created_error_message": "Veuillez vérifier l'URL et réessayer",
+      "deleted_success": "Favori supprimé avec succès",
+      "deleted_success_message": "Le favori a été supprimé définitivement",
+      "deleted_error": "Échec de la suppression du favori",
+      "deleted_error_message": "Veuillez réessayer"
+    },
+    "error": {
+      "invalid_id": "ID de favori invalide",
+      "no_archive": "Aucune archive disponible pour ce favori",
+      "load_failed": "Échec du chargement du favori"
+    },
+    "errors": {
+      "already_exists": {
+        "bookmark": "Un favori avec cette URL existe déjà"
+      }
+    }
   },
   "settings": {
     "title": "Paramètres",
@@ -60,6 +119,67 @@
     "theme": "Thème",
     "light": "Clair",
     "dark": "Sombre",
-    "system": "Système"
+    "system": "Système",
+    "display": "Affichage",
+    "bookmarks": "Signets",
+    "show_id": "Afficher l'ID du signet",
+    "list_mode": "Afficher les signets en liste",
+    "hide_thumbnail": "Masquer la vignette",
+    "hide_excerpt": "Masquer l'extrait",
+    "keep_metadata": "Conserver les métadonnées lors de la mise à jour",
+    "use_archive": "Créer une archive par défaut",
+    "create_ebook": "Créer un ebook par défaut",
+    "make_public": "Rendre public par défaut"
+  },
+  "pagination": {
+    "showing": "Affichage",
+    "to": "à",
+    "of": "de",
+    "items": "éléments",
+    "per_page": "Par page :",
+    "previous": "Précédent",
+    "next": "Suivant",
+    "go_to_page": "Aller à la page",
+    "aria_label": "Pagination"
+  },
+  "tags": {
+    "title": "Étiquettes",
+    "add_tag": "Ajouter une étiquette",
+    "edit_tag": "Modifier l'étiquette",
+    "delete_tag": "Supprimer l'étiquette",
+    "name": "Nom",
+    "no_tags": "Aucune étiquette trouvée",
+    "search_placeholder": "Rechercher des étiquettes...",
+    "searching": "Recherche d'étiquettes...",
+    "bookmarks_count": "signets",
+    "create_first_tag": "Créez votre première étiquette pour organiser vos signets.",
+    "confirm_delete": "Êtes-vous sûr de vouloir supprimer cette étiquette ? Cette action ne peut pas être annulée.",
+    "tag_name_required": "Le nom de l'étiquette ne peut pas être vide",
+    "toast": {
+      "created_success": "Étiquette créée avec succès",
+      "created_success_message": "L'étiquette a été ajoutée et est prête à être utilisée",
+      "created_error": "Échec de la création de l'étiquette",
+      "created_error_message": "Veuillez réessayer ou vérifier si l'étiquette existe déjà",
+      "updated_success": "Étiquette mise à jour avec succès",
+      "updated_success_message": "L'étiquette a été mise à jour",
+      "updated_error": "Échec de la mise à jour de l'étiquette",
+      "updated_error_message": "Veuillez réessayer",
+      "deleted_success": "Étiquette supprimée avec succès",
+      "deleted_success_message": "L'étiquette a été supprimée",
+      "deleted_error": "Échec de la suppression de l'étiquette",
+      "deleted_error_message": "Veuillez réessayer"
+    },
+    "errors": {
+      "already_exists": {
+        "tag": "Une étiquette avec ce nom existe déjà"
+      }
+    }
+  },
+  "views": {
+    "list_view": "Vue en liste",
+    "card_view": "Vue en cartes"
+  },
+  "about": {
+    "title": "Ceci est une page à propos"
   }
 }

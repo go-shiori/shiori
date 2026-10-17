@@ -8,6 +8,7 @@ require (
 	github.com/PuerkitoBio/goquery v1.10.3
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/disintegration/imaging v1.6.2
+	github.com/docker/docker v28.2.2+incompatible
 	github.com/fatih/color v1.18.0
 	github.com/go-shiori/go-epub v1.2.2-0.20241010194245-bd691046db94
 	github.com/go-shiori/go-readability v0.0.0-20250217085726-9f5bf5ca7612
@@ -21,7 +22,7 @@ require (
 	github.com/lib/pq v1.10.9
 	github.com/mattn/go-sqlite3 v1.14.32
 	github.com/muesli/go-app-paths v0.2.2
-	github.com/mxschmitt/playwright-go v0.6100.0
+	github.com/mxschmitt/playwright-go v0.6201.1
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1
 	github.com/sethvargo/go-envconfig v1.3.0
@@ -32,7 +33,7 @@ require (
 	github.com/spf13/pflag v1.0.10
 	github.com/stretchr/testify v1.11.1
 	github.com/swaggo/http-swagger/v2 v2.0.2
-	github.com/swaggo/swag v1.16.4
+	github.com/swaggo/swag v1.16.6
 	github.com/testcontainers/testcontainers-go v0.37.0
 	golang.org/x/crypto v0.42.0
 	golang.org/x/image v0.31.0
@@ -58,14 +59,12 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/deckarep/golang-set/v2 v2.8.0 // indirect
 	github.com/distribution/reference v0.6.0 // indirect
-	github.com/docker/docker v28.2.2+incompatible // indirect
 	github.com/docker/go-connections v0.5.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/ebitengine/purego v0.8.2 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.10 // indirect
-	github.com/go-jose/go-jose/v3 v3.0.5 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
@@ -130,6 +129,8 @@ require (
 	go.opentelemetry.io/otel/trace v1.36.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	golang.org/x/exp v0.0.0-20250911091902-df9299821621 // indirect
+	golang.org/x/mod v0.28.0 // indirect
+	golang.org/x/sync v0.17.0 // indirect
 	golang.org/x/sys v0.36.0 // indirect
 	golang.org/x/text v0.29.0 // indirect
 	golang.org/x/tools v0.37.0 // indirect

@@ -20,10 +20,17 @@ func TestAuthDomainCheckToken(t *testing.T) {
 	domain := domains.NewAuthDomain(deps)
 
 	t.Run("valid token", func(t *testing.T) {
+		// Create a real account in the database
+		account, err := deps.Domains().Accounts().CreateAccount(ctx, model.AccountDTO{
+			Username: "testuser",
+			Password: "testpass",
+			Owner:    model.Ptr(false),
+		})
+		require.NoError(t, err)
+
 		// Create a valid token
-		account := testutil.GetValidAccount().ToDTO()
 		token, err := domain.CreateTokenForAccount(
-			&account,
+			account,
 			time.Now().Add(time.Hour*1),
 		)
 		require.NoError(t, err)
@@ -31,14 +38,21 @@ func TestAuthDomainCheckToken(t *testing.T) {
 		acc, err := domain.CheckToken(ctx, token)
 		require.NoError(t, err)
 		require.NotNil(t, acc)
-		require.Equal(t, model.DBID(99), acc.ID)
+		require.Equal(t, account.ID, acc.ID)
 	})
 
 	t.Run("expired token", func(t *testing.T) {
+		// Create a real account in the database
+		account, err := deps.Domains().Accounts().CreateAccount(ctx, model.AccountDTO{
+			Username: "testuser2",
+			Password: "testpass2",
+			Owner:    model.Ptr(false),
+		})
+		require.NoError(t, err)
+
 		// Create an expired token
-		account := testutil.GetValidAccount().ToDTO()
 		token, err := domain.CreateTokenForAccount(
-			&account,
+			account,
 			time.Now().Add(time.Hour*-1),
 		)
 		require.NoError(t, err)

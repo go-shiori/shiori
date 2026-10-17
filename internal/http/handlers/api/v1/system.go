@@ -11,12 +11,12 @@ import (
 
 type infoResponse struct {
 	Version struct {
-		Tag    string `json:"tag"`
-		Commit string `json:"commit"`
-		Date   string `json:"date"`
-	} `json:"version"`
-	Database string `json:"database"`
-	OS       string `json:"os"`
+		Tag    string
+		Commit string
+		Date   string
+	}
+	Database string
+	OS       string
 }
 
 // @Summary		Get general system information
@@ -34,9 +34,9 @@ func HandleSystemInfo(deps model.Dependencies, c model.WebContext) {
 
 	response.SendJSON(c, http.StatusOK, infoResponse{
 		Version: struct {
-			Tag    string `json:"tag"`
-			Commit string `json:"commit"`
-			Date   string `json:"date"`
+			Tag    string
+			Commit string
+			Date   string
 		}{
 			Tag:    model.BuildVersion,
 			Commit: model.BuildCommit,
@@ -45,4 +45,14 @@ func HandleSystemInfo(deps model.Dependencies, c model.WebContext) {
 		Database: deps.Database().ReaderDB().DriverName(),
 		OS:       runtime.GOOS + " (" + runtime.GOARCH + ")",
 	})
+}
+
+// @Summary		Ping the system
+// @Description	Simple ping endpoint that returns a 200 status code
+// @Tags			System
+// @Produce		json
+// @Success		200	{object}	nil	"Pong"
+// @Router			/api/v1/system/ping [get]
+func HandleSystemPing(deps model.Dependencies, c model.WebContext) {
+	c.ResponseWriter().WriteHeader(http.StatusOK)
 }
