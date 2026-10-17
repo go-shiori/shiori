@@ -12,15 +12,15 @@ type BookmarkTag struct {
 
 // Tag is the tag for a bookmark.
 type Tag struct {
-	ID   int    `db:"id"          json:"id"`
-	Name string `db:"name"        json:"name"`
+	ID   int    `db:"id"`
+	Name string `db:"name"`
 }
 
 // TagDTO represents a tag in the application
 type TagDTO struct {
 	Tag
-	BookmarkCount int64 `db:"bookmark_count" json:"bookmark_count"` // Number of bookmarks with this tag
-	Deleted       bool  `json:"deleted"`                            // Marks when a tag is deleted from a bookmark
+	BookmarkCount int64 `db:"bookmark_count"` // Number of bookmarks with this tag
+	Deleted       bool  // Marks when a tag is deleted from a bookmark
 }
 
 func (t *Tag) ToDTO() TagDTO {
@@ -45,6 +45,8 @@ type ListTagsOptions struct {
 	WithBookmarkCount bool
 	OrderBy           DBTagOrderBy
 	Search            string
+	Limit             int
+	Offset            int
 }
 
 // IsValid validates the ListTagsOptions.

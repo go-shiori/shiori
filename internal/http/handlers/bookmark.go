@@ -39,6 +39,12 @@ func getBookmark(deps model.Dependencies, c model.WebContext) (*model.BookmarkDT
 
 // HandleBookmarkContent serves the bookmark content page
 func HandleBookmarkContent(deps model.Dependencies, c model.WebContext) {
+	// The web UI v2 has a client-side route on this path.
+	if deps.Config().Http.ServeWebUIV2 {
+		HandleFrontend(deps, c)
+		return
+	}
+
 	bookmark, err := getBookmark(deps, c)
 	if err != nil || bookmark == nil {
 		return
@@ -58,6 +64,12 @@ func HandleBookmarkContent(deps model.Dependencies, c model.WebContext) {
 
 // HandleBookmarkArchive serves the bookmark archive page
 func HandleBookmarkArchive(deps model.Dependencies, c model.WebContext) {
+	// The web UI v2 has a client-side route on this path.
+	if deps.Config().Http.ServeWebUIV2 {
+		HandleFrontend(deps, c)
+		return
+	}
+
 	bookmark, err := getBookmark(deps, c)
 	if err != nil || bookmark == nil {
 		return

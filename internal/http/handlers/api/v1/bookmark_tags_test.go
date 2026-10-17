@@ -17,7 +17,7 @@ import (
 
 // Define the BookmarkTagPayload struct to match the one in the API
 type bookmarkTagPayload struct {
-	TagID int `json:"tag_id"`
+	TagID int
 }
 
 func TestBookmarkTagsAPI(t *testing.T) {
@@ -30,8 +30,10 @@ func TestBookmarkTagsAPI(t *testing.T) {
 
 	// Create a test bookmark
 	bookmark := model.BookmarkDTO{
-		URL:   "https://example.com/api-tags-test",
-		Title: "API Tags Test",
+		Bookmark: model.Bookmark{
+			URL:   "https://example.com/api-tags-test",
+			Title: "API Tags Test",
+		},
 	}
 	savedBookmarks, err := db.SaveBookmarks(ctx, true, bookmark)
 	require.NoError(t, err)
@@ -129,8 +131,8 @@ func TestBookmarkTagsAPI(t *testing.T) {
 	t.Run("BulkUpdateBookmarkTags", func(t *testing.T) {
 		// Define the payload struct
 		type bulkUpdatePayload struct {
-			BookmarkIDs []int `json:"bookmark_ids"`
-			TagIDs      []int `json:"tag_ids"`
+			BookmarkIDs []int
+			TagIDs      []int
 		}
 
 		// Test successful bulk update
@@ -179,7 +181,7 @@ func TestBookmarkTagsAPI(t *testing.T) {
 
 		// Test invalid request payload
 		t.Run("InvalidRequestPayload", func(t *testing.T) {
-			invalidPayload := []byte(`{"bookmark_ids": "invalid", "tag_ids": [1]}`)
+			invalidPayload := []byte(`{"BookmarkIDs": "invalid", "TagIDs": [1]}`)
 
 			rec := testutil.PerformRequest(
 				deps,
@@ -194,7 +196,7 @@ func TestBookmarkTagsAPI(t *testing.T) {
 
 			testResp := testutil.NewTestResponseFromRecorder(rec)
 			testResp.AssertNotOk(t)
-			testResp.AssertMessageJSONKeyValue(t, "error", func(t *testing.T, value any) {
+			testResp.AssertMessageJSONKeyValue(t, "Error", func(t *testing.T, value any) {
 				require.Equal(t, "Invalid request payload", value)
 			})
 		})
@@ -221,7 +223,7 @@ func TestBookmarkTagsAPI(t *testing.T) {
 
 			testResp := testutil.NewTestResponseFromRecorder(rec)
 			testResp.AssertNotOk(t)
-			testResp.AssertMessageJSONKeyValue(t, "error", func(t *testing.T, value any) {
+			testResp.AssertMessageJSONKeyValue(t, "Error", func(t *testing.T, value any) {
 				require.Equal(t, "bookmark_ids should not be empty", value)
 			})
 		})
@@ -248,7 +250,7 @@ func TestBookmarkTagsAPI(t *testing.T) {
 
 			testResp := testutil.NewTestResponseFromRecorder(rec)
 			testResp.AssertNotOk(t)
-			testResp.AssertMessageJSONKeyValue(t, "error", func(t *testing.T, value any) {
+			testResp.AssertMessageJSONKeyValue(t, "Error", func(t *testing.T, value any) {
 				require.Equal(t, "tag_ids should not be empty", value)
 			})
 		})
@@ -275,7 +277,7 @@ func TestBookmarkTagsAPI(t *testing.T) {
 
 			testResp := testutil.NewTestResponseFromRecorder(rec)
 			testResp.AssertNotOk(t)
-			testResp.AssertMessageJSONKeyValue(t, "error", func(t *testing.T, value any) {
+			testResp.AssertMessageJSONKeyValue(t, "Error", func(t *testing.T, value any) {
 				require.Equal(t, "Failed to update bookmarks", value)
 			})
 		})
@@ -307,8 +309,8 @@ func TestBookmarkTagsAPI(t *testing.T) {
 		testResp.AssertMessageIsNotEmptyList(t)
 
 		testResp.ForEach(t, func(item map[string]any) {
-			require.NotZero(t, item["id"])
-			require.NotEmpty(t, item["name"])
+			require.NotZero(t, item["ID"])
+			require.NotEmpty(t, item["Name"])
 		})
 	})
 
@@ -401,7 +403,7 @@ func TestBookmarkTagsAPI(t *testing.T) {
 			// Parse the response
 			testResp := testutil.NewTestResponseFromRecorder(rec)
 			testResp.AssertNotOk(t)
-			testResp.AssertMessageJSONKeyValue(t, "error", func(t *testing.T, value any) {
+			testResp.AssertMessageJSONKeyValue(t, "Error", func(t *testing.T, value any) {
 				require.Equal(t, "Bookmark not found", value)
 			})
 		})
@@ -431,7 +433,7 @@ func TestBookmarkTagsAPI(t *testing.T) {
 			// Parse the response
 			testResp := testutil.NewTestResponseFromRecorder(rec)
 			testResp.AssertNotOk(t)
-			testResp.AssertMessageJSONKeyValue(t, "error", func(t *testing.T, value any) {
+			testResp.AssertMessageJSONKeyValue(t, "Error", func(t *testing.T, value any) {
 				require.Equal(t, "Tag not found", value)
 			})
 		})
@@ -461,7 +463,7 @@ func TestBookmarkTagsAPI(t *testing.T) {
 			// Parse the response
 			testResp := testutil.NewTestResponseFromRecorder(rec)
 			testResp.AssertNotOk(t)
-			testResp.AssertMessageJSONKeyValue(t, "error", func(t *testing.T, value any) {
+			testResp.AssertMessageJSONKeyValue(t, "Error", func(t *testing.T, value any) {
 				require.Equal(t, "Bookmark not found", value)
 			})
 		})
@@ -491,7 +493,7 @@ func TestBookmarkTagsAPI(t *testing.T) {
 			// Parse the response
 			testResp := testutil.NewTestResponseFromRecorder(rec)
 			testResp.AssertNotOk(t)
-			testResp.AssertMessageJSONKeyValue(t, "error", func(t *testing.T, value any) {
+			testResp.AssertMessageJSONKeyValue(t, "Error", func(t *testing.T, value any) {
 				require.Equal(t, "Bookmark not found", value)
 			})
 		})
@@ -521,7 +523,7 @@ func TestBookmarkTagsAPI(t *testing.T) {
 			// Parse the response
 			testResp := testutil.NewTestResponseFromRecorder(rec)
 			testResp.AssertNotOk(t)
-			testResp.AssertMessageJSONKeyValue(t, "error", func(t *testing.T, value any) {
+			testResp.AssertMessageJSONKeyValue(t, "Error", func(t *testing.T, value any) {
 				require.Equal(t, "Tag not found", value)
 			})
 		})
@@ -544,7 +546,7 @@ func TestBookmarkTagsAPI(t *testing.T) {
 			// Parse the response
 			testResp := testutil.NewTestResponseFromRecorder(rec)
 			testResp.AssertNotOk(t)
-			testResp.AssertMessageJSONKeyValue(t, "error", func(t *testing.T, value any) {
+			testResp.AssertMessageJSONKeyValue(t, "Error", func(t *testing.T, value any) {
 				require.Equal(t, "Invalid bookmark ID", value)
 			})
 		})
@@ -574,7 +576,7 @@ func TestBookmarkTagsAPI(t *testing.T) {
 			// Parse the response
 			testResp := testutil.NewTestResponseFromRecorder(rec)
 			testResp.AssertNotOk(t)
-			testResp.AssertMessageJSONKeyValue(t, "error", func(t *testing.T, value any) {
+			testResp.AssertMessageJSONKeyValue(t, "Error", func(t *testing.T, value any) {
 				require.Equal(t, "Invalid bookmark ID", value)
 			})
 		})
@@ -604,7 +606,7 @@ func TestBookmarkTagsAPI(t *testing.T) {
 			// Parse the response
 			testResp := testutil.NewTestResponseFromRecorder(rec)
 			testResp.AssertNotOk(t)
-			testResp.AssertMessageJSONKeyValue(t, "error", func(t *testing.T, value any) {
+			testResp.AssertMessageJSONKeyValue(t, "Error", func(t *testing.T, value any) {
 				require.Equal(t, "Invalid bookmark ID", value)
 			})
 		})
@@ -612,7 +614,7 @@ func TestBookmarkTagsAPI(t *testing.T) {
 		// Test invalid payload
 		t.Run("InvalidPayload", func(t *testing.T) {
 			// Create a request with an invalid payload
-			invalidPayload := []byte(`{"tag_id": "invalid"}`)
+			invalidPayload := []byte(`{"TagID": "invalid"}`)
 
 			rec := testutil.PerformRequest(
 				deps,
@@ -630,7 +632,7 @@ func TestBookmarkTagsAPI(t *testing.T) {
 			// Parse the response
 			testResp := testutil.NewTestResponseFromRecorder(rec)
 			testResp.AssertNotOk(t)
-			testResp.AssertMessageJSONKeyValue(t, "error", func(t *testing.T, value any) {
+			testResp.AssertMessageJSONKeyValue(t, "Error", func(t *testing.T, value any) {
 				require.Equal(t, "Invalid request payload", value)
 			})
 		})
@@ -660,7 +662,7 @@ func TestBookmarkTagsAPI(t *testing.T) {
 			// Parse the response
 			testResp := testutil.NewTestResponseFromRecorder(rec)
 			testResp.AssertNotOk(t)
-			testResp.AssertMessageJSONKeyValue(t, "error", func(t *testing.T, value any) {
+			testResp.AssertMessageJSONKeyValue(t, "Error", func(t *testing.T, value any) {
 				require.Equal(t, "tag_id should be a positive integer", value)
 			})
 		})
@@ -690,7 +692,7 @@ func TestBookmarkTagsAPI(t *testing.T) {
 			// Parse the response
 			testResp := testutil.NewTestResponseFromRecorder(rec)
 			testResp.AssertNotOk(t)
-			testResp.AssertMessageJSONKeyValue(t, "error", func(t *testing.T, value any) {
+			testResp.AssertMessageJSONKeyValue(t, "Error", func(t *testing.T, value any) {
 				require.Equal(t, "tag_id should be a positive integer", value)
 			})
 		})
@@ -720,7 +722,7 @@ func TestBookmarkTagsAPI(t *testing.T) {
 			// Parse the response
 			testResp := testutil.NewTestResponseFromRecorder(rec)
 			testResp.AssertNotOk(t)
-			testResp.AssertMessageJSONKeyValue(t, "error", func(t *testing.T, value any) {
+			testResp.AssertMessageJSONKeyValue(t, "Error", func(t *testing.T, value any) {
 				require.Equal(t, "tag_id should be a positive integer", value)
 			})
 		})

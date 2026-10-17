@@ -33,23 +33,29 @@ func testGetTagsFunction(t *testing.T, db model.DB) {
 	// Create bookmarks with different tag combinations
 	bookmarks := []model.BookmarkDTO{
 		{
-			URL:   "https://golang.org",
-			Title: "Go Language",
+			Bookmark: model.Bookmark{
+				URL:   "https://golang.org",
+				Title: "Go Language",
+			},
 			Tags: []model.TagDTO{
 				{Tag: model.Tag{Name: "golang"}},
 				{Tag: model.Tag{Name: "web"}},
 			},
 		},
 		{
-			URL:   "https://postgresql.org",
-			Title: "PostgreSQL",
+			Bookmark: model.Bookmark{
+				URL:   "https://postgresql.org",
+				Title: "PostgreSQL",
+			},
 			Tags: []model.TagDTO{
 				{Tag: model.Tag{Name: "database"}},
 			},
 		},
 		{
-			URL:   "https://sqlite.org",
-			Title: "SQLite",
+			Bookmark: model.Bookmark{
+				URL:   "https://sqlite.org",
+				Title: "SQLite",
+			},
 			Tags: []model.TagDTO{
 				{Tag: model.Tag{Name: "database"}},
 				{Tag: model.Tag{Name: "testing"}},
@@ -261,8 +267,10 @@ func testGetTagsFunction(t *testing.T, db model.DB) {
 	t.Run("GetTagsForBookmarkWithNoTags", func(t *testing.T) {
 		// Create a bookmark with no tags
 		bookmarkWithNoTags := model.BookmarkDTO{
-			URL:   "https://example.com",
-			Title: "Example with no tags",
+			Bookmark: model.Bookmark{
+				URL:   "https://example.com",
+				Title: "Example with no tags",
+			},
 		}
 
 		result, err := db.SaveBookmarks(ctx, true, bookmarkWithNoTags)
@@ -312,8 +320,10 @@ func testTagBookmarkOperations(t *testing.T, db model.DB) {
 	// Create test data
 	// 1. Create a test bookmark
 	bookmark := model.BookmarkDTO{
-		URL:   "https://example.com/tag-operations-test",
-		Title: "Tag Operations Test",
+		Bookmark: model.Bookmark{
+			URL:   "https://example.com/tag-operations-test",
+			Title: "Tag Operations Test",
+		},
 	}
 	savedBookmarks, err := db.SaveBookmarks(ctx, true, bookmark)
 	require.NoError(t, err)
@@ -467,8 +477,10 @@ func testBookmarkExists(t *testing.T, db model.DB) {
 
 	// Create a test bookmark
 	bookmark := model.BookmarkDTO{
-		URL:   "https://example.com/bookmark-exists-test",
-		Title: "Bookmark Exists Test",
+		Bookmark: model.Bookmark{
+			URL:   "https://example.com/bookmark-exists-test",
+			Title: "Bookmark Exists Test",
+		},
 	}
 	savedBookmarks, err := db.SaveBookmarks(ctx, true, bookmark)
 	require.NoError(t, err)
@@ -492,8 +504,10 @@ func testAddTagToBookmark(t *testing.T, db model.DB) {
 
 	// Create test data
 	bookmark := model.BookmarkDTO{
-		URL:   "https://example.com/add-tag-test",
-		Title: "Add Tag Test",
+		Bookmark: model.Bookmark{
+			URL:   "https://example.com/add-tag-test",
+			Title: "Add Tag Test",
+		},
 	}
 	savedBookmarks, err := db.SaveBookmarks(ctx, true, bookmark)
 	require.NoError(t, err)
@@ -539,8 +553,10 @@ func testRemoveTagFromBookmark(t *testing.T, db model.DB) {
 
 	// Create test data
 	bookmark := model.BookmarkDTO{
-		URL:   "https://example.com/remove-tag-test",
-		Title: "Remove Tag Test",
+		Bookmark: model.Bookmark{
+			URL:   "https://example.com/remove-tag-test",
+			Title: "Remove Tag Test",
+		},
 	}
 	savedBookmarks, err := db.SaveBookmarks(ctx, true, bookmark)
 	require.NoError(t, err)
@@ -596,8 +612,10 @@ func testTagBookmarkEdgeCases(t *testing.T, db model.DB) {
 
 	// Create test data
 	bookmark := model.BookmarkDTO{
-		URL:   "https://example.com/edge-cases-test",
-		Title: "Edge Cases Test",
+		Bookmark: model.Bookmark{
+			URL:   "https://example.com/edge-cases-test",
+			Title: "Edge Cases Test",
+		},
 	}
 	savedBookmarks, err := db.SaveBookmarks(ctx, true, bookmark)
 	require.NoError(t, err)

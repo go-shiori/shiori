@@ -23,7 +23,7 @@ func Send(c model.WebContext, statusCode int, message any, contentType string) e
 // SendError provides a shortcut to send an unsuccessful response
 func SendError(c model.WebContext, statusCode int, message any) error {
 	resp := NewResponse(struct {
-		Error string `json:"error"`
+		Error string
 	}{Error: message.(string)}, statusCode)
 	return resp.SendJSON(c)
 }

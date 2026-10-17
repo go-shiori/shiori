@@ -81,7 +81,12 @@ export default {
 
 		parseJWT(token) {
 			try {
-				return JSON.parse(atob(token.split(".")[1]));
+				const payload = token
+					.split(".")[1]
+					.replace(/-/g, "+")
+					.replace(/_/g, "/");
+				const bytes = Uint8Array.from(atob(payload), (c) => c.charCodeAt(0));
+				return JSON.parse(new TextDecoder().decode(bytes));
 			} catch (e) {
 				return null;
 			}
@@ -114,24 +119,25 @@ export default {
 					{
 						method: "post",
 						body: JSON.stringify({
-							username: this.username,
-							password: this.password,
-							remember_me: this.remember == 1 ? true : false,
+							Username: this.username,
+							Password: this.password,
+							RememberMe: this.remember == 1 ? true : false,
 						}),
 					},
 				);
 
-				// Save session id
-				document.cookie = `token=${json.token}; Path=${
-					new URL(document.baseURI).pathname
-				}; Expires=${new Date(json.expires * 1000).toUTCString()}`;
+				// Validate token and extract account data
+				const parsed = this.parseJWT(json.Token);
+				if (!parsed || !parsed.Account) {
+					throw new Error("Invalid token received from server");
+				}
 
-				// Save account data
-				localStorage.setItem("shiori-token", json.token);
-				localStorage.setItem(
-					"shiori-account",
-					JSON.stringify(this.parseJWT(json.token).account),
-				);
+				// Save session only after validation
+				document.cookie = `token=${json.Token}; Path=${
+					new URL(document.baseURI).pathname
+				}; Expires=${new Date(json.Expiration * 1000).toUTCString()}`;
+				localStorage.setItem("shiori-token", json.Token);
+				localStorage.setItem("shiori-account", JSON.stringify(parsed.Account));
 
 				this.visible = false;
 				this.$emit("login-success");

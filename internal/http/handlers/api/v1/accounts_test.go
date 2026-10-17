@@ -100,8 +100,8 @@ func TestHandleCreateAccount(t *testing.T) {
 		deps.Database().WriterDB().Close()
 
 		body := `{
-			"username": "gopher",
-			"password": "shiori"
+			"Username": "gopher",
+			"Password": "shiori"
 		}`
 		w := testutil.PerformRequest(deps, func(deps model.Dependencies, c model.WebContext) {
 			testutil.SetFakeAdmin(c)
@@ -122,8 +122,8 @@ func TestHandleCreateAccount(t *testing.T) {
 
 		// Try to create duplicate account
 		body := `{
-			"username": "gopher",
-			"password": "shiori"
+			"Username": "gopher",
+			"Password": "shiori"
 		}`
 		w := testutil.PerformRequest(deps, func(deps model.Dependencies, c model.WebContext) {
 			testutil.SetFakeAdmin(c)
@@ -135,9 +135,9 @@ func TestHandleCreateAccount(t *testing.T) {
 	t.Run("successful creation", func(t *testing.T) {
 		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
 		body := `{
-			"username": "newuser",
-			"password": "password",
-			"owner": false
+			"Username": "newuser",
+			"Password": "password",
+			"Owner": false
 		}`
 		w := testutil.PerformRequest(deps, func(deps model.Dependencies, c model.WebContext) {
 			testutil.SetFakeAdmin(c)
@@ -147,7 +147,7 @@ func TestHandleCreateAccount(t *testing.T) {
 
 		response := testutil.NewTestResponseFromRecorder(w)
 		response.AssertOk(t)
-		response.AssertMessageJSONKeyValue(t, "id", func(t *testing.T, value any) {
+		response.AssertMessageJSONKeyValue(t, "ID", func(t *testing.T, value any) {
 			require.NotZero(t, value)
 		})
 	})
@@ -190,10 +190,18 @@ func TestHandleDeleteAccount(t *testing.T) {
 		require.Equal(t, http.StatusNotFound, w.Code)
 	})
 
+	t.Run("cannot delete own account", func(t *testing.T) {
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+		c, w := testutil.NewTestWebContext()
+		testutil.SetFakeAdmin(c)
+		testutil.SetRequestPathValue(c, "id", "99999")
+		HandleDeleteAccount(deps, c)
+		require.Equal(t, http.StatusForbidden, w.Code)
+	})
+
 	t.Run("successful deletion", func(t *testing.T) {
 		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
 
-		// Create account to delete
 		account, err := deps.Domains().Accounts().CreateAccount(ctx, model.AccountDTO{
 			Username: "todelete",
 			Password: "password",
@@ -246,9 +254,20 @@ func TestHandleUpdateAccount(t *testing.T) {
 		require.Equal(t, http.StatusBadRequest, w.Code)
 	})
 
+	t.Run("cannot update own account", func(t *testing.T) {
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+		body := `{"Owner": false}`
+		w := testutil.PerformRequest(deps, func(deps model.Dependencies, c model.WebContext) {
+			testutil.SetFakeAdmin(c)
+			testutil.SetRequestPathValue(c, "id", strconv.Itoa(int(c.GetAccount().ID)))
+			HandleUpdateAccount(deps, c)
+		}, "PATCH", "/api/v1/accounts/self", testutil.WithBody(body))
+		require.Equal(t, http.StatusForbidden, w.Code)
+	})
+
 	t.Run("account not found", func(t *testing.T) {
 		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
-		body := `{"username": "newname"}`
+		body := `{"Username": "newname"}`
 		w := testutil.PerformRequest(deps, func(deps model.Dependencies, c model.WebContext) {
 			testutil.SetRequestPathValue(c, "id", "999")
 			testutil.SetFakeAdmin(c)
@@ -268,8 +287,8 @@ func TestHandleUpdateAccount(t *testing.T) {
 		require.NoError(t, err)
 
 		body := `{
-			"username": "updated",
-			"owner": true
+			"Username": "updated",
+			"Owner": true
 		}`
 		w := testutil.PerformRequest(deps, func(deps model.Dependencies, c model.WebContext) {
 			testutil.SetRequestPathValue(c, "id", strconv.Itoa(int(account.ID)))
@@ -280,7 +299,7 @@ func TestHandleUpdateAccount(t *testing.T) {
 
 		response := testutil.NewTestResponseFromRecorder(w)
 		response.AssertOk(t)
-		response.AssertMessageJSONKeyValue(t, "owner", func(t *testing.T, value any) {
+		response.AssertMessageJSONKeyValue(t, "Owner", func(t *testing.T, value any) {
 			require.True(t, value.(bool))
 		})
 	})
@@ -322,7 +341,7 @@ func TestHandleUpdateAccount(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		body := `{"username": "newname"}`
+		body := `{"Username": "newname"}`
 		w := testutil.PerformRequest(deps, func(deps model.Dependencies, c model.WebContext) {
 			testutil.SetRequestPathValue(c, "id", strconv.Itoa(int(account.ID)))
 			testutil.SetFakeAdmin(c)
@@ -332,7 +351,7 @@ func TestHandleUpdateAccount(t *testing.T) {
 
 		response := testutil.NewTestResponseFromRecorder(w)
 		response.AssertOk(t)
-		response.AssertMessageJSONKeyValue(t, "username", func(t *testing.T, value any) {
+		response.AssertMessageJSONKeyValue(t, "Username", func(t *testing.T, value any) {
 			require.Equal(t, "newname", value)
 		})
 	})
@@ -346,7 +365,7 @@ func TestHandleUpdateAccount(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		body := `{"new_password": "newpass"}`
+		body := `{"NewPassword": "newpass"}`
 		w := testutil.PerformRequest(deps, func(deps model.Dependencies, c model.WebContext) {
 			testutil.SetRequestPathValue(c, "id", strconv.Itoa(int(account.ID)))
 			testutil.SetFakeAdmin(c)
@@ -355,7 +374,7 @@ func TestHandleUpdateAccount(t *testing.T) {
 		require.Equal(t, http.StatusOK, w.Code)
 
 		// Verify we can login with new password
-		loginBody := `{"username": "shiori", "password": "newpass"}`
+		loginBody := `{"Username": "shiori", "Password": "newpass"}`
 		w = testutil.PerformRequest(deps, HandleLogin, "POST", "/login", testutil.WithBody(loginBody))
 		require.Equal(t, http.StatusOK, w.Code)
 	})
@@ -369,7 +388,7 @@ func TestHandleUpdateAccount(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		body := `{"new_password": "newpass"}`
+		body := `{"NewPassword": "newpass"}`
 		w := testutil.PerformRequest(deps, func(deps model.Dependencies, c model.WebContext) {
 			testutil.SetRequestPathValue(c, "id", strconv.Itoa(int(account.ID)))
 			testutil.SetFakeUser(c)
@@ -392,7 +411,7 @@ func TestHandleUpdateAccount(t *testing.T) {
 		require.NoError(t, err)
 
 		body := `{
-			"config": {
+			"Config": {
 				"ShowId": true,
 				"ListMode": true,
 				"HideThumbnail": true,
@@ -413,7 +432,7 @@ func TestHandleUpdateAccount(t *testing.T) {
 
 		response := testutil.NewTestResponseFromRecorder(w)
 		response.AssertOk(t)
-		response.AssertMessageJSONKeyValue(t, "config", func(t *testing.T, value any) {
+		response.AssertMessageJSONKeyValue(t, "Config", func(t *testing.T, value any) {
 			config := value.(map[string]any)
 			require.True(t, config["ShowId"].(bool))
 			require.True(t, config["ListMode"].(bool))
@@ -442,10 +461,10 @@ func TestHandleUpdateAccount(t *testing.T) {
 		require.NoError(t, err)
 
 		body := `{
-			"username": "updated",
-			"new_password": "newpass",
-			"owner": true,
-			"config": {
+			"Username": "updated",
+			"NewPassword": "newpass",
+			"Owner": true,
+			"Config": {
 				"ShowId": true,
 				"ListMode": true,
 				"HideThumbnail": true,
@@ -462,13 +481,13 @@ func TestHandleUpdateAccount(t *testing.T) {
 
 		response := testutil.NewTestResponseFromRecorder(w)
 		response.AssertOk(t)
-		response.AssertMessageJSONKeyValue(t, "username", func(t *testing.T, value any) {
+		response.AssertMessageJSONKeyValue(t, "Username", func(t *testing.T, value any) {
 			require.Equal(t, "updated", value)
 		})
-		response.AssertMessageJSONKeyValue(t, "owner", func(t *testing.T, value any) {
+		response.AssertMessageJSONKeyValue(t, "Owner", func(t *testing.T, value any) {
 			require.True(t, value.(bool))
 		})
-		response.AssertMessageJSONKeyValue(t, "config", func(t *testing.T, value any) {
+		response.AssertMessageJSONKeyValue(t, "Config", func(t *testing.T, value any) {
 			config := value.(map[string]any)
 			require.True(t, config["ShowId"].(bool))
 			require.True(t, config["ListMode"].(bool))
@@ -478,7 +497,7 @@ func TestHandleUpdateAccount(t *testing.T) {
 		})
 
 		// Verify password change
-		loginBody := `{"username": "updated", "password": "newpass"}`
+		loginBody := `{"Username": "updated", "Password": "newpass"}`
 		w = testutil.PerformRequest(deps, HandleLogin, "POST", "/login", testutil.WithBody(loginBody))
 		require.Equal(t, http.StatusOK, w.Code)
 	})
