@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	dockercontainer "github.com/docker/docker/api/types/container"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
@@ -57,6 +58,11 @@ func NewShioriContainer(t *testing.T, tag string) ShioriContainer {
 			Cmd:          []string{"server", "--log-level", "debug"},
 			ExposedPorts: []string{shioriPort},
 			WaitingFor:   wait.ForLog(shioriExpectedStartupMessage).WithStartupTimeout(shioriExpectedStartupSeconds * time.Second),
+			// Docker Desktop resolves host.docker.internal by default, but Docker on Linux
+			// (including CI runners) needs this mapping to reach the StartTestServer server.
+			HostConfigModifier: func(hc *dockercontainer.HostConfig) {
+				hc.ExtraHosts = append(hc.ExtraHosts, "host.docker.internal:host-gateway")
+			},
 		},
 		Started: true,
 	}

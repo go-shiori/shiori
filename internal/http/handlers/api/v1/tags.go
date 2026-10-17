@@ -2,6 +2,7 @@ package api_v1
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -11,14 +12,16 @@ import (
 )
 
 // @Summary		List tags
-// @Description	List all tags
+// @Description	List all tags with pagination
 // @Tags			Tags
 // @Security		ApiKeyAuth
 // @Produce		json
 // @Param			with_bookmark_count	query		boolean	false	"Include bookmark count for each tag"
 // @Param			bookmark_id			query		integer	false	"Filter tags by bookmark ID"
 // @Param			search				query		string	false	"Search tags by name"
-// @Success		200					{array}		model.TagDTO
+// @Param			page				query		integer	false	"Page number (default: 1)"
+// @Param			limit				query		integer	false	"Items per page (default: 30, max: 100)"
+// @Success		200					{object}	model.PaginatedResponse[model.TagDTO]
 // @Failure		403					{object}	nil	"Authentication required"
 // @Failure		500					{object}	nil	"Internal server error"
 // @Router			/api/v1/tags [get]
@@ -28,11 +31,12 @@ func HandleListTags(deps model.Dependencies, c model.WebContext) {
 	}
 
 	// Parse query parameters
-	withBookmarkCount := c.Request().URL.Query().Get("with_bookmark_count") == "true"
-	search := c.Request().URL.Query().Get("search")
+	query := c.Request().URL.Query()
+	withBookmarkCount := query.Get("with_bookmark_count") == "true"
+	search := query.Get("search")
 
 	var bookmarkID int
-	if bookmarkIDStr := c.Request().URL.Query().Get("bookmark_id"); bookmarkIDStr != "" {
+	if bookmarkIDStr := query.Get("bookmark_id"); bookmarkIDStr != "" {
 		var err error
 		bookmarkID, err = strconv.Atoi(bookmarkIDStr)
 		if err != nil {
@@ -41,12 +45,35 @@ func HandleListTags(deps model.Dependencies, c model.WebContext) {
 		}
 	}
 
+	// Parse page and limit
+	page := 1
+	if pageStr := query.Get("page"); pageStr != "" {
+		p, err := strconv.Atoi(pageStr)
+		if err != nil || p <= 0 {
+			response.SendError(c, http.StatusBadRequest, "Invalid page parameter: must be a positive integer")
+			return
+		}
+		page = p
+	}
+
+	limit := 30
+	if limitStr := query.Get("limit"); limitStr != "" {
+		l, err := strconv.Atoi(limitStr)
+		if err != nil || l <= 0 || l > 100 {
+			response.SendError(c, http.StatusBadRequest, "Invalid limit parameter: must be an integer between 1 and 100")
+			return
+		}
+		limit = l
+	}
+
 	// Create options and validate
 	opts := model.ListTagsOptions{
 		WithBookmarkCount: withBookmarkCount,
 		BookmarkID:        bookmarkID,
 		OrderBy:           model.DBTagOrderByTagName,
 		Search:            search,
+		Limit:             limit,
+		Offset:            (page - 1) * limit,
 	}
 
 	if err := opts.IsValid(); err != nil {
@@ -54,6 +81,7 @@ func HandleListTags(deps model.Dependencies, c model.WebContext) {
 		return
 	}
 
+	// Get tags
 	tags, err := deps.Domains().Tags().ListTags(c.Request().Context(), opts)
 	if err != nil {
 		deps.Logger().WithError(err).Error("failed to get tags")
@@ -61,7 +89,25 @@ func HandleListTags(deps model.Dependencies, c model.WebContext) {
 		return
 	}
 
-	response.SendJSON(c, http.StatusOK, tags)
+	// Get total count
+	countOpts := model.ListTagsOptions{
+		BookmarkID: bookmarkID,
+		Search:     search,
+	}
+	totalCount, err := deps.Domains().Tags().CountTags(c.Request().Context(), countOpts)
+	if err != nil {
+		deps.Logger().WithError(err).Error("failed to get tags count")
+		response.SendInternalServerError(c)
+		return
+	}
+
+	// Return paginated response
+	paginatedResponse := model.PaginatedResponse[model.TagDTO]{
+		Items: tags,
+		Total: totalCount,
+	}
+
+	response.SendJSON(c, http.StatusOK, paginatedResponse)
 }
 
 // @Summary		Get tag
@@ -89,7 +135,7 @@ func HandleGetTag(deps model.Dependencies, c model.WebContext) {
 
 	tag, err := deps.Domains().Tags().GetTag(c.Request().Context(), id)
 	if err != nil {
-		if err == model.ErrNotFound {
+		if errors.Is(err, model.ErrNotFound) {
 			response.NotFound(c)
 			return
 		}
@@ -102,19 +148,20 @@ func HandleGetTag(deps model.Dependencies, c model.WebContext) {
 }
 
 // @Summary		Create tag
-// @Description	Create a new tag
+// @Description	Create a new tag. Returns 409 Conflict if a tag with the same name already exists.
 // @Tags			Tags
 // @Security		ApiKeyAuth
 // @Accept			json
 // @Produce		json
 // @Param			tag	body		model.TagDTO	true	"Tag data"
-// @Success		201	{object}	model.TagDTO
-// @Failure		400	{object}	nil	"Invalid request"
-// @Failure		403	{object}	nil	"Authentication required"
-// @Failure		500	{object}	nil	"Internal server error"
+// @Success		201	{object}	model.TagDTO	"Tag created"
+// @Failure		400	{object}	nil				"Invalid request"
+// @Failure		403	{object}	nil				"Authentication required"
+// @Failure		409	{object}	nil				"Tag already exists"
+// @Failure		500	{object}	nil				"Internal server error"
 // @Router			/api/v1/tags [post]
 func HandleCreateTag(deps model.Dependencies, c model.WebContext) {
-	if err := middleware.RequireLoggedInUser(deps, c); err != nil {
+	if err := middleware.RequireLoggedInAdmin(deps, c); err != nil {
 		return
 	}
 
@@ -132,6 +179,10 @@ func HandleCreateTag(deps model.Dependencies, c model.WebContext) {
 
 	createdTag, err := deps.Domains().Tags().CreateTag(c.Request().Context(), tag)
 	if err != nil {
+		if errors.Is(err, model.ErrTagAlreadyExists) {
+			response.SendError(c, http.StatusConflict, "already_exists.tag")
+			return
+		}
 		deps.Logger().WithError(err).Error("failed to create tag")
 		response.SendInternalServerError(c)
 		return
@@ -155,7 +206,7 @@ func HandleCreateTag(deps model.Dependencies, c model.WebContext) {
 // @Failure		500	{object}	nil	"Internal server error"
 // @Router			/api/v1/tags/{id} [put]
 func HandleUpdateTag(deps model.Dependencies, c model.WebContext) {
-	if err := middleware.RequireLoggedInUser(deps, c); err != nil {
+	if err := middleware.RequireLoggedInAdmin(deps, c); err != nil {
 		return
 	}
 
@@ -183,7 +234,7 @@ func HandleUpdateTag(deps model.Dependencies, c model.WebContext) {
 
 	updatedTag, err := deps.Domains().Tags().UpdateTag(c.Request().Context(), tag)
 	if err != nil {
-		if err == model.ErrNotFound {
+		if errors.Is(err, model.ErrNotFound) {
 			response.NotFound(c)
 			return
 		}
@@ -219,7 +270,7 @@ func HandleDeleteTag(deps model.Dependencies, c model.WebContext) {
 
 	err = deps.Domains().Tags().DeleteTag(c.Request().Context(), id)
 	if err != nil {
-		if err == model.ErrNotFound {
+		if errors.Is(err, model.ErrNotFound) {
 			response.NotFound(c)
 			return
 		}

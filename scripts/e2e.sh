@@ -4,6 +4,15 @@ set -e
 
 TIMEOUT=30m
 
+# Clean up e2e images on exit, preserving the original exit code
+cleanup() {
+    local exit_code=$?
+    echo "Cleaning up e2e test images..."
+    docker image prune -f --filter "label=shiori.e2e=true" 2>/dev/null || true
+    exit "$exit_code"
+}
+trap cleanup EXIT
+
 # Run the e2e tests
 echo "Running e2e tests..."
 

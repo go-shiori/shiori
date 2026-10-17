@@ -18,7 +18,7 @@ func TestHandleLiveness(t *testing.T) {
 
 		response := testutil.NewTestResponseFromRecorder(w)
 		response.AssertOk(t)
-		response.AssertMessageJSONContains(t, `{"version":"dev","commit":"none","date":"unknown"}`)
+		response.AssertMessageJSONContains(t, `{"Version":"dev","Commit":"none","Date":"unknown"}`)
 	})
 
 	t.Run("handles without auth", func(t *testing.T) {

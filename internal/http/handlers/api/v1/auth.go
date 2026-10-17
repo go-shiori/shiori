@@ -2,6 +2,7 @@ package api_v1
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -12,9 +13,9 @@ import (
 )
 
 type loginRequestPayload struct {
-	Username   string `json:"username"`
-	Password   string `json:"password"`
-	RememberMe bool   `json:"remember_me"`
+	Username   string
+	Password   string
+	RememberMe bool
 }
 
 func (p *loginRequestPayload) IsValid() error {
@@ -28,8 +29,8 @@ func (p *loginRequestPayload) IsValid() error {
 }
 
 type loginResponseMessage struct {
-	Token      string `json:"token"`
-	Expiration int64  `json:"expires"`
+	Token      string
+	Expiration int64
 }
 
 // @Summary	Login to an account using username and password
@@ -53,8 +54,13 @@ func HandleLogin(deps model.Dependencies, c model.WebContext) {
 	}
 
 	account, err := deps.Domains().Auth().GetAccountFromCredentials(c.Request().Context(), payload.Username, payload.Password)
+	if errors.Is(err, model.ErrInvalidCredentials) {
+		response.SendError(c, http.StatusBadRequest, "Invalid username or password")
+		return
+	}
 	if err != nil {
-		response.SendError(c, http.StatusBadRequest, err.Error())
+		deps.Logger().WithError(err).Error("unexpected error during authentication")
+		response.SendInternalServerError(c)
 		return
 	}
 
@@ -67,6 +73,7 @@ func HandleLogin(deps model.Dependencies, c model.WebContext) {
 
 	token, err := deps.Domains().Auth().CreateTokenForAccount(account, expirationTime)
 	if err != nil {
+		deps.Logger().WithError(err).Error("failed to create auth token")
 		response.SendInternalServerError(c)
 		return
 	}
@@ -93,11 +100,12 @@ func HandleRefreshToken(deps model.Dependencies, c model.WebContext) {
 	account := c.GetAccount()
 	token, err := deps.Domains().Auth().CreateTokenForAccount(account, expiration)
 	if err != nil {
+		deps.Logger().WithError(err).Error("failed to create refresh token")
 		response.SendInternalServerError(c)
 		return
 	}
 
-	response.SendJSON(c, http.StatusAccepted, loginResponseMessage{
+	response.SendJSON(c, http.StatusOK, loginResponseMessage{
 		Token:      token,
 		Expiration: expiration.Unix(),
 	})
@@ -118,11 +126,11 @@ func HandleGetMe(deps model.Dependencies, c model.WebContext) {
 }
 
 type updateAccountPayload struct {
-	OldPassword string            `json:"old_password"`
-	NewPassword string            `json:"new_password"`
-	Username    string            `json:"username"`
-	Owner       *bool             `json:"owner"`
-	Config      *model.UserConfig `json:"config"`
+	OldPassword string
+	NewPassword string
+	Username    string
+	Owner       *bool
+	Config      *model.UserConfig
 }
 
 func (p *updateAccountPayload) IsValid() error {
@@ -166,7 +174,7 @@ func HandleUpdateLoggedAccount(deps model.Dependencies, c model.WebContext) {
 
 	var payload updateAccountPayload
 	if err := json.NewDecoder(c.Request().Body).Decode(&payload); err != nil {
-		response.SendInternalServerError(c)
+		response.SendError(c, http.StatusBadRequest, "Invalid request payload")
 		return
 	}
 
@@ -177,18 +185,26 @@ func HandleUpdateLoggedAccount(deps model.Dependencies, c model.WebContext) {
 
 	account := c.GetAccount()
 
-	// Only owners are allowed to change the owner flag. Without this check any
-	// authenticated user could escalate their own privileges to administrator
-	// through this self-service endpoint.
+	// Non-admin users cannot change the Owner flag
 	if payload.Owner != nil && !account.IsOwner() {
-		response.SendError(c, http.StatusForbidden, "Only owners can change the owner status")
+		response.SendError(c, http.StatusForbidden, "Only admins can change owner status")
+		return
+	}
+
+	if payload.Owner != nil && !*payload.Owner && account.IsOwner() {
+		response.SendError(c, http.StatusForbidden, "Admins cannot remove their own owner status")
 		return
 	}
 
 	if payload.NewPassword != "" {
 		_, err := deps.Domains().Auth().GetAccountFromCredentials(c.Request().Context(), account.Username, payload.OldPassword)
-		if err != nil {
+		if errors.Is(err, model.ErrInvalidCredentials) {
 			response.SendError(c, http.StatusBadRequest, "Old password is incorrect")
+			return
+		}
+		if err != nil {
+			deps.Logger().WithError(err).Error("failed to verify old password")
+			response.SendInternalServerError(c)
 			return
 		}
 	}
@@ -200,6 +216,18 @@ func HandleUpdateLoggedAccount(deps model.Dependencies, c model.WebContext) {
 	updatedAccount.ID = account.ID
 
 	account, err := deps.Domains().Accounts().UpdateAccount(c.Request().Context(), updatedAccount)
+	if errors.Is(err, model.ErrNotFound) {
+		response.SendError(c, http.StatusNotFound, "account not found")
+		return
+	}
+	if errors.Is(err, model.ErrAlreadyExists) {
+		response.SendError(c, http.StatusConflict, "account already exists")
+		return
+	}
+	if validationErr, ok := err.(model.ValidationError); ok {
+		response.SendError(c, http.StatusBadRequest, validationErr.Error())
+		return
+	}
 	if err != nil {
 		deps.Logger().WithError(err).Error("failed to update account")
 		response.SendInternalServerError(c)
@@ -222,9 +250,11 @@ func HandleLogout(deps model.Dependencies, c model.WebContext) {
 	}
 
 	// Remove token cookie
-	c.Request().AddCookie(&http.Cookie{
-		Name:  "token",
-		Value: "",
+	http.SetCookie(c.ResponseWriter(), &http.Cookie{
+		Name:   "token",
+		Value:  "",
+		MaxAge: -1,
+		Path:   deps.Config().Http.RootPath,
 	})
 
 	response.SendJSON(c, http.StatusOK, nil)

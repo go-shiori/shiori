@@ -217,6 +217,9 @@ func (db *PGDatabase) SaveBookmarks(ctx context.Context, create bool, bookmarks 
 					book.Public, book.Content, book.HTML, book.ModifiedAt, book.ID)
 			}
 			if err != nil {
+				if isPQUniqueViolation(err, "bookmark_url_UNIQUE") {
+					return ErrBookmarkURLAlreadyExists
+				}
 				return errors.WithStack(err)
 			}
 
@@ -823,6 +826,9 @@ func (db *PGDatabase) CreateTags(ctx context.Context, tags ...model.Tag) ([]mode
 		// Execute the query and scan the returned IDs
 		rows, err := tx.QueryContext(ctx, query, args...)
 		if err != nil {
+			if isPQUniqueViolation(err, "tag_name_UNIQUE") {
+				return ErrTagNameAlreadyExists
+			}
 			return fmt.Errorf("failed to execute tag creation query: %w", err)
 		}
 		defer rows.Close()
@@ -840,6 +846,9 @@ func (db *PGDatabase) CreateTags(ctx context.Context, tags ...model.Tag) ([]mode
 		}
 
 		if err := rows.Err(); err != nil {
+			if isPQUniqueViolation(err, "tag_name_UNIQUE") {
+				return ErrTagNameAlreadyExists
+			}
 			return fmt.Errorf("error iterating over result rows: %w", err)
 		}
 
@@ -1129,4 +1138,11 @@ func (db *PGDatabase) BulkUpdateBookmarkTags(ctx context.Context, bookmarkIDs []
 
 		return nil
 	})
+}
+
+// isPQUniqueViolation reports whether err is a unique violation of the named constraint.
+// Postgres stores unquoted constraint names in lower case, so the comparison ignores case.
+func isPQUniqueViolation(err error, constraint string) bool {
+	var pqErr *pq.Error
+	return errors.As(err, &pqErr) && pqErr.Code == "23505" && strings.EqualFold(pqErr.Constraint, constraint)
 }

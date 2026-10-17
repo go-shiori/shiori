@@ -1,97 +1,146 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import type { RouteRecordRaw, NavigationGuardNext as NavigationGuard, RouteLocationNormalized } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
-import LoginView from '../views/LoginView.vue'
-import { useAuthStore } from '@/stores/auth'
+import { createRouter, createWebHistory } from 'vue-router';
+import type {
+  RouteRecordRaw,
+  NavigationGuardNext as NavigationGuard,
+  RouteLocationNormalized,
+} from 'vue-router';
+import LibraryView from '../views/LibraryView.vue';
+import LoginView from '../views/LoginView.vue';
+import { useAuthStore } from '@/stores/auth';
 
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
-    redirect: '/home'
+    redirect: '/library',
   },
   {
-    path: '/home',
-    name: 'home',
-    component: HomeView,
-    meta: { requiresAuth: true }
+    path: '/library',
+    name: 'library',
+    component: LibraryView,
+    meta: { requiresAuth: true },
   },
   {
     path: '/login',
     name: 'login',
     component: LoginView,
-    props: (route) => ({ dst: route.query.dst })
+    props: route => ({ dst: route.query.dst }),
   },
   {
     path: '/tags',
     name: 'tags',
     component: () => import('../views/TagsView.vue'),
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true },
   },
   {
-    path: '/folders',
-    name: 'folders',
-    component: () => import('../views/FoldersView.vue'),
-    meta: { requiresAuth: true }
+    path: '/admin',
+    name: 'admin',
+    component: () => import('../views/AdminView.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true },
   },
   {
-    path: '/archive',
-    name: 'archive',
-    component: () => import('../views/ArchiveView.vue'),
-    meta: { requiresAuth: true }
+    path: '/admin/users',
+    name: 'admin-users',
+    component: () => import('../views/AdminView.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true },
   },
   {
     path: '/settings',
     name: 'settings',
     component: () => import('../views/SettingsView.vue'),
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true },
   },
-  // Redirect any unmatched routes to home (which will redirect to login if not authenticated)
+  {
+    path: '/bookmark/:id/content',
+    name: 'bookmark-content',
+    component: () => import('../views/BookmarkContentView.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/bookmark/:id/archive',
+    name: 'bookmark-archive',
+    component: () => import('../views/BookmarkArchiveView.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/add-bookmark',
+    name: 'add-bookmark',
+    component: () => import('../views/AddBookmarkView.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/add-tag',
+    name: 'add-tag',
+    component: () => import('../views/AddTagView.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/test-tag-selector',
+    name: 'test-tag-selector',
+    component: () => import('../views/TagSelectorTest.vue'),
+    meta: { requiresAuth: true },
+  },
+  // Redirect any unmatched routes to library (which will redirect to login if not authenticated)
   {
     path: '/:pathMatch(.*)*',
-    redirect: '/home'
-  }
-]
+    redirect: '/library',
+  },
+];
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
-  routes
-})
+  routes,
+});
 
 // Navigation guard
-router.beforeEach(async (to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuard) => {
-  const authStore = useAuthStore()
+router.beforeEach(
+  async (
+    to: RouteLocationNormalized,
+    from: RouteLocationNormalized,
+    next: NavigationGuard
+  ) => {
+    const authStore = useAuthStore();
 
-  // Check if the route requires authentication
-  if (to.matched.some((record) => record.meta.requiresAuth)) {
-    // If we have a token, validate it
-    if (authStore.token) {
-      const isValid = await authStore.validateToken()
+    // Check if the route requires authentication
+    if (to.matched.some(record => record.meta.requiresAuth)) {
+      // If we have a token, validate it
+      if (authStore.token) {
+        const isValid = await authStore.validateToken();
 
-      if (isValid) {
-        // Token is valid, proceed to the requested route
-        next()
+        if (isValid) {
+          // Check if the route requires admin access
+          if (to.matched.some(record => record.meta.requiresAdmin)) {
+            if (!authStore.user?.owner) {
+              // User is not admin, redirect to library
+              next({ name: 'library' });
+              return;
+            }
+          }
+
+          // Token is valid and admin check passed, proceed to the requested route
+          next();
+        } else {
+          // Token is invalid, redirect to login with destination
+          const destination = to.fullPath;
+          authStore.setRedirectDestination(destination);
+          next({
+            name: 'login',
+            query: { dst: destination },
+          });
+        }
       } else {
-        // Token is invalid, redirect to login with destination
-        const destination = to.fullPath
-        authStore.setRedirectDestination(destination)
+        // No token, redirect to login with destination
+        const destination = to.fullPath;
+        authStore.setRedirectDestination(destination);
         next({
           name: 'login',
-          query: { dst: destination }
-        })
+          query: { dst: destination },
+        });
       }
     } else {
-      // No token, redirect to login with destination
-      const destination = to.fullPath
-      authStore.setRedirectDestination(destination)
-      next({
-        name: 'login',
-        query: { dst: destination }
-      })
+      // Route doesn't require auth, proceed
+      next();
     }
-  } else {
-    // Route doesn't require auth, proceed
-    next()
   }
-})
+);
 
-export default router
+export default router;

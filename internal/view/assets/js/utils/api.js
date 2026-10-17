@@ -1,3 +1,39 @@
+// Configuration for the Shiori API client
+// The <base> tag holds the server root path, so the API paths are relative to it.
+const apiConfig = new ShioriAPI.Configuration({
+	basePath: document.baseURI.replace(/\/$/, ""),
+	middleware: [
+		{
+			pre: async ({ url, init }) => {
+				const token = localStorage.getItem("shiori-token");
+				if (token) {
+					init.headers = { ...init.headers, Authorization: `Bearer ${token}` };
+				}
+				return { url, init };
+			},
+		},
+	],
+});
+
+// Initialize API instances
+export const bookmarksApi = new ShioriAPI.BookmarksApi(apiConfig);
+export const authApi = new ShioriAPI.AuthApi(apiConfig);
+export const tagsApi = new ShioriAPI.TagsApi(apiConfig);
+export const systemApi = new ShioriAPI.SystemApi(apiConfig);
+export const accountsApi = new ShioriAPI.AccountsApi(apiConfig);
+
+// Helper function to handle API errors from the new client
+export function getErrorMessage(error) {
+	if (error instanceof ShioriAPI.ResponseError) {
+		return error.response?.statusText || "API Error";
+	}
+	if (error instanceof Error) {
+		return error.message;
+	}
+	return "Unknown error occurred";
+}
+
+// Legacy API wrapper functions for backward compatibility
 // Handles API responses in both legacy and new message formats
 export async function handleApiResponse(response) {
 	if (!response.ok) throw response;
@@ -17,7 +53,9 @@ export async function handleApiResponse(response) {
 	// Check if response is in the new message format
 	if (data && typeof data === "object" && "ok" in data && "message" in data) {
 		if (!data.ok) {
-			throw new Error(data.message?.error || "Unknown error");
+			throw new Error(
+				data.message?.Error || data.message?.error || "Unknown error",
+			);
 		}
 		return data.message;
 	}
@@ -29,20 +67,23 @@ export async function handleApiResponse(response) {
 // Handles API errors and returns a user-friendly error message
 export async function handleApiError(error) {
 	if (error instanceof Response) {
-		const data = await error.json();
+		try {
+			const data = await error.json();
 
-		if (data && typeof data === "object" && "error" in data) {
-			return data.error;
-		} else if (
-			data &&
-			typeof data === "object" &&
-			"message" in data &&
-			"error" in data.message
-		) {
-			return data.message.error;
-		} else {
-			return error.statusText;
+			if (data && typeof data === "object" && "Error" in data) {
+				return data.Error;
+			} else if (
+				data &&
+				typeof data === "object" &&
+				"message" in data &&
+				"Error" in data.message
+			) {
+				return data.message.Error;
+			}
+		} catch {
+			// Response body was not valid JSON
 		}
+		return error.statusText || `HTTP Error ${error.status}`;
 	}
 
 	return "Unknown error occurred";

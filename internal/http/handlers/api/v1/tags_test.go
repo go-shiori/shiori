@@ -37,7 +37,11 @@ func TestHandleListTags(t *testing.T) {
 
 		response := testutil.NewTestResponseFromRecorder(w)
 		response.AssertOk(t)
-		response.AssertMessageIsNotEmptyList(t)
+		response.AssertMessageJSONKeyValue(t, "Items", func(t *testing.T, value any) {
+			// items should be a list
+			_, ok := value.([]any)
+			require.True(t, ok)
+		})
 	})
 
 	t.Run("with_bookmark_count parameter", func(t *testing.T) {
@@ -51,9 +55,11 @@ func TestHandleListTags(t *testing.T) {
 
 		// Create a bookmark with this tag
 		bookmark := model.BookmarkDTO{
-			URL:   "https://example.com/test",
-			Title: "Test Bookmark",
-			Tags:  []model.TagDTO{{Tag: model.Tag{Name: tag.Name}}},
+			Bookmark: model.Bookmark{
+				URL:   "https://example.com/test",
+				Title: "Test Bookmark",
+			},
+			Tags: []model.TagDTO{{Tag: model.Tag{Name: tag.Name}}},
 		}
 		_, err = deps.Database().SaveBookmarks(ctx, true, bookmark)
 		require.NoError(t, err)
@@ -71,13 +77,12 @@ func TestHandleListTags(t *testing.T) {
 		response := testutil.NewTestResponseFromRecorder(w)
 		response.AssertOk(t)
 
-		response.AssertMessageIsNotEmptyList(t)
-
-		response.ForEach(t, func(item map[string]any) {
+		// Iterate items in paginated response
+		response.ForEachInKey(t, "Items", func(item map[string]any) {
 			t.Logf("item: %+v", item)
-			if tag, ok := item["name"].(string); ok {
+			if tag, ok := item["Name"].(string); ok {
 				if tag == "test-tag-with-count" {
-					require.NotZero(t, item["bookmark_count"])
+					require.NotZero(t, item["BookmarkCount"])
 				}
 			}
 		})
@@ -132,8 +137,8 @@ func TestHandleListTags(t *testing.T) {
 
 		// Verify the response contains the tag associated with the bookmark
 		found := false
-		response.ForEach(t, func(item map[string]any) {
-			if tag, ok := item["name"].(string); ok {
+		response.ForEachInKey(t, "Items", func(item map[string]any) {
+			if tag, ok := item["Name"].(string); ok {
 				if tag == "test-tag-for-bookmark" {
 					found = true
 				}
@@ -169,11 +174,10 @@ func TestHandleListTags(t *testing.T) {
 		response := testutil.NewTestResponseFromRecorder(w)
 		response.AssertOk(t)
 
-		response.AssertMessageIsNotEmptyList(t)
-
+		// Check items list contains expected tag name
 		found := false
-		response.ForEach(t, func(item map[string]any) {
-			if tag, ok := item["name"].(string); ok {
+		response.ForEachInKey(t, "Items", func(item map[string]any) {
+			if tag, ok := item["Name"].(string); ok {
 				if tag == "golang" {
 					found = true
 				}
@@ -195,11 +199,9 @@ func TestHandleListTags(t *testing.T) {
 		response = testutil.NewTestResponseFromRecorder(w)
 		response.AssertOk(t)
 
-		response.AssertMessageIsNotEmptyList(t)
-
 		found = false
-		response.ForEach(t, func(item map[string]any) {
-			if tag, ok := item["name"].(string); ok {
+		response.ForEachInKey(t, "Items", func(item map[string]any) {
+			if tag, ok := item["Name"].(string); ok {
 				if strings.Contains(tag, "python") {
 					found = true
 				}
@@ -234,9 +236,98 @@ func TestHandleListTags(t *testing.T) {
 		response.AssertNotOk(t)
 
 		// Verify the error message
-		response.AssertMessageJSONKeyValue(t, "error", func(t *testing.T, value any) {
+		response.AssertMessageJSONKeyValue(t, "Error", func(t *testing.T, value any) {
 			require.Equal(t, "search and bookmark ID filtering cannot be used together", value)
 		})
+	})
+
+	t.Run("pagination with page and limit", func(t *testing.T) {
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+
+		// Create multiple tags
+		tags := []model.Tag{}
+		for i := 1; i <= 10; i++ {
+			tags = append(tags, model.Tag{Name: "pagination-tag-" + strconv.Itoa(i)})
+		}
+		createdTags, err := deps.Database().CreateTags(ctx, tags...)
+		require.NoError(t, err)
+		require.Len(t, createdTags, 10)
+
+		// Test first page with limit 3
+		w := testutil.PerformRequest(
+			deps,
+			HandleListTags,
+			"GET",
+			"/api/v1/tags",
+			testutil.WithFakeUser(),
+			testutil.WithRequestQueryParam("page", "1"),
+			testutil.WithRequestQueryParam("limit", "3"),
+		)
+		require.Equal(t, http.StatusOK, w.Code)
+
+		response := testutil.NewTestResponseFromRecorder(w)
+		response.AssertOk(t)
+		response.AssertMessageJSONKeyValue(t, "Items", func(t *testing.T, value any) {
+			_, ok := value.([]any)
+			require.True(t, ok)
+		})
+
+		// Count items in first page
+		var count int
+		response.ForEachInKey(t, "Items", func(item map[string]any) { count++ })
+		require.LessOrEqual(t, count, 3, "Should have at most 3 items per page")
+
+		// Test second page
+		w = testutil.PerformRequest(
+			deps,
+			HandleListTags,
+			"GET",
+			"/api/v1/tags",
+			testutil.WithFakeUser(),
+			testutil.WithRequestQueryParam("page", "2"),
+			testutil.WithRequestQueryParam("limit", "3"),
+		)
+		require.Equal(t, http.StatusOK, w.Code)
+
+		response = testutil.NewTestResponseFromRecorder(w)
+		response.AssertOk(t)
+	})
+
+	t.Run("pagination with invalid parameters", func(t *testing.T) {
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+
+		// Test invalid page parameter (should default to 1)
+		w := testutil.PerformRequest(
+			deps,
+			HandleListTags,
+			"GET",
+			"/api/v1/tags",
+			testutil.WithFakeUser(),
+			testutil.WithRequestQueryParam("page", "invalid"),
+		)
+		require.Equal(t, http.StatusBadRequest, w.Code) // Should reject invalid page
+
+		// Test negative page parameter
+		w = testutil.PerformRequest(
+			deps,
+			HandleListTags,
+			"GET",
+			"/api/v1/tags",
+			testutil.WithFakeUser(),
+			testutil.WithRequestQueryParam("page", "-1"),
+		)
+		require.Equal(t, http.StatusBadRequest, w.Code) // Should reject negative page
+
+		// Test limit exceeds maximum
+		w = testutil.PerformRequest(
+			deps,
+			HandleListTags,
+			"GET",
+			"/api/v1/tags",
+			testutil.WithFakeUser(),
+			testutil.WithRequestQueryParam("limit", "200"),
+		)
+		require.Equal(t, http.StatusBadRequest, w.Code) // Should reject limit > 100
 	})
 }
 
@@ -306,10 +397,10 @@ func TestHandleGetTag(t *testing.T) {
 		response.AssertOk(t)
 
 		// Verify the tag data
-		response.AssertMessageJSONKeyValue(t, "id", func(t *testing.T, value any) {
+		response.AssertMessageJSONKeyValue(t, "ID", func(t *testing.T, value any) {
 			require.Equal(t, tagID, int(value.(float64))) // TODO: Float64??
 		})
-		response.AssertMessageJSONKeyValue(t, "name", func(t *testing.T, value any) {
+		response.AssertMessageJSONKeyValue(t, "Name", func(t *testing.T, value any) {
 			require.Equal(t, "test-tag", value)
 		})
 	})
@@ -325,7 +416,7 @@ func TestHandleCreateTag(t *testing.T) {
 		require.Equal(t, http.StatusUnauthorized, w.Code)
 	})
 
-	t.Run("invalid json payload", func(t *testing.T) {
+	t.Run("requires admin privileges", func(t *testing.T) {
 		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
 		w := testutil.PerformRequest(
 			deps,
@@ -333,6 +424,19 @@ func TestHandleCreateTag(t *testing.T) {
 			"POST",
 			"/api/v1/tags",
 			testutil.WithFakeUser(),
+			testutil.WithBody(`{"name": "tag"}`),
+		)
+		require.Equal(t, http.StatusForbidden, w.Code)
+	})
+
+	t.Run("invalid json payload", func(t *testing.T) {
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+		w := testutil.PerformRequest(
+			deps,
+			HandleCreateTag,
+			"POST",
+			"/api/v1/tags",
+			testutil.WithFakeAdmin(),
 			testutil.WithBody("invalid json"),
 		)
 		require.Equal(t, http.StatusBadRequest, w.Code)
@@ -345,8 +449,8 @@ func TestHandleCreateTag(t *testing.T) {
 			HandleCreateTag,
 			"POST",
 			"/api/v1/tags",
-			testutil.WithFakeUser(),
-			testutil.WithBody(`{"name": ""}`),
+			testutil.WithFakeAdmin(),
+			testutil.WithBody(`{"Name": ""}`),
 		)
 		require.Equal(t, http.StatusBadRequest, w.Code)
 	})
@@ -358,8 +462,8 @@ func TestHandleCreateTag(t *testing.T) {
 			HandleCreateTag,
 			"POST",
 			"/api/v1/tags",
-			testutil.WithFakeUser(),
-			testutil.WithBody(`{"name": "new-test-tag"}`),
+			testutil.WithFakeAdmin(),
+			testutil.WithBody(`{"Name": "new-test-tag"}`),
 		)
 		require.Equal(t, http.StatusCreated, w.Code)
 
@@ -367,12 +471,47 @@ func TestHandleCreateTag(t *testing.T) {
 		response.AssertOk(t)
 
 		// Verify the created tag
-		response.AssertMessageJSONKeyValue(t, "name", func(t *testing.T, value any) {
+		response.AssertMessageJSONKeyValue(t, "Name", func(t *testing.T, value any) {
 			require.Equal(t, "new-test-tag", value)
 		})
-		response.AssertMessageJSONKeyValue(t, "id", func(t *testing.T, value any) {
+		response.AssertMessageJSONKeyValue(t, "ID", func(t *testing.T, value any) {
 			require.Greater(t, value.(float64), float64(0)) // TODO: Float64??
 		})
+	})
+
+	t.Run("tag already exists returns 409", func(t *testing.T) {
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+
+		// Create a tag first
+		tag := model.Tag{Name: "duplicate-test-tag"}
+		createdTags, err := deps.Database().CreateTags(ctx, tag)
+		require.NoError(t, err)
+		require.Len(t, createdTags, 1)
+
+		// Try to create the same tag again via API
+		w := testutil.PerformRequest(
+			deps,
+			HandleCreateTag,
+			"POST",
+			"/api/v1/tags",
+			testutil.WithFakeAdmin(),
+			testutil.WithBody(`{"Name": "duplicate-test-tag"}`),
+		)
+		require.Equal(t, http.StatusConflict, w.Code)
+
+		// Verify no duplicate was created by searching for the tag
+		tags, err := deps.Domains().Tags().ListTags(ctx, model.ListTagsOptions{
+			Search: "duplicate-test-tag",
+		})
+		require.NoError(t, err)
+
+		duplicateCount := 0
+		for _, t := range tags {
+			if t.Name == "duplicate-test-tag" {
+				duplicateCount++
+			}
+		}
+		require.Equal(t, 1, duplicateCount, "Should only have one tag with this name")
 	})
 }
 
@@ -392,6 +531,20 @@ func TestHandleUpdateTag(t *testing.T) {
 		require.Equal(t, http.StatusUnauthorized, w.Code)
 	})
 
+	t.Run("requires admin privileges", func(t *testing.T) {
+		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
+		w := testutil.PerformRequest(
+			deps,
+			HandleUpdateTag,
+			"PUT",
+			"/api/v1/tags/1",
+			testutil.WithFakeUser(),
+			testutil.WithRequestPathValue("id", "1"),
+			testutil.WithBody(`{"name": "tag"}`),
+		)
+		require.Equal(t, http.StatusForbidden, w.Code)
+	})
+
 	t.Run("invalid tag id", func(t *testing.T) {
 		_, deps := testutil.GetTestConfigurationAndDependencies(t, ctx, logger)
 		w := testutil.PerformRequest(
@@ -399,7 +552,7 @@ func TestHandleUpdateTag(t *testing.T) {
 			HandleUpdateTag,
 			"PUT",
 			"/api/v1/tags/invalid",
-			testutil.WithFakeUser(),
+			testutil.WithFakeAdmin(),
 			testutil.WithRequestPathValue("id", "invalid"),
 		)
 		require.Equal(t, http.StatusBadRequest, w.Code)
@@ -412,7 +565,7 @@ func TestHandleUpdateTag(t *testing.T) {
 			HandleUpdateTag,
 			"PUT",
 			"/api/v1/tags/1",
-			testutil.WithFakeUser(),
+			testutil.WithFakeAdmin(),
 			testutil.WithRequestPathValue("id", "1"),
 			testutil.WithBody("invalid json"),
 		)
@@ -426,9 +579,9 @@ func TestHandleUpdateTag(t *testing.T) {
 			HandleUpdateTag,
 			"PUT",
 			"/api/v1/tags/1",
-			testutil.WithFakeUser(),
+			testutil.WithFakeAdmin(),
 			testutil.WithRequestPathValue("id", "1"),
-			testutil.WithBody(`{"name": ""}`),
+			testutil.WithBody(`{"Name": ""}`),
 		)
 		require.Equal(t, http.StatusBadRequest, w.Code)
 	})
@@ -440,9 +593,9 @@ func TestHandleUpdateTag(t *testing.T) {
 			HandleUpdateTag,
 			"PUT",
 			"/api/v1/tags/999",
-			testutil.WithFakeUser(),
+			testutil.WithFakeAdmin(),
 			testutil.WithRequestPathValue("id", "999"),
-			testutil.WithBody(`{"name": "updated-tag"}`),
+			testutil.WithBody(`{"Name": "updated-tag"}`),
 		)
 		require.Equal(t, http.StatusNotFound, w.Code)
 	})
@@ -462,9 +615,9 @@ func TestHandleUpdateTag(t *testing.T) {
 			HandleUpdateTag,
 			"PUT",
 			"/api/v1/tags/"+strconv.Itoa(tagID),
-			testutil.WithFakeUser(),
+			testutil.WithFakeAdmin(),
 			testutil.WithRequestPathValue("id", strconv.Itoa(tagID)),
-			testutil.WithBody(`{"name": "updated-test-tag"}`),
+			testutil.WithBody(`{"Name": "updated-test-tag"}`),
 		)
 		require.Equal(t, http.StatusOK, w.Code)
 
@@ -472,7 +625,7 @@ func TestHandleUpdateTag(t *testing.T) {
 		response.AssertOk(t)
 
 		// Verify the updated tag
-		response.AssertMessageJSONKeyValue(t, "name", func(t *testing.T, value any) {
+		response.AssertMessageJSONKeyValue(t, "Name", func(t *testing.T, value any) {
 			require.Equal(t, "updated-test-tag", value)
 		})
 

@@ -4,8 +4,8 @@ package model
 // This errors are used in the domain layer to indicate an error that is caused generally
 // by the user and has to be sent back via the API or appropriate channel.
 type ValidationError struct {
-	Field   string `json:"field"`
-	Message string `json:"message"`
+	Field   string
+	Message string
 }
 
 func (v ValidationError) Error() string {

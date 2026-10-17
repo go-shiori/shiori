@@ -5,37 +5,43 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/golang-jwt/jwt/v5"
+	"github.com/sirupsen/logrus"
 )
 
 // Account is the database representation for account.
 type Account struct {
-	ID       DBID       `db:"id"       json:"id"`
-	Username string     `db:"username" json:"username"`
-	Password string     `db:"password" json:"password,omitempty"`
-	Owner    bool       `db:"owner"    json:"owner"`
-	Config   UserConfig `db:"config"               json:"config"`
+	ID       DBID       `db:"id"`
+	Username string     `db:"username"`
+	Password string     `db:"password" json:",omitempty"`
+	Owner    bool       `db:"owner"`
+	Config   UserConfig `db:"config"`
 }
 
 type UserConfig struct {
-	ShowId        bool
-	ListMode      bool
-	HideThumbnail bool
-	HideExcerpt   bool
-	Theme         string
-	KeepMetadata  bool
-	UseArchive    bool
-	CreateEbook   bool
-	MakePublic    bool
+	ShowId        bool   `json:"ShowId"`
+	ListMode      bool   `json:"ListMode"`
+	HideThumbnail bool   `json:"HideThumbnail"`
+	HideExcerpt   bool   `json:"HideExcerpt"`
+	Theme         string `json:"Theme"`
+	KeepMetadata  bool   `json:"KeepMetadata"`
+	UseArchive    bool   `json:"UseArchive"`
+	CreateEbook   bool   `json:"CreateEbook"`
+	MakePublic    bool   `json:"MakePublic"`
 }
 
 func (c *UserConfig) Scan(value interface{}) error {
 	switch v := value.(type) {
 	case []byte:
-		json.Unmarshal(v, &c)
+		if err := json.Unmarshal(v, c); err != nil {
+			logrus.WithError(err).Error("failed to unmarshal user config, using defaults")
+		}
+		c.Defaults()
 		return nil
 	case string:
-		json.Unmarshal([]byte(v), &c)
+		if err := json.Unmarshal([]byte(v), c); err != nil {
+			logrus.WithError(err).Error("failed to unmarshal user config, using defaults")
+		}
+		c.Defaults()
 		return nil
 	default:
 		return fmt.Errorf("unsupported type: %T", v)
@@ -44,6 +50,20 @@ func (c *UserConfig) Scan(value interface{}) error {
 
 func (c UserConfig) Value() (driver.Value, error) {
 	return json.Marshal(c)
+}
+
+// Defaults sets default values for UserConfig fields
+func (c *UserConfig) Defaults() {
+	if c.Theme == "" {
+		c.Theme = "system"
+	}
+}
+
+// NewUserConfig returns a UserConfig with default values
+func NewUserConfig() UserConfig {
+	c := UserConfig{}
+	c.Defaults()
+	return c
 }
 
 // ToDTO converts Account to AccountDTO.
@@ -61,11 +81,11 @@ func (a Account) ToDTO() AccountDTO {
 
 // AccountDTO is data transfer object for Account.
 type AccountDTO struct {
-	ID       DBID        `json:"id"`
-	Username string      `json:"username"`
-	Password string      `json:"password,omitempty"` // Used only to store, not to retrieve
-	Owner    *bool       `json:"owner"`
-	Config   *UserConfig `json:"config"`
+	ID       DBID
+	Username string
+	Password string `json:",omitempty"`
+	Owner    *bool
+	Config   *UserConfig
 }
 
 func (adto *AccountDTO) IsOwner() bool {
@@ -90,10 +110,4 @@ func (adto *AccountDTO) IsValidUpdate() error {
 	}
 
 	return nil
-}
-
-type JWTClaim struct {
-	jwt.RegisteredClaims
-
-	Account *Account
 }

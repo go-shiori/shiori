@@ -10,9 +10,9 @@ import (
 // HandleLiveness handles the liveness check endpoint
 func HandleLiveness(deps model.Dependencies, c model.WebContext) {
 	response.SendJSON(c, http.StatusOK, struct {
-		Version string `json:"version"`
-		Commit  string `json:"commit"`
-		Date    string `json:"date"`
+		Version string
+		Commit  string
+		Date    string
 	}{
 		Version: model.BuildVersion,
 		Commit:  model.BuildCommit,

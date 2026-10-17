@@ -15,7 +15,7 @@ var template = `
 		<p class="id" v-show="ShowId">{{id}}</p>
 	</a>
 	<div class="bookmark-tags" v-if="tags.length > 0">
-		<a v-for="tag in tags" @click="tagClicked($event, tag.name)">{{tag.name}}</a>
+		<a v-for="tag in tags" @click="tagClicked($event, tag.Name)">{{tag.Name}}</a>
 	</div>
 	<div class="spacer"></div>
 	<div class="bookmark-menu">
@@ -95,8 +95,10 @@ export default {
 			return this.excerpt !== "" && !this.thumbnailVisible && !this.HideExcerpt;
 		},
 		thumbnailStyleURL() {
+			const url = new URL(this.imageURL.replace(/^\//, ""), document.baseURI);
+			url.searchParams.set("modifiedAt", this.modifiedAt);
 			return {
-				backgroundImage: `url("${this.imageURL}?modifiedAt=${this.modifiedAt}")`,
+				backgroundImage: `url("${url}")`,
 			};
 		},
 		eventItem() {
