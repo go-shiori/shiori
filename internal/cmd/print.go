@@ -53,12 +53,12 @@ func printHandler(cmd *cobra.Command, args []string) {
 	}
 
 	// Read bookmarks from database
-	orderMethod := model.DefaultOrder
+	orderMethod := model.DefaultSearchOrder
 	if orderLatest {
-		orderMethod = model.ByLastModified
+		orderMethod = model.ByLastModifiedSearchOrder
 	}
 
-	searchOptions := model.DBGetBookmarksOptions{
+	searchOptions := model.BookmarksSearchOptions{
 		IDs:          ids,
 		Tags:         tags,
 		ExcludedTags: excludedTags,
@@ -66,7 +66,7 @@ func printHandler(cmd *cobra.Command, args []string) {
 		OrderMethod:  orderMethod,
 	}
 
-	bookmarks, err := deps.Database().GetBookmarks(cmd.Context(), searchOptions)
+	bookmarks, err := deps.Domains().Bookmarks().SearchBookmarks(cmd.Context(), searchOptions)
 	if err != nil {
 		cError.Printf("Failed to get bookmarks: %v\n", err)
 		return
