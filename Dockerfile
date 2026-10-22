@@ -13,7 +13,6 @@ RUN apk add --no-cache ca-certificates tzdata && \
 # Server image
 FROM scratch
 
-ENV PORT=8080
 ENV SHIORI_DIR=/shiori
 WORKDIR ${SHIORI_DIR}
 
