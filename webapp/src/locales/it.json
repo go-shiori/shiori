@@ -1,0 +1,65 @@
+{
+  "common": {
+    "loading": "Carimento...",
+    "save": "Salva",
+    "cancel": "Annulla",
+    "delete": "Elimina",
+    "edit": "Modifica",
+    "search": "Cerca",
+    "add": "Aggiungi",
+    "remove": "Rimuovi",
+    "close": "Chiudi"
+  },
+  "auth": {
+    "login": "Login",
+    "logout": "Logout",
+    "username": "Username",
+    "password": "Password",
+    "remember_me": "Ricorda",
+    "login_failed": "Autenticazione fallita. Controlla le tue credenziali."
+  },
+  "navigation": {
+    "home": "Home",
+    "archive": "Archivio",
+    "tags": "Tag",
+    "folders": "Cartelle",
+    "settings": "Configurazioni",
+    "about": "Informazioni"
+  },
+  "bookmarks": {
+    "title": "Segnalibri",
+    "add_bookmark": "Aggiungi Segnalibro",
+    "edit_bookmark": "Modifica Segnalibro",
+    "delete_bookmark": "Elimina Segnalibro",
+    "url": "URL",
+    "title": "Titolo",
+    "excerpt": "Estratto",
+    "tags": "Tag",
+    "add_tag": "Aggiungi Tag",
+    "no_bookmarks": "Nessun segnalibro trovato"
+  },
+  "tags": {
+    "title": "Tag",
+    "add_tag": "Aggiungi Tag",
+    "edit_tag": "Modifica Tag",
+    "delete_tag": "Elimina Tag",
+    "name": "Nome",
+    "no_tags": "Nessun tag trovato"
+  },
+  "folders": {
+    "title": "Cartelle",
+    "add_folder": "Aggiungi Cartella",
+    "edit_folder": "Modifica Cartella",
+    "delete_folder": "Elimina Cartella",
+    "name": "Nome",
+    "no_folders": "Nessuna cartella trovata"
+  },
+  "settings": {
+    "title": "Configurazioni",
+    "language": "Lingua",
+    "theme": "Tema",
+    "light": "Chiaro",
+    "dark": "Scuro",
+    "system": "Sistema"
+  }
+}
