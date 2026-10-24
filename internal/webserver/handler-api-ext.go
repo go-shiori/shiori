@@ -22,7 +22,14 @@ func (h *Handler) ApiInsertViaExtension(w http.ResponseWriter, r *http.Request, 
 
 	// Make sure session still valid
 	err := h.validateSession(r)
-	checkError(err)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		_ = json.NewEncoder(w).Encode(map[string]string{
+			"error": err.Error(),
+		})
+		return
+	}
 
 	// Decode request
 	request := model.BookmarkDTO{}
@@ -123,7 +130,14 @@ func (h *Handler) ApiDeleteViaExtension(w http.ResponseWriter, r *http.Request, 
 
 	// Make sure session still valid
 	err := h.validateSession(r)
-	checkError(err)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		_ = json.NewEncoder(w).Encode(map[string]string{
+			"error": err.Error(),
+		})
+		return
+	}
 
 	// Decode request
 	request := model.BookmarkDTO{}
