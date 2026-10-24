@@ -101,6 +101,31 @@ func TestBookmarkContentHandler(t *testing.T) {
 	})
 }
 
+func TestBookmarkPagesWithWebUIV2(t *testing.T) {
+	logger := logrus.New()
+	_, deps := testutil.GetTestConfigurationAndDependencies(t, context.Background(), logger)
+	deps.Config().Http.ServeWebUIV2 = true
+
+	require.NoError(t, templates.SetupTemplates(deps.Config()))
+	t.Cleanup(func() {
+		deps.Config().Http.ServeWebUIV2 = false
+		require.NoError(t, templates.SetupTemplates(deps.Config()))
+	})
+
+	for name, handler := range map[string]func(model.Dependencies, model.WebContext){
+		"content": HandleBookmarkContent,
+		"archive": HandleBookmarkArchive,
+	} {
+		t.Run(name+" serves the frontend", func(t *testing.T) {
+			c, w := testutil.NewTestWebContextWithMethod("GET", "/bookmark/1/"+name)
+			testutil.SetRequestPathValue(c, "id", "1")
+			handler(deps, c)
+			require.Equal(t, http.StatusOK, w.Code)
+			require.Contains(t, w.Body.String(), "<title>Shiori - Simple Bookmark Manager</title>")
+		})
+	}
+}
+
 func TestBookmarkFileHandlers(t *testing.T) {
 	logger := logrus.New()
 	_, deps := testutil.GetTestConfigurationAndDependencies(t, context.Background(), logger)

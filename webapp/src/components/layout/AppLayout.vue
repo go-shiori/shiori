@@ -41,8 +41,10 @@ onUnmounted(() => {
     </div>
 
     <!-- Mobile Navigation (only visible on mobile) -->
-    <nav v-if="isMobile"
-      class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 fixed bottom-0 left-0 right-0 z-10">
+    <nav
+      v-if="isMobile"
+      class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 fixed bottom-0 left-0 right-0 z-10"
+    >
       <!-- Mobile navigation content will be rendered by Sidebar component -->
     </nav>
   </div>

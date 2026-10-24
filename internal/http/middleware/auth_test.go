@@ -30,8 +30,15 @@ func TestAuthMiddleware(t *testing.T) {
 	})
 
 	t.Run("test authorization header", func(t *testing.T) {
-		account := testutil.GetValidAccount().ToDTO()
-		token, err := deps.Domains().Auth().CreateTokenForAccount(&account, time.Now().Add(time.Minute))
+		// Create a real account in the database
+		account, err := deps.Domains().Accounts().CreateAccount(context.TODO(), model.AccountDTO{
+			Username: "testuser",
+			Password: "testpass",
+			Owner:    model.Ptr(false),
+		})
+		require.NoError(t, err)
+
+		token, err := deps.Domains().Auth().CreateTokenForAccount(account, time.Now().Add(time.Minute))
 		require.NoError(t, err)
 
 		w := httptest.NewRecorder()
@@ -46,8 +53,15 @@ func TestAuthMiddleware(t *testing.T) {
 	})
 
 	t.Run("test authorization cookie", func(t *testing.T) {
-		account := model.AccountDTO{Username: "shiori"}
-		token, err := deps.Domains().Auth().CreateTokenForAccount(&account, time.Now().Add(time.Minute))
+		// Create a real account in the database
+		account, err := deps.Domains().Accounts().CreateAccount(context.TODO(), model.AccountDTO{
+			Username: "shiori",
+			Password: "password",
+			Owner:    model.Ptr(false),
+		})
+		require.NoError(t, err)
+
+		token, err := deps.Domains().Auth().CreateTokenForAccount(account, time.Now().Add(time.Minute))
 		require.NoError(t, err)
 
 		w := httptest.NewRecorder()

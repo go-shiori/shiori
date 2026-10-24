@@ -3,6 +3,8 @@ ARG GOLANG_VERSION
 
 FROM docker.io/golang:${GOLANG_VERSION}-alpine${ALPINE_VERSION}
 
+LABEL shiori.e2e=true
+
 WORKDIR /src/shiori
 
 COPY . /src/shiori

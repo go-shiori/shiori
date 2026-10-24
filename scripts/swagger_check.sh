@@ -3,7 +3,10 @@
 # This script is used to check if the swagger files are up to date.
 
 # Check if swag version is correct
-CURRENT_SWAG_VERSION=$(swag --version | cut -d " " -f 3)
+# Read the version from the binary build info, not from `swag --version`:
+# swag v1.16.5 and v1.16.6 still report "v1.16.4" there, so that output
+# cannot tell which release generated the docs.
+CURRENT_SWAG_VERSION=$(go version -m "$(command -v swag)" | awk '$1 == "mod" && $2 == "github.com/swaggo/swag" {print $3}')
 if [ "$CURRENT_SWAG_VERSION" != "$REQUIRED_SWAG_VERSION" ]; then
     echo "swag version is incorrect. Required version: $REQUIRED_SWAG_VERSION, current version: $CURRENT_SWAG_VERSION"
     exit 1

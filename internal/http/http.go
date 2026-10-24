@@ -1,6 +1,7 @@
 package http
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/go-shiori/shiori/internal/http/webcontext"
@@ -15,7 +16,9 @@ func ToHTTPHandler(deps model.Dependencies, h model.HttpHandler, middlewares ...
 		// Execute OnRequest middlewares
 		for _, m := range middlewares {
 			if err := m.OnRequest(deps, c); err != nil {
-				// Handle middleware error
+				if errors.Is(err, model.ErrPipelineStop) {
+					return
+				}
 				deps.Logger().WithError(err).Error("middleware error in request")
 				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 				return

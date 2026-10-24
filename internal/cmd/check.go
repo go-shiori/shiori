@@ -89,7 +89,7 @@ func checkHandler(cmd *cobra.Command, args []string) {
 			_, err := httpClient.Get(book.URL)
 			if err != nil {
 				chProblem <- book.ID
-				chMessage <- fmt.Errorf("failed to reach %s: %v", book.URL, err)
+				chMessage <- fmt.Errorf("failed to reach \"%s\": %v", book.URL, err)
 				return
 			}
 

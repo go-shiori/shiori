@@ -12,9 +12,9 @@ import (
 )
 
 type createAccountPayload struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-	Owner    bool   `json:"owner"`
+	Username string
+	Password string
+	Owner    bool
 }
 
 func (p *createAccountPayload) ToAccountDTO() model.AccountDTO {
@@ -107,6 +107,11 @@ func HandleDeleteAccount(deps model.Dependencies, c model.WebContext) {
 		return
 	}
 
+	if account := c.GetAccount(); account != nil && int(account.ID) == id {
+		response.SendError(c, http.StatusForbidden, "cannot delete your own account")
+		return
+	}
+
 	err = deps.Domains().Accounts().DeleteAccount(c.Request().Context(), id)
 	if errors.Is(err, model.ErrNotFound) {
 		response.SendError(c, http.StatusNotFound, "account not found")
@@ -142,6 +147,12 @@ func HandleUpdateAccount(deps model.Dependencies, c model.WebContext) {
 	accountID, err := strconv.Atoi(c.Request().PathValue("id"))
 	if err != nil {
 		response.SendError(c, http.StatusBadRequest, "invalid id")
+		return
+	}
+
+	// Self-updates go through /auth/account, which checks the old password and blocks self-demotion.
+	if account := c.GetAccount(); account != nil && int(account.ID) == accountID {
+		response.SendError(c, http.StatusForbidden, "use /api/v1/auth/account to update your own account")
 		return
 	}
 

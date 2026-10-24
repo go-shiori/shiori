@@ -42,6 +42,7 @@ func (m *AuthMiddleware) OnRequest(deps model.Dependencies, c model.WebContext) 
 			Name:   "token",
 			Value:  "",
 			MaxAge: -1,
+			Path:   deps.Config().Http.RootPath,
 		})
 		return nil
 	}
@@ -65,11 +66,11 @@ func RequireLoggedInUser(deps model.Dependencies, c model.WebContext) error {
 
 // RequireLoggedInAdmin ensures a user is authenticated and is an admin
 func RequireLoggedInAdmin(deps model.Dependencies, c model.WebContext) error {
-	account := c.GetAccount()
 	if err := RequireLoggedInUser(deps, c); err != nil {
 		return err
 	}
 
+	account := c.GetAccount()
 	if !account.IsOwner() {
 		response.SendError(c, http.StatusForbidden, "Admin access required")
 		return fmt.Errorf("admin access required")
