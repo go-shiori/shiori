@@ -203,7 +203,7 @@ func GetUserRealIP(r *http.Request) string {
 		if val == "" {
 			continue
 		}
-		// remove leading or tailing comma, tab, space
+		// remove leading or trailing comma, tab, space
 		ipAddr := strings.Trim(val, ",\t ")
 		if idxFirstIP := strings.Index(ipAddr, ","); idxFirstIP >= 0 {
 			ipAddr = ipAddr[:idxFirstIP]
