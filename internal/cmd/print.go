@@ -4,7 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
+	"strconv"
 
+	"github.com/go-shiori/shiori/internal/dependencies"
 	"github.com/go-shiori/shiori/internal/model"
 	"github.com/spf13/cobra"
 )
@@ -50,12 +53,12 @@ func printHandler(cmd *cobra.Command, args []string) {
 	}
 
 	// Read bookmarks from database
-	orderMethod := model.DefaultOrder
+	orderMethod := model.DefaultSearchOrder
 	if orderLatest {
-		orderMethod = model.ByLastModified
+		orderMethod = model.ByLastModifiedSearchOrder
 	}
 
-	searchOptions := model.DBGetBookmarksOptions{
+	searchOptions := model.BookmarksSearchOptions{
 		IDs:          ids,
 		Tags:         tags,
 		ExcludedTags: excludedTags,
@@ -63,7 +66,7 @@ func printHandler(cmd *cobra.Command, args []string) {
 		OrderMethod:  orderMethod,
 	}
 
-	bookmarks, err := deps.Database().GetBookmarks(cmd.Context(), searchOptions)
+	bookmarks, err := deps.Domains().Bookmarks().SearchBookmarks(cmd.Context(), searchOptions)
 	if err != nil {
 		cError.Printf("Failed to get bookmarks: %v\n", err)
 		return
@@ -80,6 +83,8 @@ func printHandler(cmd *cobra.Command, args []string) {
 		}
 		return
 	}
+
+	enrichBookmarks(bookmarks, deps)
 
 	// Print data
 	if useJSON {
@@ -103,4 +108,16 @@ func printHandler(cmd *cobra.Command, args []string) {
 	}
 
 	printBookmarks(bookmarks...)
+}
+
+func enrichBookmarks(bookmarks []model.BookmarkDTO, deps *dependencies.Dependencies) {
+	for idx, bookmark := range bookmarks {
+		bookmark.HasArchive = deps.Domains().Bookmarks().HasArchive(&bookmark)
+		bookmark.HasEbook = deps.Domains().Bookmarks().HasEbook(&bookmark)
+		if deps.Domains().Bookmarks().HasThumbnail(&bookmark) {
+			bookmarkId := strconv.Itoa(bookmark.ID)
+			bookmark.ImageURL = filepath.Join(deps.Config().Http.RootPath, "bookmark", bookmarkId, "thumb")
+		}
+		bookmarks[idx] = bookmark
+	}
 }
