@@ -56,6 +56,8 @@ func TestHttpServer_Setup(t *testing.T) {
 			{"GET", "/api/v1/system/info", http.StatusUnauthorized}, // Requires auth
 			{"GET", "/api/v1/accounts", http.StatusUnauthorized},    // Requires auth
 			{"POST", "/api/v1/auth/login", http.StatusBadRequest},   // Bad request because no body
+			{"GET", "/api/bookmarks", http.StatusUnauthorized},      // Legacy route requires auth
+			{"GET", "/api/tags", http.StatusUnauthorized},           // Legacy route requires auth
 		}
 
 		for _, tt := range routes {
@@ -229,6 +231,18 @@ func TestHttpServer_APIEndpoints(t *testing.T) {
 		req := httptest.NewRequest("GET", "/api/v1/system/info", nil)
 		w := httptest.NewRecorder()
 		s.mux.ServeHTTP(w, req)
+
+		require.Equal(t, http.StatusUnauthorized, w.Code)
+		respBody, _ := io.ReadAll(w.Body)
+		require.Contains(t, string(respBody), "Authentication required")
+	})
+
+	t.Run("legacy bookmarks endpoint unauthenticated", func(t *testing.T) {
+		req := httptest.NewRequest("GET", "/api/bookmarks", nil)
+		w := httptest.NewRecorder()
+		require.NotPanics(t, func() {
+			s.mux.ServeHTTP(w, req)
+		})
 
 		require.Equal(t, http.StatusUnauthorized, w.Code)
 		respBody, _ := io.ReadAll(w.Body)
