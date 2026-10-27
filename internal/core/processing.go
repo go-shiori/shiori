@@ -180,7 +180,7 @@ func ProcessBookmark(deps model.Dependencies, req ProcessRequest) (book model.Bo
 		dstPath := model.GetArchivePath(&book)
 		err = deps.Domains().Storage().WriteFile(dstPath, tmpFile)
 		if err != nil {
-			return book, false, fmt.Errorf("failed move archive to destination `: %v", err)
+			return book, false, fmt.Errorf("failed to move archive to destination: %v", err)
 		}
 
 		book.HasArchive = true

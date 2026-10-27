@@ -198,7 +198,7 @@ func TestGetUserRealIPWithXRealIpListHeader(t *testing.T) {
 }
 
 func TestGetUserRealIPWithXRealIpHeaderIgnoreComma(t *testing.T) {
-	// Test Real IP List with leading or tailing comma
+	// Test Real IP List with leading or trailing comma
 	wantIP := "34.23.123.124"
 	ipVariants := []string{
 		",34.23.123.124", " ,34.23.123.124", "\t,34.23.123.124",
