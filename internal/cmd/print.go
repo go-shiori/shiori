@@ -70,6 +70,10 @@ func printHandler(cmd *cobra.Command, args []string) {
 	}
 
 	if len(bookmarks) == 0 {
+		if useJSON {
+			fmt.Println("[]")
+			return
+		}
 		switch {
 		case len(ids) > 0:
 			cError.Println("No matching index found")
