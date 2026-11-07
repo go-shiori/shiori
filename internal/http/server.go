@@ -112,10 +112,14 @@ func (s *HttpServer) Setup(cfg *config.Config, deps *dependencies.Dependencies) 
 			handlers.HandleFrontend,
 			globalMiddleware...,
 		))
-		s.mux.HandleFunc("GET /assets/", ToHTTPHandler(deps,
+		assetsHandler := ToHTTPHandler(deps,
 			handlers.HandleAssets,
 			globalMiddleware...,
-		))
+		)
+		s.mux.HandleFunc("GET /assets/", assetsHandler)
+		if cfg.Http.RootPath != "/" {
+			s.mux.HandleFunc("GET "+cfg.Http.RootPath+"assets/", assetsHandler)
+		}
 	}
 
 	// API v1 routes

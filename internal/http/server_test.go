@@ -235,3 +235,46 @@ func TestHttpServer_APIEndpoints(t *testing.T) {
 		require.Contains(t, string(respBody), "Authentication required")
 	})
 }
+
+func TestHttpServer_AssetRootPathCases(t *testing.T) {
+	tests := []struct {
+		name     string
+		root     string
+		path     string
+		webUI    bool
+		wantCode int
+		wantType string
+	}{
+		{"default root", "/", "/assets/css/style.css", true, http.StatusOK, "text/css"},
+		{"custom root CSS", "/shiori/", "/shiori/assets/css/style.css", true, http.StatusOK, "text/css"},
+		{"custom root JavaScript", "/shiori/", "/shiori/assets/js/page/base.js", true, http.StatusOK, "javascript"},
+		{"custom root with proxy stripping", "/shiori/", "/assets/css/style.css", true, http.StatusOK, "text/css"},
+		{"nested root", "/apps/shiori/", "/apps/shiori/assets/css/style.css", true, http.StatusOK, "text/css"},
+		{"nested root with proxy stripping prefix", "/apps/shiori/", "/assets/css/style.css", true, http.StatusOK, "text/css"},
+		{"missing nested asset", "/apps/shiori/", "/apps/shiori/assets/missing.css", true, http.StatusNotFound, ""},
+		{"missing custom root asset", "/shiori/", "/shiori/assets/not-found.txt", true, http.StatusNotFound, ""},
+		{"web UI disabled", "/shiori/", "/shiori/assets/css/style.css", false, http.StatusMethodNotAllowed, ""},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			logger := logrus.New()
+			cfg, deps := testutil.GetTestConfigurationAndDependencies(t, context.Background(), logger)
+			cfg.Http.RootPath = tt.root
+			cfg.Http.ServeWebUI = tt.webUI
+
+			server := NewHttpServer(logger)
+			s, err := server.Setup(cfg, deps)
+			require.NoError(t, err)
+
+			req := httptest.NewRequest(http.MethodGet, tt.path, nil)
+			rec := httptest.NewRecorder()
+			s.mux.ServeHTTP(rec, req)
+
+			require.Equal(t, tt.wantCode, rec.Code)
+			if tt.wantType != "" {
+				require.Contains(t, rec.Header().Get("Content-Type"), tt.wantType)
+			}
+		})
+	}
+}
