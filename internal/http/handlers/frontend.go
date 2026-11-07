@@ -4,6 +4,7 @@ import (
 	"embed"
 	"net/http"
 	"path"
+	"strings"
 
 	"github.com/go-shiori/shiori/internal/http/response"
 	"github.com/go-shiori/shiori/internal/model"
@@ -50,5 +51,10 @@ func HandleAssets(deps model.Dependencies, c model.WebContext) {
 	if deps.Config().Http.ServeWebUIV2 {
 		fs = webapp.Assets
 	}
-	http.StripPrefix("/assets/", http.FileServer(newAssetsFS(fs, deps.Config().Http.ServeWebUIV2))).ServeHTTP(c.ResponseWriter(), c.Request())
+	assetsPrefix := "/assets/"
+	rootAssetsPrefix := deps.Config().Http.RootPath + "assets/"
+	if strings.HasPrefix(c.Request().URL.Path, rootAssetsPrefix) {
+		assetsPrefix = rootAssetsPrefix
+	}
+	http.StripPrefix(assetsPrefix, http.FileServer(newAssetsFS(fs, deps.Config().Http.ServeWebUIV2))).ServeHTTP(c.ResponseWriter(), c.Request())
 }
