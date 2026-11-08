@@ -2,23 +2,88 @@
 <html lang="en">
 
 <head>
-    <base href="$$.RootPath$$">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>$$.Book.Title$$</title>
-    <link rel="stylesheet" href="assets/css/archive.css" />
+	<base href="$$.RootPath$$">
+	<title>$$.Book.Title$$ - Shiori - Bookmarks Manager</title>
+
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	<link rel="apple-touch-icon-precomposed" sizes="152x152" href="assets/res/apple-touch-icon-152x152.png">
+	<link rel="apple-touch-icon-precomposed" sizes="144x144" href="assets/res/apple-touch-icon-144x144.png">
+	<link rel="icon" type="image/png" href="assets/res/favicon-32x32.png" sizes="32x32">
+	<link rel="icon" type="image/png" href="assets/res/favicon-16x16.png" sizes="16x16">
+	<link rel="icon" type="image/x-icon" href="assets/res/favicon.ico">
+	<link rel="manifest" href="assets/manifest.webmanifest" />
+
+	<link href="assets/css/style.css" rel="stylesheet">
+
+	<script src="assets/js/vue.min.js"></script>
 </head>
 
-<body class="archive">
-    <div id="shiori-archive-header" class="header">
-        <p id="shiori-logo"><span>栞</span>shiori</p>
-        <div class="spacer"></div>
-        <a href="$$.Book.URL$$" target="_blank">View Original</a>
-        $$if .Book.HasContent$$
-        <a href="bookmark/$$.Book.ID$$/content">View Readable</a>
-        $$end$$
-    </div>
-    <iframe src="bookmark/$$.Book.ID$$/archive/file/" frameborder="0"></iframe>
+<body>
+	<div id="content-scene">
+		<div id="header">
+			<p id="title" dir="auto">$$.Book.Title$$</p>
+			<div class="links">
+				<a href="$$.RootPath$$">← Back</a>
+				<a href="$$.Book.URL$$" target="_blank" rel="noopener noreferrer">View Original</a>
+				$$if .Book.HasContent$$
+				<a href="bookmark/$$.Book.ID$$/content">View Readable</a>
+				$$end$$
+				$$if .HTML$$
+				<a id="toggle-raw" href="#" onclick="toggleRaw(event)">View Raw</a>
+				$$end$$
+				$$if .Book.HasEbook$$
+				<a href="bookmark/$$.Book.ID$$/ebook" download="$$.Book.Title$$.epub">Download Ebook</a>
+				$$end$$
+			</div>
+		</div>
+		$$if .HTML$$
+		<div id="content" dir="auto" v-pre>$$.HTML$$</div>
+		<iframe id="raw-frame" src="bookmark/$$.Book.ID$$/archive/file/" frameborder="0" style="display:none;width:100%;height:100vh;border:none;"></iframe>
+		$$else$$
+		<iframe src="bookmark/$$.Book.ID$$/archive/file/" frameborder="0" style="width:100%;height:100vh;border:none;"></iframe>
+		$$end$$
+	</div>
+
+	<script>
+		function toggleRaw(e) {
+			e.preventDefault();
+			var content = document.getElementById("content");
+			var frame   = document.getElementById("raw-frame");
+			var btn     = document.getElementById("toggle-raw");
+			if (!content || !frame) return;
+			var showingRaw = frame.style.display !== "none";
+			content.style.display = showingRaw ? "" : "none";
+			frame.style.display   = showingRaw ? "none" : "block";
+			btn.textContent       = showingRaw ? "View Raw" : "View Readable";
+		}
+	</script>
+	<script type="module">
+		import basePage from "./assets/js/page/base.js";
+
+		new Vue({
+			el: '#content-scene',
+			mixins: [basePage],
+			methods: {
+				loadSetting() {
+					var opts = JSON.parse(localStorage.getItem("shiori-account")) || {},
+						Theme = (typeof opts.config.Theme === "string" && opts.config.Theme !== "") ? opts.config.Theme : "follow";
+
+					this.appOptions = { Theme: Theme };
+					this.themeSwitch(Theme);
+				}
+			},
+			mounted() {
+				this.loadSetting();
+
+				document.querySelectorAll("#content a").forEach(elem => {
+					elem.setAttribute("target", "_blank");
+					elem.setAttribute("rel", "noopener noreferrer");
+				});
+			}
+		});
+	</script>
 </body>
 
 </html>

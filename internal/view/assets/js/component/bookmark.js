@@ -69,10 +69,10 @@ export default {
 	},
 	computed: {
 		mainURL() {
-			if (this.hasContent) {
-				return new URL(`bookmark/${this.id}/content`, document.baseURI);
-			} else if (this.hasArchive) {
+			if (this.hasArchive) {
 				return new URL(`bookmark/${this.id}/archive`, document.baseURI);
+			} else if (this.hasContent) {
+				return new URL(`bookmark/${this.id}/content`, document.baseURI);
 			} else {
 				return this.url;
 			}

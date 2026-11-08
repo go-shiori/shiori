@@ -1,0 +1,312 @@
+/* Archive list page — scoped to #page-archive-list */
+#page-archive-list {
+  padding: 0 0 40px 0;
+  min-height: 100%;
+}
+
+/* ── Filter bar ── */
+.arl-filters {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--headerBg);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.arl-filter-group {
+  display: flex;
+  align-items: center;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0 10px;
+  gap: 6px;
+  height: 36px;
+  flex: 1;
+  min-width: 140px;
+}
+
+.arl-filter-group i {
+  color: var(--colorLink);
+  font-size: .85em;
+  flex-shrink: 0;
+}
+
+.arl-filter-group input,
+.arl-filter-group select {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: .9em;
+  color: var(--color);
+  width: 100%;
+  font-family: inherit;
+}
+
+.arl-filter-group select {
+  cursor: pointer;
+}
+
+.arl-btn {
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-size: .875em;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.arl-btn-primary {
+  background: var(--main);
+  color: #fff;
+}
+
+.arl-btn-ghost {
+  background: var(--bg);
+  color: var(--colorLink);
+  border: 1px solid var(--border);
+}
+
+.arl-btn:hover { opacity: .85; }
+
+/* ── Active filter chips ── */
+.arl-chips {
+  padding: 8px 20px 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.arl-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px 3px 10px;
+  border-radius: 20px;
+  background: var(--selectedBg);
+  color: var(--main);
+  font-size: .8em;
+  border: 1px solid var(--main);
+  cursor: default;
+}
+
+.arl-chip button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--main);
+  padding: 0;
+  font-size: .9em;
+  line-height: 1;
+}
+
+/* ── Result meta line ── */
+.arl-meta-bar {
+  padding: 10px 20px 4px;
+  font-size: .8em;
+  color: var(--colorLink);
+}
+
+/* ── List ── */
+.arl-list {
+  margin: 0 12px;
+}
+
+.arl-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 8px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background .15s;
+}
+
+.arl-item:hover { background: var(--bg); }
+
+.arl-thumb {
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.arl-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.arl-thumb-letter {
+  font-size: 1.5em;
+  font-weight: 700;
+  color: var(--colorLink);
+  text-transform: uppercase;
+}
+
+.arl-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.arl-title {
+  font-weight: 600;
+  font-size: .95em;
+  color: var(--color);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 2px;
+}
+
+.arl-excerpt {
+  font-size: .82em;
+  color: var(--colorLink);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-bottom: 5px;
+  line-height: 1.4;
+}
+
+.arl-row-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  align-items: center;
+}
+
+.arl-domain {
+  font-size: .78em;
+  color: var(--colorLink);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1px 6px;
+}
+
+.arl-domain:hover {
+  color: var(--main);
+  border-color: var(--main);
+}
+
+.arl-tag {
+  font-size: .75em;
+  padding: 1px 7px;
+  border-radius: 20px;
+  background: var(--selectedBg);
+  color: var(--main);
+  border: 1px solid var(--main);
+  cursor: pointer;
+}
+
+.arl-date {
+  font-size: .75em;
+  color: var(--colorLink);
+  margin-left: auto;
+}
+
+/* ── Action buttons ── */
+.arl-actions {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+  padding-top: 2px;
+}
+
+.arl-actions a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  color: var(--colorLink);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  font-size: .8em;
+  text-decoration: none;
+  transition: color .15s, border-color .15s;
+}
+
+.arl-actions a:hover {
+  color: var(--main);
+  border-color: var(--main);
+}
+
+/* ── Pagination ── */
+.arl-pagination {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  padding: 20px;
+}
+
+.arl-page-btn {
+  min-width: 34px;
+  height: 34px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--contentBg);
+  color: var(--color);
+  cursor: pointer;
+  font-size: .875em;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 8px;
+}
+
+.arl-page-btn.active {
+  background: var(--main);
+  color: #fff;
+  border-color: var(--main);
+}
+
+.arl-page-btn:hover:not(.active):not(:disabled) { border-color: var(--main); color: var(--main); }
+.arl-page-btn:disabled { opacity: .4; cursor: default; }
+
+/* ── Empty / loading states ── */
+.arl-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--colorLink);
+}
+
+.arl-empty i { font-size: 2.5em; margin-bottom: 12px; display: block; }
+
+.arl-spinner {
+  text-align: center;
+  padding: 40px;
+  color: var(--colorLink);
+  font-size: 1.5em;
+}
+
+@media (max-width: 600px) {
+  .arl-filters { padding: 10px 12px; }
+  .arl-filter-group { min-width: 100%; }
+  .arl-list { margin: 0 4px; }
+  .arl-thumb { width: 40px; height: 40px; }
+  .arl-excerpt { display: none; }
+  .arl-actions { flex-direction: row; flex-wrap: wrap; }
+}

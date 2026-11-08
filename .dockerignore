@@ -1,6 +1,8 @@
-dev-data*
-docs
-!docs/swagger
-Dockerfile
-*.md
-/.*
+.git
+*_test.go
+testdata/
+docs/*.md
+docs/assets/
+docs/postman/
+dev-data/
+dist/
